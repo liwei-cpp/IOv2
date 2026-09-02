@@ -17,14 +17,14 @@
  * character types must not, and cv-qualification must not move a value into the
  * arithmetic path.
  */
-#include <device/mem_device.h>
-#include <io/io_base.h>
-#include <io/io_manip.h>
-#include <io/iostream.h>
-#include <io/ostream.h>
-#include <io/traits/arithmetic.h>
-#include <io/traits/char_and_str.h>
-#include <io/traits/nullptr.h>
+#include <IOv2/device/mem_device.h>
+#include <IOv2/io/io_base.h>
+#include <IOv2/io/io_manip.h>
+#include <IOv2/io/iostream.h>
+#include <IOv2/io/ostream.h>
+#include <IOv2/io/traits/arithmetic.h>
+#include <IOv2/io/traits/char_and_str.h>
+#include <IOv2/io/traits/nullptr.h>
 
 #include <support/io_traits_probe.h>
 

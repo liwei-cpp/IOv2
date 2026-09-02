@@ -11,17 +11,17 @@
  * stream accepts at all: a wide stream takes wchar_t and nothing else, where
  * the narrow one also took signed char and unsigned char.
  */
-#include <cvt/code_cvt.h>
-#include <device/file_device.h>
-#include <device/mem_device.h>
-#include <io/io_base.h>
-#include <io/io_manip.h>
-#include <io/iostream.h>
-#include <io/istream.h>
-#include <io/ostream.h>
-#include <io/traits/arithmetic.h>
-#include <io/traits/char_and_str.h>
-#include <io/traits/nullptr.h>
+#include <IOv2/cvt/code_cvt.h>
+#include <IOv2/device/file_device.h>
+#include <IOv2/device/mem_device.h>
+#include <IOv2/io/io_base.h>
+#include <IOv2/io/io_manip.h>
+#include <IOv2/io/iostream.h>
+#include <IOv2/io/istream.h>
+#include <IOv2/io/ostream.h>
+#include <IOv2/io/traits/arithmetic.h>
+#include <IOv2/io/traits/char_and_str.h>
+#include <IOv2/io/traits/nullptr.h>
 
 #include <gtest/gtest.h>
 

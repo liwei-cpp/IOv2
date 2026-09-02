@@ -1,0 +1,152 @@
+// SPDX-FileCopyrightText: 2026 liwei <liweifriends@gmail.com>
+// SPDX-License-Identifier: MIT
+
+#pragma once
+#include <IOv2/common/copyable_mutex.h>
+#include <IOv2/common/sing_temp.h>
+#include <IOv2/cvt/code_cvt_stdio.h>
+#include <IOv2/cvt/root_cvt.h>
+#include <IOv2/cvt/runtime_cvt.h>
+#include <IOv2/device/std_device.h>
+#include <IOv2/io/istream.h>
+#include <IOv2/io/objects/out_impl.h>
+#include <IOv2/io/utilities/istream_operators.h>
+#include <IOv2/io/utilities/stream_common_operators.h>
+#include <IOv2/locale/locale.h>
+
+namespace IOv2
+{
+class __cin;
+class __wcin;
+
+template <typename T, io_device TDevice, typename TChar>
+class stdin_api : public ios_state<TChar>
+                , public istream_operators<TChar>
+                , public stream_common_operators
+{
+    friend istream_operators<TChar>;
+    friend stream_common_operators;
+
+public:
+    using device_type = TDevice;
+    using char_type = TChar;
+    using in_sentry_type = in_sentry<T, false>;
+    using in_iter_type = istreambuf_iterator<istreambuf<device_type, char_type>>;
+    friend in_sentry_type;
+
+public:
+    stdin_api()
+        : m_streambuf(device_type{}, false)
+    {}
+
+    template <cvt_creator TCreator>
+    stdin_api(const TCreator& creator)
+        : m_streambuf(device_type{}, creator, false)
+    {}
+
+public:
+    bool sync_with_stdio(bool sync = true)
+    {
+        auto old_sync_state = m_sync_with_stdio;
+        if (old_sync_state == sync)
+            return old_sync_state;
+        m_sync_with_stdio = sync;
+
+        auto [dev, err] = m_streambuf.detach();
+        if constexpr (std::is_same_v<char_type, char>)
+            m_streambuf = istreambuf<device_type, char_type>(std::move(dev), !sync);
+        else if constexpr (std::is_same_v<char_type, wchar_t>)
+            m_streambuf = istreambuf<device_type, wchar_t>(std::move(dev), code_cvt_stdio_creator(code()), !sync);
+        else
+            static_assert(dependent_false_v<char_type>, "invalid character type");
+        if (err) std::rethrow_exception(err);
+        return old_sync_state;
+    }
+
+    std::pair<device_type, std::exception_ptr> detach() = delete;
+    void attach(device_type&&) = delete;
+
+    void reset() // mainly used for unit-test
+    {
+        this->clear();
+        this->exceptions(ios_defs::goodbit);
+        m_streambuf.attach();
+    }
+
+    std::string code() const
+        requires std::is_same_v<TChar, wchar_t>
+    {
+        code_cvt_access acc;
+        m_streambuf.retrieve(acc);
+        return acc.code;
+    }
+
+    std::string switch_code(const std::string& new_code)
+        requires std::is_same_v<TChar, wchar_t>
+    {
+        auto res = code();
+        if (res != new_code)
+        {
+            code_cvt_switch acc(new_code);
+            m_streambuf.adjust(acc);
+        }
+        return res;
+    }
+
+protected:
+    istreambuf<device_type, char_type>      m_streambuf;
+    IOv2::locale<char_type>                 m_locale;
+    bool m_sync_with_stdio = true;
+};
+
+
+/// cin
+class __cin : public stdin_api<__cin, std_device<STDIN_FILENO>, char>
+            , public sing_temp<__cin>
+{
+    using BT = stdin_api<__cin, std_device<STDIN_FILENO>, char>;
+    friend sing_temp<__cin>;
+
+private:
+    __cin()
+        : BT()
+    {
+        tie(&cout);
+    }
+
+    __cin(const __cin&) = delete;
+    __cin& operator=(const __cin&) = delete;
+};
+
+#if defined(IOV2_SHARED)
+extern IOV2_API __cin& cin;   // defined in iov2_objects.cpp
+#else
+inline __cin::init _cin_init;
+inline __cin&      cin = *__cin::ptr();
+#endif
+
+/// wcin
+class __wcin : public stdin_api<__wcin, std_device<STDIN_FILENO>, wchar_t>
+             , public sing_temp<__wcin>
+{
+    using BT = stdin_api<__wcin, std_device<STDIN_FILENO>, wchar_t>;
+    friend sing_temp<__wcin>;
+
+private:
+    __wcin()
+        : BT(code_cvt_stdio_creator(IOv2::locale<char>::initial_locale_name(LC_CTYPE)))
+    {
+        tie(&wcout);
+    }
+
+    __wcin(const __wcin&) = delete;
+    __wcin& operator=(const __wcin&) = delete;
+};
+
+#if defined(IOV2_SHARED)
+extern IOV2_API __wcin& wcin;   // defined in iov2_objects.cpp
+#else
+inline __wcin::init _wcin_init;
+inline __wcin&      wcin = *__wcin::ptr();
+#endif
+}

@@ -1,11 +1,11 @@
 // SPDX-FileCopyrightText: 2026 liwei <liweifriends@gmail.com>
 // SPDX-License-Identifier: MIT
 
-#include <device/mem_device.h>
-#include <io/io_base.h>
-#include <io/iostream.h>
-#include <io/istream.h>
-#include <io/traits/arithmetic.h>
+#include <IOv2/device/mem_device.h>
+#include <IOv2/io/io_base.h>
+#include <IOv2/io/iostream.h>
+#include <IOv2/io/istream.h>
+#include <IOv2/io/traits/arithmetic.h>
 
 #include <gtest/gtest.h>
 

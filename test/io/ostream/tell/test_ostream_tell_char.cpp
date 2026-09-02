@@ -14,14 +14,14 @@
  * Where the position moves as characters are written is the seek suite's
  * business; what is left here is where it starts and when it stops answering.
  */
-#include <common/defs.h>
-#include <device/file_device.h>
-#include <device/mem_device.h>
-#include <io/io_base.h>
-#include <io/iostream.h>
-#include <io/ostream.h>
-#include <io/traits/arithmetic.h>
-#include <io/traits/char_and_str.h>
+#include <IOv2/common/defs.h>
+#include <IOv2/device/file_device.h>
+#include <IOv2/device/mem_device.h>
+#include <IOv2/io/io_base.h>
+#include <IOv2/io/iostream.h>
+#include <IOv2/io/ostream.h>
+#include <IOv2/io/traits/arithmetic.h>
+#include <IOv2/io/traits/char_and_str.h>
 
 #include <support/file_guard.h>
 

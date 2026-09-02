@@ -10,10 +10,10 @@
  * wrong, so the length assertions here are in characters and the terminator is
  * compared against wchar_t() rather than against 0.
  */
-#include <device/mem_device.h>
-#include <io/iostream.h>
-#include <io/ostream.h>
-#include <io/traits/char_and_str.h>
+#include <IOv2/device/mem_device.h>
+#include <IOv2/io/iostream.h>
+#include <IOv2/io/ostream.h>
+#include <IOv2/io/traits/char_and_str.h>
 
 #include <gtest/gtest.h>
 

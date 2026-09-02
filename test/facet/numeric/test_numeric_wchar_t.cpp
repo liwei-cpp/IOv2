@@ -12,16 +12,16 @@
  * one about the size of the staging buffer a float is formatted into read the
  * same data whatever the character type is, so they stay in the narrow file.
  */
-#include <facet/ctype_details.h>
-#include <facet/numeric.h>
-#include <facet/numeric_details.h>
+#include <IOv2/facet/ctype_details.h>
+#include <IOv2/facet/numeric.h>
+#include <IOv2/facet/numeric_details.h>
 
-#include <common/defs.h>
-#include <device/mem_device.h>
-#include <facet/ctype.h>
-#include <io/io_base.h>
-#include <io/streambuf.h>
-#include <io/streambuf_iterator.h>
+#include <IOv2/common/defs.h>
+#include <IOv2/device/mem_device.h>
+#include <IOv2/facet/ctype.h>
+#include <IOv2/io/io_base.h>
+#include <IOv2/io/streambuf.h>
+#include <IOv2/io/streambuf_iterator.h>
 
 #include <gtest/gtest.h>
 

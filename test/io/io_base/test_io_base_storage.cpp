@@ -15,9 +15,9 @@
  * with what it displaced and makes a null store an erase; that three-way
  * behaviour is what the last test pins down.
  */
-#include <device/mem_device.h>
-#include <io/io_base.h>
-#include <io/ostream.h>
+#include <IOv2/device/mem_device.h>
+#include <IOv2/io/io_base.h>
+#include <IOv2/io/ostream.h>
 
 #include <gtest/gtest.h>
 

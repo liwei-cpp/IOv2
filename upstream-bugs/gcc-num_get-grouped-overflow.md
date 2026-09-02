@@ -59,7 +59,7 @@ else __v = ...;
 
 IOv2 自身的 `numeric` facet 在数字解析末尾也有一段历史上与 libstdc++ 同源的判定逻辑,因此同样存在这个潜在缺陷。我们在向上游提交 bug 的同时,**已经在 IOv2 内部进行了修复**:
 
-- 文件:`include/facet/numeric.h`
+- 文件:`include/IOv2/facet/numeric.h`
 - 改动:交换"`testoverflow` 分支"与"`testfail` 分支"在末尾判定块中的先后顺序,使得 `testoverflow` 优先生效。
 - 注释:在该分支上方加入了详细注释,说明这是一处刻意偏离 libstdc++ 顺序的修复(`We diverge from libstdc++'s ordering here ...`),并解释了 `sep_pos` 冻结所导致的 `testfail`-`testoverflow` 重叠机理,避免后续维护者把它误读为"无意中和 GCC 不一致"。
 - 复现器:`repro_gcc_lwg23.cpp`(位于仓库根目录),原生 GCC 工具链上可直接编译运行,用于演示 libstdc++ 的行为以及 LWG 23 期望的行为。
@@ -116,7 +116,7 @@ Whenever the overflow signal fires it now wins, matching LWG 23. The only input 
 
 IOv2's own `numeric` facet historically carries a resolution block parallel to libstdc++'s, so it inherits the same latent defect. We have **fixed the issue inside IOv2** at the same time as filing the upstream bug:
 
-- **File**: `include/facet/numeric.h`.
+- **File**: `include/IOv2/facet/numeric.h`.
 - **Change**: in the post-loop resolution block, the `testoverflow` branch and the `testfail` branch are reordered so that `testoverflow` is checked first. Whenever the overflow signal is live, it dominates the derived `testfail` produced by the frozen `sep_pos`.
 - **Comment**: a multi-line comment above the swapped branch documents this as a *deliberate* divergence from libstdc++'s ordering (`We diverge from libstdc++'s ordering here ...`), explains the `sep_pos`-freezing mechanism that makes `testfail` and `testoverflow` overlap, and prevents future maintainers from misreading the divergence as an accidental inconsistency with GCC.
 - **Reproducer**: `repro_gcc_lwg23.cpp` (at the repository root) is a self-contained program that compiles on a native GCC toolchain and demonstrates both the libstdc++ behavior and the LWG-23-conforming expectation.

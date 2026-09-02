@@ -12,8 +12,8 @@
  * expectations can be read off the literals; de_DE.UTF-8 is where collation
  * order and code-point order disagree.
  */
-#include <facet/collate.h>
-#include <facet/collate_details.h>
+#include <IOv2/facet/collate.h>
+#include <IOv2/facet/collate_details.h>
 
 #include <gtest/gtest.h>
 

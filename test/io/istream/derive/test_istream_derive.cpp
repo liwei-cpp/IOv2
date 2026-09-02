@@ -17,16 +17,16 @@
  * else to probe with. The cases below pin both requirements by exhibiting types
  * that satisfy everything except one of them.
  */
-#include <device/mem_device.h>
-#include <io/io_base.h>
-#include <io/iostream.h>
-#include <io/istream.h>
-#include <io/streambuf.h>
-#include <io/streambuf_iterator.h>
-#include <io/traits/char_and_str.h>
-#include <io/utilities/istream_operators.h>
-#include <io/utilities/stream_common_operators.h>
-#include <locale/locale.h>
+#include <IOv2/device/mem_device.h>
+#include <IOv2/io/io_base.h>
+#include <IOv2/io/iostream.h>
+#include <IOv2/io/istream.h>
+#include <IOv2/io/streambuf.h>
+#include <IOv2/io/streambuf_iterator.h>
+#include <IOv2/io/traits/char_and_str.h>
+#include <IOv2/io/utilities/istream_operators.h>
+#include <IOv2/io/utilities/stream_common_operators.h>
+#include <IOv2/locale/locale.h>
 
 #include <gtest/gtest.h>
 

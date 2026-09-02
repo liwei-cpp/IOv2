@@ -1,16 +1,16 @@
 // SPDX-FileCopyrightText: 2026 liwei <liweifriends@gmail.com>
 // SPDX-License-Identifier: MIT
 
-#include <common/defs.h>
-#include <cvt/code_cvt.h>
-#include <cvt/comp/zlib_cvt.h>
-#include <device/mem_device.h>
-#include <io/io_base.h>
-#include <io/iostream.h>
-#include <io/istream.h>
-#include <io/ostream.h>
-#include <io/traits/arithmetic.h>
-#include <io/traits/char_and_str.h>
+#include <IOv2/common/defs.h>
+#include <IOv2/cvt/code_cvt.h>
+#include <IOv2/cvt/comp/zlib_cvt.h>
+#include <IOv2/device/mem_device.h>
+#include <IOv2/io/io_base.h>
+#include <IOv2/io/iostream.h>
+#include <IOv2/io/istream.h>
+#include <IOv2/io/ostream.h>
+#include <IOv2/io/traits/arithmetic.h>
+#include <IOv2/io/traits/char_and_str.h>
 
 #include <support/injectable_device.h>
 #include <support/no_seek_device.h>

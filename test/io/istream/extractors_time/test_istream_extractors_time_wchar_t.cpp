@@ -8,11 +8,11 @@
  * is made of, so tm_zone is still a const char* here -- which is the one thing
  * this instantiation is for.
  */
-#include <device/mem_device.h>
-#include <io/iostream.h>
-#include <io/istream.h>
-#include <io/traits/tm.h>
-#include <locale/locale.h>
+#include <IOv2/device/mem_device.h>
+#include <IOv2/io/iostream.h>
+#include <IOv2/io/istream.h>
+#include <IOv2/io/traits/tm.h>
+#include <IOv2/locale/locale.h>
 
 #include <gtest/gtest.h>
 

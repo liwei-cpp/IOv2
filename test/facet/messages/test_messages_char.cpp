@@ -12,8 +12,8 @@
  * codeset is a separate axis from the language: the same zh_CN catalogue comes
  * back as UTF-8 or as GBK depending on what was asked for.
  */
-#include <facet/messages.h>
-#include <facet/messages_details.h>
+#include <IOv2/facet/messages.h>
+#include <IOv2/facet/messages_details.h>
 
 #include <gtest/gtest.h>
 

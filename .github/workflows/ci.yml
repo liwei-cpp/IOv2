@@ -320,7 +320,18 @@ jobs:
       run: |
         make install-shared PREFIX=/opt/iov2
         # install-shared flips the switch in the shipped header.
-        grep -q '^#define IOV2_SHARED 1' /opt/iov2/include/common/iov2_export.h
+        grep -q '^#define IOV2_SHARED 1' /opt/iov2/include/IOv2/common/iov2_export.h
+        # Headers live below a package-owned directory, and every installation
+        # carries the complete licence and notice.
+        test ! -e /opt/iov2/include/common
+        cmp LICENSE /opt/iov2/share/licenses/IOv2/LICENSE
+        cmp NOTICE /opt/iov2/share/licenses/IOv2/NOTICE
+        PKG_CONFIG_PATH=/opt/iov2/lib/pkgconfig pkg-config --cflags iov2-shared \
+          | grep -q -- '-I/opt/iov2/include '
+        if PKG_CONFIG_PATH=/opt/iov2/lib/pkgconfig pkg-config --cflags iov2-shared \
+             | grep -q -- '/include/IOv2'; then
+          echo "pkg-config must expose the include root, not the package directory"; exit 1
+        fi
 
     - name: Run the full test suite against the installed shared library
       run: |
@@ -343,15 +354,22 @@ jobs:
         # Header-only: the shipped switch must stay commented out. This and the
         # grep above are each other's control -- run against the other install,
         # either one fails.
-        if grep -q '^#define IOV2_SHARED 1' /opt/iov2-ho/include/common/iov2_export.h; then
+        if grep -q '^#define IOV2_SHARED 1' /opt/iov2-ho/include/IOv2/common/iov2_export.h; then
           echo "header-only install must NOT flip the IOV2_SHARED switch"; exit 1
         fi
+        test ! -e /opt/iov2-ho/include/common
+        cmp LICENSE /opt/iov2-ho/share/licenses/IOv2/LICENSE
+        cmp NOTICE /opt/iov2-ho/share/licenses/IOv2/NOTICE
         # Written outside the repo: this job also configures CMake in this tree.
         smoke=$(mktemp -d)
-        printf '%s\n' '#include <io/objects/out_impl.h>' \
+        printf '%s\n' '#include <IOv2/io/objects/out_impl.h>' \
           'int main() { IOv2::cout << "iov2 header-only ok\n"; return 0; }' \
           > "$smoke/consumer_ho.cpp"
         export PKG_CONFIG_PATH=/opt/iov2-ho/lib/pkgconfig
+        pkg-config --cflags iov2 | grep -q -- '-I/opt/iov2-ho/include '
+        if pkg-config --cflags iov2 | grep -q -- '/include/IOv2'; then
+          echo "pkg-config must expose the include root, not the package directory"; exit 1
+        fi
         g++ -std=c++23 -D_POSIX_C_SOURCE=200809L $(pkg-config --cflags iov2) \
             "$smoke/consumer_ho.cpp" -o "$smoke/consumer_ho" $(pkg-config --libs iov2)
         "$smoke/consumer_ho" | grep -q 'iov2 header-only ok'
@@ -379,6 +397,24 @@ jobs:
           echo "[!] header-only mode linked libiov2"; exit 1
         fi
 
+    - name: Verify uninstall removes only IOv2-owned paths
+      run: |
+        # Neighbouring package data must survive either uninstall mode.
+        install -d /opt/iov2/include/common /opt/iov2/share/licenses/OtherPackage
+        touch /opt/iov2/include/common/keep.h /opt/iov2/share/licenses/OtherPackage/keep
+        make uninstall PREFIX=/opt/iov2
+        test ! -e /opt/iov2/include/IOv2
+        test ! -e /opt/iov2/share/licenses/IOv2
+        test ! -e /opt/iov2/lib/libiov2.so
+        test ! -e /opt/iov2/lib/pkgconfig/iov2-shared.pc
+        test -e /opt/iov2/include/common/keep.h
+        test -e /opt/iov2/share/licenses/OtherPackage/keep
+
+        make uninstall PREFIX=/opt/iov2-ho
+        test ! -e /opt/iov2-ho/include/IOv2
+        test ! -e /opt/iov2-ho/share/licenses/IOv2
+        test ! -e /opt/iov2-ho/lib/pkgconfig/iov2.pc
+
   clang-tidy:
     runs-on: ubuntu-latest
     container:
@@ -395,10 +431,9 @@ jobs:
     - name: Run clang-tidy
       run: |
         # Use default clang-tidy from the image (which will be a recent version)
-        clang-tidy $(find include/common include/device include/cvt include/facet include/locale include/io/utilities -name '*.h') \
-          include/io/streambuf.h include/io/streambuf_iterator.h include/io/io_concepts.h include/io/io_base.h \
-          include/io/io_manip.h include/io/istream.h include/io/ostream.h include/io/iostream.h \
+        clang-tidy $(find include/IOv2/common include/IOv2/device include/IOv2/cvt include/IOv2/facet include/IOv2/locale include/IOv2/io/utilities -name '*.h') \
+          include/IOv2/io/streambuf.h include/IOv2/io/streambuf_iterator.h include/IOv2/io/io_concepts.h include/IOv2/io/io_base.h \
+          include/IOv2/io/io_manip.h include/IOv2/io/istream.h include/IOv2/io/ostream.h include/IOv2/io/iostream.h \
           --checks='bugprone-*,performance-*,modernize-*,cppcoreguidelines-*,-modernize-use-trailing-return-type,-cppcoreguidelines-avoid-magic-numbers,-cppcoreguidelines-pro-bounds-pointer-arithmetic,-cppcoreguidelines-pro-bounds-constant-array-index,-cppcoreguidelines-avoid-non-const-global-variables,-cppcoreguidelines-pro-bounds-avoid-unchecked-container-access,-clang-diagnostic-pragma-once-outside-header' \
           --warnings-as-errors='bugprone-*' \
           -- -std=c++23 -x c++ -I include -I /usr/include -I /usr/include/botan-2
-

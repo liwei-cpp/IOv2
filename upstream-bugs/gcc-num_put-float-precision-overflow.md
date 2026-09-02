@@ -103,11 +103,11 @@ length := 调用格式化函数(...)
 
 ### IOv2 的处理
 
-IOv2 的 `numeric` facet 在 `insert_float` 末尾也走同一族 `snprintf` 调用(`include/facet/numeric.h:309`:`snprintf(buf, size, fbuf, static_cast<int>(prec), v)`),并据精度计算缓冲大小(`numeric.h:294`:`cs_size = max_exponent10 + prec + 32`)。在精度类型为 `streamsize` 时,IOv2 同样存在这一潜在缺陷。
+IOv2 的 `numeric` facet 在 `insert_float` 末尾也走同一族 `snprintf` 调用(`include/IOv2/facet/numeric.h:309`:`snprintf(buf, size, fbuf, static_cast<int>(prec), v)`),并据精度计算缓冲大小(`numeric.h:294`:`cs_size = max_exponent10 + prec + 32`)。在精度类型为 `streamsize` 时,IOv2 同样存在这一潜在缺陷。
 
 我们已在 IOv2 内部从**根本上**规避:
 
-- **文件**:`include/io/io_base.h`、`include/io/io_manip.h`、`include/facet/numeric.h`。
+- **文件**:`include/IOv2/io/io_base.h`、`include/IOv2/io/io_manip.h`、`include/IOv2/facet/numeric.h`。
 - **改动**:把流的精度类型从 `std::streamsize` 收窄为 `std::uint8_t`(`io_base.h` 的 `precision()` getter/setter 与成员 `m_precision`),`setprecision` 的接口同样只接受 `std::uint8_t`(`io_manip.h`)。于是精度被限定在 `0..255`。
 - **结果**:`numeric.h:294` 的缓冲尺寸恒为小值(`max_exponent10 + 255 + 32`,double 下约 595),`numeric.h:309` 传给 `snprintf` 的精度恒 `≤ 255`——底层转换永远不会被要求产出超长输出,因而**不可能返回负值或超长长度**。能触发该崩溃的病态精度在 IOv2 的接口层就无法表达。
 - **注释**:`numeric.h:278` 处注明精度现为有界 `uint8_t`,不再需要负值/越界的归一化处理。
@@ -208,11 +208,11 @@ A stronger fix is to bound `__prec` before the conversion (any precision large e
 
 ### What IOv2 does
 
-IOv2's `numeric` facet ends `insert_float` on the same family of `snprintf` call (`include/facet/numeric.h:309`: `snprintf(buf, size, fbuf, static_cast<int>(prec), v)`) and sizes its buffer from the precision (`numeric.h:294`: `cs_size = max_exponent10 + prec + 32`). With a `streamsize` precision, IOv2 carried the same latent defect.
+IOv2's `numeric` facet ends `insert_float` on the same family of `snprintf` call (`include/IOv2/facet/numeric.h:309`: `snprintf(buf, size, fbuf, static_cast<int>(prec), v)`) and sizes its buffer from the precision (`numeric.h:294`: `cs_size = max_exponent10 + prec + 32`). With a `streamsize` precision, IOv2 carried the same latent defect.
 
 We have eliminated it at the **root**:
 
-- **Files**: `include/io/io_base.h`, `include/io/io_manip.h`, `include/facet/numeric.h`.
+- **Files**: `include/IOv2/io/io_base.h`, `include/IOv2/io/io_manip.h`, `include/IOv2/facet/numeric.h`.
 - **Change**: narrowed the stream precision type from `std::streamsize` to `std::uint8_t` — the `precision()` getter/setter and the `m_precision` member in `io_base.h`, and `setprecision`'s interface in `io_manip.h` (now `std::uint8_t` only). Precision is thereby bounded to `0..255`.
 - **Result**: `numeric.h:294`'s buffer size is always small (`max_exponent10 + 255 + 32`, ~595 for `double`), and the precision passed to `snprintf` at `numeric.h:309` is always `≤ 255` — the underlying conversion can never be asked for an oversized output, so it can never return a negative or overflowing length. The pathological precision that triggers this crash is **unrepresentable** at IOv2's interface.
 - **Comment**: `numeric.h:278` documents that precision is now a bounded `uint8_t`, so the old negative / out-of-range normalization is no longer needed.

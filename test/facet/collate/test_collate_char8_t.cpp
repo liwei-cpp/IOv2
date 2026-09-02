@@ -12,9 +12,9 @@
  * still its own input; de_DE.UTF-8 is where collation order and byte order
  * disagree.
  */
-#include <common/defs.h>
-#include <facet/collate.h>
-#include <facet/collate_details.h>
+#include <IOv2/common/defs.h>
+#include <IOv2/facet/collate.h>
+#include <IOv2/facet/collate_details.h>
 
 #include <gtest/gtest.h>
 

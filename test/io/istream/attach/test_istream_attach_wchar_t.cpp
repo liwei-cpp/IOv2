@@ -8,11 +8,11 @@
  * file; what this instantiation adds is that the clearing is the stream's
  * behaviour rather than a property of the character type.
  */
-#include <device/mem_device.h>
-#include <io/io_base.h>
-#include <io/iostream.h>
-#include <io/istream.h>
-#include <io/traits/char_and_str.h>
+#include <IOv2/device/mem_device.h>
+#include <IOv2/io/io_base.h>
+#include <IOv2/io/iostream.h>
+#include <IOv2/io/istream.h>
+#include <IOv2/io/traits/char_and_str.h>
 
 #include <gtest/gtest.h>
 

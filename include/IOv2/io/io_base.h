@@ -1,0 +1,1641 @@
+// SPDX-FileCopyrightText: 2026 liwei <liweifriends@gmail.com>
+// SPDX-License-Identifier: MIT
+
+/**
+ * @file io_base.h
+ * @lang{ZH}
+ * 定义了 I/O 流体系的基础设施，包括：
+ * - `ios_defs`：格式化标志（`fmtflags`）与流状态位（`iostate`）的定义。
+ * - `ios_base`：所有流的格式化状态基类，持有格式标志、精度、宽度、填充字符、
+ *   pword 存储、本地化变更回调，以及本流唯一的那把对象锁。
+ * - `ios_state`：在 `ios_base` 之上再管理流状态位与之关联的异常（异常掩码 /
+ *   异常指针）。具体流类都从它派生。
+ * - 一组用于修改流格式的操纵符（manipulator），如 `hex`、`left`、`fixed` 等。
+ * - `sync`：对流的 I/O 互斥量进行 RAII 加锁的辅助类。
+ * @endif
+ *
+ * @lang{EN}
+ * Defines the infrastructure for the I/O stream hierarchy, including:
+ * - `ios_defs`: definitions of the formatting flags (`fmtflags`) and stream state
+ *   bits (`iostate`).
+ * - `ios_base`: the base class holding the formatting state of every stream: format
+ *   flags, precision, width, fill character, pword storage, locale-change callbacks, and
+ *   the one object lock a stream has.
+ * - `ios_state`: adds, on top of `ios_base`, the stream state bits together with
+ *   their associated exceptions (exception mask / exception pointers). The concrete
+ *   stream classes all derive from it.
+ * - A set of manipulators that modify a stream's formatting, such as `hex`, `left`,
+ *   `fixed`, etc.
+ * - `sync`: an RAII helper that locks a stream's I/O mutex.
+ * @endif
+ */
+#pragma once
+#include <IOv2/common/copyable_atomic.h>
+#include <IOv2/common/copyable_mutex.h>
+#include <IOv2/common/defs.h>
+
+#include <atomic>
+#include <cstddef>
+#include <cstdint>
+#include <exception>
+#include <forward_list>
+#include <functional>
+#include <limits>
+#include <memory>
+#include <mutex>
+#include <unordered_map>
+#include <utility>
+
+namespace IOv2
+{
+/**
+ * @lang{ZH}
+ * @brief 存放流格式化标志与流状态位定义的命名空间。
+ *
+ * 类比于标准库的 `std::ios_base` 内嵌类型，本命名空间集中定义了控制格式化行为的
+ * `fmtflags` 位标志，以及描述流健康状况的 `iostate` 状态位。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief Namespace holding the definitions of the stream formatting flags and stream
+ * state bits.
+ *
+ * Analogous to the nested types of the standard `std::ios_base`, this namespace
+ * gathers the `fmtflags` bit flags that control formatting behaviour together with
+ * the `iostate` bits that describe the health of a stream.
+ * @endif
+ */
+namespace ios_defs
+{
+    /**
+     * @lang{ZH} 格式化标志的位掩码类型（16 位）。 @endif
+     * @lang{EN} Bitmask type for the formatting flags (16 bits). @endif
+     */
+    enum fmtflags : std::uint16_t
+    {
+        boolalpha   = 1L << 0,    ///< @lang{ZH} 以文本形式（`true`/`false`）而非数字形式表示布尔值。 @endif @lang{EN} Represent bool values as text (`true`/`false`) instead of numbers. @endif
+        dec         = 1L << 1,    ///< @lang{ZH} 整数以十进制表示（`basefield` 之一）。 @endif @lang{EN} Integers in decimal (one of `basefield`). @endif
+        fixed       = 1L << 2,    ///< @lang{ZH} 浮点数以定点记法表示（`floatfield` 之一）。 @endif @lang{EN} Floating-point in fixed notation (one of `floatfield`). @endif
+        hex         = 1L << 3,    ///< @lang{ZH} 整数以十六进制表示（`basefield` 之一）。 @endif @lang{EN} Integers in hexadecimal (one of `basefield`). @endif
+        internal    = 1L << 4,    ///< @lang{ZH} 在符号/进制前缀与数值之间填充（`adjustfield` 之一）。 @endif @lang{EN} Pad between the sign/base prefix and the value (one of `adjustfield`). @endif
+        left        = 1L << 5,    ///< @lang{ZH} 左对齐，在右侧填充（`adjustfield` 之一）。 @endif @lang{EN} Left-justify, padding on the right (one of `adjustfield`). @endif
+        oct         = 1L << 6,    ///< @lang{ZH} 整数以八进制表示（`basefield` 之一）。 @endif @lang{EN} Integers in octal (one of `basefield`). @endif
+        right       = 1L << 7,    ///< @lang{ZH} 右对齐，在左侧填充（`adjustfield` 之一）。 @endif @lang{EN} Right-justify, padding on the left (one of `adjustfield`). @endif
+        scientific  = 1L << 8,    ///< @lang{ZH} 浮点数以科学记法表示（`floatfield` 之一）。 @endif @lang{EN} Floating-point in scientific notation (one of `floatfield`). @endif
+        showbase    = 1L << 9,    ///< @lang{ZH} 输出整数时显示进制前缀（如 `0x`、`0`）。 @endif @lang{EN} Show the numeric base prefix (e.g. `0x`, `0`) on integer output. @endif
+        showpoint   = 1L << 10,   ///< @lang{ZH} 浮点数输出总是显示小数点。 @endif @lang{EN} Always show the decimal point on floating-point output. @endif
+        showpos     = 1L << 11,   ///< @lang{ZH} 对非负数显示正号 `+`。 @endif @lang{EN} Show a leading `+` on non-negative numbers. @endif
+        skipws      = 1L << 12,   ///< @lang{ZH} 输入时跳过前导空白。 @endif @lang{EN} Skip leading whitespace on input. @endif
+        unitbuf     = 1L << 13,   ///< @lang{ZH} 每次输出操作后刷新缓冲区。 @endif @lang{EN} Flush the buffer after each output operation. @endif
+        uppercase   = 1L << 14,   ///< @lang{ZH} 在数值输出中使用大写字母（如 `0X`、`1E5`）。 @endif @lang{EN} Use uppercase letters in numeric output (e.g. `0X`, `1E5`). @endif
+        appmode     = 1L << 15,   ///< @lang{ZH} 追加模式标志（本库扩展）。 @endif @lang{EN} Append-mode flag (a library extension). @endif
+        adjustfield = left | right | internal,    ///< @lang{ZH} 对齐字段掩码：`left`、`right`、`internal`。 @endif @lang{EN} Adjustment field mask: `left`, `right`, `internal`. @endif
+        basefield   = dec | oct | hex,            ///< @lang{ZH} 整数进制字段掩码：`dec`、`oct`、`hex`。 @endif @lang{EN} Integer base field mask: `dec`, `oct`, `hex`. @endif
+        floatfield  = scientific | fixed,         ///< @lang{ZH} 浮点记法字段掩码：`scientific`、`fixed`。 @endif @lang{EN} Floating-point notation field mask: `scientific`, `fixed`. @endif
+    };
+
+    /**
+     * @lang{ZH} 流状态位的位掩码类型（8 位）。 @endif
+     * @lang{EN} Bitmask type for the stream state bits (8 bits). @endif
+     */
+    enum iostate : std::uint8_t
+    {
+        goodbit       = 0,        ///< @lang{ZH} 无错误状态（所有状态位清零）。 @endif @lang{EN} No-error state (all state bits clear). @endif
+        eofbit        = 1L << 0,  ///< @lang{ZH} 已到达输入序列末尾。 @endif @lang{EN} End of the input sequence has been reached. @endif
+        devfailbit    = 1L << 1,  ///< @lang{ZH} 底层设备操作失败。 @endif @lang{EN} An underlying device operation failed. @endif
+        cvtfailbit    = 1L << 2,  ///< @lang{ZH} 字符编码转换失败。 @endif @lang{EN} A character-encoding conversion failed. @endif
+        strfailbit    = 1L << 3,  ///< @lang{ZH} 流层面的格式化/解析失败。 @endif @lang{EN} A stream-level formatting/parsing failure. @endif
+        otherfailbit  = 1L << 4,  ///< @lang{ZH} 其他（未归类）失败。 @endif @lang{EN} Some other (uncategorized) failure. @endif
+    };
+
+    /**
+     * @lang{ZH}
+     * @brief `fmtflags` 与 `iostate` 的按位运算符，使二者成为闭合的位掩码类型。
+     *
+     * 两个枚举各自封闭：运算结果仍是同一枚举类型，故 `iostate` 的值无法流入接受
+     * `fmtflags` 的接口，反之亦然。二者均为不限定作用域枚举，因此 `if (state & eofbit)`
+     * 这类到 `bool` 的隐式转换与原先的整数 typedef 一致。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Bitwise operators for `fmtflags` and `iostate`, making each a closed bitmask type.
+     *
+     * The two enumerations are closed under these operators: a result keeps its own type, so
+     * an `iostate` value cannot reach an interface taking `fmtflags`, nor the other way round.
+     * Both are unscoped, so implicit conversion to `bool` -- as in `if (state & eofbit)` --
+     * still works exactly as it did with the integer typedefs.
+     * @endif
+     */
+    constexpr fmtflags operator|(fmtflags a, fmtflags b) noexcept
+    { return static_cast<fmtflags>(static_cast<std::uint16_t>(a) | static_cast<std::uint16_t>(b)); }
+    constexpr fmtflags operator&(fmtflags a, fmtflags b) noexcept
+    { return static_cast<fmtflags>(static_cast<std::uint16_t>(a) & static_cast<std::uint16_t>(b)); }
+    constexpr fmtflags operator^(fmtflags a, fmtflags b) noexcept
+    { return static_cast<fmtflags>(static_cast<std::uint16_t>(a) ^ static_cast<std::uint16_t>(b)); }
+    constexpr fmtflags operator~(fmtflags a) noexcept
+    { return static_cast<fmtflags>(~static_cast<std::uint16_t>(a)); }
+    constexpr fmtflags& operator|=(fmtflags& a, fmtflags b) noexcept { return a = a | b; }
+    constexpr fmtflags& operator&=(fmtflags& a, fmtflags b) noexcept { return a = a & b; }
+    constexpr fmtflags& operator^=(fmtflags& a, fmtflags b) noexcept { return a = a ^ b; }
+
+    constexpr iostate operator|(iostate a, iostate b) noexcept
+    { return static_cast<iostate>(static_cast<std::uint8_t>(a) | static_cast<std::uint8_t>(b)); }
+    constexpr iostate operator&(iostate a, iostate b) noexcept
+    { return static_cast<iostate>(static_cast<std::uint8_t>(a) & static_cast<std::uint8_t>(b)); }
+    constexpr iostate operator^(iostate a, iostate b) noexcept
+    { return static_cast<iostate>(static_cast<std::uint8_t>(a) ^ static_cast<std::uint8_t>(b)); }
+    constexpr iostate operator~(iostate a) noexcept
+    { return static_cast<iostate>(~static_cast<std::uint8_t>(a)); }
+    constexpr iostate& operator|=(iostate& a, iostate b) noexcept { return a = a | b; }
+    constexpr iostate& operator&=(iostate& a, iostate b) noexcept { return a = a & b; }
+    constexpr iostate& operator^=(iostate& a, iostate b) noexcept { return a = a ^ b; }
+
+    constexpr static std::size_t max_pad_count   = std::size_t{1} << 16;  ///< @lang{ZH} 单次插入允许写出的填充字符数上限；`width()` 本身仍不设上限。 @endif @lang{EN} Upper bound on the number of fill characters one insertion may emit; `width()` itself stays unbounded. @endif
+};
+
+template <typename TChar> class locale;
+
+template <typename TChar> class ios_base;
+
+/**
+ * @lang{ZH}
+ * @brief `ios_base` 的 `void` 特化，承载所有字符类型共享的全局状态。
+ *
+ * 该特化不面向用户使用，仅作为进程内全局计数器 `s_top` 的宿主——`xalloc()` 借助它发放
+ * 全局唯一的存储索引。将其独立于 `TChar` 之外，可保证不同字符类型实例化的 `ios_base`
+ * 共用同一个索引空间。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief The `void` specialization of `ios_base`, carrying global state shared by all
+ * character types.
+ *
+ * This specialization is not for user consumption; it merely hosts the process-wide
+ * global counter `s_top`, which `xalloc()` uses to hand out globally unique storage
+ * indices. Keeping it independent of `TChar` ensures that `ios_base` instantiated for
+ * different character types share a single index space.
+ * @endif
+ */
+template <>
+class ios_base<void>
+{
+    template <typename>
+    friend class ios_base;
+
+    inline static std::atomic<std::size_t> s_top = 0;
+};
+
+/**
+ * @lang{ZH}
+ * @brief 所有流的格式化状态基类。
+ *
+ * `ios_base` 持有一个流的全部格式化状态：格式标志（`fmtflags`）、浮点精度、字段宽度、
+ * 填充字符，以及可扩展的 per-stream 用户存储（pword）和本地化变更回调。它对应标准库中
+ * `std::ios_base` 与 `std::basic_ios` 中与格式化相关的部分，但按本库的设计做了取舍
+ * （例如可拷贝、精度/宽度以 8 位存储等，详见各成员说明）。
+ *
+ * @note 本类不涉及流状态位（good/eof/fail），那些由派生自本类的 `ios_state` 负责。
+ *       这个方向是有意的：facet（如 `numeric`）拿到的是 `ios_base&`，只应看见格式化标志，
+ *       看不见流状态。
+ * @note 本类同时持有**本流的对象锁** `m_io_mutex`（经 `io_mutex()` 暴露）。它并非只服务于
+ *       格式化状态——各具体流类的全部操作都以它作为临界区。锁放在这里而非各流类里的理由，
+ *       见 `io_mutex()`。
+ *
+ * @tparam TChar 字符类型（如 `char`、`wchar_t` 等）。用于填充字符与本地化回调的签名。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief Base class holding the formatting state of every stream.
+ *
+ * `ios_base` holds all of a stream's formatting state: the format flags (`fmtflags`),
+ * floating-point precision, field width, fill character, plus extensible per-stream
+ * user storage (pword) and locale-change callbacks. It corresponds to the
+ * formatting-related parts of `std::ios_base` and `std::basic_ios`, but with design
+ * choices specific to this library (e.g. it is copyable, precision/width are stored in
+ * 8 bits — see the individual members for details).
+ *
+ * @note This class does not deal with the stream state bits (good/eof/fail); those are
+ * handled by `ios_state`, which derives from this class. The direction is
+ * deliberate: a facet (`numeric`, say) is handed an `ios_base&` and should see the
+ * formatting flags, not the stream state.
+ * @note This class also owns **the stream's object lock** `m_io_mutex` (exposed through
+ * `io_mutex()`). That lock is not confined to the formatting state -- every operation of the
+ * concrete stream classes uses it as its critical section. See `io_mutex()` for why it lives
+ * here rather than in each stream class.
+ *
+ * @tparam TChar The character type (e.g. `char`, `wchar_t`). Used by the fill character
+ * and the locale-callback signature.
+ * @endif
+ */
+template <typename TChar>
+class ios_base
+{
+public:
+    /**
+     * @lang{ZH}
+     * @brief 本地化变更回调的类型。
+     *
+     * 当本地化（locale）发生变更时，`access_callbacks()` 会以新 locale 及该回调对应 id
+     * 上已存的 pword 数据（可能为空）调用此函数，回调返回的新数据将回写为该 id 的 pword
+     * （返回空指针表示删除该条目）。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Type of a locale-change callback.
+     *
+     * When the locale changes, `access_callbacks()` invokes this callable with the new
+     * locale and the pword data currently stored under the callback's id (possibly
+     * null); the new data returned by the callback is written back as the pword for that
+     * id (returning a null pointer removes the entry).
+     * @endif
+     */
+    using event_callback = std::function<std::shared_ptr<void>(const locale<TChar>&, std::shared_ptr<void>)>;
+
+public:
+    /**
+     * @lang{ZH} @brief 默认构造，使用默认的格式化状态。 @endif
+     * @lang{EN} @brief Default constructor, with the default formatting state. @endif
+     */
+    ios_base() = default;
+
+    /**
+     * @lang{ZH}
+     * @brief 拷贝/移动构造与赋值。
+     *
+     * 拷贝/移动均被有意支持（与不可拷贝的 std::ios_base 不同，此为本库的既定设计）。
+     * @note 拷贝为浅共享语义：m_pwords 与 m_callbacks 本身按值复制（两个对象各自持有
+     * 独立的容器），但 m_pwords 中存放的是 std::shared_ptr<void>，因此拷贝后两个 ios_base
+     * 实例的 pword 条目**共享同一批底层对象**——通过任一实例经 set_pword() 替换某 id 的条目
+     * 只影响自身的容器，但只要该条目未被替换，两侧解引用得到的仍是同一 pword 对象，经其中
+     * 一侧修改该对象内容对另一侧可见。若需要独立的 pword，请在拷贝后自行深拷贝相应对象。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Copy/move construction and assignment.
+     *
+     * Copy and move are intentionally supported (unlike the non-copyable std::ios_base;
+     * this is a deliberate design choice of this library).
+     * @note Copy has shallow-sharing semantics: m_pwords and m_callbacks are copied by
+     * value (each instance owns an independent container), but m_pwords stores
+     * std::shared_ptr<void>, so after a copy the two ios_base instances' pword entries
+     * **share the same underlying objects**. Replacing an id's entry via set_pword() on
+     * one instance affects only that instance's own container, but as long as the entry
+     * is not replaced, dereferencing it on either side yields the same pword object, and
+     * mutations to that object made through one side are visible to the other. If
+     * independent pwords are required, deep-copy the relevant objects after copying.
+     * @endif
+     */
+    ios_base(const ios_base&) = default;
+    ios_base(ios_base&&) = default;
+    ios_base& operator=(const ios_base&) = default;
+    ios_base& operator=(ios_base&&) = default;
+    ~ios_base() = default;
+
+public:
+    /**
+     * @lang{ZH} @brief 返回当前的格式化标志。 @endif
+     * @lang{EN} @brief Returns the current formatting flags. @endif
+     */
+    ios_defs::fmtflags flags() const noexcept { return static_cast<ios_defs::fmtflags>(m_flags.load()); }
+    /**
+     * @lang{ZH}
+     * @brief 将格式化标志整体替换为 `fmtfl`。
+     * @param fmtfl 新的格式化标志。
+     * @return 替换前的旧标志。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Replaces the formatting flags wholesale with `fmtfl`.
+     * @param fmtfl The new formatting flags.
+     * @return The old flags before replacement.
+     * @endif
+     */
+    ios_defs::fmtflags flags(ios_defs::fmtflags fmtfl) noexcept
+    {
+      return static_cast<ios_defs::fmtflags>(m_flags.exchange(fmtfl));
+    }
+
+    /**
+     * @lang{ZH}
+     * @brief 置位 `fmtfl` 中的标志（按位或）。
+     * @param fmtfl 要附加置位的标志。
+     * @return 修改前的旧标志。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Sets the flags in `fmtfl` (bitwise-or).
+     * @param fmtfl The flags to additionally set.
+     * @return The old flags before modification.
+     * @endif
+     */
+    ios_defs::fmtflags setf(ios_defs::fmtflags fmtfl) noexcept
+    {
+      return static_cast<ios_defs::fmtflags>(m_flags.fetch_or(fmtfl));
+    }
+
+    /**
+     * @lang{ZH}
+     * @brief 在掩码 `msk` 限定的位域内，将标志设置为 `fmtfl`。
+     *
+     * 先清除 `msk` 覆盖的所有位，再置入 `fmtfl & msk`。常用于设置 `basefield`、
+     * `adjustfield`、`floatfield` 等互斥字段。
+     * @param fmtfl 要设置的标志（仅 `msk` 内的位生效）。
+     * @param msk 限定生效范围的掩码。
+     * @return 修改前的旧标志。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Sets the flags to `fmtfl` within the bit field limited by the mask `msk`.
+     *
+     * First clears every bit covered by `msk`, then sets `fmtfl & msk`. Commonly used to
+     * set mutually exclusive fields such as `basefield`, `adjustfield`, `floatfield`.
+     * @param fmtfl The flags to set (only the bits within `msk` take effect).
+     * @param msk The mask limiting the affected range.
+     * @return The old flags before modification.
+     * @endif
+     */
+    ios_defs::fmtflags setf(ios_defs::fmtflags fmtfl, ios_defs::fmtflags msk) noexcept
+    {
+      std::uint16_t old = m_flags.load();
+      while (!m_flags.compare_exchange_weak(
+                 old, static_cast<std::uint16_t>((old & ~msk) | (fmtfl & msk))))
+          ;
+      return static_cast<ios_defs::fmtflags>(old);
+    }
+
+    /**
+     * @lang{ZH}
+     * @brief 清除 `msk` 中的标志。
+     * @param msk 要清除的标志掩码。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Clears the flags in `msk`.
+     * @param msk The mask of flags to clear.
+     * @endif
+     */
+    void unsetf(ios_defs::fmtflags msk) noexcept
+    { m_flags.fetch_and(static_cast<std::uint16_t>(~msk)); }
+
+    /**
+     * @lang{ZH}
+     * @brief 返回当前的浮点精度。
+     * @note 精度以 std::uint8_t 存储，取值范围被有意限制在 0..255。这与标准
+     * std::ios_base 使用 std::streamsize 不同：本库不支持大于 255 的精度。
+     * @return 当前精度。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Returns the current floating-point precision.
+     * @note The precision is stored as a std::uint8_t and is intentionally limited
+     * to the range 0..255. Unlike the standard std::ios_base, which uses
+     * std::streamsize, this library does not support precision values greater than 255.
+     * @return The current precision.
+     * @endif
+     */
+    std::uint8_t precision() const noexcept { return m_precision.load(); }
+    /**
+     * @lang{ZH}
+     * @brief 将浮点精度设置为 @p prec 并返回旧值。
+     * @note setter 取有符号的 ptrdiff_t（与标准的 std::streamsize 一致），getter 与存储仍用
+     * std::uint8_t：形参若就是 std::uint8_t，越界值会在调用点被隐式转换静默窄化（300 变成
+     * 44），运行期变量连警告都没有；加宽后负值与过大值都能活到此处被拒。
+     * @note 这笔交换有代价：形参为 std::uint8_t 时，常量实参 `precision(300)` 由 -Woverflow
+     * 报“changes value from '300' to '44'”，配上 -Werror 就是编译失败；加宽后 300 落在
+     * ptrdiff_t 内，编译期无话可说，改由此处在运行期抛出。即以常量那一路的编译期诊断，
+     * 换运行期变量那一路不再被静默窄化 —— 后者才是真正会漏进产品的那种。
+     * @param prec 目标精度，必须落在 0..255。
+     * @return 设置前的旧精度。
+     * @throw stream_error 若 @p prec 不在 0..255 内。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Sets the floating-point precision to @p prec and returns the old value.
+     * @note The setter takes a signed ptrdiff_t (as the standard's std::streamsize is), while
+     * the getter and the storage stay std::uint8_t: with a std::uint8_t parameter an
+     * out-of-range value would be narrowed silently by the implicit conversion at the call
+     * (300 becomes 44), with not even a warning for a run-time argument; widening lets both
+     * negative and too-large values reach this check and be rejected.
+     * @note That trade has a price: with a std::uint8_t parameter a constant argument such as
+     * `precision(300)` is reported by -Woverflow as "changes value from '300' to '44'", which
+     * with -Werror is a compile error; once widened, 300 fits in a ptrdiff_t and the compiler
+     * has nothing to say, so the rejection happens here at run time instead. The compile-time
+     * diagnosis of the constant case buys the run-time-argument case not being narrowed
+     * silently -- and the latter is the one that actually ships.
+     * @param prec The target precision; must lie in 0..255.
+     * @return The precision in effect before the call.
+     * @throw stream_error If @p prec is not in 0..255.
+     * @endif
+     */
+    std::uint8_t precision(std::ptrdiff_t prec)
+    {
+        if (prec < 0 || prec > std::numeric_limits<std::uint8_t>::max())
+            throw stream_error("precision fail: precision out of range (0..255)");
+        return m_precision.exchange(static_cast<std::uint8_t>(prec));
+    }
+
+    /**
+     * @lang{ZH}
+     * @brief 返回当前的字段宽度。
+     * @note 宽度以 size_t 存储，不设上限：它既是输出端的填充目标列数，也是提取端的
+     * 读取长度上界。
+     * @return 当前宽度。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Returns the current field width.
+     * @note The width is stored as a size_t, with no upper bound: it serves both as the
+     * target column count for padding on output and as the bound on how much extraction
+     * reads.
+     * @return The current width.
+     * @endif
+     */
+    std::size_t width() const noexcept { return m_width.load(); }
+    /**
+     * @lang{ZH}
+     * @brief 将字段宽度设置为 @p wide 并返回旧值。
+     * @note setter 取有符号的 ptrdiff_t（与标准的 std::streamsize 一致），getter 与存储仍用
+     * size_t。宽度常由含 size_t 的算式得出，越界时会回绕成接近 2^64 的巨值；有符号形参可让
+     * 传参时的窄化把回绕抵消回来、还原成负数并在此拒掉。判负后转 size_t 不会溢出。
+     * @param wide 目标宽度，必须非负。
+     * @return 设置前的旧宽度。
+     * @throw stream_error 若 @p wide 为负。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Sets the field width to @p wide and returns the old value.
+     * @note The setter takes a signed ptrdiff_t (as the standard's std::streamsize is),
+     * while the getter and the storage stay size_t. A width is often computed by an
+     * expression involving a size_t, which wraps to a value near 2^64 when it goes below
+     * zero; a signed parameter lets the narrowing at the call undo that wrap, restoring the
+     * negative value to be rejected here. The conversion to size_t after the check cannot
+     * overflow.
+     * @param wide The target width; must be non-negative.
+     * @return The width in effect before the call.
+     * @throw stream_error If @p wide is negative.
+     * @endif
+     */
+    std::size_t width(std::ptrdiff_t wide)
+    {
+        if (wide < 0)
+            throw stream_error("width fail: negative width");
+        return m_width.exchange(static_cast<std::size_t>(wide));
+    }
+
+    /**
+     * @lang{ZH}
+     * @brief 获取/设置填充字符。
+     *
+     * 无参重载返回当前填充字符；带参重载将其设置为 @p ch 并返回旧值。
+     * 填充字符用于在字段宽度大于内容时补齐输出。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Get/set the fill character.
+     *
+     * The argument-less overload returns the current fill character; the overload taking
+     * an argument sets it to @p ch and returns the old value. The fill character is used
+     * to pad output when the field width exceeds the content.
+     * @endif
+     */
+    TChar fill() const noexcept { return m_fill.load(); }
+    TChar fill(TChar ch) noexcept
+    {
+        return m_fill.exchange(ch);
+    }
+
+public:
+    /**
+     * @lang{ZH}
+     * @brief 分配一个进程内唯一的存储索引。
+     *
+     * 返回的索引可作为 set_pword()/get_pword() 的 id，以及 register_callback() 中回调的
+     * 关联 id，用于在流上存取用户自定义数据。
+     * @note numeric_limits<size_t>::max() 被保留作为“已耗尽”哨兵：索引空间在发放到
+     * max()-1 后即视为耗尽，再次调用抛出 stream_error，而不是让计数器回绕并复用已发放
+     * 的索引。采用 CAS 循环实现，保证并发调用下索引唯一且不越过耗尽点。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Allocates a process-wide unique storage index.
+     *
+     * The returned index can be used as the id for set_pword()/get_pword() and as the
+     * association id for callbacks in register_callback(), to store and retrieve
+     * user-defined data on a stream.
+     * @note numeric_limits<size_t>::max() is reserved as an "exhausted" sentinel: once
+     * indices up to max()-1 have been handed out the space is considered exhausted and
+     * a further call throws stream_error, instead of letting the counter wrap around
+     * and reuse an already-issued index. Implemented with a CAS loop so that concurrent
+     * calls stay unique and never step past the exhaustion point.
+     * @endif
+     *
+     * @throws stream_error
+     * @lang{ZH} 索引空间耗尽时抛出。 @endif
+     * @lang{EN} Thrown when the index space is exhausted. @endif
+     */
+    static std::size_t xalloc()
+    {
+        std::size_t cur = ios_base<void>::s_top.load(std::memory_order_relaxed);
+        // NOLINTNEXTLINE(cppcoreguidelines-avoid-do-while)
+        do
+        {
+            if (cur == std::numeric_limits<std::size_t>::max())
+                throw stream_error("ios_base::xalloc fails: storage index space exhausted");
+        } while (!ios_base<void>::s_top.compare_exchange_weak(
+                     cur, cur + 1, std::memory_order_relaxed));
+        return cur;
+    }
+
+    /**
+     * @lang{ZH}
+     * @brief 返回本流的对象锁。
+     *
+     * 这是每个流**唯一**的一把锁：格式化 I/O 的 sentry、各定位/存取操作、locale setter，
+     * 以及下面的 pword / 回调接口，全都在它的临界区内工作。可配合 `IOv2::sync` 把多次操作
+     * 圈进同一临界区。
+     *
+     * @note 锁本身放在 `ios_base` 而非各个具体流类里，是因为 pword 存储与回调链表是
+     *       `ios_base` 自己的成员，而 `locale(loc)` setter 又会经 `access_callbacks()` 改动
+     *       它们。若把它们交给另一把锁，那么"格式化过程中读取 pword 缓存"这一 pword 的
+     *       固有用法就会形成 `io_mutex -> pword_mutex` 的嵌套，凭空多出一条加锁顺序约束。
+     *       一把锁则不存在这个问题。
+     * @note 递归形态是必需的：`access_callbacks()` 由已持锁的 locale setter 调用，而回调
+     *       允许重入地调用 `set_pword()`（见 `access_callbacks()` 的说明）。
+     * @note 流状态位也归本锁保护：`ios_state` 派生自本类，其状态**写**同样在这把锁下
+     *       完成。`rdstate()` / `good()` 仍免锁，因为状态位存在原子量里，读取不经过本锁。
+     *       由此每个流只有一把锁，不存在流内部的加锁顺序。
+     * @return 本流 `m_io_mutex` 的引用。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Returns this stream's object lock.
+     *
+     * This is the **one** lock a stream has: the sentries of formatted I/O, the
+     * positioning/access operations, the locale setter, and the pword / callback interface
+     * below all work inside its critical section. Combine it with `IOv2::sync` to group
+     * several operations into one critical section.
+     *
+     * @note The lock lives in `ios_base` rather than in each concrete stream class because
+     *       the pword storage and the callback list are `ios_base`'s own members, and the
+     *       `locale(loc)` setter mutates them through `access_callbacks()`. Giving those a
+     *       separate lock would make the natural use of a pword -- reading a cache from
+     *       inside a formatting operation -- nest `io_mutex -> pword_mutex`, inventing a
+     *       lock-ordering constraint the library does not otherwise have. One lock has no
+     *       such problem.
+     * @note The recursive flavor is required: `access_callbacks()` is called by the locale
+     *       setter, which already holds the lock, and a callback may reentrantly call
+     *       `set_pword()` (see `access_callbacks()`).
+     * @note The stream state bits are covered by this lock too: `ios_state` derives
+     *       from this class and performs its state **writes** under it. `rdstate()` / `good()`
+     *       remain lock-free, because the state bits live in an atomic that is read without
+     *       going through this lock. A stream therefore has exactly one lock, and no
+     *       intra-stream lock order exists.
+     * @return A reference to this stream's `m_io_mutex`.
+     * @endif
+     */
+    copyable_mutex<std::recursive_mutex>& io_mutex() const { return m_io_mutex; }
+
+    /**
+     * @lang{ZH}
+     * @brief 设置 id 对应的 pword（per-stream 用户数据）条目。
+     *
+     * 若 @p pword 非空，则设置/替换 @p id 处的条目；若为空，则删除该条目。
+     * @param id 存储索引，一般由 xalloc() 获得。
+     * @param pword 要存入的数据（`shared_ptr<void>`），为空表示删除。
+     * @return 该 id 处替换或删除前的旧数据；若原本不存在则为 nullptr。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Sets the pword (per-stream user data) entry for an id.
+     *
+     * If @p pword is non-null, the entry at @p id is set/replaced; if null, the entry is
+     * removed.
+     * @param id The storage index, typically obtained from xalloc().
+     * @param pword The data to store (`shared_ptr<void>`); null means remove.
+     * @return The old data at that id before replacement/removal; nullptr if none
+     * existed.
+     * @endif
+     */
+    std::shared_ptr<void> set_pword(std::size_t id, std::shared_ptr<void> pword)
+    {
+        std::lock_guard guard(m_io_mutex);
+        if (auto it = m_pwords.find(id); it == m_pwords.end())
+        {
+            if (pword) m_pwords.emplace(id, std::move(pword));
+            return nullptr;
+        }
+        else
+        {
+            auto res = std::move(it->second);
+            if (pword) it->second = std::move(pword);
+            else m_pwords.erase(it);
+            return res;
+        }
+    }
+
+    /**
+     * @lang{ZH}
+     * @brief 获取 id 对应的 pword 条目。
+     * @param id 存储索引。
+     * @return 该 id 处存储的数据；若不存在则为 nullptr。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Gets the pword entry for an id.
+     * @param id The storage index.
+     * @return The data stored at that id; nullptr if none exists.
+     * @endif
+     */
+    std::shared_ptr<void> get_pword(std::size_t id) const
+    {
+        std::lock_guard guard(m_io_mutex);
+        auto it = m_pwords.find(id);
+        if (it != m_pwords.end()) return it->second;
+        return nullptr;
+    }
+
+    /**
+     * @lang{ZH}
+     * @brief 注册一个本地化变更回调。
+     *
+     * 回调被前插到回调列表中，因此**后注册者先被调用**。每个回调关联一个 @p id，
+     * 该 id 用于在 access_callbacks() 中定位其对应的 pword 数据。
+     * @param fn 回调函数。
+     * @param id 与该回调关联的存储索引。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Registers a locale-change callback.
+     *
+     * The callback is prepended to the callback list, so **the most recently registered
+     * is invoked first**. Each callback is associated with an @p id used by
+     * access_callbacks() to locate its corresponding pword data.
+     * @param fn The callback function.
+     * @param id The storage index associated with this callback.
+     * @endif
+     */
+    void register_callback(event_callback fn, std::size_t id)
+    {
+        std::lock_guard guard(m_io_mutex);
+        m_callbacks.push_front({std::move(fn), id});
+    }
+
+protected:
+    /**
+     * @lang{ZH}
+     * @brief 依次调用所有已注册的本地化变更回调。
+     *
+     * 对每个回调，以新 locale 及其 id 上现存的 pword 数据（可能为空）调用之，并将返回的
+     * 新数据回写为该 id 的 pword（返回空则删除该条目）。回调**可能重入**地通过 set_pword()
+     * 修改 m_pwords，因此本函数在回调返回后会**重新定位**迭代器，以避免因容器重哈希/删除
+     * 而导致的迭代器失效。
+     *
+     * @param new_loc 新的本地化对象。
+     * @note 若某个回调抛出异常，会被暂存并继续执行其余回调；全部执行完毕后，重新抛出**第一个**
+     *       捕获到的异常（后续异常被吞掉）。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Invokes every registered locale-change callback in turn.
+     *
+     * For each callback, it is invoked with the new locale and the pword data currently
+     * stored under its id (possibly null), and the returned new data is written back as
+     * that id's pword (returning null removes the entry). A callback **may reentrantly**
+     * mutate m_pwords via set_pword(), so this function **re-locates** the iterator after
+     * the callback returns, to avoid iterator invalidation caused by container
+     * rehashing/erasure.
+     *
+     * @param new_loc The new locale object.
+     * @note If a callback throws, the exception is held and the remaining callbacks still
+     *       run; once all have run, the **first** captured exception is rethrown (later
+     *       exceptions are swallowed).
+     * @endif
+     */
+    void access_callbacks(const locale<TChar>& new_loc)
+    {
+        std::lock_guard guard(m_io_mutex);
+        std::exception_ptr throw_exception = nullptr;
+
+        for (const auto& [cb, id] : m_callbacks)
+        {
+            try
+            {
+                auto pre = m_pwords.find(id);
+                std::shared_ptr<void> old_data =
+                    (pre != m_pwords.end()) ? pre->second : nullptr;
+
+                std::shared_ptr<void> new_data = cb(new_loc, old_data);
+
+                // Re-locate after the callback: cb may reentrantly mutate
+                // m_pwords (via set_pword), which can rehash/erase and would
+                // invalidate an iterator held across the call.
+                auto it = m_pwords.find(id);
+                if (new_data)
+                {
+                    if (it != m_pwords.end()) it->second = std::move(new_data);
+                    else m_pwords.insert({id, std::move(new_data)});
+                }
+                else if (it != m_pwords.end())
+                {
+                    m_pwords.erase(it);
+                }
+            }
+            catch(...)
+            {
+                if (!throw_exception)
+                    throw_exception = std::current_exception();
+            }
+        }
+
+        if (throw_exception)
+            std::rethrow_exception(throw_exception);
+    }
+
+protected:
+    // NOLINTBEGIN(cppcoreguidelines-non-private-member-variables-in-classes)
+    copyable_atomic<std::uint16_t> m_flags{ios_defs::skipws | ios_defs::dec};   ///< @lang{ZH} 格式化标志；默认置位 `skipws | dec`。 @endif @lang{EN} Formatting flags; defaults to `skipws | dec`. @endif
+    copyable_atomic<std::uint8_t>       m_precision{6};     ///< @lang{ZH} 浮点精度，默认 6。 @endif @lang{EN} Floating-point precision, default 6. @endif
+    copyable_atomic<std::size_t>        m_width{0};     ///< @lang{ZH} 字段宽度，默认 0（不填充）。 @endif @lang{EN} Field width, default 0 (no padding). @endif
+    /**
+     * @lang{ZH}
+     * @brief 默认填充字符。
+     *
+     * 此处直接用 C 风格转换 (TChar)' ' 得到，而**不**经由 locale 的 widen()
+     * 之类的接口——这是有意为之：ios_base 不与 locale 建立直接依赖。
+     * @note 这要求 TChar 可由 char 字面量 ' ' 构造/转换。对 char/wchar_t/char8_t/char16_t/
+     * char32_t 均成立；若以不满足该要求的 TChar 实例化，则在此处编译期失败（而非静默产生
+     * 非空格的填充字符）。此为既定约束，非缺陷。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Default fill character.
+     *
+     * Obtained directly via the C-style cast (TChar)' ', and
+     * deliberately NOT through a locale facility such as widen(): ios_base intentionally
+     * keeps no direct dependency on locale.
+     * @note This requires TChar to be constructible/convertible from the char literal ' '.
+     * That holds for char/wchar_t/char8_t/char16_t/char32_t; instantiating with a TChar
+     * that does not meet this requirement fails to compile here (rather than silently
+     * yielding a non-space fill character). This is a deliberate constraint, not a defect.
+     * @endif
+     */
+    copyable_atomic<TChar>              m_fill{(TChar)' '};
+
+    mutable copyable_mutex<std::recursive_mutex> m_io_mutex;                 ///< @lang{ZH} 本流的对象锁；串行化本流的全部操作，包括下面两个容器的访问。`mutable` 是因为 `get_pword()` 等只读接口也要加锁。详见 `io_mutex()`。 @endif @lang{EN} This stream's object lock; serializes all of the stream's operations, including access to the two containers below. `mutable` because read-only entry points such as `get_pword()` must lock too. See `io_mutex()`. @endif
+
+    std::unordered_map<std::size_t, std::shared_ptr<void>> m_pwords;              ///< @lang{ZH} 按 id 索引的 per-stream 用户数据存储。由 `m_io_mutex` 保护。 @endif @lang{EN} Per-stream user-data storage indexed by id. Guarded by `m_io_mutex`. @endif
+    std::forward_list<std::pair<event_callback, std::size_t>> m_callbacks;        ///< @lang{ZH} 已注册的本地化变更回调及其关联 id（前插，后注册者先调用）。由 `m_io_mutex` 保护。 @endif @lang{EN} Registered locale-change callbacks with their associated ids (prepended; last registered runs first). Guarded by `m_io_mutex`. @endif
+    // NOLINTEND(cppcoreguidelines-non-private-member-variables-in-classes)
+};
+
+/**
+ * @lang{ZH}
+ * @brief 在格式化状态之上，管理流状态位及其关联异常的组件。
+ *
+ * 本类在 `ios_base<TChar>` 的基础上追加两部分信息：
+ * - **状态位**（`m_stream_state`）：当前流的健康状况，由 `ios_defs::iostate` 位组成。
+ * - **异常掩码**（`m_exception`）：指定哪些状态位一旦被置位就应当抛出异常。
+ *
+ * 与标准 `std::ios` 不同，本类为每个失败类别额外保存了一个 `std::exception_ptr`
+ * （设备/转换/流/其他），因此当某个失败位对应的异常被触发时，可以**重新抛出最初
+ * 捕获的原始异常**，而不是抛出一个信息量更少的通用异常。当对应异常指针为空时，则回退
+ * 到抛出一个与该失败类别匹配的默认异常。
+ *
+ * 本类与 `ios_base` 的层次关系，对应标准库里 `std::basic_ios<charT> : std::ios_base`：
+ * 只吃格式化状态的接口（facet 等）取 `ios_base<TChar>&`，从而看不见流状态。
+ *
+ * @note 状态位的**写**在继承来的 `io_mutex()` 下完成——就是流自己的那把锁，没有第二把。
+ *       因此在已持有 `io_mutex()` 的上下文里（格式化 I/O 的 sentry 内、`sync` 作用域内）
+ *       写状态只是一次递归重入。`rdstate()` / `good()` / `eof()` / `operator bool` 仍免锁，
+ *       状态位存在原子量里。
+ * @warning 派生时只继承本类，**不要**同时再继承一次 `ios_base<TChar>`：那会产生两个
+ *          `ios_base` 子对象，`std::derived_from<T, ios_base<TChar>>` 因基类二义而为假，
+ *          于是 `ostream_type` / `istream_type` 概念不再满足。两个概念都保留了那一条
+ *          `derived_from<T, ios_base<char_type>>` 约束，正是为了把这种写法挡在编译期。
+ *
+ * @tparam TChar 字符类型；透传给 `ios_base`。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief Component that adds the stream state bits and their associated exceptions on top
+ * of the formatting state.
+ *
+ * On top of `ios_base<TChar>`, this class adds two pieces of information:
+ * - The **state bits** (`m_stream_state`): the current health of the stream, made of
+ *   `ios_defs::iostate` bits.
+ * - The **exception mask** (`m_exception`): which state bits, once set, should cause an
+ *   exception to be thrown.
+ *
+ * Unlike the standard `std::ios`, this class additionally stores a `std::exception_ptr`
+ * per failure category (device / conversion / stream / other), so that when the
+ * exception for a failure bit fires it can **rethrow the original exception that was
+ * first captured** rather than a less informative generic one. When the corresponding
+ * exception pointer is empty it falls back to throwing a default exception matching that
+ * failure category.
+ *
+ * The layering mirrors `std::basic_ios<charT> : std::ios_base` in the standard library: an
+ * interface that only consumes formatting state (a facet, for one) takes an
+ * `ios_base<TChar>&` and therefore cannot see the stream state.
+ *
+ * @note State **writes** happen under the inherited `io_mutex()` -- the stream's own lock,
+ *       and the only one it has. A state write from a context that already holds
+ *       `io_mutex()` (inside a formatted-I/O sentry, inside a `sync` scope) is therefore
+ *       just a recursive re-entry. `rdstate()` / `good()` / `eof()` / `operator bool` stay
+ *       lock-free; the state bits live in an atomic.
+ * @warning Derive from this class alone; do **not** additionally derive from
+ *          `ios_base<TChar>` a second time. That yields two `ios_base` subobjects, which
+ *          makes `std::derived_from<T, ios_base<TChar>>` false through base ambiguity, so
+ *          the `ostream_type` / `istream_type` concepts are no longer satisfied. Both
+ *          concepts keep their `derived_from<T, ios_base<char_type>>` clause precisely to
+ *          reject that shape at compile time.
+ *
+ * @tparam TChar The character type; forwarded to `ios_base`.
+ * @endif
+ */
+template <typename TChar>
+struct ios_state : public ios_base<TChar>
+{
+    /**
+     * @lang{ZH}
+     * @brief 返回当前的流状态位。
+     * @return 当前 `iostate` 位的按位或。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Returns the current stream state bits.
+     * @return The bitwise-or of the current `iostate` bits.
+     * @endif
+     */
+    [[nodiscard]] ios_defs::iostate rdstate() const noexcept
+    { return static_cast<ios_defs::iostate>(m_stream_state.load()); }
+
+    /**
+     * @lang{ZH}
+     * @brief 将流状态位设置为 `s`，并按需触发异常。
+     *
+     * 先把状态位整体替换为 `s`。对于被清除（不再置位）的失败位，其保存的
+     * `std::exception_ptr` 会被一并释放。随后，若 `s` 中仍被置位的失败位同时也在异常
+     * 掩码 `exceptions()` 中，则触发异常：优先按 设备 → 转换 → 流 → 其他 → EOF 的顺序，
+     * 重新抛出对应类别先前保存的原始异常；若该指针为空，则抛出与该类别匹配的默认异常。
+     *
+     * @param s 新的流状态位，默认为 `goodbit`（即清除所有状态）。
+     * @tparam ignore_exception_mask 为 `false`（默认）时遵循异常掩码，按上述规则触发异常；
+     *         为 `true` 时跳过“按掩码触发异常”这一步：仍替换状态位、并释放被清除失败位的
+     *         `exception_ptr`，但**不会因异常掩码而（重）抛出**，也不消费仍被置位类别已保存的
+     *         `exception_ptr`。因此下列 @throw 仅在 `ignore_exception_mask == false` 时可能发生
+     *         （加锁失败等底层抛出不受本参数影响，两种取值下均可能发生）。
+     * @throw device_error 当 `devfailbit` 被置位且在异常掩码中，且无保存的原始异常时。
+     * @throw cvt_error 当 `cvtfailbit` 被置位且在异常掩码中，且无保存的原始异常时。
+     * @throw stream_error 当 `strfailbit`/`otherfailbit` 被置位且在异常掩码中，
+     *        且无保存的原始异常时。
+     * @throw eof_error 当 `eofbit` 被置位且在异常掩码中时。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Sets the stream state bits to `s`, triggering exceptions as required.
+     *
+     * The state bits are first replaced wholesale by `s`. For any failure bit that is
+     * cleared (no longer set), its stored `std::exception_ptr` is released as well.
+     * Then, for any failure bit still set in `s` that is also present in the exception
+     * mask `exceptions()`, an exception is triggered: in the order
+     * device → conversion → stream → other → EOF, the original exception previously
+     * captured for that category is rethrown; if that pointer is empty, a default
+     * exception matching the category is thrown instead.
+     *
+     * @param s The new stream state bits; defaults to `goodbit` (i.e. clears all state).
+     * @tparam ignore_exception_mask When `false` (default), honors the exception mask and
+     *         triggers exceptions per the rules above; when `true`, the "trigger per the mask"
+     *         step is skipped: the state bits are still replaced and the `exception_ptr`s of
+     *         cleared failure bits released, but it **does not (re)throw on account of the
+     *         exception mask**, nor consume the stored `exception_ptr` of a still-set category.
+     *         The @throw cases below can therefore occur only when
+     *         `ignore_exception_mask == false` (a lower-level throw such as a lock failure is
+     *         unaffected by this parameter and may occur either way).
+     * @throw device_error When `devfailbit` is set and in the exception mask, with no
+     *        stored original exception.
+     * @throw cvt_error When `cvtfailbit` is set and in the exception mask, with no stored
+     *        original exception.
+     * @throw stream_error When `strfailbit`/`otherfailbit` is set and in the exception
+     *        mask, with no stored original exception.
+     * @throw eof_error When `eofbit` is set and in the exception mask.
+     * @endif
+     */
+    template <bool ignore_exception_mask = false>
+    void clear(ios_defs::iostate s = ios_defs::goodbit)
+    {
+        std::lock_guard guard(this->io_mutex());
+        m_stream_state.store(s);
+        if ((s & ios_defs::devfailbit) == ios_defs::goodbit) m_exp_dev_fail = std::exception_ptr{};
+        if ((s & ios_defs::cvtfailbit) == ios_defs::goodbit) m_exp_cvt_fail = std::exception_ptr{};
+        if ((s & ios_defs::strfailbit) == ios_defs::goodbit) m_exp_str_fail = std::exception_ptr{};
+        if ((s & ios_defs::otherfailbit) == ios_defs::goodbit) m_exp_other_fail = std::exception_ptr{};
+
+        if constexpr(!ignore_exception_mask)
+        {
+            ios_defs::iostate state_in_exp = m_exception & s;
+            if (state_in_exp & ios_defs::devfailbit)
+            {
+                if (m_exp_dev_fail)
+                    std::rethrow_exception(std::exchange(m_exp_dev_fail, nullptr));
+                else
+                    throw device_error("device failure bit has been set");
+            }
+            else if (state_in_exp & ios_defs::cvtfailbit)
+            {
+                if (m_exp_cvt_fail)
+                    std::rethrow_exception(std::exchange(m_exp_cvt_fail, nullptr));
+                else
+                    throw cvt_error("converter failure bit has been set");
+            }
+            else if (state_in_exp & ios_defs::strfailbit)
+            {
+                if (m_exp_str_fail)
+                    std::rethrow_exception(std::exchange(m_exp_str_fail, nullptr));
+                else
+                    throw stream_error("stream failure bit has been set");
+            }
+            else if (state_in_exp & ios_defs::otherfailbit)
+            {
+                if (m_exp_other_fail)
+                    std::rethrow_exception(std::exchange(m_exp_other_fail, nullptr));
+                else
+                    throw stream_error("other failure bit has been set");
+            }
+            else if (state_in_exp & ios_defs::eofbit)
+            {
+                throw eof_error{};
+            }
+        }
+    }
+
+    /**
+     * @lang{ZH}
+     * @brief 在现有状态位的基础上附加 `s`（按位或），并可能触发异常。
+     * @param s 要附加置位的状态位。
+     * @tparam ignore_exception_mask 透传给 `clear`：`false`（默认）遵循异常掩码、可能（重）抛出；
+     *         `true` 置位但不因掩码抛出。见 clear()。
+     * @note 等价于 `clear<ignore_exception_mask>(rdstate() | s)`，因此是否遵循异常掩码同样由
+     *       `ignore_exception_mask` 决定。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Adds `s` on top of the existing state bits (bitwise-or), possibly
+     * triggering exceptions.
+     * @param s The state bits to additionally set.
+     * @tparam ignore_exception_mask Forwarded to `clear`: `false` (default) honors the
+     * exception mask and may (re)throw; `true` sets the bits without throwing on account of
+     * the mask. See clear().
+     * @note Equivalent to `clear<ignore_exception_mask>(rdstate() | s)`, so whether the
+     * exception mask is honored is likewise governed by `ignore_exception_mask`.
+     * @endif
+     */
+    template <bool ignore_exception_mask = false>
+    void setstate(ios_defs::iostate s)
+    {
+        std::lock_guard guard(this->io_mutex());
+        clear<ignore_exception_mask>(rdstate() | s);
+    }
+
+    void unset_state(ios_defs::iostate s)
+    {
+        std::lock_guard guard(this->io_mutex());
+        clear<false>(rdstate() & ~s);
+    }
+    /**
+     * @lang{ZH} @brief 是否无任何错误（状态位全为 0）。 @endif
+     * @lang{EN} @brief Whether there is no error at all (state bits all zero). @endif
+     */
+    [[nodiscard]] bool good() const noexcept { return rdstate() == 0; }
+    /**
+     * @lang{ZH} @brief 是否置位了设备失败位。 @endif
+     * @lang{EN} @brief Whether the device-failure bit is set. @endif
+     */
+    [[nodiscard]] bool dev_fail() const noexcept { return rdstate() & ios_defs::devfailbit; }
+    /**
+     * @lang{ZH} @brief 是否置位了转换失败位。 @endif
+     * @lang{EN} @brief Whether the conversion-failure bit is set. @endif
+     */
+    [[nodiscard]] bool cvt_fail() const noexcept { return rdstate() & ios_defs::cvtfailbit; }
+    /**
+     * @lang{ZH} @brief 是否置位了流失败位。 @endif
+     * @lang{EN} @brief Whether the stream-failure bit is set. @endif
+     */
+    [[nodiscard]] bool str_fail() const noexcept { return rdstate() & ios_defs::strfailbit; }
+    /**
+     * @lang{ZH} @brief 是否置位了其他失败位。 @endif
+     * @lang{EN} @brief Whether the other-failure bit is set. @endif
+     */
+    [[nodiscard]] bool other_fail() const noexcept { return rdstate() & ios_defs::otherfailbit; }
+    /**
+     * @lang{ZH} @brief 是否已到达文件/输入末尾（`eofbit` 置位）。 @endif
+     * @lang{EN} @brief Whether end-of-file/input has been reached (`eofbit` set). @endif
+     */
+    [[nodiscard]] bool eof() const noexcept { return rdstate() & ios_defs::eofbit; }
+
+    /**
+     * @lang{ZH}
+     * @brief 布尔转换：当流仍可用时为 `true`。
+     *
+     * 仅当状态为 `goodbit`，或仅置位了 `eofbit`（无任何失败位）时返回 `true`。
+     * 换言之，只要出现任何失败位即返回 `false`；单纯的 EOF 不视为不可用。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Boolean conversion: `true` while the stream is still usable.
+     *
+     * Returns `true` only when the state is `goodbit`, or when only `eofbit` is set
+     * (without any failure bit). In other words, any failure bit makes it `false`;
+     * plain EOF alone is not treated as unusable.
+     * @endif
+     */
+    explicit operator bool() const noexcept
+    {
+        const ios_defs::iostate s = rdstate();
+        return (s == 0) || (s == ios_defs::eofbit);
+    }
+
+    /**
+     * @lang{ZH} @brief 返回当前的异常掩码。 @endif
+     * @lang{EN} @brief Returns the current exception mask. @endif
+     */
+    [[nodiscard]] ios_defs::iostate exceptions() const
+    {
+        std::lock_guard guard(this->io_mutex());
+        return m_exception;
+    }
+    /**
+     * @lang{ZH}
+     * @brief 设置异常掩码，指定哪些状态位应触发异常。
+     *
+     * 设置后会立即以当前状态位调用 `clear(m_stream_state)`，因此若当前已置位的状态位
+     * 落入新掩码，会**立刻**触发相应异常。
+     * @param e 新的异常掩码。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Sets the exception mask that specifies which state bits should throw.
+     *
+     * After setting, `clear(m_stream_state)` is immediately called with the current
+     * state bits, so if an already-set state bit falls within the new mask the
+     * corresponding exception fires **immediately**.
+     * @param e The new exception mask.
+     * @endif
+     */
+    void exceptions(ios_defs::iostate e)
+    {
+        std::lock_guard guard(this->io_mutex());
+        m_exception = e;
+        clear(static_cast<ios_defs::iostate>(m_stream_state.load()));
+    }
+
+    /**
+     * @lang{ZH}
+     * @brief 捕获并归类一个异常，将其转换为对应的失败状态位。
+     *
+     * 重新抛出 `ex` 并按类型归类：`device_error`→`devfailbit`、`cvt_error`→`cvtfailbit`、
+     * `stream_error`→`strfailbit`、`eof_error`→`eofbit`、其余→`otherfailbit`。对于设备/
+     * 转换/流/其他类别，若该类别尚无保存的异常指针，则记录当前异常，以便日后经 clear()/
+     * setstate() 重新抛出原始异常。随后通过 `setstate<ignore_exception_mask>()` 置位相应状态
+     * 位。是否再抛由模板参数决定：`ignore_exception_mask == false`（默认）时，若该位在异常掩码
+     * 中则**（重）抛出异常**；`ignore_exception_mask == true` 时**只置位、不因掩码抛出**，且不
+     * 消费已保存的 `exception_ptr`（适用于需绕过展开判定的上下文，如 `noexcept` 析构器）。
+     * 注意：无论取值如何，加锁失败等底层抛出仍可能发生，故本函数并非 `noexcept`。
+     *
+     * @param ex 要处理的异常指针；若为空指针则不做任何事。
+     * @tparam ignore_exception_mask `false`（默认）遵循异常掩码、可能（重）抛出；`true` 只登记
+     *         失败位、不因掩码抛出，并绕过下述栈展开判定（供已确知不得抛出的上下文使用，如析构器）。
+     * @note **栈展开期间本函数一律只置位、绝不抛出。** `ignore_exception_mask == false` 时先查
+     *       `std::uncaught_exceptions() != 0`；若成立就转为 `ignore_exception_mask == true` 的行为
+     *       并吞掉一切抛出。此判定在 `catch` 处理器内是精确的：被处理的那个异常已不计入，外层仍
+     *       在飞行的异常才计入。于是"析构器里的 I/O 失败 + 掩码命中 = `std::terminate`"这条路被
+     *       切断，且不依赖各调用点自觉加判断。判定位于取 `io_mutex()` 之前，故展开期连加锁失败
+     *       也一并吞掉。
+     * @warning 本判定**不覆盖** `clear(bits)` / `setstate()` / `unset_state()` / `exceptions()`：
+     *          它们是公开接口，抛出正是调用方索要的效果（与 `std::basic_ios` 一致），在展开期
+     *          调用仍可能 `std::terminate`。析构器中请只经由本函数报错。
+     * @note EOF 类别不保存异常指针（EOF 无需携带原始异常信息）。
+     * @note 本函数对同一异常是**幂等**的：以同一个 `ex` 重复调用，与只调用一次的可观测效果
+     *       相同。重复调用出现在嵌套的处理点上——例如 `put()` 自己处理完异常后因掩码重抛，
+     *       异常再落到调用方的 `catch`。第二遍的三步都无害：`m_exp_*` 在首遍 `clear()` 重抛
+     *       时已被消费置空，于是同一异常被重新存入；`setstate` 对已置位的位是按位或空操作；
+     *       `clear()` 再次重抛同一个原始异常。调用方因此**不需要**为了躲开重复调用而在嵌套
+     *       处省略 try。
+     * @note **传播出去的异常未必就是传入的 `ex`。** 重抛由 `clear()` 按 设备 → 转换 → 流 →
+     *       其他 → EOF 的固定优先级挑选，且某类别只在其状态位**既已置位、又落在异常掩码中**
+     *       时才轮得到（见 clear()）。于是当更高优先级的失败位先已满足这两个条件时，本函数
+     *       传播出去的是那个类别保存的异常，而不是本次传入的 `ex`——例如流上已有 `devfailbit`
+     *       且它在掩码中，此时把哨兵的 `stream_error` 交进来，抛出的是先前那条 `device_error`。
+     *       这是刻意的：先报因果链上游那个更根本的故障。幂等性不受影响（以同一 `ex` 重复调用
+     *       效果仍相同），被让位的 `exception_ptr` 也不会丢失——它继续留在自己的类别里，待高
+     *       优先级位被清除后由后续的 clear()/setstate() 抛出。
+     * @warning **不支持对阻塞在本库 I/O 中的线程调用 `pthread_cancel`。** glibc 以抛出特殊异常
+     *          （`__cxxabiv1::__forced_unwind`）的方式实现线程取消，该异常会落入本函数最后的
+     *          `catch(...)` 并被归类为 `otherfailbit`；若 `otherfailbit` 不在异常掩码中就不会被
+     *          重新抛出，取消因而被吞掉，导致 `FATAL: exception not rethrown` 并 abort。线程取消
+     *          不属于 C++ 标准，也没有可移植的手段在 `catch(...)` 中将其识别出来。若需中断阻塞中
+     *          的 I/O，请改为关闭底层设备（使阻塞调用带错误返回），或使用超时 / 非阻塞 I/O。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Captures and categorizes an exception, turning it into the matching
+     * failure state bit.
+     *
+     * Rethrows `ex` and categorizes it by type: `device_error`→`devfailbit`,
+     * `cvt_error`→`cvtfailbit`, `stream_error`→`strfailbit`, `eof_error`→`eofbit`,
+     * everything else→`otherfailbit`. For the device/conversion/stream/other categories,
+     * if that category has no stored exception pointer yet, the current exception is
+     * recorded so the original can later be rethrown via clear()/setstate(). It then
+     * sets the matching state bit through `setstate<ignore_exception_mask>()`. Whether it
+     * throws is governed by the template parameter: when `ignore_exception_mask == false`
+     * (default) it **(re)throws** if that bit is in the exception mask; when
+     * `ignore_exception_mask == true` it **only sets the bit and does not throw on account of
+     * the mask**, leaving the stored `exception_ptr` unconsumed (for a context that must bypass
+     * the unwinding check below, such as a `noexcept` destructor). Note that, regardless of the
+     * value, a lower-level throw such as a lock failure may still occur, so this function is
+     * not `noexcept`.
+     *
+     * @param ex The exception pointer to handle; does nothing if it is null.
+     * @tparam ignore_exception_mask `false` (default) honors the exception mask and may
+     *         (re)throw; `true` only records the failure bit, does not throw on account of the
+     *         mask, and bypasses the unwinding check below (for a context already known to be
+     *         forbidden from throwing, such as a destructor).
+     * @note **During stack unwinding this function only sets bits; it never throws.** When
+     * `ignore_exception_mask == false` it first tests `std::uncaught_exceptions() != 0`; if that
+     * holds it switches to the `ignore_exception_mask == true` behavior and swallows every throw.
+     * The test is exact inside a `catch` handler: the exception being handled no longer counts,
+     * while an outer in-flight exception still does. That closes off "I/O failure in a destructor
+     * + a mask hit = `std::terminate`" without relying on each call site to remember the check.
+     * The test sits before `io_mutex()` is taken, so a lock failure during unwinding is
+     * swallowed too.
+     * @warning The check does **not** cover `clear(bits)` / `setstate()` / `unset_state()` /
+     *          `exceptions()`: those are public entry points where throwing is the effect the
+     *          caller asked for (matching `std::basic_ios`), so calling them while unwinding can
+     *          still `std::terminate`. Report errors from a destructor through this function only.
+     * @note The EOF category stores no exception pointer (EOF carries no original
+     * exception information).
+     * @note This function is **idempotent** for a given exception: calling it repeatedly with
+     * the same `ex` has the same observable effect as calling it once. Repeat calls arise at
+     * nested handling points -- `put()`, for one, handles its own exception and then rethrows
+     * on account of the mask, so the exception reaches the caller's `catch` as well. All three
+     * steps of the second pass are harmless: `m_exp_*` was consumed and nulled by the first
+     * pass's rethrow inside `clear()`, so the same exception is stored again; `setstate` is a
+     * bitwise-or no-op on an already-set bit; and `clear()` rethrows the same original
+     * exception. Callers therefore do **not** need to omit a try at a nested site merely to
+     * avoid a repeat call.
+     * @note **The exception that propagates out is not necessarily the `ex` handed in.** The
+     * rethrow is picked by `clear()` in the fixed device → conversion → stream → other → EOF
+     * priority order, and a category is only eligible when its state bit is **both set and in
+     * the exception mask** (see clear()). So when a higher-priority failure bit already meets
+     * both conditions, what propagates out is the exception stored for *that* category rather
+     * than this call's `ex` -- hand in a sentry's `stream_error` while the stream already has
+     * `devfailbit` set and in the mask, for one, and the earlier `device_error` is what is
+     * thrown. This is deliberate: the more fundamental failure, further up the causal chain,
+     * is reported first. Idempotence is unaffected (repeated calls with the same `ex` still
+     * have the same effect), and the exception that yielded is not lost -- it stays in its own
+     * category and is thrown by a later clear()/setstate() once the higher-priority bit is
+     * cleared.
+     * @warning **Calling `pthread_cancel` on a thread blocked inside this library is not
+     *          supported.** glibc implements thread cancellation by throwing a special
+     *          exception (`__cxxabiv1::__forced_unwind`), which lands in this function's
+     *          final `catch(...)` and is categorized as `otherfailbit`; unless
+     *          `otherfailbit` is in the exception mask it is not rethrown, so the
+     *          cancellation is swallowed and the process aborts with
+     *          `FATAL: exception not rethrown`. Thread cancellation is not part of the C++
+     *          standard, and there is no portable way to recognize it inside a `catch(...)`.
+     *          To interrupt blocked I/O, close the underlying device instead (so the
+     *          blocking call returns with an error), or use timeouts / non-blocking I/O.
+     * @endif
+     */
+    template <bool ignore_exception_mask = false>
+    void handle_exception(const std::exception_ptr& ex, bool at_eof = false)
+    {
+        if (!ex) return;
+        if constexpr (!ignore_exception_mask)
+        {
+            if (std::uncaught_exceptions() != 0)
+            {
+                try { handle_exception<true>(ex, at_eof); }
+                catch (...) {}   // NOLINT(bugprone-empty-catch)
+                return;
+            }
+        }
+        std::lock_guard guard(this->io_mutex());
+        const ios_defs::iostate eof = at_eof ? ios_defs::eofbit : ios_defs::goodbit;
+        try
+        {
+            std::rethrow_exception(ex);
+        }
+        catch (device_error&)
+        {
+            if (!m_exp_dev_fail)
+                m_exp_dev_fail = std::current_exception();
+            setstate<ignore_exception_mask>(ios_defs::devfailbit | eof);
+        }
+        catch (cvt_error&)
+        {
+            if (!m_exp_cvt_fail)
+                m_exp_cvt_fail = std::current_exception();
+            setstate<ignore_exception_mask>(ios_defs::cvtfailbit | eof);
+        }
+        catch (stream_error&)
+        {
+            if (!m_exp_str_fail)
+                m_exp_str_fail = std::current_exception();
+            setstate<ignore_exception_mask>(ios_defs::strfailbit | eof);
+        }
+        catch (eof_error&)
+        {
+            setstate<ignore_exception_mask>(ios_defs::eofbit);
+        }
+        catch(...)
+        {
+            if (!m_exp_other_fail)
+                m_exp_other_fail = std::current_exception();
+            setstate<ignore_exception_mask>(ios_defs::otherfailbit | eof);
+        }
+    }
+
+private:
+    ios_defs::iostate  m_exception = ios_defs::goodbit;      ///< @lang{ZH} 异常掩码：哪些状态位应触发异常。由 `ios_base::m_io_mutex` 保护。 @endif @lang{EN} Exception mask: which state bits should throw. Guarded by `ios_base::m_io_mutex`. @endif
+    copyable_atomic<std::uint8_t> m_stream_state{ios_defs::goodbit};   ///< @lang{ZH} 当前流状态位。原子量，使 `rdstate()` 及 `good()`/`eof()`/`operator bool` 等热路径无锁读取；其**写**仍与其余成员一同在 `io_mutex()` 下完成，故不变式不受影响。 @endif @lang{EN} Current stream state bits. Atomic so that `rdstate()` -- and the hot `good()`/`eof()`/`operator bool` built on it -- reads lock-free; **writes** still happen under `io_mutex()` together with the other members, so the invariant is unaffected. @endif
+    std::exception_ptr m_exp_dev_fail = std::exception_ptr{};    ///< @lang{ZH} 设备失败类别保存的原始异常。 @endif @lang{EN} Original exception saved for the device-failure category. @endif
+    std::exception_ptr m_exp_cvt_fail = std::exception_ptr{};    ///< @lang{ZH} 转换失败类别保存的原始异常。 @endif @lang{EN} Original exception saved for the conversion-failure category. @endif
+    std::exception_ptr m_exp_str_fail = std::exception_ptr{};    ///< @lang{ZH} 流失败类别保存的原始异常。 @endif @lang{EN} Original exception saved for the stream-failure category. @endif
+    std::exception_ptr m_exp_other_fail = std::exception_ptr{};  ///< @lang{ZH} 其他失败类别保存的原始异常。 @endif @lang{EN} Original exception saved for the other-failure category. @endif
+};
+
+/**
+ * @lang{ZH}
+ * @brief 把一个作用于 `ios_base<TChar>&` 的函数指针操纵符应用到流上。
+ *
+ * 插入侧与提取侧那两条同形状的运算符共用本函数。空指针被拒绝：抛出的 `stream_error` 由流自己的
+ * `handle_exception` 归类为 `strfailbit`，并按异常掩码决定是否重抛。
+ * @tparam T 流类型。
+ * @param s 目标流。
+ * @param pf 操纵符。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief Applies a function-pointer manipulator taking `ios_base<TChar>&` to a stream.
+ *
+ * Shared by the two same-shaped operators on the insertion and extraction sides. A null pointer is
+ * rejected: the `stream_error` thrown is categorized into `strfailbit` by the stream's own
+ * `handle_exception`, which then honours the exception mask.
+ * @tparam T The stream type.
+ * @param s The target stream.
+ * @param pf The manipulator.
+ * @endif
+ */
+template <typename TChar, typename T>
+void apply_ios_manip(T& s, void (*pf)(ios_base<TChar>&))
+{
+    try
+    {
+        if (!pf)
+            throw stream_error("stream manipulator fail: null manipulator");
+        pf(static_cast<ios_base<TChar>&>(s));
+    }
+    catch (...)
+    {
+        s.handle_exception(std::current_exception());
+    }
+}
+
+/**
+ * @lang{ZH}
+ * @defgroup ios_manipulators 格式化操纵符
+ * @brief 直接作用于 ios_base 的无参操纵符，用于置位或清除相应的格式化标志。
+ *
+ * 这些函数与标准库中同名的流操纵符对应，通过 setf()/unsetf() 修改 ios_base 的格式标志。
+ * 其中作用于互斥字段（`adjustfield`/`basefield`/`floatfield`）的操纵符会先清除该字段
+ * 再置位目标位。所有参数 @p base 均为要修改的 ios_base 对象。
+ * @{
+ * @endif
+ *
+ * @lang{EN}
+ * @defgroup ios_manipulators Formatting manipulators
+ * @brief Argument-less manipulators acting directly on ios_base to set or clear the
+ * corresponding formatting flags.
+ *
+ * These functions correspond to the identically named stream manipulators of the
+ * standard library and modify the format flags of ios_base via setf()/unsetf(). Those
+ * acting on a mutually exclusive field (`adjustfield`/`basefield`/`floatfield`) first
+ * clear the field and then set the target bit. In every case @p base is the ios_base
+ * object to modify.
+ * @{
+ * @endif
+ */
+
+/** @lang{ZH} @brief 置位 `boolalpha`：布尔值以文本形式表示。 @endif @lang{EN} @brief Set `boolalpha`: represent bool values as text. @endif */
+template <typename TChar>
+inline void boolalpha(ios_base<TChar>& base)
+{
+    base.setf(ios_defs::boolalpha);
+}
+
+/** @lang{ZH} @brief 清除 `boolalpha`：布尔值以数字形式表示。 @endif @lang{EN} @brief Clear `boolalpha`: represent bool values as numbers. @endif */
+template <typename TChar>
+inline void noboolalpha(ios_base<TChar>& base)
+{
+    base.unsetf(ios_defs::boolalpha);
+}
+
+/** @lang{ZH} @brief 置位 `showbase`：显示整数的进制前缀。 @endif @lang{EN} @brief Set `showbase`: show the numeric base prefix. @endif */
+template <typename TChar>
+inline void showbase(ios_base<TChar>& base)
+{
+    base.setf(ios_defs::showbase);
+}
+
+/** @lang{ZH} @brief 清除 `showbase`：不显示进制前缀。 @endif @lang{EN} @brief Clear `showbase`: do not show the base prefix. @endif */
+template <typename TChar>
+inline void noshowbase(ios_base<TChar>& base)
+{
+    base.unsetf(ios_defs::showbase);
+}
+
+/** @lang{ZH} @brief 置位 `showpoint`：浮点数总是显示小数点。 @endif @lang{EN} @brief Set `showpoint`: always show the decimal point. @endif */
+template <typename TChar>
+inline void showpoint(ios_base<TChar>& base)
+{
+    base.setf(ios_defs::showpoint);
+}
+
+/** @lang{ZH} @brief 清除 `showpoint`：不强制显示小数点。 @endif @lang{EN} @brief Clear `showpoint`: do not force the decimal point. @endif */
+template <typename TChar>
+inline void noshowpoint(ios_base<TChar>& base)
+{
+    base.unsetf(ios_defs::showpoint);
+}
+
+/** @lang{ZH} @brief 置位 `showpos`：对非负数显示正号。 @endif @lang{EN} @brief Set `showpos`: show a leading `+` on non-negative numbers. @endif */
+template <typename TChar>
+inline void showpos(ios_base<TChar>& base)
+{
+    base.setf(ios_defs::showpos);
+}
+
+/** @lang{ZH} @brief 清除 `showpos`：不显示正号。 @endif @lang{EN} @brief Clear `showpos`: do not show the `+` sign. @endif */
+template <typename TChar>
+inline void noshowpos(ios_base<TChar>& base)
+{
+    base.unsetf(ios_defs::showpos);
+}
+
+/** @lang{ZH} @brief 置位 `skipws`：输入时跳过前导空白。 @endif @lang{EN} @brief Set `skipws`: skip leading whitespace on input. @endif */
+template <typename TChar>
+inline void skipws(ios_base<TChar>& base)
+{
+    base.setf(ios_defs::skipws);
+}
+
+/** @lang{ZH} @brief 清除 `skipws`：输入时不跳过前导空白。 @endif @lang{EN} @brief Clear `skipws`: do not skip leading whitespace on input. @endif */
+template <typename TChar>
+inline void noskipws(ios_base<TChar>& base)
+{
+    base.unsetf(ios_defs::skipws);
+}
+
+/** @lang{ZH} @brief 置位 `uppercase`：数值输出使用大写字母。 @endif @lang{EN} @brief Set `uppercase`: use uppercase letters in numeric output. @endif */
+template <typename TChar>
+inline void uppercase(ios_base<TChar>& base)
+{
+    base.setf(ios_defs::uppercase);
+}
+
+/** @lang{ZH} @brief 清除 `uppercase`：数值输出使用小写字母。 @endif @lang{EN} @brief Clear `uppercase`: use lowercase letters in numeric output. @endif */
+template <typename TChar>
+inline void nouppercase(ios_base<TChar>& base)
+{
+    base.unsetf(ios_defs::uppercase);
+}
+
+/**
+ * @lang{ZH}
+ * @brief 置位 `appmode`：启用追加模式（本库扩展）。
+ *
+ * 置位后，每次输出操作在其 sentry 构造期间都会把流重新定位到末尾。该定位经由转换器
+ * 完成（`rseek`），因此需要转换器能由“距末尾的字节偏移”反推出对应的内部字符位置。
+ *
+ * @warning **仅支持定长且状态无关的编码。** 对 UTF-8 等变长编码或状态相关编码启用
+ *          `appmode` 后，首次输出即会在 sentry 构造中抛出 `cvt_error`，流被置
+ *          `cvtfailbit`，此后所有输出操作都会在 sentry 的有效性检查处失败——即该流
+ *          **一个字节也写不出去**。此限制继承自 `code_cvt::rseek`：变长/状态相关编码
+ *          下无法重建内部字符位置，而该位置是重定位的必要组成部分。
+ * @note 本操纵符只置标志位，不做上述能力检查（`ios_base` 与转换器解耦，此处看不到
+ *       流的转换器）。检查发生在首次输出时。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief Set `appmode`: enable append mode (a library extension).
+ *
+ * Once set, every output operation repositions the stream to the end while its sentry is
+ * being constructed. That repositioning goes through the converter (`rseek`), which
+ * therefore must be able to recover the corresponding internal character position from a
+ * byte offset relative to the end.
+ *
+ * @warning **Only fixed-length, state-independent encodings are supported.** With
+ *          `appmode` enabled on a variable-length encoding such as UTF-8, or on a
+ *          state-dependent one, the very first output throws `cvt_error` during sentry
+ *          construction and sets `cvtfailbit`; every later output then fails at the
+ *          sentry's validity check -- i.e. **not a single byte can be written** to that
+ *          stream. The restriction is inherited from `code_cvt::rseek`: for
+ *          variable-length / state-dependent encodings the internal character position
+ *          cannot be reconstructed, and that position is an essential part of
+ *          repositioning.
+ * @note This manipulator only sets the flag; it does not perform the capability check
+ *       above (`ios_base` is decoupled from the converter and cannot see the stream's
+ *       converter here). The check happens on the first output.
+ * @endif
+ */
+template <typename TChar>
+inline void appmode(ios_base<TChar>& base)
+{
+    base.setf(ios_defs::appmode);
+}
+
+/** @lang{ZH} @brief 清除 `appmode`：禁用追加模式。 @endif @lang{EN} @brief Clear `appmode`: disable append mode. @endif */
+template <typename TChar>
+inline void noappmode(ios_base<TChar>& base)
+{
+    base.unsetf(ios_defs::appmode);
+}
+
+/** @lang{ZH} @brief 置位 `unitbuf`：每次输出后刷新缓冲区。 @endif @lang{EN} @brief Set `unitbuf`: flush the buffer after each output. @endif */
+template <typename TChar>
+inline void unitbuf(ios_base<TChar>& base)
+{
+    base.setf(ios_defs::unitbuf);
+}
+
+/** @lang{ZH} @brief 清除 `unitbuf`：不在每次输出后刷新。 @endif @lang{EN} @brief Clear `unitbuf`: do not flush after each output. @endif */
+template <typename TChar>
+inline void nounitbuf(ios_base<TChar>& base)
+{
+    base.unsetf(ios_defs::unitbuf);
+}
+
+/** @lang{ZH} @brief 在 `adjustfield` 内设置 `internal`：在符号/前缀与数值间填充。 @endif @lang{EN} @brief Set `internal` within `adjustfield`: pad between sign/prefix and value. @endif */
+template <typename TChar>
+inline void internal(ios_base<TChar>& base)
+{
+    base.setf(ios_defs::internal, ios_defs::adjustfield);
+}
+
+/** @lang{ZH} @brief 在 `adjustfield` 内设置 `left`：左对齐。 @endif @lang{EN} @brief Set `left` within `adjustfield`: left-justify. @endif */
+template <typename TChar>
+inline void left(ios_base<TChar>& base)
+{
+    base.setf(ios_defs::left, ios_defs::adjustfield);
+}
+
+/** @lang{ZH} @brief 在 `adjustfield` 内设置 `right`：右对齐。 @endif @lang{EN} @brief Set `right` within `adjustfield`: right-justify. @endif */
+template <typename TChar>
+inline void right(ios_base<TChar>& base)
+{
+    base.setf(ios_defs::right, ios_defs::adjustfield);
+}
+
+/** @lang{ZH} @brief 在 `basefield` 内设置 `dec`：整数以十进制表示。 @endif @lang{EN} @brief Set `dec` within `basefield`: integers in decimal. @endif */
+template <typename TChar>
+inline void dec(ios_base<TChar>& base)
+{
+    base.setf(ios_defs::dec, ios_defs::basefield);
+}
+
+/** @lang{ZH} @brief 在 `basefield` 内设置 `hex`：整数以十六进制表示。 @endif @lang{EN} @brief Set `hex` within `basefield`: integers in hexadecimal. @endif */
+template <typename TChar>
+inline void hex(ios_base<TChar>& base)
+{
+    base.setf(ios_defs::hex, ios_defs::basefield);
+}
+
+/** @lang{ZH} @brief 在 `basefield` 内设置 `oct`：整数以八进制表示。 @endif @lang{EN} @brief Set `oct` within `basefield`: integers in octal. @endif */
+template <typename TChar>
+inline void oct(ios_base<TChar>& base)
+{
+    base.setf(ios_defs::oct, ios_defs::basefield);
+}
+
+/** @lang{ZH} @brief 在 `floatfield` 内设置 `fixed`：浮点数以定点记法表示。 @endif @lang{EN} @brief Set `fixed` within `floatfield`: floating-point in fixed notation. @endif */
+template <typename TChar>
+inline void fixed(ios_base<TChar>& base)
+{
+    base.setf(ios_defs::fixed, ios_defs::floatfield);
+}
+
+/** @lang{ZH} @brief 在 `floatfield` 内设置 `scientific`：浮点数以科学记法表示。 @endif @lang{EN} @brief Set `scientific` within `floatfield`: floating-point in scientific notation. @endif */
+template <typename TChar>
+inline void scientific(ios_base<TChar>& base)
+{
+    base.setf(ios_defs::scientific, ios_defs::floatfield);
+}
+
+/** @lang{ZH} @brief 在 `floatfield` 内同时设置 `fixed | scientific`：浮点数以十六进制记法表示。 @endif @lang{EN} @brief Set both `fixed | scientific` within `floatfield`: floating-point in hexadecimal notation. @endif */
+template <typename TChar>
+inline void hexfloat(ios_base<TChar>& base)
+{
+    base.setf(ios_defs::fixed | ios_defs::scientific, ios_defs::floatfield);
+}
+
+/** @lang{ZH} @brief 清除 `floatfield`：恢复默认浮点记法。 @endif @lang{EN} @brief Clear `floatfield`: restore the default floating-point notation. @endif */
+template <typename TChar>
+inline void defaultfloat(ios_base<TChar>& base)
+{
+    base.unsetf(ios_defs::floatfield);
+}
+/**
+ * @lang{ZH} @} @endif
+ * @lang{EN} @} @endif
+ */
+
+/**
+ * @lang{ZH}
+ * @brief 对流的 I/O 互斥量进行 RAII 加锁的辅助类。
+ *
+ * 构造时锁定 `stream.io_mutex()`，析构时解锁，从而在其生命周期内保证对该流的独占访问。
+ * 常用于把对同一流的多次 I/O 操作合并为一个原子的临界区。本类不可拷贝。
+ *
+ * @warning **持有本类期间对另一个流做 I/O，其锁序由调用方负责。** 每次 I/O 都会取该流的
+ *          `io_mutex()`，于是 `sync(A); B << 1;` 就是同时持有两把流锁；两个线程以相反次序
+ *          这么做即为经典的 AB-BA 死锁，与直接用两把 `std::mutex` 写错顺序无异。库这边保证
+ *          自己不制造**用户看不见的**加锁边——tie 的刷新一律用非阻塞的 `try_flush()`
+ *          （见 `stream_common_operators::tie`）——但用户自己写下的锁序，库无从代劳。
+ * @warning **本类挡不住不取锁的操纵符流形式。** `io_manip.h` 的六个格式状态操纵符
+ *          （`setw` / `setfill` / `setbase` / `setprecision` / `setiosflags` /
+ *          `resetiosflags`）与本文件里 `hex` / `left` / `boolalpha` 那类函数指针操纵符，
+ *          其运算符重载都**不取 `io_mutex()`**，因此不受本类约束：持有 `sync(A)` 的线程
+ *          仍会被另一个线程的 `A << setw(5)` 插进临界区中间。要把这类操纵符也纳入互斥，
+ *          **每个访问该流的线程都得自己用 `sync`**。其余操作（插入、提取、`flush` /
+ *          `endl` / `ws`、`seek`、`locale(loc)` 等）都会取这把锁，单侧 `sync` 即可挡住。
+ *
+ * @tparam TStream 流类型，需提供 `io_mutex()` 接口（返回可 lock()/unlock() 的互斥量）。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief RAII helper that locks a stream's I/O mutex.
+ *
+ * Locks `stream.io_mutex()` on construction and unlocks it on destruction, guaranteeing
+ * exclusive access to the stream for its lifetime. Commonly used to group several I/O
+ * operations on the same stream into one atomic critical section. This class is
+ * non-copyable.
+ *
+ * @warning **Doing I/O on another stream while holding one of these puts the lock order in the
+ *          caller's hands.** Every I/O takes that stream's `io_mutex()`, so `sync(A); B << 1;`
+ *          holds two stream locks at once; two threads doing that in opposite orders is the
+ *          classic AB-BA deadlock, no different from misordering two plain `std::mutex`es. The
+ *          library guarantees only that it creates no lock edge the user **cannot see** -- a tie
+ *          flush always goes through the non-blocking `try_flush()`, see
+ *          `stream_common_operators::tie` -- but it cannot order the locks the user writes.
+ * @warning **This class does not hold back the lock-free stream form of the manipulators.** The
+ *          six formatting-state manipulators in `io_manip.h` (`setw`, `setfill`, `setbase`,
+ *          `setprecision`, `setiosflags`, `resetiosflags`) and the function-pointer manipulators
+ *          in this file (`hex`, `left`, `boolalpha` and friends) have operator overloads that
+ *          **do not take `io_mutex()`**, and so are not constrained by this class: a thread
+ *          holding `sync(A)` still gets another thread's `A << setw(5)` landing in the middle of
+ *          its critical section. To cover those manipulators too, **every thread touching the
+ *          stream has to use `sync` itself**. Everything else (insertion, extraction, `flush` /
+ *          `endl` / `ws`, `seek`, `locale(loc)` and so on) does take the lock, so a one-sided
+ *          `sync` keeps those out.
+ *
+ * @tparam TStream The stream type, which must provide an `io_mutex()` interface
+ * (returning a mutex that can be lock()/unlock()'d).
+ * @endif
+ */
+template <typename TStream>
+struct sync
+{
+    /**
+     * @lang{ZH}
+     * @brief 构造并锁定流的 I/O 互斥量。
+     * @param str 要加锁的流。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Constructs and locks the stream's I/O mutex.
+     * @param str The stream to lock.
+     * @endif
+     */
+    sync(TStream& str)
+        : stream(str)
+    {
+        stream.io_mutex().lock();
+    }
+
+    /**
+     * @lang{ZH} @brief 析构并解锁流的 I/O 互斥量。 @endif
+     * @lang{EN} @brief Destroys and unlocks the stream's I/O mutex. @endif
+     */
+    ~sync()
+    {
+        stream.io_mutex().unlock();
+    }
+
+    sync(const sync&) = delete;
+    sync& operator=(const sync&) = delete;
+    sync(sync&&) = delete;
+    sync& operator=(sync&&) = delete;
+
+    TStream& stream;   ///< @lang{ZH} 被加锁的流的引用。 @endif @lang{EN} Reference to the locked stream. @endif
+};
+}

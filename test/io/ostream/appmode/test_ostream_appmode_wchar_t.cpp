@@ -16,13 +16,13 @@
  * view, since that view reaches the stream by a different path and has to end
  * up in the same place.
  */
-#include <cvt/code_cvt.h>
-#include <device/file_device.h>
-#include <device/mem_device.h>
-#include <io/io_base.h>
-#include <io/iostream.h>
-#include <io/ostream.h>
-#include <io/traits/char_and_str.h>
+#include <IOv2/cvt/code_cvt.h>
+#include <IOv2/device/file_device.h>
+#include <IOv2/device/mem_device.h>
+#include <IOv2/io/io_base.h>
+#include <IOv2/io/iostream.h>
+#include <IOv2/io/ostream.h>
+#include <IOv2/io/traits/char_and_str.h>
 
 #include <support/file_guard.h>
 

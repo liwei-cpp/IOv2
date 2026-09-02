@@ -13,13 +13,13 @@
  * second step that can throw, so a clear placed after the replacement would not
  * run at all on the path that most needs it.
  */
-#include <device/file_device.h>
-#include <device/mem_device.h>
-#include <io/io_base.h>
-#include <io/iostream.h>
-#include <io/istream.h>
-#include <io/traits/arithmetic.h>
-#include <io/traits/char_and_str.h>
+#include <IOv2/device/file_device.h>
+#include <IOv2/device/mem_device.h>
+#include <IOv2/io/io_base.h>
+#include <IOv2/io/iostream.h>
+#include <IOv2/io/istream.h>
+#include <IOv2/io/traits/arithmetic.h>
+#include <IOv2/io/traits/char_and_str.h>
 
 #include <gtest/gtest.h>
 

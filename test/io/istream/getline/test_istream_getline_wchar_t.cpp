@@ -10,14 +10,14 @@
  * them at the same call numbers as a narrow one regardless of how many bytes
  * its characters would encode to -- which is what this instantiation is for.
  */
-#include <device/mem_device.h>
-#include <facet/ctype_details.h>
-#include <io/io_base.h>
-#include <io/iostream.h>
-#include <io/istream.h>
-#include <io/traits/char_and_str.h>
-#include <io/utilities/istream_operators.h>
-#include <locale/locale.h>
+#include <IOv2/device/mem_device.h>
+#include <IOv2/facet/ctype_details.h>
+#include <IOv2/io/io_base.h>
+#include <IOv2/io/iostream.h>
+#include <IOv2/io/istream.h>
+#include <IOv2/io/traits/char_and_str.h>
+#include <IOv2/io/utilities/istream_operators.h>
+#include <IOv2/locale/locale.h>
 
 #include <gtest/gtest.h>
 

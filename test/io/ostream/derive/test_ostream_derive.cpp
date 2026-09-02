@@ -13,17 +13,17 @@
  * The rest of the file is about the boundaries of ostream_type: what a type has
  * to carry to satisfy it, and the two shapes that must not.
  */
-#include <common/defs.h>
-#include <device/mem_device.h>
-#include <io/io_base.h>
-#include <io/iostream.h>
-#include <io/ostream.h>
-#include <io/streambuf.h>
-#include <io/streambuf_iterator.h>
-#include <io/traits/char_and_str.h>
-#include <io/utilities/ostream_operators.h>
-#include <io/utilities/stream_common_operators.h>
-#include <locale/locale.h>
+#include <IOv2/common/defs.h>
+#include <IOv2/device/mem_device.h>
+#include <IOv2/io/io_base.h>
+#include <IOv2/io/iostream.h>
+#include <IOv2/io/ostream.h>
+#include <IOv2/io/streambuf.h>
+#include <IOv2/io/streambuf_iterator.h>
+#include <IOv2/io/traits/char_and_str.h>
+#include <IOv2/io/utilities/ostream_operators.h>
+#include <IOv2/io/utilities/stream_common_operators.h>
+#include <IOv2/locale/locale.h>
 
 #include <gtest/gtest.h>
 

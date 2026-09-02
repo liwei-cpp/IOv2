@@ -15,14 +15,14 @@
  * endl(os), does not exist here. A function pointer is the one manipulator
  * shape that bypasses io_traits, so it has to be checked separately.
  */
-#include <common/defs.h>
-#include <device/mem_device.h>
-#include <facet/ctype_details.h>
-#include <io/io_base.h>
-#include <io/iostream.h>
-#include <io/ostream.h>
-#include <io/traits/char_and_str.h>
-#include <locale/locale.h>
+#include <IOv2/common/defs.h>
+#include <IOv2/device/mem_device.h>
+#include <IOv2/facet/ctype_details.h>
+#include <IOv2/io/io_base.h>
+#include <IOv2/io/iostream.h>
+#include <IOv2/io/ostream.h>
+#include <IOv2/io/traits/char_and_str.h>
+#include <IOv2/locale/locale.h>
 
 #include <gtest/gtest.h>
 

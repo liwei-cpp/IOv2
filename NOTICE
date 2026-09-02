@@ -79,12 +79,14 @@ Code from that line may not be treated as MIT-licensed.
 THIRD-PARTY MATERIAL IN THE CURRENT TREE
 ----------------------------------------
 
-None is vendored.  The library itself is header-only and has no
-dependencies beyond the C++ standard library.
+No third-party source is vendored.  The core header-only components depend
+only on the C++ standard library.  The optional zlib_cvt and hash_cvt
+components require externally supplied zlib and Botan, respectively; neither
+dependency is copied into this repository.
 
 The test suites use GoogleTest (BSD-3-Clause), which CMake fetches at
-configure time; it is a build-time test dependency only and no part of
-it is redistributed here.
+configure time; it is a build-time test dependency only and its source is not
+committed to this Git repository.
 
 Three classes of thing in the current tree resemble their upstream
 counterparts because they cannot do otherwise, and are retained
@@ -104,15 +106,16 @@ knowingly:
 AI ASSISTANCE
 -------------
 
-Commits in this repository carry a trailer naming Claude, an AI
-assistant made by Anthropic PBC -- 'Co-Authored-By:' on commits made up
-to and including the one named above, and 'Helped-by:' on later ones.
+Some commits in this repository carry trailers naming Claude (an AI assistant
+made by Anthropic PBC), and one earlier commit names Gemini CLI (made by
+Google).  Historical commits used 'Co-Authored-By:'; commits after the boundary
+named above use 'Helped-by:'.
 
-Either form records only that an AI assistant was used as a tool during
-development.  Neither is an assertion of authorship or of copyright by
-Anthropic PBC, which claims no rights in the resulting code.  All
-copyright in this work is held by the author named at the top of this
-file, and the whole of it is licensed as stated in LICENSE.
+These trailers record only that an AI assistant was used as a development
+tool; they do not designate Anthropic PBC, Google, or a model as a copyright
+holder.  The human author reviewed and adopted the resulting changes, takes
+responsibility for them, and licenses all rights they hold in the current tree
+under the MIT terms in LICENSE.
 
 
 ================================================================================
@@ -185,11 +188,12 @@ book-v1 线
 当前树中的第三方材料
 --------------------
 
-没有内置（vendored）任何第三方代码。库本身是 header-only 的，除 C++ 标准库
-之外没有依赖。
+没有内置（vendored）任何第三方源码。核心 header-only 组件仅依赖 C++ 标准库；
+可选的 zlib_cvt 与 hash_cvt 分别要求外部提供 zlib 与 Botan，二者均未被复制进
+本仓库。
 
 测试套件使用 GoogleTest（BSD-3-Clause），由 CMake 在 configure 阶段拉取；它
-只是构建期的测试依赖，本仓库不再分发其任何部分。
+只是构建期的测试依赖，其源码未提交到本 Git 仓库。
 
 当前树中有三类内容与上游对应物相似，因为它们不可能不相似，属有意保留：
 
@@ -203,9 +207,10 @@ book-v1 线
 AI 协助
 -------
 
-本仓库的提交带有指明 Claude（Anthropic PBC 出品的 AI 助手）的尾注：截至上述
-提交为止使用 'Co-Authored-By:'，此后的提交使用 'Helped-by:'。
+本仓库的一些提交带有指明 Claude（Anthropic PBC 出品的 AI 助手）的尾注；另有
+一个较早提交指明了 Google 的 Gemini CLI。历史提交使用 'Co-Authored-By:'，上述
+边界之后的提交使用 'Helped-by:'。
 
-两种形式记录的都只是开发过程中使用了 AI 助手这一工具。二者均非 Anthropic PBC
-对作者身份或著作权的主张，Anthropic 亦不对由此产生的代码主张任何权利。本作品
-的著作权全部归本文件顶部所列作者所有，整体按 LICENSE 所述条款授权。
+这些尾注只记录开发过程中使用了 AI 助手这一工具，并不把 Anthropic PBC、Google
+或任何模型列为著作权人。人类作者审阅并采纳了相应修改、对其负责，并依据 LICENSE
+中的 MIT 条款许可其对当前代码树持有的全部权利。

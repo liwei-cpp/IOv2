@@ -9,11 +9,14 @@
 # src/iov2_objects.cpp and installs the headers with the IOV2_SHARED switch
 # turned on, so consumers never pass -DIOV2_SHARED by hand.
 #
-# See README "Usage Modes" and the header include/common/iov2_export.h.
+# See README "Usage Modes" and the header include/IOv2/common/iov2_export.h.
 
 CXX       ?= g++
 PREFIX    ?= /usr/local
 PCDIR     ?= $(PREFIX)/lib/pkgconfig
+INCLUDEDIR := $(PREFIX)/include
+PACKAGE_INCLUDEDIR := $(INCLUDEDIR)/IOv2
+LICENSEDIR := $(PREFIX)/share/licenses/IOv2
 
 # Feature-test macro the library requires (POSIX.1-2008: locale_t, newlocale,
 # uselocale, the *_l ctype helpers). Without it the headers do not compile.
@@ -58,34 +61,36 @@ $(LIB): $(SRC)
 
 shared: $(LIB)
 
-# Header-only install: headers as-is (the IOV2_SHARED switch stays commented, so
-# this is the default header-only mode). No library is built or installed.
+# Header-only install: keep IOv2 below its own include directory rather than
+# claiming generic names such as PREFIX/include/common and PREFIX/include/io.
+# pkg-config adds INCLUDEDIR to the search path; public includes are rooted at
+# <IOv2/...>. The IOV2_SHARED switch stays commented.
 install:
-	install -d $(PREFIX)/include $(PCDIR)
-	cp -R include/. $(PREFIX)/include/
+	install -d $(PACKAGE_INCLUDEDIR) $(PCDIR) $(LICENSEDIR)
+	cp -R include/IOv2/. $(PACKAGE_INCLUDEDIR)/
+	install -m 0644 LICENSE NOTICE $(LICENSEDIR)/
 	sed 's|^prefix=.*|prefix=$(PREFIX)|' pkgconfig/iov2.pc > $(PCDIR)/iov2.pc
 
 # Shared install: headers WITH the IOV2_SHARED switch turned on, plus libiov2.so.
 # The sed flips the one switch line in the *installed* copy of iov2_export.h; the
 # repo copy stays header-only.
 install-shared: $(LIB)
-	install -d $(PREFIX)/include $(PREFIX)/lib $(PCDIR)
-	cp -R include/. $(PREFIX)/include/
+	install -d $(PACKAGE_INCLUDEDIR) $(PREFIX)/lib $(PCDIR) $(LICENSEDIR)
+	cp -R include/IOv2/. $(PACKAGE_INCLUDEDIR)/
 	sed -i 's|^// #define IOV2_SHARED 1|#define IOV2_SHARED 1|' \
-	    $(PREFIX)/include/common/iov2_export.h
+	    $(PACKAGE_INCLUDEDIR)/common/iov2_export.h
 	install -m 0644 $(LIB) $(PREFIX)/lib/
+	install -m 0644 LICENSE NOTICE $(LICENSEDIR)/
 	sed 's|^prefix=.*|prefix=$(PREFIX)|' pkgconfig/iov2-shared.pc > $(PCDIR)/iov2-shared.pc
 
 clean:
 	rm -rf $(LIB_DIR)
 
-# Remove what install / install-shared put under PREFIX: IOv2's own top-level
-# include entries (by name), the library, and both .pc files. Harmless if some
-# were not installed. Run from the repo so it knows the entry names.
+# Remove only IOv2-owned paths. Keeping the headers below one package directory
+# makes this both safer and simpler than deleting generic top-level include names.
 uninstall:
-	@for d in $(notdir $(wildcard include/*)); do \
-	    echo "removing $(PREFIX)/include/$$d"; rm -rf "$(PREFIX)/include/$$d"; \
-	done
+	rm -rf $(PACKAGE_INCLUDEDIR)
+	rm -rf $(LICENSEDIR)
 	rm -f $(PREFIX)/lib/$(LIB_NAME)
 	rm -f $(PCDIR)/iov2.pc $(PCDIR)/iov2-shared.pc
 
@@ -94,8 +99,8 @@ help:
 	@echo ""
 	@echo "Targets:"
 	@echo "  shared           Build $(LIB) from $(SRC)"
-	@echo "  install          Install headers + iov2.pc         -> header-only mode (default)"
-	@echo "  install-shared   Build + install headers (IOV2_SHARED on) + $(LIB) + iov2-shared.pc"
+	@echo "  install          Install headers, licence files + iov2.pc -> header-only mode"
+	@echo "  install-shared   Build + install headers, licence files, $(LIB) + iov2-shared.pc"
 	@echo "  clean            Remove $(LIB_DIR)"
 	@echo "  uninstall        Remove installed headers, $(LIB_NAME), and .pc files from PREFIX"
 	@echo ""
@@ -103,6 +108,9 @@ help:
 	@echo "  CXX=$(CXX)"
 	@echo "  PREFIX=$(PREFIX)"
 	@echo "  PCDIR=$(PCDIR)"
+	@echo "  INCLUDEDIR=$(INCLUDEDIR)"
+	@echo "  PACKAGE_INCLUDEDIR=$(PACKAGE_INCLUDEDIR)"
+	@echo "  LICENSEDIR=$(LICENSEDIR)"
 	@echo ""
 	@echo "Examples:"
 	@echo "  make install                         # header-only into /usr/local"

@@ -13,14 +13,14 @@
  * characters would change the amount a field reads as -- read the same data
  * whatever the character type is, so they stay in the narrow file.
  */
-#include <facet/monetary.h>
-#include <facet/monetary_details.h>
+#include <IOv2/facet/monetary.h>
+#include <IOv2/facet/monetary_details.h>
 
-#include <common/defs.h>
-#include <device/mem_device.h>
-#include <io/io_base.h>
-#include <io/streambuf.h>
-#include <io/streambuf_iterator.h>
+#include <IOv2/common/defs.h>
+#include <IOv2/device/mem_device.h>
+#include <IOv2/io/io_base.h>
+#include <IOv2/io/streambuf.h>
+#include <IOv2/io/streambuf_iterator.h>
 
 #include <gtest/gtest.h>
 
