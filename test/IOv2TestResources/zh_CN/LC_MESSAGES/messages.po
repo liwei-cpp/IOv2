@@ -1,5 +1,5 @@
 # Chinese translations for IOv2.
-# Copyright (c) 2026 liwei <liweifriends@gmail.com>
+# Copyright (c) 2026 liwei <liwei.cpp@gmail.com>
 # SPDX-License-Identifier: MIT
 #
 msgid ""
@@ -8,7 +8,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://github.com/liwei-cpp/IOv2/issues\n"
 "POT-Creation-Date: 2024-01-26 23:50+0800\n"
 "PO-Revision-Date: 2026-09-02 00:00-0700\n"
-"Last-Translator: liwei <liweifriends@gmail.com>\n"
+"Last-Translator: liwei <liwei.cpp@gmail.com>\n"
 "Language-Team: Chinese\n"
 "Language: zh_CN\n"
 "MIME-Version: 1.0\n"
