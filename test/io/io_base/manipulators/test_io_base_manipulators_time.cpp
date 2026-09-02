@@ -110,6 +110,28 @@ TEST(IoBaseManipTime, PutTimeBehavesTheSameOnAWideStream)
     EXPECT_EQ(dev.str(), L"Thursday 2024-02-29");
 }
 
+// The locale's names and the wide path cross here.  A German March is the
+// interesting case: "Marz" carries an umlaut, so the name only survives if it
+// is widened as a character rather than copied as UTF-8 bytes -- the length is
+// what says which happened.
+TEST(IoBaseManipTime, AWideStreamWidensTheLocalesNamesRatherThanItsBytes)
+{
+    if (!have_locale("de_DE.UTF-8"))
+        GTEST_SKIP() << "de_DE.UTF-8 is not installed here";
+
+    // 2024-03-31 was a Sunday, and March is the month whose German name is
+    // spelled with a character outside ASCII.
+    const std::tm when = calendar_time(124, 2, 31, 12, 0, 0, 0, 90, 0);
+
+    ostream oss{mem_device{L""}, locale<wchar_t>("de_DE.UTF-8")};
+    oss << put_time(&when, L"%A %B %Y");
+    auto [dev, err] = oss.detach();
+
+    EXPECT_EQ(dev.str(), L"Sonntag M\u00e4rz 2024");
+    // Four characters, not the five bytes the UTF-8 spelling would occupy.
+    EXPECT_EQ(dev.str().size(), 17u);
+}
+
 TEST(IoBaseManipTime, GetTimeReadsBackWhatPutTimeWrote)
 {
     // Round-trips put_time. Exercises the idiomatic rvalue form `is >> get_time(...)`,
