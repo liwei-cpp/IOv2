@@ -8,6 +8,7 @@
  * so what is left to check is the three answers translate() can give.
  */
 #include <facet/messages.h>
+#include <facet/messages_details.h>
 
 #include <gtest/gtest.h>
 

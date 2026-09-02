@@ -17,10 +17,12 @@
  */
 #include <device/file_device.h>
 #include <device/mem_device.h>
+#include <io/io_base.h>
 #include <io/iostream.h>
 #include <io/istream.h>
 #include <io/traits/arithmetic.h>
 #include <io/traits/char_and_str.h>
+#include <io/utilities/istream_operators.h>
 
 #include <gtest/gtest.h>
 

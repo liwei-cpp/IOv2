@@ -37,11 +37,14 @@
 #include <cstddef>
 #include <ctime>
 #include <iterator>
+#include <limits>
 #include <list>
 #include <memory>
+#include <stdexcept>
 #include <string>
 #include <string_view>
 #include <type_traits>
+#include <vector>
 
 using namespace IOv2;
 

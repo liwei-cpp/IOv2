@@ -15,12 +15,15 @@
  * The second half is about the guarantees around copying: a copy that throws
  * must leave both sides exactly as they were, including the source's lock.
  */
+#include <common/defs.h>
 #include <device/file_device.h>
 #include <device/mem_device.h>
+#include <io/io_base.h>
 #include <io/iostream.h>
 #include <io/istream.h>
 #include <io/ostream.h>
 #include <io/traits/char_and_str.h>
+#include <locale/locale.h>
 
 #include <support/failing_device.h>
 #include <support/file_guard.h>

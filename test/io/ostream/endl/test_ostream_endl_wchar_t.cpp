@@ -14,6 +14,7 @@
  * overload has to name ios_base<wchar_t> to be found at all.
  */
 #include <device/mem_device.h>
+#include <io/io_base.h>
 #include <io/iostream.h>
 #include <io/ostream.h>
 #include <io/traits/char_and_str.h>

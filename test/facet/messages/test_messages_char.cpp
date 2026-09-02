@@ -13,6 +13,7 @@
  * back as UTF-8 or as GBK depending on what was asked for.
  */
 #include <facet/messages.h>
+#include <facet/messages_details.h>
 
 #include <gtest/gtest.h>
 

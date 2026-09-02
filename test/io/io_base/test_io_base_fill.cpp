@@ -16,6 +16,8 @@
  * base, because under hex the letters a-f are digits, and on where the padding
  * lands, because a run past the value can never be read back into it.
  */
+#include <common/clocale_wrapper.h>
+#include <common/defs.h>
 #include <device/mem_device.h>
 #include <io/io_base.h>
 #include <io/io_manip.h>

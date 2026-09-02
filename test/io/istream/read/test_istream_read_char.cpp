@@ -22,6 +22,7 @@
  */
 #include <device/mem_device.h>
 #include <device/std_device.h>
+#include <io/io_base.h>
 #include <io/iostream.h>
 #include <io/istream.h>
 #include <io/traits/char_and_str.h>
@@ -36,6 +37,7 @@
 #include <limits>
 #include <string>
 #include <thread>
+#include <unistd.h>
 
 using namespace IOv2;
 

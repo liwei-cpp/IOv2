@@ -23,10 +23,10 @@
 #include <gtest/gtest.h>
 
 #include <chrono>
-#include <clocale>
 #include <cstddef>
 #include <ctime>
 #include <iterator>
+#include <limits>
 #include <list>
 #include <memory>
 #include <string>

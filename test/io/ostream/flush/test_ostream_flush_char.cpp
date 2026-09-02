@@ -15,6 +15,7 @@
  * are refused when the tie is set rather than when it is followed.
  */
 #include <device/mem_device.h>
+#include <io/io_base.h>
 #include <io/iostream.h>
 #include <io/ostream.h>
 #include <io/traits/char_and_str.h>
@@ -23,6 +24,7 @@
 
 #include <gtest/gtest.h>
 
+#include <cstddef>
 #include <string>
 #include <thread>
 #include <type_traits>

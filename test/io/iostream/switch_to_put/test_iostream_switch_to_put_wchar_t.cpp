@@ -1,8 +1,6 @@
 // SPDX-FileCopyrightText: 2026 liwei <liweifriends@gmail.com>
 // SPDX-License-Identifier: MIT
 
-#include <limits>
-#include <stdexcept>
 #include <string>
 #include <type_traits>
 #include <cvt/code_cvt.h>
@@ -11,7 +9,6 @@
 #include <device/mem_device.h>
 #include <io/traits/arithmetic.h>
 #include <io/traits/char_and_str.h>
-#include <io/io_manip.h>
 #include <io/istream.h>
 #include <io/ostream.h>
 #include <io/iostream.h>

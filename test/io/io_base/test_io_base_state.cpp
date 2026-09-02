@@ -13,6 +13,7 @@
  * as the same exception both times, not as a generic stand-in the second time
  * round.
  */
+#include <common/defs.h>
 #include <device/mem_device.h>
 #include <io/io_base.h>
 #include <io/ostream.h>

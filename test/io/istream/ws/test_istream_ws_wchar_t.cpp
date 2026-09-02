@@ -12,14 +12,17 @@
  * the repetition is the mismatch pointing the other way: setfill_t<char> is
  * what a wide stream must reject.
  */
+#include <common/defs.h>
 #include <device/mem_device.h>
-#include <facet/ctype.h>
+#include <facet/ctype_details.h>
+#include <io/io_base.h>
 #include <io/io_manip.h>
 #include <io/iostream.h>
 #include <io/istream.h>
 #include <io/ostream.h>
 #include <io/traits/arithmetic.h>
 #include <io/traits/char_and_str.h>
+#include <io/utilities/ostream_operators.h>
 #include <locale/locale.h>
 
 #include <gtest/gtest.h>

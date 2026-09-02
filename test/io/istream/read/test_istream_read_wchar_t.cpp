@@ -12,6 +12,7 @@
  * rather than in bytes, which is only visible where the two differ.
  */
 #include <device/mem_device.h>
+#include <io/io_base.h>
 #include <io/iostream.h>
 #include <io/istream.h>
 #include <io/traits/char_and_str.h>

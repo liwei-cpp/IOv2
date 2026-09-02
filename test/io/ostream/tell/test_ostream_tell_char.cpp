@@ -17,7 +17,7 @@
 #include <common/defs.h>
 #include <device/file_device.h>
 #include <device/mem_device.h>
-#include <io/io_manip.h>
+#include <io/io_base.h>
 #include <io/iostream.h>
 #include <io/ostream.h>
 #include <io/traits/arithmetic.h>
@@ -27,6 +27,7 @@
 
 #include <gtest/gtest.h>
 
+#include <cstddef>
 #include <memory>
 #include <optional>
 #include <string>

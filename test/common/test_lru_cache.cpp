@@ -5,6 +5,8 @@
 
 #include <gtest/gtest.h>
 
+#include <cstddef>
+#include <functional>
 #include <stdexcept>
 #include <string>
 #include <utility>

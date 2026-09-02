@@ -19,7 +19,10 @@
  * facet here answers with characters that have no narrow equivalent at all, so
  * a formatting path that assumed a one-byte point or separator cannot pass.
  */
+#include <common/defs.h>
 #include <device/mem_device.h>
+#include <facet/numeric_details.h>
+#include <io/io_base.h>
 #include <io/io_manip.h>
 #include <io/iostream.h>
 #include <io/istream.h>
@@ -31,13 +34,14 @@
 #include <gtest/gtest.h>
 
 #include <algorithm>
+#include <cstdint>
 #include <cstdio>
 #include <cstring>
 #include <limits>
 #include <memory>
-#include <utility>
 #include <string>
 #include <type_traits>
+#include <utility>
 #include <vector>
 
 using namespace IOv2;

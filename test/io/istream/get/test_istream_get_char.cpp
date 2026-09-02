@@ -19,11 +19,14 @@
  * The fixture is "0123456789abcdef", whose character at index n is n in base
  * 16, so how far a read got and what it wrote check each other.
  */
+#include <common/defs.h>
 #include <device/file_device.h>
 #include <device/mem_device.h>
+#include <io/io_base.h>
 #include <io/iostream.h>
 #include <io/istream.h>
 #include <io/traits/char_and_str.h>
+#include <io/utilities/istream_operators.h>
 #include <locale/locale.h>
 
 #include <gtest/gtest.h>

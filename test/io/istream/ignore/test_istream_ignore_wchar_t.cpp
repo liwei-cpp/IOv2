@@ -11,7 +11,9 @@
  * both the count and the delimiter are in characters, which only shows on
  * characters that are more than one byte wide.
  */
+#include <common/defs.h>
 #include <device/mem_device.h>
+#include <io/io_base.h>
 #include <io/iostream.h>
 #include <io/istream.h>
 #include <io/traits/arithmetic.h>
@@ -20,6 +22,7 @@
 
 #include <gtest/gtest.h>
 
+#include <ios>
 #include <limits>
 #include <string>
 

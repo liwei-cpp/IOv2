@@ -9,12 +9,14 @@
 #include <io/ostream.h>
 #include <io/traits/arithmetic.h>
 #include <io/traits/char_and_str.h>
+#include <io/utilities/ostream_operators.h>
 #include <locale/locale.h>
 
 #include <gtest/gtest.h>
 
 #include <atomic>
 #include <cstddef>
+#include <exception>
 #include <memory>
 #include <string>
 #include <thread>

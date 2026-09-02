@@ -18,7 +18,6 @@
 #include <cvt/comp/zlib_cvt.h>
 #include <cvt/crypt/hash_cvt.h>
 #include <cvt/crypt/vigenere_cvt.h>
-#include <cvt/root_cvt.h>
 #include <device/mem_device.h>
 #include <io/iostream.h>
 #include <io/istream.h>

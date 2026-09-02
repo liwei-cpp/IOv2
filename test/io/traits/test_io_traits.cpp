@@ -18,10 +18,14 @@
 // same concepts, so `requires { os << x; }` is the supported public way to ask "can this be
 // streamed". These assertions are what keeps that answer honest.
 
+#include <cstddef>
 #include <ctime>
 #include <string>
+#include <type_traits>
 
+#include <common/streambuf_defs.h>
 #include <device/mem_device.h>
+#include <io/io_base.h>
 #include <io/io_manip.h>
 #include <io/iostream.h>
 #include <io/istream.h>
@@ -30,6 +34,8 @@
 #include <io/traits/char_and_str.h>
 #include <io/traits/nullptr.h>
 #include <io/traits/tm.h>
+#include <io/utilities/istream_operators.h>
+#include <io/utilities/ostream_operators.h>
 
 #include <gtest/gtest.h>
 

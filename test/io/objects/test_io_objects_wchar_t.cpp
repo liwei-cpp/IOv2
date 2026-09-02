@@ -19,12 +19,17 @@
  * change it mid-stream in both directions and check the bytes, since that is
  * the only place the encoding is observable.
  */
+#include <io/io_base.h>
+#include <io/objects/in_impl.h>
 #include <io/objects/objects.h>
+#include <io/objects/out_impl.h>
+#include <io/ostream.h>
 
 #include <support/stdio_guard.h>
 
 #include <gtest/gtest.h>
 
+#include <cstddef>
 #include <string>
 
 TEST(IoObjectsWchar, EachStreamWritesToItsOwnDestination)

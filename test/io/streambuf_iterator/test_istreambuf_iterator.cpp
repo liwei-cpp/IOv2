@@ -15,10 +15,10 @@
  * holding the character it read, so putting a character back through one has to
  * push the cached one first.
  */
-#include <cvt/root_cvt.h>
+#include <common/defs.h>
 #include <device/mem_device.h>
 #include <device/std_device.h>
-#include <io/istream.h>
+#include <io/streambuf.h>
 #include <io/streambuf_iterator.h>
 #include <io/traits/char_and_str.h>
 
@@ -27,10 +27,12 @@
 #include <gtest/gtest.h>
 
 #include <chrono>
+#include <cstddef>
 #include <iterator>
 #include <string>
 #include <thread>
 #include <type_traits>
+#include <unistd.h>
 
 using namespace IOv2;
 

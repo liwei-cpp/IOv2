@@ -15,7 +15,10 @@
  * with max_digits10 and reading back has to give the identical value, not a
  * close one, or the stream cannot be used to persist anything.
  */
+#include <common/defs.h>
 #include <device/mem_device.h>
+#include <facet/numeric_details.h>
+#include <io/io_base.h>
 #include <io/io_manip.h>
 #include <io/iostream.h>
 #include <io/istream.h>
@@ -27,12 +30,13 @@
 #include <gtest/gtest.h>
 
 #include <algorithm>
+#include <cstdint>
 #include <cstdio>
 #include <limits>
 #include <memory>
-#include <utility>
 #include <string>
 #include <type_traits>
+#include <utility>
 #include <vector>
 
 using namespace IOv2;

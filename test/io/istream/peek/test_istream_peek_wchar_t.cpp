@@ -12,9 +12,11 @@
  * makes it the case where "the position did not move" has to hold across a
  * conversion rather than over raw bytes.
  */
+#include <common/defs.h>
 #include <cvt/code_cvt.h>
 #include <device/file_device.h>
 #include <device/mem_device.h>
+#include <io/io_base.h>
 #include <io/iostream.h>
 #include <io/istream.h>
 #include <io/traits/char_and_str.h>

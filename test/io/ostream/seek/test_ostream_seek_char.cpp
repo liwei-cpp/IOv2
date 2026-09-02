@@ -17,6 +17,7 @@
  */
 #include <device/file_device.h>
 #include <device/mem_device.h>
+#include <io/io_base.h>
 #include <io/io_manip.h>
 #include <io/iostream.h>
 #include <io/istream.h>
@@ -28,6 +29,7 @@
 
 #include <gtest/gtest.h>
 
+#include <cstddef>
 #include <string>
 
 using namespace IOv2;
