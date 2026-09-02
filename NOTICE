@@ -23,9 +23,16 @@ Portions of this release are derived from the GNU ISO C++ Library
     Copyright (C) 1997-2026 Free Software Foundation, Inc.
     SPDX-License-Identifier: GPL-3.0-or-later WITH GCC-exception-3.1
 
-The files listed below contain code, comments, algorithms and/or
-identifier naming taken or adapted from libstdc++ -- principally
-<bits/locale_facets.tcc> and <bits/locale_facets_nonio.tcc>:
+Date/time portions are also derived from the GNU C Library (glibc):
+
+    Copyright (C) 1991-2026 Free Software Foundation, Inc.
+    SPDX-License-Identifier: LGPL-2.1-or-later
+
+The files listed below contain code, comments, test data, algorithms
+and/or identifier naming taken or adapted from those projects --
+principally libstdc++ <bits/locale_facets.tcc>,
+<bits/locale_facets_nonio.tcc> and config/locale/gnu/monetary_members.cc,
+and glibc's time/ and locale/ sources:
 
   IOv2/facet/numeric.h
       The num_get / num_put implementation: the two-stage formatting
@@ -43,6 +50,31 @@ identifier naming taken or adapted from libstdc++ -- principally
       The money_get / money_put implementation and its internal parse
       state (testvalid, testdecfound, sign_size, last_pos).
 
+  IOv2/facet/monetary_details.h
+      s_construct_pattern() -- adapted from libstdc++
+      _S_construct_pattern() in config/locale/gnu/monetary_members.cc,
+      retaining its parameter names and explanatory comments.
+
+  IOv2/facet/timeio.h
+      extract_num()      -- adapted from libstdc++ time_get's
+                            _M_extract_num().
+      day_of_the_week(), isleap() and the month/year-day table --
+      adapted from glibc's time sources, together with roughly ten of
+      glibc's comments carried over verbatim.
+
+  IOv2/facet/timeio_details.h
+      The parsing of the era records that glibc exposes through
+      nl_langinfo(_NL_TIME_ERA_ENTRIES) -- adapted from glibc's
+      time/era.c.
+
+  IOv2/cvt/code_cvt.h
+      The UTF-8 decoding bias constants (0x3080, 0xE2080, 0x3C82080).
+
+  IOv2Test/**
+      Test fixtures, inputs and expected-value tables adapted from the
+      libstdc++ testsuite.  Several of these files cite the upstream
+      test they came from in their own comments.
+
 Because this material is present, this release as a whole is distributed
 under the GNU General Public License version 3 or later.
 
@@ -56,9 +88,11 @@ is claimed here.
 SCOPE OF THIS RELEASE
 ---------------------
 
-This release is frozen.  It is the source code accompanying the book and
-is byte-for-byte identical to book-v1.0.0, apart from the addition of the
-LICENSE and NOTICE files.
+This release is frozen.  It is the source code accompanying the book.
+No source file differs from book-v1.0.0: the tags book-v1.0.1 and
+book-v1.0.2 differ from it, and from each other, only in the LICENSE and
+NOTICE files.  book-v1.0.2 revises this NOTICE to state the third-party
+provenance more completely; it changes no licensing term and no code.
 
 Development continues in the same repository on the 'main' branch, which
 is a separate line of work; refer to that branch for its own licensing
@@ -92,8 +126,15 @@ LICENSE 文件。
     版权所有 (C) 1997-2026 Free Software Foundation, Inc.
     SPDX-License-Identifier: GPL-3.0-or-later WITH GCC-exception-3.1
 
-下列文件含有取自或改写自 libstdc++（主要是 <bits/locale_facets.tcc> 与
-<bits/locale_facets_nonio.tcc>）的代码、注释、算法和/或标识符命名：
+日期/时间部分还衍生自 GNU C Library (glibc)：
+
+    版权所有 (C) 1991-2026 Free Software Foundation, Inc.
+    SPDX-License-Identifier: LGPL-2.1-or-later
+
+下列文件含有取自或改写自上述项目的代码、注释、测试数据、算法和/或标识符
+命名——主要来源为 libstdc++ 的 <bits/locale_facets.tcc>、
+<bits/locale_facets_nonio.tcc>、config/locale/gnu/monetary_members.cc，
+以及 glibc 的 time/ 与 locale/ 源码：
 
   IOv2/facet/numeric.h
       num_get / num_put 的实现：两阶段格式化结构（"Stage 1 / Stage 2"）、
@@ -109,6 +150,27 @@ LICENSE 文件。
       money_get / money_put 的实现及其内部解析状态
       （testvalid、testdecfound、sign_size、last_pos）。
 
+  IOv2/facet/monetary_details.h
+      s_construct_pattern() —— 改写自 libstdc++
+      config/locale/gnu/monetary_members.cc 中的 _S_construct_pattern()，
+      并沿用了它的参数命名与解释性注释。
+
+  IOv2/facet/timeio.h
+      extract_num() —— 改写自 libstdc++ time_get 的 _M_extract_num()。
+      day_of_the_week()、isleap() 与月份/年内日序表 —— 改写自 glibc 的时间
+      相关源码，并逐字沿用了其中约十条注释。
+
+  IOv2/facet/timeio_details.h
+      对 glibc 经 nl_langinfo(_NL_TIME_ERA_ENTRIES) 暴露的纪元记录所作的
+      解析 —— 改写自 glibc 的 time/era.c。
+
+  IOv2/cvt/code_cvt.h
+      UTF-8 解码偏置常量（0x3080、0xE2080、0x3C82080）。
+
+  IOv2Test/**
+      改写自 libstdc++ testsuite 的测试 fixture、输入与预期值表。其中若干
+      文件在自身注释里注明了所依据的上游测试。
+
 由于含有上述材料，本 release 整体依据 GNU 通用公共许可证第 3 版或任何更新
 版本分发。
 
@@ -120,8 +182,10 @@ LICENSE 文件。
 本 release 的范围
 -----------------
 
-本 release 已冻结。它是本书的配套源码，除新增 LICENSE 与 NOTICE 两个文件外，
-与 book-v1.0.0 逐字节一致。
+本 release 已冻结，它是本书的配套源码。没有任何源文件与 book-v1.0.0 不同：
+book-v1.0.1 与 book-v1.0.2 两个 tag 相对于它、以及彼此之间，差异都只在
+LICENSE 与 NOTICE 两个文件上。book-v1.0.2 修订本 NOTICE，以更完整地说明
+第三方来源；它不改变任何许可条款，也不改变任何代码。
 
 开发工作在同一仓库的 'main' 分支上继续进行，那是一条独立的工作线；其许可
 条款请参见该分支。
