@@ -160,6 +160,7 @@ is original.
 | `7e4bd82` | 2026-08-27 | Reconstructed backward era years |
 | `5a2c2e0` … `ab5ddb4` | 2026-08-28 – 2026-08-31 | Converted all 57 test suites to GoogleTest, re-deriving the fixtures rather than porting them |
 | `b40a29d` | 2026-09-01 | Re-derived the constructs that still resembled libstdc++: the `code_cvt.h` bias constants, the `numeric.h` integer parser, the remaining test fixtures |
+| this commit | 2026-09-01 | Replaced `numeric.h`'s packed digit-atom tables with named fields, removing the last shared literal (§9) |
 
 ## 6. Deliberately unchanged
 
@@ -203,33 +204,79 @@ No other rewrite changes observable behaviour.
 * **Performance**: callgrind instruction counts, never wall-clock.
 * **Regression**: all 57 suites pass under CTest.
 
-## 9. Known residual
+## 9. The last construct removed
 
-One fingerprint is still present, and is recorded here rather than hidden.
+Until 2026-09-01 one fingerprint survived every earlier pass, and it is recorded
+here because the way it was dealt with is the point.
 
-`facet/numeric.h` carries the digit-atom tables:
+`facet/numeric.h` held two packed tables of widened characters, addressed by
+eighteen named offsets:
 
 ```cpp
-constexpr std::string_view in_atoms  = "-+xX0123456789abcdefABCDEF";
-constexpr std::string_view out_atoms = "-+xX0123456789abcdef0123456789ABCDEF";
+std::array<char_type, 26> m_in_atoms{};   // "-+xX0123456789abcdefABCDEF"
+std::array<char_type, 36> m_out_atoms{};  // "-+xX0123456789abcdef0123456789ABCDEF"
+static constexpr int s_ominus = 0, s_oplus = 1, s_ox = 2, s_oX = 3,
+                     s_odigits = 4, s_oudigits = s_odigits + 16, /* ... */;
 ```
 
-Both strings are byte-identical to libstdc++'s `_S_atoms_in` and
-`_S_atoms_out`, and the members and index constants correspond one-to-one after
-the normalisation of §3 — `m_in_atoms` / `m_out_atoms` against `_M_atoms_in` /
-`_M_atoms_out`, and `s_ominus`, `s_oplus`, `s_ox`, `s_oX`, `s_odigits`,
-`s_oudigits` against `_S_ominus`, `_S_oplus`, `_S_ox`, `_S_oX`, `_S_odigits`,
-`_S_oudigits`.
+Both string literals were byte-identical to libstdc++'s `_S_atoms_in` and
+`_S_atoms_out`. Of the eighteen index constants, twelve collided outright under
+the normalisation of §3 — `s_ominus`, `s_oplus`, `s_ox`/`s_oX`, `s_odigits`,
+`s_oudigits`, `s_oe`, `s_iminus`, `s_iplus`, `s_ix`/`s_iX`, `s_izero`, `s_ie`
+and `s_iend` all fold onto libstdc++'s `_S_`-prefixed spellings once underscores
+and case are removed. The two members did not collide mechanically:
+`m_in_atoms` / `m_out_atoms` against `_M_atoms_in` / `_M_atoms_out` is the same
+name with its two words reordered, which is what a light rename looks like
+rather than evidence of independence. With comment matching already down to
+zero, this was the only thing left in the tree that a reader could match at a
+glance, and the literals sat in the hardest layer to explain away.
 
-The character *set* is dictated by the language: these are exactly the
-characters an integer field can contain across bases 8, 10 and 16, with sign
-and base prefix. The *order*, and the duplication of `0123456789` in the output
-table so that two contiguous sixteen-character alphabets can be indexed by a
-single case flag, is a design choice that was adopted rather than invented.
+The character *set* is dictated by the language — those are exactly the
+characters an integer field can hold across bases 8, 10 and 16, with sign and
+base prefix — so the set could not have been anything else. The *order*, and
+the doubling of `0123456789` in the output table so that two contiguous
+sixteen-character alphabets could be indexed by one case flag, was a packing
+technique that had been adopted rather than arrived at.
 
-It has not been renamed, because renaming is concealment rather than
-independence — see §3. Removing it properly means changing the design, not the
-identifiers.
+Renaming was rejected: it is concealment, not independence, and it is the same
+move as `e0c82f4`. What replaced it is a different design. The two tables
+became two structs whose members are named for what they hold, so no character
+sits at a remembered offset:
+
+```cpp
+struct out_atoms {
+    CharT minus{}, plus{}, lower_x{}, upper_x{};
+    std::array<CharT, 16> lower{};   // '0'..'9','a'..'f'
+    std::array<CharT, 16> upper{};   // '0'..'9','A'..'F'
+};
+struct in_atoms {
+    CharT minus{}, plus{}, lower_x{}, upper_x{}, lower_e{}, upper_e{};
+    std::array<CharT, 22> digits{};  // '0'..'9','a'..'f','A'..'F'
+};
+```
+
+The eighteen index constants are gone. Each alphabet is widened whole from
+`"0123456789abcdef"` / `"0123456789ABCDEF"` — the universal hex alphabets — and
+every other character is widened by name. The two distinctness assertions were
+rebuilt over the same twenty-six characters per side that they covered before,
+so nothing is checked less thoroughly than it was.
+
+Verification of the result:
+
+| Layer | Before | After |
+| --- | --- | --- |
+| String literals of ≥ 8 characters shared with `locale_facets.h` / `.tcc` | 2 | **0** |
+| Normalised identifiers shared with libstdc++ naming the atoms or digits | 12 | **0** |
+
+Behaviour is unchanged and the suites confirm it: 57/57 pass. Cost was measured
+with callgrind on a driver that exercises `insert_int` and `extract_int` over
+`char` and `wchar_t` in decimal, hex and uppercase hex — 350,166,169
+instructions before, 347,500,345 after, a 0.76 % reduction. Per function there
+were no regressions: four unchanged to the instruction, and four improved,
+because selecting an alphabet by reference hoists a base pointer that the
+packed layout had been recomputing inside the digit loop.
+
+Nothing in the current tree is now known to carry a libstdc++ fingerprint.
 
 ## 10. Limitations of this record
 
@@ -271,17 +318,31 @@ below it.
 * **§4 结果**：注释整行精确匹配 27 → **0**；`monetary.h` 8-gram 命中 222 → ≤3，
   `numeric.h` 206 → ≤3；glibc 侧零命中；测试树最高 containment 2.6 %。
 * **§5 落地提交**：`16b5a05`、`9841634`、`919d9a8`、`7e4bd82`、gtest 转换系列、
-  `b40a29d`。
+  `b40a29d`，以及本次提交（§9 的原子表改造）。
 * **§6 有意不改**：ISO C++ 规定的 facet 接口与阶段结构、POSIX 规定的
   strptime/strftime 语义与边界、glibc 纪元数据的 ABI（属接口描述，无从"重写"）。
 * **§7 唯一行为变更**：`day_of_the_week` 在 `year <= 0` 时的取整错误已修，
   `year >= 1` 逐值不变（全 2^32 穷举验证）。
 * **§8 等价性验证**：小纯函数穷举差分；大 facet 用 golden corpus ＋ 流式 FNV-1a
   摘要（monetary 1468 万条）；性能用 callgrind 指令数；57/57 套件通过。
-* **§9 已知残留**：`numeric.h` 的 `in_atoms` / `out_atoms` 两张表与 libstdc++ 的
-  `_S_atoms_in` / `_S_atoms_out` 逐字节相同，成员与索引常量在归一化后一一对应。
-  字符集本身由语言决定，但顺序与输出表重复 `0123456789` 的编码手法是沿用而非
-  独立设计。未改名，因为改名是隐藏而不是独立；要真正去除须改设计。
+* **§9 最后清除的一处**：`numeric.h` 曾有两张打包的原子表，两条源字面量与
+  libstdc++ 的 `_S_atoms_in` / `_S_atoms_out` 逐字节相同；18 个索引常量中有 12 个
+  在 §3 的归一化下与 `_S_` 系列直接撞名，两个成员名 `m_in_atoms`/`m_out_atoms` 则
+  是把 `_M_atoms_in`/`_M_atoms_out` 的词序对调——机械比对撞不上，但这正是轻度
+  改名的样子。注释清零之后，这是树里唯一还能一眼比中的东西，且落在最难辩解的
+  那一层（共享字面量）。
+  字符**集合**由语言决定（8/10/16 进制整数字段加符号与基数前缀所能出现的字符，
+  只能是这些）；但**顺序**、以及输出表把 `0123456789` 重复一遍好让两张连续的
+  16 字符字母表能用一个大小写标志索引，是沿用的打包手法，不是独立想出来的。
+  没有改名（改名是隐藏而不是独立，且与 `e0c82f4` 是同一手法），而是换了设计：
+  两张表拆成按含义命名成员的结构体，18 个索引常量全部消失，两张字母表分别整表
+  扩宽自通用的 `"0123456789abcdef"` 与 `"0123456789ABCDEF"`，其余字符逐个按名
+  扩宽。只留两个按含义命名的偏移：`s_hex_letters`（字母在字母表中的起点）与
+  `s_upper_hex`（解析表里 `'A'..'F'` 段的起点——解析靠匹配位置取值，这段只能在
+  那儿）。两处互异性断言按改前同样的每侧 26 个字符重建，检查强度未降低。
+  共享字面量 2 → **0**，归一化同名标识符 12 → **0**；行为不变（57/57 通过），
+  callgrind 指令数 350,166,169 → 347,500,345（−0.76%），逐函数零回退。
+  当前树中已无已知的 libstdc++ 指纹。
 * **§10 局限**：这**不是** clean-room——作者读过 libstdc++ 源码；准确的说法是
   "独立重写 ＋ 等价性验证 ＋ 来源审计"。Git 只能追到根提交，无法佐证。检测有
   下限：无关文件极端值可达 26.6 % containment，足够彻底的改写会落在噪声内。

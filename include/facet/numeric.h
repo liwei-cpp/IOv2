@@ -94,8 +94,8 @@ public:
      * @brief 构造函数，初始化所有 locale 相关参数并预先扩宽输入/输出原子字符集。
      *
      * 从 `numeric_conf` 中复制小数点、千位分隔符、分组规则和布尔名称，
-     * 然后通过 `ctype::widen_seq` 将两组 ASCII 原子字符集扩宽为目标字符类型，
-     * 分别填充 `m_in_atoms`（用于解析）和 `m_out_atoms`（用于格式化）。
+     * 然后通过 `ctype::widen_seq` 与 `ctype::widen` 将各原子字符扩宽为目标字符
+     * 类型，分别填充 `m_in`（用于解析）和 `m_out`（用于格式化）。
      * 在 `wchar_t` 和 `char32_t` 类型下，还会在 debug/sanitizer 构建中断言
      * 扩宽结果的单射性。
      *
@@ -111,8 +111,8 @@ public:
      *
      * Copies the decimal point, thousands separator, grouping rules, and boolean names
      * from `numeric_conf`, then widens two ASCII atom character sets to the target
-     * character type via `ctype::widen_seq`, populating `m_in_atoms` (for parsing)
-     * and `m_out_atoms` (for formatting). On `wchar_t` and `char32_t`, also asserts
+     * character type via `ctype::widen_seq` and `ctype::widen`, populating `m_in`
+     * (for parsing) and `m_out` (for formatting). On `wchar_t` and `char32_t`, also asserts
      * the injectivity of the widened results in debug/sanitizer builds.
      *
      * @tparam TConfPtr A shared pointer type satisfying `shared_ptr_to<numeric_conf<CharT>>`.
@@ -138,28 +138,56 @@ public:
         // POSIX boundary in numeric_conf, not here.
         m_grouping = p_obj->grouping();
 
-        // string_view carries the length (no trailing '\0' counted), so the
-        // widened range matches m_in_atoms/m_out_atoms exactly. static_assert
-        // keeps the source literal and the destination array in lock-step.
-        constexpr std::string_view in_atoms = "-+xX0123456789abcdefABCDEF";
-        static_assert(in_atoms.size() == std::tuple_size_v<decltype(m_in_atoms)>);
-        m_ctype->widen_seq(in_atoms.data(), in_atoms.data() + in_atoms.size(), m_in_atoms.data());
+        // Each alphabet is widened whole and every other atom is widened by
+        // name, so nothing here depends on a character sitting at a
+        // remembered offset. string_view carries the length, with no trailing
+        // '\0' counted; static_assert keeps literal and destination in step.
+        constexpr std::string_view hex_lower       = "0123456789abcdef";
+        constexpr std::string_view hex_upper       = "0123456789ABCDEF";
+        constexpr std::string_view upper_hex_letters = "ABCDEF";
+        static_assert(hex_lower.size() == std::tuple_size_v<decltype(out_atoms::lower)>);
+        static_assert(hex_upper.size() == std::tuple_size_v<decltype(out_atoms::upper)>);
 
-        constexpr std::string_view out_atoms = "-+xX0123456789abcdef0123456789ABCDEF";
-        static_assert(out_atoms.size() == std::tuple_size_v<decltype(m_out_atoms)>);
-        m_ctype->widen_seq(out_atoms.data(), out_atoms.data() + out_atoms.size(), m_out_atoms.data());
+        m_ctype->widen_seq(hex_lower.data(), hex_lower.data() + hex_lower.size(),
+                           m_out.lower.data());
+        m_ctype->widen_seq(hex_upper.data(), hex_upper.data() + hex_upper.size(),
+                           m_out.upper.data());
+        m_out.minus   = m_ctype->widen('-');
+        m_out.plus    = m_ctype->widen('+');
+        m_out.lower_x = m_ctype->widen('x');
+        m_out.upper_x = m_ctype->widen('X');
+
+        // The parser reads a digit's value off the position it matched at, so
+        // the two letter cases are laid end to end after the decimal digits:
+        // '0'..'9', then 'a'..'f', then 'A'..'F' at s_upper_hex.
+        m_ctype->widen_seq(hex_lower.data(), hex_lower.data() + hex_lower.size(),
+                           m_in.digits.data());
+        m_ctype->widen_seq(upper_hex_letters.data(),
+                           upper_hex_letters.data() + upper_hex_letters.size(),
+                           m_in.digits.data() + s_upper_hex);
+        m_in.minus   = m_out.minus;
+        m_in.plus    = m_out.plus;
+        m_in.lower_x = m_out.lower_x;
+        m_in.upper_x = m_out.upper_x;
+        m_in.lower_e = m_ctype->widen('e');
+        m_in.upper_e = m_ctype->widen('E');
 
         if constexpr (std::is_same_v<CharT, wchar_t> ||
                       std::is_same_v<CharT, char32_t>)
         {
-            assert(atoms_pairwise_distinct(m_in_atoms.data(), m_in_atoms.size()));
-            // m_out_atoms intentionally aliases "0..9" at [4..13] and
-            // [20..29] (lowercase / uppercase hex digit slots). Build a
-            // 26-position view that skips that overlap before checking
-            // distinctness on the semantically distinct output positions.
-            std::array<CharT, 26> out_view{};
-            std::copy(m_out_atoms.begin(),        m_out_atoms.begin() + 20, out_view.begin());
-            std::copy(m_out_atoms.begin() + 30,   m_out_atoms.end(),        out_view.begin() + 20);
+            // Distinctness is a property of the whole set a stage works with,
+            // so each side is checked as one run: the marks followed by every
+            // glyph that side can emit or match.
+            std::array<CharT, 26> in_view{m_in.minus, m_in.plus,
+                                          m_in.lower_x, m_in.upper_x};
+            std::copy(m_in.digits.begin(), m_in.digits.end(), in_view.begin() + 4);
+            assert(atoms_pairwise_distinct(in_view.data(), in_view.size()));
+
+            std::array<CharT, 26> out_view{m_out.minus, m_out.plus,
+                                           m_out.lower_x, m_out.upper_x};
+            std::copy(m_out.lower.begin(), m_out.lower.end(), out_view.begin() + 4);
+            std::copy(m_out.upper.begin() + s_hex_letters, m_out.upper.end(),
+                      out_view.begin() + 20);
             assert(atoms_pairwise_distinct(out_view.data(), out_view.size()));
         }
     }
@@ -857,9 +885,9 @@ private:
 
             std::vector<CharT> vec_ws3(w);
             CharT* ws3 = vec_ws3.data();
-            bool startSign = (ws[0] == m_out_atoms[s_ominus]) || (ws[0] == m_out_atoms[s_oplus]);
-            bool start0x = (ws[0] == m_out_atoms[s_odigits]) && (len > 1u) &&
-                           ((ws[1] == m_out_atoms[s_ox]) || (ws[1] == m_out_atoms[s_oX]));
+            bool startSign = (ws[0] == m_out.minus) || (ws[0] == m_out.plus);
+            bool start0x = (ws[0] == m_out.lower[0]) && (len > 1u) &&
+                           ((ws[1] == m_out.lower_x) || (ws[1] == m_out.upper_x));
             const ios_defs::fmtflags adjust = io.flags() & ios_defs::adjustfield;
             pad(io.fill(), w, adjust, io.flags() & ios_defs::basefield,
                 ws3, ws, len, startSign, start0x);
@@ -934,7 +962,7 @@ private:
         {
             do // NOLINT(cppcoreguidelines-avoid-do-while)
             {
-                *--raw_begin = m_out_atoms[s_odigits + (u % 10)];
+                *--raw_begin = m_out.lower[u % 10];
                 u /= 10;
             } while (u != 0);
         }
@@ -942,11 +970,11 @@ private:
         {
             const unsigned shift = (basefield == ios_defs::oct) ? 3u : 4u;
             const unsigned_type mask = (unsigned_type{1} << shift) - 1;
-            const int alphabet = (basefield == ios_defs::hex && (flags & ios_defs::uppercase))
-                ? s_oudigits : s_odigits;
+            const auto& alphabet = (basefield == ios_defs::hex && (flags & ios_defs::uppercase))
+                ? m_out.upper : m_out.lower;
             do // NOLINT(cppcoreguidelines-avoid-do-while)
             {
-                *--raw_begin = m_out_atoms[alphabet + static_cast<std::size_t>(u & mask)];
+                *--raw_begin = alphabet[static_cast<std::size_t>(u & mask)];
                 u >>= shift;
             } while (u != 0);
         }
@@ -970,16 +998,16 @@ private:
             if constexpr (std::is_signed_v<TValue>)
             {
                 if (v < 0)
-                    prefix[prefix_len++] = m_out_atoms[s_ominus];
+                    prefix[prefix_len++] = m_out.minus;
                 else if (flags & ios_defs::showpos)
-                    prefix[prefix_len++] = m_out_atoms[s_oplus];
+                    prefix[prefix_len++] = m_out.plus;
             }
         }
         else if (bool(flags & ios_defs::showbase) && v)
         {
-            prefix[prefix_len++] = m_out_atoms[s_odigits];
+            prefix[prefix_len++] = m_out.lower[0];
             if (basefield == ios_defs::hex)
-                prefix[prefix_len++] = m_out_atoms[s_ox + bool(flags & ios_defs::uppercase)];
+                prefix[prefix_len++] = (flags & ios_defs::uppercase) ? m_out.upper_x : m_out.lower_x;
         }
 
         const std::size_t len = prefix_len + digit_len;
@@ -994,16 +1022,16 @@ private:
             throw stream_error("numeric put fail: fill count exceeds max_pad_count");
 
         const bool start_sign = prefix_len == 1
-            && (prefix[0] == m_out_atoms[s_ominus] || prefix[0] == m_out_atoms[s_oplus]);
+            && (prefix[0] == m_out.minus || prefix[0] == m_out.plus);
         const bool start_0x = prefix_len == 2
-            && prefix[0] == m_out_atoms[s_odigits]
-            && (prefix[1] == m_out_atoms[s_ox] || prefix[1] == m_out_atoms[s_oX]);
+            && prefix[0] == m_out.lower[0]
+            && (prefix[1] == m_out.lower_x || prefix[1] == m_out.upper_x);
         const ios_defs::fmtflags adjust = flags & ios_defs::adjustfield;
         const bool trails_value = adjust == ios_defs::left;
         const bool leads_digits = !trails_value
             && (adjust == ios_defs::internal || !(start_sign || start_0x));
         if (fill_alters_reading(io.fill(), basefield, leads_digits, trails_value,
-                                prefix_len != 0 && prefix[0] == m_out_atoms[s_ominus]))
+                                prefix_len != 0 && prefix[0] == m_out.minus))
             throw stream_error("numeric put fail: fill would change the value the field reads as");
 
         if (trails_value)
@@ -1142,8 +1170,8 @@ private:
                                            bool negative) const
     {
         const int radix = basefield == ios_defs::hex ? 16 : 10;
-        const char_type* const digits  = m_out_atoms.data() + s_odigits;
-        const char_type* const udigits = m_out_atoms.data() + s_oudigits;
+        const char_type* const digits  = m_out.lower.data();
+        const char_type* const udigits = m_out.upper.data();
         if (std::find(digits,  digits  + radix, fill) != digits  + radix
          || std::find(udigits, udigits + radix, fill) != udigits + radix)
             return !(fill == digits[0] && leads_digits);
@@ -1154,9 +1182,9 @@ private:
 
         if (fill == m_decimal_point)
             return true;
-        if (fill == m_out_atoms[s_ominus])
+        if (fill == m_out.minus)
             return !negative;
-        if (fill == m_out_atoms[s_oplus])
+        if (fill == m_out.plus)
             return negative;
         return false;
     }
@@ -1213,7 +1241,7 @@ private:
       const bool leads_digits = !trails_value
           && (adjust == ios_defs::internal || !(startSign || start0x));
       if (fill_alters_reading(fill, basefield, leads_digits, trails_value,
-                              cs[0] == m_out_atoms[s_ominus]))
+                              cs[0] == m_out.minus))
           throw stream_error("numeric put fail: fill would change the value the field reads as");
 
       // The field is short of `w`, so the fill run gets placed.
@@ -1490,11 +1518,11 @@ private:
         if (beg != end)
         {
             const char_type first = *beg;
-            const bool has_sign = first == m_in_atoms[s_iminus]
-                               || first == m_in_atoms[s_iplus];
+            const bool has_sign = first == m_in.minus
+                               || first == m_in.plus;
             if (has_sign && !is_punct(first))
             {
-                negative = first == m_in_atoms[s_iminus];
+                negative = first == m_in.minus;
                 ++beg;
             }
         }
@@ -1504,7 +1532,7 @@ private:
         // the length of the field and avoids a second digit-scanning phase.
         bool has_digit = false;
         int digits_in_group = 0;
-        if (beg != end && *beg == m_in_atoms[s_izero] && !is_punct(*beg))
+        if (beg != end && *beg == m_in.digits[0] && !is_punct(*beg))
         {
             has_digit = true;
             digits_in_group = 1;
@@ -1516,7 +1544,7 @@ private:
                 digits_in_group = 0;
 
             if (beg != end && !is_punct(*beg)
-                && (*beg == m_in_atoms[s_ix] || *beg == m_in_atoms[s_iX])
+                && (*beg == m_in.lower_x || *beg == m_in.upper_x)
                 && (infer_base || radix == 16))
             {
                 radix = 16;
@@ -1541,9 +1569,9 @@ private:
         if (!m_grouping.empty())
             group_widths.reserve(32);
 
-        const char_type* const digit_atoms = m_in_atoms.data() + s_izero;
+        const char_type* const digit_atoms = m_in.digits.data();
         const char_type* const primary_end = digit_atoms + radix;
-        const char_type* const uppercase_hex = digit_atoms + 16;
+        const char_type* const uppercase_hex = digit_atoms + s_upper_hex;
 
         while (beg != end)
         {
@@ -1704,8 +1732,8 @@ private:
         // and the transcription live here rather than being spelled twice.
         const auto take_sign = [&](char_type ch) -> bool
         {
-            const bool plus = ch == m_in_atoms[s_iplus];
-            if ((plus || ch == m_in_atoms[s_iminus]) && !is_punct(ch))
+            const bool plus = ch == m_in.plus;
+            if ((plus || ch == m_in.minus) && !is_punct(ch))
             {
                 xtrc += plus ? '+' : '-';
                 return true;
@@ -1744,7 +1772,7 @@ private:
         // strtod does not care how many were written, and keeping them would
         // just make the buffer longer.
         bool saw_digit = false;
-        while (!at_end && !is_punct(c) && c == m_in_atoms[s_izero])
+        while (!at_end && !is_punct(c) && c == m_in.digits[0])
         {
             if (!saw_digit)
             {
@@ -1758,7 +1786,7 @@ private:
         // -- mantissa, decimal point and exponent --------------------------
         bool saw_point = false;
         bool saw_exp   = false;
-        const char_type* const digit_table = m_in_atoms.data() + s_izero;
+        const char_type* const digit_table = m_in.digits.data();
 
         while (!at_end)
         {
@@ -1804,7 +1832,7 @@ private:
                     saw_digit = true;
                     ++group_len;
                 }
-                else if ((c == m_in_atoms[s_ie] || c == m_in_atoms[s_iE])
+                else if ((c == m_in.lower_e || c == m_in.upper_e)
                         && !saw_exp && saw_digit)
                 {
                     // The exponent ends the integer part too, so an open tally
@@ -1923,9 +1951,9 @@ private:
      * @lang{ZH}
      * @brief 断言辅助函数：验证宽字符原子数组中所有元素两两不同。
      *
-     * `extract_int`/`extract_float` 将输入宽字符与 `m_in_atoms` 中的条目直接比较，
-     * `insert_int`/`insert_float` 依据位置索引从 `m_out_atoms` 发出字形；
-     * 两者均假设 `ctype::widen` 在这 26 个字符集合上是单射的。
+     * `extract_int`/`extract_float` 将输入宽字符与 `m_in` 中的条目直接比较，
+     * `insert_int`/`insert_float` 依据位置索引从 `m_out` 的字母表发出字形；
+     * 两者均假设 `ctype::widen` 在各自那 26 个字符的集合上是单射的。
      * 若某个非 ASCII locale 的 `widen` 使 `widen('a') == widen('A')` 之类的碰撞发生，
      * 则某些数字在输入侧将不可达，在输出侧会产生语义上不同位置的相同字形。
      * C++ 标准库对此集合的单射性隐式依赖，但不作显式保证；
@@ -1940,9 +1968,9 @@ private:
      * @brief Assertion helper that verifies all elements in a wide-character atom array are pairwise distinct.
      *
      * `extract_int`/`extract_float` compare incoming wide characters directly against
-     * entries in `m_in_atoms`, and `insert_int`/`insert_float` emit glyphs from
-     * `m_out_atoms` by position index; both assume `ctype::widen` is injective on
-     * this 26-character set. If an exotic locale's `widen` produces a collision such
+     * entries in `m_in`, and `insert_int`/`insert_float` emit glyphs from `m_out`'s
+     * alphabets by position index; both assume `ctype::widen` is injective on the
+     * 26-character set each side works with. If an exotic locale's `widen` produces a collision such
      * as `widen('a') == widen('A')`, certain digits become unreachable on the input
      * side and semantically distinct output positions emit identical glyphs. The C++
      * standard library implicitly relies on injectivity over this set without an
@@ -1972,54 +2000,51 @@ private:
 
 private:
     ///< @lang{ZH}
-    ///< 26 个输入原子字符的宽字符形式，对应 ASCII 串 `"-+xX0123456789abcdefABCDEF"`。
-    ///< 用于解析时将输入字符与符号、基数前缀和十六进制数字进行比较。
-    ///< 通过 `s_iminus`、`s_iplus`、`s_ix`、`s_iX`、`s_izero` 等索引访问各位置。
+    ///< 格式化时发出的宽字符。两张十六进制字母表各自完整（`'0'..'9'` 加六个
+    ///< 字母），按大小写整表选取，数字的值就是它在表中的下标。
     ///< @endif
     ///< @lang{EN}
-    ///< Widened form of the 26 input atom characters corresponding to `"-+xX0123456789abcdefABCDEF"`.
-    ///< Used during parsing to match incoming characters against signs, base prefixes, and hex digits.
-    ///< Positions are accessed via `s_iminus`, `s_iplus`, `s_ix`, `s_iX`, `s_izero`, and related indices.
+    ///< The widened characters the formatter emits. Each hex alphabet is
+    ///< complete on its own (`'0'..'9'` plus six letters) and is chosen whole
+    ///< by case; a digit's value is its index into the table.
     ///< @endif
-    std::array<char_type, 26> m_in_atoms{};
+    struct out_atoms
+    {
+        CharT minus{};                   ///< @lang{ZH} `'-'`。 @endif @lang{EN} `'-'`. @endif
+        CharT plus{};                    ///< @lang{ZH} `'+'`。 @endif @lang{EN} `'+'`. @endif
+        CharT lower_x{};                 ///< @lang{ZH} `0x` 前缀中的 `'x'`。 @endif @lang{EN} The `'x'` of an `0x` prefix. @endif
+        CharT upper_x{};                 ///< @lang{ZH} `0X` 前缀中的 `'X'`。 @endif @lang{EN} The `'X'` of an `0X` prefix. @endif
+        std::array<CharT, 16> lower{};   ///< @lang{ZH} `'0'..'9','a'..'f'`。 @endif @lang{EN} `'0'..'9','a'..'f'`. @endif
+        std::array<CharT, 16> upper{};   ///< @lang{ZH} `'0'..'9','A'..'F'`。 @endif @lang{EN} `'0'..'9','A'..'F'`. @endif
+    };
 
     ///< @lang{ZH}
-    ///< 36 个输出原子字符的宽字符形式，对应 ASCII 串 `"-+xX0123456789abcdef0123456789ABCDEF"`。
-    ///< 其中 `'0'..'9'` 在 `[4..13]`（小写十六进制字母表 `s_odigits`）和
-    ///< `[20..29]`（大写十六进制字母表 `s_oudigits`）各出现一次，
-    ///< 使两段均构成完整的 16 元素字母表。
-    ///< 通过 `s_ominus`、`s_oplus`、`s_ox`、`s_oX`、`s_odigits`、`s_oudigits` 等索引访问各位置。
+    ///< 解析时用于比对的宽字符。`digits` 把两种字母大小写接在十进制数字之后
+    ///< 排成一串，解析取匹配位置作为数字的值，`s_upper_hex` 之后的一段再补
+    ///< 回 10 的偏移。
     ///< @endif
     ///< @lang{EN}
-    ///< Widened form of the 36 output atom characters corresponding to `"-+xX0123456789abcdef0123456789ABCDEF"`.
-    ///< The `'0'..'9'` range appears at both `[4..13]` (lowercase hex alphabet, `s_odigits`) and
-    ///< `[20..29]` (uppercase hex alphabet, `s_oudigits`), so each 16-entry section is a
-    ///< self-contained digit alphabet for its case.
-    ///< Positions are accessed via `s_ominus`, `s_oplus`, `s_ox`, `s_oX`, `s_odigits`, `s_oudigits`, and related indices.
+    ///< The widened characters the parser matches against. `digits` lays both
+    ///< letter cases after the decimal digits in one run; a parse takes the
+    ///< matched position as the digit's value, adding the offset of 10 back
+    ///< for the run at `s_upper_hex`.
     ///< @endif
-    std::array<char_type, 36> m_out_atoms{};
+    struct in_atoms
+    {
+        CharT minus{};                   ///< @lang{ZH} `'-'`。 @endif @lang{EN} `'-'`. @endif
+        CharT plus{};                    ///< @lang{ZH} `'+'`。 @endif @lang{EN} `'+'`. @endif
+        CharT lower_x{};                 ///< @lang{ZH} `0x` 前缀中的 `'x'`。 @endif @lang{EN} The `'x'` of an `0x` prefix. @endif
+        CharT upper_x{};                 ///< @lang{ZH} `0X` 前缀中的 `'X'`。 @endif @lang{EN} The `'X'` of an `0X` prefix. @endif
+        CharT lower_e{};                 ///< @lang{ZH} 指数标记 `'e'`。 @endif @lang{EN} The exponent marker `'e'`. @endif
+        CharT upper_e{};                 ///< @lang{ZH} 指数标记 `'E'`。 @endif @lang{EN} The exponent marker `'E'`. @endif
+        std::array<CharT, 22> digits{};  ///< @lang{ZH} `'0'..'9','a'..'f','A'..'F'`。 @endif @lang{EN} `'0'..'9','a'..'f','A'..'F'`. @endif
+    };
 
-    // Output atom indices into m_out_atoms ("-+xX0123456789abcdef0123456789ABCDEF").
-    static constexpr int s_ominus       = 0;            ///< @lang{ZH} `'-'` 在 `m_out_atoms` 中的索引。 @endif @lang{EN} Index of `'-'` in `m_out_atoms`. @endif
-    static constexpr int s_oplus        = 1;            ///< @lang{ZH} `'+'` 在 `m_out_atoms` 中的索引。 @endif @lang{EN} Index of `'+'` in `m_out_atoms`. @endif
-    static constexpr int s_ox           = 2;            ///< @lang{ZH} `'x'` 在 `m_out_atoms` 中的索引。 @endif @lang{EN} Index of `'x'` in `m_out_atoms`. @endif
-    static constexpr int s_oX           = 3;            ///< @lang{ZH} `'X'` 在 `m_out_atoms` 中的索引。 @endif @lang{EN} Index of `'X'` in `m_out_atoms`. @endif
-    static constexpr int s_odigits      = 4;            ///< @lang{ZH} 小写十六进制字母表（`'0'..'9','a'..'f'`）在 `m_out_atoms` 中的起始索引。 @endif @lang{EN} Start index of the lowercase hex alphabet (`'0'..'9','a'..'f'`) in `m_out_atoms`. @endif
-    static constexpr int s_oudigits     = s_odigits + 16;  ///< @lang{ZH} 大写十六进制字母表（`'0'..'9','A'..'F'`）在 `m_out_atoms` 中的起始索引。 @endif @lang{EN} Start index of the uppercase hex alphabet (`'0'..'9','A'..'F'`) in `m_out_atoms`. @endif
-    static constexpr int s_oa           = s_odigits + 10;  ///< @lang{ZH} `'a'` 在 `m_out_atoms` 中的索引。 @endif @lang{EN} Index of `'a'` in `m_out_atoms`. @endif
-    static constexpr int s_oe           = s_odigits + 14;  ///< @lang{ZH} `'e'` 在 `m_out_atoms` 中的索引。 @endif @lang{EN} Index of `'e'` in `m_out_atoms`. @endif
-    static constexpr int s_oA           = s_oudigits + 10; ///< @lang{ZH} `'A'` 在 `m_out_atoms` 中的索引。 @endif @lang{EN} Index of `'A'` in `m_out_atoms`. @endif
-    static constexpr int s_oE           = s_oudigits + 14; ///< @lang{ZH} `'E'` 在 `m_out_atoms` 中的索引。 @endif @lang{EN} Index of `'E'` in `m_out_atoms`. @endif
+    static constexpr std::size_t s_hex_letters = 10;  ///< @lang{ZH} 十六进制字母表中 `'a'`/`'A'` 的下标。 @endif @lang{EN} Index of `'a'`/`'A'` within a hex alphabet. @endif
+    static constexpr std::size_t s_upper_hex   = 16;  ///< @lang{ZH} `in_atoms::digits` 中 `'A'..'F'` 一段的起始下标。 @endif @lang{EN} Index at which the `'A'..'F'` run begins in `in_atoms::digits`. @endif
 
-    // Input atom indices into m_in_atoms ("-+xX0123456789abcdefABCDEF").
-    static constexpr int s_iminus       = 0;            ///< @lang{ZH} `'-'` 在 `m_in_atoms` 中的索引。 @endif @lang{EN} Index of `'-'` in `m_in_atoms`. @endif
-    static constexpr int s_iplus        = 1;            ///< @lang{ZH} `'+'` 在 `m_in_atoms` 中的索引。 @endif @lang{EN} Index of `'+'` in `m_in_atoms`. @endif
-    static constexpr int s_ix           = 2;            ///< @lang{ZH} `'x'` 在 `m_in_atoms` 中的索引。 @endif @lang{EN} Index of `'x'` in `m_in_atoms`. @endif
-    static constexpr int s_iX           = 3;            ///< @lang{ZH} `'X'` 在 `m_in_atoms` 中的索引。 @endif @lang{EN} Index of `'X'` in `m_in_atoms`. @endif
-    static constexpr int s_izero        = 4;            ///< @lang{ZH} `'0'`（数字段起始）在 `m_in_atoms` 中的索引。 @endif @lang{EN} Index of `'0'` (start of digit section) in `m_in_atoms`. @endif
-    static constexpr int s_ie           = s_izero + 14; ///< @lang{ZH} `'e'` 在 `m_in_atoms` 中的索引。 @endif @lang{EN} Index of `'e'` in `m_in_atoms`. @endif
-    static constexpr int s_iE           = s_izero + 20; ///< @lang{ZH} `'E'` 在 `m_in_atoms` 中的索引。 @endif @lang{EN} Index of `'E'` in `m_in_atoms`. @endif
-    static constexpr int s_iend         = 26;           ///< @lang{ZH} `m_in_atoms` 有效索引的尾后值（同时是数组大小）。 @endif @lang{EN} One-past-the-last valid index into `m_in_atoms` (also the array size). @endif
+    out_atoms m_out{};                   ///< @lang{ZH} 格式化用的宽字符，构造时填充。 @endif @lang{EN} Widened characters for formatting, filled in at construction. @endif
+    in_atoms  m_in{};                    ///< @lang{ZH} 解析用的宽字符，构造时填充。 @endif @lang{EN} Widened characters for parsing, filled in at construction. @endif
 };
 
 template<typename TConfPtr, typename TCtypePtr>
