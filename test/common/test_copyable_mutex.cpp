@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2026 liwei <liweifriends@gmail.com>
+// SPDX-FileCopyrightText: 2026 liwei <liwei.cpp@gmail.com>
 // SPDX-License-Identifier: MIT
 
 #include <IOv2/common/copyable_mutex.h>
