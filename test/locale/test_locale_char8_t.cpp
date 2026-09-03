@@ -353,4 +353,24 @@ TEST(LocaleChar8, AMissingCatalogueLeavesEveryMessageUntranslated)
     EXPECT_EQ(msg->translate(u8"thank you"), u8"thank you");
     EXPECT_EQ(msg->translate(u8""), u8"");
     EXPECT_EQ(msg->head_entry(), u8"");
+
+    // The permissive failure above must not poison the cache: a strict retry of
+    // the same lookup still observes and reports the missing catalogue.
+    EXPECT_THROW((void)IOv2::locale<char8_t>("en_US.UTF-8")
+                     .involve_msg("messages", "zh_CN", true),
+                 IOv2::stream_error);
+}
+
+TEST(LocaleChar8, AnIdenticalInvolveMsgHandsBackTheInternedConf)
+{
+    IOv2::base_ft<IOv2::messages>::bind_text_domain("messages", resource_dir("IOv2TestResources"));
+
+    auto loc1 = IOv2::locale<char8_t>("en_US.UTF-8").involve_msg("messages", "zh_CN");
+    auto loc2 = IOv2::locale<char8_t>("en_US.UTF-8").involve_msg("messages", "zh_CN");
+
+    auto c1 = loc1.get<IOv2::messages_conf<char8_t>>();
+    auto c2 = loc2.get<IOv2::messages_conf<char8_t>>();
+    ASSERT_TRUE(c1);
+    ASSERT_TRUE(c2);
+    EXPECT_EQ(c1, c2);
 }

@@ -229,6 +229,48 @@ TEST(IstreamExtractCharacterChar, ALimitOfOneLeavesRoomOnlyForTheTerminator)
     expect_empty.operator()<iostream>();
 }
 
+TEST(IstreamExtractCharacterChar, WithSkipwsOffWhitespaceProducesNoToken)
+{
+    {
+        istream is{mem_device{std::string(" text")}, locale<char>("C")};
+        char    value[8] = "old";
+
+        is >> noskipws >> value;
+        EXPECT_TRUE(is.str_fail());
+        EXPECT_STREQ(value, "");
+    }
+    {
+        istream    is{mem_device{std::string(" text")}, locale<char>("C")};
+        std::string value = "old";
+
+        is >> noskipws >> value;
+        EXPECT_TRUE(is.str_fail());
+        EXPECT_TRUE(value.empty());
+    }
+}
+
+TEST(IstreamExtractCharacterChar, AMissingCtypeFacetRejectsTokenExtraction)
+{
+    const auto loc = locale<char>("C").remove<ctype_conf<char>>();
+
+    {
+        istream is{mem_device{std::string("text")}, loc};
+        char    value[8] = "old";
+
+        is >> noskipws >> value;
+        EXPECT_TRUE(is.str_fail());
+        EXPECT_STREQ(value, "old");
+    }
+    {
+        istream    is{mem_device{std::string("text")}, loc};
+        std::string value = "old";
+
+        is >> noskipws >> value;
+        EXPECT_TRUE(is.str_fail());
+        EXPECT_TRUE(value.empty());
+    }
+}
+
 // The last token of an input that does not end in whitespace stops because the
 // input ran out. That sets eofbit but is not a failure: the token is complete.
 TEST(IstreamExtractCharacterChar, ATokenEndedByTheInputIsStillAWholeToken)

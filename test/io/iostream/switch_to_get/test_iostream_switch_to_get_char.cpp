@@ -14,6 +14,8 @@
 
 #include <gtest/gtest.h>
 
+#include <support/injectable_device.h>
+
 namespace
 {
     std::string s_e_lit = []()
@@ -89,4 +91,19 @@ TEST(IostreamSwitchToGetChar, SwitchingAfterWritingThroughAConverterKeepsTheStre
 
     str.switch_to_get();
     EXPECT_TRUE(static_cast<bool>(str));
+}
+
+TEST(IostreamSwitchToGetChar, AFlushFailureDuringTheSwitchIsReported)
+{
+    injectable_device<char> dev{""};
+    auto                    state = dev.shared_state();
+    IOv2::iostream          str(std::move(dev));
+
+    str << "buffered output";
+    ASSERT_TRUE(str.good());
+
+    state->fail_dput = true;
+    EXPECT_NO_THROW(str.switch_to_get());
+    EXPECT_TRUE(str.dev_fail());
+    EXPECT_GT(state->dput, 0u);
 }

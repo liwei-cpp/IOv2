@@ -22,6 +22,10 @@
 
 #include <gtest/gtest.h>
 
+#include <support/failing_device.h>
+
+#include <atomic>
+#include <thread>
 #include <utility>
 
 namespace
@@ -206,4 +210,54 @@ TEST(OstreamTie, SelfAssignmentKeepsTheTieEdge)
     helper.operator()<IOv2::iostream>();
     helper.operator()<IOv2::istream>();
 
+}
+
+// A tie flush belongs to the target. Its exception mask cannot throw into the
+// unrelated initiating stream, so the target records the original failure and
+// the initiator proceeds normally.
+TEST(OstreamTie, AFailedTieFlushIsRecordedOnlyOnTheTarget)
+{
+    IOv2::ostream<failing_device<char>, char> target(
+        failing_device<char>{std::string(""), true}, IOv2::locale<char>("C"));
+    auto writer = make<IOv2::ostream>();
+
+    target.exceptions(IOv2::ios_defs::devfailbit);
+    writer.tie(as_flusher(target));
+    EXPECT_NO_THROW(writer.put('x'));
+
+    EXPECT_TRUE(writer.good());
+    EXPECT_TRUE(target.dev_fail());
+
+    writer.tie(nullptr);
+    target.exceptions(IOv2::ios_defs::goodbit);
+    target.clear();
+}
+
+// The hidden tie edge is best-effort: if another thread owns the target's I/O
+// lock, the initiator tries briefly and then continues instead of waiting.
+TEST(OstreamTie, ATieFlushDoesNotWaitForTheTargetsLock)
+{
+    auto target = make<IOv2::ostream>();
+    auto writer = make<IOv2::ostream>();
+    writer.tie(as_flusher(target));
+
+    std::atomic<bool> locked{false};
+    std::atomic<bool> release{false};
+    std::thread holder([&]
+    {
+        IOv2::sync guard(target);
+        locked.store(true);
+        while (!release.load())
+            std::this_thread::yield();
+    });
+
+    while (!locked.load())
+        std::this_thread::yield();
+
+    writer.put('x');
+    EXPECT_TRUE(writer.good());
+
+    release.store(true);
+    holder.join();
+    writer.tie(nullptr);
 }

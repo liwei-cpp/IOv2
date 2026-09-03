@@ -286,6 +286,21 @@ TEST(OstreamInsertCharacterChar, NullptrIsWrittenAsAWordAndPaddedLikeOne)
     helper.template operator()<iostream>();
 }
 
+TEST(OstreamInsertCharacterChar, AMissingCtypeFacetRejectsCharacterAndNullptrFormatting)
+{
+    const auto loc = locale<char>("C").remove<ctype_conf<char>>();
+
+    ostream character{mem_device{""}, loc};
+    character << 'x';
+    EXPECT_TRUE(character.str_fail());
+    EXPECT_TRUE(character.device().str().empty());
+
+    ostream null_pointer{mem_device{""}, loc};
+    null_pointer << nullptr;
+    EXPECT_TRUE(null_pointer.str_fail());
+    EXPECT_TRUE(null_pointer.device().str().empty());
+}
+
 TEST(OstreamInsertCharacterChar, SignedAndUnsignedCharStringsAreWrittenAsText)
 {
     auto helper = []<template <typename, typename> class T>()

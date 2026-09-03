@@ -102,6 +102,21 @@ TEST(IosBaseWidth, ARejectedWidthLeavesTheStreamUsable)
     EXPECT_EQ(os.device().str(), "abcd");
 }
 
+// width() itself stores large, valid counts, but one formatted insertion must
+// not spend unbounded time or memory materialising their padding.
+TEST(IosBaseWidth, AnInsertionRejectsPaddingBeyondThePerOperationLimit)
+{
+    ostream os{mem_device{""}};
+    os.width(ios_defs::max_pad_count + 2);
+
+    EXPECT_NO_THROW(os << "x");
+    EXPECT_TRUE(os.str_fail());
+    EXPECT_EQ(os.width(), 0u);
+
+    auto [dev, err] = os.detach();
+    EXPECT_TRUE(dev.str().empty());
+}
+
 TEST(IosBaseWidth, TheSameHoldsForAWideStream)
 {
     ios_base<wchar_t> ios;
