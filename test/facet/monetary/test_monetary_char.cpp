@@ -33,6 +33,7 @@
 
 #include <gtest/gtest.h>
 
+#include <climits>
 #include <cstddef>
 #include <cstdint>
 #include <iterator>
@@ -48,6 +49,12 @@ namespace
 {
     using part    = base_ft<monetary>::part;
     using pattern = base_ft<monetary>::pattern;
+
+    struct monetary_probe : base_ft<monetary>
+    {
+        using base_ft<monetary>::s_construct_pattern;
+        using base_ft<monetary>::s_monetary_unavailable;
+    };
 
     // A configuration whose every answer can be set.  What a format case is
     // about is the format, so it states one here instead of borrowing whichever
@@ -232,6 +239,12 @@ TEST(MonetaryChar, TheCharacterTypeIsChar)
     static_assert(std::is_same_v<monetary<char>::char_type, char>);
 }
 
+TEST(MonetaryChar, ANullConfigurationIsRejected)
+{
+    const std::shared_ptr<monetary_conf<char>> empty;
+    EXPECT_THROW((void)monetary<char>{empty}, stream_error);
+}
+
 // [locale.moneypunct] fixes the "C" locale completely: no currency, no
 // grouping, no fractional digits, and the same format both ways round.
 TEST(MonetaryChar, TheCLocaleCarriesNoCurrency)
@@ -332,6 +345,29 @@ TEST(MonetaryChar, ThePatternIsBuiltFromThePosixSignPosition)
         SCOPED_TRACE(name);
         EXPECT_EQ(facet_for(name).neg_format_nat(), expected);
     }
+}
+
+TEST(MonetaryChar, PatternConstructionHandlesReverseAndUnavailableData)
+{
+    using pattern_spec = base_ft<monetary>::pattern_spec;
+
+    EXPECT_EQ(monetary_probe::s_construct_pattern(
+                  pattern_spec{.precedes = 0, .sep_by_space = 1, .sign_posn = 3}),
+              (pattern{part::value, part::space, part::sign, part::symbol}));
+    EXPECT_EQ(monetary_probe::s_construct_pattern(
+                  pattern_spec{.precedes = 1, .sep_by_space = 0, .sign_posn = CHAR_MAX}),
+              (pattern{part::symbol, part::sign, part::none, part::value}));
+
+    lconv unavailable{};
+    unavailable.frac_digits = CHAR_MAX;
+    unavailable.int_frac_digits = CHAR_MAX;
+    unavailable.n_sign_posn = CHAR_MAX;
+    unavailable.int_n_sign_posn = CHAR_MAX;
+    EXPECT_TRUE(monetary_probe::s_monetary_unavailable(&unavailable));
+
+    char currency[] = "$";
+    unavailable.currency_symbol = currency;
+    EXPECT_FALSE(monetary_probe::s_monetary_unavailable(&unavailable));
 }
 
 // The digits are the smallest units of the currency, so the amount they spell is
@@ -523,6 +559,9 @@ TEST(MonetaryChar, TheWidthIsConsumedByOnePut)
     EXPECT_EQ(put_str(obj, false, ios, "123"), "*****123");
     EXPECT_EQ(ios.width(), 0u);
     EXPECT_EQ(put_str(obj, false, ios, "123"), "123");
+
+    ios.width(ios_defs::max_pad_count + 4);
+    EXPECT_THROW((void)put_str(obj, false, ios, "123"), stream_error);
 }
 
 // A run of fill can end up where a reader would take it for part of the amount.
@@ -577,6 +616,18 @@ TEST(MonetaryChar, AFillThatWouldChangeTheAmountIsRejected)
     EXPECT_EQ(put('*', ios_defs::internal, "12345"), "*********12345");
     EXPECT_EQ(put(',', ios_defs::internal, "12345"), ",,,,,,,,,12345");
     EXPECT_EQ(put(' ', ios_defs::right, "12345"), "         12345");
+}
+
+TEST(MonetaryChar, APositiveSignCannotPadANegativeAmount)
+{
+    const monetary<char> obj(tuned()->fraction(0).plus("+").minus("-")
+                                    .both(kSymbolSignValue).ptr());
+    ios_base<char> ios;
+    ios.setf(ios_defs::internal, ios_defs::adjustfield);
+    ios.fill('+');
+    ios.width(8);
+
+    EXPECT_THROW((void)put_str(obj, false, ios, "-123"), stream_error);
 }
 
 // fill is sticky stream state, so a stream carrying a dangerous one has to keep
@@ -642,6 +693,12 @@ TEST(MonetaryChar, PutReturnsThePositionAfterTheField)
 
     EXPECT_EQ(it, buffer.begin() + 6);
     EXPECT_EQ(buffer, "^^2607^^^^^^^");
+
+    std::string international(13, '^');
+    it = obj.put(international.begin() + 2, true, ios, std::string("2607"));
+
+    EXPECT_EQ(it, international.begin() + 6);
+    EXPECT_EQ(international, "^^2607^^^^^^^");
 }
 
 // Everything above reads the field back through the same facet that wrote it.
@@ -757,6 +814,15 @@ TEST(MonetaryChar, TheSeparatorsMustFollowTheGrouping)
     expect_rejects(obj, false, ios, "7#06##45");
 }
 
+TEST(MonetaryChar, AFinalGroupTooLargeForTheGroupingCounterIsRejected)
+{
+    ios_base<char>       ios;
+    const monetary<char> obj(tuned()->fraction(0).groups({3}).separator(',')
+                                    .both(kSymbolSignValue).ptr());
+
+    expect_rejects(obj, false, ios, "0," + std::string(256, '0'));
+}
+
 // A locale that spells a positive sign but no negative one leaves the absence of
 // a sign to mean negative, which is what [locale.money.get] asks for.
 TEST(MonetaryChar, NoSignMeansNegativeWhenOnlyThePositiveSignIsSpelled)
@@ -836,6 +902,10 @@ TEST(MonetaryChar, AnAmountTooLargeForTheTargetTypeIsRejected)
     // conversion to a fixed-width integer that cannot hold it.
     EXPECT_NO_THROW((void)obj.get(huge.begin(), huge.end(), false, ios, digits));
     EXPECT_EQ(digits, huge);
+
+    const std::string negative_huge = "-" + huge;
+    EXPECT_THROW((void)obj.get(negative_huge.begin(), negative_huge.end(),
+                               false, ios, units), stream_error);
 }
 
 TEST(MonetaryChar, GettingAnIntegralValueAgreesWithGettingTheDigits)
@@ -869,8 +939,9 @@ TEST(MonetaryChar, PutWritesThroughAnOutputIteratorOntoAStream)
 
     streambuf sb{mem_device<char>{""}};
     obj.put(ostreambuf_iterator(sb), false, ios, std::string("123456"));
+    obj.put(ostreambuf_iterator(sb), true, ios, std::string("123456"));
     sb.flush();
-    EXPECT_EQ(sb.device().str(), "1,234.56");
+    EXPECT_EQ(sb.device().str(), "1,234.56123,456");
 }
 
 // The same fill vetting as on the writing side, but from the reader's end: a run

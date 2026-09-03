@@ -218,6 +218,21 @@ namespace
     }
 }
 
+TEST(TimeioChar, ZoneReferencesCompareEveryPartOfTheirIdentity)
+{
+    const zone_ref utc{.text = "UTC", .is_name = true, .is_abbrev = true};
+
+    EXPECT_EQ(utc, (zone_ref{.text = "UTC", .is_name = true, .is_abbrev = true}));
+    EXPECT_NE(utc, (zone_ref{.text = "GMT", .is_name = true, .is_abbrev = true}));
+    EXPECT_NE(utc, (zone_ref{.text = "UTC", .is_name = false, .is_abbrev = true}));
+    EXPECT_NE(utc, (zone_ref{.text = "UTC", .is_name = true, .is_abbrev = false}));
+}
+
+TEST(TimeioChar, TheAmPmCompositeFormatIsExposed)
+{
+    EXPECT_FALSE(facet_for("C").am_pm_format().empty());
+}
+
 // Every conversion specifier and both modifiers, against one instant a reader can
 // check by hand: 2024-09-04 13:33:18 in America/Los_Angeles, a Wednesday.  A
 // specifier the value can supply is written; a modifier the locale has no
@@ -976,6 +991,8 @@ namespace
 
         rigged_conf()
             : base("C")
+            , m_am(base::am_name())
+            , m_pm(base::pm_name())
             , m_dt(base::date_time_format())
             , m_era_dt(base::era_date_time_format())
             , m_d(base::date_format())
@@ -986,6 +1003,8 @@ namespace
             , m_eras(base::era_items())
         {}
 
+        const std::string& am_name()              const override { return m_am; }
+        const std::string& pm_name()              const override { return m_pm; }
         const std::string& date_time_format()     const override { return m_dt; }
         const std::string& era_date_time_format() const override { return m_era_dt; }
         const std::string& date_format()          const override { return m_d; }
@@ -995,7 +1014,7 @@ namespace
         const std::string& am_pm_format()         const override { return m_r; }
         const std::vector<era_entry>& era_items() const override { return m_eras; }
 
-        std::string m_dt, m_era_dt, m_d, m_era_d, m_t, m_era_t, m_r;
+        std::string m_am, m_pm, m_dt, m_era_dt, m_d, m_era_d, m_t, m_era_t, m_r;
         std::vector<era_entry> m_eras;
     };
 
@@ -1032,6 +1051,11 @@ namespace
         }
         catch (const std::runtime_error&) { return true; }
     }
+}
+
+TEST(TimeioChar, IdenticalAmAndPmDesignatorsAreRejected)
+{
+    EXPECT_TRUE(rejects([](rigged_conf& conf) { conf.m_pm = conf.m_am; }));
 }
 
 // %Z is the one specifier a std::tm answers from a field rather than from the

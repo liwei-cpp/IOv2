@@ -61,6 +61,8 @@ TEST(MessagesChar32, AMissingCatalogueLeavesTheKeyUntranslated)
     EXPECT_EQ(obj.translate(U"please"), std::u32string(U"please"));
     EXPECT_EQ(obj.translate(U"thank you"), std::u32string(U"thank you"));
     EXPECT_EQ(obj.head_entry(), U"");
+    EXPECT_THROW(messages<char32_t>(std::make_shared<messages_conf<char32_t>>(
+                     "messages", "zh_HK")), stream_error);
 }
 
 TEST(MessagesChar32, AnEmptyKeyTranslatesToNothing)
