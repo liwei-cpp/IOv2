@@ -122,6 +122,28 @@ TEST(RuntimeCvt, CopyAssignmentPropagatesTheNullState)
     EXPECT_THROW((void)target.flush(), cvt_error);
 }
 
+// A non-null copy has to clone the erased implementation, not merely share its
+// pointer. Exercise the ordinary device/attach/adjust/write forwarding paths on
+// the clone as well: these are distinct virtual calls from their public wrappers.
+TEST(RuntimeCvt, AValidCopyOwnsAndOperatesAnIndependentKernel)
+{
+    runtime_cvt original(rb_root_cvt{mem_device(std::string("original"))});
+    runtime_cvt copied = original;
+
+    EXPECT_EQ(copied.device().str(), "original");
+    copied.attach(mem_device<char>{});
+
+    cvt_behavior beh;
+    EXPECT_NO_THROW(copied.adjust(beh));
+    EXPECT_EQ(copied.bos(), io_status::output);
+    copied.main_cont_beg();
+    copied.put("copy", 4);
+    copied.flush();
+
+    EXPECT_EQ(copied.device().str(), "copy");
+    EXPECT_EQ(original.device().str(), "original");
+}
+
 TEST(RuntimeCvt, PositioningAndSwitchingOnASupportingKernel)
 {
     runtime_cvt obj(rb_root_cvt{mem_device(std::string("hello world"))});

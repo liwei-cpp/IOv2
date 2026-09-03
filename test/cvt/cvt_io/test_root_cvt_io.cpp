@@ -836,6 +836,32 @@ TEST(CvtIo, BaseWriterRejectsARollbackPastWhatWasReserved)
     EXPECT_THROW(writer.rollback(100), cvt_error);
 }
 
+// When the next reservation does not fit, the generic writer has to send the
+// previous reservation downstream before reusing its staging buffer. A valid
+// rollback then removes only the unused tail of the new reservation.
+TEST(CvtIo, BaseWriterFlushesBeforeReuseAndRollsBackTheUnusedTail)
+{
+    auto                k = opened_vigenere_writer();
+    std::vector<char>   buf;
+    cvt_writer<VigCvtT> writer(k, buf);
+    writer.reset(5);
+
+    auto* first = writer.put_buf(4);
+    std::copy_n("abcd", 4, first);
+
+    auto* second = writer.put_buf(2); // flushes "abcd" before reusing the buffer
+    std::copy_n("ef", 2, second);
+    writer.rollback(1);               // retain only 'e'
+    writer.commit();
+    k.flush();
+
+    std::string expected = "abcde";
+    constexpr std::string_view key = "key";
+    for (std::size_t i = 0; i < expected.size(); ++i)
+        expected[i] = static_cast<char>(expected[i] + key[i % key.size()]);
+    EXPECT_EQ(k.device().str(), expected);
+}
+
 TEST(CvtIo, RetrieveOnAFreshConverterSucceeds)
 {
     VigCvtT    k{VigKernelT{mem_device<char>{"hello"}}, "key"};
