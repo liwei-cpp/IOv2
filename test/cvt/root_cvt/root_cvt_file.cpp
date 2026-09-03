@@ -1195,3 +1195,18 @@ TEST(RootCvtFile, DestructionSwallowsAFailingFlush)
     // obj is destroyed at the end of the test; the throw from flush() has to be
     // swallowed there rather than reaching std::terminate.
 }
+
+// detach() is noexcept but still reports a cleanup failure to its caller. The
+// device must be returned even when flushing the converter's pending bytes fails.
+TEST(RootCvtFile, DetachReturnsTheDeviceAndCapturesAFailingFlush)
+{
+    auto obj = rb_root_cvt{throw_write_device{}};
+    obj.bos();
+    obj.main_cont_beg();
+    obj.put("hello", 5);
+    obj.device().should_throw = true;
+
+    auto [dev, err] = obj.detach();
+    EXPECT_TRUE(err);
+    EXPECT_TRUE(dev.should_throw);
+}

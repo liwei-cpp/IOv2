@@ -765,6 +765,13 @@ TEST(RootCvtMem, RetrieveIsANoop)
     EXPECT_NO_THROW(obj.retrieve(stat));
 }
 
+TEST(RootCvtMem, AdjustIsANoop)
+{
+    MemCvt obj{mem_device("hello")};
+    cvt_behavior beh;
+    EXPECT_NO_THROW(obj.adjust(beh));
+}
+
 // rseek() counts back from the end of the main content, which is the device size
 // minus the prologue. Swapping in a device shorter than the prologue makes that
 // subtraction impossible, and it has to be refused rather than wrapped.

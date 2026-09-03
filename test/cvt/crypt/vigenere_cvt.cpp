@@ -272,6 +272,23 @@ TEST(VigenereCvt, ChunkedGetDecryptsTheWholeStreamWithoutAReadBufferThroughARunt
     expect_decrypts_to(obj, internal);
 }
 
+// A single request may be larger than the remaining stream. get_main() must
+// return the short count after observing EOF rather than require a second call.
+TEST(VigenereCvt, AReadLargerThanTheStreamReturnsTheAvailableCharacters)
+{
+    CharCvt obj{rb_root_cvt{mem_device("abc")}, "k"};
+    EXPECT_EQ(obj.bos(), io_status::input);
+    obj.main_cont_beg();
+
+    char out[8] = {};
+    EXPECT_EQ(obj.get(out, std::size(out)), 3u);
+    EXPECT_EQ(std::string(out, 3), std::string({
+        static_cast<char>('a' - 'k'),
+        static_cast<char>('b' - 'k'),
+        static_cast<char>('c' - 'k'),
+    }));
+}
+
 namespace
 {
     // The put mirror of expect_decrypts_to: writing the sample in rotating chunks
