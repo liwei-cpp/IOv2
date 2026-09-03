@@ -516,27 +516,31 @@ TEST(FileDeviceChar8, MoveTransfersTheOpenFile)
     EXPECT_EQ(dev3.dsize(), len);
 }
 
-TEST(FileDeviceChar8, MoveAssignmentWorksForTheSingleDirectionDevices)
+TEST(FileDeviceChar8, MoveConstructionAndAssignmentWorkForTheSingleDirectionDevices)
 {
-    // The read-only and write-only instantiations have their own operator=,
-    // and only the read-write one is covered by the case above.
+    // The read-only and write-only instantiations have their own move members,
+    // and only the read-write ones are covered by the case above.
     const char* in_name  = "fd_char8_move_in.tst";
     const char* out_name = "fd_char8_move_out.tst";
     file_guard g1(in_name, data);
     file_guard g2(out_name);
 
     ifile_device<char8_t> reader(in_name);
+    ifile_device<char8_t> reader_mid(std::move(reader));
     ifile_device<char8_t> reader_dst;
-    reader_dst = std::move(reader);
+    reader_dst = std::move(reader_mid);
     EXPECT_TRUE(reader_dst.is_open());
     EXPECT_FALSE(reader.is_open());
+    EXPECT_FALSE(reader_mid.is_open());
     EXPECT_EQ(reader_dst.dsize(), data_len);
 
     ofile_device<char8_t> writer(out_name, file_open_flag::trunc);
+    ofile_device<char8_t> writer_mid(std::move(writer));
     ofile_device<char8_t> writer_dst;
-    writer_dst = std::move(writer);
+    writer_dst = std::move(writer_mid);
     EXPECT_TRUE(writer_dst.is_open());
     EXPECT_FALSE(writer.is_open());
+    EXPECT_FALSE(writer_mid.is_open());
     writer_dst.dput(u8"ok", 2);
 }
 

@@ -14,8 +14,10 @@
 #include <unistd.h>
 
 #include <chrono>
+#include <csignal>
 #include <cstdio>
 #include <cstring>
+#include <pthread.h>
 #include <string>
 #include <thread>
 #include <utility>
@@ -24,6 +26,8 @@ using namespace IOv2;
 
 namespace
 {
+    void no_op_signal_handler(int) {}
+
     static_assert(io_device<std_input_device>);
     static_assert(io_device<std_output_device>);
     static_assert(io_device<std_error_device>);
@@ -88,6 +92,8 @@ TEST(StdDevice, EofIsProbedAndSticky)
 
     // Data available: deof() probes, reports not-EOF, and caches the byte.
     EXPECT_FALSE(d.deof());
+    // A second probe must reuse that byte rather than consume another one.
+    EXPECT_FALSE(d.deof());
     // The probe-cached byte is delivered in order by the next dget().
     EXPECT_EQ(d.dget(buf, 1), 1u);
     EXPECT_EQ(buf[0], 'a');
@@ -100,11 +106,22 @@ TEST(StdDevice, EofIsProbedAndSticky)
     EXPECT_TRUE(d.deof());
 }
 
-TEST(StdDevice, ZeroLengthPutAcceptsANullBuffer)
+TEST(StdDevice, AProbedByteStaysFirstInALongerRead)
+{
+    iguard g("abc");
+    std_input_device d;
+    char buf[3] = {};
+
+    EXPECT_FALSE(d.deof());
+    EXPECT_EQ(d.dget(buf, sizeof(buf)), sizeof(buf));
+    EXPECT_EQ(std::string(buf, sizeof(buf)), "abc");
+}
+
+TEST(StdDevice, PutAcceptsANullBufferOnlyForZeroLength)
 {
     std_output_device obj;
     obj.dput(nullptr, 0);
-    SUCCEED();
+    EXPECT_THROW(obj.dput(nullptr, 1), device_error);
 }
 
 TEST(StdDevice, GetRejectsANullBufferOnlyWhenItWouldReadIt)
@@ -245,6 +262,16 @@ TEST(StdDevice, MoveCarriesTheCachedLookaheadByte)
     d3 = std::move(d2);                  // move-assign carries the cache
     EXPECT_EQ(d3.dget(&buf, 1), 1u);
     EXPECT_EQ(buf, 'y');
+    EXPECT_TRUE(d3.deof());
+
+#if defined(__GNUC__) || defined(__clang__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wself-move"
+#endif
+    d3 = std::move(d3);
+#if defined(__GNUC__) || defined(__clang__)
+#pragma GCC diagnostic pop
+#endif
     EXPECT_TRUE(d3.deof());
 }
 
@@ -389,6 +416,29 @@ TEST(StdDevice, FlushReportsTheFailedWriteOfABufferedStderr)
     EXPECT_TRUE(flush_threw);
 }
 
+TEST(StdDevice, DestructorSuppressesABufferedFlushFailure)
+{
+    bool reached_after_destruction = false;
+    {
+        oguard<true> g;
+        char buffer[BUFSIZ];
+        std::setvbuf(stdout, buffer, _IOFBF, sizeof(buffer));
+
+        const int saved = ::dup(STDOUT_FILENO);
+        {
+            std_output_device d;
+            d.dput("some data", 9);
+            ::close(STDOUT_FILENO);
+        }
+
+        ::dup2(saved, STDOUT_FILENO);
+        ::close(saved);
+        std::setvbuf(stdout, nullptr, _IONBF, 0);
+        reached_after_destruction = true;
+    }
+    EXPECT_TRUE(reached_after_destruction);
+}
+
 TEST(StdDevice, GetFailsWhenStdinIsClosed)
 {
     iguard g("abc");
@@ -400,6 +450,66 @@ TEST(StdDevice, GetFailsWhenStdinIsClosed)
         d.dget(&buf, 1);
     });
     EXPECT_TRUE(threw);
+}
+
+TEST(StdDevice, GetRetriesReadAndPollAfterSignalInterrupts)
+{
+    struct sigaction action {};
+    struct sigaction old_action {};
+    action.sa_handler = no_op_signal_handler;
+    ::sigemptyset(&action.sa_mask);
+    ASSERT_EQ(::sigaction(SIGUSR1, &action, &old_action), 0);
+
+    const auto run_interrupted_read = [](bool non_blocking)
+    {
+        int pipefds[2];
+        ASSERT_NE(::pipe(pipefds), -1);
+
+        const int saved_stdin = ::dup(STDIN_FILENO);
+        ASSERT_NE(saved_stdin, -1);
+        ASSERT_NE(::dup2(pipefds[0], STDIN_FILENO), -1);
+        if (non_blocking)
+        {
+            const int flags = ::fcntl(STDIN_FILENO, F_GETFL, 0);
+            ASSERT_NE(flags, -1);
+            ASSERT_NE(::fcntl(STDIN_FILENO, F_SETFL, flags | O_NONBLOCK), -1);
+        }
+
+        const pthread_t waiting_thread = ::pthread_self();
+        int signal_result = -1;
+        ssize_t write_result = -1;
+        std::thread interrupter([&]
+        {
+            std::this_thread::sleep_for(std::chrono::milliseconds(30));
+            signal_result = ::pthread_kill(waiting_thread, SIGUSR1);
+            std::this_thread::sleep_for(std::chrono::milliseconds(30));
+            write_result = ::write(pipefds[1], "x", 1);
+        });
+
+        std_input_device d;
+        char ch = 0;
+        std::size_t got = 0;
+        bool threw = false;
+        try { got = d.dget(&ch, 1); }
+        catch (const device_error&) { threw = true; }
+
+        interrupter.join();
+        ::dup2(saved_stdin, STDIN_FILENO);
+        ::close(saved_stdin);
+        ::close(pipefds[0]);
+        ::close(pipefds[1]);
+
+        EXPECT_FALSE(threw);
+        EXPECT_EQ(signal_result, 0);
+        EXPECT_EQ(write_result, 1);
+        EXPECT_EQ(got, 1u);
+        EXPECT_EQ(ch, 'x');
+    };
+
+    run_interrupted_read(false); // interrupts blocking read()
+    run_interrupted_read(true);  // interrupts poll() after EAGAIN
+
+    EXPECT_EQ(::sigaction(SIGUSR1, &old_action, nullptr), 0);
 }
 
 // ---------------------------------------------------------------------------
@@ -433,10 +543,18 @@ TEST(StdDevice, GetWaitsOnANonBlockingStdinAndSeesTheHangup)
     EXPECT_EQ(std::memcmp(buf, "hello", 5), 0);
     t.join();
 
-    // Closing the write end is POLLHUP, which is the stream ending.
-    ::close(pipefds[1]);
+    // Close the write end only after dget() is waiting in poll().  If it were
+    // closed first, read() would return 0 directly and the POLLHUP path would
+    // never be exercised.
+    std::thread closer([write_fd = pipefds[1]]
+    {
+        std::this_thread::sleep_for(std::chrono::milliseconds(50));
+        ::close(write_fd);
+    });
     EXPECT_EQ(d.dget(buf, 1), 0u);
     EXPECT_TRUE(d.deof());
+    closer.join();
+    pipefds[1] = -1;
 
     ::dup2(saved_stdin, STDIN_FILENO);
     ::close(saved_stdin);

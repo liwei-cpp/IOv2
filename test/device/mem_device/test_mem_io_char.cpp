@@ -585,6 +585,29 @@ TEST(MemDeviceChar, GetBufSaturatesOrInsists)
     auto [ptr, len] = obj.get_buf<false>(5);
     EXPECT_NE(ptr, nullptr);
     EXPECT_EQ(len, 3u);
+
+    dev exact("abc");
+    const char* exact_ptr = exact.get_buf<true>(2);
+    EXPECT_EQ(std::string(exact_ptr, 2), "ab");
+    EXPECT_EQ(exact.dtell(), 2u);
+}
+
+TEST(MemDeviceChar, PutBufReusesExistingStorageAndCanGrowBeyondCapacity)
+{
+    dev existing("abc");
+    existing.dseek(1);
+    char* reused = existing.put_buf(1);
+    *reused = 'X';
+    EXPECT_EQ(existing.str(), "aXc");
+    EXPECT_EQ(existing.dtell(), 2u);
+
+    dev growing;
+    const std::size_t requested = growing.str().capacity() + 1;
+    char* expanded = growing.put_buf(requested);
+    expanded[0] = 'Y';
+    EXPECT_EQ(growing.str()[0], 'Y');
+    EXPECT_EQ(growing.dsize(), requested);
+    EXPECT_EQ(growing.dtell(), requested);
 }
 
 TEST(MemDeviceChar, GetRollbackTakesBackExactlyWhatWasRead)
