@@ -671,6 +671,20 @@ TEST(IstreamExtractArithmeticChar, WithSkipwsOffLeadingWhitespaceStopsTheExtract
     expect_stopped.operator()<iostream>();
 }
 
+TEST(IstreamExtractArithmeticChar, AMissingNumericFacetLeavesTheTargetUnchanged)
+{
+    const auto loc = locale<char>("C").remove<numeric_conf<char>>();
+    istream    is{mem_device{std::string("42")}, loc};
+
+    int value = 17;
+    is >> value;
+
+    EXPECT_TRUE(is.str_fail());
+    EXPECT_EQ(value, 17);
+    is.clear();
+    EXPECT_EQ(is.tell(), 0u);
+}
+
 // A number that ends exactly at the end of the input has been parsed before
 // eofbit is set, so with eofbit masked the value is stored and the throw comes
 // afterwards, out of the sentry's ordinary exit path.

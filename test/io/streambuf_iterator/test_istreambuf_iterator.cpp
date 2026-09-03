@@ -96,6 +96,17 @@ TEST(IstreambufIterator, ADefaultConstructedIteratorIsTheEnd)
     helper(isb);
 }
 
+TEST(IstreambufIterator, DereferencingAnEmptyBoundIteratorReportsEndOfInput)
+{
+    streambuf in(mem_device{""});
+    bool      saw_eof = false;
+    auto      iter = istreambuf_iterator(in, &saw_eof);
+
+    EXPECT_THROW((void)*iter, eof_error);
+    EXPECT_TRUE(saw_eof);
+    EXPECT_EQ(iter, std::default_sentinel);
+}
+
 // Post-increment yields the character it was on and then advances;
 // pre-increment advances and yields the next one. The buffer's own position
 // follows along, which is what lets sbumpc pick up where the iterator stopped.

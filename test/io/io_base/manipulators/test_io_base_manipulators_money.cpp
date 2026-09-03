@@ -126,6 +126,33 @@ TEST(IoBaseManipMoney, AFailedStreamDoesNothingInEitherDirection)
     }
 }
 
+// The manipulator type exists independently of a particular locale. A locale
+// assembled without the monetary configuration therefore fails at run time,
+// through the stream state, and does not partially consume or produce data.
+TEST(IoBaseManipMoney, AMissingMonetaryFacetIsReportedByBothDirections)
+{
+    const auto loc = locale<char>("C").remove<monetary_conf<char>>();
+
+    {
+        ostream os{mem_device{""}, loc};
+        os << put_money(12345);
+
+        EXPECT_TRUE(os.str_fail());
+        auto [dev, err] = os.detach();
+        EXPECT_TRUE(dev.str().empty());
+    }
+    {
+        istream is{mem_device{std::string("12345")}, loc};
+        long long value = 77;
+        is >> get_money(value);
+
+        EXPECT_TRUE(is.str_fail());
+        EXPECT_EQ(value, 77);
+        is.clear();
+        EXPECT_EQ(is.tell(), 0u);
+    }
+}
+
 // A volatile integral formats exactly as the plain one: monetary::put takes it by value,
 // so deduction drops the cv-qualifier.
 TEST(IoBaseManipMoney, AVolatileAmountFormatsLikeAPlainOne)

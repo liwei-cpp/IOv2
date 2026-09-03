@@ -51,3 +51,18 @@ TEST(OstreamInsertTimeChar, ATmIsWrittenInTheDefaultFormatOfTheCLocale)
     helper.template operator()<ostream>();
     helper.template operator()<iostream>();
 }
+
+TEST(OstreamInsertTimeChar, AMissingTimeFacetRejectsATm)
+{
+    const auto loc = locale<char>("C").remove<timeio_conf<char>>();
+    std::tm    value{};
+    value.tm_year = 2024 - 1900;
+    value.tm_mon = 1;
+    value.tm_mday = 29;
+
+    ostream os{mem_device{""}, loc};
+    os << value;
+
+    EXPECT_TRUE(os.str_fail());
+    EXPECT_TRUE(os.device().str().empty());
+}

@@ -656,3 +656,19 @@ TEST(OstreamInsertArithmeticChar, ArraysAndPointersReachTheAddressPath)
     helper.operator()<ostream>();
     helper.operator()<iostream>();
 }
+
+TEST(OstreamInsertArithmeticChar, AMissingNumericFacetRejectsValuesAndPointers)
+{
+    const auto loc = locale<char>("C").remove<numeric_conf<char>>();
+
+    ostream value_stream{mem_device{""}, loc};
+    value_stream << 42;
+    EXPECT_TRUE(value_stream.str_fail());
+    EXPECT_TRUE(value_stream.device().str().empty());
+
+    int     value = 42;
+    ostream pointer_stream{mem_device{""}, loc};
+    pointer_stream << &value;
+    EXPECT_TRUE(pointer_stream.str_fail());
+    EXPECT_TRUE(pointer_stream.device().str().empty());
+}

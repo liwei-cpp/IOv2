@@ -54,3 +54,21 @@ TEST(IstreamExtractorsTimeChar, ABrokenDownTimeIsReadWholeFromTheStream)
     expect_extracted.template operator()<istream>();
     expect_extracted.template operator()<iostream>();
 }
+
+TEST(IstreamExtractorsTimeChar, AMissingTimeFacetLeavesTheTmUnchanged)
+{
+    const auto loc = locale<char>("C").remove<timeio_conf<char>>();
+
+    std::tm value{};
+    value.tm_year = -1901;
+    value.tm_mon = -1;
+    value.tm_mday = 1;
+
+    istream is{mem_device{"Wed Sep  4 13:33:18 2024"}, loc};
+    is >> value;
+
+    EXPECT_TRUE(is.str_fail());
+    EXPECT_EQ(value.tm_year, -1901);
+    EXPECT_EQ(value.tm_mon, -1);
+    EXPECT_EQ(value.tm_mday, 1);
+}

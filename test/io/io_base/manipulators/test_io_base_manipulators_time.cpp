@@ -201,6 +201,41 @@ TEST(IoBaseManipTime, ANullTargetOrFormatIsReportedNotDereferenced)
     }
 }
 
+TEST(IoBaseManipTime, PutTimeReportsANullTargetOrFormatWithoutDereferencingIt)
+{
+    const std::tm when = leap_day();
+
+    ostream null_time{mem_device{""}, locale<char>("C")};
+    null_time << put_time(static_cast<const std::tm*>(nullptr), "%Y");
+    EXPECT_TRUE(null_time.str_fail());
+    EXPECT_TRUE(null_time.device().str().empty());
+
+    ostream null_format{mem_device{""}, locale<char>("C")};
+    null_format << put_time(&when, static_cast<const char*>(nullptr));
+    EXPECT_TRUE(null_format.str_fail());
+    EXPECT_TRUE(null_format.device().str().empty());
+}
+
+TEST(IoBaseManipTime, AMissingTimeFacetIsReportedByBothDirections)
+{
+    const auto loc = locale<char>("C").remove<timeio_conf<char>>();
+    const std::tm when = leap_day();
+
+    ostream os{mem_device{""}, loc};
+    os << put_time(&when, "%Y-%m-%d");
+    EXPECT_TRUE(os.str_fail());
+    EXPECT_TRUE(os.device().str().empty());
+
+    std::tm parsed{};
+    parsed.tm_year = 42;
+    istream is{mem_device{std::string("2024-02-29")}, loc};
+    is >> get_time(&parsed, "%Y-%m-%d");
+    EXPECT_TRUE(is.str_fail());
+    EXPECT_EQ(parsed.tm_year, 42);
+    is.clear();
+    EXPECT_EQ(is.tell(), 0u);
+}
+
 TEST(IoBaseManipTime, GetTimeBehavesTheSameOnAWideStream)
 {
     istream iss{mem_device{std::wstring(L"1971-04-04 12:34:56")},

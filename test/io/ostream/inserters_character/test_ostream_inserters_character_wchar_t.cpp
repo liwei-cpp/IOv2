@@ -330,6 +330,37 @@ TEST(OstreamInsertCharacterWchar, ANarrowStringIsWidenedIntoAWideStream)
     helper.template operator()<iostream>();
 }
 
+TEST(OstreamInsertCharacterWchar, ANarrowCharacterIsWidenedBeforeFieldPadding)
+{
+    auto helper = []<template <typename, typename> class T>()
+    {
+        T os{mem_device{L""}, locale<wchar_t>("C")};
+        os << setw(3) << 'x' << L'|';
+
+        EXPECT_TRUE(os.good());
+        EXPECT_EQ(os.device().str(), L"  x|");
+        EXPECT_EQ(os.width(), 0u);
+    };
+
+    helper.template operator()<ostream>();
+    helper.template operator()<iostream>();
+}
+
+TEST(OstreamInsertCharacterWchar, AMissingCtypeFacetRejectsValuesThatNeedWidening)
+{
+    const auto loc = locale<wchar_t>("C").remove<ctype_conf<wchar_t>>();
+
+    ostream character{mem_device{L""}, loc};
+    character << 'x';
+    EXPECT_TRUE(character.str_fail());
+    EXPECT_TRUE(character.device().str().empty());
+
+    ostream string{mem_device{L""}, loc};
+    string << "text";
+    EXPECT_TRUE(string.str_fail());
+    EXPECT_TRUE(string.device().str().empty());
+}
+
 // A volatile key must land in the same specialization as the unqualified one, which
 // on a wide stream means the character types widen and signed / unsigned char stay
 // numeric -- exactly the split pinned by the two tests above.
