@@ -61,6 +61,8 @@ TEST(MessagesWchar, AMissingCatalogueLeavesTheKeyUntranslated)
     EXPECT_EQ(obj.translate(L"please"), std::wstring(L"please"));
     EXPECT_EQ(obj.translate(L"thank you"), std::wstring(L"thank you"));
     EXPECT_EQ(obj.head_entry(), L"");
+    EXPECT_THROW(messages<wchar_t>(std::make_shared<messages_conf<wchar_t>>(
+                     "messages", "zh_HK")), stream_error);
 }
 
 TEST(MessagesWchar, AnEmptyKeyTranslatesToNothing)

@@ -514,7 +514,7 @@ TEST(NumericWchar, AFloatIsWrittenAsPrintfWouldWriteIt)
         check(static_cast<long double>(v), "%.*Lf", "%.*Le");
     }
     for (float v : {0.0f, 1.0f, 0.5f, -3.25f, 1234.5678f})
-        check(static_cast<double>(v), "%.*f", "%.*e");
+        check(v, "%.*f", "%.*e");
 }
 
 TEST(NumericWchar, ShowpointKeepsTheDecimalPoint)

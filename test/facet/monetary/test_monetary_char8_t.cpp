@@ -505,6 +505,12 @@ TEST(MonetaryChar8, PutReturnsThePositionAfterTheField)
 
     EXPECT_EQ(it, buffer.begin() + 6);
     EXPECT_EQ(buffer, u8"^^2607^^^^^^^");
+
+    std::u8string international(13, u8'^');
+    it = obj.put(international.begin() + 2, true, ios, std::u8string(u8"2607"));
+
+    EXPECT_EQ(it, international.begin() + 6);
+    EXPECT_EQ(international, u8"^^2607^^^^^^^");
 }
 
 // Everything above reads the field back through the same facet that wrote it.
@@ -732,8 +738,9 @@ TEST(MonetaryChar8, PutWritesThroughAnOutputIteratorOntoAStream)
 
     streambuf sb{mem_device<char8_t>{u8""}};
     obj.put(ostreambuf_iterator(sb), false, ios, std::u8string(u8"123456"));
+    obj.put(ostreambuf_iterator(sb), true, ios, std::u8string(u8"123456"));
     sb.flush();
-    EXPECT_EQ(sb.device().str(), u8"1,234.56");
+    EXPECT_EQ(sb.device().str(), u8"1,234.56123,456");
 }
 
 // The same fill vetting as on the writing side, but from the reader's end: a run

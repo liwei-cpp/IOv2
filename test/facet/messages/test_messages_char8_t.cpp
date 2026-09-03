@@ -115,6 +115,8 @@ TEST(MessagesChar8, AMissingCatalogueLeavesTheKeyUntranslated)
     EXPECT_EQ(obj.translate(u8"please"), u8"please");
     EXPECT_EQ(obj.translate(u8"thank you"), u8"thank you");
     EXPECT_EQ(obj.head_entry(), u8"");
+    EXPECT_THROW(messages<char8_t>(std::make_shared<messages_conf<char8_t>>(
+                     "messages", "zh_HK")), stream_error);
 }
 
 TEST(MessagesChar8, AnEmptyKeyTranslatesToNothing)

@@ -36,6 +36,7 @@
 #include <gtest/gtest.h>
 
 #include <charconv>
+#include <climits>
 #include <cstdint>
 #include <cstdio>
 #include <iterator>
@@ -305,6 +306,9 @@ TEST(NumericChar, ABooleanNameIsPaddedToTheWidth)
     ios.width(6);
     ios.setf(ios_defs::left, ios_defs::adjustfield);
     EXPECT_EQ(put_str(obj, ios, true), "ja****");
+
+    ios.width(ios_defs::max_pad_count + 3);
+    EXPECT_THROW((void)put_str(obj, ios, true), stream_error);
 }
 
 // The digits themselves are std::to_chars's answer, in whichever base the
@@ -524,7 +528,7 @@ TEST(NumericChar, AFloatIsWrittenAsPrintfWouldWriteIt)
         check(static_cast<long double>(v), "%.*Lf", "%.*Le");
     }
     for (float v : {0.0f, 1.0f, 0.5f, -3.25f, 1234.5678f})
-        check(static_cast<double>(v), "%.*f", "%.*e");
+        check(v, "%.*f", "%.*e");
 }
 
 TEST(NumericChar, ShowpointKeepsTheDecimalPoint)
@@ -700,6 +704,7 @@ TEST(NumericChar, TheHexPrefixIsReadOnlyWhereHexIsPossible)
     ios_base<char> hex;
     hex.setf(ios_defs::hex, ios_defs::basefield);
     expect_parses(obj, hex, "0x5", 5L);
+    expect_parses(obj, hex, "0XFF", 255L);
 
     // With no base selected the prefix is what selects one.
     ios_base<char> automatic;
@@ -734,6 +739,11 @@ TEST(NumericChar, AnIntegerOutOfRangeStoresTheExtremeAndFails)
 
     expect_rejects(obj, ios, std::string(40, '9'), std::numeric_limits<long>::max());
     expect_rejects(obj, ios, "-" + std::string(40, '9'), std::numeric_limits<long>::min());
+
+    std::string one_past_max = std::to_string(std::numeric_limits<long>::max());
+    ASSERT_LT(one_past_max.back(), '9');
+    ++one_past_max.back();
+    expect_rejects(obj, ios, one_past_max, std::numeric_limits<long>::max());
 }
 
 // A group longer than the counter that measures it cannot be checked against
@@ -874,6 +884,48 @@ TEST(NumericChar, AFloatTooLargeForTheFirstBufferIsStillWrittenWhole)
     }
 }
 
+TEST(NumericChar, FloatingPointPaddingHonoursEveryAdjustmentPrefix)
+{
+    const numeric<char> obj = facet_for("C");
+
+    ios_base<char> left;
+    left.setf(ios_defs::fixed, ios_defs::floatfield);
+    left.setf(ios_defs::left, ios_defs::adjustfield);
+    left.precision(1);
+    left.fill('*');
+    left.width(8);
+    EXPECT_EQ(put_str(obj, left, 1.5), "1.5*****");
+
+    ios_base<char> signed_internal;
+    signed_internal.setf(ios_defs::fixed, ios_defs::floatfield);
+    signed_internal.setf(ios_defs::internal, ios_defs::adjustfield);
+    signed_internal.precision(1);
+    signed_internal.fill('*');
+    signed_internal.width(8);
+    EXPECT_EQ(put_str(obj, signed_internal, -1.5), "-****1.5");
+
+    ios_base<char> hexadecimal_internal;
+    hexadecimal_internal.setf(ios_defs::fixed | ios_defs::scientific,
+                               ios_defs::floatfield);
+    hexadecimal_internal.setf(ios_defs::internal, ios_defs::adjustfield);
+    hexadecimal_internal.setf(ios_defs::uppercase);
+    hexadecimal_internal.precision(1);
+    hexadecimal_internal.fill('*');
+    hexadecimal_internal.width(12);
+    EXPECT_EQ(put_str(obj, hexadecimal_internal, 1.5), "0X****1.8P+0");
+
+    ios_base<char> excessive;
+    excessive.width(ios_defs::max_pad_count + 32);
+    EXPECT_THROW((void)put_str(obj, excessive, 1.5), stream_error);
+
+    ios_base<char> ambiguous;
+    ambiguous.setf(ios_defs::fixed, ios_defs::floatfield);
+    ambiguous.precision(1);
+    ambiguous.fill('1');
+    ambiguous.width(8);
+    EXPECT_THROW((void)put_str(obj, ambiguous, 2.5), stream_error);
+}
+
 // Padding a field whose text begins with a '0' makes the pad path look at what
 // follows it, because "0x" and "0X" are a base prefix that internal adjustment
 // must not be inserted into.  A float formatted as "0.5" is the shortest way to
@@ -991,6 +1043,7 @@ TEST(NumericChar, OneBooleanNameMayBeAPrefixOfTheOther)
 
     const numeric<char> prefixed = facet_of(tuned()->yes("yes").no("y").ptr());
     expect_parses(prefixed, ios, "yes", true);
+    expect_parses(prefixed, ios, "yes!", true, "!");
     expect_parses(prefixed, ios, "y", false);
 
     const numeric<char> other_way = facet_of(tuned()->yes("y").no("yes").ptr());
@@ -1172,4 +1225,15 @@ TEST(NumericChar, AZeroEndsTheGroupingRule)
     expect_parses(obj, ios, "1234,567", 1234567L);
     expect_parses(obj, ios, "1,567", 1567L);
     expect_rejects<long>(obj, ios, "1234,56");
+}
+
+TEST(NumericChar, PosixGroupingSentinelsAreCanonicalised)
+{
+    std::vector<uint8_t> no_grouping = {static_cast<uint8_t>(CHAR_MAX), 3};
+    FacetHelper::adjust_grouping(no_grouping);
+    EXPECT_TRUE(no_grouping.empty());
+
+    std::vector<uint8_t> stopped = {3, 2, static_cast<uint8_t>(CHAR_MAX), 1};
+    FacetHelper::adjust_grouping(stopped);
+    EXPECT_EQ(stopped, (std::vector<uint8_t>{3, 2, 0}));
 }

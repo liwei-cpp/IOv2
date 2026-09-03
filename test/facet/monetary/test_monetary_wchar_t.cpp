@@ -505,6 +505,12 @@ TEST(MonetaryWchar, PutReturnsThePositionAfterTheField)
 
     EXPECT_EQ(it, buffer.begin() + 6);
     EXPECT_EQ(buffer, L"^^2607^^^^^^^");
+
+    std::wstring international(13, L'^');
+    it = obj.put(international.begin() + 2, true, ios, std::wstring(L"2607"));
+
+    EXPECT_EQ(it, international.begin() + 6);
+    EXPECT_EQ(international, L"^^2607^^^^^^^");
 }
 
 // Everything above reads the field back through the same facet that wrote it.
@@ -732,8 +738,9 @@ TEST(MonetaryWchar, PutWritesThroughAnOutputIteratorOntoAStream)
 
     streambuf sb{mem_device<wchar_t>{L""}};
     obj.put(ostreambuf_iterator(sb), false, ios, std::wstring(L"123456"));
+    obj.put(ostreambuf_iterator(sb), true, ios, std::wstring(L"123456"));
     sb.flush();
-    EXPECT_EQ(sb.device().str(), L"1,234.56");
+    EXPECT_EQ(sb.device().str(), L"1,234.56123,456");
 }
 
 // The same fill vetting as on the writing side, but from the reader's end: a run
