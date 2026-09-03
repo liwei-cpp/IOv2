@@ -1,6 +1,61 @@
 // SPDX-FileCopyrightText: 2026 liwei <liwei.cpp@gmail.com>
 // SPDX-License-Identifier: MIT
 
+/**
+ * @file ostream.h
+ * @lang{ZH}
+ * 定义了字符输出流 `ostream`，以及三个不带参数的输出操纵符：`endl`（写一个换行符并刷新）、
+ * `ends`（写一个空字符）与 `flush`（刷新）。
+ *
+ * `ostream` 把一条 `ostreambuf`（其下依次是转换器管线与设备）与一个 `locale` 组合成带格式化的
+ * 输出接口；对外接口大多来自 `ios_state`（状态位与异常掩码）、`ostream_operators`（输出操作）、
+ * `out_flusher`（tie 刷新用的多态 `try_flush()`）与 `stream_common_operators`（`tell()` /
+ * `attach()` / `detach()` / `locale()` 等）四个基类。三个操纵符都是空标签类型，逻辑写在
+ * `io_traits<TChar, xxx_t>` 这个扩展点里，方向由**哪个成员存在**表达：只有 `swrite`，于是只能
+ * 插入、不能提取。带参数的操纵符（`setw` / `setfill` / `put_money` 等）在
+ * `IOv2/io/io_manip.h`。
+ *
+ * @warning **构造流可能抛出异常，且异常不会被转成失败位**，调用方需要自行 `try`；本库其余的
+ *          操作（包括 `attach()`）都把异常转为状态位，唯独构造不能。理由见 `ostream::ostream()`。
+ * @warning **析构与拷贝赋值都会冲刷待刷字节，且都不看状态位、失败时静默。** 详见 `~ostream()`
+ *          与 `ostream_operators::flush` 上的 `@warning`。
+ * @note **本头文件只带来流本身，不带来"往流里写一个数或一个字符串"的能力。** 它不包含
+ *       `IOv2/io/traits/arithmetic.h` 与 `IOv2/io/traits/char_and_str.h`，因此只
+ *       `#include <IOv2/io/ostream.h>` 时 `os << 42`、`os << "abc"` 都编译不过，而
+ *       `os << endl` 可以。这是按值类型选配的一贯做法（见 `IOv2/io/traits/traits_base.h`）：
+ *       要写哪类值就包哪个 traits 头，本文件不替你决定。
+ * @endif
+ *
+ * @lang{EN}
+ * Defines the character output stream `ostream`, along with three parameterless output
+ * manipulators: `endl` (write a newline and flush), `ends` (write a null character) and `flush`
+ * (flush).
+ *
+ * `ostream` combines an `ostreambuf` (below which sit the converter pipeline and the device) with
+ * a `locale` into a formatted output interface; most of its interface comes from four bases --
+ * `ios_state` (the state bits and the exception mask), `ostream_operators` (the output
+ * operations), `out_flusher` (the polymorphic `try_flush()` used by tie) and
+ * `stream_common_operators` (`tell()` / `attach()` / `detach()` / `locale()` and friends). All
+ * three manipulators are empty tag types whose logic lives in the `io_traits<TChar, xxx_t>`
+ * extension point, with the direction expressed by **which member exists**: only `swrite`, so they
+ * insert and cannot extract. The parameterized manipulators (`setw`, `setfill`, `put_money`, …)
+ * live in `IOv2/io/io_manip.h`.
+ *
+ * @warning **Constructing a stream may throw, and the exception is not turned into a failure
+ *          bit**, so the caller must `try` around it; every other operation in this library,
+ *          `attach()` included, turns exceptions into state, and construction alone cannot. See
+ *          `ostream::ostream()`.
+ * @warning **Both destruction and copy assignment flush the pending bytes, both ignoring the state
+ *          bits and both failing silently.** See `~ostream()` and the `@warning` on
+ *          `ostream_operators::flush`.
+ * @note **This header brings in the stream, not the ability to write a number or a string to
+ *       it.** It does not include `IOv2/io/traits/arithmetic.h` or
+ *       `IOv2/io/traits/char_and_str.h`, so with `#include <IOv2/io/ostream.h>` alone `os << 42`
+ *       and `os << "abc"` do not compile while `os << endl` does. That is the library's usual
+ *       opt-in-per-value-type arrangement (see `IOv2/io/traits/traits_base.h`): include the traits
+ *       header for the kind of value you mean to write; this file does not choose for you.
+ * @endif
+ */
 #pragma once
 #include <IOv2/common/copyable_mutex.h>
 #include <IOv2/common/defs.h>
@@ -80,9 +135,31 @@ class ostream : public ios_state<TChar>
               , public stream_common_operators
 {
 public:
+    /// @lang{ZH} 底层设备类型，即模板实参 @p TDevice。 @endif
+    /// @lang{EN} The underlying device type, i.e. the @p TDevice template argument. @endif
     using device_type = TDevice;
+    /// @lang{ZH} 本流的字符类型，即**转换管线产出的**字符类型，未必是设备的。 @endif
+    /// @lang{EN} The stream's character type -- the one the **converter pipeline produces**,
+    ///           which need not be the device's. @endif
     using char_type = TChar;
+    /// @lang{ZH}
+    /// 本流的输出哨兵类型。哨兵在每次格式化输出前检查流状态、按需刷新 tie 目标、（追加模式下）
+    /// 定位到末尾，并在析构时按构造实参 `is_unit_buf` 决定是否自动刷新——`endl` 的强制刷新即经
+    /// `put()` 的 `force_flush` 走这条路。模板实参 `false` 表示本流是单向的，无须先切换方向；
+    /// 第三个实参取默认的 `false`，即本流不是标准流。
+    /// @endif
+    /// @lang{EN}
+    /// This stream's output sentry type. The sentry checks the stream state before each formatted
+    /// output, flushes the tie target when there is one, repositions to the end in append mode,
+    /// and on destruction auto-flushes according to its `is_unit_buf` constructor argument -- the
+    /// forced flush of `endl` reaches it that way, through `put()`'s `force_flush`. The `false`
+    /// template argument says this stream is one-way, so no direction switch is needed first; the
+    /// third argument keeps its default of `false`, i.e. this is not a standard stream.
+    /// @endif
     using out_sentry_type = out_sentry<ostream<TDevice, TChar>, false>;
+    /// @lang{ZH} 写入本流所用的输出迭代器类型，扩展点的迭代器形式 `swrite` 即以它写出字符。 @endif
+    /// @lang{EN} The output iterator type used to write to this stream; it is what the iterator
+    ///           form of an extension point's `swrite` writes its characters through. @endif
     using out_iter_type = ostreambuf_iterator<ostreambuf<TDevice, TChar>>;
 
     friend out_sentry_type;
@@ -406,14 +483,48 @@ private:
     IOv2::locale<char_type> m_locale;
 };
 
-// Only these two need a guide: TChar appears nowhere in their parameters, so the implicit guide
-// cannot deduce it. The two overloads that take a locale deduce TChar from it through their own
-// implicit guide, which inherits the constraint written on the constructor -- repeating that
-// constraint here would just duplicate it, and the constructor's copy is the one that also covers
-// explicitly-written template arguments.
+/**
+ * @lang{ZH}
+ * @brief 由设备推导 `ostream` 的推导指引：不带转换器时字符类型即设备的 `char_type`。
+ *
+ * 只有这条与下一条需要显式写出：`TChar` 在这两个构造函数的形参里根本不出现，隐式推导指引推不
+ * 出来。带 locale 的那两个重载能经各自的隐式推导指引从 locale 推出 `TChar`，那些隐式指引还会
+ * 继承写在构造函数上的约束——在此重复一遍只是复制，而构造函数上的那份还能同时管住显式写出模板
+ * 实参的路径。
+ * @tparam TDevice 底层设备类型。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief Deduction guide from a device alone: with no converter the character type is the
+ *        device's `char_type`.
+ *
+ * Only this guide and the next one have to be written out: `TChar` appears nowhere in those two
+ * constructors' parameters, so the implicit guide cannot deduce it. The two overloads that take a
+ * locale deduce `TChar` from it through their own implicit guide, which also inherits the
+ * constraint written on the constructor -- repeating that constraint here would just duplicate it,
+ * and the constructor's copy is the one that also covers explicitly-written template arguments.
+ * @tparam TDevice The underlying device type.
+ * @endif
+ */
 template <io_device TDevice>
 ostream(TDevice) -> ostream<TDevice, typename TDevice::char_type>;
 
+/**
+ * @lang{ZH}
+ * @brief 由设备与转换器创建器推导 `ostream` 的推导指引：字符类型取**转换管线产出的**那一个，
+ *        未必是设备的字符类型。存在理由同上一条。
+ * @tparam TDevice  底层设备类型。
+ * @tparam TCreator 转换器创建器类型。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief Deduction guide from a device plus a converter creator: the character type is the one
+ *        the **converter pipeline produces**, which need not be the device's. It exists for the
+ *        same reason as the previous guide.
+ * @tparam TDevice  The underlying device type.
+ * @tparam TCreator The converter-creator type.
+ * @endif
+ */
 template <io_device TDevice, cvt_creator TCreator>
 ostream(TDevice, const TCreator&)
     -> ostream<TDevice,

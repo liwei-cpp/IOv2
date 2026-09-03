@@ -155,9 +155,14 @@ namespace IOv2
  */
 struct resetiosflags_t
 {
+    /**
+     * @lang{ZH} @brief 记下要清除的标志集合。请改用工厂 `resetiosflags()`，本类型是实现细节。 @endif
+     * @lang{EN} @brief Records the set of flags to clear. Use the `resetiosflags()` factory instead;
+     *                  this type is an implementation detail. @endif
+     */
     explicit resetiosflags_t(ios_defs::fmtflags mask) : m_mask(mask) {}
 
-    ios_defs::fmtflags m_mask;
+    ios_defs::fmtflags m_mask;  ///< @lang{ZH} 要清除的标志集合。 @endif @lang{EN} The set of flags to clear. @endif
 };
 
 /**
@@ -218,9 +223,14 @@ struct io_traits<TChar, resetiosflags_t>
  */
 struct setiosflags_t
 {
+    /**
+     * @lang{ZH} @brief 记下要置位的标志集合。请改用工厂 `setiosflags()`，本类型是实现细节。 @endif
+     * @lang{EN} @brief Records the set of flags to set. Use the `setiosflags()` factory instead;
+     *                  this type is an implementation detail. @endif
+     */
     explicit setiosflags_t(ios_defs::fmtflags mask) : m_mask(mask) {}
 
-    ios_defs::fmtflags m_mask;
+    ios_defs::fmtflags m_mask;  ///< @lang{ZH} 要置位的标志集合。 @endif @lang{EN} The set of flags to set. @endif
 };
 
 /**
@@ -266,8 +276,17 @@ struct io_traits<TChar, setiosflags_t>
  */
 struct setbase_t
 {
+    /**
+     * @lang{ZH} @brief 记下目标进制，不做检查。请改用工厂 `setbase()`，本类型是实现细节。 @endif
+     * @lang{EN} @brief Records the target base, unchecked. Use the `setbase()` factory instead;
+     *                  this type is an implementation detail. @endif
+     */
     explicit setbase_t(std::ptrdiff_t base) : m_base(base) {}
 
+    /// @lang{ZH} 目标进制：8 / 10 / 16 分别对应 `oct` / `dec` / `hex`，其它取值清空
+    ///           `basefield`；详见 `setbase`。 @endif
+    /// @lang{EN} The target base: 8 / 10 / 16 map to `oct` / `dec` / `hex`, and any other value
+    ///           clears `basefield`; see `setbase`. @endif
     std::ptrdiff_t m_base;
 };
 
@@ -363,9 +382,14 @@ private:
 template<typename TFill>
 struct setfill_t
 {
+    /**
+     * @lang{ZH} @brief 记下填充字符。请改用工厂 `setfill()`，本类型是实现细节。 @endif
+     * @lang{EN} @brief Records the fill character. Use the `setfill()` factory instead; this type
+     *                  is an implementation detail. @endif
+     */
     explicit setfill_t(TFill c) : m_c(c) {}
 
-    TFill m_c;
+    TFill m_c;  ///< @lang{ZH} 填充字符；可用性的判据见 `setfill`。 @endif @lang{EN} The fill character; see `setfill` for when it is usable. @endif
 };
 
 /**
@@ -473,9 +497,17 @@ struct io_traits<TChar, setfill_t<TFill>>
  */
 struct setprecision_t
 {
+    /**
+     * @lang{ZH} @brief 原样记下精度，不做范围检查——检查在作用于流时由 `ios_base::precision`
+     *                  完成，理由见 `setprecision`。请改用工厂 `setprecision()`。 @endif
+     * @lang{EN} @brief Records the precision as given, with no range check -- that is
+     *                  `ios_base::precision`'s own, run when the manipulator is applied to a
+     *                  stream; see `setprecision` for why. Use the `setprecision()` factory
+     *                  instead. @endif
+     */
     explicit setprecision_t(std::ptrdiff_t n) : m_n(n) {}
 
-    std::ptrdiff_t m_n;
+    std::ptrdiff_t m_n;  ///< @lang{ZH} 目标精度，有效范围 0..255。 @endif @lang{EN} The target precision; the valid range is 0..255. @endif
 };
 
 /**
@@ -556,9 +588,16 @@ private:
  */
 struct setw_t
 {
+    /**
+     * @lang{ZH} @brief 原样记下宽度，不做判负——判负在作用于流时由 `ios_base::width` 完成，
+     *                  理由见 `setw`。请改用工厂 `setw()`。 @endif
+     * @lang{EN} @brief Records the width as given, without the sign check -- that is
+     *                  `ios_base::width`'s own, run when the manipulator is applied to a stream;
+     *                  see `setw` for why. Use the `setw()` factory instead. @endif
+     */
     explicit setw_t(std::ptrdiff_t n) : m_n(n) {}
 
-    std::ptrdiff_t m_n;
+    std::ptrdiff_t m_n;  ///< @lang{ZH} 目标字段宽度，不得为负。 @endif @lang{EN} The target field width; must not be negative. @endif
 };
 
 /**
@@ -642,11 +681,34 @@ private:
     }
 };
 
-// The reference member is the design, not an oversight: like `std::put_money`, the factory
-// returns a short-lived proxy meant to be consumed inside the same full-expression. See the
-// `@warning` on `put_money()` and the note at the top of this file.
+/**
+ * @lang{ZH}
+ * @brief `put_money` 操纵符的类型：只带插入方向，逻辑在
+ *        `io_traits<TChar, put_money_t<TMoney>>::swrite` 里，且是**迭代器形式**——加锁与哨兵
+ *        由通用的格式化插入运算符负责。
+ * @warning **本类型持有对货币值的引用，是设计而非疏漏**：与 `std::put_money` 一样，工厂返回的
+ *          是个短命代理，只应在同一个完整表达式里消费掉。详见 `put_money` 上的 `@warning`
+ *          与本文件顶部的说明。本类型是实现细节，不应被直接构造。
+ * @tparam TMoney 货币值的类型；取值域见 `put_money`。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief The type of the `put_money` manipulator: insertion only, with the logic in
+ *        `io_traits<TChar, put_money_t<TMoney>>::swrite`, in the **iterator form** -- the lock and
+ *        the sentry belong to the generic formatted insertion operator.
+ * @warning **The reference member is the design, not an oversight**: like `std::put_money`, the
+ *          factory returns a short-lived proxy meant to be consumed inside the same full
+ *          expression. See the `@warning` on `put_money` and the note at the top of this file.
+ *          This type is an implementation detail and should never be constructed directly.
+ * @tparam TMoney The type of the monetary value; for the accepted set see `put_money`.
+ * @endif
+ */
 // NOLINTNEXTLINE(cppcoreguidelines-avoid-const-or-ref-data-members)
-template<typename TMoney> struct put_money_t { const TMoney& m_mon; bool m_intl; };
+template<typename TMoney> struct put_money_t
+{
+    const TMoney& m_mon;  ///< @lang{ZH} 对待写出货币值的引用；生存期契约见上。 @endif @lang{EN} A reference to the monetary value to write; see above for the lifetime contract. @endif
+    bool m_intl;          ///< @lang{ZH} `true` 用国际格式（如 `USD`），`false` 用本地格式（如 `$`）。 @endif @lang{EN} `true` selects the international format (e.g. `USD`), `false` the national one (e.g. `$`). @endif
+};
 /**
  * @lang{ZH}
  * @brief 构造按 locale 的货币格式写出 @p mon 的操纵符。
@@ -712,6 +774,31 @@ inline constexpr struct put_money_fn
     { return { mon, intl }; }
 } put_money{};
 
+/**
+ * @lang{ZH}
+ * @brief `put_money` 的扩展点特化：只提供 `swrite`，故只能插入——`is >> put_money(x)` 不满足
+ *        提取运算符的约束、没有可行重载，编译不过。方向为何这样表达，见
+ *        `io_traits<TChar, resetiosflags_t>`。
+ * @note 与调整格式状态的那几个操纵符不同，本特化提供的是 `swrite` 的**迭代器形式**：加锁、
+ *       哨兵与 `handle_exception` 都由通用的格式化插入运算符负责，这里只管往迭代器上写。
+ * @tparam TChar  流的字符类型。
+ * @tparam TMoney 货币值的类型：整型（`bool` 除外）或 `std::basic_string<TChar>`；取值域与理由
+ *                见 `put_money`。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief Extension-point specialization for `put_money`: it provides `swrite` only, so it can only
+ *        insert -- `is >> put_money(x)` leaves the extraction operator unsatisfied, and with no
+ *        viable overload it does not compile. See `io_traits<TChar, resetiosflags_t>` for how the
+ *        direction is expressed.
+ * @note Unlike the formatting-state manipulators, this specialization provides the **iterator
+ *       form** of `swrite`: the lock, the sentry and `handle_exception` are the generic formatted
+ *       insertion operator's business, and this only writes through the iterator.
+ * @tparam TChar  The stream's character type.
+ * @tparam TMoney The type of the monetary value: an integral other than `bool`, or a
+ *                `std::basic_string<TChar>`; see `put_money` for the accepted set and why.
+ * @endif
+ */
 // remove_cv_t on the bool exclusion only: put() takes the integral by value, so cv is dropped
 // there, but its string overload takes a plain const&, which a volatile string cannot bind to.
 template <typename TChar, typename TMoney>
@@ -729,6 +816,9 @@ struct io_traits<TChar, put_money_t<TMoney>>
      *       经 `handle_exception` 归为 `strfailbit`：什么都不写出，此后该流上的插入一律被哨兵
      *       挡下，直到显式 `clear()`。默认构造的 `locale<TChar>` 是带 `monetary` 的，这条主要
      *       出现在自行拼装 facet 的 locale 上。
+     * @param s   写出所用的输出迭代器。
+     * @param io  流的 `ios_base`，格式标志、字段宽度与填充字符由它提供。
+     * @param loc 流的 locale，`monetary<TChar>` facet 即从中取出。
      * @param f 待写出的货币值与 `intl` 标志；取值域见 `put_money`。
      * @return 指向最后一个写入位置之后的输出迭代器。
      * @throw stream_error 若 locale 中缺少 `monetary<TChar>` facet，或 `monetary::put` 自身失败
@@ -747,6 +837,10 @@ struct io_traits<TChar, put_money_t<TMoney>>
      *       later insertion on that stream is refused by the sentry until an explicit `clear()`.
      *       A default-constructed `locale<TChar>` does carry `monetary`, so this mainly concerns
      *       locales assembled facet by facet.
+     * @param s   The output iterator to write through.
+     * @param io  The stream's `ios_base`, supplying the format flags, the width and the fill
+     *            character.
+     * @param loc The stream's locale, from which the `monetary<TChar>` facet is taken.
      * @param f The monetary value to write and the `intl` flag; for the accepted set see
      *          `put_money`.
      * @return An output iterator past the last written position.
@@ -767,11 +861,36 @@ struct io_traits<TChar, put_money_t<TMoney>>
     }
 };
 
-// The reference member is the design, not an oversight: like `std::get_money`, the factory
-// returns a short-lived proxy that writes back through this reference. See the `@warning` on
-// `get_money()` and the note at the top of this file.
+/**
+ * @lang{ZH}
+ * @brief `get_money` 操纵符的类型：只带提取方向，逻辑在
+ *        `io_traits<TChar, get_money_t<TMoney>>::sread` 里，且是**迭代器形式**——加锁与哨兵
+ *        由通用的格式化提取运算符负责。
+ * @warning **本类型持有对接收对象的引用，是设计而非疏漏**：与 `std::get_money` 一样，工厂返回
+ *          的是个短命代理，解析结果正是经这个引用写回去的，因此只应在同一个完整表达式里消费
+ *          掉。详见 `get_money` 上的 `@warning` 与本文件顶部的说明。本类型是实现细节，不应被
+ *          直接构造。
+ * @tparam TMoney 接收解析结果的类型；取值域见 `put_money`。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief The type of the `get_money` manipulator: extraction only, with the logic in
+ *        `io_traits<TChar, get_money_t<TMoney>>::sread`, in the **iterator form** -- the lock and
+ *        the sentry belong to the generic formatted extraction operator.
+ * @warning **The reference member is the design, not an oversight**: like `std::get_money`, the
+ *          factory returns a short-lived proxy, and the parsed result is written back through
+ *          exactly that reference, so it is meant to be consumed inside the same full expression.
+ *          See the `@warning` on `get_money` and the note at the top of this file. This type is an
+ *          implementation detail and should never be constructed directly.
+ * @tparam TMoney The type receiving the parsed result; for the accepted set see `put_money`.
+ * @endif
+ */
 // NOLINTNEXTLINE(cppcoreguidelines-avoid-const-or-ref-data-members)
-template<typename TMoney> struct get_money_t { TMoney& m_mon; bool m_intl; };
+template<typename TMoney> struct get_money_t
+{
+    TMoney& m_mon;  ///< @lang{ZH} 对接收解析结果的对象的引用；生存期契约见上。 @endif @lang{EN} A reference to the object receiving the parsed result; see above for the lifetime contract. @endif
+    bool m_intl;    ///< @lang{ZH} `true` 按国际格式解析，`false` 按本地格式解析。 @endif @lang{EN} `true` parses the international format, `false` the national one. @endif
+};
 /**
  * @lang{ZH}
  * @brief 构造按 locale 的货币格式解析并写入 @p mon 的操纵符。
@@ -784,7 +903,7 @@ template<typename TMoney> struct get_money_t { TMoney& m_mon; bool m_intl; };
  * @note **解析用流的 `fill()` 认填充**：货币 pattern 里的 `space` / `none` 段消耗的是
  *       `fill()`，而不是标准规定的空白。这样本库写出的带填充货币文本能被原样读回来
  *       （标准的做法只要 `fill` 不是空格就读不回自己刚写出的内容），代价是 `fill` 为默认
- *       空格时，`'\t'` 在 `space` 位置不被接受。
+ *       空格时，`'\\t'` 在 `space` 位置不被接受。
  * @warning 因此 `fill()` 同样受 `setfill` 那条判据约束：一旦真的吃掉了填充，而该填充字符
  *          是读者会当成金额一部分的（读 `"112345"` 时 `setfill('1')` 会把首位吃掉，只剩
  *          12345），本函数**响亮失败**（`strfailbit`），而不是静默给出被削掉的数。判据与
@@ -807,7 +926,7 @@ template<typename TMoney> struct get_money_t { TMoney& m_mon; bool m_intl; };
  *       pattern eat `fill()` rather than the whitespace the standard specifies. That is what
  *       lets padded monetary text written by this library be read straight back (the standard
  *       behavior cannot read back its own output once `fill` is anything but a space); the price
- *       is that with the default space fill a `'\t'` is not accepted at a `space` part.
+ *       is that with the default space fill a `'\\t'` is not accepted at a `space` part.
  * @warning `fill()` is therefore subject to the same test as on the writing side: once a fill
  *          character is actually consumed and it is one a reader would have counted as part of
  *          the amount (reading `"112345"` with `setfill('1')` eats the leading digit and leaves
@@ -833,6 +952,37 @@ inline constexpr struct get_money_fn
     { return { mon, intl }; }
 } get_money{};
 
+/**
+ * @lang{ZH}
+ * @brief `get_money` 的扩展点特化：只提供 `sread`，故只能提取——`os << get_money(x)` 不满足
+ *        插入运算符的约束、没有可行重载，编译不过。方向为何这样表达，见
+ *        `io_traits<TChar, resetiosflags_t>`。
+ * @note 提供的是 `sread` 的**迭代器形式**：加锁、哨兵与 `handle_exception` 都由通用的格式化
+ *       提取运算符负责，这里只管从迭代器上取字符。
+ * @note 约束比插入侧多一条 `remove_cv_t` 恒等：解析结果要写回 `TMoney&`，故不接受带 cv 的
+ *       目标类型；插入侧按值取整型，cv 会被丢掉，因而只在排除 `bool` 时用到 `remove_cv_t`。
+ * @tparam TChar  流的字符类型。
+ * @tparam TMoney 接收解析结果的类型：整型（`bool` 除外）或 `std::basic_string<TChar>`；取值域
+ *                与理由见 `put_money`。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief Extension-point specialization for `get_money`: it provides `sread` only, so it can only
+ *        extract -- `os << get_money(x)` leaves the insertion operator unsatisfied, and with no
+ *        viable overload it does not compile. See `io_traits<TChar, resetiosflags_t>` for how the
+ *        direction is expressed.
+ * @note What it provides is the **iterator form** of `sread`: the lock, the sentry and
+ *       `handle_exception` are the generic formatted extraction operator's business, and this only
+ *       takes characters from the iterator.
+ * @note The constraint carries one clause the insertion side does not, `remove_cv_t` identity: the
+ *       result is written back through a `TMoney&`, so a cv-qualified destination is not accepted.
+ *       The insertion side takes its integral by value, where cv is dropped anyway, and so needs
+ *       `remove_cv_t` only to exclude `bool`.
+ * @tparam TChar  The stream's character type.
+ * @tparam TMoney The type receiving the parsed result: an integral other than `bool`, or a
+ *                `std::basic_string<TChar>`; see `put_money` for the accepted set and why.
+ * @endif
+ */
 template <typename TChar, typename TMoney>
     requires (std::same_as<TMoney, std::remove_cv_t<TMoney>>
               && ((std::integral<TMoney> && !std::same_as<TMoney, bool>)
@@ -846,6 +996,10 @@ struct io_traits<TChar, get_money_t<TMoney>>
      * @note 与 `put_money` 一侧同理，**缺少 `monetary` facet 到这里才发现**：抛 `stream_error`，
      *       由 `operator>>` 接住并归为 `strfailbit`，`f.m_mon` 不被改写。
      * @note 解析消耗的是流的 `fill()` 而不是空白，判据与写侧一致；详见 `get_money`。
+     * @param s     解析所用的输入迭代器，指向待读取的第一个字符。
+     * @param s_end 与 @p s 配对的哨位，标出可读区间的末尾。
+     * @param io    流的 `ios_base`，格式标志与填充字符由它提供。
+     * @param loc   流的 locale，`monetary<TChar>` facet 即从中取出。
      * @param f 接收解析结果的对象与 `intl` 标志；取值域见 `put_money`。
      * @return 指向最后一个已消耗字符之后的输入迭代器。
      * @throw stream_error 若 locale 中缺少 `monetary<TChar>` facet，或 `monetary::get` 解析失败
@@ -860,6 +1014,10 @@ struct io_traits<TChar, get_money_t<TMoney>>
      *       `f.m_mon` is left unmodified.
      * @note Parsing consumes the stream's `fill()` rather than whitespace, under the same test as
      *       the writing side; see `get_money`.
+     * @param s     The input iterator to parse from, positioned at the first character to read.
+     * @param s_end The sentinel paired with @p s, marking the end of the readable range.
+     * @param io    The stream's `ios_base`, supplying the format flags and the fill character.
+     * @param loc   The stream's locale, from which the `monetary<TChar>` facet is taken.
      * @param f The object receiving the result and the `intl` flag; for the accepted set see
      *          `put_money`.
      * @return An input iterator past the last consumed character.
@@ -881,7 +1039,42 @@ struct io_traits<TChar, get_money_t<TMoney>>
     }
 };
 
-template<typename TChar> struct put_time_t { const std::tm* tmb; const TChar* fmt; };
+/**
+ * @lang{ZH}
+ * @brief `put_time` 操纵符的类型：只带插入方向，逻辑在
+ *        `io_traits<TChar, put_time_t<TChar>>::swrite` 里，且是**迭代器形式**——加锁与哨兵由
+ *        通用的格式化插入运算符负责。
+ * @warning **本类型持有两个裸指针，是设计而非疏漏**：与 `std::put_time` 一样，工厂返回的是个
+ *          短命代理，只应在同一个完整表达式里消费掉。详见 `put_time` 上的 `@warning` 与本文件
+ *          顶部的说明。两个指针都在写出前校验，为空时置流的失败位而非解引用。本类型是实现
+ *          细节，不应被直接构造。
+ * @tparam TChar 流的字符类型，也是格式串的字符类型。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief The type of the `put_time` manipulator: insertion only, with the logic in
+ *        `io_traits<TChar, put_time_t<TChar>>::swrite`, in the **iterator form** -- the lock and
+ *        the sentry belong to the generic formatted insertion operator.
+ * @warning **The two raw pointers are the design, not an oversight**: like `std::put_time`, the
+ *          factory returns a short-lived proxy meant to be consumed inside the same full
+ *          expression. See the `@warning` on `put_time` and the note at the top of this file. Both
+ *          pointers are validated before the write, and a null one sets a failure bit on the
+ *          stream rather than being dereferenced. This type is an implementation detail and should
+ *          never be constructed directly.
+ * @tparam TChar The stream's character type, which is also the format string's.
+ * @endif
+ */
+template<typename TChar> struct put_time_t
+{
+    /// @lang{ZH} 指向待写出时刻的指针；必须描述一个完整且真实存在的时刻，详见 `put_time`。 @endif
+    /// @lang{EN} A pointer to the instant to write; it must describe a complete instant that really
+    ///           exists, see `put_time`. @endif
+    const std::tm* tmb;
+    /// @lang{ZH} 指向 `strftime` 风格格式串的指针；非空时必须以 `TChar('\0')` 结尾。 @endif
+    /// @lang{EN} A pointer to the `strftime`-style format string; when non-null it must be
+    ///           terminated by `TChar('\0')`. @endif
+    const TChar* fmt;
+};
 /**
  * @lang{ZH}
  * @brief 构造按 @p fmt 写出 `*tmb` 的操纵符。
@@ -1034,6 +1227,29 @@ template<typename TChar> struct put_time_t { const std::tm* tmb; const TChar* fm
 template<typename TChar>
 inline put_time_t<TChar> put_time(const std::tm* tmb, const TChar* fmt) { return { tmb, fmt }; }
 
+/**
+ * @lang{ZH}
+ * @brief `put_time` 的扩展点特化：只提供 `swrite`，故只能插入——`is >> put_time(...)` 不满足
+ *        提取运算符的约束、没有可行重载，编译不过。方向为何这样表达，见
+ *        `io_traits<TChar, resetiosflags_t>`。
+ * @note 提供的是 `swrite` 的**迭代器形式**：加锁、哨兵与 `handle_exception` 都由通用的格式化
+ *       插入运算符负责，这里只管往迭代器上写。
+ * @tparam TChar 流的字符类型，也是格式串的字符类型；两者必须一致，本特化只按
+ *               `put_time_t<TChar>` 匹配。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief Extension-point specialization for `put_time`: it provides `swrite` only, so it can only
+ *        insert -- `is >> put_time(...)` leaves the extraction operator unsatisfied, and with no
+ *        viable overload it does not compile. See `io_traits<TChar, resetiosflags_t>` for how the
+ *        direction is expressed.
+ * @note What it provides is the **iterator form** of `swrite`: the lock, the sentry and
+ *       `handle_exception` are the generic formatted insertion operator's business, and this only
+ *       writes through the iterator.
+ * @tparam TChar The stream's character type, which is also the format string's; the two must
+ *               agree, as this specialization matches `put_time_t<TChar>` alone.
+ * @endif
+ */
 template <typename TChar>
 struct io_traits<TChar, put_time_t<TChar>>
 {
@@ -1050,6 +1266,9 @@ struct io_traits<TChar, put_time_t<TChar>>
      * @note 校验放在 `swrite` 而非 `put_time` 工厂里，是为了让异常落进 `operator<<` 的
      *       catch，经 `handle_exception` 归类为 `strfailbit`，与 `ostream::write` 等处的
      *       空指针处理保持一致的错误模型。
+     * @param s   写出所用的输出迭代器。
+     * @param io  流的 `ios_base`。`put_time` 既不应用也不消耗 `io.width()`，理由见 `put_time`。
+     * @param loc 流的 locale，`timeio<TChar>` facet 即从中取出。
      * @param f 待写出的时间与格式串；`*(f.tmb)` 必须是完整有效的时刻（见 `put_time`）。
      *          `f.tmb` 或 `f.fmt` 为空指针时什么都不写出，抛出的 `stream_error` 由流转为
      *          `strfailbit`。
@@ -1074,6 +1293,10 @@ struct io_traits<TChar, put_time_t<TChar>>
      *       exception lands in `operator<<`'s catch and is categorized as `strfailbit` by
      *       `handle_exception`, matching the error model of the null-pointer checks in
      *       `ostream::write` and friends.
+     * @param s   The output iterator to write through.
+     * @param io  The stream's `ios_base`. `put_time` neither applies nor consumes `io.width()`;
+     *            see `put_time` for why.
+     * @param loc The stream's locale, from which the `timeio<TChar>` facet is taken.
      * @param f The time and format string to write; `*(f.tmb)` must be a complete, valid instant
      *          (see `put_time`). If `f.tmb` or `f.fmt` is null nothing is written, and the
      *          `stream_error` thrown is turned into `strfailbit` by the stream.
@@ -1098,7 +1321,45 @@ struct io_traits<TChar, put_time_t<TChar>>
     }
 };
 
-template<typename TChar> struct get_time_t { std::tm* tmb; const TChar* fmt; };
+/**
+ * @lang{ZH}
+ * @brief `get_time` 操纵符的类型：只带提取方向，逻辑在
+ *        `io_traits<TChar, get_time_t<TChar>>::sread` 里，且是**迭代器形式**——加锁与哨兵由
+ *        通用的格式化提取运算符负责。
+ * @warning **本类型持有两个裸指针，是设计而非疏漏**：与 `std::get_time` 一样，工厂返回的是个
+ *          短命代理，解析结果正是经 `tmb` 写回去的，因此只应在同一个完整表达式里消费掉。详见
+ *          `get_time` 上的 `@warning` 与本文件顶部的说明。两个指针都在解析前校验，为空时置流
+ *          的失败位而非解引用。本类型是实现细节，不应被直接构造。
+ * @tparam TChar 流的字符类型，也是格式串的字符类型。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief The type of the `get_time` manipulator: extraction only, with the logic in
+ *        `io_traits<TChar, get_time_t<TChar>>::sread`, in the **iterator form** -- the lock and
+ *        the sentry belong to the generic formatted extraction operator.
+ * @warning **The two raw pointers are the design, not an oversight**: like `std::get_time`, the
+ *          factory returns a short-lived proxy, and the parsed result is written back through
+ *          `tmb`, so it is meant to be consumed inside the same full expression. See the
+ *          `@warning` on `get_time` and the note at the top of this file. Both pointers are
+ *          validated before parsing, and a null one sets a failure bit on the stream rather than
+ *          being dereferenced. This type is an implementation detail and should never be
+ *          constructed directly.
+ * @tparam TChar The stream's character type, which is also the format string's.
+ * @endif
+ */
+template<typename TChar> struct get_time_t
+{
+    /// @lang{ZH} 指向接收解析结果的 `tm` 的指针；必须是已初始化的对象，其原有内容还会用作格式串
+    ///           未解析字段的回退值，详见 `get_time`。 @endif
+    /// @lang{EN} A pointer to the `tm` receiving the parsed result; it must be an initialized
+    ///           object, and its existing contents also seed the fallbacks for the fields the
+    ///           format string does not parse -- see `get_time`. @endif
+    std::tm* tmb;
+    /// @lang{ZH} 指向 `strptime` 风格格式串的指针；非空时必须以 `TChar('\0')` 结尾。 @endif
+    /// @lang{EN} A pointer to the `strptime`-style format string; when non-null it must be
+    ///           terminated by `TChar('\0')`. @endif
+    const TChar* fmt;
+};
 /**
  * @lang{ZH}
  * @brief 构造按 @p fmt 解析时间并写入 `*tmb` 的操纵符。
@@ -1262,6 +1523,29 @@ template<typename TChar> struct get_time_t { std::tm* tmb; const TChar* fmt; };
 template<typename TChar>
 inline get_time_t<TChar> get_time(std::tm* tmb, const TChar* fmt) { return { tmb, fmt }; }
 
+/**
+ * @lang{ZH}
+ * @brief `get_time` 的扩展点特化：只提供 `sread`，故只能提取——`os << get_time(...)` 不满足
+ *        插入运算符的约束、没有可行重载，编译不过。方向为何这样表达，见
+ *        `io_traits<TChar, resetiosflags_t>`。
+ * @note 提供的是 `sread` 的**迭代器形式**：加锁、哨兵与 `handle_exception` 都由通用的格式化
+ *       提取运算符负责，这里只管从迭代器上取字符。
+ * @tparam TChar 流的字符类型，也是格式串的字符类型；两者必须一致，本特化只按
+ *               `get_time_t<TChar>` 匹配。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief Extension-point specialization for `get_time`: it provides `sread` only, so it can only
+ *        extract -- `os << get_time(...)` leaves the insertion operator unsatisfied, and with no
+ *        viable overload it does not compile. See `io_traits<TChar, resetiosflags_t>` for how the
+ *        direction is expressed.
+ * @note What it provides is the **iterator form** of `sread`: the lock, the sentry and
+ *       `handle_exception` are the generic formatted extraction operator's business, and this only
+ *       takes characters from the iterator.
+ * @tparam TChar The stream's character type, which is also the format string's; the two must
+ *               agree, as this specialization matches `get_time_t<TChar>` alone.
+ * @endif
+ */
 template <typename TChar>
 struct io_traits<TChar, get_time_t<TChar>>
 {
@@ -1272,6 +1556,10 @@ struct io_traits<TChar, get_time_t<TChar>>
      * @note 与 `put_time` 同理，`get_time` 保存的两个裸指针在解引用前必须校验：`f.fmt`
      *       为空时向 `std::basic_string_view` 的隐式转换即为未定义行为，`f.tmb` 为空时
      *       回写 `*(f.tmb)` 是空指针写入。二者都绕过异常机制直接崩溃。
+     * @param s     解析所用的输入迭代器，指向待读取的第一个字符。
+     * @param s_end 与 @p s 配对的哨位，标出可读区间的末尾。
+     * @param io    流的 `ios_base`。
+     * @param loc   流的 locale，`timeio<TChar>` facet 即从中取出。
      * @param f 用于接收解析结果的 `tm` 与格式串。`*(f.tmb)` 的现有内容会作为格式串未解析字段
      *          的回退值，详见 `get_time`。`f.tmb` 或 `f.fmt` 为空指针时不解析：不回写
      *          `*(f.tmb)`，抛出的 `stream_error` 由流转为 `strfailbit`。校验在提取运算符
@@ -1292,6 +1580,10 @@ struct io_traits<TChar, get_time_t<TChar>>
      *       `std::basic_string_view` undefined behavior, and a null `f.tmb` makes the
      *       write-back through `*(f.tmb)` a null-pointer store. Both bypass the exception
      *       machinery and crash outright.
+     * @param s     The input iterator to parse from, positioned at the first character to read.
+     * @param s_end The sentinel paired with @p s, marking the end of the readable range.
+     * @param io    The stream's `ios_base`.
+     * @param loc   The stream's locale, from which the `timeio<TChar>` facet is taken.
      * @param f The `tm` receiving the parsed result and the format string. The current contents
      *          of `*(f.tmb)` serve as the fallbacks for the fields the format string does not
      *          parse; see `get_time`. If `f.tmb` or `f.fmt` is null nothing is parsed:
