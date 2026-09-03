@@ -1561,7 +1561,7 @@ private:
             negative && std::is_signed_v<TValue>
                 ? -static_cast<unsigned_type>(std::numeric_limits<TValue>::min())
                 : static_cast<unsigned_type>(std::numeric_limits<TValue>::max());
-        const unsigned_type radix_value = static_cast<unsigned_type>(radix);
+        const auto radix_value = static_cast<unsigned_type>(radix);
         const unsigned_type cutoff = magnitude_limit / radix_value;
         const unsigned_type last_digit_limit = magnitude_limit % radix_value;
 
@@ -1617,7 +1617,7 @@ private:
             has_digit = true;
             if (!out_of_range)
             {
-                const unsigned_type next = static_cast<unsigned_type>(digit);
+                const auto next = static_cast<unsigned_type>(digit);
                 if (magnitude > cutoff)
                     out_of_range = true;
                 else if (magnitude == cutoff && next > last_digit_limit)
