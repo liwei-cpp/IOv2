@@ -30,6 +30,10 @@ TEST(ClocaleWrapper, MoveConstructAndAssign)
 
         clocale_wrapper loc3("C");
         loc3 = std::move(loc2);
+
+        // loc1 is moved-from, so this also exercises assignment into an empty
+        // target rather than only replacing a live locale.
+        loc1 = std::move(loc3);
     });
 }
 
@@ -41,6 +45,10 @@ TEST(ClocaleWrapper, CopyConstructAndAssign)
 
         clocale_wrapper loc3("C");
         loc3 = loc2;
+
+        // Move loc3's locale away, then copy back into the moved-from target.
+        clocale_wrapper loc4(std::move(loc3));
+        loc3 = loc4;
     });
 }
 
@@ -96,4 +104,10 @@ TEST(ClocaleWrapper, ClocaleUserAcceptsLiveWrapper)
         clocale_wrapper loc3("C");
         clocale_user user(loc3);
     });
+}
+
+TEST(CommonDefs, DefaultEofErrorMessage)
+{
+    const eof_error error;
+    EXPECT_STREQ(error.what(), "end of file");
 }

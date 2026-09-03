@@ -404,3 +404,23 @@ TEST(PrefixTree, RootValueLargeValueStreambuf)
     EXPECT_EQ(*out, "root");
     EXPECT_EQ(*it, 'x');
 }
+
+TEST(PrefixTree, FullMatchLargeValueStreambufAtEnd)
+{
+    prefix_tree<char, std::string> tree;
+    tree.add("abc", "value");
+
+    // Ending exactly at the key exercises the loop's sentinel exit, while the
+    // large value takes the pointer-returning match path.
+    mem_device dev("abc");
+    istreambuf sb(dev);
+    istreambuf_iterator beg(sb);
+    decltype(beg) end;
+
+    decltype(tree)::match_out_type out{};
+    auto it = tree.max_match(beg, end, out);
+
+    ASSERT_NE(out, nullptr);
+    EXPECT_EQ(*out, "value");
+    EXPECT_EQ(it, end);
+}
