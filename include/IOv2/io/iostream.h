@@ -1,6 +1,64 @@
 // SPDX-FileCopyrightText: 2026 liwei <liwei.cpp@gmail.com>
 // SPDX-License-Identifier: MIT
 
+/**
+ * @file iostream.h
+ * @lang{ZH}
+ * 定义了双向字符流 `iostream`。
+ *
+ * `iostream` 把一条 `streambuf`（其下依次是转换器管线与设备）与一个 `locale` 组合成带格式化的
+ * 输入输出接口；对外接口大多来自 `ios_state`（状态位与异常掩码）、`istream_operators` 与
+ * `ostream_operators`（输入与输出操作）、`out_flusher`（tie 刷新用的多态 `try_flush()`）
+ * 与 `stream_common_operators`（`tell()` / `attach()` / `detach()` / `locale()` 等）几个基类。
+ * 本文件只多出 `switch_to_put()` / `switch_to_get()` 这一对单向流没有的成员。
+ *
+ * @warning **双向不等于可以自由地读写交替。** 换向要经底层转换器同意，转换器可以基于自身状态
+ *          与位置拒绝，因此换向会在一个健康的流上失败（置 `cvtfailbit`）；换向还会清空读缓冲
+ *          区，丢弃 `putback()` 压回的内容。更要紧的是，本类可充当 tie 目标，于是一次与本流
+ *          无关的输出就会在本流上触发换向。详见 `iostream` 与 `iostream::switch_to_put()`。
+ * @warning **构造流可能抛出异常，且异常不会被转成失败位**，调用方需要自行 `try`；本库其余的
+ *          操作（包括 `attach()`）都把异常转为状态位，唯独构造不能。理由见
+ *          `iostream::iostream()`。
+ * @note **本头文件只带来流本身，不带来"往流里读写一个数或一个字符串"的能力。** 它不包含
+ *       `IOv2/io/traits/arithmetic.h` 与 `IOv2/io/traits/char_and_str.h`，因此只
+ *       `#include <IOv2/io/iostream.h>` 时 `ios << 42`、`ios >> str` 都编译不过。这是按值类型
+ *       选配的一贯做法（见 `IOv2/io/traits/traits_base.h`）：要读写哪类值就包哪个 traits 头，
+ *       本文件不替你决定。不带参数的操纵符在 `IOv2/io/istream.h`（`ws`）与
+ *       `IOv2/io/ostream.h`（`endl` / `ends` / `flush`），带参数的在 `IOv2/io/io_manip.h`。
+ * @endif
+ *
+ * @lang{EN}
+ * Defines the bidirectional character stream `iostream`.
+ *
+ * `iostream` combines a `streambuf` (below which sit the converter pipeline and the device) with a
+ * `locale` into a formatted input/output interface; most of its interface comes from its bases --
+ * `ios_state` (the state bits and the exception mask), `istream_operators` and `ostream_operators`
+ * (the input and output operations), `out_flusher` (the polymorphic `try_flush()` used by tie) and
+ * `stream_common_operators` (`tell()` / `attach()` / `detach()` / `locale()` and friends). All this
+ * file adds beyond that is the `switch_to_put()` / `switch_to_get()` pair, which a one-way stream
+ * has no need for.
+ *
+ * @warning **Bidirectional does not mean freely alternating.** A direction switch needs the
+ *          underlying converter's consent, and a converter may refuse based on its own state and
+ *          position, so a switch can fail on a perfectly healthy stream (setting `cvtfailbit`); a
+ *          switch also clears the read buffer, discarding whatever `putback()` pushed back. More
+ *          to the point, instances of this class can serve as tie targets, so an output having
+ *          nothing to do with this stream can trigger a switch on it. See `iostream` and
+ *          `iostream::switch_to_put()`.
+ * @warning **Constructing a stream may throw, and the exception is not turned into a failure
+ *          bit**, so the caller must `try` around it; every other operation in this library,
+ *          `attach()` included, turns exceptions into state, and construction alone cannot. See
+ *          `iostream::iostream()`.
+ * @note **This header brings in the stream, not the ability to read or write a number or a string
+ *       through it.** It does not include `IOv2/io/traits/arithmetic.h` or
+ *       `IOv2/io/traits/char_and_str.h`, so with `#include <IOv2/io/iostream.h>` alone `ios << 42`
+ *       and `ios >> str` do not compile. That is the library's usual opt-in-per-value-type
+ *       arrangement (see `IOv2/io/traits/traits_base.h`): include the traits header for the kind of
+ *       value you mean to read or write; this file does not choose for you. The parameterless
+ *       manipulators live in `IOv2/io/istream.h` (`ws`) and `IOv2/io/ostream.h` (`endl` / `ends` /
+ *       `flush`), the parameterized ones in `IOv2/io/io_manip.h`.
+ * @endif
+ */
 #pragma once
 #include <IOv2/common/copyable_mutex.h>
 #include <IOv2/cvt/cvt_concepts.h>
@@ -108,11 +166,47 @@ class iostream : public ios_state<TChar>
                , public stream_common_operators
 {
 public:
+    /// @lang{ZH} 底层设备类型，即模板实参 @p TDevice。 @endif
+    /// @lang{EN} The underlying device type, i.e. the @p TDevice template argument. @endif
     using device_type = TDevice;
+    /// @lang{ZH} 本流的字符类型，即**转换管线产出的**字符类型，未必是设备的。 @endif
+    /// @lang{EN} The stream's character type -- the one the **converter pipeline produces**,
+    ///           which need not be the device's. @endif
     using char_type = TChar;
+    /// @lang{ZH}
+    /// 本流的输入哨兵类型。哨兵在每次格式化输入前检查流状态、按需刷新 tie 目标并按 `skipws`
+    /// 跳过前导空白。模板实参 `true` 表示本流是双向的，哨兵因此会先 `switch_to_get()`；那一步
+    /// 可能被转换器拒绝，见 `switch_to_put()` 上的说明。
+    /// @endif
+    /// @lang{EN}
+    /// This stream's input sentry type. The sentry checks the stream state before each formatted
+    /// input, flushes the tie target when there is one, and skips leading whitespace as `skipws`
+    /// asks. The `true` template argument says this stream is bidirectional, so the sentry first
+    /// calls `switch_to_get()` -- a step the converter may refuse; see `switch_to_put()`.
+    /// @endif
     using in_sentry_type = in_sentry<iostream<TDevice, TChar>, true>;
+    /// @lang{ZH}
+    /// 本流的输出哨兵类型。哨兵在每次格式化输出前检查流状态、按需刷新 tie 目标、（追加模式下）
+    /// 定位到末尾，并在析构时按构造实参 `is_unit_buf` 决定是否自动刷新。模板实参 `true` 表示
+    /// 本流是双向的，哨兵因此会先 `switch_to_put()`，那一步可能被转换器拒绝；第三个实参取默认
+    /// 的 `false`，即本流不是标准流。
+    /// @endif
+    /// @lang{EN}
+    /// This stream's output sentry type. The sentry checks the stream state before each formatted
+    /// output, flushes the tie target when there is one, repositions to the end in append mode,
+    /// and on destruction auto-flushes according to its `is_unit_buf` constructor argument. The
+    /// `true` template argument says this stream is bidirectional, so the sentry first calls
+    /// `switch_to_put()`, a step the converter may refuse; the third argument keeps its default of
+    /// `false`, i.e. this is not a standard stream.
+    /// @endif
     using out_sentry_type = out_sentry<iostream<TDevice, TChar>, true>;
+    /// @lang{ZH} 读取本流所用的输入迭代器类型，扩展点的迭代器形式 `sread` 即以它取字符。 @endif
+    /// @lang{EN} The input iterator type used to read this stream; it is what the iterator form of
+    ///           an extension point's `sread` takes its characters from. @endif
     using in_iter_type = istreambuf_iterator<streambuf<TDevice, TChar>>;
+    /// @lang{ZH} 写入本流所用的输出迭代器类型，扩展点的迭代器形式 `swrite` 即以它写出字符。 @endif
+    /// @lang{EN} The output iterator type used to write to this stream; it is what the iterator
+    ///           form of an extension point's `swrite` writes its characters through. @endif
     using out_iter_type = ostreambuf_iterator<streambuf<TDevice, TChar>>;
 
     friend in_sentry_type;
@@ -545,14 +639,48 @@ private:
     IOv2::locale<char_type> m_locale;
 };
 
-// Only these two need a guide: TChar appears nowhere in their parameters, so the implicit guide
-// cannot deduce it. The two overloads that take a locale deduce TChar from it through their own
-// implicit guide, which inherits the constraint written on the constructor -- repeating that
-// constraint here would just duplicate it, and the constructor's copy is the one that also covers
-// explicitly-written template arguments.
+/**
+ * @lang{ZH}
+ * @brief 由设备推导 `iostream` 的推导指引：不带转换器时字符类型即设备的 `char_type`。
+ *
+ * 只有这条与下一条需要显式写出：`TChar` 在这两个构造函数的形参里根本不出现，隐式推导指引推不
+ * 出来。带 locale 的那两个重载能经各自的隐式推导指引从 locale 推出 `TChar`，那些隐式指引还会
+ * 继承写在构造函数上的约束——在此重复一遍只是复制，而构造函数上的那份还能同时管住显式写出模板
+ * 实参的路径。
+ * @tparam TDevice 底层设备类型。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief Deduction guide from a device alone: with no converter the character type is the
+ *        device's `char_type`.
+ *
+ * Only this guide and the next one have to be written out: `TChar` appears nowhere in those two
+ * constructors' parameters, so the implicit guide cannot deduce it. The two overloads that take a
+ * locale deduce `TChar` from it through their own implicit guide, which also inherits the
+ * constraint written on the constructor -- repeating that constraint here would just duplicate it,
+ * and the constructor's copy is the one that also covers explicitly-written template arguments.
+ * @tparam TDevice The underlying device type.
+ * @endif
+ */
 template <io_device TDevice>
 iostream(TDevice) -> iostream<TDevice, typename TDevice::char_type>;
 
+/**
+ * @lang{ZH}
+ * @brief 由设备与转换器创建器推导 `iostream` 的推导指引：字符类型取**转换管线产出的**那一个，
+ *        未必是设备的字符类型。存在理由同上一条。
+ * @tparam TDevice  底层设备类型。
+ * @tparam TCreator 转换器创建器类型。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief Deduction guide from a device plus a converter creator: the character type is the one
+ *        the **converter pipeline produces**, which need not be the device's. It exists for the
+ *        same reason as the previous guide.
+ * @tparam TDevice  The underlying device type.
+ * @tparam TCreator The converter-creator type.
+ * @endif
+ */
 template <io_device TDevice, cvt_creator TCreator>
 iostream(TDevice, const TCreator&)
     -> iostream<TDevice,
