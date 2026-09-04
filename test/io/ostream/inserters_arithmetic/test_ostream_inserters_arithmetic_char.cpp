@@ -34,6 +34,7 @@
 #include <cstdio>
 #include <limits>
 #include <memory>
+#include <stdfloat>
 #include <string>
 #include <type_traits>
 #include <utility>
@@ -456,6 +457,50 @@ TEST(OstreamInsertArithmeticChar, AValueRoundTripsExactlyThroughItsOwnText)
     helper.template operator()<ostream, double>();
     helper.template operator()<ostream, long double>();
     helper.template operator()<iostream, double>();
+
+    // The extended types relay through a standard one, so the round trip has to survive the two
+    // extra casts as well.
+#if defined(__STDCPP_FLOAT16_T__)
+    helper.template operator()<ostream, std::float16_t>();
+#endif
+#if defined(__STDCPP_BFLOAT16_T__)
+    helper.template operator()<ostream, std::bfloat16_t>();
+#endif
+#if defined(__STDCPP_FLOAT32_T__)
+    helper.template operator()<ostream, std::float32_t>();
+#endif
+#if defined(__STDCPP_FLOAT64_T__)
+    helper.template operator()<ostream, std::float64_t>();
+#endif
+}
+
+// These reach snprintf's %g, which reads a double off the varargs; they do not promote to one, so
+// writing them unrelayed was UB and printed a wrong value with the stream still good(). Dyadic, so
+// the expectation is exact.
+TEST(OstreamInsertArithmeticChar, ExtendedFloatingPointTypesWriteTheirValue)
+{
+    [[maybe_unused]] auto write = []<typename T>(T v)
+    {
+        ostream os(mem_device{""}, locale<char>("C"));
+        os << v;
+        EXPECT_TRUE(static_cast<bool>(os));
+        return os.detach().first.str();
+    };
+
+#if defined(__STDCPP_FLOAT16_T__)
+    EXPECT_EQ(write(static_cast<std::float16_t>(3.5)), "3.5");
+    EXPECT_EQ(write(static_cast<std::float16_t>(-0.25)), "-0.25");
+#endif
+#if defined(__STDCPP_BFLOAT16_T__)
+    EXPECT_EQ(write(static_cast<std::bfloat16_t>(3.5)), "3.5");
+#endif
+#if defined(__STDCPP_FLOAT32_T__)
+    EXPECT_EQ(write(static_cast<std::float32_t>(3.5)), "3.5");
+#endif
+#if defined(__STDCPP_FLOAT64_T__)
+    EXPECT_EQ(write(static_cast<std::float64_t>(3.5)), "3.5");
+    EXPECT_EQ(write(static_cast<std::float64_t>(1024)), "1024");
+#endif
 }
 
 // The longest output any float format can produce; the C library is the oracle
@@ -661,14 +706,20 @@ TEST(OstreamInsertArithmeticChar, AMissingNumericFacetRejectsValuesAndPointers)
 {
     const auto loc = locale<char>("C").remove<numeric_conf<char>>();
 
+    // numeric::put is what spends the width, and neither of these reaches it. A leftover would
+    // pad the next, unrelated insertion.
     ostream value_stream{mem_device{""}, loc};
+    value_stream.width(10);
     value_stream << 42;
     EXPECT_TRUE(value_stream.str_fail());
     EXPECT_TRUE(value_stream.device().str().empty());
+    EXPECT_EQ(value_stream.width(), 0u);
 
     int     value = 42;
     ostream pointer_stream{mem_device{""}, loc};
+    pointer_stream.width(10);
     pointer_stream << &value;
     EXPECT_TRUE(pointer_stream.str_fail());
     EXPECT_TRUE(pointer_stream.device().str().empty());
+    EXPECT_EQ(pointer_stream.width(), 0u);
 }

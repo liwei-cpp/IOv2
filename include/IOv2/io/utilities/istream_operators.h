@@ -410,6 +410,12 @@ concept extractable_with_iter = istream_type<T> &&
 template <typename T, typename TValue>
 concept extractable_with_ctx = istream_type<T> &&
     !std::is_same_v<in_ctx_t<typename T::char_type, TValue>, std::remove_cvref_t<TValue>> &&
+    (requires (const in_target_t<TValue>& v)
+        {
+            parse_context_type<typename T::char_type,
+                               std::remove_cvref_t<TValue>>::make_parse_context(v);
+        }
+     || std::default_initializable<in_ctx_t<typename T::char_type, TValue>>) &&
     requires(T& obj, typename T::in_iter_type& iter, in_target_t<TValue>& value,
              in_ctx_t<typename T::char_type, TValue>& ctx)
     {
@@ -1225,8 +1231,14 @@ T& operator>>(T& obj, TValue&& value)
                     if constexpr (requires (const TV& v)
                                   { parse_context_type<TChar, TV>::make_parse_context(v); })
                         return parse_context_type<TChar, TV>::make_parse_context(value);
-                    else
+                    else if constexpr (std::default_initializable<TCtx>)
                         return TCtx{};
+                    else
+                        static_assert(dependent_false_v<TCtx>,
+                            "IOv2: this parse_context_type's context has no make_parse_context() "
+                            "and is not default constructible, so there is no way to obtain one. "
+                            "Give the context a default constructor, or give parse_context_type a "
+                            "static make_parse_context(const T&). See io/traits/traits_base.h.");
                 }();
                 io_traits<TChar, TCtx>::sread(iter, std::default_sentinel, obj, obj.locale(), tmp);
                 tmp.convert_to(static_cast<TTarget&>(value));

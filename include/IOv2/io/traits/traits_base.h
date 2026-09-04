@@ -108,10 +108,10 @@
  * ### 解析上下文
  *
  * 提取端还有一个可选的中转：若 `parse_context_type<TChar, T>::type` 不是 `T` 本身，运算符会
- * 先构造一个该类型的临时量、让 `io_traits<TChar, 上下文类型>::sread` 解析它，再
- * `static_cast` 回 `T`。若上下文类型还提供了静态成员
- * `make_parse_context(const T&)`，则临时量由它构造——这就是 `std::tm` 用旧值作为未解析字段
- * 回退值的做法，见 `IOv2/io/traits/tm.h`。主模板是恒等映射，不需要这一层就不用管它。
+ * 先构造一个该类型的临时量、让 `io_traits<TChar, 上下文类型>::sread` 解析它，再调用上下文的
+ * `convert_to(T&)` 写回目标。临时量由 `parse_context_type<TChar, T>` 的静态成员
+ * `make_parse_context(const T&)` 构造——这就是 `std::tm` 用旧值作为未解析字段回退值的做法，见
+ * `IOv2/io/traits/tm.h`；没有该成员时默认构造。主模板是恒等映射，不需要这一层就不用管它。
  * @endif
  *
  * @lang{EN}
@@ -245,11 +245,12 @@
  *
  * The extraction side has one optional relay: if `parse_context_type<TChar, T>::type` is not `T`
  * itself, the operator builds a temporary of that type, lets
- * `io_traits<TChar, context type>::sread` parse into it, and `static_cast`s the result back to
- * `T`. If the context type also provides a static `make_parse_context(const T&)`, that builds
- * the temporary -- which is how `std::tm` uses its previous contents as the fallbacks for the
- * fields the format string does not parse; see `IOv2/io/traits/tm.h`. The primary template is the
- * identity, so ignore this layer if you do not need it.
+ * `io_traits<TChar, context type>::sread` parse into it, and calls the context's
+ * `convert_to(T&)` to write the result back. The temporary comes from
+ * `parse_context_type<TChar, T>`'s static `make_parse_context(const T&)` -- which is how
+ * `std::tm` uses its previous contents as the fallbacks for the fields the format string does
+ * not parse; see `IOv2/io/traits/tm.h` -- and is default constructed when there is no such
+ * member. The primary template is the identity, so ignore this layer if you do not need it.
  * @endif
  */
 #pragma once

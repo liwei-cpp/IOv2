@@ -60,8 +60,6 @@ TIter istream_extract(TIter iter, TSent iter_end, ios_base<TChar>& io, const loc
     if (!ct)
         throw stream_error("cannot get ctype facet");
 
-    if (iter == iter_end) throw stream_error("cannot extract character from empty stream");
-
     std::size_t extracted = 0;
 
     while (extracted < num - 1
@@ -196,7 +194,11 @@ struct io_traits<TChar, TChar*>
         requires (char_sink_for<TIter, TChar>)
     static TIter swrite(TIter iter, ios_base<TChar>& io, const locale<TChar>&, const TChar* c)
     {
-        if (c == nullptr) throw IOv2::stream_error("Cannot write NULL character sequence");
+        if (c == nullptr)
+        {
+            io.width(0);
+            throw IOv2::stream_error("Cannot write NULL character sequence");
+        }
 
         std::size_t n = 0;
         for (const TChar* ptr = c; *ptr != 0; ++ptr, ++n);
@@ -265,11 +267,18 @@ struct io_traits<TChar, char*>
         requires (char_sink_for<TIter, TChar>)
     static TIter swrite(TIter iter, ios_base<TChar>& io, const locale<TChar>& loc, const char* c)
     {
-        if (c == nullptr) throw IOv2::stream_error("Cannot write NULL character sequence");
+        if (c == nullptr)
+        {
+            io.width(0);
+            throw IOv2::stream_error("Cannot write NULL character sequence");
+        }
 
         auto mp = loc.template get<ctype<TChar>>();
         if (!mp)
+        {
+            io.width(0);
             throw stream_error("cannot get ctype facet");
+        }
 
         std::size_t n = 0;
         for (const char* ptr = c; *ptr != 0; ++ptr, ++n);
@@ -299,7 +308,11 @@ struct io_traits<char, char*>
         requires (char_sink_for<TIter, char>)
     static TIter swrite(TIter iter, ios_base<char>& io, const locale<char>&, const char* c)
     {
-        if (c == nullptr) throw IOv2::stream_error("Cannot write NULL character sequence");
+        if (c == nullptr)
+        {
+            io.width(0);
+            throw IOv2::stream_error("Cannot write NULL character sequence");
+        }
 
         std::size_t n = 0;
         for (const char* ptr = c; *ptr != 0; ++ptr, ++n);
@@ -411,7 +424,8 @@ struct io_traits<char, const signed char*>
  *       非格式化的 `istream::read(s, n)` / `get(s, n)`，二者都显式接收容量。
  * @param c 目标缓冲区。
  * @return 指向最后一个被消费字符之后的输入迭代器。
- * @throw stream_error 若 `N <= 1`（放不下终止符），或未提取到任何字符。
+ * @throw stream_error 若未提取到任何字符——`N == 1` 时必然如此，因为这个缓冲区只放得下
+ *        终止符。无论哪种情形，终止符都已写入。
  * @endif
  *
  * @lang{EN}
@@ -438,8 +452,8 @@ struct io_traits<char, const signed char*>
  *       `istream::read(s, n)` / `get(s, n)`, both of which take the capacity explicitly.
  * @param c The destination buffer.
  * @return An input iterator past the last consumed character.
- * @throw stream_error If `N <= 1` (no room for the terminator), or no characters were
- *        extracted.
+ * @throw stream_error If no characters were extracted -- which `N == 1` always is, that buffer
+ *        having room for the terminator alone. The terminator is written either way.
  * @endif
  */
 template <typename TChar, std::size_t N>
@@ -449,9 +463,6 @@ struct io_traits<TChar, TChar[N]>
         requires (std::is_same_v<TChar, typename TIter::value_type>)
     static TIter sread(TIter iter, TSent iter_end, ios_base<TChar>& io, const locale<TChar>& loc, TChar* c)
     {
-        if constexpr (N <= 1)
-            throw IOv2::stream_error("Character buffer not enough");
-
         constexpr std::size_t n = N;
         return istream_extract(iter, iter_end, io, loc, c, n);
     }
@@ -464,8 +475,6 @@ struct io_traits<char, unsigned char[N]>
         requires (std::is_same_v<char, typename TIter::value_type>)
     static TIter sread(TIter iter, TSent iter_end, ios_base<char>& io, const locale<char>& loc, unsigned char* c)
     {
-        if constexpr (N <= 1)
-            throw IOv2::stream_error("Character buffer not enough");
         constexpr std::size_t n = N;
         return istream_extract(iter, iter_end, io, loc, reinterpret_cast<char*>(c), n);
     }
@@ -478,8 +487,6 @@ struct io_traits<char, signed char[N]>
         requires (std::is_same_v<char, typename TIter::value_type>)
     static TIter sread(TIter iter, TSent iter_end, ios_base<char>& io, const locale<char>& loc, signed char* c)
     {
-        if constexpr (N <= 1)
-            throw IOv2::stream_error("Character buffer not enough");
         constexpr std::size_t n = N;
         return istream_extract(iter, iter_end, io, loc, reinterpret_cast<char*>(c), n);
     }

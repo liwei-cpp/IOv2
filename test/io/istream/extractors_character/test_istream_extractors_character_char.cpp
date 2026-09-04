@@ -219,14 +219,38 @@ TEST(IstreamExtractCharacterChar, ALimitOfOneLeavesRoomOnlyForTheTerminator)
         is >> setw(1) >> buf;
         EXPECT_EQ(buf[0], '\0');
         EXPECT_TRUE(is.str_fail());
+        EXPECT_EQ(is.width(), 0);
 
         // Nothing was consumed on the way to the failure.
         is.clear();
         EXPECT_EQ(is.peek(), 'a');
     };
 
+    // A bound of one says the same thing the field width above said, and has to answer the same
+    // way: [istream.extractors]/8 makes n = min(width, N) = 1, so no character fits and the null
+    // goes in the first position. The bound used to refuse before the extractor ran, leaving the
+    // array untouched and the width unspent.
+    auto expect_bound_of_one = []<template <typename, typename> class T>()
+    {
+        T is(mem_device{std::string("hello")});
+
+        char one[1];
+        one[0] = '#';
+        is >> setw(3) >> one;
+        EXPECT_EQ(one[0], '\0');
+        EXPECT_TRUE(is.str_fail());
+        EXPECT_EQ(is.width(), 0);
+
+        is.clear();
+        char next[8] = "";
+        is >> next;
+        EXPECT_STREQ(next, "hello");
+    };
+
     expect_empty.operator()<istream>();
     expect_empty.operator()<iostream>();
+    expect_bound_of_one.operator()<istream>();
+    expect_bound_of_one.operator()<iostream>();
 }
 
 TEST(IstreamExtractCharacterChar, WithSkipwsOffWhitespaceProducesNoToken)
@@ -241,6 +265,47 @@ TEST(IstreamExtractCharacterChar, WithSkipwsOffWhitespaceProducesNoToken)
     }
     {
         istream    is{mem_device{std::string(" text")}, locale<char>("C")};
+        std::string value = "old";
+
+        is >> noskipws >> value;
+        EXPECT_TRUE(is.str_fail());
+        EXPECT_TRUE(value.empty());
+    }
+}
+
+// [istream.extractors]/8 stores the null character "in the first position if no characters were
+// extracted". This was the one failure path that skipped it, so the array kept what it held and
+// the caller's strlen() read past the end of it.
+TEST(IstreamExtractCharacterChar, AnEmptyInputStillTerminatesTheDestination)
+{
+    {
+        istream is{mem_device{std::string("")}, locale<char>("C")};
+        char    value[8] = "old";
+
+        is >> noskipws >> value;
+        EXPECT_TRUE(is.str_fail());
+        EXPECT_STREQ(value, "");
+    }
+    // Drained by an earlier extraction, then cleared so the sentry succeeds again. Without the
+    // clear() the sentry would fail on eofbit and the extractor would never run -- which is the
+    // standard's behaviour too, and is why the terminator is only owed once we are inside it.
+    {
+        istream is{mem_device{std::string("ab")}, locale<char>("C")};
+        char    first[8]  = "";
+        char    second[8] = "old";
+
+        is >> noskipws >> first;
+        EXPECT_STREQ(first, "ab");
+
+        is.clear();
+        is >> noskipws >> second;
+        EXPECT_TRUE(is.str_fail());
+        EXPECT_STREQ(second, "");
+    }
+    // The string overload has always cleared its target on this path; pinned here so the two stay
+    // in step.
+    {
+        istream     is{mem_device{std::string("")}, locale<char>("C")};
         std::string value = "old";
 
         is >> noskipws >> value;

@@ -20,6 +20,8 @@
 
 #include <cstddef>
 #include <ctime>
+#include <limits>
+#include <stdfloat>
 #include <string>
 #include <type_traits>
 
@@ -38,6 +40,67 @@
 #include <IOv2/io/utilities/ostream_operators.h>
 
 #include <gtest/gtest.h>
+
+// Fixtures for section 6. They specialize templates in namespace IOv2, so they sit outside the
+// unnamed namespace below. Each target names a context obtainable a different way, or not at all.
+namespace ctx_fixture
+{
+struct via_default {};
+struct via_maker   {};
+struct via_neither {};
+
+struct ctx_default
+{
+    int n = 0;
+    void convert_to(via_default& ) const {}
+};
+struct ctx_maker
+{
+    int n;
+    explicit ctx_maker(int seed) : n(seed) {}
+    ctx_maker() = delete;
+    void convert_to(via_maker& ) const {}
+};
+struct ctx_neither
+{
+    int n;
+    explicit ctx_neither(int seed) : n(seed) {}
+    ctx_neither() = delete;
+    void convert_to(via_neither& ) const {}
+};
+}
+
+namespace IOv2
+{
+template <typename TChar>
+struct parse_context_type<TChar, ctx_fixture::via_default>
+{ using type = ctx_fixture::ctx_default; };
+
+template <typename TChar>
+struct parse_context_type<TChar, ctx_fixture::via_maker>
+{
+    using type = ctx_fixture::ctx_maker;
+    static type make_parse_context(const ctx_fixture::via_maker&) { return type{0}; }
+};
+
+template <typename TChar>
+struct parse_context_type<TChar, ctx_fixture::via_neither>
+{ using type = ctx_fixture::ctx_neither; };
+
+template <typename TChar, typename TCtx>
+    requires (std::is_same_v<TCtx, ctx_fixture::ctx_default>
+              || std::is_same_v<TCtx, ctx_fixture::ctx_maker>
+              || std::is_same_v<TCtx, ctx_fixture::ctx_neither>)
+struct io_traits<TChar, TCtx>
+{
+    template <typename TIter, std::sentinel_for<TIter> TSent>
+        requires (std::is_same_v<TChar, typename TIter::value_type>)
+    static TIter sread(TIter it, TSent end, ios_base<TChar>& io, const locale<TChar>& loc, TCtx& c)
+    {
+        return io_traits<TChar, int>::sread(it, end, io, loc, c.n);
+    }
+};
+}
 
 namespace
 {
@@ -187,6 +250,13 @@ static_assert(  extractable_rvalue<is_c, IOv2::setw_t> );
 static_assert(  extractable_lvalue<is_c, std::tm> );
 static_assert(  insertable<os_c, std::tm> );
 
+// The dispatch has to *obtain* a context before it can parse into one: make_parse_context if
+// there is one, default construction otherwise. A type with neither used to satisfy the concept
+// and then hard-error inside the operator's body, which made this answer a lie.
+static_assert(  extractable_lvalue<is_c, ctx_fixture::via_default> );
+static_assert(  extractable_lvalue<is_c, ctx_fixture::via_maker>   );
+static_assert( !extractable_lvalue<is_c, ctx_fixture::via_neither> );
+
 // ---------------------------------------------------------------------------------------------
 // 7. The iterator aliases the concepts probe with are the ones the operators really use.
 //
@@ -320,6 +390,45 @@ static_assert( !insertable<os_w, char16_t* volatile>       );
 // `operator>>` for one either.
 static_assert( !extractable_lvalue<is_c, volatile int>   );
 static_assert( !extractable_lvalue<is_c, volatile void*> );
+
+// 10. The C++23 extended floating-point types are admitted only through a standard one.
+//
+// They satisfy is_arithmetic_v but do not promote, so reaching snprintf's %g unchanged was UB.
+// The constraint now takes one only when a standard type represents it exactly. This matrix had
+// no entry for any of them, which is how that went unnoticed.
+#if defined(__STDCPP_FLOAT16_T__)
+static_assert(  insertable<os_c, std::float16_t>          );
+static_assert(  extractable_lvalue<is_c, std::float16_t>  );
+#endif
+#if defined(__STDCPP_BFLOAT16_T__)
+static_assert(  insertable<os_c, std::bfloat16_t>         );
+static_assert(  extractable_lvalue<is_c, std::bfloat16_t> );
+#endif
+#if defined(__STDCPP_FLOAT32_T__)
+static_assert(  insertable<os_c, std::float32_t>          );
+static_assert(  extractable_lvalue<is_c, std::float32_t>  );
+#endif
+#if defined(__STDCPP_FLOAT64_T__)
+static_assert(  insertable<os_c, std::float64_t>          );
+static_assert(  extractable_lvalue<is_c, std::float64_t>  );
+#endif
+
+// float128_t needs 113 mantissa bits, which x87 long double does not have. Spelled as the
+// criterion, not the platform, so the row stays true where long double is IEEE binary128.
+#if defined(__STDCPP_FLOAT128_T__)
+inline constexpr bool f128_has_carrier =
+    std::numeric_limits<long double>::digits >= std::numeric_limits<std::float128_t>::digits;
+static_assert( insertable<os_c, std::float128_t>         == f128_has_carrier );
+static_assert( extractable_lvalue<is_c, std::float128_t> == f128_has_carrier );
+#endif
+
+// The standard three carry themselves, so the relay is an identity cast.
+static_assert(  insertable<os_c, float>               );
+static_assert(  insertable<os_c, double>              );
+static_assert(  insertable<os_c, long double>         );
+static_assert(  extractable_lvalue<is_c, float>       );
+static_assert(  extractable_lvalue<is_c, double>      );
+static_assert(  extractable_lvalue<is_c, long double> );
 }
 
 // The static_asserts above are the test; compiling this file is what passes it. This case

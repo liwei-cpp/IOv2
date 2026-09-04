@@ -152,8 +152,13 @@ TEST(OstreamInsertCharacterChar, ANullCStringIsRefusedWithoutWritingAnything)
         char* nothing = nullptr;
 
         T os{mem_device{""}};
+        os.width(10);
         os << nothing;
         EXPECT_FALSE(static_cast<bool>(os));
+
+        // Refusing early is no excuse for keeping the width: the leftover would pad whatever
+        // the caller inserts after clearing.
+        EXPECT_EQ(os.width(), 0u);
 
         os.flush();
         EXPECT_TRUE(os.device().str().empty());
@@ -295,10 +300,14 @@ TEST(OstreamInsertCharacterChar, AMissingCtypeFacetRejectsCharacterAndNullptrFor
     EXPECT_TRUE(character.str_fail());
     EXPECT_TRUE(character.device().str().empty());
 
+    // The width is owed even here: these throw before reaching the code that spends it, and a
+    // leftover would pad the next, unrelated insertion.
     ostream null_pointer{mem_device{""}, loc};
+    null_pointer.width(10);
     null_pointer << nullptr;
     EXPECT_TRUE(null_pointer.str_fail());
     EXPECT_TRUE(null_pointer.device().str().empty());
+    EXPECT_EQ(null_pointer.width(), 0u);
 }
 
 TEST(OstreamInsertCharacterChar, SignedAndUnsignedCharStringsAreWrittenAsText)
