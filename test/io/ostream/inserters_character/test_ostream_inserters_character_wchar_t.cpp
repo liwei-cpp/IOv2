@@ -162,8 +162,13 @@ TEST(OstreamInsertCharacterWchar, ANullCStringIsRefusedWithoutWritingAnything)
         wchar_t* nothing = nullptr;
 
         T os{mem_device{L""}};
+        os.width(10);
         os << nothing;
         EXPECT_FALSE(static_cast<bool>(os));
+
+        // Refusing early is no excuse for keeping the width: the leftover would pad whatever
+        // the caller inserts after clearing.
+        EXPECT_EQ(os.width(), 0u);
 
         os.flush();
         EXPECT_TRUE(os.device().str().empty());
@@ -355,10 +360,22 @@ TEST(OstreamInsertCharacterWchar, AMissingCtypeFacetRejectsValuesThatNeedWidenin
     EXPECT_TRUE(character.str_fail());
     EXPECT_TRUE(character.device().str().empty());
 
+    // Widening needs the facet, so this throws before reaching the code that spends the width.
+    // The leftover would otherwise pad the next, unrelated insertion.
     ostream string{mem_device{L""}, loc};
+    string.width(10);
     string << "text";
     EXPECT_TRUE(string.str_fail());
     EXPECT_TRUE(string.device().str().empty());
+    EXPECT_EQ(string.width(), 0u);
+
+    // Same function, its null-pointer guard rather than its facet lookup.
+    ostream null_narrow{mem_device{L""}, loc};
+    null_narrow.width(10);
+    null_narrow << static_cast<const char*>(nullptr);
+    EXPECT_TRUE(null_narrow.str_fail());
+    EXPECT_TRUE(null_narrow.device().str().empty());
+    EXPECT_EQ(null_narrow.width(), 0u);
 }
 
 // A volatile key must land in the same specialization as the unqualified one, which
