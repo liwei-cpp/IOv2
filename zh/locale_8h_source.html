@@ -1,0 +1,615 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=11"/>
+<meta name="generator" content="Doxygen 1.9.8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>IOv2: include/IOv2/locale/locale.h 源文件</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="resize.js"></script>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr id="projectrow">
+  <td id="projectalign">
+   <div id="projectname">IOv2
+   </div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 制作者 Doxygen 1.9.8 -->
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+/* @license-end */
+</script>
+<script type="text/javascript" src="menudata.js"></script>
+<script type="text/javascript" src="menu.js"></script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(function() {
+  initMenu('',true,false,'search.php','搜索');
+  $(document).ready(function() { init_search(); });
+});
+/* @license-end */
+</script>
+<div id="main-nav"></div>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(document).ready(function() { init_codefold(0); });
+/* @license-end */
+</script>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(document).ready(function(){initNavTree('locale_8h_source.html',''); initResizable(); });
+/* @license-end */
+</script>
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">载入中...</div>
+<div class="SRStatus" id="Searching">搜索中...</div>
+<div class="SRStatus" id="NoMatches">未找到</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="header">
+  <div class="headertitle"><div class="title">locale.h</div></div>
+</div><!--header-->
+<div class="contents">
+<a href="locale_8h.html">浏览该文件的文档.</a><div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span><span class="comment">// SPDX-FileCopyrightText: 2026 liwei &lt;liwei.cpp@gmail.com&gt;</span></div>
+<div class="line"><a id="l00002" name="l00002"></a><span class="lineno">    2</span><span class="comment">// SPDX-License-Identifier: MIT</span></div>
+<div class="line"><a id="l00003" name="l00003"></a><span class="lineno">    3</span> </div>
+<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span><span class="preprocessor">#pragma once</span></div>
+<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span><span class="preprocessor">#include &lt;<a class="code" href="defs_8h.html">IOv2/common/defs.h</a>&gt;</span></div>
+<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span><span class="preprocessor">#include &lt;<a class="code" href="metafunctions_8h.html">IOv2/common/metafunctions.h</a>&gt;</span></div>
+<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span><span class="preprocessor">#include &lt;<a class="code" href="collate_8h.html">IOv2/facet/collate.h</a>&gt;</span></div>
+<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span><span class="preprocessor">#include &lt;<a class="code" href="ctype_8h.html">IOv2/facet/ctype.h</a>&gt;</span></div>
+<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span><span class="preprocessor">#include &lt;<a class="code" href="facet__common_8h.html">IOv2/facet/facet_common.h</a>&gt;</span></div>
+<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span><span class="preprocessor">#include &lt;<a class="code" href="messages_8h.html">IOv2/facet/messages.h</a>&gt;</span></div>
+<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span><span class="preprocessor">#include &lt;<a class="code" href="monetary_8h.html">IOv2/facet/monetary.h</a>&gt;</span></div>
+<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span><span class="preprocessor">#include &lt;<a class="code" href="numeric_8h.html">IOv2/facet/numeric.h</a>&gt;</span></div>
+<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span><span class="preprocessor">#include &lt;<a class="code" href="timeio_8h.html">IOv2/facet/timeio.h</a>&gt;</span></div>
+<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span><span class="preprocessor">#include &lt;<a class="code" href="ori__facet__buf_8h.html">IOv2/locale/ori_facet_buf.h</a>&gt;</span></div>
+<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span> </div>
+<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span><span class="preprocessor">#include &lt;clocale&gt;</span></div>
+<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span><span class="preprocessor">#include &lt;concepts&gt;</span></div>
+<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span><span class="preprocessor">#include &lt;memory&gt;</span></div>
+<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span><span class="preprocessor">#include &lt;mutex&gt;</span></div>
+<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span><span class="preprocessor">#include &lt;shared_mutex&gt;</span></div>
+<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span><span class="preprocessor">#include &lt;string&gt;</span></div>
+<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span><span class="preprocessor">#include &lt;type_traits&gt;</span></div>
+<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span><span class="preprocessor">#include &lt;unordered_map&gt;</span></div>
+<div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span><span class="preprocessor">#include &lt;utility&gt;</span></div>
+<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span> </div>
+<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span><span class="keyword">namespace </span><a class="code hl_namespace" href="namespaceIOv2.html">IOv2</a></div>
+<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span>{</div>
+<div class="line"><a id="l00131" name="l00131"></a><span class="lineno">  131</span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> TChar&gt;</div>
+<div class="foldopen" id="foldopen00132" data-start="{" data-end="};">
+<div class="line"><a id="l00132" name="l00132"></a><span class="lineno"><a class="line" href="classIOv2_1_1locale.html">  132</a></span><span class="keyword">class </span><a class="code hl_class" href="classIOv2_1_1locale.html">locale</a></div>
+<div class="line"><a id="l00133" name="l00133"></a><span class="lineno">  133</span>{</div>
+<div class="line"><a id="l00158" name="l00158"></a><span class="lineno">  158</span>    <span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt;</div>
+<div class="line"><a id="l00159" name="l00159"></a><span class="lineno">  159</span>    <span class="keyword">struct </span>ft_wrapper;</div>
+<div class="line"><a id="l00160" name="l00160"></a><span class="lineno">  160</span> </div>
+<div class="line"><a id="l00177" name="l00177"></a><span class="lineno">  177</span>    <span class="keyword">template</span> &lt;<span class="keyword">typename</span>... T&gt;</div>
+<div class="line"><a id="l00178" name="l00178"></a><span class="lineno">  178</span>    <span class="keyword">struct </span>ft_wrapper&lt;<a class="code hl_struct" href="structIOv2_1_1facet__create__pack.html">facet_create_pack</a>&lt;T...&gt;&gt;</div>
+<div class="line"><a id="l00179" name="l00179"></a><span class="lineno">  179</span>    {</div>
+<div class="line"><a id="l00180" name="l00180"></a><span class="lineno">  180</span>        <span class="keyword">explicit</span> ft_wrapper(<span class="keyword">const</span> <a class="code hl_class" href="classIOv2_1_1locale.html">locale</a>&amp; <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">l</a>)</div>
+<div class="line"><a id="l00181" name="l00181"></a><span class="lineno">  181</span>            : m_ref(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">l</a>) {}</div>
+<div class="line"><a id="l00182" name="l00182"></a><span class="lineno">  182</span> </div>
+<div class="line"><a id="l00183" name="l00183"></a><span class="lineno">  183</span>        [[<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">nodiscard</a>]] <span class="keywordtype">bool</span> <a class="code hl_function" href="classIOv2_1_1locale.html#a66056281e99b51075841ee5de8add430">has</a>()<span class="keyword"> const</span></div>
+<div class="line"><a id="l00184" name="l00184"></a><span class="lineno">  184</span><span class="keyword">        </span>{</div>
+<div class="line"><a id="l00185" name="l00185"></a><span class="lineno">  185</span>            <span class="keywordflow">return</span> (m_ref.has&lt;T&gt;() &amp;&amp; ...);</div>
+<div class="line"><a id="l00186" name="l00186"></a><span class="lineno">  186</span>        }</div>
+<div class="line"><a id="l00187" name="l00187"></a><span class="lineno">  187</span> </div>
+<div class="line"><a id="l00188" name="l00188"></a><span class="lineno">  188</span>        <span class="keyword">template</span>&lt;<span class="keyword">typename</span> TF&gt;</div>
+<div class="line"><a id="l00189" name="l00189"></a><span class="lineno">  189</span>        std::shared_ptr&lt;TF&gt; <a class="code hl_function" href="classIOv2_1_1locale.html#ab4c6dd69b44d9bb556d4e01bb3063040">get</a>()</div>
+<div class="line"><a id="l00190" name="l00190"></a><span class="lineno">  190</span>        {</div>
+<div class="line"><a id="l00191" name="l00191"></a><span class="lineno">  191</span>            <span class="keywordflow">return</span> get_helper&lt;<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TF</a>, <a class="code hl_struct" href="structIOv2_1_1facet__create__pack.html">facet_create_pack</a>&lt;T...&gt;&gt;();</div>
+<div class="line"><a id="l00192" name="l00192"></a><span class="lineno">  192</span>        }</div>
+<div class="line"><a id="l00193" name="l00193"></a><span class="lineno">  193</span> </div>
+<div class="line"><a id="l00194" name="l00194"></a><span class="lineno">  194</span>    <span class="keyword">private</span>:</div>
+<div class="line"><a id="l00195" name="l00195"></a><span class="lineno">  195</span>        <span class="keyword">template</span>&lt;<span class="keyword">typename</span> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TF</a>, <span class="keyword">typename</span> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TRemArray</a>, <span class="keyword">typename</span>... <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TProcessed</a>&gt;</div>
+<div class="line"><a id="l00196" name="l00196"></a><span class="lineno">  196</span>        std::shared_ptr&lt;TF&gt; get_helper(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TProcessed</a>&amp;&amp;... <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">params</a>)</div>
+<div class="line"><a id="l00197" name="l00197"></a><span class="lineno">  197</span>        {</div>
+<div class="line"><a id="l00198" name="l00198"></a><span class="lineno">  198</span>            <span class="keywordflow">if</span> <span class="keyword">constexpr</span>(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">facet_create_pack_size&lt;TRemArray&gt;</a> &gt; 0)</div>
+<div class="line"><a id="l00199" name="l00199"></a><span class="lineno">  199</span>            {</div>
+<div class="line"><a id="l00200" name="l00200"></a><span class="lineno">  200</span>                <span class="keyword">using </span><a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">head</a> = <span class="keyword">typename</span> <a class="code hl_struct" href="structIOv2_1_1facet__create__pack__head.html">facet_create_pack_head&lt;TRemArray&gt;::type</a>;</div>
+<div class="line"><a id="l00201" name="l00201"></a><span class="lineno">  201</span>                <span class="keyword">using </span><a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">tail</a> = <span class="keyword">typename</span> <a class="code hl_struct" href="structIOv2_1_1facet__create__pack__tail.html">facet_create_pack_tail&lt;TRemArray&gt;::type</a>;</div>
+<div class="line"><a id="l00202" name="l00202"></a><span class="lineno">  202</span> </div>
+<div class="line"><a id="l00203" name="l00203"></a><span class="lineno">  203</span>                std::shared_ptr&lt;head&gt; <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">cur</a> = m_ref.get&lt;<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">head</a>&gt;();</div>
+<div class="line"><a id="l00204" name="l00204"></a><span class="lineno">  204</span>                <span class="keywordflow">if</span> (<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">cur</a>)</div>
+<div class="line"><a id="l00205" name="l00205"></a><span class="lineno">  205</span>                    <span class="keywordflow">return</span> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">get_helper&lt;TF, tail&gt;</a>(std::forward&lt;TProcessed&gt;(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">params</a>)..., std::move(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">cur</a>));</div>
+<div class="line"><a id="l00206" name="l00206"></a><span class="lineno">  206</span>                <span class="keywordflow">else</span></div>
+<div class="line"><a id="l00207" name="l00207"></a><span class="lineno">  207</span>                    <span class="keywordflow">return</span> <span class="keyword">nullptr</span>;</div>
+<div class="line"><a id="l00208" name="l00208"></a><span class="lineno">  208</span>            }</div>
+<div class="line"><a id="l00209" name="l00209"></a><span class="lineno">  209</span>            <span class="keywordflow">else</span></div>
+<div class="line"><a id="l00210" name="l00210"></a><span class="lineno">  210</span>            {</div>
+<div class="line"><a id="l00211" name="l00211"></a><span class="lineno">  211</span>                <span class="keywordflow">return</span> std::make_shared&lt;TF&gt;(std::forward&lt;TProcessed&gt;(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">params</a>)...);</div>
+<div class="line"><a id="l00212" name="l00212"></a><span class="lineno">  212</span>            }</div>
+<div class="line"><a id="l00213" name="l00213"></a><span class="lineno">  213</span>        }</div>
+<div class="line"><a id="l00214" name="l00214"></a><span class="lineno">  214</span> </div>
+<div class="line"><a id="l00215" name="l00215"></a><span class="lineno">  215</span>        <span class="keyword">const</span> <a class="code hl_class" href="classIOv2_1_1locale.html">locale</a>&amp; m_ref; <span class="comment">// NOLINT(cppcoreguidelines-avoid-const-or-ref-data-members)</span></div>
+<div class="line"><a id="l00216" name="l00216"></a><span class="lineno">  216</span>    };</div>
+<div class="line"><a id="l00217" name="l00217"></a><span class="lineno">  217</span> </div>
+<div class="line"><a id="l00236" name="l00236"></a><span class="lineno">  236</span>    <span class="keyword">template</span> &lt;<span class="keyword">typename</span>... T&gt;</div>
+<div class="line"><a id="l00237" name="l00237"></a><span class="lineno">  237</span>    <span class="keyword">struct </span>ft_wrapper&lt;<a class="code hl_struct" href="structIOv2_1_1facet__create__rule.html">facet_create_rule</a>&lt;T...&gt;&gt;</div>
+<div class="line"><a id="l00238" name="l00238"></a><span class="lineno">  238</span>    {</div>
+<div class="line"><a id="l00239" name="l00239"></a><span class="lineno">  239</span>        <span class="keyword">explicit</span> ft_wrapper(<span class="keyword">const</span> <a class="code hl_class" href="classIOv2_1_1locale.html">locale</a>&amp; <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">l</a>)</div>
+<div class="line"><a id="l00240" name="l00240"></a><span class="lineno">  240</span>            : m_ref(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">l</a>) {}</div>
+<div class="line"><a id="l00241" name="l00241"></a><span class="lineno">  241</span> </div>
+<div class="line"><a id="l00242" name="l00242"></a><span class="lineno">  242</span>        [[<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">nodiscard</a>]] <span class="keywordtype">bool</span> <a class="code hl_function" href="classIOv2_1_1locale.html#a66056281e99b51075841ee5de8add430">has</a>()<span class="keyword"> const</span></div>
+<div class="line"><a id="l00243" name="l00243"></a><span class="lineno">  243</span><span class="keyword">        </span>{</div>
+<div class="line"><a id="l00244" name="l00244"></a><span class="lineno">  244</span>            <span class="keywordflow">return</span> has_helper&lt;T...&gt;();</div>
+<div class="line"><a id="l00245" name="l00245"></a><span class="lineno">  245</span>        }</div>
+<div class="line"><a id="l00246" name="l00246"></a><span class="lineno">  246</span> </div>
+<div class="line"><a id="l00247" name="l00247"></a><span class="lineno">  247</span>        <span class="keyword">template</span>&lt;<span class="keyword">typename</span> TF&gt;</div>
+<div class="line"><a id="l00248" name="l00248"></a><span class="lineno">  248</span>        std::shared_ptr&lt;TF&gt; <a class="code hl_function" href="classIOv2_1_1locale.html#ab4c6dd69b44d9bb556d4e01bb3063040">get</a>()</div>
+<div class="line"><a id="l00249" name="l00249"></a><span class="lineno">  249</span>        {</div>
+<div class="line"><a id="l00250" name="l00250"></a><span class="lineno">  250</span>            <span class="keywordflow">return</span> get_helper&lt;<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TF</a>, T...&gt;();</div>
+<div class="line"><a id="l00251" name="l00251"></a><span class="lineno">  251</span>        }</div>
+<div class="line"><a id="l00252" name="l00252"></a><span class="lineno">  252</span> </div>
+<div class="line"><a id="l00253" name="l00253"></a><span class="lineno">  253</span>    <span class="keyword">private</span>:</div>
+<div class="line"><a id="l00254" name="l00254"></a><span class="lineno">  254</span>        <span class="keyword">template</span> &lt;<span class="keyword">typename</span>... <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TRem</a>&gt;</div>
+<div class="line"><a id="l00255" name="l00255"></a><span class="lineno">  255</span>            <span class="keyword">requires</span> (<span class="keyword">sizeof</span>...(TRem) == 0)</div>
+<div class="line"><a id="l00256" name="l00256"></a><span class="lineno">  256</span>        [[<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">nodiscard</a>]] <span class="keywordtype">bool</span> has_helper()<span class="keyword"> const</span></div>
+<div class="line"><a id="l00257" name="l00257"></a><span class="lineno">  257</span><span class="keyword">        </span>{</div>
+<div class="line"><a id="l00258" name="l00258"></a><span class="lineno">  258</span>            <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
+<div class="line"><a id="l00259" name="l00259"></a><span class="lineno">  259</span>        }</div>
+<div class="line"><a id="l00260" name="l00260"></a><span class="lineno">  260</span> </div>
+<div class="line"><a id="l00261" name="l00261"></a><span class="lineno">  261</span>        <span class="keyword">template</span> &lt;<span class="keyword">typename</span> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TC</a>, <span class="keyword">typename</span>... <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TRem</a>&gt;</div>
+<div class="line"><a id="l00262" name="l00262"></a><span class="lineno">  262</span>        [[<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">nodiscard</a>]] <span class="keywordtype">bool</span> has_helper()<span class="keyword"> const</span></div>
+<div class="line"><a id="l00263" name="l00263"></a><span class="lineno">  263</span><span class="keyword">        </span>{</div>
+<div class="line"><a id="l00264" name="l00264"></a><span class="lineno">  264</span>            <span class="keywordflow">if</span> <span class="keyword">constexpr</span>(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">is_nonempty_facet_create_pack&lt;TC&gt;</a>)</div>
+<div class="line"><a id="l00265" name="l00265"></a><span class="lineno">  265</span>            {</div>
+<div class="line"><a id="l00266" name="l00266"></a><span class="lineno">  266</span>                <span class="keyword">auto</span> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">checked</a> = <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">ft_wrapper&lt;TC&gt;</a>(m_ref);</div>
+<div class="line"><a id="l00267" name="l00267"></a><span class="lineno">  267</span>                <span class="keywordflow">if</span> (<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">checked</a>.has()) <span class="keywordflow">return</span> <span class="keyword">true</span>;</div>
+<div class="line"><a id="l00268" name="l00268"></a><span class="lineno">  268</span>                <span class="keywordflow">else</span> <span class="keywordflow">return</span> has_helper&lt;<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TRem</a>...&gt;();</div>
+<div class="line"><a id="l00269" name="l00269"></a><span class="lineno">  269</span>            }</div>
+<div class="line"><a id="l00270" name="l00270"></a><span class="lineno">  270</span>            <span class="keywordflow">else</span></div>
+<div class="line"><a id="l00271" name="l00271"></a><span class="lineno">  271</span>            {</div>
+<div class="line"><a id="l00272" name="l00272"></a><span class="lineno">  272</span>                <span class="keywordflow">if</span> (m_ref.has&lt;<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TC</a>&gt;()) <span class="keywordflow">return</span> <span class="keyword">true</span>;</div>
+<div class="line"><a id="l00273" name="l00273"></a><span class="lineno">  273</span>                <span class="keywordflow">else</span> <span class="keywordflow">return</span> has_helper&lt;<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TRem</a>...&gt;();</div>
+<div class="line"><a id="l00274" name="l00274"></a><span class="lineno">  274</span>            }</div>
+<div class="line"><a id="l00275" name="l00275"></a><span class="lineno">  275</span>        }</div>
+<div class="line"><a id="l00276" name="l00276"></a><span class="lineno">  276</span> </div>
+<div class="line"><a id="l00277" name="l00277"></a><span class="lineno">  277</span>        <span class="keyword">template</span> &lt;<span class="keyword">typename</span> TF&gt;</div>
+<div class="line"><a id="l00278" name="l00278"></a><span class="lineno">  278</span>        std::shared_ptr&lt;TF&gt; get_helper()</div>
+<div class="line"><a id="l00279" name="l00279"></a><span class="lineno">  279</span>        {</div>
+<div class="line"><a id="l00280" name="l00280"></a><span class="lineno">  280</span>            <span class="keywordflow">return</span> <span class="keyword">nullptr</span>;</div>
+<div class="line"><a id="l00281" name="l00281"></a><span class="lineno">  281</span>        }</div>
+<div class="line"><a id="l00282" name="l00282"></a><span class="lineno">  282</span> </div>
+<div class="line"><a id="l00283" name="l00283"></a><span class="lineno">  283</span>        <span class="keyword">template</span> &lt;<span class="keyword">typename</span> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TF</a>, <span class="keyword">typename</span> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TC</a>, <span class="keyword">typename</span>... <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TSub</a>&gt;</div>
+<div class="line"><a id="l00284" name="l00284"></a><span class="lineno">  284</span>        std::shared_ptr&lt;TF&gt; get_helper()</div>
+<div class="line"><a id="l00285" name="l00285"></a><span class="lineno">  285</span>        {</div>
+<div class="line"><a id="l00286" name="l00286"></a><span class="lineno">  286</span>            <span class="keywordflow">if</span> <span class="keyword">constexpr</span>(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">is_nonempty_facet_create_pack&lt;TC&gt;</a>)</div>
+<div class="line"><a id="l00287" name="l00287"></a><span class="lineno">  287</span>            {</div>
+<div class="line"><a id="l00288" name="l00288"></a><span class="lineno">  288</span>                <span class="keyword">auto</span> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">creator</a> = <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">ft_wrapper&lt;TC&gt;</a>(m_ref);</div>
+<div class="line"><a id="l00289" name="l00289"></a><span class="lineno">  289</span> </div>
+<div class="line"><a id="l00290" name="l00290"></a><span class="lineno">  290</span>                std::shared_ptr&lt;TF&gt; <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">obj</a> = <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">creator</a>.template <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">get&lt;TF&gt;</a>();</div>
+<div class="line"><a id="l00291" name="l00291"></a><span class="lineno">  291</span>                <span class="keywordflow">if</span> (<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">obj</a>) <span class="keywordflow">return</span> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">obj</a>;</div>
+<div class="line"><a id="l00292" name="l00292"></a><span class="lineno">  292</span>                <span class="keywordflow">return</span> get_helper&lt;<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TF</a>, <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TSub</a>...&gt;();</div>
+<div class="line"><a id="l00293" name="l00293"></a><span class="lineno">  293</span>            }</div>
+<div class="line"><a id="l00294" name="l00294"></a><span class="lineno">  294</span>            <span class="keywordflow">else</span></div>
+<div class="line"><a id="l00295" name="l00295"></a><span class="lineno">  295</span>            {</div>
+<div class="line"><a id="l00296" name="l00296"></a><span class="lineno">  296</span>                std::shared_ptr&lt;TC&gt; <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">obj</a> = m_ref.get&lt;<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TC</a>&gt;();</div>
+<div class="line"><a id="l00297" name="l00297"></a><span class="lineno">  297</span>                <span class="keywordflow">if</span> (<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">obj</a>)</div>
+<div class="line"><a id="l00298" name="l00298"></a><span class="lineno">  298</span>                    <span class="keywordflow">return</span> std::make_shared&lt;TF&gt;(std::move(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">obj</a>));</div>
+<div class="line"><a id="l00299" name="l00299"></a><span class="lineno">  299</span>                <span class="keywordflow">else</span></div>
+<div class="line"><a id="l00300" name="l00300"></a><span class="lineno">  300</span>                    <span class="keywordflow">return</span> get_helper&lt;<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TF</a>, <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TSub</a>...&gt;();</div>
+<div class="line"><a id="l00301" name="l00301"></a><span class="lineno">  301</span>            }</div>
+<div class="line"><a id="l00302" name="l00302"></a><span class="lineno">  302</span>        }</div>
+<div class="line"><a id="l00303" name="l00303"></a><span class="lineno">  303</span> </div>
+<div class="line"><a id="l00304" name="l00304"></a><span class="lineno">  304</span>        <span class="keyword">const</span> <a class="code hl_class" href="classIOv2_1_1locale.html">locale</a>&amp; m_ref; <span class="comment">// NOLINT(cppcoreguidelines-avoid-const-or-ref-data-members)</span></div>
+<div class="line"><a id="l00305" name="l00305"></a><span class="lineno">  305</span>    };</div>
+<div class="line"><a id="l00306" name="l00306"></a><span class="lineno">  306</span> </div>
+<div class="line"><a id="l00307" name="l00307"></a><span class="lineno">  307</span><span class="keyword">public</span>:</div>
+<div class="foldopen" id="foldopen00358" data-start="{" data-end="}">
+<div class="line"><a id="l00358" name="l00358"></a><span class="lineno"><a class="line" href="classIOv2_1_1locale.html#aaf34ba217f75cb35f0f669f774fdd1c2">  358</a></span>    <span class="keyword">explicit</span> <a class="code hl_function" href="classIOv2_1_1locale.html#aaf34ba217f75cb35f0f669f774fdd1c2">locale</a>(<span class="keyword">const</span> std::string&amp; name = <span class="stringliteral">&quot;&quot;</span>)</div>
+<div class="line"><a id="l00359" name="l00359"></a><span class="lineno">  359</span>    {</div>
+<div class="line"><a id="l00360" name="l00360"></a><span class="lineno">  360</span>        <span class="keywordflow">if</span> (name.empty())</div>
+<div class="line"><a id="l00361" name="l00361"></a><span class="lineno">  361</span>        {</div>
+<div class="line"><a id="l00362" name="l00362"></a><span class="lineno">  362</span>            <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">init&lt;ctype_conf&gt;</a>(<a class="code hl_variable" href="namespaceIOv2.html#a95cfe067d7dce4b9768d23b4593342e5">s_ori_facet_buf</a>.<a class="code hl_function" href="classIOv2_1_1ori__facet__buf.html#ab0116abdc0891832084e2b87b67f4034">locale_name</a>(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">LC_CTYPE</a>));</div>
+<div class="line"><a id="l00363" name="l00363"></a><span class="lineno">  363</span>            <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">init&lt;collate_conf&gt;</a>(<a class="code hl_variable" href="namespaceIOv2.html#a95cfe067d7dce4b9768d23b4593342e5">s_ori_facet_buf</a>.<a class="code hl_function" href="classIOv2_1_1ori__facet__buf.html#ab0116abdc0891832084e2b87b67f4034">locale_name</a>(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">LC_COLLATE</a>));</div>
+<div class="line"><a id="l00364" name="l00364"></a><span class="lineno">  364</span>            <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">init&lt;monetary_conf&gt;</a>(<a class="code hl_variable" href="namespaceIOv2.html#a95cfe067d7dce4b9768d23b4593342e5">s_ori_facet_buf</a>.<a class="code hl_function" href="classIOv2_1_1ori__facet__buf.html#ab0116abdc0891832084e2b87b67f4034">locale_name</a>(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">LC_MONETARY</a>));</div>
+<div class="line"><a id="l00365" name="l00365"></a><span class="lineno">  365</span>            <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">init&lt;numeric_conf&gt;</a>(<a class="code hl_variable" href="namespaceIOv2.html#a95cfe067d7dce4b9768d23b4593342e5">s_ori_facet_buf</a>.<a class="code hl_function" href="classIOv2_1_1ori__facet__buf.html#ab0116abdc0891832084e2b87b67f4034">locale_name</a>(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">LC_NUMERIC</a>));</div>
+<div class="line"><a id="l00366" name="l00366"></a><span class="lineno">  366</span>            <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">init&lt;timeio_conf&gt;</a>(<a class="code hl_variable" href="namespaceIOv2.html#a95cfe067d7dce4b9768d23b4593342e5">s_ori_facet_buf</a>.<a class="code hl_function" href="classIOv2_1_1ori__facet__buf.html#ab0116abdc0891832084e2b87b67f4034">locale_name</a>(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">LC_TIME</a>));</div>
+<div class="line"><a id="l00367" name="l00367"></a><span class="lineno">  367</span>        }</div>
+<div class="line"><a id="l00368" name="l00368"></a><span class="lineno">  368</span>        <span class="keywordflow">else</span></div>
+<div class="line"><a id="l00369" name="l00369"></a><span class="lineno">  369</span>        {</div>
+<div class="line"><a id="l00370" name="l00370"></a><span class="lineno">  370</span>            <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">init&lt;ctype_conf&gt;</a>(name);</div>
+<div class="line"><a id="l00371" name="l00371"></a><span class="lineno">  371</span>            <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">init&lt;collate_conf&gt;</a>(name);</div>
+<div class="line"><a id="l00372" name="l00372"></a><span class="lineno">  372</span>            <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">init&lt;monetary_conf&gt;</a>(name);</div>
+<div class="line"><a id="l00373" name="l00373"></a><span class="lineno">  373</span>            <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">init&lt;numeric_conf&gt;</a>(name);</div>
+<div class="line"><a id="l00374" name="l00374"></a><span class="lineno">  374</span>            <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">init&lt;timeio_conf&gt;</a>(name);</div>
+<div class="line"><a id="l00375" name="l00375"></a><span class="lineno">  375</span>        }</div>
+<div class="line"><a id="l00376" name="l00376"></a><span class="lineno">  376</span>    }</div>
+</div>
+<div class="line"><a id="l00377" name="l00377"></a><span class="lineno">  377</span> </div>
+<div class="foldopen" id="foldopen00396" data-start="{" data-end="}">
+<div class="line"><a id="l00396" name="l00396"></a><span class="lineno"><a class="line" href="classIOv2_1_1locale.html#a7b711197706932a597adebb9e83b49ce">  396</a></span>    <a class="code hl_function" href="classIOv2_1_1locale.html#a7b711197706932a597adebb9e83b49ce">locale</a>(<span class="keyword">const</span> <a class="code hl_class" href="classIOv2_1_1locale.html">locale</a>&amp; <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">val</a>)</div>
+<div class="line"><a id="l00397" name="l00397"></a><span class="lineno">  397</span>    {</div>
+<div class="line"><a id="l00398" name="l00398"></a><span class="lineno">  398</span>        std::shared_lock <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">g</a>(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">val</a>.m_facet_mutex);</div>
+<div class="line"><a id="l00399" name="l00399"></a><span class="lineno">  399</span>        m_facet_confs = <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">val</a>.m_facet_confs; <span class="comment">// NOLINT(cppcoreguidelines-prefer-member-initializer)</span></div>
+<div class="line"><a id="l00400" name="l00400"></a><span class="lineno">  400</span>        m_facets = <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">val</a>.m_facets; <span class="comment">// NOLINT(cppcoreguidelines-prefer-member-initializer)</span></div>
+<div class="line"><a id="l00401" name="l00401"></a><span class="lineno">  401</span>    }</div>
+</div>
+<div class="line"><a id="l00402" name="l00402"></a><span class="lineno">  402</span> </div>
+<div class="foldopen" id="foldopen00421" data-start="{" data-end="}">
+<div class="line"><a id="l00421" name="l00421"></a><span class="lineno"><a class="line" href="classIOv2_1_1locale.html#aee822e700ac27152fc989de281271d15">  421</a></span>    <a class="code hl_function" href="classIOv2_1_1locale.html#aee822e700ac27152fc989de281271d15">locale</a>(<a class="code hl_class" href="classIOv2_1_1locale.html">locale</a>&amp;&amp; <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">val</a>) <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">noexcept</a></div>
+<div class="line"><a id="l00422" name="l00422"></a><span class="lineno">  422</span>        : m_facet_confs(std::move(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">val</a>.m_facet_confs)),</div>
+<div class="line"><a id="l00423" name="l00423"></a><span class="lineno">  423</span>          m_facets(std::move(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">val</a>.m_facets))</div>
+<div class="line"><a id="l00424" name="l00424"></a><span class="lineno">  424</span>    {</div>
+<div class="line"><a id="l00425" name="l00425"></a><span class="lineno">  425</span>    }</div>
+</div>
+<div class="line"><a id="l00426" name="l00426"></a><span class="lineno">  426</span> </div>
+<div class="foldopen" id="foldopen00459" data-start="{" data-end="}">
+<div class="line"><a id="l00459" name="l00459"></a><span class="lineno"><a class="line" href="classIOv2_1_1locale.html#ae6b8c1c2b893e09a458a93d1a3d2dc3a">  459</a></span>    <a class="code hl_class" href="classIOv2_1_1locale.html">locale</a>&amp; <a class="code hl_function" href="classIOv2_1_1locale.html#ae6b8c1c2b893e09a458a93d1a3d2dc3a">operator=</a>(<span class="keyword">const</span> <a class="code hl_class" href="classIOv2_1_1locale.html">locale</a>&amp; <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">val</a>)</div>
+<div class="line"><a id="l00460" name="l00460"></a><span class="lineno">  460</span>    {</div>
+<div class="line"><a id="l00461" name="l00461"></a><span class="lineno">  461</span>        <span class="keywordflow">if</span> (<span class="keyword">this</span> == &amp;<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">val</a>) <span class="keywordflow">return</span> *<span class="keyword">this</span>;</div>
+<div class="line"><a id="l00462" name="l00462"></a><span class="lineno">  462</span>        <span class="keyword">decltype</span>(m_facet_confs) <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">confs</a>;</div>
+<div class="line"><a id="l00463" name="l00463"></a><span class="lineno">  463</span>        <span class="keyword">decltype</span>(m_facets)      <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">facets</a>;</div>
+<div class="line"><a id="l00464" name="l00464"></a><span class="lineno">  464</span>        {</div>
+<div class="line"><a id="l00465" name="l00465"></a><span class="lineno">  465</span>            std::shared_lock <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">src</a>(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">val</a>.m_facet_mutex);</div>
+<div class="line"><a id="l00466" name="l00466"></a><span class="lineno">  466</span>            <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">confs</a>  = <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">val</a>.m_facet_confs;</div>
+<div class="line"><a id="l00467" name="l00467"></a><span class="lineno">  467</span>            <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">facets</a> = <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">val</a>.m_facets;</div>
+<div class="line"><a id="l00468" name="l00468"></a><span class="lineno">  468</span>        }</div>
+<div class="line"><a id="l00469" name="l00469"></a><span class="lineno">  469</span>        {</div>
+<div class="line"><a id="l00470" name="l00470"></a><span class="lineno">  470</span>            std::unique_lock <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">dst</a>(m_facet_mutex);</div>
+<div class="line"><a id="l00471" name="l00471"></a><span class="lineno">  471</span>            m_facet_confs = std::move(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">confs</a>);</div>
+<div class="line"><a id="l00472" name="l00472"></a><span class="lineno">  472</span>            m_facets      = std::move(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">facets</a>);</div>
+<div class="line"><a id="l00473" name="l00473"></a><span class="lineno">  473</span>        }</div>
+<div class="line"><a id="l00474" name="l00474"></a><span class="lineno">  474</span>        <span class="keywordflow">return</span> *<span class="keyword">this</span>;</div>
+<div class="line"><a id="l00475" name="l00475"></a><span class="lineno">  475</span>    }</div>
+</div>
+<div class="line"><a id="l00476" name="l00476"></a><span class="lineno">  476</span> </div>
+<div class="foldopen" id="foldopen00497" data-start="{" data-end="}">
+<div class="line"><a id="l00497" name="l00497"></a><span class="lineno"><a class="line" href="classIOv2_1_1locale.html#a6e109fead5faa00b9c50c754fd150953">  497</a></span>    <a class="code hl_class" href="classIOv2_1_1locale.html">locale</a>&amp; <a class="code hl_function" href="classIOv2_1_1locale.html#a6e109fead5faa00b9c50c754fd150953">operator=</a>(<a class="code hl_class" href="classIOv2_1_1locale.html">locale</a>&amp;&amp; <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">val</a>) <span class="keyword">noexcept</span></div>
+<div class="line"><a id="l00498" name="l00498"></a><span class="lineno">  498</span>    {</div>
+<div class="line"><a id="l00499" name="l00499"></a><span class="lineno">  499</span>        <span class="keywordflow">if</span> (<span class="keyword">this</span> == &amp;<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">val</a>) <span class="keywordflow">return</span> *<span class="keyword">this</span>;</div>
+<div class="line"><a id="l00500" name="l00500"></a><span class="lineno">  500</span>        m_facet_confs = std::move(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">val</a>.m_facet_confs);</div>
+<div class="line"><a id="l00501" name="l00501"></a><span class="lineno">  501</span>        m_facets = std::move(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">val</a>.m_facets);</div>
+<div class="line"><a id="l00502" name="l00502"></a><span class="lineno">  502</span>        <span class="keywordflow">return</span> *<span class="keyword">this</span>;</div>
+<div class="line"><a id="l00503" name="l00503"></a><span class="lineno">  503</span>    }</div>
+</div>
+<div class="line"><a id="l00504" name="l00504"></a><span class="lineno">  504</span> </div>
+<div class="line"><a id="l00505" name="l00505"></a><span class="lineno"><a class="line" href="classIOv2_1_1locale.html#a73afbbe4e918bf8cef94cafe87efc6ac">  505</a></span>    <a class="code hl_function" href="classIOv2_1_1locale.html#a73afbbe4e918bf8cef94cafe87efc6ac">~locale</a>() = <span class="keywordflow">default</span>;</div>
+<div class="line"><a id="l00506" name="l00506"></a><span class="lineno">  506</span> </div>
+<div class="foldopen" id="foldopen00536" data-start="{" data-end="}">
+<div class="line"><a id="l00536" name="l00536"></a><span class="lineno"><a class="line" href="classIOv2_1_1locale.html#ae38e747572f6c9657c016cc08b5ff2cd">  536</a></span>    <a class="code hl_class" href="classIOv2_1_1locale.html">locale</a> <a class="code hl_function" href="classIOv2_1_1locale.html#ae38e747572f6c9657c016cc08b5ff2cd">involve</a>(std::shared_ptr&lt;abs_ft&gt; <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">ft</a>)<span class="keyword"> const</span></div>
+<div class="line"><a id="l00537" name="l00537"></a><span class="lineno">  537</span><span class="keyword">    </span>{</div>
+<div class="line"><a id="l00538" name="l00538"></a><span class="lineno">  538</span>        <span class="keywordflow">if</span> (!<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">ft</a>) <span class="keywordflow">throw</span> <a class="code hl_struct" href="structIOv2_1_1stream__error.html">stream_error</a>(<span class="stringliteral">&quot;cannot add empty facet pointer into locale.&quot;</span>);</div>
+<div class="line"><a id="l00539" name="l00539"></a><span class="lineno">  539</span> </div>
+<div class="line"><a id="l00540" name="l00540"></a><span class="lineno">  540</span>        <a class="code hl_class" href="classIOv2_1_1locale.html">locale</a> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">res</a>(*<span class="keyword">this</span>);</div>
+<div class="line"><a id="l00541" name="l00541"></a><span class="lineno">  541</span>        <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">res</a>.m_facet_confs[<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">ft</a>-&gt;id()] = std::move(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">ft</a>);</div>
+<div class="line"><a id="l00542" name="l00542"></a><span class="lineno">  542</span>        <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">res</a>.m_facets.clear();</div>
+<div class="line"><a id="l00543" name="l00543"></a><span class="lineno">  543</span>        <span class="keywordflow">return</span> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">res</a>;</div>
+<div class="line"><a id="l00544" name="l00544"></a><span class="lineno">  544</span>    }</div>
+</div>
+<div class="line"><a id="l00545" name="l00545"></a><span class="lineno">  545</span> </div>
+<div class="foldopen" id="foldopen00611" data-start="{" data-end="}">
+<div class="line"><a id="l00611" name="l00611"></a><span class="lineno"><a class="line" href="classIOv2_1_1locale.html#a65163015a4b67c43e1f85d0e3df666a4">  611</a></span>    <a class="code hl_class" href="classIOv2_1_1locale.html">locale</a> <a class="code hl_function" href="classIOv2_1_1locale.html#a65163015a4b67c43e1f85d0e3df666a4">involve_msg</a>(<span class="keyword">const</span> std::string&amp; domain, <span class="keyword">const</span> std::string&amp; lang = <span class="stringliteral">&quot;&quot;</span>,</div>
+<div class="line"><a id="l00612" name="l00612"></a><span class="lineno">  612</span>                       <span class="keywordtype">bool</span> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">throw_if_fail</a> = <span class="keyword">false</span>) <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">requires</a> (!<a class="code hl_namespace" href="namespacestd.html">std</a>::<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">is_same_v</a>&lt;<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a>, <span class="keywordtype">char</span>&gt;)</div>
+<div class="line"><a id="l00613" name="l00613"></a><span class="lineno">  613</span>    {</div>
+<div class="line"><a id="l00614" name="l00614"></a><span class="lineno">  614</span>        <span class="comment">// messages_conf&lt;TChar&gt; is only specialized for char8_t, char32_t and</span></div>
+<div class="line"><a id="l00615" name="l00615"></a><span class="lineno">  615</span>        <span class="comment">// UTF-32 wchar_t (plus the char overload above); for char16_t or a</span></div>
+<div class="line"><a id="l00616" name="l00616"></a><span class="lineno">  616</span>        <span class="comment">// non-UTF-32 wchar_t it stays incomplete. Reject those here with a clear</span></div>
+<div class="line"><a id="l00617" name="l00617"></a><span class="lineno">  617</span>        <span class="comment">// message instead of an opaque &quot;incomplete type&quot; error from make_shared</span></div>
+<div class="line"><a id="l00618" name="l00618"></a><span class="lineno">  618</span>        <span class="comment">// below. Safe as a completeness check because messages_conf&lt;TChar&gt;&#39;s</span></div>
+<div class="line"><a id="l00619" name="l00619"></a><span class="lineno">  619</span>        <span class="comment">// completeness is fixed program-wide (a type either has a specialization</span></div>
+<div class="line"><a id="l00620" name="l00620"></a><span class="lineno">  620</span>        <span class="comment">// everywhere or nowhere).</span></div>
+<div class="line"><a id="l00621" name="l00621"></a><span class="lineno">  621</span>        <span class="keyword">static_assert</span>(<span class="keyword">requires</span> { <span class="keyword">sizeof</span>(<a class="code hl_class" href="classIOv2_1_1messages__conf.html">messages_conf&lt;TChar&gt;</a>); },</div>
+<div class="line"><a id="l00622" name="l00622"></a><span class="lineno">  622</span>                      <span class="stringliteral">&quot;involve_msg: messages translation is unsupported for this character &quot;</span></div>
+<div class="line"><a id="l00623" name="l00623"></a><span class="lineno">  623</span>                      <span class="stringliteral">&quot;type -- no messages_conf&lt;TChar&gt; specialization exists (e.g. char16_t, &quot;</span></div>
+<div class="line"><a id="l00624" name="l00624"></a><span class="lineno">  624</span>                      <span class="stringliteral">&quot;or wchar_t on a non-UTF-32 platform).&quot;</span>);</div>
+<div class="line"><a id="l00625" name="l00625"></a><span class="lineno">  625</span>        <span class="keyword">const</span> std::string filtered_lang = <a class="code hl_class" href="classIOv2_1_1base__ft.html">base_ft&lt;messages&gt;::filter_lang</a>(domain, lang);</div>
+<div class="line"><a id="l00626" name="l00626"></a><span class="lineno">  626</span>        <span class="keyword">const</span> std::string dirname = <a class="code hl_class" href="classIOv2_1_1base__ft.html">base_ft&lt;messages&gt;::get_dirname</a>(domain);</div>
+<div class="line"><a id="l00627" name="l00627"></a><span class="lineno">  627</span>        <span class="keyword">auto</span> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">ft</a> = <a class="code hl_variable" href="namespaceIOv2.html#a95cfe067d7dce4b9768d23b4593342e5">s_ori_facet_buf</a>.<a class="code hl_function" href="classIOv2_1_1ori__facet__buf.html#a34b5402cb38a3e2dd66abb1049a54f01">try_get_msg</a>&lt;<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a>&gt;(domain, filtered_lang, dirname);</div>
+<div class="line"><a id="l00628" name="l00628"></a><span class="lineno">  628</span>        <span class="keywordflow">if</span> (!<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">ft</a>)</div>
+<div class="line"><a id="l00629" name="l00629"></a><span class="lineno">  629</span>        {</div>
+<div class="line"><a id="l00630" name="l00630"></a><span class="lineno">  630</span>            <span class="comment">// Build strictly so a load failure surfaces as an exception, and intern only</span></div>
+<div class="line"><a id="l00631" name="l00631"></a><span class="lineno">  631</span>            <span class="comment">// on success: a degraded (load-failed) facet is never cached, so a later</span></div>
+<div class="line"><a id="l00632" name="l00632"></a><span class="lineno">  632</span>            <span class="comment">// throw_if_fail=true call re-attempts the load and can still throw.</span></div>
+<div class="line"><a id="l00633" name="l00633"></a><span class="lineno">  633</span>            <span class="keywordflow">try</span></div>
+<div class="line"><a id="l00634" name="l00634"></a><span class="lineno">  634</span>            {</div>
+<div class="line"><a id="l00635" name="l00635"></a><span class="lineno">  635</span>                <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">ft</a> = std::make_shared&lt;messages_conf&lt;TChar&gt;&gt;(domain, filtered_lang, dirname, <span class="keyword">true</span>);</div>
+<div class="line"><a id="l00636" name="l00636"></a><span class="lineno">  636</span>                <span class="comment">// Caching is separate from the load: a cache-insert failure (e.g. an</span></div>
+<div class="line"><a id="l00637" name="l00637"></a><span class="lineno">  637</span>                <span class="comment">// allocation failure while interning) must never degrade or drop a</span></div>
+<div class="line"><a id="l00638" name="l00638"></a><span class="lineno">  638</span>                <span class="comment">// successfully-loaded facet. On such a failure keep it, just uncached.</span></div>
+<div class="line"><a id="l00639" name="l00639"></a><span class="lineno">  639</span>                <span class="keywordflow">try</span> { <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">ft</a> = <a class="code hl_variable" href="namespaceIOv2.html#a95cfe067d7dce4b9768d23b4593342e5">s_ori_facet_buf</a>.<a class="code hl_function" href="classIOv2_1_1ori__facet__buf.html#a6dc1760bd86f622fcfb5fc163fe1c9c7">put_msg</a>&lt;<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a>&gt;(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">ft</a>, domain, filtered_lang, dirname); }</div>
+<div class="line"><a id="l00640" name="l00640"></a><span class="lineno">  640</span>                <span class="keywordflow">catch</span> (...) {} <span class="comment">// NOLINT(bugprone-empty-catch)</span></div>
+<div class="line"><a id="l00641" name="l00641"></a><span class="lineno">  641</span>            }</div>
+<div class="line"><a id="l00642" name="l00642"></a><span class="lineno">  642</span>            <span class="keywordflow">catch</span> (...)</div>
+<div class="line"><a id="l00643" name="l00643"></a><span class="lineno">  643</span>            {</div>
+<div class="line"><a id="l00644" name="l00644"></a><span class="lineno">  644</span>                <span class="keywordflow">if</span> (<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">throw_if_fail</a>) <span class="keywordflow">throw</span>;</div>
+<div class="line"><a id="l00645" name="l00645"></a><span class="lineno">  645</span>                <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">ft</a> = std::make_shared&lt;messages_conf&lt;TChar&gt;&gt;(domain, filtered_lang, dirname, <span class="keyword">false</span>);</div>
+<div class="line"><a id="l00646" name="l00646"></a><span class="lineno">  646</span>            }</div>
+<div class="line"><a id="l00647" name="l00647"></a><span class="lineno">  647</span>        }</div>
+<div class="line"><a id="l00648" name="l00648"></a><span class="lineno">  648</span> </div>
+<div class="line"><a id="l00649" name="l00649"></a><span class="lineno">  649</span>        <span class="comment">// At most one messages facet per locale (keyed by the single messages_conf</span></div>
+<div class="line"><a id="l00650" name="l00650"></a><span class="lineno">  650</span>        <span class="comment">// type id). If *this already carries one, this replaces it in the returned</span></div>
+<div class="line"><a id="l00651" name="l00651"></a><span class="lineno">  651</span>        <span class="comment">// copy -- matching involve()&#39;s same-id replace semantics; *this is unchanged.</span></div>
+<div class="line"><a id="l00652" name="l00652"></a><span class="lineno">  652</span>        <a class="code hl_class" href="classIOv2_1_1locale.html">locale</a> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">res</a>(*<span class="keyword">this</span>);</div>
+<div class="line"><a id="l00653" name="l00653"></a><span class="lineno">  653</span>        <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">res</a>.m_facet_confs[<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">ft</a>-&gt;id()] = std::move(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">ft</a>);</div>
+<div class="line"><a id="l00654" name="l00654"></a><span class="lineno">  654</span>        <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">res</a>.m_facets.clear();</div>
+<div class="line"><a id="l00655" name="l00655"></a><span class="lineno">  655</span>        <span class="keywordflow">return</span> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">res</a>;</div>
+<div class="line"><a id="l00656" name="l00656"></a><span class="lineno">  656</span>    }</div>
+</div>
+<div class="line"><a id="l00657" name="l00657"></a><span class="lineno">  657</span> </div>
+<div class="foldopen" id="foldopen00721" data-start="{" data-end="}">
+<div class="line"><a id="l00721" name="l00721"></a><span class="lineno"><a class="line" href="classIOv2_1_1locale.html#a5fd260d87b20a937fea69faf88d638bb">  721</a></span>    <a class="code hl_class" href="classIOv2_1_1locale.html">locale</a> <a class="code hl_function" href="classIOv2_1_1locale.html#a5fd260d87b20a937fea69faf88d638bb">involve_msg</a>(<span class="keyword">const</span> std::string&amp; domain, <span class="keyword">const</span> std::string&amp; lang = <span class="stringliteral">&quot;&quot;</span>, <span class="comment">// NOLINT(bugprone-easily-swappable-parameters)</span></div>
+<div class="line"><a id="l00722" name="l00722"></a><span class="lineno">  722</span>                       <span class="keyword">const</span> std::string&amp; cvt = <span class="stringliteral">&quot;&quot;</span>, <span class="keywordtype">bool</span> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">throw_if_fail</a> = <span class="keyword">false</span>) <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">requires</a> (<a class="code hl_namespace" href="namespacestd.html">std</a>::<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">is_same_v</a>&lt;<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a>, <span class="keywordtype">char</span>&gt;)</div>
+<div class="line"><a id="l00723" name="l00723"></a><span class="lineno">  723</span>    {</div>
+<div class="line"><a id="l00724" name="l00724"></a><span class="lineno">  724</span>        <span class="keyword">const</span> std::string filtered_lang = <a class="code hl_class" href="classIOv2_1_1base__ft.html">base_ft&lt;messages&gt;::filter_lang</a>(domain, lang);</div>
+<div class="line"><a id="l00725" name="l00725"></a><span class="lineno">  725</span>        <span class="comment">// Resolve the encoding up front and use it consistently as both the cache</span></div>
+<div class="line"><a id="l00726" name="l00726"></a><span class="lineno">  726</span>        <span class="comment">// key and the construction argument. An empty cvt maps to the (stable,</span></div>
+<div class="line"><a id="l00727" name="l00727"></a><span class="lineno">  727</span>        <span class="comment">// env-derived) CTYPE name; keying by this effective value -- rather than by</span></div>
+<div class="line"><a id="l00728" name="l00728"></a><span class="lineno">  728</span>        <span class="comment">// the raw cvt -- ensures the cached facet is always looked up under the</span></div>
+<div class="line"><a id="l00729" name="l00729"></a><span class="lineno">  729</span>        <span class="comment">// exact encoding it was built with, and lets an explicit cvt equal to the</span></div>
+<div class="line"><a id="l00730" name="l00730"></a><span class="lineno">  730</span>        <span class="comment">// CTYPE name share the same cache entry as the empty-cvt case.</span></div>
+<div class="line"><a id="l00731" name="l00731"></a><span class="lineno">  731</span>        <span class="keyword">const</span> std::string <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">effective_cvt</a> = cvt.empty() ? <a class="code hl_variable" href="namespaceIOv2.html#a95cfe067d7dce4b9768d23b4593342e5">s_ori_facet_buf</a>.<a class="code hl_function" href="classIOv2_1_1ori__facet__buf.html#ab0116abdc0891832084e2b87b67f4034">locale_name</a>(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">LC_CTYPE</a>) : cvt;</div>
+<div class="line"><a id="l00732" name="l00732"></a><span class="lineno">  732</span>        <span class="keyword">const</span> std::string dirname = <a class="code hl_class" href="classIOv2_1_1base__ft.html">base_ft&lt;messages&gt;::get_dirname</a>(domain);</div>
+<div class="line"><a id="l00733" name="l00733"></a><span class="lineno">  733</span>        <span class="keyword">auto</span> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">ft</a> = <a class="code hl_variable" href="namespaceIOv2.html#a95cfe067d7dce4b9768d23b4593342e5">s_ori_facet_buf</a>.<a class="code hl_function" href="classIOv2_1_1ori__facet__buf.html#a34b5402cb38a3e2dd66abb1049a54f01">try_get_msg</a>&lt;<span class="keywordtype">char</span>&gt;(domain, filtered_lang, dirname, <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">effective_cvt</a>);</div>
+<div class="line"><a id="l00734" name="l00734"></a><span class="lineno">  734</span>        <span class="keywordflow">if</span> (!<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">ft</a>)</div>
+<div class="line"><a id="l00735" name="l00735"></a><span class="lineno">  735</span>        {</div>
+<div class="line"><a id="l00736" name="l00736"></a><span class="lineno">  736</span>            <span class="comment">// Build strictly so a load failure surfaces as an exception, and intern only</span></div>
+<div class="line"><a id="l00737" name="l00737"></a><span class="lineno">  737</span>            <span class="comment">// on success: a degraded (load-failed) facet is never cached, so a later</span></div>
+<div class="line"><a id="l00738" name="l00738"></a><span class="lineno">  738</span>            <span class="comment">// throw_if_fail=true call re-attempts the load and can still throw.</span></div>
+<div class="line"><a id="l00739" name="l00739"></a><span class="lineno">  739</span>            <span class="keywordflow">try</span></div>
+<div class="line"><a id="l00740" name="l00740"></a><span class="lineno">  740</span>            {</div>
+<div class="line"><a id="l00741" name="l00741"></a><span class="lineno">  741</span>                <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">ft</a> = std::make_shared&lt;messages_conf&lt;char&gt;&gt;(domain, filtered_lang, <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">effective_cvt</a>, dirname, <span class="keyword">true</span>);</div>
+<div class="line"><a id="l00742" name="l00742"></a><span class="lineno">  742</span>                <span class="comment">// Caching is separate from the load: a cache-insert failure (e.g. an</span></div>
+<div class="line"><a id="l00743" name="l00743"></a><span class="lineno">  743</span>                <span class="comment">// allocation failure while interning) must never degrade or drop a</span></div>
+<div class="line"><a id="l00744" name="l00744"></a><span class="lineno">  744</span>                <span class="comment">// successfully-loaded facet. On such a failure keep it, just uncached.</span></div>
+<div class="line"><a id="l00745" name="l00745"></a><span class="lineno">  745</span>                <span class="keywordflow">try</span> { <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">ft</a> = <a class="code hl_variable" href="namespaceIOv2.html#a95cfe067d7dce4b9768d23b4593342e5">s_ori_facet_buf</a>.<a class="code hl_function" href="classIOv2_1_1ori__facet__buf.html#a6dc1760bd86f622fcfb5fc163fe1c9c7">put_msg</a>&lt;<span class="keywordtype">char</span>&gt;(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">ft</a>, domain, filtered_lang, dirname, <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">effective_cvt</a>); }</div>
+<div class="line"><a id="l00746" name="l00746"></a><span class="lineno">  746</span>                <span class="keywordflow">catch</span> (...) {} <span class="comment">// NOLINT(bugprone-empty-catch)</span></div>
+<div class="line"><a id="l00747" name="l00747"></a><span class="lineno">  747</span>            }</div>
+<div class="line"><a id="l00748" name="l00748"></a><span class="lineno">  748</span>            <span class="keywordflow">catch</span> (...)</div>
+<div class="line"><a id="l00749" name="l00749"></a><span class="lineno">  749</span>            {</div>
+<div class="line"><a id="l00750" name="l00750"></a><span class="lineno">  750</span>                <span class="keywordflow">if</span> (<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">throw_if_fail</a>) <span class="keywordflow">throw</span>;</div>
+<div class="line"><a id="l00751" name="l00751"></a><span class="lineno">  751</span>                <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">ft</a> = std::make_shared&lt;messages_conf&lt;char&gt;&gt;(domain, filtered_lang, <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">effective_cvt</a>, dirname, <span class="keyword">false</span>);</div>
+<div class="line"><a id="l00752" name="l00752"></a><span class="lineno">  752</span>            }</div>
+<div class="line"><a id="l00753" name="l00753"></a><span class="lineno">  753</span>        }</div>
+<div class="line"><a id="l00754" name="l00754"></a><span class="lineno">  754</span> </div>
+<div class="line"><a id="l00755" name="l00755"></a><span class="lineno">  755</span>        <span class="comment">// At most one messages facet per locale (keyed by the single messages_conf</span></div>
+<div class="line"><a id="l00756" name="l00756"></a><span class="lineno">  756</span>        <span class="comment">// type id). If *this already carries one, this replaces it in the returned</span></div>
+<div class="line"><a id="l00757" name="l00757"></a><span class="lineno">  757</span>        <span class="comment">// copy -- matching involve()&#39;s same-id replace semantics; *this is unchanged.</span></div>
+<div class="line"><a id="l00758" name="l00758"></a><span class="lineno">  758</span>        <a class="code hl_class" href="classIOv2_1_1locale.html">locale</a> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">res</a>(*<span class="keyword">this</span>);</div>
+<div class="line"><a id="l00759" name="l00759"></a><span class="lineno">  759</span>        <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">res</a>.m_facet_confs[<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">ft</a>-&gt;id()] = std::move(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">ft</a>);</div>
+<div class="line"><a id="l00760" name="l00760"></a><span class="lineno">  760</span>        <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">res</a>.m_facets.clear();</div>
+<div class="line"><a id="l00761" name="l00761"></a><span class="lineno">  761</span>        <span class="keywordflow">return</span> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">res</a>;</div>
+<div class="line"><a id="l00762" name="l00762"></a><span class="lineno">  762</span>    }</div>
+</div>
+<div class="line"><a id="l00763" name="l00763"></a><span class="lineno">  763</span> </div>
+<div class="line"><a id="l00787" name="l00787"></a><span class="lineno">  787</span>    <span class="keyword">template</span> &lt;std::derived_from&lt;abs_ft&gt; TF&gt;</div>
+<div class="foldopen" id="foldopen00788" data-start="{" data-end="}">
+<div class="line"><a id="l00788" name="l00788"></a><span class="lineno"><a class="line" href="classIOv2_1_1locale.html#a9c07f0642c50f2baeb4b09c3ca80b078">  788</a></span>    <a class="code hl_class" href="classIOv2_1_1locale.html">locale</a> <a class="code hl_function" href="classIOv2_1_1locale.html#a9c07f0642c50f2baeb4b09c3ca80b078">remove</a>()<span class="keyword"> const</span></div>
+<div class="line"><a id="l00789" name="l00789"></a><span class="lineno">  789</span><span class="keyword">    </span>{</div>
+<div class="line"><a id="l00790" name="l00790"></a><span class="lineno">  790</span>        <a class="code hl_class" href="classIOv2_1_1locale.html">locale</a> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">res</a>(*<span class="keyword">this</span>);</div>
+<div class="line"><a id="l00791" name="l00791"></a><span class="lineno">  791</span>        <span class="keywordflow">if</span> (<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">res</a>.has&lt;<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TF</a>&gt;())</div>
+<div class="line"><a id="l00792" name="l00792"></a><span class="lineno">  792</span>        {</div>
+<div class="line"><a id="l00793" name="l00793"></a><span class="lineno">  793</span>            <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">res</a>.m_facet_confs.erase(TF::id());</div>
+<div class="line"><a id="l00794" name="l00794"></a><span class="lineno">  794</span>            <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">res</a>.m_facets.clear();</div>
+<div class="line"><a id="l00795" name="l00795"></a><span class="lineno">  795</span>        }</div>
+<div class="line"><a id="l00796" name="l00796"></a><span class="lineno">  796</span>        <span class="keywordflow">return</span> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">res</a>;</div>
+<div class="line"><a id="l00797" name="l00797"></a><span class="lineno">  797</span>    }</div>
+</div>
+<div class="line"><a id="l00798" name="l00798"></a><span class="lineno">  798</span> </div>
+<div class="line"><a id="l00817" name="l00817"></a><span class="lineno">  817</span>    <span class="keyword">template</span> &lt;std::derived_from&lt;abs_ft&gt; TF&gt;</div>
+<div class="foldopen" id="foldopen00818" data-start="{" data-end="}">
+<div class="line"><a id="l00818" name="l00818"></a><span class="lineno"><a class="line" href="classIOv2_1_1locale.html#a66056281e99b51075841ee5de8add430">  818</a></span>    <span class="keywordtype">bool</span> <a class="code hl_function" href="classIOv2_1_1locale.html#a66056281e99b51075841ee5de8add430">has</a>()<span class="keyword"> const</span></div>
+<div class="line"><a id="l00819" name="l00819"></a><span class="lineno">  819</span><span class="keyword">    </span>{</div>
+<div class="line"><a id="l00820" name="l00820"></a><span class="lineno">  820</span>        std::shared_lock <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">g</a>(m_facet_mutex);</div>
+<div class="line"><a id="l00821" name="l00821"></a><span class="lineno">  821</span>        <a class="code hl_typedef" href="namespaceIOv2.html#a06f81b039c827c7af84dc9910c662753">facet_id_t</a> <span class="keywordtype">id</span> = TF::id();</div>
+<div class="line"><a id="l00822" name="l00822"></a><span class="lineno">  822</span>        <span class="keyword">auto</span> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">it</a> = m_facet_confs.find(<span class="keywordtype">id</span>);</div>
+<div class="line"><a id="l00823" name="l00823"></a><span class="lineno">  823</span>        <span class="keywordflow">if</span> (<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">it</a> == m_facet_confs.end()) <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
+<div class="line"><a id="l00824" name="l00824"></a><span class="lineno">  824</span> </div>
+<div class="line"><a id="l00825" name="l00825"></a><span class="lineno">  825</span>        <span class="keywordflow">return</span> std::dynamic_pointer_cast&lt;TF&gt;(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">it</a>-&gt;second) != <span class="keyword">nullptr</span>;</div>
+<div class="line"><a id="l00826" name="l00826"></a><span class="lineno">  826</span>    }</div>
+</div>
+<div class="line"><a id="l00827" name="l00827"></a><span class="lineno">  827</span> </div>
+<div class="line"><a id="l00861" name="l00861"></a><span class="lineno">  861</span>    <span class="keyword">template</span> &lt;<span class="keyword">typename</span> TF&gt;</div>
+<div class="line"><a id="l00862" name="l00862"></a><span class="lineno">  862</span>        <span class="keyword">requires</span> (<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">is_nonempty_facet_create_rule&lt;typename TF::create_rules&gt;</a></div>
+<div class="line"><a id="l00863" name="l00863"></a><span class="lineno">  863</span>                  &amp;&amp; !std::derived_from&lt;TF, abs_ft&gt;)</div>
+<div class="foldopen" id="foldopen00864" data-start="{" data-end="}">
+<div class="line"><a id="l00864" name="l00864"></a><span class="lineno"><a class="line" href="classIOv2_1_1locale.html#a8d13259bef898266567fbee4d1f86c87">  864</a></span>    <span class="keywordtype">bool</span> <a class="code hl_function" href="classIOv2_1_1locale.html#a8d13259bef898266567fbee4d1f86c87">has</a>() <span class="keyword">const</span></div>
+<div class="line"><a id="l00865" name="l00865"></a><span class="lineno">  865</span>    {</div>
+<div class="line"><a id="l00866" name="l00866"></a><span class="lineno">  866</span>        {</div>
+<div class="line"><a id="l00867" name="l00867"></a><span class="lineno">  867</span>            std::shared_lock <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">g</a>(m_facet_mutex);</div>
+<div class="line"><a id="l00868" name="l00868"></a><span class="lineno">  868</span>            <span class="keywordflow">if</span> (<span class="keyword">auto</span> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">it</a> = m_facets.find(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">type_id_v&lt;TF&gt;</a>()); <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">it</a> != m_facets.end())</div>
+<div class="line"><a id="l00869" name="l00869"></a><span class="lineno">  869</span>                <span class="keywordflow">return</span> <span class="keyword">true</span>;</div>
+<div class="line"><a id="l00870" name="l00870"></a><span class="lineno">  870</span>        }</div>
+<div class="line"><a id="l00871" name="l00871"></a><span class="lineno">  871</span> </div>
+<div class="line"><a id="l00872" name="l00872"></a><span class="lineno">  872</span>        <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">ft_wrapper&lt;typename TF::create_rules&gt;</a> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">obj</a>(*<span class="keyword">this</span>);</div>
+<div class="line"><a id="l00873" name="l00873"></a><span class="lineno">  873</span>        <span class="keywordflow">return</span> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">obj</a>.has();</div>
+<div class="line"><a id="l00874" name="l00874"></a><span class="lineno">  874</span>    }</div>
+</div>
+<div class="line"><a id="l00875" name="l00875"></a><span class="lineno">  875</span> </div>
+<div class="line"><a id="l00904" name="l00904"></a><span class="lineno">  904</span>    <span class="keyword">template</span> &lt;<span class="keyword">typename</span> TF&gt;</div>
+<div class="line"><a id="l00905" name="l00905"></a><span class="lineno">  905</span>        <span class="keyword">requires</span> (std::derived_from&lt;TF, abs_ft&gt;</div>
+<div class="line"><a id="l00906" name="l00906"></a><span class="lineno">  906</span>                  &amp;&amp; <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">is_nonempty_facet_create_rule&lt;typename TF::create_rules&gt;</a>)</div>
+<div class="foldopen" id="foldopen00907" data-start="{" data-end="}">
+<div class="line"><a id="l00907" name="l00907"></a><span class="lineno"><a class="line" href="classIOv2_1_1locale.html#a2c6eac41790d333834cde3d2fcb59318">  907</a></span>    <span class="keywordtype">bool</span> <a class="code hl_function" href="classIOv2_1_1locale.html#a2c6eac41790d333834cde3d2fcb59318">has</a>() <span class="keyword">const</span></div>
+<div class="line"><a id="l00908" name="l00908"></a><span class="lineno">  908</span>    {</div>
+<div class="line"><a id="l00909" name="l00909"></a><span class="lineno">  909</span>        <span class="keyword">static_assert</span>(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">dependent_false_v&lt;TF&gt;</a>,</div>
+<div class="line"><a id="l00910" name="l00910"></a><span class="lineno">  910</span>                      <span class="stringliteral">&quot;has&lt;TF&gt;(): TF is both a facet conf (derived from abs_ft) and a &quot;</span></div>
+<div class="line"><a id="l00911" name="l00911"></a><span class="lineno">  911</span>                      <span class="stringliteral">&quot;composite facet (with a non-empty create_rules). These roles are &quot;</span></div>
+<div class="line"><a id="l00912" name="l00912"></a><span class="lineno">  912</span>                      <span class="stringliteral">&quot;mutually exclusive by design -- confs derive from abs_ft, facets &quot;</span></div>
+<div class="line"><a id="l00913" name="l00913"></a><span class="lineno">  913</span>                      <span class="stringliteral">&quot;carry create_rules -- so such a type is a definition error.&quot;</span>);</div>
+<div class="line"><a id="l00914" name="l00914"></a><span class="lineno">  914</span>        <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
+<div class="line"><a id="l00915" name="l00915"></a><span class="lineno">  915</span>    }</div>
+</div>
+<div class="line"><a id="l00916" name="l00916"></a><span class="lineno">  916</span> </div>
+<div class="line"><a id="l00935" name="l00935"></a><span class="lineno">  935</span>    <span class="keyword">template</span> &lt;std::derived_from&lt;abs_ft&gt; TF&gt;</div>
+<div class="foldopen" id="foldopen00936" data-start="{" data-end="}">
+<div class="line"><a id="l00936" name="l00936"></a><span class="lineno"><a class="line" href="classIOv2_1_1locale.html#ab4c6dd69b44d9bb556d4e01bb3063040">  936</a></span>    std::shared_ptr&lt;TF&gt; <a class="code hl_function" href="classIOv2_1_1locale.html#ab4c6dd69b44d9bb556d4e01bb3063040">get</a>()<span class="keyword"> const</span></div>
+<div class="line"><a id="l00937" name="l00937"></a><span class="lineno">  937</span><span class="keyword">    </span>{</div>
+<div class="line"><a id="l00938" name="l00938"></a><span class="lineno">  938</span>        std::shared_lock <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">g</a>(m_facet_mutex);</div>
+<div class="line"><a id="l00939" name="l00939"></a><span class="lineno">  939</span>        <a class="code hl_typedef" href="namespaceIOv2.html#a06f81b039c827c7af84dc9910c662753">facet_id_t</a> <span class="keywordtype">id</span> = TF::id();</div>
+<div class="line"><a id="l00940" name="l00940"></a><span class="lineno">  940</span>        <span class="keyword">auto</span> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">it</a> = m_facet_confs.find(<span class="keywordtype">id</span>);</div>
+<div class="line"><a id="l00941" name="l00941"></a><span class="lineno">  941</span>        <span class="keywordflow">if</span> (<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">it</a> == m_facet_confs.end()) <span class="keywordflow">return</span> <span class="keyword">nullptr</span>;</div>
+<div class="line"><a id="l00942" name="l00942"></a><span class="lineno">  942</span> </div>
+<div class="line"><a id="l00943" name="l00943"></a><span class="lineno">  943</span>        <span class="keywordflow">return</span> std::dynamic_pointer_cast&lt;TF&gt;(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">it</a>-&gt;second);</div>
+<div class="line"><a id="l00944" name="l00944"></a><span class="lineno">  944</span>    }</div>
+</div>
+<div class="line"><a id="l00945" name="l00945"></a><span class="lineno">  945</span> </div>
+<div class="line"><a id="l00978" name="l00978"></a><span class="lineno">  978</span>    <span class="keyword">template</span> &lt;<span class="keyword">typename</span> TF&gt;</div>
+<div class="line"><a id="l00979" name="l00979"></a><span class="lineno">  979</span>        <span class="keyword">requires</span> (<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">is_nonempty_facet_create_rule&lt;typename TF::create_rules&gt;</a></div>
+<div class="line"><a id="l00980" name="l00980"></a><span class="lineno">  980</span>                  &amp;&amp; !std::derived_from&lt;TF, abs_ft&gt;)</div>
+<div class="foldopen" id="foldopen00981" data-start="{" data-end="}">
+<div class="line"><a id="l00981" name="l00981"></a><span class="lineno"><a class="line" href="classIOv2_1_1locale.html#a8518a411a4f099be834f1a3014365caf">  981</a></span>    std::shared_ptr&lt;TF&gt; <a class="code hl_function" href="classIOv2_1_1locale.html#a8518a411a4f099be834f1a3014365caf">get</a>() <span class="keyword">const</span></div>
+<div class="line"><a id="l00982" name="l00982"></a><span class="lineno">  982</span>    {</div>
+<div class="line"><a id="l00983" name="l00983"></a><span class="lineno">  983</span>        {</div>
+<div class="line"><a id="l00984" name="l00984"></a><span class="lineno">  984</span>            std::shared_lock <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">g</a>(m_facet_mutex);</div>
+<div class="line"><a id="l00985" name="l00985"></a><span class="lineno">  985</span>            <span class="keywordflow">if</span> (<span class="keyword">auto</span> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">it</a> = m_facets.find(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">type_id_v&lt;TF&gt;</a>()); <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">it</a> != m_facets.end())</div>
+<div class="line"><a id="l00986" name="l00986"></a><span class="lineno">  986</span>                <span class="keywordflow">return</span> std::static_pointer_cast&lt;TF&gt;(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">it</a>-&gt;second);</div>
+<div class="line"><a id="l00987" name="l00987"></a><span class="lineno">  987</span>        }</div>
+<div class="line"><a id="l00988" name="l00988"></a><span class="lineno">  988</span> </div>
+<div class="line"><a id="l00989" name="l00989"></a><span class="lineno">  989</span>        <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">ft_wrapper&lt;typename TF::create_rules&gt;</a> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">obj</a>(*<span class="keyword">this</span>);</div>
+<div class="line"><a id="l00990" name="l00990"></a><span class="lineno">  990</span>        <span class="keyword">auto</span> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">res</a> = <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">obj</a>.template <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">get&lt;TF&gt;</a>();</div>
+<div class="line"><a id="l00991" name="l00991"></a><span class="lineno">  991</span>        <span class="keywordflow">if</span> (<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">res</a>)</div>
+<div class="line"><a id="l00992" name="l00992"></a><span class="lineno">  992</span>        {</div>
+<div class="line"><a id="l00993" name="l00993"></a><span class="lineno">  993</span>            std::scoped_lock <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">g</a>(m_facet_mutex);</div>
+<div class="line"><a id="l00994" name="l00994"></a><span class="lineno">  994</span>            <span class="keyword">auto</span> [<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">it</a>, <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">inserted</a>] = m_facets.insert({<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">type_id_v&lt;TF&gt;</a>(), <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">res</a>});</div>
+<div class="line"><a id="l00995" name="l00995"></a><span class="lineno">  995</span>            <span class="keywordflow">if</span> (!<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">inserted</a>)</div>
+<div class="line"><a id="l00996" name="l00996"></a><span class="lineno">  996</span>                <span class="keywordflow">return</span> std::static_pointer_cast&lt;TF&gt;(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">it</a>-&gt;second);</div>
+<div class="line"><a id="l00997" name="l00997"></a><span class="lineno">  997</span>        }</div>
+<div class="line"><a id="l00998" name="l00998"></a><span class="lineno">  998</span>        <span class="keywordflow">return</span> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">res</a>;</div>
+<div class="line"><a id="l00999" name="l00999"></a><span class="lineno">  999</span>    }</div>
+</div>
+<div class="line"><a id="l01000" name="l01000"></a><span class="lineno"> 1000</span> </div>
+<div class="line"><a id="l01023" name="l01023"></a><span class="lineno"> 1023</span>    <span class="keyword">template</span> &lt;<span class="keyword">typename</span> TF&gt;</div>
+<div class="line"><a id="l01024" name="l01024"></a><span class="lineno"> 1024</span>        <span class="keyword">requires</span> (std::derived_from&lt;TF, abs_ft&gt;</div>
+<div class="line"><a id="l01025" name="l01025"></a><span class="lineno"> 1025</span>                  &amp;&amp; <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">is_nonempty_facet_create_rule&lt;typename TF::create_rules&gt;</a>)</div>
+<div class="foldopen" id="foldopen01026" data-start="{" data-end="}">
+<div class="line"><a id="l01026" name="l01026"></a><span class="lineno"><a class="line" href="classIOv2_1_1locale.html#a345477957ed4ba01b5a8e1f12be4f2e8"> 1026</a></span>    std::shared_ptr&lt;TF&gt; <a class="code hl_function" href="classIOv2_1_1locale.html#a345477957ed4ba01b5a8e1f12be4f2e8">get</a>() <span class="keyword">const</span></div>
+<div class="line"><a id="l01027" name="l01027"></a><span class="lineno"> 1027</span>    {</div>
+<div class="line"><a id="l01028" name="l01028"></a><span class="lineno"> 1028</span>        <span class="keyword">static_assert</span>(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">dependent_false_v&lt;TF&gt;</a>,</div>
+<div class="line"><a id="l01029" name="l01029"></a><span class="lineno"> 1029</span>                      <span class="stringliteral">&quot;get&lt;TF&gt;(): TF is both a facet conf (derived from abs_ft) and a &quot;</span></div>
+<div class="line"><a id="l01030" name="l01030"></a><span class="lineno"> 1030</span>                      <span class="stringliteral">&quot;composite facet (with a non-empty create_rules). These roles are &quot;</span></div>
+<div class="line"><a id="l01031" name="l01031"></a><span class="lineno"> 1031</span>                      <span class="stringliteral">&quot;mutually exclusive by design -- confs derive from abs_ft, facets &quot;</span></div>
+<div class="line"><a id="l01032" name="l01032"></a><span class="lineno"> 1032</span>                      <span class="stringliteral">&quot;carry create_rules -- so such a type is a definition error.&quot;</span>);</div>
+<div class="line"><a id="l01033" name="l01033"></a><span class="lineno"> 1033</span>        <span class="keywordflow">return</span> <span class="keyword">nullptr</span>;</div>
+<div class="line"><a id="l01034" name="l01034"></a><span class="lineno"> 1034</span>    }</div>
+</div>
+<div class="line"><a id="l01035" name="l01035"></a><span class="lineno"> 1035</span> </div>
+<div class="foldopen" id="foldopen01066" data-start="{" data-end="}">
+<div class="line"><a id="l01066" name="l01066"></a><span class="lineno"><a class="line" href="classIOv2_1_1locale.html#a9c443f0468115d1a8c71534ef51ea045"> 1066</a></span>    <span class="keyword">static</span> <span class="keyword">const</span> std::string&amp; <a class="code hl_function" href="classIOv2_1_1locale.html#a9c443f0468115d1a8c71534ef51ea045">initial_locale_name</a>(<span class="keywordtype">int</span> category)</div>
+<div class="line"><a id="l01067" name="l01067"></a><span class="lineno"> 1067</span>    {</div>
+<div class="line"><a id="l01068" name="l01068"></a><span class="lineno"> 1068</span>        <span class="keywordflow">return</span> <a class="code hl_variable" href="namespaceIOv2.html#a95cfe067d7dce4b9768d23b4593342e5">s_ori_facet_buf</a>.<a class="code hl_function" href="classIOv2_1_1ori__facet__buf.html#ab0116abdc0891832084e2b87b67f4034">locale_name</a>(category);</div>
+<div class="line"><a id="l01069" name="l01069"></a><span class="lineno"> 1069</span>    }</div>
+</div>
+<div class="line"><a id="l01070" name="l01070"></a><span class="lineno"> 1070</span> </div>
+<div class="line"><a id="l01071" name="l01071"></a><span class="lineno"> 1071</span><span class="keyword">private</span>:</div>
+<div class="line"><a id="l01091" name="l01091"></a><span class="lineno"> 1091</span>    <span class="keyword">template</span> &lt;<span class="keyword">template</span> &lt;<span class="keyword">typename</span>&gt; <span class="keyword">class </span>T&gt;</div>
+<div class="line"><a id="l01092" name="l01092"></a><span class="lineno"> 1092</span>    <span class="keywordtype">void</span> init(<span class="keyword">const</span> std::string&amp; <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">ft_name</a>)</div>
+<div class="line"><a id="l01093" name="l01093"></a><span class="lineno"> 1093</span>    {</div>
+<div class="line"><a id="l01094" name="l01094"></a><span class="lineno"> 1094</span>        <a class="code hl_typedef" href="namespaceIOv2.html#a06f81b039c827c7af84dc9910c662753">facet_id_t</a> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">k</a> = T&lt;TChar&gt;::id();</div>
+<div class="line"><a id="l01095" name="l01095"></a><span class="lineno"> 1095</span>        <span class="keyword">auto</span> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">v</a> = <a class="code hl_variable" href="namespaceIOv2.html#a95cfe067d7dce4b9768d23b4593342e5">s_ori_facet_buf</a>.<a class="code hl_function" href="classIOv2_1_1ori__facet__buf.html#a4cc442b2605576ca3c09aa9b2cd8c851">try_get</a>&lt;<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T&lt;TChar&gt;</a>&gt;(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">ft_name</a>);</div>
+<div class="line"><a id="l01096" name="l01096"></a><span class="lineno"> 1096</span>        m_facet_confs.insert({<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">k</a>, std::move(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">v</a>)});</div>
+<div class="line"><a id="l01097" name="l01097"></a><span class="lineno"> 1097</span>    }</div>
+<div class="line"><a id="l01098" name="l01098"></a><span class="lineno"> 1098</span> </div>
+<div class="line"><a id="l01099" name="l01099"></a><span class="lineno"> 1099</span><span class="keyword">private</span>:</div>
+<div class="line"><a id="l01107" name="l01107"></a><span class="lineno"> 1107</span>    std::unordered_map&lt;facet_id_t, std::shared_ptr&lt;abs_ft&gt;&gt; m_facet_confs;</div>
+<div class="line"><a id="l01108" name="l01108"></a><span class="lineno"> 1108</span> </div>
+<div class="line"><a id="l01117" name="l01117"></a><span class="lineno"> 1117</span>    <span class="keyword">mutable</span> std::unordered_map&lt;facet_id_t, std::shared_ptr&lt;void&gt;&gt; m_facets;</div>
+<div class="line"><a id="l01118" name="l01118"></a><span class="lineno"> 1118</span> </div>
+<div class="line"><a id="l01126" name="l01126"></a><span class="lineno"> 1126</span>    <span class="keyword">mutable</span> std::shared_mutex m_facet_mutex;</div>
+<div class="line"><a id="l01127" name="l01127"></a><span class="lineno"> 1127</span>};</div>
+</div>
+<div class="line"><a id="l01128" name="l01128"></a><span class="lineno"> 1128</span>}</div>
+<div class="ttc" id="aclassIOv2_1_1base__ft_html"><div class="ttname"><a href="classIOv2_1_1base__ft.html">IOv2::base_ft</a></div><div class="ttdef"><b>Definition</b> facet_common.h:230</div></div>
+<div class="ttc" id="aclassIOv2_1_1locale_html"><div class="ttname"><a href="classIOv2_1_1locale.html">IOv2::locale</a></div><div class="ttdoc">管理一组 facet 的本地化对象。</div><div class="ttdef"><b>Definition</b> locale.h:133</div></div>
+<div class="ttc" id="aclassIOv2_1_1locale_html_a2c6eac41790d333834cde3d2fcb59318"><div class="ttname"><a href="classIOv2_1_1locale.html#a2c6eac41790d333834cde3d2fcb59318">IOv2::locale::has</a></div><div class="ttdeci">bool has() const</div><div class="ttdoc">守卫重载：把&quot;既是 facet conf、又是复合 facet&quot;的病态类型转为清晰的编译期 诊断。</div><div class="ttdef"><b>Definition</b> locale.h:907</div></div>
+<div class="ttc" id="aclassIOv2_1_1locale_html_a345477957ed4ba01b5a8e1f12be4f2e8"><div class="ttname"><a href="classIOv2_1_1locale.html#a345477957ed4ba01b5a8e1f12be4f2e8">IOv2::locale::get</a></div><div class="ttdeci">std::shared_ptr&lt; TF &gt; get() const</div><div class="ttdoc">守卫重载：为&quot;既是 facet conf、又是复合 facet&quot;的病态类型给出精确诊断。</div><div class="ttdef"><b>Definition</b> locale.h:1026</div></div>
+<div class="ttc" id="aclassIOv2_1_1locale_html_a5fd260d87b20a937fea69faf88d638bb"><div class="ttname"><a href="classIOv2_1_1locale.html#a5fd260d87b20a937fea69faf88d638bb">IOv2::locale::involve_msg</a></div><div class="ttdeci">locale involve_msg(const std::string &amp;domain, const std::string &amp;lang=&quot;&quot;, const std::string &amp;cvt=&quot;&quot;, bool throw_if_fail=false) const</div><div class="ttdoc">char 版本：返回一个在 *this 基础上绑定了指定文本域消息翻译的**新** locale （写时拷贝）；额外接受目标编码名 cvt。</div><div class="ttdef"><b>Definition</b> locale.h:721</div></div>
+<div class="ttc" id="aclassIOv2_1_1locale_html_a65163015a4b67c43e1f85d0e3df666a4"><div class="ttname"><a href="classIOv2_1_1locale.html#a65163015a4b67c43e1f85d0e3df666a4">IOv2::locale::involve_msg</a></div><div class="ttdeci">locale involve_msg(const std::string &amp;domain, const std::string &amp;lang=&quot;&quot;, bool throw_if_fail=false) const</div><div class="ttdoc">返回一个在 *this 基础上、额外绑定了指定文本域消息翻译的**新** locale （写时拷贝；*this 不变）。</div><div class="ttdef"><b>Definition</b> locale.h:611</div></div>
+<div class="ttc" id="aclassIOv2_1_1locale_html_a66056281e99b51075841ee5de8add430"><div class="ttname"><a href="classIOv2_1_1locale.html#a66056281e99b51075841ee5de8add430">IOv2::locale::has</a></div><div class="ttdeci">bool has() const</div><div class="ttdoc">查询本 locale 是否直接持有指定的 facet conf 类型 TF。</div><div class="ttdef"><b>Definition</b> locale.h:818</div></div>
+<div class="ttc" id="aclassIOv2_1_1locale_html_a6e109fead5faa00b9c50c754fd150953"><div class="ttname"><a href="classIOv2_1_1locale.html#a6e109fead5faa00b9c50c754fd150953">IOv2::locale::operator=</a></div><div class="ttdeci">locale &amp; operator=(locale &amp;&amp;val) noexcept</div><div class="ttdoc">移动赋值：接管源状态并清空源。</div><div class="ttdef"><b>Definition</b> locale.h:497</div></div>
+<div class="ttc" id="aclassIOv2_1_1locale_html_a73afbbe4e918bf8cef94cafe87efc6ac"><div class="ttname"><a href="classIOv2_1_1locale.html#a73afbbe4e918bf8cef94cafe87efc6ac">IOv2::locale::~locale</a></div><div class="ttdeci">~locale()=default</div></div>
+<div class="ttc" id="aclassIOv2_1_1locale_html_a7b711197706932a597adebb9e83b49ce"><div class="ttname"><a href="classIOv2_1_1locale.html#a7b711197706932a597adebb9e83b49ce">IOv2::locale::locale</a></div><div class="ttdeci">locale(const locale &amp;val)</div><div class="ttdoc">拷贝构造：在共享锁下对源实例做一致快照。</div><div class="ttdef"><b>Definition</b> locale.h:396</div></div>
+<div class="ttc" id="aclassIOv2_1_1locale_html_a8518a411a4f099be834f1a3014365caf"><div class="ttname"><a href="classIOv2_1_1locale.html#a8518a411a4f099be834f1a3014365caf">IOv2::locale::get</a></div><div class="ttdeci">std::shared_ptr&lt; TF &gt; get() const</div><div class="ttdoc">取得（必要时惰性构建并缓存）指定的**复合** facet TF。</div><div class="ttdef"><b>Definition</b> locale.h:981</div></div>
+<div class="ttc" id="aclassIOv2_1_1locale_html_a8d13259bef898266567fbee4d1f86c87"><div class="ttname"><a href="classIOv2_1_1locale.html#a8d13259bef898266567fbee4d1f86c87">IOv2::locale::has</a></div><div class="ttdeci">bool has() const</div><div class="ttdoc">查询本 locale 能否构建出指定的**复合** facet TF。</div><div class="ttdef"><b>Definition</b> locale.h:864</div></div>
+<div class="ttc" id="aclassIOv2_1_1locale_html_a9c07f0642c50f2baeb4b09c3ca80b078"><div class="ttname"><a href="classIOv2_1_1locale.html#a9c07f0642c50f2baeb4b09c3ca80b078">IOv2::locale::remove</a></div><div class="ttdeci">locale remove() const</div><div class="ttdoc">返回一个移除了指定 facet 类型的**新** locale（写时拷贝；*this 不变）。</div><div class="ttdef"><b>Definition</b> locale.h:788</div></div>
+<div class="ttc" id="aclassIOv2_1_1locale_html_a9c443f0468115d1a8c71534ef51ea045"><div class="ttname"><a href="classIOv2_1_1locale.html#a9c443f0468115d1a8c71534ef51ea045">IOv2::locale::initial_locale_name</a></div><div class="ttdeci">static const std::string &amp; initial_locale_name(int category)</div><div class="ttdef"><b>Definition</b> locale.h:1066</div></div>
+<div class="ttc" id="aclassIOv2_1_1locale_html_aaf34ba217f75cb35f0f669f774fdd1c2"><div class="ttname"><a href="classIOv2_1_1locale.html#aaf34ba217f75cb35f0f669f774fdd1c2">IOv2::locale::locale</a></div><div class="ttdeci">locale(const std::string &amp;name=&quot;&quot;)</div><div class="ttdoc">构造 locale；name 为空串（默认）表示使用**程序启动时由环境变量解析得到** 的各 LC_* locale，否则其全部 facet 均使用调用方显式给定的 name。</div><div class="ttdef"><b>Definition</b> locale.h:358</div></div>
+<div class="ttc" id="aclassIOv2_1_1locale_html_ab4c6dd69b44d9bb556d4e01bb3063040"><div class="ttname"><a href="classIOv2_1_1locale.html#ab4c6dd69b44d9bb556d4e01bb3063040">IOv2::locale::get</a></div><div class="ttdeci">std::shared_ptr&lt; TF &gt; get() const</div><div class="ttdoc">取得本 locale 直接持有的指定 facet conf TF 的共享指针。</div><div class="ttdef"><b>Definition</b> locale.h:936</div></div>
+<div class="ttc" id="aclassIOv2_1_1locale_html_ae38e747572f6c9657c016cc08b5ff2cd"><div class="ttname"><a href="classIOv2_1_1locale.html#ae38e747572f6c9657c016cc08b5ff2cd">IOv2::locale::involve</a></div><div class="ttdeci">locale involve(std::shared_ptr&lt; abs_ft &gt; ft) const</div><div class="ttdoc">返回一个在 *this 基础上绑定（或替换）给定 facet 的**新** locale （写时拷贝；*this 不变）。</div><div class="ttdef"><b>Definition</b> locale.h:536</div></div>
+<div class="ttc" id="aclassIOv2_1_1locale_html_ae6b8c1c2b893e09a458a93d1a3d2dc3a"><div class="ttname"><a href="classIOv2_1_1locale.html#ae6b8c1c2b893e09a458a93d1a3d2dc3a">IOv2::locale::operator=</a></div><div class="ttdeci">locale &amp; operator=(const locale &amp;val)</div><div class="ttdoc">拷贝赋值。赋值是 locale 实例上唯一的原地修改操作。</div><div class="ttdef"><b>Definition</b> locale.h:459</div></div>
+<div class="ttc" id="aclassIOv2_1_1locale_html_aee822e700ac27152fc989de281271d15"><div class="ttname"><a href="classIOv2_1_1locale.html#aee822e700ac27152fc989de281271d15">IOv2::locale::locale</a></div><div class="ttdeci">locale(locale &amp;&amp;val) noexcept</div><div class="ttdoc">移动构造：接管源的内部状态并清空源。</div><div class="ttdef"><b>Definition</b> locale.h:421</div></div>
+<div class="ttc" id="aclassIOv2_1_1messages__conf_html"><div class="ttname"><a href="classIOv2_1_1messages__conf.html">IOv2::messages_conf</a></div><div class="ttdef"><b>Definition</b> messages_details.h:760</div></div>
+<div class="ttc" id="aclassIOv2_1_1ori__facet__buf_html_a34b5402cb38a3e2dd66abb1049a54f01"><div class="ttname"><a href="classIOv2_1_1ori__facet__buf.html#a34b5402cb38a3e2dd66abb1049a54f01">IOv2::ori_facet_buf::try_get_msg</a></div><div class="ttdeci">std::shared_ptr&lt; messages_conf&lt; TChar &gt; &gt; try_get_msg(const std::string &amp;domain, const std::string &amp;lang, const std::string &amp;dirname, const std::string &amp;cvt=&quot;&quot;)</div><div class="ttdoc">从 messages 缓存中查找已缓存的 messages facet；未命中返回 nullptr（只查不建）。</div><div class="ttdef"><b>Definition</b> ori_facet_buf.h:260</div></div>
+<div class="ttc" id="aclassIOv2_1_1ori__facet__buf_html_a4cc442b2605576ca3c09aa9b2cd8c851"><div class="ttname"><a href="classIOv2_1_1ori__facet__buf.html#a4cc442b2605576ca3c09aa9b2cd8c851">IOv2::ori_facet_buf::try_get</a></div><div class="ttdeci">std::shared_ptr&lt; abs_ft &gt; try_get(const std::string &amp;name)</div><div class="ttdoc">取得（必要时构建并缓存）名为 name 的基础 facet conf TF。</div><div class="ttdef"><b>Definition</b> ori_facet_buf.h:196</div></div>
+<div class="ttc" id="aclassIOv2_1_1ori__facet__buf_html_a6dc1760bd86f622fcfb5fc163fe1c9c7"><div class="ttname"><a href="classIOv2_1_1ori__facet__buf.html#a6dc1760bd86f622fcfb5fc163fe1c9c7">IOv2::ori_facet_buf::put_msg</a></div><div class="ttdeci">std::shared_ptr&lt; messages_conf&lt; TChar &gt; &gt; put_msg(std::shared_ptr&lt; messages_conf&lt; TChar &gt; &gt; ptr, const std::string &amp;domain, const std::string &amp;lang, const std::string &amp;dirname, const std::string &amp;cvt=&quot;&quot;)</div><div class="ttdoc">将一个已构建成功的 messages facet 写入 messages 缓存并返回被驻留的指针。</div><div class="ttdef"><b>Definition</b> ori_facet_buf.h:309</div></div>
+<div class="ttc" id="aclassIOv2_1_1ori__facet__buf_html_ab0116abdc0891832084e2b87b67f4034"><div class="ttname"><a href="classIOv2_1_1ori__facet__buf.html#ab0116abdc0891832084e2b87b67f4034">IOv2::ori_facet_buf::locale_name</a></div><div class="ttdeci">const std::string &amp; locale_name(int category) const</div><div class="ttdef"><b>Definition</b> ori_facet_buf.h:361</div></div>
+<div class="ttc" id="acollate_8h_html"><div class="ttname"><a href="collate_8h.html">collate.h</a></div></div>
+<div class="ttc" id="actype_8h_html"><div class="ttname"><a href="ctype_8h.html">ctype.h</a></div></div>
+<div class="ttc" id="adefs_8h_html"><div class="ttname"><a href="defs_8h.html">defs.h</a></div></div>
+<div class="ttc" id="afacet__common_8h_html"><div class="ttname"><a href="facet__common_8h.html">facet_common.h</a></div></div>
+<div class="ttc" id="amessages_8h_html"><div class="ttname"><a href="messages_8h.html">messages.h</a></div></div>
+<div class="ttc" id="ametafunctions_8h_html"><div class="ttname"><a href="metafunctions_8h.html">metafunctions.h</a></div></div>
+<div class="ttc" id="amonetary_8h_html"><div class="ttname"><a href="monetary_8h.html">monetary.h</a></div></div>
+<div class="ttc" id="anamespaceIOv2_html"><div class="ttname"><a href="namespaceIOv2.html">IOv2</a></div><div class="ttdef"><b>Definition</b> clocale_wrapper.h:22</div></div>
+<div class="ttc" id="anamespaceIOv2_html_a06f81b039c827c7af84dc9910c662753"><div class="ttname"><a href="namespaceIOv2.html#a06f81b039c827c7af84dc9910c662753">IOv2::facet_id_t</a></div><div class="ttdeci">std::size_t facet_id_t</div><div class="ttdef"><b>Definition</b> facet_common.h:83</div></div>
+<div class="ttc" id="anamespaceIOv2_html_a09b31017574cb5471d2558481d0f4d7a"><div class="ttname"><a href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">IOv2::is_small_type_v</a></div><div class="ttdeci">constexpr bool is_small_type_v</div><div class="ttdef"><b>Definition</b> metafunctions.h:83</div></div>
+<div class="ttc" id="anamespaceIOv2_html_a95cfe067d7dce4b9768d23b4593342e5"><div class="ttname"><a href="namespaceIOv2.html#a95cfe067d7dce4b9768d23b4593342e5">IOv2::s_ori_facet_buf</a></div><div class="ttdeci">ori_facet_buf &amp; s_ori_facet_buf</div><div class="ttdef"><b>Definition</b> ori_facet_buf.h:567</div></div>
+<div class="ttc" id="anamespacestd_html"><div class="ttname"><a href="namespacestd.html">std</a></div><div class="ttdef"><b>Definition</b> ori_facet_buf.h:82</div></div>
+<div class="ttc" id="anumeric_8h_html"><div class="ttname"><a href="numeric_8h.html">numeric.h</a></div></div>
+<div class="ttc" id="aori__facet__buf_8h_html"><div class="ttname"><a href="ori__facet__buf_8h.html">ori_facet_buf.h</a></div></div>
+<div class="ttc" id="astructIOv2_1_1facet__create__pack__head_html"><div class="ttname"><a href="structIOv2_1_1facet__create__pack__head.html">IOv2::facet_create_pack_head</a></div><div class="ttdef"><b>Definition</b> facet_common.h:425</div></div>
+<div class="ttc" id="astructIOv2_1_1facet__create__pack__tail_html"><div class="ttname"><a href="structIOv2_1_1facet__create__pack__tail.html">IOv2::facet_create_pack_tail</a></div><div class="ttdef"><b>Definition</b> facet_common.h:449</div></div>
+<div class="ttc" id="astructIOv2_1_1facet__create__pack_html"><div class="ttname"><a href="structIOv2_1_1facet__create__pack.html">IOv2::facet_create_pack</a></div><div class="ttdef"><b>Definition</b> facet_common.h:347</div></div>
+<div class="ttc" id="astructIOv2_1_1facet__create__rule_html"><div class="ttname"><a href="structIOv2_1_1facet__create__rule.html">IOv2::facet_create_rule</a></div><div class="ttdef"><b>Definition</b> facet_common.h:330</div></div>
+<div class="ttc" id="astructIOv2_1_1stream__error_html"><div class="ttname"><a href="structIOv2_1_1stream__error.html">IOv2::stream_error</a></div><div class="ttdef"><b>Definition</b> defs.h:108</div></div>
+<div class="ttc" id="atimeio_8h_html"><div class="ttname"><a href="timeio_8h.html">timeio.h</a></div></div>
+</div><!-- fragment --></div><!-- contents -->
+</div><!-- doc-content -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><a class="el" href="dir_d44c64559bbebec7f509842c48db8b23.html">include</a></li><li class="navelem"><a class="el" href="dir_1157f564aec2b3a7d6bde4eba89ab805.html">IOv2</a></li><li class="navelem"><a class="el" href="dir_7dc9f363cb67b85304ff97b716f4fabf.html">locale</a></li><li class="navelem"><a class="el" href="locale_8h.html">locale.h</a></li>
+    <li class="footer">制作者 <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8 </li>
+  </ul>
+</div>
+</body>
+</html>

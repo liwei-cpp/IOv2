@@ -1,0 +1,992 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=11"/>
+<meta name="generator" content="Doxygen 1.9.8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>IOv2: IOv2::root_cvt&lt; mem_device&lt; CharT, Traits, Allocator &gt;, HasInBuffer &gt; 模板类 参考</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="resize.js"></script>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr id="projectrow">
+  <td id="projectalign">
+   <div id="projectname">IOv2
+   </div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 制作者 Doxygen 1.9.8 -->
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+/* @license-end */
+</script>
+<script type="text/javascript" src="menudata.js"></script>
+<script type="text/javascript" src="menu.js"></script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(function() {
+  initMenu('',true,false,'search.php','搜索');
+  $(document).ready(function() { init_search(); });
+});
+/* @license-end */
+</script>
+<div id="main-nav"></div>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(document).ready(function(){initNavTree('classIOv2_1_1root__cvt_3_01mem__device_3_01CharT_00_01Traits_00_01Allocator_01_4_00_01HasInBuffer_01_4.html',''); initResizable(); });
+/* @license-end */
+</script>
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">载入中...</div>
+<div class="SRStatus" id="Searching">搜索中...</div>
+<div class="SRStatus" id="NoMatches">未找到</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="header">
+  <div class="summary">
+<a href="#pub-types">Public 类型</a> &#124;
+<a href="#pub-methods">Public 成员函数</a> &#124;
+<a href="classIOv2_1_1root__cvt_3_01mem__device_3_01CharT_00_01Traits_00_01Allocator_01_4_00_01HasInBuffer_01_4-members.html">所有成员列表</a>  </div>
+  <div class="headertitle"><div class="title">IOv2::root_cvt&lt; mem_device&lt; CharT, Traits, Allocator &gt;, HasInBuffer &gt; 模板类 参考</div></div>
+</div><!--header-->
+<div class="contents">
+
+<p><code>#include &lt;<a class="el" href="root__cvt_8h_source.html">root_cvt.h</a>&gt;</code></p>
+<table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-types" name="pub-types"></a>
+Public 类型</h2></td></tr>
+<tr class="memitem:a951316d230f79f214fd0ff1dd741b1b0" id="r_a951316d230f79f214fd0ff1dd741b1b0"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1root__cvt_3_01mem__device_3_01CharT_00_01Traits_00_01Allocator_01_4_00_01HasInBuffer_01_4.html#a951316d230f79f214fd0ff1dd741b1b0">device_type</a> = <a class="el" href="classIOv2_1_1mem__device.html">mem_device</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Traits</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Allocator</a> &gt;</td></tr>
+<tr class="separator:a951316d230f79f214fd0ff1dd741b1b0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab89ed4d6c02ccc8ec167dd2cac2e87f8" id="r_ab89ed4d6c02ccc8ec167dd2cac2e87f8"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1root__cvt_3_01mem__device_3_01CharT_00_01Traits_00_01Allocator_01_4_00_01HasInBuffer_01_4.html#ab89ed4d6c02ccc8ec167dd2cac2e87f8">internal_type</a> = <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="classIOv2_1_1mem__device.html#af5fcd3b119b72b48bd54bfa09353a6d3">device_type::char_type</a></td></tr>
+<tr class="separator:ab89ed4d6c02ccc8ec167dd2cac2e87f8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8b9759b0b9a66dbdbe8a0ff9d485cab0" id="r_a8b9759b0b9a66dbdbe8a0ff9d485cab0"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1root__cvt_3_01mem__device_3_01CharT_00_01Traits_00_01Allocator_01_4_00_01HasInBuffer_01_4.html#a8b9759b0b9a66dbdbe8a0ff9d485cab0">external_type</a> = <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="classIOv2_1_1mem__device.html#af5fcd3b119b72b48bd54bfa09353a6d3">device_type::char_type</a></td></tr>
+<tr class="separator:a8b9759b0b9a66dbdbe8a0ff9d485cab0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
+Public 成员函数</h2></td></tr>
+<tr class="memitem:a044738e1091dabe2c8d3045d8ec4ec7b" id="r_a044738e1091dabe2c8d3045d8ec4ec7b"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1root__cvt_3_01mem__device_3_01CharT_00_01Traits_00_01Allocator_01_4_00_01HasInBuffer_01_4.html#a044738e1091dabe2c8d3045d8ec4ec7b">root_cvt</a> (<a class="el" href="classIOv2_1_1root__cvt_3_01mem__device_3_01CharT_00_01Traits_00_01Allocator_01_4_00_01HasInBuffer_01_4.html#a951316d230f79f214fd0ff1dd741b1b0">device_type</a> <a class="el" href="classIOv2_1_1root__cvt_3_01mem__device_3_01CharT_00_01Traits_00_01Allocator_01_4_00_01HasInBuffer_01_4.html#a5b8d62a8c8d4938ab9a60c0dc47eae9a">device</a>)</td></tr>
+<tr class="separator:a044738e1091dabe2c8d3045d8ec4ec7b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3b7f7ec610ca1a026805f5b4d744ac94" id="r_a3b7f7ec610ca1a026805f5b4d744ac94"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1root__cvt_3_01mem__device_3_01CharT_00_01Traits_00_01Allocator_01_4_00_01HasInBuffer_01_4.html#a3b7f7ec610ca1a026805f5b4d744ac94">root_cvt</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="classIOv2_1_1root__cvt.html">root_cvt</a> &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">val</a>)</td></tr>
+<tr class="separator:a3b7f7ec610ca1a026805f5b4d744ac94"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af7daf19f2b22aab2271ce6dd8b7764f6" id="r_af7daf19f2b22aab2271ce6dd8b7764f6"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1root__cvt_3_01mem__device_3_01CharT_00_01Traits_00_01Allocator_01_4_00_01HasInBuffer_01_4.html#af7daf19f2b22aab2271ce6dd8b7764f6">root_cvt</a> (<a class="el" href="classIOv2_1_1root__cvt.html">root_cvt</a> &amp;&amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">val</a>) <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">noexcept</a></td></tr>
+<tr class="separator:af7daf19f2b22aab2271ce6dd8b7764f6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2663be3cb5f9108c94d94a9a4066ec81" id="r_a2663be3cb5f9108c94d94a9a4066ec81"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classIOv2_1_1root__cvt.html">root_cvt</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1root__cvt_3_01mem__device_3_01CharT_00_01Traits_00_01Allocator_01_4_00_01HasInBuffer_01_4.html#a2663be3cb5f9108c94d94a9a4066ec81">operator=</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="classIOv2_1_1root__cvt.html">root_cvt</a> &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">val</a>)</td></tr>
+<tr class="separator:a2663be3cb5f9108c94d94a9a4066ec81"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a06bfaec129a175d4e8380fa03c161001" id="r_a06bfaec129a175d4e8380fa03c161001"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classIOv2_1_1root__cvt.html">root_cvt</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1root__cvt_3_01mem__device_3_01CharT_00_01Traits_00_01Allocator_01_4_00_01HasInBuffer_01_4.html#a06bfaec129a175d4e8380fa03c161001">operator=</a> (<a class="el" href="classIOv2_1_1root__cvt.html">root_cvt</a> &amp;&amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">val</a>) <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">noexcept</a></td></tr>
+<tr class="separator:a06bfaec129a175d4e8380fa03c161001"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afea9d88408ee9a248282b813bd610796" id="r_afea9d88408ee9a248282b813bd610796"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1root__cvt_3_01mem__device_3_01CharT_00_01Traits_00_01Allocator_01_4_00_01HasInBuffer_01_4.html#afea9d88408ee9a248282b813bd610796">~root_cvt</a> ()=<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default</a></td></tr>
+<tr class="separator:afea9d88408ee9a248282b813bd610796"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5b8d62a8c8d4938ab9a60c0dc47eae9a" id="r_a5b8d62a8c8d4938ab9a60c0dc47eae9a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classIOv2_1_1root__cvt_3_01mem__device_3_01CharT_00_01Traits_00_01Allocator_01_4_00_01HasInBuffer_01_4.html#a951316d230f79f214fd0ff1dd741b1b0">device_type</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1root__cvt_3_01mem__device_3_01CharT_00_01Traits_00_01Allocator_01_4_00_01HasInBuffer_01_4.html#a5b8d62a8c8d4938ab9a60c0dc47eae9a">device</a> ()</td></tr>
+<tr class="separator:a5b8d62a8c8d4938ab9a60c0dc47eae9a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae0d9013004e1fb9c22f3eac0e76e164f" id="r_ae0d9013004e1fb9c22f3eac0e76e164f"><td class="memItemLeft" align="right" valign="top">std::pair&lt; <a class="el" href="classIOv2_1_1root__cvt_3_01mem__device_3_01CharT_00_01Traits_00_01Allocator_01_4_00_01HasInBuffer_01_4.html#a951316d230f79f214fd0ff1dd741b1b0">device_type</a>, std::exception_ptr &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1root__cvt_3_01mem__device_3_01CharT_00_01Traits_00_01Allocator_01_4_00_01HasInBuffer_01_4.html#ae0d9013004e1fb9c22f3eac0e76e164f">detach</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">noexcept</a></td></tr>
+<tr class="separator:ae0d9013004e1fb9c22f3eac0e76e164f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a97df1a18a96a643a11c8e4022eed30dd" id="r_a97df1a18a96a643a11c8e4022eed30dd"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1root__cvt_3_01mem__device_3_01CharT_00_01Traits_00_01Allocator_01_4_00_01HasInBuffer_01_4.html#a97df1a18a96a643a11c8e4022eed30dd">attach</a> (<a class="el" href="classIOv2_1_1root__cvt_3_01mem__device_3_01CharT_00_01Traits_00_01Allocator_01_4_00_01HasInBuffer_01_4.html#a951316d230f79f214fd0ff1dd741b1b0">device_type</a> &amp;&amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">dev</a>=<a class="el" href="classIOv2_1_1root__cvt_3_01mem__device_3_01CharT_00_01Traits_00_01Allocator_01_4_00_01HasInBuffer_01_4.html#a951316d230f79f214fd0ff1dd741b1b0">device_type</a>{})</td></tr>
+<tr class="separator:a97df1a18a96a643a11c8e4022eed30dd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aaa817335bce0b8aa74218e16f1ed489f" id="r_aaa817335bce0b8aa74218e16f1ed489f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1root__cvt_3_01mem__device_3_01CharT_00_01Traits_00_01Allocator_01_4_00_01HasInBuffer_01_4.html#aaa817335bce0b8aa74218e16f1ed489f">adjust</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="structIOv2_1_1cvt__behavior.html">cvt_behavior</a> &amp;)</td></tr>
+<tr class="separator:aaa817335bce0b8aa74218e16f1ed489f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a989f571d8ee052d3209de15c9378b397" id="r_a989f571d8ee052d3209de15c9378b397"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1root__cvt_3_01mem__device_3_01CharT_00_01Traits_00_01Allocator_01_4_00_01HasInBuffer_01_4.html#a989f571d8ee052d3209de15c9378b397">retrieve</a> (<a class="el" href="structIOv2_1_1cvt__status.html">cvt_status</a> &amp;) <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="separator:a989f571d8ee052d3209de15c9378b397"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad4a4b6c156d4cb3497cc7e79ad4f5938" id="r_ad4a4b6c156d4cb3497cc7e79ad4f5938"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1root__cvt_3_01mem__device_3_01CharT_00_01Traits_00_01Allocator_01_4_00_01HasInBuffer_01_4.html#ad4a4b6c156d4cb3497cc7e79ad4f5938">main_cont_beg</a> ()</td></tr>
+<tr class="separator:ad4a4b6c156d4cb3497cc7e79ad4f5938"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4701ef74205dc08b857c0bc8cd1a6121" id="r_a4701ef74205dc08b857c0bc8cd1a6121"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a36673c0e1d93ef095d232f0f726134d9">io_status</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1root__cvt_3_01mem__device_3_01CharT_00_01Traits_00_01Allocator_01_4_00_01HasInBuffer_01_4.html#a4701ef74205dc08b857c0bc8cd1a6121">bos</a> ()</td></tr>
+<tr class="separator:a4701ef74205dc08b857c0bc8cd1a6121"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9595201b178d1a466b8e2a906aefcb97" id="r_a9595201b178d1a466b8e2a906aefcb97"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1root__cvt_3_01mem__device_3_01CharT_00_01Traits_00_01Allocator_01_4_00_01HasInBuffer_01_4.html#a9595201b178d1a466b8e2a906aefcb97">is_eof</a> ()</td></tr>
+<tr class="separator:a9595201b178d1a466b8e2a906aefcb97"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a71fac398cd442a0bd6a3e754ee8f5a29" id="r_a71fac398cd442a0bd6a3e754ee8f5a29"><td class="memItemLeft" align="right" valign="top">std::size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1root__cvt_3_01mem__device_3_01CharT_00_01Traits_00_01Allocator_01_4_00_01HasInBuffer_01_4.html#a71fac398cd442a0bd6a3e754ee8f5a29">get</a> (<a class="el" href="classIOv2_1_1root__cvt_3_01mem__device_3_01CharT_00_01Traits_00_01Allocator_01_4_00_01HasInBuffer_01_4.html#ab89ed4d6c02ccc8ec167dd2cac2e87f8">internal_type</a> *<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">to</a>, std::size_t <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">to_max</a>)</td></tr>
+<tr class="separator:a71fac398cd442a0bd6a3e754ee8f5a29"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a97376bada2ec680241372297b4561c04" id="r_a97376bada2ec680241372297b4561c04"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1root__cvt_3_01mem__device_3_01CharT_00_01Traits_00_01Allocator_01_4_00_01HasInBuffer_01_4.html#a97376bada2ec680241372297b4561c04">put</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="classIOv2_1_1root__cvt_3_01mem__device_3_01CharT_00_01Traits_00_01Allocator_01_4_00_01HasInBuffer_01_4.html#ab89ed4d6c02ccc8ec167dd2cac2e87f8">internal_type</a> *<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">to</a>, std::size_t <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">to_size</a>)</td></tr>
+<tr class="separator:a97376bada2ec680241372297b4561c04"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aec92cd46046310f4af8159d9b5c3fa93" id="r_aec92cd46046310f4af8159d9b5c3fa93"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1root__cvt_3_01mem__device_3_01CharT_00_01Traits_00_01Allocator_01_4_00_01HasInBuffer_01_4.html#aec92cd46046310f4af8159d9b5c3fa93">flush</a> ()</td></tr>
+<tr class="separator:aec92cd46046310f4af8159d9b5c3fa93"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a92bbaac6e1aa96d7ed774708a97c4520" id="r_a92bbaac6e1aa96d7ed774708a97c4520"><td class="memItemLeft" align="right" valign="top">std::size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1root__cvt_3_01mem__device_3_01CharT_00_01Traits_00_01Allocator_01_4_00_01HasInBuffer_01_4.html#a92bbaac6e1aa96d7ed774708a97c4520">tell</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="separator:a92bbaac6e1aa96d7ed774708a97c4520"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa411dbdc837583c3d8fc4bfff475352f" id="r_aa411dbdc837583c3d8fc4bfff475352f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1root__cvt_3_01mem__device_3_01CharT_00_01Traits_00_01Allocator_01_4_00_01HasInBuffer_01_4.html#aa411dbdc837583c3d8fc4bfff475352f">seek</a> (std::size_t <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">pos</a>)</td></tr>
+<tr class="separator:aa411dbdc837583c3d8fc4bfff475352f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a515184cd609e996fdff2e2919f490368" id="r_a515184cd609e996fdff2e2919f490368"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1root__cvt_3_01mem__device_3_01CharT_00_01Traits_00_01Allocator_01_4_00_01HasInBuffer_01_4.html#a515184cd609e996fdff2e2919f490368">rseek</a> (std::size_t <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">pos</a>)</td></tr>
+<tr class="separator:a515184cd609e996fdff2e2919f490368"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1ad64caee179efc7d4272d90c777583a" id="r_a1ad64caee179efc7d4272d90c777583a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1root__cvt_3_01mem__device_3_01CharT_00_01Traits_00_01Allocator_01_4_00_01HasInBuffer_01_4.html#a1ad64caee179efc7d4272d90c777583a">switch_to_get</a> ()</td></tr>
+<tr class="separator:a1ad64caee179efc7d4272d90c777583a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a99d0d96cf9d2060d6f6c16556f6eecbc" id="r_a99d0d96cf9d2060d6f6c16556f6eecbc"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1root__cvt_3_01mem__device_3_01CharT_00_01Traits_00_01Allocator_01_4_00_01HasInBuffer_01_4.html#a99d0d96cf9d2060d6f6c16556f6eecbc">switch_to_put</a> ()</td></tr>
+<tr class="separator:a99d0d96cf9d2060d6f6c16556f6eecbc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table>
+<a name="details" id="details"></a><h2 class="groupheader">详细描述</h2>
+<div class="textblock"><div class="compoundTemplParams">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Traits</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Allocator</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> HasInBuffer&gt;<br />
+class IOv2::root_cvt&lt; mem_device&lt; CharT, Traits, Allocator &gt;, HasInBuffer &gt;</div><p><a class="el" href="classIOv2_1_1root__cvt.html">root_cvt</a> 针对 <a class="el" href="classIOv2_1_1mem__device.html" title="一个在内存中进行 I/O 操作的设备。">mem_device</a> 的偏特化。</p>
+<p><a class="el" href="classIOv2_1_1mem__device.html" title="一个在内存中进行 I/O 操作的设备。">mem_device</a> 直接暴露内部缓冲区指针，因此不需要额外的内部缓冲区。 HasInBuffer 参数被忽略：rb_root_cvt 和 <a class="el" href="classIOv2_1_1no__rb__root__cvt.html">no_rb_root_cvt</a> 均可作为包装器，两者行为完全相同。</p>
+<p>由于 <a class="el" href="classIOv2_1_1mem__device.html" title="一个在内存中进行 I/O 操作的设备。">mem_device</a> 始终支持随机定位，且无需缓冲层，大多数方法直接转发给设备。</p>
+<dl class="section note"><dt>注解</dt><dd>调用顺序：成员函数必须按以下顺序调用：<ol type="1">
+<li>**bos()**：必须首先调用，以建立初始 IO 状态。</li>
+<li>**BOS 阶段**：可多次调用 <code><a class="el" href="classIOv2_1_1root__cvt_3_01mem__device_3_01CharT_00_01Traits_00_01Allocator_01_4_00_01HasInBuffer_01_4.html#a71fac398cd442a0bd6a3e754ee8f5a29">get()</a></code> 或多次调用 <code><a class="el" href="classIOv2_1_1root__cvt_3_01mem__device_3_01CharT_00_01Traits_00_01Allocator_01_4_00_01HasInBuffer_01_4.html#a97376bada2ec680241372297b4561c04">put()</a></code>，但不可混合调用。 此阶段用于读写流起始数据（如文件头）。</li>
+<li>**main_cont_beg()**：标记 BOS 阶段结束，进入主内容阶段。</li>
+<li>**主内容阶段**：可调用所有其他成员函数（<code>get</code>、<code>put</code>、<code>flush</code>、 <code>tell</code>、<code>seek</code>、<code>rseek</code>、<code>switch_to_get</code>、<code>switch_to_put</code> 等）。 违反此调用顺序将导致未定义行为。 </li>
+</ol>
+</dd></dl>
+<dl class="tparams"><dt>模板参数</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">CharT</td><td>字符类型，与 <a class="el" href="classIOv2_1_1mem__device.html" title="一个在内存中进行 I/O 操作的设备。">mem_device</a> 的模板参数一致。  </td></tr>
+    <tr><td class="paramname">Traits</td><td>字符 traits 类型，与 <a class="el" href="classIOv2_1_1mem__device.html" title="一个在内存中进行 I/O 操作的设备。">mem_device</a> 的模板参数一致。  </td></tr>
+    <tr><td class="paramname">Allocator</td><td>分配器类型，与 <a class="el" href="classIOv2_1_1mem__device.html" title="一个在内存中进行 I/O 操作的设备。">mem_device</a> 的模板参数一致。  </td></tr>
+    <tr><td class="paramname">HasInBuffer</td><td>忽略。mem_device 直接暴露缓冲区指针，无需内部缓冲层。   </td></tr>
+  </table>
+  </dd>
+</dl>
+</div><h2 class="groupheader">成员类型定义说明</h2>
+<a id="a951316d230f79f214fd0ff1dd741b1b0" name="a951316d230f79f214fd0ff1dd741b1b0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a951316d230f79f214fd0ff1dd741b1b0">&#9670;&#160;</a></span>device_type</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Traits</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Allocator</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> HasInBuffer&gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">using</a> <a class="el" href="classIOv2_1_1root__cvt.html">IOv2::root_cvt</a>&lt; <a class="el" href="classIOv2_1_1mem__device.html">mem_device</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Traits</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Allocator</a> &gt;, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">HasInBuffer</a> &gt;::device_type =  <a class="el" href="classIOv2_1_1mem__device.html">mem_device</a>&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Traits</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Allocator</a>&gt;</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>底层设备类型（mem_device 特化）。   </p>
+
+</div>
+</div>
+<a id="a8b9759b0b9a66dbdbe8a0ff9d485cab0" name="a8b9759b0b9a66dbdbe8a0ff9d485cab0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8b9759b0b9a66dbdbe8a0ff9d485cab0">&#9670;&#160;</a></span>external_type</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Traits</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Allocator</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> HasInBuffer&gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">using</a> <a class="el" href="classIOv2_1_1root__cvt.html">IOv2::root_cvt</a>&lt; <a class="el" href="classIOv2_1_1mem__device.html">mem_device</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Traits</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Allocator</a> &gt;, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">HasInBuffer</a> &gt;::external_type =  <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="classIOv2_1_1mem__device.html#af5fcd3b119b72b48bd54bfa09353a6d3">device_type::char_type</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>设备侧的字符类型（与 internal_type 相同）。   </p>
+
+</div>
+</div>
+<a id="ab89ed4d6c02ccc8ec167dd2cac2e87f8" name="ab89ed4d6c02ccc8ec167dd2cac2e87f8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab89ed4d6c02ccc8ec167dd2cac2e87f8">&#9670;&#160;</a></span>internal_type</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Traits</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Allocator</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> HasInBuffer&gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">using</a> <a class="el" href="classIOv2_1_1root__cvt.html">IOv2::root_cvt</a>&lt; <a class="el" href="classIOv2_1_1mem__device.html">mem_device</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Traits</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Allocator</a> &gt;, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">HasInBuffer</a> &gt;::internal_type =  <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="classIOv2_1_1mem__device.html#af5fcd3b119b72b48bd54bfa09353a6d3">device_type::char_type</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>上层转换器所使用的字符类型。   </p>
+
+</div>
+</div>
+<h2 class="groupheader">构造及析构函数说明</h2>
+<a id="a044738e1091dabe2c8d3045d8ec4ec7b" name="a044738e1091dabe2c8d3045d8ec4ec7b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a044738e1091dabe2c8d3045d8ec4ec7b">&#9670;&#160;</a></span>root_cvt() <span class="overload">[1/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Traits</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Allocator</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> HasInBuffer&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classIOv2_1_1root__cvt.html">IOv2::root_cvt</a>&lt; <a class="el" href="classIOv2_1_1mem__device.html">mem_device</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Traits</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Allocator</a> &gt;, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">HasInBuffer</a> &gt;::root_cvt </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classIOv2_1_1root__cvt_3_01mem__device_3_01CharT_00_01Traits_00_01Allocator_01_4_00_01HasInBuffer_01_4.html#a951316d230f79f214fd0ff1dd741b1b0">device_type</a>&#160;</td>
+          <td class="paramname"><em>device</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">explicit</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>构造函数：接管给定的 mem_device。 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">device</td><td>要接管的内存设备（按值传入，触发移动语义）。   </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a3b7f7ec610ca1a026805f5b4d744ac94" name="a3b7f7ec610ca1a026805f5b4d744ac94"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3b7f7ec610ca1a026805f5b4d744ac94">&#9670;&#160;</a></span>root_cvt() <span class="overload">[2/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Traits</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Allocator</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> HasInBuffer&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classIOv2_1_1root__cvt.html">IOv2::root_cvt</a>&lt; <a class="el" href="classIOv2_1_1mem__device.html">mem_device</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Traits</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Allocator</a> &gt;, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">HasInBuffer</a> &gt;::root_cvt </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="classIOv2_1_1root__cvt.html">root_cvt</a>&lt; <a class="el" href="classIOv2_1_1mem__device.html">mem_device</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Traits</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Allocator</a> &gt;, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">HasInBuffer</a> &gt; &amp;&#160;</td>
+          <td class="paramname"><em>val</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>拷贝构造函数：拷贝设备状态、流起点偏移量和 I/O 方向。 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">val</td><td>源对象。   </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="af7daf19f2b22aab2271ce6dd8b7764f6" name="af7daf19f2b22aab2271ce6dd8b7764f6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af7daf19f2b22aab2271ce6dd8b7764f6">&#9670;&#160;</a></span>root_cvt() <span class="overload">[3/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Traits</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Allocator</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> HasInBuffer&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classIOv2_1_1root__cvt.html">IOv2::root_cvt</a>&lt; <a class="el" href="classIOv2_1_1mem__device.html">mem_device</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Traits</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Allocator</a> &gt;, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">HasInBuffer</a> &gt;::root_cvt </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classIOv2_1_1root__cvt.html">root_cvt</a>&lt; <a class="el" href="classIOv2_1_1mem__device.html">mem_device</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Traits</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Allocator</a> &gt;, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">HasInBuffer</a> &gt; &amp;&amp;&#160;</td>
+          <td class="paramname"><em>val</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>移动构造函数：转移设备所有权、流起点偏移量和 I/O 方向。 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">val</td><td>源对象，移动后处于有效但未指定的状态。   </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="afea9d88408ee9a248282b813bd610796" name="afea9d88408ee9a248282b813bd610796"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afea9d88408ee9a248282b813bd610796">&#9670;&#160;</a></span>~root_cvt()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Traits</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Allocator</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> HasInBuffer&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classIOv2_1_1root__cvt.html">IOv2::root_cvt</a>&lt; <a class="el" href="classIOv2_1_1mem__device.html">mem_device</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Traits</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Allocator</a> &gt;, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">HasInBuffer</a> &gt;::~<a class="el" href="classIOv2_1_1root__cvt.html">root_cvt</a> </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">default</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>析构函数：mem_device 不需要刷新操作，因此为默认析构。 </p>
+
+</div>
+</div>
+<h2 class="groupheader">成员函数说明</h2>
+<a id="aaa817335bce0b8aa74218e16f1ed489f" name="aaa817335bce0b8aa74218e16f1ed489f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aaa817335bce0b8aa74218e16f1ed489f">&#9670;&#160;</a></span>adjust()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Traits</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Allocator</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> HasInBuffer&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a> <a class="el" href="classIOv2_1_1root__cvt.html">IOv2::root_cvt</a>&lt; <a class="el" href="classIOv2_1_1mem__device.html">mem_device</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Traits</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Allocator</a> &gt;, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">HasInBuffer</a> &gt;::adjust </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="structIOv2_1_1cvt__behavior.html">cvt_behavior</a> &amp;&#160;</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>调整转换器行为参数，对此特化为空操作。  </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname"></td><td></td></tr>
+  </table>
+  </dd>
+</dl>
+<p>iline 1317  忽略的行为配置对象。   </p>
+
+</div>
+</div>
+<a id="a97df1a18a96a643a11c8e4022eed30dd" name="a97df1a18a96a643a11c8e4022eed30dd"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a97df1a18a96a643a11c8e4022eed30dd">&#9670;&#160;</a></span>attach()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Traits</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Allocator</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> HasInBuffer&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a> <a class="el" href="classIOv2_1_1root__cvt.html">IOv2::root_cvt</a>&lt; <a class="el" href="classIOv2_1_1mem__device.html">mem_device</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Traits</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Allocator</a> &gt;, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">HasInBuffer</a> &gt;::attach </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classIOv2_1_1root__cvt_3_01mem__device_3_01CharT_00_01Traits_00_01Allocator_01_4_00_01HasInBuffer_01_4.html#a951316d230f79f214fd0ff1dd741b1b0">device_type</a> &amp;&amp;&#160;</td>
+          <td class="paramname"><em>dev</em> = <code><a class="el" href="classIOv2_1_1root__cvt_3_01mem__device_3_01CharT_00_01Traits_00_01Allocator_01_4_00_01HasInBuffer_01_4.html#a951316d230f79f214fd0ff1dd741b1b0">device_type</a>{}</code></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>分离当前 mem_device，附加新设备，并将内部状态重置为初始值。</p>
+<p>与 <code><a class="el" href="classIOv2_1_1root__cvt_3_01mem__device_3_01CharT_00_01Traits_00_01Allocator_01_4_00_01HasInBuffer_01_4.html#ae0d9013004e1fb9c22f3eac0e76e164f">detach()</a></code> 不同的是，本函数**不**将原 <a class="el" href="classIOv2_1_1mem__device.html" title="一个在内存中进行 I/O 操作的设备。">mem_device</a> 归还给调用方—— 原 <a class="el" href="classIOv2_1_1mem__device.html" title="一个在内存中进行 I/O 操作的设备。">mem_device</a> 通过移动赋值被新设备覆盖（即静默析构）。如需保留原 mem_device（例如取出其缓冲区内容），调用方应先单独调用 <code><a class="el" href="classIOv2_1_1root__cvt_3_01mem__device_3_01CharT_00_01Traits_00_01Allocator_01_4_00_01HasInBuffer_01_4.html#ae0d9013004e1fb9c22f3eac0e76e164f">detach()</a></code> 取得设备，再调用本函数装入新设备。</p>
+<p><a class="el" href="classIOv2_1_1mem__device.html" title="一个在内存中进行 I/O 操作的设备。">mem_device</a> 无清理动作，本函数不会抛出异常。 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">dev</td><td>要附加的新设备，默认为默认构造的空设备。   </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a4701ef74205dc08b857c0bc8cd1a6121" name="a4701ef74205dc08b857c0bc8cd1a6121"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4701ef74205dc08b857c0bc8cd1a6121">&#9670;&#160;</a></span>bos()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Traits</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Allocator</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> HasInBuffer&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a36673c0e1d93ef095d232f0f726134d9">io_status</a> <a class="el" href="classIOv2_1_1root__cvt.html">IOv2::root_cvt</a>&lt; <a class="el" href="classIOv2_1_1mem__device.html">mem_device</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Traits</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Allocator</a> &gt;, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">HasInBuffer</a> &gt;::bos </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>确定并设置初始 I/O 方向。当 deof() 为 true 时进入输出模式，否则进入输入模式。</p>
+<dl class="section user"><dt>设计说明</dt><dd>初始方向基于流是否包含数据来确定，这是为了保护数据完整性：<ul>
+<li>**流有内容（deof() 为 false）→ 输入模式**：避免意外覆盖现有数据。</li>
+<li>**流无内容（deof() 为 true）→ 输出模式**：空流没有可读内容，只能写入。</li>
+</ul>
+</dd></dl>
+<p>若需覆盖非空流，应先清空内容，而非强制进入输出模式。 </p>
+<dl class="section return"><dt>返回</dt><dd>确定后的 io_status（input 或 output）。   </dd></dl>
+
+</div>
+</div>
+<a id="ae0d9013004e1fb9c22f3eac0e76e164f" name="ae0d9013004e1fb9c22f3eac0e76e164f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae0d9013004e1fb9c22f3eac0e76e164f">&#9670;&#160;</a></span>detach()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Traits</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Allocator</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> HasInBuffer&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::pair&lt; <a class="el" href="classIOv2_1_1root__cvt_3_01mem__device_3_01CharT_00_01Traits_00_01Allocator_01_4_00_01HasInBuffer_01_4.html#a951316d230f79f214fd0ff1dd741b1b0">device_type</a>, std::exception_ptr &gt; <a class="el" href="classIOv2_1_1root__cvt.html">IOv2::root_cvt</a>&lt; <a class="el" href="classIOv2_1_1mem__device.html">mem_device</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Traits</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Allocator</a> &gt;, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">HasInBuffer</a> &gt;::detach </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>将底层 <a class="el" href="classIOv2_1_1mem__device.html" title="一个在内存中进行 I/O 操作的设备。">mem_device</a> 从 <a class="el" href="classIOv2_1_1root__cvt.html">root_cvt</a> 中分离并返回。 <a class="el" href="classIOv2_1_1mem__device.html" title="一个在内存中进行 I/O 操作的设备。">mem_device</a> 无需刷新，无清理动作可抛出异常；返回 pair 的 <code>second</code> 始终为 <code>nullptr</code>。 调用后，root_cvt 内部状态被重置为初始状态。本函数为 <code>noexcept</code>。 </p>
+<dl class="section return"><dt>返回</dt><dd>pair：<code>first</code> 为已分离的设备对象（通过移动语义返回），<code>second</code> 始终为 <code>nullptr</code>。   </dd></dl>
+
+</div>
+</div>
+<a id="a5b8d62a8c8d4938ab9a60c0dc47eae9a" name="a5b8d62a8c8d4938ab9a60c0dc47eae9a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5b8d62a8c8d4938ab9a60c0dc47eae9a">&#9670;&#160;</a></span>device()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Traits</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Allocator</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> HasInBuffer&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classIOv2_1_1root__cvt_3_01mem__device_3_01CharT_00_01Traits_00_01Allocator_01_4_00_01HasInBuffer_01_4.html#a951316d230f79f214fd0ff1dd741b1b0">device_type</a> &amp; <a class="el" href="classIOv2_1_1root__cvt.html">IOv2::root_cvt</a>&lt; <a class="el" href="classIOv2_1_1mem__device.html">mem_device</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Traits</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Allocator</a> &gt;, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">HasInBuffer</a> &gt;::device </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>返回底层 <a class="el" href="classIOv2_1_1mem__device.html" title="一个在内存中进行 I/O 操作的设备。">mem_device</a> 的引用。  </p>
+<dl class="section return"><dt>返回</dt><dd>底层 device_type 的可变引用。   </dd></dl>
+
+</div>
+</div>
+<a id="aec92cd46046310f4af8159d9b5c3fa93" name="aec92cd46046310f4af8159d9b5c3fa93"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aec92cd46046310f4af8159d9b5c3fa93">&#9670;&#160;</a></span>flush()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Traits</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Allocator</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> HasInBuffer&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a> <a class="el" href="classIOv2_1_1root__cvt.html">IOv2::root_cvt</a>&lt; <a class="el" href="classIOv2_1_1mem__device.html">mem_device</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Traits</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Allocator</a> &gt;, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">HasInBuffer</a> &gt;::flush </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>刷新操作，对此特化为空操作。mem_device 是纯内存设备，写入即生效，无需刷新。 </p>
+
+</div>
+</div>
+<a id="a71fac398cd442a0bd6a3e754ee8f5a29" name="a71fac398cd442a0bd6a3e754ee8f5a29"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a71fac398cd442a0bd6a3e754ee8f5a29">&#9670;&#160;</a></span>get()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Traits</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Allocator</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> HasInBuffer&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::size_t <a class="el" href="classIOv2_1_1root__cvt.html">IOv2::root_cvt</a>&lt; <a class="el" href="classIOv2_1_1mem__device.html">mem_device</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Traits</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Allocator</a> &gt;, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">HasInBuffer</a> &gt;::get </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classIOv2_1_1root__cvt_3_01mem__device_3_01CharT_00_01Traits_00_01Allocator_01_4_00_01HasInBuffer_01_4.html#ab89ed4d6c02ccc8ec167dd2cac2e87f8">internal_type</a> *&#160;</td>
+          <td class="paramname"><em>to</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::size_t&#160;</td>
+          <td class="paramname"><em>to_max</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>从 <a class="el" href="classIOv2_1_1mem__device.html" title="一个在内存中进行 I/O 操作的设备。">mem_device</a> 读取最多 to_max 个字符到 to 指向的缓冲区。 先切换到输入模式，再直接转发给设备的 dget()。 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">to</td><td>接收数据的目标缓冲区指针。   </td></tr>
+    <tr><td class="paramname">to_max</td><td>最多读取的字符数。   </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd>实际读取的字符数。   </dd></dl>
+
+</div>
+</div>
+<a id="a9595201b178d1a466b8e2a906aefcb97" name="a9595201b178d1a466b8e2a906aefcb97"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9595201b178d1a466b8e2a906aefcb97">&#9670;&#160;</a></span>is_eof()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Traits</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Allocator</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> HasInBuffer&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> <a class="el" href="classIOv2_1_1root__cvt.html">IOv2::root_cvt</a>&lt; <a class="el" href="classIOv2_1_1mem__device.html">mem_device</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Traits</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Allocator</a> &gt;, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">HasInBuffer</a> &gt;::is_eof </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>判断当前流是否已到达末尾（EOF），直接转发给 <a class="el" href="classIOv2_1_1mem__device.html#a12b14e593fb5d19db071b58103eff63f" title="检查是否已到达内存缓冲区的末尾。">mem_device::deof()</a>。 </p>
+<dl class="section return"><dt>返回</dt><dd>若已到达 EOF 则返回 true。   </dd></dl>
+
+</div>
+</div>
+<a id="ad4a4b6c156d4cb3497cc7e79ad4f5938" name="ad4a4b6c156d4cb3497cc7e79ad4f5938"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad4a4b6c156d4cb3497cc7e79ad4f5938">&#9670;&#160;</a></span>main_cont_beg()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Traits</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Allocator</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> HasInBuffer&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a> <a class="el" href="classIOv2_1_1root__cvt.html">IOv2::root_cvt</a>&lt; <a class="el" href="classIOv2_1_1mem__device.html">mem_device</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Traits</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Allocator</a> &gt;, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">HasInBuffer</a> &gt;::main_cont_beg </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>标记连续数据块的开始，将当前设备位置记录为流起点（m_bos_len）。 必须先调用 <a class="el" href="classIOv2_1_1root__cvt_3_01mem__device_3_01CharT_00_01Traits_00_01Allocator_01_4_00_01HasInBuffer_01_4.html#a4701ef74205dc08b857c0bc8cd1a6121">bos()</a> 建立 io_status。 </p>
+
+</div>
+</div>
+<a id="a2663be3cb5f9108c94d94a9a4066ec81" name="a2663be3cb5f9108c94d94a9a4066ec81"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2663be3cb5f9108c94d94a9a4066ec81">&#9670;&#160;</a></span>operator=() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Traits</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Allocator</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> HasInBuffer&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classIOv2_1_1root__cvt.html">root_cvt</a> &amp; <a class="el" href="classIOv2_1_1root__cvt.html">IOv2::root_cvt</a>&lt; <a class="el" href="classIOv2_1_1mem__device.html">mem_device</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Traits</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Allocator</a> &gt;, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">HasInBuffer</a> &gt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">::operator</a>= </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="classIOv2_1_1root__cvt.html">root_cvt</a>&lt; <a class="el" href="classIOv2_1_1mem__device.html">mem_device</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Traits</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Allocator</a> &gt;, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">HasInBuffer</a> &gt; &amp;&#160;</td>
+          <td class="paramname"><em>val</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>拷贝赋值运算符。 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">val</td><td>源对象。   </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd>*this 的引用。   </dd></dl>
+
+</div>
+</div>
+<a id="a06bfaec129a175d4e8380fa03c161001" name="a06bfaec129a175d4e8380fa03c161001"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a06bfaec129a175d4e8380fa03c161001">&#9670;&#160;</a></span>operator=() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Traits</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Allocator</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> HasInBuffer&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classIOv2_1_1root__cvt.html">root_cvt</a> &amp; <a class="el" href="classIOv2_1_1root__cvt.html">IOv2::root_cvt</a>&lt; <a class="el" href="classIOv2_1_1mem__device.html">mem_device</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Traits</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Allocator</a> &gt;, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">HasInBuffer</a> &gt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">::operator</a>= </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classIOv2_1_1root__cvt.html">root_cvt</a>&lt; <a class="el" href="classIOv2_1_1mem__device.html">mem_device</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Traits</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Allocator</a> &gt;, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">HasInBuffer</a> &gt; &amp;&amp;&#160;</td>
+          <td class="paramname"><em>val</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>移动赋值运算符：转移设备所有权，源对象 io_status 重置为 neutral。 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">val</td><td>源对象，赋值后处于有效但未指定的状态。   </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd>*this 的引用。   </dd></dl>
+
+</div>
+</div>
+<a id="a97376bada2ec680241372297b4561c04" name="a97376bada2ec680241372297b4561c04"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a97376bada2ec680241372297b4561c04">&#9670;&#160;</a></span>put()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Traits</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Allocator</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> HasInBuffer&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a> <a class="el" href="classIOv2_1_1root__cvt.html">IOv2::root_cvt</a>&lt; <a class="el" href="classIOv2_1_1mem__device.html">mem_device</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Traits</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Allocator</a> &gt;, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">HasInBuffer</a> &gt;::put </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="classIOv2_1_1root__cvt_3_01mem__device_3_01CharT_00_01Traits_00_01Allocator_01_4_00_01HasInBuffer_01_4.html#ab89ed4d6c02ccc8ec167dd2cac2e87f8">internal_type</a> *&#160;</td>
+          <td class="paramname"><em>to</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::size_t&#160;</td>
+          <td class="paramname"><em>to_size</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>将 to_size 个字符写入 mem_device。 先切换到输出模式，再直接转发给设备的 dput()。 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">to</td><td>要写入的数据来源指针。   </td></tr>
+    <tr><td class="paramname">to_size</td><td>要写入的字符数。   </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a989f571d8ee052d3209de15c9378b397" name="a989f571d8ee052d3209de15c9378b397"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a989f571d8ee052d3209de15c9378b397">&#9670;&#160;</a></span>retrieve()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Traits</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Allocator</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> HasInBuffer&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a> <a class="el" href="classIOv2_1_1root__cvt.html">IOv2::root_cvt</a>&lt; <a class="el" href="classIOv2_1_1mem__device.html">mem_device</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Traits</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Allocator</a> &gt;, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">HasInBuffer</a> &gt;::retrieve </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structIOv2_1_1cvt__status.html">cvt_status</a> &amp;&#160;</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>检索转换器状态，对此特化为空操作。  </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname"></td><td></td></tr>
+  </table>
+  </dd>
+</dl>
+<p>iline 1327  忽略的状态输出对象。   </p>
+
+</div>
+</div>
+<a id="a515184cd609e996fdff2e2919f490368" name="a515184cd609e996fdff2e2919f490368"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a515184cd609e996fdff2e2919f490368">&#9670;&#160;</a></span>rseek()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Traits</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Allocator</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> HasInBuffer&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a> <a class="el" href="classIOv2_1_1root__cvt.html">IOv2::root_cvt</a>&lt; <a class="el" href="classIOv2_1_1mem__device.html">mem_device</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Traits</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Allocator</a> &gt;, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">HasInBuffer</a> &gt;::rseek </td>
+          <td>(</td>
+          <td class="paramtype">std::size_t&#160;</td>
+          <td class="paramname"><em>pos</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>反向定位：将流位置移动到距流末尾 pos 个字符处。 验证 pos 未超出流范围，再对底层设备调用 drseek(pos)。 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">pos</td><td>目标位置，相对于流末尾的字符偏移量（0 表示末尾）。   </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="exception"><dt>异常</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname"><a class="el" href="structIOv2_1_1cvt__error.html">cvt_error</a></td><td>pos 超出流边界，或 m_bos_len 大于设备总大小时抛出。   </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="aa411dbdc837583c3d8fc4bfff475352f" name="aa411dbdc837583c3d8fc4bfff475352f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa411dbdc837583c3d8fc4bfff475352f">&#9670;&#160;</a></span>seek()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Traits</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Allocator</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> HasInBuffer&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a> <a class="el" href="classIOv2_1_1root__cvt.html">IOv2::root_cvt</a>&lt; <a class="el" href="classIOv2_1_1mem__device.html">mem_device</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Traits</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Allocator</a> &gt;, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">HasInBuffer</a> &gt;::seek </td>
+          <td>(</td>
+          <td class="paramtype">std::size_t&#160;</td>
+          <td class="paramname"><em>pos</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>绝对定位：将流位置移动到距流起点 pos 个字符处。 直接对底层设备调用 dseek(pos + m_bos_len)，无需刷新（mem_device 无写缓冲区）。 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">pos</td><td>目标位置，相对于流起点的字符偏移量。   </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a1ad64caee179efc7d4272d90c777583a" name="a1ad64caee179efc7d4272d90c777583a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1ad64caee179efc7d4272d90c777583a">&#9670;&#160;</a></span>switch_to_get()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Traits</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Allocator</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> HasInBuffer&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a> <a class="el" href="classIOv2_1_1root__cvt.html">IOv2::root_cvt</a>&lt; <a class="el" href="classIOv2_1_1mem__device.html">mem_device</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Traits</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Allocator</a> &gt;, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">HasInBuffer</a> &gt;::switch_to_get </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>切换到读取模式，直接将 io_status 设置为 input。 <a class="el" href="classIOv2_1_1mem__device.html" title="一个在内存中进行 I/O 操作的设备。">mem_device</a> 支持随机访问，切换无需任何额外操作。 </p>
+
+</div>
+</div>
+<a id="a99d0d96cf9d2060d6f6c16556f6eecbc" name="a99d0d96cf9d2060d6f6c16556f6eecbc"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a99d0d96cf9d2060d6f6c16556f6eecbc">&#9670;&#160;</a></span>switch_to_put()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Traits</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Allocator</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> HasInBuffer&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a> <a class="el" href="classIOv2_1_1root__cvt.html">IOv2::root_cvt</a>&lt; <a class="el" href="classIOv2_1_1mem__device.html">mem_device</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Traits</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Allocator</a> &gt;, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">HasInBuffer</a> &gt;::switch_to_put </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>切换到写入模式，直接将 io_status 设置为 output。 <a class="el" href="classIOv2_1_1mem__device.html" title="一个在内存中进行 I/O 操作的设备。">mem_device</a> 支持随机访问，切换无需任何额外操作。 </p>
+
+</div>
+</div>
+<a id="a92bbaac6e1aa96d7ed774708a97c4520" name="a92bbaac6e1aa96d7ed774708a97c4520"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a92bbaac6e1aa96d7ed774708a97c4520">&#9670;&#160;</a></span>tell()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Traits</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Allocator</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> HasInBuffer&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::size_t <a class="el" href="classIOv2_1_1root__cvt.html">IOv2::root_cvt</a>&lt; <a class="el" href="classIOv2_1_1mem__device.html">mem_device</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Traits</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Allocator</a> &gt;, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">HasInBuffer</a> &gt;::tell </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>返回当前流位置（相对于 m_bos_len 的偏移量）。 直接转发给 <a class="el" href="classIOv2_1_1mem__device.html#a3d26c148cd787778bdaea19a27905c7e" title="获取当前读/写位置。">mem_device::dtell()</a>，减去流起点偏移量。 </p>
+<dl class="section return"><dt>返回</dt><dd>相对于流起点的当前位置偏移（字符数）。   </dd></dl>
+
+</div>
+</div>
+<hr/>该类的文档由以下文件生成:<ul>
+<li>include/IOv2/cvt/<a class="el" href="root__cvt_8h_source.html">root_cvt.h</a></li>
+</ul>
+</div><!-- contents -->
+</div><!-- doc-content -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><a class="el" href="namespaceIOv2.html">IOv2</a></li><li class="navelem"><a class="el" href="classIOv2_1_1root__cvt_3_01mem__device_3_01CharT_00_01Traits_00_01Allocator_01_4_00_01HasInBuffer_01_4.html">root_cvt&lt; mem_device&lt; CharT, Traits, Allocator &gt;, HasInBuffer &gt;</a></li>
+    <li class="footer">制作者 <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8 </li>
+  </ul>
+</div>
+</body>
+</html>

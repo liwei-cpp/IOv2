@@ -1,0 +1,15 @@
+<map id="IOv2::__cin" name="IOv2::__cin">
+<area shape="rect" id="Node000001" title="cin" alt="" coords="701,99,795,124"/>
+<area shape="rect" id="Node000002" href="$classIOv2_1_1stdin__api.html" title=" " alt="" coords="472,48,653,103"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="668,93,702,100,701,105,667,98"/>
+<area shape="rect" id="Node000003" href="$structIOv2_1_1ios__state.html" title="Component that adds the stream state bits and their associated exceptions on top of the formatting st..." alt="" coords="237,5,424,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="397,31,472,50,471,56,396,37"/>
+<area shape="rect" id="Node000004" href="$classIOv2_1_1ios__base.html" title="Base class holding the formatting state of every stream." alt="" coords="5,5,189,31"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="203,15,237,15,237,21,203,21"/>
+<area shape="rect" id="Node000005" href="$structIOv2_1_1istream__operators.html" title="Mix&#45;in base that provides the various extraction operations for input streams." alt="" coords="241,55,420,95"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="434,73,472,73,472,78,434,78"/>
+<area shape="rect" id="Node000006" href="$structIOv2_1_1stream__common__operators.html" title="Mix&#45;in base that provides operations common to input and output streams." alt="" coords="245,119,416,159"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="416,113,471,98,473,103,418,118"/>
+<area shape="rect" id="Node000007" href="$classIOv2_1_1sing__temp.html" title=" " alt="" coords="487,127,638,167"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="651,127,701,118,702,123,652,133"/>
+</map>

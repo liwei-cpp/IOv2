@@ -1,0 +1,326 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=11"/>
+<meta name="generator" content="Doxygen 1.9.8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>IOv2: IOv2::out_sentry&lt; TStream, involve_input, is_std &gt; 模板结构体 参考</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="resize.js"></script>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr id="projectrow">
+  <td id="projectalign">
+   <div id="projectname">IOv2
+   </div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 制作者 Doxygen 1.9.8 -->
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+/* @license-end */
+</script>
+<script type="text/javascript" src="menudata.js"></script>
+<script type="text/javascript" src="menu.js"></script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(function() {
+  initMenu('',true,false,'search.php','搜索');
+  $(document).ready(function() { init_search(); });
+});
+/* @license-end */
+</script>
+<div id="main-nav"></div>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(document).ready(function(){initNavTree('structIOv2_1_1out__sentry.html',''); initResizable(); });
+/* @license-end */
+</script>
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">载入中...</div>
+<div class="SRStatus" id="Searching">搜索中...</div>
+<div class="SRStatus" id="NoMatches">未找到</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="header">
+  <div class="summary">
+<a href="#pub-methods">Public 成员函数</a> &#124;
+<a href="structIOv2_1_1out__sentry-members.html">所有成员列表</a>  </div>
+  <div class="headertitle"><div class="title">IOv2::out_sentry&lt; TStream, involve_input, is_std &gt; 模板结构体 参考</div></div>
+</div><!--header-->
+<div class="contents">
+
+<p>输出操作的 RAII 哨兵：在每次插入操作的入口统一完成前置准备与末尾自动刷新。  
+ <a href="structIOv2_1_1out__sentry.html#details">更多...</a></p>
+
+<p><code>#include &lt;<a class="el" href="ostream__operators_8h_source.html">ostream_operators.h</a>&gt;</code></p>
+<table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
+Public 成员函数</h2></td></tr>
+<tr class="memitem:a3eb4d56f578ad5fa94bc205280262b2f" id="r_a3eb4d56f578ad5fa94bc205280262b2f"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1out__sentry.html#a3eb4d56f578ad5fa94bc205280262b2f">out_sentry</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TStream</a> &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">os</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">is_unit_buf</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">is_app_mode</a>)</td></tr>
+<tr class="memdesc:a3eb4d56f578ad5fa94bc205280262b2f"><td class="mdescLeft">&#160;</td><td class="mdescRight">构造输出哨兵：校验流、刷新关联流，并按需切换读写方向 / 定位到末尾。  <br /></td></tr>
+<tr class="separator:a3eb4d56f578ad5fa94bc205280262b2f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad034c9b260a8fdfe6382273a9708c603" id="r_ad034c9b260a8fdfe6382273a9708c603"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1out__sentry.html#ad034c9b260a8fdfe6382273a9708c603">~out_sentry</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">noexcept</a>(<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">false</a>)</td></tr>
+<tr class="memdesc:ad034c9b260a8fdfe6382273a9708c603"><td class="mdescLeft">&#160;</td><td class="mdescRight">析构时对 unitbuf / 与 stdio 同步的流执行自动刷新，并按异常掩码决定是否上报失败。  <br /></td></tr>
+<tr class="separator:ad034c9b260a8fdfe6382273a9708c603"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a11c184c273efe80b8f3c8e4dedc47395" id="r_a11c184c273efe80b8f3c8e4dedc47395"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1out__sentry.html#a11c184c273efe80b8f3c8e4dedc47395">out_sentry</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="structIOv2_1_1out__sentry.html">out_sentry</a> &amp;)=<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">delete</a></td></tr>
+<tr class="separator:a11c184c273efe80b8f3c8e4dedc47395"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a285ce1110a764cd9478985da52a18f1e" id="r_a285ce1110a764cd9478985da52a18f1e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structIOv2_1_1out__sentry.html">out_sentry</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1out__sentry.html#a285ce1110a764cd9478985da52a18f1e">operator=</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="structIOv2_1_1out__sentry.html">out_sentry</a> &amp;)=<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">delete</a></td></tr>
+<tr class="separator:a285ce1110a764cd9478985da52a18f1e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a463ef8f90f554015e1b887a92fe9c376" id="r_a463ef8f90f554015e1b887a92fe9c376"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1out__sentry.html#a463ef8f90f554015e1b887a92fe9c376">out_sentry</a> (<a class="el" href="structIOv2_1_1out__sentry.html">out_sentry</a> &amp;&amp;)=<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">delete</a></td></tr>
+<tr class="separator:a463ef8f90f554015e1b887a92fe9c376"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a71f1d7ae9886eea7107b7c52d3f3420f" id="r_a71f1d7ae9886eea7107b7c52d3f3420f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structIOv2_1_1out__sentry.html">out_sentry</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1out__sentry.html#a71f1d7ae9886eea7107b7c52d3f3420f">operator=</a> (<a class="el" href="structIOv2_1_1out__sentry.html">out_sentry</a> &amp;&amp;)=<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">delete</a></td></tr>
+<tr class="separator:a71f1d7ae9886eea7107b7c52d3f3420f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table>
+<a name="details" id="details"></a><h2 class="groupheader">详细描述</h2>
+<div class="textblock"><div class="compoundTemplParams">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TStream</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> involve_input, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> is_std = false&gt;<br />
+struct IOv2::out_sentry&lt; TStream, involve_input, is_std &gt;</div><p>输出操作的 RAII 哨兵：在每次插入操作的入口统一完成前置准备与末尾自动刷新。 </p>
+</div><h2 class="groupheader">构造及析构函数说明</h2>
+<a id="a3eb4d56f578ad5fa94bc205280262b2f" name="a3eb4d56f578ad5fa94bc205280262b2f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3eb4d56f578ad5fa94bc205280262b2f">&#9670;&#160;</a></span>out_sentry() <span class="overload">[1/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TStream</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> involve_input, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> is_std = false&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="structIOv2_1_1out__sentry.html">IOv2::out_sentry</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TStream</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">involve_input</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">is_std</a> &gt;::out_sentry </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TStream</a> &amp;&#160;</td>
+          <td class="paramname"><em>os</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a>&#160;</td>
+          <td class="paramname"><em>is_unit_buf</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a>&#160;</td>
+          <td class="paramname"><em>is_app_mode</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>构造输出哨兵：校验流、刷新关联流，并按需切换读写方向 / 定位到末尾。 </p>
+
+</div>
+</div>
+<a id="ad034c9b260a8fdfe6382273a9708c603" name="ad034c9b260a8fdfe6382273a9708c603"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad034c9b260a8fdfe6382273a9708c603">&#9670;&#160;</a></span>~out_sentry()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TStream</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> involve_input, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> is_std = false&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="structIOv2_1_1out__sentry.html">IOv2::out_sentry</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TStream</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">involve_input</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">is_std</a> &gt;::~<a class="el" href="structIOv2_1_1out__sentry.html">out_sentry</a> </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>析构时对 unitbuf / 与 stdio 同步的流执行自动刷新，并按异常掩码决定是否上报失败。 </p>
+
+</div>
+</div>
+<a id="a11c184c273efe80b8f3c8e4dedc47395" name="a11c184c273efe80b8f3c8e4dedc47395"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a11c184c273efe80b8f3c8e4dedc47395">&#9670;&#160;</a></span>out_sentry() <span class="overload">[2/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TStream</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> involve_input, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> is_std = false&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="structIOv2_1_1out__sentry.html">IOv2::out_sentry</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TStream</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">involve_input</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">is_std</a> &gt;::out_sentry </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="structIOv2_1_1out__sentry.html">out_sentry</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TStream</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">involve_input</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">is_std</a> &gt; &amp;&#160;</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">delete</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a463ef8f90f554015e1b887a92fe9c376" name="a463ef8f90f554015e1b887a92fe9c376"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a463ef8f90f554015e1b887a92fe9c376">&#9670;&#160;</a></span>out_sentry() <span class="overload">[3/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TStream</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> involve_input, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> is_std = false&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="structIOv2_1_1out__sentry.html">IOv2::out_sentry</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TStream</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">involve_input</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">is_std</a> &gt;::out_sentry </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structIOv2_1_1out__sentry.html">out_sentry</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TStream</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">involve_input</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">is_std</a> &gt; &amp;&amp;&#160;</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">delete</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<h2 class="groupheader">成员函数说明</h2>
+<a id="a285ce1110a764cd9478985da52a18f1e" name="a285ce1110a764cd9478985da52a18f1e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a285ce1110a764cd9478985da52a18f1e">&#9670;&#160;</a></span>operator=() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TStream</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> involve_input, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> is_std = false&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="structIOv2_1_1out__sentry.html">out_sentry</a> &amp; <a class="el" href="structIOv2_1_1out__sentry.html">IOv2::out_sentry</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TStream</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">involve_input</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">is_std</a> &gt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">::operator</a>= </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="structIOv2_1_1out__sentry.html">out_sentry</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TStream</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">involve_input</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">is_std</a> &gt; &amp;&#160;</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">delete</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a71f1d7ae9886eea7107b7c52d3f3420f" name="a71f1d7ae9886eea7107b7c52d3f3420f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a71f1d7ae9886eea7107b7c52d3f3420f">&#9670;&#160;</a></span>operator=() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TStream</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> involve_input, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> is_std = false&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="structIOv2_1_1out__sentry.html">out_sentry</a> &amp; <a class="el" href="structIOv2_1_1out__sentry.html">IOv2::out_sentry</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TStream</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">involve_input</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">is_std</a> &gt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">::operator</a>= </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structIOv2_1_1out__sentry.html">out_sentry</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TStream</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">involve_input</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">is_std</a> &gt; &amp;&amp;&#160;</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">delete</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<hr/>该结构体的文档由以下文件生成:<ul>
+<li>include/IOv2/io/utilities/<a class="el" href="ostream__operators_8h_source.html">ostream_operators.h</a></li>
+</ul>
+</div><!-- contents -->
+</div><!-- doc-content -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><a class="el" href="namespaceIOv2.html">IOv2</a></li><li class="navelem"><a class="el" href="structIOv2_1_1out__sentry.html">out_sentry</a></li>
+    <li class="footer">制作者 <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8 </li>
+  </ul>
+</div>
+</body>
+</html>

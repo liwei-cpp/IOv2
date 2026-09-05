@@ -1,0 +1,167 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=11"/>
+<meta name="generator" content="Doxygen 1.9.8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>IOv2: include/IOv2/facet/messages_details.h 文件参考</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="resize.js"></script>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr id="projectrow">
+  <td id="projectalign">
+   <div id="projectname">IOv2
+   </div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 制作者 Doxygen 1.9.8 -->
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+/* @license-end */
+</script>
+<script type="text/javascript" src="menudata.js"></script>
+<script type="text/javascript" src="menu.js"></script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(function() {
+  initMenu('',true,false,'search.php','搜索');
+  $(document).ready(function() { init_search(); });
+});
+/* @license-end */
+</script>
+<div id="main-nav"></div>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(document).ready(function(){initNavTree('messages__details_8h.html',''); initResizable(); });
+/* @license-end */
+</script>
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">载入中...</div>
+<div class="SRStatus" id="Searching">搜索中...</div>
+<div class="SRStatus" id="NoMatches">未找到</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="header">
+  <div class="summary">
+<a href="#nested-classes">类</a> &#124;
+<a href="#namespaces">命名空间</a>  </div>
+  <div class="headertitle"><div class="title">messages_details.h 文件参考</div></div>
+</div><!--header-->
+<div class="contents">
+<div class="textblock"><code>#include &lt;<a class="el" href="defs_8h_source.html">IOv2/common/defs.h</a>&gt;</code><br />
+<code>#include &lt;<a class="el" href="metafunctions_8h_source.html">IOv2/common/metafunctions.h</a>&gt;</code><br />
+<code>#include &lt;<a class="el" href="code__cvt_8h_source.html">IOv2/cvt/code_cvt.h</a>&gt;</code><br />
+<code>#include &lt;<a class="el" href="cvt__facilities_8h_source.html">IOv2/cvt/cvt_facilities.h</a>&gt;</code><br />
+<code>#include &lt;<a class="el" href="root__cvt_8h_source.html">IOv2/cvt/root_cvt.h</a>&gt;</code><br />
+<code>#include &lt;<a class="el" href="mem__device_8h_source.html">IOv2/device/mem_device.h</a>&gt;</code><br />
+<code>#include &lt;<a class="el" href="facet__common_8h_source.html">IOv2/facet/facet_common.h</a>&gt;</code><br />
+<code>#include &lt;array&gt;</code><br />
+<code>#include &lt;bit&gt;</code><br />
+<code>#include &lt;cstddef&gt;</code><br />
+<code>#include &lt;cstdint&gt;</code><br />
+<code>#include &lt;cstdio&gt;</code><br />
+<code>#include &lt;cstdlib&gt;</code><br />
+<code>#include &lt;cstring&gt;</code><br />
+<code>#include &lt;exception&gt;</code><br />
+<code>#include &lt;filesystem&gt;</code><br />
+<code>#include &lt;mutex&gt;</code><br />
+<code>#include &lt;string&gt;</code><br />
+<code>#include &lt;unordered_map&gt;</code><br />
+<code>#include &lt;utility&gt;</code><br />
+<code>#include &lt;vector&gt;</code><br />
+</div><div class="textblock"><div class="dynheader">
+messages_details.h 的引用(Include)关系图:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="messages__details_8h__incl.svg" width="3830" height="520"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+</div><div class="textblock"><div class="dynheader">
+此图展示该文件直接或间接的被哪些文件引用了:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="messages__details_8h__dep__incl.svg" width="1590" height="740"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+</div>
+<p><a href="messages__details_8h_source.html">浏览源代码.</a></p>
+<table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
+类</h2></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1base__ft_3_01messages_01_4.html">IOv2::base_ft&lt; messages &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight"><code>messages</code> facet 的基类，提供 gettext 文本域管理和 <code>.mo</code> 文件解析功能。  <a href="classIOv2_1_1base__ft_3_01messages_01_4.html#details">更多...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1base__ft_3_01messages_01_4_1_1text__domain.html">IOv2::base_ft&lt; messages &gt;::text_domain</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">捆绑文本域名称与其目录的辅助结构体。  <a href="structIOv2_1_1base__ft_3_01messages_01_4_1_1text__domain.html#details">更多...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1messages__conf_3_01char8__t_01_4.html">IOv2::messages_conf&lt; char8_t &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight"><code><a class="el" href="classIOv2_1_1messages__conf.html">messages_conf</a></code> 的 <code>char8_t</code> 特化，以 UTF-8 字符串为键的翻译 facet。  <a href="classIOv2_1_1messages__conf_3_01char8__t_01_4.html#details">更多...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1messages__conf_3_01CharT_01_4.html">IOv2::messages_conf&lt; CharT &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight"><code><a class="el" href="classIOv2_1_1messages__conf.html">messages_conf</a></code> 的 <code>char32_t</code>/UTF-32 <code>wchar_t</code> 特化。  <a href="classIOv2_1_1messages__conf_3_01CharT_01_4.html#details">更多...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1messages__conf_3_01char_01_4.html">IOv2::messages_conf&lt; char &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight"><code><a class="el" href="classIOv2_1_1messages__conf.html">messages_conf</a></code> 的 <code>char</code> 特化，通过 <code>wchar_t</code> 转换器进行编码转换。  <a href="classIOv2_1_1messages__conf_3_01char_01_4.html#details">更多...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="namespaces" name="namespaces"></a>
+命名空间</h2></td></tr>
+<tr class="memitem:namespaceIOv2" id="r_namespaceIOv2"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html">IOv2</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table>
+<a name="details" id="details"></a><h2 class="groupheader">详细描述</h2>
+<div class="textblock"><p>定义了 <code>messages</code> facet 的实现细节，包括 <code>base_ft&lt;messages&gt;</code> 基类和 <code>messages_conf</code> 的各字符类型特化。<code>base_ft&lt;messages&gt;</code> 负责管理 gettext 文本域绑定、语言解析和 <code>.mo</code> 文件的加载与解析；<code>messages_conf</code> 的各特化 在此基础上提供具体字符类型的翻译字典。 </p>
+</div></div><!-- contents -->
+</div><!-- doc-content -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><a class="el" href="dir_d44c64559bbebec7f509842c48db8b23.html">include</a></li><li class="navelem"><a class="el" href="dir_1157f564aec2b3a7d6bde4eba89ab805.html">IOv2</a></li><li class="navelem"><a class="el" href="dir_86635f995fd9ec725e3aec943495dac7.html">facet</a></li><li class="navelem"><a class="el" href="messages__details_8h.html">messages_details.h</a></li>
+    <li class="footer">制作者 <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8 </li>
+  </ul>
+</div>
+</body>
+</html>

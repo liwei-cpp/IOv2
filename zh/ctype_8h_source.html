@@ -1,0 +1,483 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=11"/>
+<meta name="generator" content="Doxygen 1.9.8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>IOv2: include/IOv2/facet/ctype.h 源文件</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="resize.js"></script>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr id="projectrow">
+  <td id="projectalign">
+   <div id="projectname">IOv2
+   </div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 制作者 Doxygen 1.9.8 -->
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+/* @license-end */
+</script>
+<script type="text/javascript" src="menudata.js"></script>
+<script type="text/javascript" src="menu.js"></script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(function() {
+  initMenu('',true,false,'search.php','搜索');
+  $(document).ready(function() { init_search(); });
+});
+/* @license-end */
+</script>
+<div id="main-nav"></div>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(document).ready(function() { init_codefold(0); });
+/* @license-end */
+</script>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(document).ready(function(){initNavTree('ctype_8h_source.html',''); initResizable(); });
+/* @license-end */
+</script>
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">载入中...</div>
+<div class="SRStatus" id="Searching">搜索中...</div>
+<div class="SRStatus" id="NoMatches">未找到</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="header">
+  <div class="headertitle"><div class="title">ctype.h</div></div>
+</div><!--header-->
+<div class="contents">
+<a href="ctype_8h.html">浏览该文件的文档.</a><div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span><span class="comment">// SPDX-FileCopyrightText: 2026 liwei &lt;liwei.cpp@gmail.com&gt;</span></div>
+<div class="line"><a id="l00002" name="l00002"></a><span class="lineno">    2</span><span class="comment">// SPDX-License-Identifier: MIT</span></div>
+<div class="line"><a id="l00003" name="l00003"></a><span class="lineno">    3</span> </div>
+<div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span><span class="preprocessor">#pragma once</span></div>
+<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span> </div>
+<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span><span class="preprocessor">#include &lt;<a class="code" href="metafunctions_8h.html">IOv2/common/metafunctions.h</a>&gt;</span></div>
+<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span><span class="preprocessor">#include &lt;<a class="code" href="ctype__details_8h.html">IOv2/facet/ctype_details.h</a>&gt;</span></div>
+<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span><span class="preprocessor">#include &lt;<a class="code" href="facet__common_8h.html">IOv2/facet/facet_common.h</a>&gt;</span></div>
+<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span> </div>
+<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span><span class="preprocessor">#include &lt;array&gt;</span></div>
+<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span><span class="preprocessor">#include &lt;concepts&gt;</span></div>
+<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span><span class="preprocessor">#include &lt;limits&gt;</span></div>
+<div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span><span class="preprocessor">#include &lt;memory&gt;</span></div>
+<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span><span class="preprocessor">#include &lt;optional&gt;</span></div>
+<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span><span class="preprocessor">#include &lt;type_traits&gt;</span></div>
+<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span> </div>
+<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span><span class="keyword">namespace </span><a class="code hl_namespace" href="namespaceIOv2.html">IOv2</a></div>
+<div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span>{</div>
+<div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> CharT&gt;</div>
+<div class="line"><a id="l00067" name="l00067"></a><span class="lineno"><a class="line" href="classIOv2_1_1ctype.html">   67</a></span><span class="keyword">class </span><a class="code hl_class" href="classIOv2_1_1ctype.html">ctype</a>;</div>
+<div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span> </div>
+<div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span><span class="keyword">namespace </span>detail</div>
+<div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span>{</div>
+<div class="line"><a id="l00114" name="l00114"></a><span class="lineno">  114</span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> Derived&gt;</div>
+<div class="foldopen" id="foldopen00115" data-start="{" data-end="};">
+<div class="line"><a id="l00115" name="l00115"></a><span class="lineno"><a class="line" href="classIOv2_1_1detail_1_1ctype__ops.html">  115</a></span><span class="keyword">class </span><a class="code hl_class" href="classIOv2_1_1detail_1_1ctype__ops.html">ctype_ops</a></div>
+<div class="line"><a id="l00116" name="l00116"></a><span class="lineno">  116</span>{</div>
+<div class="line"><a id="l00119" name="l00119"></a><span class="lineno">  119</span>    <span class="keyword">const</span> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Derived</a>&amp; self()<span class="keyword"> const </span>{ <span class="keywordflow">return</span> <span class="keyword">static_cast&lt;</span><span class="keyword">const </span><a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Derived</a>&amp;<span class="keyword">&gt;</span>(*this); }</div>
+<div class="line"><a id="l00120" name="l00120"></a><span class="lineno">  120</span> </div>
+<div class="line"><a id="l00121" name="l00121"></a><span class="lineno">  121</span><span class="keyword">public</span>:</div>
+<div class="line"><a id="l00144" name="l00144"></a><span class="lineno">  144</span>    <span class="keyword">template</span> &lt;<span class="keyword">typename</span> TM, <span class="keyword">typename</span> TC&gt;</div>
+<div class="line"><a id="l00145" name="l00145"></a><span class="lineno">  145</span>        <span class="keyword">requires</span> std::convertible_to&lt;TM, typename Derived::mask&gt; &amp;&amp;</div>
+<div class="line"><a id="l00146" name="l00146"></a><span class="lineno">  146</span>                 std::convertible_to&lt;TC, typename Derived::char_type&gt;</div>
+<div class="foldopen" id="foldopen00147" data-start="{" data-end="}">
+<div class="line"><a id="l00147" name="l00147"></a><span class="lineno"><a class="line" href="classIOv2_1_1detail_1_1ctype__ops.html#aacb0e851ebe3f7a65058b99fe302f5cb">  147</a></span>    <span class="keywordtype">bool</span> <a class="code hl_function" href="classIOv2_1_1detail_1_1ctype__ops.html#aacb0e851ebe3f7a65058b99fe302f5cb">is_any</a>(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TM</a> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">m</a>, <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TC</a> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">c</a>)<span class="keyword"> const</span></div>
+<div class="line"><a id="l00148" name="l00148"></a><span class="lineno">  148</span><span class="keyword">    </span>{</div>
+<div class="line"><a id="l00149" name="l00149"></a><span class="lineno">  149</span>        <span class="keywordflow">return</span> self().is(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">c</a>) &amp; <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">m</a>;</div>
+<div class="line"><a id="l00150" name="l00150"></a><span class="lineno">  150</span>    }</div>
+</div>
+<div class="line"><a id="l00151" name="l00151"></a><span class="lineno">  151</span> </div>
+<div class="line"><a id="l00177" name="l00177"></a><span class="lineno">  177</span>    <span class="keyword">template</span> &lt;<span class="keyword">typename</span> InIt, <span class="keyword">typename</span> OutIt&gt;</div>
+<div class="foldopen" id="foldopen00178" data-start="{" data-end="}">
+<div class="line"><a id="l00178" name="l00178"></a><span class="lineno"><a class="line" href="classIOv2_1_1detail_1_1ctype__ops.html#ad912b79cc951194900762494040f2281">  178</a></span>    <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">OutIt</a> <a class="code hl_function" href="classIOv2_1_1detail_1_1ctype__ops.html#ad912b79cc951194900762494040f2281">is_seq</a>(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">InIt</a> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">low</a>, <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">InIt</a> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">high</a>, <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">OutIt</a> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">vec</a>)<span class="keyword"> const</span></div>
+<div class="line"><a id="l00179" name="l00179"></a><span class="lineno">  179</span><span class="keyword">    </span>{</div>
+<div class="line"><a id="l00180" name="l00180"></a><span class="lineno">  180</span>        <span class="keywordflow">while</span> (<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">low</a> != <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">high</a>)</div>
+<div class="line"><a id="l00181" name="l00181"></a><span class="lineno">  181</span>            *<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">vec</a>++ = self().is(*<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">low</a>++);</div>
+<div class="line"><a id="l00182" name="l00182"></a><span class="lineno">  182</span>        <span class="keywordflow">return</span> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">vec</a>;</div>
+<div class="line"><a id="l00183" name="l00183"></a><span class="lineno">  183</span>    }</div>
+</div>
+<div class="line"><a id="l00184" name="l00184"></a><span class="lineno">  184</span> </div>
+<div class="line"><a id="l00212" name="l00212"></a><span class="lineno">  212</span>    <span class="keyword">template</span> &lt;<span class="keyword">typename</span> TM, <span class="keyword">typename</span> InIt&gt;</div>
+<div class="line"><a id="l00213" name="l00213"></a><span class="lineno">  213</span>        <span class="keyword">requires</span> std::convertible_to&lt;TM, typename Derived::mask&gt;</div>
+<div class="foldopen" id="foldopen00214" data-start="{" data-end="}">
+<div class="line"><a id="l00214" name="l00214"></a><span class="lineno"><a class="line" href="classIOv2_1_1detail_1_1ctype__ops.html#a9c21a843785bfd1d4d6450b974085cb5">  214</a></span>    <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">InIt</a> <a class="code hl_function" href="classIOv2_1_1detail_1_1ctype__ops.html#a9c21a843785bfd1d4d6450b974085cb5">scan_is_any</a>(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TM</a> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">m</a>, <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">InIt</a> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">beg</a>, <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">InIt</a> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">end</a>)<span class="keyword"> const</span></div>
+<div class="line"><a id="l00215" name="l00215"></a><span class="lineno">  215</span><span class="keyword">    </span>{</div>
+<div class="line"><a id="l00216" name="l00216"></a><span class="lineno">  216</span>        <span class="keywordflow">while</span> ((<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">beg</a> != <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">end</a>) &amp;&amp; (!(self().is(*<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">beg</a>) &amp; <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">m</a>)))</div>
+<div class="line"><a id="l00217" name="l00217"></a><span class="lineno">  217</span>            ++<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">beg</a>;</div>
+<div class="line"><a id="l00218" name="l00218"></a><span class="lineno">  218</span>        <span class="keywordflow">return</span> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">beg</a>;</div>
+<div class="line"><a id="l00219" name="l00219"></a><span class="lineno">  219</span>    }</div>
+</div>
+<div class="line"><a id="l00220" name="l00220"></a><span class="lineno">  220</span> </div>
+<div class="line"><a id="l00249" name="l00249"></a><span class="lineno">  249</span>    <span class="keyword">template</span> &lt;<span class="keyword">typename</span> TM, <span class="keyword">typename</span> InIt&gt;</div>
+<div class="line"><a id="l00250" name="l00250"></a><span class="lineno">  250</span>        <span class="keyword">requires</span> std::convertible_to&lt;TM, typename Derived::mask&gt;</div>
+<div class="foldopen" id="foldopen00251" data-start="{" data-end="}">
+<div class="line"><a id="l00251" name="l00251"></a><span class="lineno"><a class="line" href="classIOv2_1_1detail_1_1ctype__ops.html#a11a5230229c7328ce38567602a430161">  251</a></span>    <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">InIt</a> <a class="code hl_function" href="classIOv2_1_1detail_1_1ctype__ops.html#a11a5230229c7328ce38567602a430161">scan_not_any</a>(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TM</a> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">m</a>, <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">InIt</a> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">beg</a>, <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">InIt</a> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">end</a>)<span class="keyword"> const</span></div>
+<div class="line"><a id="l00252" name="l00252"></a><span class="lineno">  252</span><span class="keyword">    </span>{</div>
+<div class="line"><a id="l00253" name="l00253"></a><span class="lineno">  253</span>        <span class="keywordflow">while</span> ((<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">beg</a> != <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">end</a>) &amp;&amp; (self().is(*<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">beg</a>) &amp; <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">m</a>))</div>
+<div class="line"><a id="l00254" name="l00254"></a><span class="lineno">  254</span>            ++<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">beg</a>;</div>
+<div class="line"><a id="l00255" name="l00255"></a><span class="lineno">  255</span>        <span class="keywordflow">return</span> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">beg</a>;</div>
+<div class="line"><a id="l00256" name="l00256"></a><span class="lineno">  256</span>    }</div>
+</div>
+<div class="line"><a id="l00257" name="l00257"></a><span class="lineno">  257</span> </div>
+<div class="line"><a id="l00283" name="l00283"></a><span class="lineno">  283</span>    <span class="keyword">template</span> &lt;<span class="keyword">typename</span> InIt, <span class="keyword">typename</span> OutIt&gt;</div>
+<div class="foldopen" id="foldopen00284" data-start="{" data-end="}">
+<div class="line"><a id="l00284" name="l00284"></a><span class="lineno"><a class="line" href="classIOv2_1_1detail_1_1ctype__ops.html#a7bf641c40cc89cc30860e9992b78ceec">  284</a></span>    <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">OutIt</a> <a class="code hl_function" href="classIOv2_1_1detail_1_1ctype__ops.html#a7bf641c40cc89cc30860e9992b78ceec">toupper_seq</a>(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">InIt</a> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">beg</a>, <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">InIt</a> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">end</a>, <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">OutIt</a> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">dst</a>)<span class="keyword"> const</span></div>
+<div class="line"><a id="l00285" name="l00285"></a><span class="lineno">  285</span><span class="keyword">    </span>{</div>
+<div class="line"><a id="l00286" name="l00286"></a><span class="lineno">  286</span>        <span class="keywordflow">while</span> (<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">beg</a> != <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">end</a>)</div>
+<div class="line"><a id="l00287" name="l00287"></a><span class="lineno">  287</span>            *<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">dst</a>++ = self().toupper(*<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">beg</a>++);</div>
+<div class="line"><a id="l00288" name="l00288"></a><span class="lineno">  288</span>        <span class="keywordflow">return</span> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">dst</a>;</div>
+<div class="line"><a id="l00289" name="l00289"></a><span class="lineno">  289</span>    }</div>
+</div>
+<div class="line"><a id="l00290" name="l00290"></a><span class="lineno">  290</span> </div>
+<div class="line"><a id="l00316" name="l00316"></a><span class="lineno">  316</span>    <span class="keyword">template</span> &lt;<span class="keyword">typename</span> InIt, <span class="keyword">typename</span> OutIt&gt;</div>
+<div class="foldopen" id="foldopen00317" data-start="{" data-end="}">
+<div class="line"><a id="l00317" name="l00317"></a><span class="lineno"><a class="line" href="classIOv2_1_1detail_1_1ctype__ops.html#a95ade0409d7263470469277a8c01f158">  317</a></span>    <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">OutIt</a> <a class="code hl_function" href="classIOv2_1_1detail_1_1ctype__ops.html#a95ade0409d7263470469277a8c01f158">tolower_seq</a>(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">InIt</a> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">beg</a>, <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">InIt</a> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">end</a>, <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">OutIt</a> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">dst</a>)<span class="keyword"> const</span></div>
+<div class="line"><a id="l00318" name="l00318"></a><span class="lineno">  318</span><span class="keyword">    </span>{</div>
+<div class="line"><a id="l00319" name="l00319"></a><span class="lineno">  319</span>        <span class="keywordflow">while</span> (<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">beg</a> != <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">end</a>)</div>
+<div class="line"><a id="l00320" name="l00320"></a><span class="lineno">  320</span>            *<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">dst</a>++ = self().tolower(*<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">beg</a>++);</div>
+<div class="line"><a id="l00321" name="l00321"></a><span class="lineno">  321</span>        <span class="keywordflow">return</span> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">dst</a>;</div>
+<div class="line"><a id="l00322" name="l00322"></a><span class="lineno">  322</span>    }</div>
+</div>
+<div class="line"><a id="l00323" name="l00323"></a><span class="lineno">  323</span> </div>
+<div class="line"><a id="l00350" name="l00350"></a><span class="lineno">  350</span>    <span class="keyword">template</span> &lt;<span class="keyword">typename</span> InIt, <span class="keyword">typename</span> OutIt&gt;</div>
+<div class="foldopen" id="foldopen00351" data-start="{" data-end="}">
+<div class="line"><a id="l00351" name="l00351"></a><span class="lineno"><a class="line" href="classIOv2_1_1detail_1_1ctype__ops.html#a325e0de1e52893786bf9a41afe91756e">  351</a></span>    <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">OutIt</a> <a class="code hl_function" href="classIOv2_1_1detail_1_1ctype__ops.html#a325e0de1e52893786bf9a41afe91756e">widen_seq</a>(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">InIt</a> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">beg</a>, <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">InIt</a> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">end</a>, <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">OutIt</a> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">dst</a>)<span class="keyword"> const</span></div>
+<div class="line"><a id="l00352" name="l00352"></a><span class="lineno">  352</span><span class="keyword">    </span>{</div>
+<div class="line"><a id="l00353" name="l00353"></a><span class="lineno">  353</span>        <span class="keywordflow">while</span> (<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">beg</a> != <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">end</a>)</div>
+<div class="line"><a id="l00354" name="l00354"></a><span class="lineno">  354</span>            *<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">dst</a>++ = self().widen(*<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">beg</a>++);</div>
+<div class="line"><a id="l00355" name="l00355"></a><span class="lineno">  355</span>        <span class="keywordflow">return</span> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">dst</a>;</div>
+<div class="line"><a id="l00356" name="l00356"></a><span class="lineno">  356</span>    }</div>
+</div>
+<div class="line"><a id="l00357" name="l00357"></a><span class="lineno">  357</span> </div>
+<div class="line"><a id="l00396" name="l00396"></a><span class="lineno">  396</span>    <span class="keyword">template</span> &lt;<span class="keyword">typename</span> TC&gt;</div>
+<div class="line"><a id="l00397" name="l00397"></a><span class="lineno">  397</span>        <span class="keyword">requires</span> std::convertible_to&lt;TC, typename Derived::char_type&gt;</div>
+<div class="foldopen" id="foldopen00398" data-start="{" data-end="}">
+<div class="line"><a id="l00398" name="l00398"></a><span class="lineno"><a class="line" href="classIOv2_1_1detail_1_1ctype__ops.html#ad44a81611a5cb53bce142ecb40813d4d">  398</a></span>    <span class="keywordtype">char</span> <a class="code hl_function" href="classIOv2_1_1detail_1_1ctype__ops.html#ad44a81611a5cb53bce142ecb40813d4d">narrow</a>(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TC</a> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">c</a>, <span class="keywordtype">char</span> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">def</a>)<span class="keyword"> const</span></div>
+<div class="line"><a id="l00399" name="l00399"></a><span class="lineno">  399</span><span class="keyword">    </span>{</div>
+<div class="line"><a id="l00400" name="l00400"></a><span class="lineno">  400</span>        <span class="keyword">auto</span> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">res</a> = self().narrow(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">c</a>);</div>
+<div class="line"><a id="l00401" name="l00401"></a><span class="lineno">  401</span>        <span class="keywordflow">return</span> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">res</a> ? *<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">res</a> : <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">def</a>;</div>
+<div class="line"><a id="l00402" name="l00402"></a><span class="lineno">  402</span>    }</div>
+</div>
+<div class="line"><a id="l00403" name="l00403"></a><span class="lineno">  403</span> </div>
+<div class="line"><a id="l00434" name="l00434"></a><span class="lineno">  434</span>    <span class="keyword">template</span> &lt;<span class="keyword">typename</span> InIt, <span class="keyword">typename</span> OutIt&gt;</div>
+<div class="foldopen" id="foldopen00435" data-start="{" data-end="}">
+<div class="line"><a id="l00435" name="l00435"></a><span class="lineno"><a class="line" href="classIOv2_1_1detail_1_1ctype__ops.html#afab851648a5b741eb31c899bbc4803f1">  435</a></span>    <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">OutIt</a> <a class="code hl_function" href="classIOv2_1_1detail_1_1ctype__ops.html#afab851648a5b741eb31c899bbc4803f1">narrow_seq</a>(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">InIt</a> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">beg</a>, <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">InIt</a> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">end</a>, <span class="keywordtype">char</span> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">dflt</a>, <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">OutIt</a> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">dst</a>)<span class="keyword"> const</span></div>
+<div class="line"><a id="l00436" name="l00436"></a><span class="lineno">  436</span><span class="keyword">    </span>{</div>
+<div class="line"><a id="l00437" name="l00437"></a><span class="lineno">  437</span>        <span class="keywordflow">while</span> (<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">beg</a> != <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">end</a>)</div>
+<div class="line"><a id="l00438" name="l00438"></a><span class="lineno">  438</span>            *<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">dst</a>++ = self().narrow(*<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">beg</a>++, <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">dflt</a>);</div>
+<div class="line"><a id="l00439" name="l00439"></a><span class="lineno">  439</span>        <span class="keywordflow">return</span> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">dst</a>;</div>
+<div class="line"><a id="l00440" name="l00440"></a><span class="lineno">  440</span>    }</div>
+</div>
+<div class="line"><a id="l00441" name="l00441"></a><span class="lineno">  441</span>};</div>
+</div>
+<div class="line"><a id="l00442" name="l00442"></a><span class="lineno">  442</span>} <span class="comment">// namespace detail</span></div>
+<div class="line"><a id="l00443" name="l00443"></a><span class="lineno">  443</span> </div>
+<div class="line"><a id="l00484" name="l00484"></a><span class="lineno">  484</span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> CharT&gt;</div>
+<div class="line"><a id="l00485" name="l00485"></a><span class="lineno">  485</span>    <span class="keyword">requires</span> (<span class="keyword">sizeof</span>(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a>) == 1)</div>
+<div class="foldopen" id="foldopen00486" data-start="{" data-end="};">
+<div class="line"><a id="l00486" name="l00486"></a><span class="lineno"><a class="line" href="classIOv2_1_1ctype_3_01CharT_01_4.html">  486</a></span><span class="keyword">class </span><a class="code hl_class" href="classIOv2_1_1ctype.html">ctype</a>&lt;<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a>&gt; : <span class="keyword">public</span> <a class="code hl_class" href="classIOv2_1_1detail_1_1ctype__ops.html">detail::ctype_ops</a>&lt;ctype&lt;CharT&gt;&gt;</div>
+<div class="line"><a id="l00487" name="l00487"></a><span class="lineno">  487</span>{</div>
+<div class="line"><a id="l00488" name="l00488"></a><span class="lineno">  488</span>    <span class="comment">// Note: we have to use unsigned char here to avoid negative value.</span></div>
+<div class="line"><a id="l00489" name="l00489"></a><span class="lineno">  489</span>    <span class="comment">// Sizing is in units of &quot;values representable by unsigned char&quot;, not a</span></div>
+<div class="line"><a id="l00490" name="l00490"></a><span class="lineno">  490</span>    <span class="comment">// hard-coded 256. The CHAR_BIT == 8 assumption is enforced by a</span></div>
+<div class="line"><a id="l00491" name="l00491"></a><span class="lineno">  491</span>    <span class="comment">// static_assert in ctype_details.h, so on every supported platform</span></div>
+<div class="line"><a id="l00492" name="l00492"></a><span class="lineno">  492</span>    <span class="comment">// s_len == 256.</span></div>
+<div class="line"><a id="l00496" name="l00496"></a><span class="lineno">  496</span>    <span class="keyword">constexpr</span> <span class="keyword">static</span> <span class="keywordtype">unsigned</span> s_len = std::numeric_limits&lt;unsigned char&gt;::max() + 1;</div>
+<div class="line"><a id="l00497" name="l00497"></a><span class="lineno">  497</span> </div>
+<div class="line"><a id="l00498" name="l00498"></a><span class="lineno">  498</span><span class="keyword">public</span>:</div>
+<div class="line"><a id="l00502" name="l00502"></a><span class="lineno"><a class="line" href="classIOv2_1_1ctype_3_01CharT_01_4.html#a009c86183e839e92c368ec3738bf6c9e">  502</a></span>    <span class="keyword">using </span><a class="code hl_struct" href="structIOv2_1_1facet__create__rule.html">create_rules</a> = <a class="code hl_struct" href="structIOv2_1_1facet__create__rule.html">facet_create_rule&lt;ctype_conf&lt;CharT&gt;</a>&gt;;</div>
+<div class="line"><a id="l00503" name="l00503"></a><span class="lineno">  503</span> </div>
+<div class="line"><a id="l00506" name="l00506"></a><span class="lineno"><a class="line" href="classIOv2_1_1ctype_3_01CharT_01_4.html#a8e5d82a9b24cff31b27c753d9159c3b5">  506</a></span>    <span class="keyword">using </span><a class="code hl_typedef" href="classIOv2_1_1ctype_3_01CharT_01_4.html#a8e5d82a9b24cff31b27c753d9159c3b5">char_type</a> = <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a>;</div>
+<div class="line"><a id="l00507" name="l00507"></a><span class="lineno">  507</span> </div>
+<div class="line"><a id="l00511" name="l00511"></a><span class="lineno"><a class="line" href="classIOv2_1_1ctype_3_01CharT_01_4.html#ad2b148292b4e17393358402186af998b">  511</a></span>    <span class="keyword">using </span><a class="code hl_typedef" href="classIOv2_1_1ctype_3_01CharT_01_4.html#ad2b148292b4e17393358402186af998b">mask</a> = <span class="keyword">typename</span> <a class="code hl_class" href="classIOv2_1_1ctype__conf.html">ctype_conf&lt;CharT&gt;::mask</a>;</div>
+<div class="line"><a id="l00512" name="l00512"></a><span class="lineno">  512</span> </div>
+<div class="line"><a id="l00533" name="l00533"></a><span class="lineno">  533</span>    <span class="keyword">template</span> &lt;shared_ptr_to&lt;ctype_conf&lt;CharT&gt;&gt; TConfPtr&gt;</div>
+<div class="foldopen" id="foldopen00534" data-start="{" data-end="}">
+<div class="line"><a id="l00534" name="l00534"></a><span class="lineno"><a class="line" href="classIOv2_1_1ctype_3_01CharT_01_4.html#a4b244fb86798cd89daad1d43aa5aea75">  534</a></span>    <a class="code hl_function" href="classIOv2_1_1ctype_3_01CharT_01_4.html#a4b244fb86798cd89daad1d43aa5aea75">ctype</a>(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TConfPtr</a> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">p_obj</a>)</div>
+<div class="line"><a id="l00535" name="l00535"></a><span class="lineno">  535</span>    {</div>
+<div class="line"><a id="l00536" name="l00536"></a><span class="lineno">  536</span>        <span class="keywordflow">if</span> (!<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">p_obj</a>) <span class="keywordflow">throw</span> std::runtime_error(<span class="stringliteral">&quot;shared_ptr is empty&quot;</span>);</div>
+<div class="line"><a id="l00537" name="l00537"></a><span class="lineno">  537</span>        <span class="keywordflow">for</span> (<span class="keywordtype">unsigned</span> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">i</a> = 0; <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">i</a> &lt; s_len; ++<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">i</a>)</div>
+<div class="line"><a id="l00538" name="l00538"></a><span class="lineno">  538</span>        {</div>
+<div class="line"><a id="l00539" name="l00539"></a><span class="lineno">  539</span>            m_table[<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">i</a>] = <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">p_obj</a>-&gt;is(<span class="keyword">static_cast&lt;</span><a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a><span class="keyword">&gt;</span>(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">i</a>));</div>
+<div class="line"><a id="l00540" name="l00540"></a><span class="lineno">  540</span>            m_toupper[<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">i</a>] = <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">p_obj</a>-&gt;toupper(<span class="keyword">static_cast&lt;</span><a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a><span class="keyword">&gt;</span>(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">i</a>));</div>
+<div class="line"><a id="l00541" name="l00541"></a><span class="lineno">  541</span>            m_tolower[<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">i</a>] = <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">p_obj</a>-&gt;tolower(<span class="keyword">static_cast&lt;</span><a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a><span class="keyword">&gt;</span>(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">i</a>));</div>
+<div class="line"><a id="l00542" name="l00542"></a><span class="lineno">  542</span>            m_widen[<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">i</a>] = <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">p_obj</a>-&gt;widen(<span class="keyword">static_cast&lt;</span><a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a><span class="keyword">&gt;</span>(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">i</a>));</div>
+<div class="line"><a id="l00543" name="l00543"></a><span class="lineno">  543</span>            m_narrow[<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">i</a>] = <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">p_obj</a>-&gt;narrow(<span class="keyword">static_cast&lt;</span><a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a><span class="keyword">&gt;</span>(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">i</a>));</div>
+<div class="line"><a id="l00544" name="l00544"></a><span class="lineno">  544</span>        }</div>
+<div class="line"><a id="l00545" name="l00545"></a><span class="lineno">  545</span>    }</div>
+</div>
+<div class="line"><a id="l00546" name="l00546"></a><span class="lineno">  546</span> </div>
+<div class="line"><a id="l00547" name="l00547"></a><span class="lineno"><a class="line" href="classIOv2_1_1ctype_3_01CharT_01_4.html#a3f148674edb7f219a778bf252eddde6f">  547</a></span>    <a class="code hl_function" href="classIOv2_1_1ctype_3_01CharT_01_4.html#a3f148674edb7f219a778bf252eddde6f">~ctype</a>() = <span class="keywordflow">default</span>;</div>
+<div class="line"><a id="l00548" name="l00548"></a><span class="lineno"><a class="line" href="classIOv2_1_1ctype_3_01CharT_01_4.html#a62c44d5764df414a32aa2019f1020fe7">  548</a></span>    <a class="code hl_function" href="classIOv2_1_1ctype_3_01CharT_01_4.html#a62c44d5764df414a32aa2019f1020fe7">ctype</a>(<span class="keyword">const</span> <a class="code hl_class" href="classIOv2_1_1ctype.html">ctype</a>&amp;) = <span class="keyword">delete</span>;</div>
+<div class="line"><a id="l00549" name="l00549"></a><span class="lineno"><a class="line" href="classIOv2_1_1ctype_3_01CharT_01_4.html#a471c256c1778ad1cadc86885c38c8a13">  549</a></span>    <a class="code hl_class" href="classIOv2_1_1ctype.html">ctype</a>&amp; <a class="code hl_function" href="classIOv2_1_1ctype_3_01CharT_01_4.html#a471c256c1778ad1cadc86885c38c8a13">operator=</a>(<span class="keyword">const</span> <a class="code hl_class" href="classIOv2_1_1ctype.html">ctype</a>&amp;) = <span class="keyword">delete</span>;</div>
+<div class="line"><a id="l00550" name="l00550"></a><span class="lineno"><a class="line" href="classIOv2_1_1ctype_3_01CharT_01_4.html#a31ff76e92031cbafc831be05b1bfa834">  550</a></span>    <a class="code hl_function" href="classIOv2_1_1ctype_3_01CharT_01_4.html#a31ff76e92031cbafc831be05b1bfa834">ctype</a>(<a class="code hl_class" href="classIOv2_1_1ctype.html">ctype</a>&amp;&amp;) = <span class="keyword">delete</span>;</div>
+<div class="line"><a id="l00551" name="l00551"></a><span class="lineno"><a class="line" href="classIOv2_1_1ctype_3_01CharT_01_4.html#a4e1ba83127b2e1fbf729aeee1efde550">  551</a></span>    <a class="code hl_class" href="classIOv2_1_1ctype.html">ctype</a>&amp; <a class="code hl_function" href="classIOv2_1_1ctype_3_01CharT_01_4.html#a4e1ba83127b2e1fbf729aeee1efde550">operator=</a>(<a class="code hl_class" href="classIOv2_1_1ctype.html">ctype</a>&amp;&amp;) = <span class="keyword">delete</span>;</div>
+<div class="line"><a id="l00552" name="l00552"></a><span class="lineno">  552</span> </div>
+<div class="line"><a id="l00553" name="l00553"></a><span class="lineno">  553</span><span class="keyword">public</span>:</div>
+<div class="foldopen" id="foldopen00566" data-start="{" data-end="}">
+<div class="line"><a id="l00566" name="l00566"></a><span class="lineno"><a class="line" href="classIOv2_1_1ctype_3_01CharT_01_4.html#a6d0f4aaf89f0557c8d842045a15cecd6">  566</a></span>    <a class="code hl_typedef" href="classIOv2_1_1ctype_3_01CharT_01_4.html#ad2b148292b4e17393358402186af998b">mask</a> <a class="code hl_function" href="classIOv2_1_1ctype_3_01CharT_01_4.html#a6d0f4aaf89f0557c8d842045a15cecd6">is</a>(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">c</a>)<span class="keyword"> const</span></div>
+<div class="line"><a id="l00567" name="l00567"></a><span class="lineno">  567</span><span class="keyword">    </span>{</div>
+<div class="line"><a id="l00568" name="l00568"></a><span class="lineno">  568</span>        <span class="keywordflow">return</span> m_table[<span class="keyword">static_cast&lt;</span><span class="keywordtype">unsigned</span> <span class="keywordtype">char</span><span class="keyword">&gt;</span>(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">c</a>)];</div>
+<div class="line"><a id="l00569" name="l00569"></a><span class="lineno">  569</span>    }</div>
+</div>
+<div class="line"><a id="l00570" name="l00570"></a><span class="lineno">  570</span> </div>
+<div class="foldopen" id="foldopen00583" data-start="{" data-end="}">
+<div class="line"><a id="l00583" name="l00583"></a><span class="lineno"><a class="line" href="classIOv2_1_1ctype_3_01CharT_01_4.html#af2dd60da807456de3c69d1e80f7fce55">  583</a></span>    <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> <a class="code hl_function" href="classIOv2_1_1ctype_3_01CharT_01_4.html#af2dd60da807456de3c69d1e80f7fce55">toupper</a>(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">c</a>)<span class="keyword"> const</span></div>
+<div class="line"><a id="l00584" name="l00584"></a><span class="lineno">  584</span><span class="keyword">    </span>{</div>
+<div class="line"><a id="l00585" name="l00585"></a><span class="lineno">  585</span>        <span class="keywordflow">return</span> m_toupper[<span class="keyword">static_cast&lt;</span><span class="keywordtype">unsigned</span> <span class="keywordtype">char</span><span class="keyword">&gt;</span>(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">c</a>)];</div>
+<div class="line"><a id="l00586" name="l00586"></a><span class="lineno">  586</span>    }</div>
+</div>
+<div class="line"><a id="l00587" name="l00587"></a><span class="lineno">  587</span> </div>
+<div class="foldopen" id="foldopen00600" data-start="{" data-end="}">
+<div class="line"><a id="l00600" name="l00600"></a><span class="lineno"><a class="line" href="classIOv2_1_1ctype_3_01CharT_01_4.html#a75021fd5b4edf6902847ebbdcbcfbfd2">  600</a></span>    <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> <a class="code hl_function" href="classIOv2_1_1ctype_3_01CharT_01_4.html#a75021fd5b4edf6902847ebbdcbcfbfd2">tolower</a>(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">c</a>)<span class="keyword"> const</span></div>
+<div class="line"><a id="l00601" name="l00601"></a><span class="lineno">  601</span><span class="keyword">    </span>{</div>
+<div class="line"><a id="l00602" name="l00602"></a><span class="lineno">  602</span>        <span class="keywordflow">return</span> m_tolower[<span class="keyword">static_cast&lt;</span><span class="keywordtype">unsigned</span> <span class="keywordtype">char</span><span class="keyword">&gt;</span>(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">c</a>)];</div>
+<div class="line"><a id="l00603" name="l00603"></a><span class="lineno">  603</span>    }</div>
+</div>
+<div class="line"><a id="l00604" name="l00604"></a><span class="lineno">  604</span> </div>
+<div class="foldopen" id="foldopen00617" data-start="{" data-end="}">
+<div class="line"><a id="l00617" name="l00617"></a><span class="lineno"><a class="line" href="classIOv2_1_1ctype_3_01CharT_01_4.html#ad2bf8f47849f9ee6874247eae9339e92">  617</a></span>    <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> <a class="code hl_function" href="classIOv2_1_1ctype_3_01CharT_01_4.html#ad2bf8f47849f9ee6874247eae9339e92">widen</a>(<span class="keywordtype">char</span> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">c</a>)<span class="keyword"> const</span></div>
+<div class="line"><a id="l00618" name="l00618"></a><span class="lineno">  618</span><span class="keyword">    </span>{</div>
+<div class="line"><a id="l00619" name="l00619"></a><span class="lineno">  619</span>        <span class="keywordflow">return</span> m_widen[<span class="keyword">static_cast&lt;</span><span class="keywordtype">unsigned</span> <span class="keywordtype">char</span><span class="keyword">&gt;</span>(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">c</a>)];</div>
+<div class="line"><a id="l00620" name="l00620"></a><span class="lineno">  620</span>    }</div>
+</div>
+<div class="line"><a id="l00621" name="l00621"></a><span class="lineno">  621</span> </div>
+<div class="foldopen" id="foldopen00639" data-start="{" data-end="}">
+<div class="line"><a id="l00639" name="l00639"></a><span class="lineno"><a class="line" href="classIOv2_1_1ctype_3_01CharT_01_4.html#a5b9d8dfcaa6d6da12614795a7ec408e3">  639</a></span>    std::optional&lt;char&gt; <a class="code hl_function" href="classIOv2_1_1ctype_3_01CharT_01_4.html#a5b9d8dfcaa6d6da12614795a7ec408e3">narrow</a>(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">c</a>)<span class="keyword"> const</span></div>
+<div class="line"><a id="l00640" name="l00640"></a><span class="lineno">  640</span><span class="keyword">    </span>{</div>
+<div class="line"><a id="l00641" name="l00641"></a><span class="lineno">  641</span>        <span class="keywordflow">return</span> m_narrow[<span class="keyword">static_cast&lt;</span><span class="keywordtype">unsigned</span> <span class="keywordtype">char</span><span class="keyword">&gt;</span>(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">c</a>)];</div>
+<div class="line"><a id="l00642" name="l00642"></a><span class="lineno">  642</span>    }</div>
+</div>
+<div class="line"><a id="l00643" name="l00643"></a><span class="lineno">  643</span> </div>
+<div class="line"><a id="l00644" name="l00644"></a><span class="lineno">  644</span>    <span class="keyword">using </span><a class="code hl_class" href="classIOv2_1_1detail_1_1ctype__ops.html">detail::ctype_ops</a>&lt;<a class="code hl_class" href="classIOv2_1_1ctype.html">ctype&lt;CharT&gt;</a>&gt;::narrow;</div>
+<div class="line"><a id="l00645" name="l00645"></a><span class="lineno">  645</span> </div>
+<div class="line"><a id="l00646" name="l00646"></a><span class="lineno">  646</span><span class="keyword">private</span>:</div>
+<div class="line"><a id="l00649" name="l00649"></a><span class="lineno">  649</span>    std::array&lt;mask, s_len&gt;                m_table;</div>
+<div class="line"><a id="l00650" name="l00650"></a><span class="lineno">  650</span> </div>
+<div class="line"><a id="l00653" name="l00653"></a><span class="lineno">  653</span>    std::array&lt;CharT, s_len&gt;               m_toupper;</div>
+<div class="line"><a id="l00654" name="l00654"></a><span class="lineno">  654</span> </div>
+<div class="line"><a id="l00657" name="l00657"></a><span class="lineno">  657</span>    std::array&lt;CharT, s_len&gt;               m_tolower;</div>
+<div class="line"><a id="l00658" name="l00658"></a><span class="lineno">  658</span> </div>
+<div class="line"><a id="l00661" name="l00661"></a><span class="lineno">  661</span>    std::array&lt;CharT, s_len&gt;               m_widen;</div>
+<div class="line"><a id="l00662" name="l00662"></a><span class="lineno">  662</span> </div>
+<div class="line"><a id="l00666" name="l00666"></a><span class="lineno">  666</span>    std::array&lt;std::optional&lt;char&gt;, s_len&gt; m_narrow;</div>
+<div class="line"><a id="l00667" name="l00667"></a><span class="lineno">  667</span>};</div>
+</div>
+<div class="line"><a id="l00668" name="l00668"></a><span class="lineno">  668</span> </div>
+<div class="line"><a id="l00723" name="l00723"></a><span class="lineno">  723</span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> CharT&gt;</div>
+<div class="line"><a id="l00724" name="l00724"></a><span class="lineno">  724</span>    <span class="keyword">requires</span> (<span class="keyword">sizeof</span>(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a>) &gt; 1)</div>
+<div class="line"><a id="l00725" name="l00725"></a><span class="lineno">  725</span><span class="keyword">class </span>ctype&lt;<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a>&gt; : <span class="keyword">public</span> detail::ctype_ops&lt;ctype&lt;CharT&gt;&gt;</div>
+<div class="line"><a id="l00726" name="l00726"></a><span class="lineno">  726</span>{</div>
+<div class="line"><a id="l00727" name="l00727"></a><span class="lineno">  727</span>    <span class="comment">// See the matching s_len note in the sizeof(CharT)==1 specialization</span></div>
+<div class="line"><a id="l00728" name="l00728"></a><span class="lineno">  728</span>    <span class="comment">// above. Tables span [0, unsigned_char::max()+1) per-byte; CHAR_BIT == 8</span></div>
+<div class="line"><a id="l00729" name="l00729"></a><span class="lineno">  729</span>    <span class="comment">// is enforced by static_assert in ctype_details.h.</span></div>
+<div class="line"><a id="l00733" name="l00733"></a><span class="lineno">  733</span>    <span class="keyword">constexpr</span> <span class="keyword">static</span> <span class="keywordtype">unsigned</span> s_len = std::numeric_limits&lt;unsigned char&gt;::max() + 1;</div>
+<div class="line"><a id="l00734" name="l00734"></a><span class="lineno">  734</span> </div>
+<div class="line"><a id="l00746" name="l00746"></a><span class="lineno">  746</span>    <span class="keyword">using </span>uchar_type = std::make_unsigned_t&lt;CharT&gt;;</div>
+<div class="line"><a id="l00747" name="l00747"></a><span class="lineno">  747</span> </div>
+<div class="line"><a id="l00748" name="l00748"></a><span class="lineno">  748</span><span class="keyword">public</span>:</div>
+<div class="line"><a id="l00752" name="l00752"></a><span class="lineno"><a class="line" href="classIOv2_1_1ctype_3_01CharT_01_4.html#a009c86183e839e92c368ec3738bf6c9e">  752</a></span>    <span class="keyword">using </span><a class="code hl_struct" href="structIOv2_1_1facet__create__rule.html">create_rules</a> = <a class="code hl_struct" href="structIOv2_1_1facet__create__rule.html">facet_create_rule&lt;ctype_conf&lt;CharT&gt;</a>&gt;;</div>
+<div class="line"><a id="l00753" name="l00753"></a><span class="lineno">  753</span> </div>
+<div class="line"><a id="l00756" name="l00756"></a><span class="lineno"><a class="line" href="classIOv2_1_1ctype_3_01CharT_01_4.html#a8e5d82a9b24cff31b27c753d9159c3b5">  756</a></span>    <span class="keyword">using </span><a class="code hl_typedef" href="classIOv2_1_1ctype_3_01CharT_01_4.html#a8e5d82a9b24cff31b27c753d9159c3b5">char_type</a> = <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a>;</div>
+<div class="line"><a id="l00757" name="l00757"></a><span class="lineno">  757</span> </div>
+<div class="line"><a id="l00761" name="l00761"></a><span class="lineno"><a class="line" href="classIOv2_1_1ctype_3_01CharT_01_4.html#ad2b148292b4e17393358402186af998b">  761</a></span>    <span class="keyword">using </span><a class="code hl_typedef" href="classIOv2_1_1ctype_3_01CharT_01_4.html#ad2b148292b4e17393358402186af998b">mask</a> = <span class="keyword">typename</span> <a class="code hl_class" href="classIOv2_1_1ctype__conf.html">ctype_conf&lt;CharT&gt;::mask</a>;</div>
+<div class="line"><a id="l00762" name="l00762"></a><span class="lineno">  762</span> </div>
+<div class="line"><a id="l00782" name="l00782"></a><span class="lineno">  782</span>    <span class="keyword">template</span> &lt;shared_ptr_to&lt;ctype_conf&lt;CharT&gt;&gt; TConfPtr&gt;</div>
+<div class="foldopen" id="foldopen00783" data-start="{" data-end="}">
+<div class="line"><a id="l00783" name="l00783"></a><span class="lineno"><a class="line" href="classIOv2_1_1ctype_3_01CharT_01_4.html#a4b244fb86798cd89daad1d43aa5aea75">  783</a></span>    <a class="code hl_function" href="classIOv2_1_1ctype_3_01CharT_01_4.html#a4b244fb86798cd89daad1d43aa5aea75">ctype</a>(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TConfPtr</a> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">p_obj</a>)</div>
+<div class="line"><a id="l00784" name="l00784"></a><span class="lineno">  784</span>        : m_obj(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">p_obj</a>)</div>
+<div class="line"><a id="l00785" name="l00785"></a><span class="lineno">  785</span>    {</div>
+<div class="line"><a id="l00786" name="l00786"></a><span class="lineno">  786</span>        <span class="keywordflow">if</span> (!m_obj) <span class="keywordflow">throw</span> std::runtime_error(<span class="stringliteral">&quot;shared_ptr is empty&quot;</span>);</div>
+<div class="line"><a id="l00787" name="l00787"></a><span class="lineno">  787</span>        <span class="keywordflow">for</span> (<span class="keywordtype">unsigned</span> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">i</a> = 0; <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">i</a> &lt; s_len; ++<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">i</a>)</div>
+<div class="line"><a id="l00788" name="l00788"></a><span class="lineno">  788</span>        {</div>
+<div class="line"><a id="l00789" name="l00789"></a><span class="lineno">  789</span>            m_toupper[<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">i</a>] = m_obj-&gt;toupper(<span class="keyword">static_cast&lt;</span><a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a><span class="keyword">&gt;</span>(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">i</a>));</div>
+<div class="line"><a id="l00790" name="l00790"></a><span class="lineno">  790</span>            m_tolower[<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">i</a>] = m_obj-&gt;tolower(<span class="keyword">static_cast&lt;</span><a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a><span class="keyword">&gt;</span>(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">i</a>));</div>
+<div class="line"><a id="l00791" name="l00791"></a><span class="lineno">  791</span>            m_widen[<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">i</a>] = m_obj-&gt;widen(<span class="keyword">static_cast&lt;</span><a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a><span class="keyword">&gt;</span>(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">i</a>));</div>
+<div class="line"><a id="l00792" name="l00792"></a><span class="lineno">  792</span>            m_narrow[<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">i</a>] = m_obj-&gt;narrow(<span class="keyword">static_cast&lt;</span><a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a><span class="keyword">&gt;</span>(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">i</a>));</div>
+<div class="line"><a id="l00793" name="l00793"></a><span class="lineno">  793</span>            m_table[<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">i</a>] = m_obj-&gt;is(<span class="keyword">static_cast&lt;</span><a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a><span class="keyword">&gt;</span>(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">i</a>));</div>
+<div class="line"><a id="l00794" name="l00794"></a><span class="lineno">  794</span>        }</div>
+<div class="line"><a id="l00795" name="l00795"></a><span class="lineno">  795</span>    }</div>
+</div>
+<div class="line"><a id="l00796" name="l00796"></a><span class="lineno">  796</span> </div>
+<div class="line"><a id="l00797" name="l00797"></a><span class="lineno"><a class="line" href="classIOv2_1_1ctype_3_01CharT_01_4.html#a3f148674edb7f219a778bf252eddde6f">  797</a></span>    <a class="code hl_function" href="classIOv2_1_1ctype_3_01CharT_01_4.html#a3f148674edb7f219a778bf252eddde6f">~ctype</a>() = <span class="keywordflow">default</span>;</div>
+<div class="line"><a id="l00798" name="l00798"></a><span class="lineno"><a class="line" href="classIOv2_1_1ctype_3_01CharT_01_4.html#a62c44d5764df414a32aa2019f1020fe7">  798</a></span>    <a class="code hl_function" href="classIOv2_1_1ctype_3_01CharT_01_4.html#a62c44d5764df414a32aa2019f1020fe7">ctype</a>(<span class="keyword">const</span> <a class="code hl_class" href="classIOv2_1_1ctype.html">ctype</a>&amp;) = <span class="keyword">delete</span>;</div>
+<div class="line"><a id="l00799" name="l00799"></a><span class="lineno"><a class="line" href="classIOv2_1_1ctype_3_01CharT_01_4.html#a471c256c1778ad1cadc86885c38c8a13">  799</a></span>    <a class="code hl_class" href="classIOv2_1_1ctype.html">ctype</a>&amp; <a class="code hl_function" href="classIOv2_1_1ctype_3_01CharT_01_4.html#a471c256c1778ad1cadc86885c38c8a13">operator=</a>(<span class="keyword">const</span> <a class="code hl_class" href="classIOv2_1_1ctype.html">ctype</a>&amp;) = <span class="keyword">delete</span>;</div>
+<div class="line"><a id="l00800" name="l00800"></a><span class="lineno"><a class="line" href="classIOv2_1_1ctype_3_01CharT_01_4.html#a31ff76e92031cbafc831be05b1bfa834">  800</a></span>    <a class="code hl_function" href="classIOv2_1_1ctype_3_01CharT_01_4.html#a31ff76e92031cbafc831be05b1bfa834">ctype</a>(<a class="code hl_class" href="classIOv2_1_1ctype.html">ctype</a>&amp;&amp;) = <span class="keyword">delete</span>;</div>
+<div class="line"><a id="l00801" name="l00801"></a><span class="lineno"><a class="line" href="classIOv2_1_1ctype_3_01CharT_01_4.html#a4e1ba83127b2e1fbf729aeee1efde550">  801</a></span>    <a class="code hl_class" href="classIOv2_1_1ctype.html">ctype</a>&amp; <a class="code hl_function" href="classIOv2_1_1ctype_3_01CharT_01_4.html#a4e1ba83127b2e1fbf729aeee1efde550">operator=</a>(<a class="code hl_class" href="classIOv2_1_1ctype.html">ctype</a>&amp;&amp;) = <span class="keyword">delete</span>;</div>
+<div class="line"><a id="l00802" name="l00802"></a><span class="lineno">  802</span> </div>
+<div class="line"><a id="l00803" name="l00803"></a><span class="lineno">  803</span><span class="keyword">public</span>:</div>
+<div class="foldopen" id="foldopen00817" data-start="{" data-end="}">
+<div class="line"><a id="l00817" name="l00817"></a><span class="lineno"><a class="line" href="classIOv2_1_1ctype_3_01CharT_01_4.html#a6d0f4aaf89f0557c8d842045a15cecd6">  817</a></span>    <a class="code hl_typedef" href="classIOv2_1_1ctype_3_01CharT_01_4.html#ad2b148292b4e17393358402186af998b">mask</a> <a class="code hl_function" href="classIOv2_1_1ctype_3_01CharT_01_4.html#a6d0f4aaf89f0557c8d842045a15cecd6">is</a>(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">c</a>)<span class="keyword"> const</span></div>
+<div class="line"><a id="l00818" name="l00818"></a><span class="lineno">  818</span><span class="keyword">    </span>{</div>
+<div class="line"><a id="l00819" name="l00819"></a><span class="lineno">  819</span>        <span class="keywordflow">return</span> do_is(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">c</a>);</div>
+<div class="line"><a id="l00820" name="l00820"></a><span class="lineno">  820</span>    }</div>
+</div>
+<div class="line"><a id="l00821" name="l00821"></a><span class="lineno">  821</span> </div>
+<div class="foldopen" id="foldopen00835" data-start="{" data-end="}">
+<div class="line"><a id="l00835" name="l00835"></a><span class="lineno"><a class="line" href="classIOv2_1_1ctype_3_01CharT_01_4.html#af2dd60da807456de3c69d1e80f7fce55">  835</a></span>    <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> <a class="code hl_function" href="classIOv2_1_1ctype_3_01CharT_01_4.html#af2dd60da807456de3c69d1e80f7fce55">toupper</a>(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">c</a>)<span class="keyword"> const</span></div>
+<div class="line"><a id="l00836" name="l00836"></a><span class="lineno">  836</span><span class="keyword">    </span>{</div>
+<div class="line"><a id="l00837" name="l00837"></a><span class="lineno">  837</span>        <span class="keywordflow">return</span> do_toupper(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">c</a>);</div>
+<div class="line"><a id="l00838" name="l00838"></a><span class="lineno">  838</span>    }</div>
+</div>
+<div class="line"><a id="l00839" name="l00839"></a><span class="lineno">  839</span> </div>
+<div class="foldopen" id="foldopen00853" data-start="{" data-end="}">
+<div class="line"><a id="l00853" name="l00853"></a><span class="lineno"><a class="line" href="classIOv2_1_1ctype_3_01CharT_01_4.html#a75021fd5b4edf6902847ebbdcbcfbfd2">  853</a></span>    <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> <a class="code hl_function" href="classIOv2_1_1ctype_3_01CharT_01_4.html#a75021fd5b4edf6902847ebbdcbcfbfd2">tolower</a>(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">c</a>)<span class="keyword"> const</span></div>
+<div class="line"><a id="l00854" name="l00854"></a><span class="lineno">  854</span><span class="keyword">    </span>{</div>
+<div class="line"><a id="l00855" name="l00855"></a><span class="lineno">  855</span>        <span class="keywordflow">return</span> do_tolower(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">c</a>);</div>
+<div class="line"><a id="l00856" name="l00856"></a><span class="lineno">  856</span>    }</div>
+</div>
+<div class="line"><a id="l00857" name="l00857"></a><span class="lineno">  857</span> </div>
+<div class="foldopen" id="foldopen00895" data-start="{" data-end="}">
+<div class="line"><a id="l00895" name="l00895"></a><span class="lineno"><a class="line" href="classIOv2_1_1ctype_3_01CharT_01_4.html#ad2bf8f47849f9ee6874247eae9339e92">  895</a></span>    <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> <a class="code hl_function" href="classIOv2_1_1ctype_3_01CharT_01_4.html#ad2bf8f47849f9ee6874247eae9339e92">widen</a>(<span class="keywordtype">char</span> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">c</a>)<span class="keyword"> const</span></div>
+<div class="line"><a id="l00896" name="l00896"></a><span class="lineno">  896</span><span class="keyword">    </span>{</div>
+<div class="line"><a id="l00897" name="l00897"></a><span class="lineno">  897</span>        <span class="keywordflow">return</span> m_widen[<span class="keyword">static_cast&lt;</span><span class="keywordtype">unsigned</span> <span class="keywordtype">char</span><span class="keyword">&gt;</span>(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">c</a>)];</div>
+<div class="line"><a id="l00898" name="l00898"></a><span class="lineno">  898</span>    }</div>
+</div>
+<div class="line"><a id="l00899" name="l00899"></a><span class="lineno">  899</span> </div>
+<div class="foldopen" id="foldopen00915" data-start="{" data-end="}">
+<div class="line"><a id="l00915" name="l00915"></a><span class="lineno"><a class="line" href="classIOv2_1_1ctype_3_01CharT_01_4.html#a5b9d8dfcaa6d6da12614795a7ec408e3">  915</a></span>    std::optional&lt;char&gt; <a class="code hl_function" href="classIOv2_1_1ctype_3_01CharT_01_4.html#a5b9d8dfcaa6d6da12614795a7ec408e3">narrow</a>(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">c</a>)<span class="keyword"> const</span></div>
+<div class="line"><a id="l00916" name="l00916"></a><span class="lineno">  916</span><span class="keyword">    </span>{</div>
+<div class="line"><a id="l00917" name="l00917"></a><span class="lineno">  917</span>        <span class="keywordflow">return</span> do_narrow(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">c</a>);</div>
+<div class="line"><a id="l00918" name="l00918"></a><span class="lineno">  918</span>    }</div>
+</div>
+<div class="line"><a id="l00919" name="l00919"></a><span class="lineno">  919</span> </div>
+<div class="line"><a id="l00920" name="l00920"></a><span class="lineno">  920</span>    <span class="keyword">using </span><a class="code hl_class" href="classIOv2_1_1detail_1_1ctype__ops.html">detail::ctype_ops</a>&lt;<a class="code hl_class" href="classIOv2_1_1ctype.html">ctype&lt;CharT&gt;</a>&gt;::narrow;</div>
+<div class="line"><a id="l00921" name="l00921"></a><span class="lineno">  921</span> </div>
+<div class="line"><a id="l00922" name="l00922"></a><span class="lineno">  922</span><span class="keyword">private</span>:</div>
+<div class="line"><a id="l00947" name="l00947"></a><span class="lineno">  947</span>    mask do_is(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">c</a>)<span class="keyword"> const</span></div>
+<div class="line"><a id="l00948" name="l00948"></a><span class="lineno">  948</span><span class="keyword">    </span>{</div>
+<div class="line"><a id="l00949" name="l00949"></a><span class="lineno">  949</span>        <span class="keywordflow">if</span> (<span class="keyword">static_cast&lt;</span>uchar_type<span class="keyword">&gt;</span>(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">c</a>) &lt; s_len)</div>
+<div class="line"><a id="l00950" name="l00950"></a><span class="lineno">  950</span>            <span class="keywordflow">return</span> m_table[<span class="keyword">static_cast&lt;</span>uchar_type<span class="keyword">&gt;</span>(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">c</a>)];</div>
+<div class="line"><a id="l00951" name="l00951"></a><span class="lineno">  951</span>        <span class="keywordflow">return</span> m_obj-&gt;is(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">c</a>);</div>
+<div class="line"><a id="l00952" name="l00952"></a><span class="lineno">  952</span>    }</div>
+<div class="line"><a id="l00953" name="l00953"></a><span class="lineno">  953</span> </div>
+<div class="line"><a id="l00964" name="l00964"></a><span class="lineno">  964</span>    <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> do_toupper(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">c</a>)<span class="keyword"> const</span></div>
+<div class="line"><a id="l00965" name="l00965"></a><span class="lineno">  965</span><span class="keyword">    </span>{</div>
+<div class="line"><a id="l00966" name="l00966"></a><span class="lineno">  966</span>        <span class="keywordflow">if</span> (<span class="keyword">static_cast&lt;</span>uchar_type<span class="keyword">&gt;</span>(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">c</a>) &lt; s_len)</div>
+<div class="line"><a id="l00967" name="l00967"></a><span class="lineno">  967</span>            <span class="keywordflow">return</span> m_toupper[<span class="keyword">static_cast&lt;</span>uchar_type<span class="keyword">&gt;</span>(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">c</a>)];</div>
+<div class="line"><a id="l00968" name="l00968"></a><span class="lineno">  968</span>        <span class="keywordflow">return</span> m_obj-&gt;toupper(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">c</a>);</div>
+<div class="line"><a id="l00969" name="l00969"></a><span class="lineno">  969</span>    }</div>
+<div class="line"><a id="l00970" name="l00970"></a><span class="lineno">  970</span> </div>
+<div class="line"><a id="l00981" name="l00981"></a><span class="lineno">  981</span>    <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> do_tolower(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">c</a>)<span class="keyword"> const</span></div>
+<div class="line"><a id="l00982" name="l00982"></a><span class="lineno">  982</span><span class="keyword">    </span>{</div>
+<div class="line"><a id="l00983" name="l00983"></a><span class="lineno">  983</span>        <span class="keywordflow">if</span> (<span class="keyword">static_cast&lt;</span>uchar_type<span class="keyword">&gt;</span>(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">c</a>) &lt; s_len)</div>
+<div class="line"><a id="l00984" name="l00984"></a><span class="lineno">  984</span>            <span class="keywordflow">return</span> m_tolower[<span class="keyword">static_cast&lt;</span>uchar_type<span class="keyword">&gt;</span>(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">c</a>)];</div>
+<div class="line"><a id="l00985" name="l00985"></a><span class="lineno">  985</span>        <span class="keywordflow">return</span> m_obj-&gt;tolower(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">c</a>);</div>
+<div class="line"><a id="l00986" name="l00986"></a><span class="lineno">  986</span>    }</div>
+<div class="line"><a id="l00987" name="l00987"></a><span class="lineno">  987</span> </div>
+<div class="line"><a id="l00998" name="l00998"></a><span class="lineno">  998</span>    std::optional&lt;char&gt; do_narrow(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">c</a>)<span class="keyword"> const</span></div>
+<div class="line"><a id="l00999" name="l00999"></a><span class="lineno">  999</span><span class="keyword">    </span>{</div>
+<div class="line"><a id="l01000" name="l01000"></a><span class="lineno"> 1000</span>        <span class="keywordflow">if</span> (<span class="keyword">static_cast&lt;</span>uchar_type<span class="keyword">&gt;</span>(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">c</a>) &lt; s_len)</div>
+<div class="line"><a id="l01001" name="l01001"></a><span class="lineno"> 1001</span>            <span class="keywordflow">return</span> m_narrow[<span class="keyword">static_cast&lt;</span>uchar_type<span class="keyword">&gt;</span>(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">c</a>)];</div>
+<div class="line"><a id="l01002" name="l01002"></a><span class="lineno"> 1002</span>        <span class="keywordflow">return</span> m_obj-&gt;narrow(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">c</a>);</div>
+<div class="line"><a id="l01003" name="l01003"></a><span class="lineno"> 1003</span>    }</div>
+<div class="line"><a id="l01004" name="l01004"></a><span class="lineno"> 1004</span> </div>
+<div class="line"><a id="l01005" name="l01005"></a><span class="lineno"> 1005</span><span class="keyword">private</span>:</div>
+<div class="line"><a id="l01009" name="l01009"></a><span class="lineno"> 1009</span>    std::shared_ptr&lt;const ctype_conf&lt;CharT&gt;&gt; m_obj;</div>
+<div class="line"><a id="l01010" name="l01010"></a><span class="lineno"> 1010</span> </div>
+<div class="line"><a id="l01013" name="l01013"></a><span class="lineno"> 1013</span>    std::array&lt;CharT, s_len&gt;               m_toupper;</div>
+<div class="line"><a id="l01014" name="l01014"></a><span class="lineno"> 1014</span> </div>
+<div class="line"><a id="l01017" name="l01017"></a><span class="lineno"> 1017</span>    std::array&lt;CharT, s_len&gt;               m_tolower;</div>
+<div class="line"><a id="l01018" name="l01018"></a><span class="lineno"> 1018</span> </div>
+<div class="line"><a id="l01021" name="l01021"></a><span class="lineno"> 1021</span>    std::array&lt;CharT, s_len&gt;               m_widen;</div>
+<div class="line"><a id="l01022" name="l01022"></a><span class="lineno"> 1022</span> </div>
+<div class="line"><a id="l01026" name="l01026"></a><span class="lineno"> 1026</span>    std::array&lt;std::optional&lt;char&gt;, s_len&gt; m_narrow;</div>
+<div class="line"><a id="l01027" name="l01027"></a><span class="lineno"> 1027</span> </div>
+<div class="line"><a id="l01030" name="l01030"></a><span class="lineno"> 1030</span>    std::array&lt;mask, s_len&gt;                m_table;</div>
+<div class="line"><a id="l01031" name="l01031"></a><span class="lineno"> 1031</span>};</div>
+<div class="line"><a id="l01032" name="l01032"></a><span class="lineno"> 1032</span> </div>
+<div class="line"><a id="l01042" name="l01042"></a><span class="lineno"> 1042</span><span class="keyword">template</span>&lt;<span class="keyword">typename</span> TConfPtr&gt;</div>
+<div class="line"><a id="l01043" name="l01043"></a><span class="lineno"><a class="line" href="namespaceIOv2.html#ad9482e85e3002e85211e7aed04aa807e"> 1043</a></span><a class="code hl_class" href="classIOv2_1_1ctype.html">ctype</a>(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TConfPtr</a>) -&gt; <a class="code hl_class" href="classIOv2_1_1ctype.html">ctype&lt;typename TConfPtr::element_type::char_type&gt;</a>;</div>
+<div class="line"><a id="l01044" name="l01044"></a><span class="lineno"> 1044</span>}</div>
+<div class="ttc" id="aclassIOv2_1_1ctype_3_01CharT_01_4_html_a31ff76e92031cbafc831be05b1bfa834"><div class="ttname"><a href="classIOv2_1_1ctype_3_01CharT_01_4.html#a31ff76e92031cbafc831be05b1bfa834">IOv2::ctype&lt; CharT &gt;::ctype</a></div><div class="ttdeci">ctype(ctype &amp;&amp;)=delete</div></div>
+<div class="ttc" id="aclassIOv2_1_1ctype_3_01CharT_01_4_html_a3f148674edb7f219a778bf252eddde6f"><div class="ttname"><a href="classIOv2_1_1ctype_3_01CharT_01_4.html#a3f148674edb7f219a778bf252eddde6f">IOv2::ctype&lt; CharT &gt;::~ctype</a></div><div class="ttdeci">~ctype()=default</div></div>
+<div class="ttc" id="aclassIOv2_1_1ctype_3_01CharT_01_4_html_a471c256c1778ad1cadc86885c38c8a13"><div class="ttname"><a href="classIOv2_1_1ctype_3_01CharT_01_4.html#a471c256c1778ad1cadc86885c38c8a13">IOv2::ctype&lt; CharT &gt;::operator=</a></div><div class="ttdeci">ctype &amp; operator=(const ctype &amp;)=delete</div></div>
+<div class="ttc" id="aclassIOv2_1_1ctype_3_01CharT_01_4_html_a4b244fb86798cd89daad1d43aa5aea75"><div class="ttname"><a href="classIOv2_1_1ctype_3_01CharT_01_4.html#a4b244fb86798cd89daad1d43aa5aea75">IOv2::ctype&lt; CharT &gt;::ctype</a></div><div class="ttdeci">ctype(TConfPtr p_obj)</div><div class="ttdef"><b>Definition</b> ctype.h:534</div></div>
+<div class="ttc" id="aclassIOv2_1_1ctype_3_01CharT_01_4_html_a4e1ba83127b2e1fbf729aeee1efde550"><div class="ttname"><a href="classIOv2_1_1ctype_3_01CharT_01_4.html#a4e1ba83127b2e1fbf729aeee1efde550">IOv2::ctype&lt; CharT &gt;::operator=</a></div><div class="ttdeci">ctype &amp; operator=(ctype &amp;&amp;)=delete</div></div>
+<div class="ttc" id="aclassIOv2_1_1ctype_3_01CharT_01_4_html_a5b9d8dfcaa6d6da12614795a7ec408e3"><div class="ttname"><a href="classIOv2_1_1ctype_3_01CharT_01_4.html#a5b9d8dfcaa6d6da12614795a7ec408e3">IOv2::ctype&lt; CharT &gt;::narrow</a></div><div class="ttdeci">std::optional&lt; char &gt; narrow(CharT c) const</div><div class="ttdef"><b>Definition</b> ctype.h:639</div></div>
+<div class="ttc" id="aclassIOv2_1_1ctype_3_01CharT_01_4_html_a62c44d5764df414a32aa2019f1020fe7"><div class="ttname"><a href="classIOv2_1_1ctype_3_01CharT_01_4.html#a62c44d5764df414a32aa2019f1020fe7">IOv2::ctype&lt; CharT &gt;::ctype</a></div><div class="ttdeci">ctype(const ctype &amp;)=delete</div></div>
+<div class="ttc" id="aclassIOv2_1_1ctype_3_01CharT_01_4_html_a6d0f4aaf89f0557c8d842045a15cecd6"><div class="ttname"><a href="classIOv2_1_1ctype_3_01CharT_01_4.html#a6d0f4aaf89f0557c8d842045a15cecd6">IOv2::ctype&lt; CharT &gt;::is</a></div><div class="ttdeci">mask is(CharT c) const</div><div class="ttdef"><b>Definition</b> ctype.h:566</div></div>
+<div class="ttc" id="aclassIOv2_1_1ctype_3_01CharT_01_4_html_a75021fd5b4edf6902847ebbdcbcfbfd2"><div class="ttname"><a href="classIOv2_1_1ctype_3_01CharT_01_4.html#a75021fd5b4edf6902847ebbdcbcfbfd2">IOv2::ctype&lt; CharT &gt;::tolower</a></div><div class="ttdeci">CharT tolower(CharT c) const</div><div class="ttdef"><b>Definition</b> ctype.h:600</div></div>
+<div class="ttc" id="aclassIOv2_1_1ctype_3_01CharT_01_4_html_a8e5d82a9b24cff31b27c753d9159c3b5"><div class="ttname"><a href="classIOv2_1_1ctype_3_01CharT_01_4.html#a8e5d82a9b24cff31b27c753d9159c3b5">IOv2::ctype&lt; CharT &gt;::char_type</a></div><div class="ttdeci">CharT char_type</div><div class="ttdef"><b>Definition</b> ctype.h:506</div></div>
+<div class="ttc" id="aclassIOv2_1_1ctype_3_01CharT_01_4_html_ad2b148292b4e17393358402186af998b"><div class="ttname"><a href="classIOv2_1_1ctype_3_01CharT_01_4.html#ad2b148292b4e17393358402186af998b">IOv2::ctype&lt; CharT &gt;::mask</a></div><div class="ttdeci">typename ctype_conf&lt; CharT &gt;::mask mask</div><div class="ttdef"><b>Definition</b> ctype.h:511</div></div>
+<div class="ttc" id="aclassIOv2_1_1ctype_3_01CharT_01_4_html_ad2bf8f47849f9ee6874247eae9339e92"><div class="ttname"><a href="classIOv2_1_1ctype_3_01CharT_01_4.html#ad2bf8f47849f9ee6874247eae9339e92">IOv2::ctype&lt; CharT &gt;::widen</a></div><div class="ttdeci">CharT widen(char c) const</div><div class="ttdef"><b>Definition</b> ctype.h:617</div></div>
+<div class="ttc" id="aclassIOv2_1_1ctype_3_01CharT_01_4_html_af2dd60da807456de3c69d1e80f7fce55"><div class="ttname"><a href="classIOv2_1_1ctype_3_01CharT_01_4.html#af2dd60da807456de3c69d1e80f7fce55">IOv2::ctype&lt; CharT &gt;::toupper</a></div><div class="ttdeci">CharT toupper(CharT c) const</div><div class="ttdef"><b>Definition</b> ctype.h:583</div></div>
+<div class="ttc" id="aclassIOv2_1_1ctype__conf_html"><div class="ttname"><a href="classIOv2_1_1ctype__conf.html">IOv2::ctype_conf</a></div><div class="ttdef"><b>Definition</b> ctype_details.h:190</div></div>
+<div class="ttc" id="aclassIOv2_1_1ctype_html"><div class="ttname"><a href="classIOv2_1_1ctype.html">IOv2::ctype</a></div><div class="ttdef"><b>Definition</b> ctype.h:67</div></div>
+<div class="ttc" id="aclassIOv2_1_1detail_1_1ctype__ops_html"><div class="ttname"><a href="classIOv2_1_1detail_1_1ctype__ops.html">IOv2::detail::ctype_ops</a></div><div class="ttdef"><b>Definition</b> ctype.h:116</div></div>
+<div class="ttc" id="aclassIOv2_1_1detail_1_1ctype__ops_html_a11a5230229c7328ce38567602a430161"><div class="ttname"><a href="classIOv2_1_1detail_1_1ctype__ops.html#a11a5230229c7328ce38567602a430161">IOv2::detail::ctype_ops::scan_not_any</a></div><div class="ttdeci">InIt scan_not_any(TM m, InIt beg, InIt end) const</div><div class="ttdef"><b>Definition</b> ctype.h:251</div></div>
+<div class="ttc" id="aclassIOv2_1_1detail_1_1ctype__ops_html_a325e0de1e52893786bf9a41afe91756e"><div class="ttname"><a href="classIOv2_1_1detail_1_1ctype__ops.html#a325e0de1e52893786bf9a41afe91756e">IOv2::detail::ctype_ops::widen_seq</a></div><div class="ttdeci">OutIt widen_seq(InIt beg, InIt end, OutIt dst) const</div><div class="ttdef"><b>Definition</b> ctype.h:351</div></div>
+<div class="ttc" id="aclassIOv2_1_1detail_1_1ctype__ops_html_a7bf641c40cc89cc30860e9992b78ceec"><div class="ttname"><a href="classIOv2_1_1detail_1_1ctype__ops.html#a7bf641c40cc89cc30860e9992b78ceec">IOv2::detail::ctype_ops::toupper_seq</a></div><div class="ttdeci">OutIt toupper_seq(InIt beg, InIt end, OutIt dst) const</div><div class="ttdef"><b>Definition</b> ctype.h:284</div></div>
+<div class="ttc" id="aclassIOv2_1_1detail_1_1ctype__ops_html_a95ade0409d7263470469277a8c01f158"><div class="ttname"><a href="classIOv2_1_1detail_1_1ctype__ops.html#a95ade0409d7263470469277a8c01f158">IOv2::detail::ctype_ops::tolower_seq</a></div><div class="ttdeci">OutIt tolower_seq(InIt beg, InIt end, OutIt dst) const</div><div class="ttdef"><b>Definition</b> ctype.h:317</div></div>
+<div class="ttc" id="aclassIOv2_1_1detail_1_1ctype__ops_html_a9c21a843785bfd1d4d6450b974085cb5"><div class="ttname"><a href="classIOv2_1_1detail_1_1ctype__ops.html#a9c21a843785bfd1d4d6450b974085cb5">IOv2::detail::ctype_ops::scan_is_any</a></div><div class="ttdeci">InIt scan_is_any(TM m, InIt beg, InIt end) const</div><div class="ttdef"><b>Definition</b> ctype.h:214</div></div>
+<div class="ttc" id="aclassIOv2_1_1detail_1_1ctype__ops_html_aacb0e851ebe3f7a65058b99fe302f5cb"><div class="ttname"><a href="classIOv2_1_1detail_1_1ctype__ops.html#aacb0e851ebe3f7a65058b99fe302f5cb">IOv2::detail::ctype_ops::is_any</a></div><div class="ttdeci">bool is_any(TM m, TC c) const</div><div class="ttdef"><b>Definition</b> ctype.h:147</div></div>
+<div class="ttc" id="aclassIOv2_1_1detail_1_1ctype__ops_html_ad44a81611a5cb53bce142ecb40813d4d"><div class="ttname"><a href="classIOv2_1_1detail_1_1ctype__ops.html#ad44a81611a5cb53bce142ecb40813d4d">IOv2::detail::ctype_ops::narrow</a></div><div class="ttdeci">char narrow(TC c, char def) const</div><div class="ttdef"><b>Definition</b> ctype.h:398</div></div>
+<div class="ttc" id="aclassIOv2_1_1detail_1_1ctype__ops_html_ad912b79cc951194900762494040f2281"><div class="ttname"><a href="classIOv2_1_1detail_1_1ctype__ops.html#ad912b79cc951194900762494040f2281">IOv2::detail::ctype_ops::is_seq</a></div><div class="ttdeci">OutIt is_seq(InIt low, InIt high, OutIt vec) const</div><div class="ttdef"><b>Definition</b> ctype.h:178</div></div>
+<div class="ttc" id="aclassIOv2_1_1detail_1_1ctype__ops_html_afab851648a5b741eb31c899bbc4803f1"><div class="ttname"><a href="classIOv2_1_1detail_1_1ctype__ops.html#afab851648a5b741eb31c899bbc4803f1">IOv2::detail::ctype_ops::narrow_seq</a></div><div class="ttdeci">OutIt narrow_seq(InIt beg, InIt end, char dflt, OutIt dst) const</div><div class="ttdef"><b>Definition</b> ctype.h:435</div></div>
+<div class="ttc" id="actype__details_8h_html"><div class="ttname"><a href="ctype__details_8h.html">ctype_details.h</a></div></div>
+<div class="ttc" id="afacet__common_8h_html"><div class="ttname"><a href="facet__common_8h.html">facet_common.h</a></div></div>
+<div class="ttc" id="ametafunctions_8h_html"><div class="ttname"><a href="metafunctions_8h.html">metafunctions.h</a></div></div>
+<div class="ttc" id="anamespaceIOv2_html"><div class="ttname"><a href="namespaceIOv2.html">IOv2</a></div><div class="ttdef"><b>Definition</b> clocale_wrapper.h:22</div></div>
+<div class="ttc" id="anamespaceIOv2_html_a09b31017574cb5471d2558481d0f4d7a"><div class="ttname"><a href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">IOv2::is_small_type_v</a></div><div class="ttdeci">constexpr bool is_small_type_v</div><div class="ttdef"><b>Definition</b> metafunctions.h:83</div></div>
+<div class="ttc" id="astructIOv2_1_1facet__create__rule_html"><div class="ttname"><a href="structIOv2_1_1facet__create__rule.html">IOv2::facet_create_rule</a></div><div class="ttdef"><b>Definition</b> facet_common.h:330</div></div>
+</div><!-- fragment --></div><!-- contents -->
+</div><!-- doc-content -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><a class="el" href="dir_d44c64559bbebec7f509842c48db8b23.html">include</a></li><li class="navelem"><a class="el" href="dir_1157f564aec2b3a7d6bde4eba89ab805.html">IOv2</a></li><li class="navelem"><a class="el" href="dir_86635f995fd9ec725e3aec943495dac7.html">facet</a></li><li class="navelem"><a class="el" href="ctype_8h.html">ctype.h</a></li>
+    <li class="footer">制作者 <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8 </li>
+  </ul>
+</div>
+</body>
+</html>

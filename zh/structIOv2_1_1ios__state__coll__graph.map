@@ -1,0 +1,15 @@
+<map id="IOv2::ios_state&lt; TChar &gt;" name="IOv2::ios_state&lt; TChar &gt;">
+<area shape="rect" id="Node000001" title="在格式化状态之上，管理流状态位及其关联异常的组件。" alt="" coords="561,141,748,166"/>
+<area shape="rect" id="Node000002" href="$classIOv2_1_1ios__base.html" title="所有流的格式化状态基类。" alt="" coords="328,141,512,166"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="526,151,561,151,561,156,526,156"/>
+<area shape="rect" id="Node000003" href="$classIOv2_1_1copyable__atomic.html" title=" " alt="" coords="15,5,185,45"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="182,47,305,92,397,138,395,143,303,97,180,52"/>
+<area shape="rect" id="Node000004" href="$classIOv2_1_1copyable__atomic.html" title=" " alt="" coords="15,69,185,109"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="199,106,356,138,355,143,198,112"/>
+<area shape="rect" id="Node000005" href="$classIOv2_1_1copyable__atomic.html" title=" " alt="" coords="15,133,185,173"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="199,151,328,151,328,156,199,156"/>
+<area shape="rect" id="Node000006" href="$classIOv2_1_1copyable__atomic.html" title=" " alt="" coords="15,197,185,237"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="198,195,355,163,356,169,199,200"/>
+<area shape="rect" id="Node000007" href="$classIOv2_1_1copyable__mutex.html" title=" " alt="" coords="5,261,195,301"/>
+<area shape="poly" id="edge6_Node000002_Node000007" title=" " alt="" coords="182,255,303,211,396,164,398,169,305,216,184,260"/>
+</map>

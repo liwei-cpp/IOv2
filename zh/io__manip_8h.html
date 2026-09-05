@@ -1,0 +1,259 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=11"/>
+<meta name="generator" content="Doxygen 1.9.8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>IOv2: include/IOv2/io/io_manip.h 文件参考</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="resize.js"></script>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr id="projectrow">
+  <td id="projectalign">
+   <div id="projectname">IOv2
+   </div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 制作者 Doxygen 1.9.8 -->
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+/* @license-end */
+</script>
+<script type="text/javascript" src="menudata.js"></script>
+<script type="text/javascript" src="menu.js"></script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(function() {
+  initMenu('',true,false,'search.php','搜索');
+  $(document).ready(function() { init_search(); });
+});
+/* @license-end */
+</script>
+<div id="main-nav"></div>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(document).ready(function(){initNavTree('io__manip_8h.html',''); initResizable(); });
+/* @license-end */
+</script>
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">载入中...</div>
+<div class="SRStatus" id="Searching">搜索中...</div>
+<div class="SRStatus" id="NoMatches">未找到</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="header">
+  <div class="summary">
+<a href="#nested-classes">类</a> &#124;
+<a href="#namespaces">命名空间</a> &#124;
+<a href="#func-members">函数</a> &#124;
+<a href="#var-members">变量</a>  </div>
+  <div class="headertitle"><div class="title">io_manip.h 文件参考</div></div>
+</div><!--header-->
+<div class="contents">
+<div class="textblock"><code>#include &lt;<a class="el" href="defs_8h_source.html">IOv2/common/defs.h</a>&gt;</code><br />
+<code>#include &lt;<a class="el" href="metafunctions_8h_source.html">IOv2/common/metafunctions.h</a>&gt;</code><br />
+<code>#include &lt;<a class="el" href="streambuf__defs_8h_source.html">IOv2/common/streambuf_defs.h</a>&gt;</code><br />
+<code>#include &lt;<a class="el" href="monetary_8h_source.html">IOv2/facet/monetary.h</a>&gt;</code><br />
+<code>#include &lt;<a class="el" href="timeio_8h_source.html">IOv2/facet/timeio.h</a>&gt;</code><br />
+<code>#include &lt;<a class="el" href="io__base_8h_source.html">IOv2/io/io_base.h</a>&gt;</code><br />
+<code>#include &lt;<a class="el" href="iostream_8h_source.html">IOv2/io/iostream.h</a>&gt;</code><br />
+<code>#include &lt;<a class="el" href="istream_8h_source.html">IOv2/io/istream.h</a>&gt;</code><br />
+<code>#include &lt;<a class="el" href="ostream_8h_source.html">IOv2/io/ostream.h</a>&gt;</code><br />
+<code>#include &lt;<a class="el" href="tm_8h_source.html">IOv2/io/traits/tm.h</a>&gt;</code><br />
+<code>#include &lt;<a class="el" href="traits__base_8h_source.html">IOv2/io/traits/traits_base.h</a>&gt;</code><br />
+<code>#include &lt;<a class="el" href="istream__operators_8h_source.html">IOv2/io/utilities/istream_operators.h</a>&gt;</code><br />
+<code>#include &lt;<a class="el" href="ostream__operators_8h_source.html">IOv2/io/utilities/ostream_operators.h</a>&gt;</code><br />
+<code>#include &lt;<a class="el" href="locale_8h_source.html">IOv2/locale/locale.h</a>&gt;</code><br />
+<code>#include &lt;concepts&gt;</code><br />
+<code>#include &lt;cstddef&gt;</code><br />
+<code>#include &lt;ctime&gt;</code><br />
+<code>#include &lt;iterator&gt;</code><br />
+<code>#include &lt;string&gt;</code><br />
+<code>#include &lt;type_traits&gt;</code><br />
+</div><div class="textblock"><div class="dynheader">
+io_manip.h 的引用(Include)关系图:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="io__manip_8h__incl.svg" width="6982" height="799"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+</div>
+<p><a href="io__manip_8h_source.html">浏览源代码.</a></p>
+<table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
+类</h2></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1resetiosflags__t.html">IOv2::resetiosflags_t</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight"><code>resetiosflags</code> 操纵符的类型。  <a href="structIOv2_1_1resetiosflags__t.html#details">更多...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1io__traits_3_01TChar_00_01resetiosflags__t_01_4.html">IOv2::io_traits&lt; TChar, resetiosflags_t &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight"><code>resetiosflags</code> 的扩展点特化：两个方向都提供，都清除 <code>m_mask</code> 中的各标志，其余不受 影响。  <a href="structIOv2_1_1io__traits_3_01TChar_00_01resetiosflags__t_01_4.html#details">更多...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1setiosflags__t.html">IOv2::setiosflags_t</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight"><code>setiosflags</code> 操纵符的类型。两个方向都合法；方向如何表达见 <code><a class="el" href="structIOv2_1_1io__traits.html" title="把 TChar 流的读写逻辑接到类型 T 上的扩展点。主模板故意不定义；见本文件头部。">io_traits</a>&lt;TChar, <a class="el" href="structIOv2_1_1resetiosflags__t.html" title="resetiosflags 操纵符的类型。">resetiosflags_t</a>&gt;</code>。  <a href="structIOv2_1_1setiosflags__t.html#details">更多...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1io__traits_3_01TChar_00_01setiosflags__t_01_4.html">IOv2::io_traits&lt; TChar, setiosflags_t &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight"><code>setiosflags</code> 的扩展点特化：两个方向都提供，都置位 <code>m_mask</code> 中的各标志（按位或）， 其余不受影响。见 <code><a class="el" href="structIOv2_1_1io__traits.html" title="把 TChar 流的读写逻辑接到类型 T 上的扩展点。主模板故意不定义；见本文件头部。">io_traits</a>&lt;TChar, <a class="el" href="structIOv2_1_1resetiosflags__t.html" title="resetiosflags 操纵符的类型。">resetiosflags_t</a>&gt;</code>。  <a href="structIOv2_1_1io__traits_3_01TChar_00_01setiosflags__t_01_4.html#details">更多...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1setbase__t.html">IOv2::setbase_t</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight"><code>setbase</code> 操纵符的类型。两个方向都合法；方向如何表达见 <code><a class="el" href="structIOv2_1_1io__traits.html" title="把 TChar 流的读写逻辑接到类型 T 上的扩展点。主模板故意不定义；见本文件头部。">io_traits</a>&lt;TChar, <a class="el" href="structIOv2_1_1resetiosflags__t.html" title="resetiosflags 操纵符的类型。">resetiosflags_t</a>&gt;</code>。  <a href="structIOv2_1_1setbase__t.html#details">更多...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1io__traits_3_01TChar_00_01setbase__t_01_4.html">IOv2::io_traits&lt; TChar, setbase_t &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight"><code>setbase</code> 的扩展点特化：两个方向都提供，都转调私有的 <code>apply</code>——按 <code>m_base</code> 设置 <code>basefield</code>，取值的含义见 <code>setbase</code>。见 <code><a class="el" href="structIOv2_1_1io__traits.html" title="把 TChar 流的读写逻辑接到类型 T 上的扩展点。主模板故意不定义；见本文件头部。">io_traits</a>&lt;TChar, <a class="el" href="structIOv2_1_1resetiosflags__t.html" title="resetiosflags 操纵符的类型。">resetiosflags_t</a>&gt;</code>。  <a href="structIOv2_1_1io__traits_3_01TChar_00_01setbase__t_01_4.html#details">更多...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1setfill__t.html">IOv2::setfill_t&lt; TFill &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight"><code>setfill</code> 操纵符的类型。两个方向都合法；方向如何表达见 <code><a class="el" href="structIOv2_1_1io__traits.html" title="把 TChar 流的读写逻辑接到类型 T 上的扩展点。主模板故意不定义；见本文件头部。">io_traits</a>&lt;TChar, <a class="el" href="structIOv2_1_1resetiosflags__t.html" title="resetiosflags 操纵符的类型。">resetiosflags_t</a>&gt;</code>。  <a href="structIOv2_1_1setfill__t.html#details">更多...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1io__traits_3_01TChar_00_01setfill__t_3_01TFill_01_4_01_4.html">IOv2::io_traits&lt; TChar, setfill_t&lt; TFill &gt; &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight"><code>setfill</code> 的扩展点特化：两个方向都提供，都设置流的填充字符。见 <code><a class="el" href="structIOv2_1_1io__traits.html" title="把 TChar 流的读写逻辑接到类型 T 上的扩展点。主模板故意不定义；见本文件头部。">io_traits</a>&lt;TChar, <a class="el" href="structIOv2_1_1resetiosflags__t.html" title="resetiosflags 操纵符的类型。">resetiosflags_t</a>&gt;</code>。  <a href="structIOv2_1_1io__traits_3_01TChar_00_01setfill__t_3_01TFill_01_4_01_4.html#details">更多...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1setprecision__t.html">IOv2::setprecision_t</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight"><code>setprecision</code> 操纵符的类型。两个方向都合法；方向如何表达见 <code><a class="el" href="structIOv2_1_1io__traits.html" title="把 TChar 流的读写逻辑接到类型 T 上的扩展点。主模板故意不定义；见本文件头部。">io_traits</a>&lt;TChar, <a class="el" href="structIOv2_1_1resetiosflags__t.html" title="resetiosflags 操纵符的类型。">resetiosflags_t</a>&gt;</code>。  <a href="structIOv2_1_1setprecision__t.html#details">更多...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1io__traits_3_01TChar_00_01setprecision__t_01_4.html">IOv2::io_traits&lt; TChar, setprecision_t &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight"><code>setprecision</code> 的扩展点特化：两个方向都提供。见 <code><a class="el" href="structIOv2_1_1io__traits.html" title="把 TChar 流的读写逻辑接到类型 T 上的扩展点。主模板故意不定义；见本文件头部。">io_traits</a>&lt;TChar, <a class="el" href="structIOv2_1_1resetiosflags__t.html" title="resetiosflags 操纵符的类型。">resetiosflags_t</a>&gt;</code>。  <a href="structIOv2_1_1io__traits_3_01TChar_00_01setprecision__t_01_4.html#details">更多...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1setw__t.html">IOv2::setw_t</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight"><code>setw</code> 操纵符的类型。两个方向都合法；方向如何表达见 <code><a class="el" href="structIOv2_1_1io__traits.html" title="把 TChar 流的读写逻辑接到类型 T 上的扩展点。主模板故意不定义；见本文件头部。">io_traits</a>&lt;TChar, <a class="el" href="structIOv2_1_1resetiosflags__t.html" title="resetiosflags 操纵符的类型。">resetiosflags_t</a>&gt;</code>。  <a href="structIOv2_1_1setw__t.html#details">更多...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1io__traits_3_01TChar_00_01setw__t_01_4.html">IOv2::io_traits&lt; TChar, setw_t &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight"><code>setw</code> 的扩展点特化：两个方向都提供。见 <code><a class="el" href="structIOv2_1_1io__traits.html" title="把 TChar 流的读写逻辑接到类型 T 上的扩展点。主模板故意不定义；见本文件头部。">io_traits</a>&lt;TChar, <a class="el" href="structIOv2_1_1resetiosflags__t.html" title="resetiosflags 操纵符的类型。">resetiosflags_t</a>&gt;</code>。  <a href="structIOv2_1_1io__traits_3_01TChar_00_01setw__t_01_4.html#details">更多...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1put__money__t.html">IOv2::put_money_t&lt; TMoney &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight"><code>put_money</code> 操纵符的类型：只带插入方向，逻辑在 <code><a class="el" href="structIOv2_1_1io__traits.html" title="把 TChar 流的读写逻辑接到类型 T 上的扩展点。主模板故意不定义；见本文件头部。">io_traits</a>&lt;TChar, <a class="el" href="structIOv2_1_1put__money__t.html" title="put_money 操纵符的类型：只带插入方向，逻辑在 io_traits&lt;TChar, put_money_t&lt;TMoney&gt;&gt;::swrite 里，且是**迭代器形式**——加锁与哨兵 由通用的格式...">put_money_t</a>&lt;TMoney&gt;&gt;::swrite</code> 里，且是**迭代器形式**——加锁与哨兵 由通用的格式化插入运算符负责。  <a href="structIOv2_1_1put__money__t.html#details">更多...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1put__money__fn.html">IOv2::put_money_fn</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">构造按 locale 的货币格式写出 <code>mon</code> 的操纵符。  <a href="structIOv2_1_1put__money__fn.html#details">更多...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1io__traits_3_01TChar_00_01put__money__t_3_01TMoney_01_4_01_4.html">IOv2::io_traits&lt; TChar, put_money_t&lt; TMoney &gt; &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight"><code>put_money</code> 的扩展点特化：只提供 <code>swrite</code>，故只能插入——<code>is &gt;&gt; <a class="el" href="namespaceIOv2.html#a98dfc906f2d5da328ea9bb28ef3a96ef">put_money(x)</a></code> 不满足 提取运算符的约束、没有可行重载，编译不过。方向为何这样表达，见 <code><a class="el" href="structIOv2_1_1io__traits.html" title="把 TChar 流的读写逻辑接到类型 T 上的扩展点。主模板故意不定义；见本文件头部。">io_traits</a>&lt;TChar, <a class="el" href="structIOv2_1_1resetiosflags__t.html" title="resetiosflags 操纵符的类型。">resetiosflags_t</a>&gt;</code>。  <a href="structIOv2_1_1io__traits_3_01TChar_00_01put__money__t_3_01TMoney_01_4_01_4.html#details">更多...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1get__money__t.html">IOv2::get_money_t&lt; TMoney &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight"><code>get_money</code> 操纵符的类型：只带提取方向，逻辑在 <code><a class="el" href="structIOv2_1_1io__traits.html" title="把 TChar 流的读写逻辑接到类型 T 上的扩展点。主模板故意不定义；见本文件头部。">io_traits</a>&lt;TChar, <a class="el" href="structIOv2_1_1get__money__t.html" title="get_money 操纵符的类型：只带提取方向，逻辑在 io_traits&lt;TChar, get_money_t&lt;TMoney&gt;&gt;::sread 里，且是**迭代器形式**——加锁与哨兵 由通用的格式化...">get_money_t</a>&lt;TMoney&gt;&gt;::sread</code> 里，且是**迭代器形式**——加锁与哨兵 由通用的格式化提取运算符负责。  <a href="structIOv2_1_1get__money__t.html#details">更多...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1get__money__fn.html">IOv2::get_money_fn</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">构造按 locale 的货币格式解析并写入 <code>mon</code> 的操纵符。  <a href="structIOv2_1_1get__money__fn.html#details">更多...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1io__traits_3_01TChar_00_01get__money__t_3_01TMoney_01_4_01_4.html">IOv2::io_traits&lt; TChar, get_money_t&lt; TMoney &gt; &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight"><code>get_money</code> 的扩展点特化：只提供 <code>sread</code>，故只能提取——<code>os &lt;&lt; <a class="el" href="namespaceIOv2.html#a5daa554d89e541dc2a33c3ece4c02535">get_money(x)</a></code> 不满足 插入运算符的约束、没有可行重载，编译不过。方向为何这样表达，见 <code><a class="el" href="structIOv2_1_1io__traits.html" title="把 TChar 流的读写逻辑接到类型 T 上的扩展点。主模板故意不定义；见本文件头部。">io_traits</a>&lt;TChar, <a class="el" href="structIOv2_1_1resetiosflags__t.html" title="resetiosflags 操纵符的类型。">resetiosflags_t</a>&gt;</code>。  <a href="structIOv2_1_1io__traits_3_01TChar_00_01get__money__t_3_01TMoney_01_4_01_4.html#details">更多...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1put__time__t.html">IOv2::put_time_t&lt; TChar &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight"><code>put_time</code> 操纵符的类型：只带插入方向，逻辑在 <code><a class="el" href="structIOv2_1_1io__traits.html" title="把 TChar 流的读写逻辑接到类型 T 上的扩展点。主模板故意不定义；见本文件头部。">io_traits</a>&lt;TChar, <a class="el" href="structIOv2_1_1put__time__t.html" title="put_time 操纵符的类型：只带插入方向，逻辑在 io_traits&lt;TChar, put_time_t&lt;TChar&gt;&gt;::swrite 里，且是**迭代器形式**——加锁与哨兵由 通用的格式化插入...">put_time_t</a>&lt;TChar&gt;&gt;::swrite</code> 里，且是**迭代器形式**——加锁与哨兵由 通用的格式化插入运算符负责。  <a href="structIOv2_1_1put__time__t.html#details">更多...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1io__traits_3_01TChar_00_01put__time__t_3_01TChar_01_4_01_4.html">IOv2::io_traits&lt; TChar, put_time_t&lt; TChar &gt; &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight"><code>put_time</code> 的扩展点特化：只提供 <code>swrite</code>，故只能插入——<code>is &gt;&gt; put_time(...)</code> 不满足 提取运算符的约束、没有可行重载，编译不过。方向为何这样表达，见 <code><a class="el" href="structIOv2_1_1io__traits.html" title="把 TChar 流的读写逻辑接到类型 T 上的扩展点。主模板故意不定义；见本文件头部。">io_traits</a>&lt;TChar, <a class="el" href="structIOv2_1_1resetiosflags__t.html" title="resetiosflags 操纵符的类型。">resetiosflags_t</a>&gt;</code>。  <a href="structIOv2_1_1io__traits_3_01TChar_00_01put__time__t_3_01TChar_01_4_01_4.html#details">更多...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1get__time__t.html">IOv2::get_time_t&lt; TChar &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight"><code>get_time</code> 操纵符的类型：只带提取方向，逻辑在 <code><a class="el" href="structIOv2_1_1io__traits.html" title="把 TChar 流的读写逻辑接到类型 T 上的扩展点。主模板故意不定义；见本文件头部。">io_traits</a>&lt;TChar, <a class="el" href="structIOv2_1_1get__time__t.html" title="get_time 操纵符的类型：只带提取方向，逻辑在 io_traits&lt;TChar, get_time_t&lt;TChar&gt;&gt;::sread 里，且是**迭代器形式**——加锁与哨兵由 通用的格式化提取运...">get_time_t</a>&lt;TChar&gt;&gt;::sread</code> 里，且是**迭代器形式**——加锁与哨兵由 通用的格式化提取运算符负责。  <a href="structIOv2_1_1get__time__t.html#details">更多...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1io__traits_3_01TChar_00_01get__time__t_3_01TChar_01_4_01_4.html">IOv2::io_traits&lt; TChar, get_time_t&lt; TChar &gt; &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight"><code>get_time</code> 的扩展点特化：只提供 <code>sread</code>，故只能提取——<code>os &lt;&lt; get_time(...)</code> 不满足 插入运算符的约束、没有可行重载，编译不过。方向为何这样表达，见 <code><a class="el" href="structIOv2_1_1io__traits.html" title="把 TChar 流的读写逻辑接到类型 T 上的扩展点。主模板故意不定义；见本文件头部。">io_traits</a>&lt;TChar, <a class="el" href="structIOv2_1_1resetiosflags__t.html" title="resetiosflags 操纵符的类型。">resetiosflags_t</a>&gt;</code>。  <a href="structIOv2_1_1io__traits_3_01TChar_00_01get__time__t_3_01TChar_01_4_01_4.html#details">更多...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="namespaces" name="namespaces"></a>
+命名空间</h2></td></tr>
+<tr class="memitem:namespaceIOv2" id="r_namespaceIOv2"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html">IOv2</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
+函数</h2></td></tr>
+<tr class="memitem:a61a606925c0ce4b1d34da87049f3e97a" id="r_a61a606925c0ce4b1d34da87049f3e97a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structIOv2_1_1resetiosflags__t.html">resetiosflags_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a61a606925c0ce4b1d34da87049f3e97a">IOv2::resetiosflags</a> (<a class="el" href="namespaceIOv2_1_1ios__defs.html#ab481a81684565d362fa248a573b6fc4c">ios_defs::fmtflags</a> mask)</td></tr>
+<tr class="memdesc:a61a606925c0ce4b1d34da87049f3e97a"><td class="mdescLeft">&#160;</td><td class="mdescRight">构造清除 <code>mask</code> 中各标志的操纵符（其余标志不受影响）。    <br /></td></tr>
+<tr class="separator:a61a606925c0ce4b1d34da87049f3e97a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a12359c2e23bf073039289d583c8de3c4" id="r_a12359c2e23bf073039289d583c8de3c4"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structIOv2_1_1setiosflags__t.html">setiosflags_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a12359c2e23bf073039289d583c8de3c4">IOv2::setiosflags</a> (<a class="el" href="namespaceIOv2_1_1ios__defs.html#ab481a81684565d362fa248a573b6fc4c">ios_defs::fmtflags</a> mask)</td></tr>
+<tr class="memdesc:a12359c2e23bf073039289d583c8de3c4"><td class="mdescLeft">&#160;</td><td class="mdescRight">构造置位 <code>mask</code> 中各标志的操纵符（按位或，其余标志不受影响）。    <br /></td></tr>
+<tr class="separator:a12359c2e23bf073039289d583c8de3c4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1c1e08a956ef5537e1d56919c570f07e" id="r_a1c1e08a956ef5537e1d56919c570f07e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structIOv2_1_1setbase__t.html">setbase_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a1c1e08a956ef5537e1d56919c570f07e">IOv2::setbase</a> (std::ptrdiff_t <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">base</a>)</td></tr>
+<tr class="memdesc:a1c1e08a956ef5537e1d56919c570f07e"><td class="mdescLeft">&#160;</td><td class="mdescRight">构造设置整数进制的操纵符。  <br /></td></tr>
+<tr class="separator:a1c1e08a956ef5537e1d56919c570f07e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae5345dc5ab6f852ab3f472e0407d42ec" id="r_ae5345dc5ab6f852ab3f472e0407d42ec"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TFill</a> &gt; </td></tr>
+<tr class="memitem:ae5345dc5ab6f852ab3f472e0407d42ec"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="structIOv2_1_1setfill__t.html">setfill_t</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TFill</a> &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#ae5345dc5ab6f852ab3f472e0407d42ec">IOv2::setfill</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TFill</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">c</a>)</td></tr>
+<tr class="memdesc:ae5345dc5ab6f852ab3f472e0407d42ec"><td class="mdescLeft">&#160;</td><td class="mdescRight">构造设置填充字符的操纵符；填充字符用于字段宽度大于内容时补齐。  <br /></td></tr>
+<tr class="separator:ae5345dc5ab6f852ab3f472e0407d42ec"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa7959a7eb2a57d40bbc3609cc918b1cf" id="r_aa7959a7eb2a57d40bbc3609cc918b1cf"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structIOv2_1_1setprecision__t.html">setprecision_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#aa7959a7eb2a57d40bbc3609cc918b1cf">IOv2::setprecision</a> (std::ptrdiff_t <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">n</a>)</td></tr>
+<tr class="memdesc:aa7959a7eb2a57d40bbc3609cc918b1cf"><td class="mdescLeft">&#160;</td><td class="mdescRight">构造设置浮点精度的操纵符。  <br /></td></tr>
+<tr class="separator:aa7959a7eb2a57d40bbc3609cc918b1cf"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aedf6b0c58c8061128becb490433aecf3" id="r_aedf6b0c58c8061128becb490433aecf3"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structIOv2_1_1setw__t.html">setw_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#aedf6b0c58c8061128becb490433aecf3">IOv2::setw</a> (std::ptrdiff_t <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">n</a>)</td></tr>
+<tr class="memdesc:aedf6b0c58c8061128becb490433aecf3"><td class="mdescLeft">&#160;</td><td class="mdescRight">构造设置字段宽度的操纵符。  <br /></td></tr>
+<tr class="separator:aedf6b0c58c8061128becb490433aecf3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a39901a0e6ed0be1a369fbf9a1ad40855" id="r_a39901a0e6ed0be1a369fbf9a1ad40855"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt; </td></tr>
+<tr class="memitem:a39901a0e6ed0be1a369fbf9a1ad40855"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="structIOv2_1_1put__time__t.html">put_time_t</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a39901a0e6ed0be1a369fbf9a1ad40855">IOv2::put_time</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::tm *tmb, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> *fmt)</td></tr>
+<tr class="memdesc:a39901a0e6ed0be1a369fbf9a1ad40855"><td class="mdescLeft">&#160;</td><td class="mdescRight">构造按 <code>fmt</code> 写出 <code>*tmb</code> 的操纵符。  <br /></td></tr>
+<tr class="separator:a39901a0e6ed0be1a369fbf9a1ad40855"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af07ff1562a8d2f2453ffc25c02316ef7" id="r_af07ff1562a8d2f2453ffc25c02316ef7"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt; </td></tr>
+<tr class="memitem:af07ff1562a8d2f2453ffc25c02316ef7"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="structIOv2_1_1get__time__t.html">get_time_t</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#af07ff1562a8d2f2453ffc25c02316ef7">IOv2::get_time</a> (std::tm *tmb, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> *fmt)</td></tr>
+<tr class="memdesc:af07ff1562a8d2f2453ffc25c02316ef7"><td class="mdescLeft">&#160;</td><td class="mdescRight">构造按 <code>fmt</code> 解析时间并写入 <code>*tmb</code> 的操纵符。  <br /></td></tr>
+<tr class="separator:af07ff1562a8d2f2453ffc25c02316ef7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="var-members" name="var-members"></a>
+变量</h2></td></tr>
+<tr class="memitem:a98dfc906f2d5da328ea9bb28ef3a96ef" id="r_a98dfc906f2d5da328ea9bb28ef3a96ef"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">constexpr</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">struct</a> <a class="el" href="structIOv2_1_1put__money__fn.html">IOv2::put_money_fn</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a98dfc906f2d5da328ea9bb28ef3a96ef">IOv2::put_money</a></td></tr>
+<tr class="separator:a98dfc906f2d5da328ea9bb28ef3a96ef"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5daa554d89e541dc2a33c3ece4c02535" id="r_a5daa554d89e541dc2a33c3ece4c02535"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">constexpr</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">struct</a> <a class="el" href="structIOv2_1_1get__money__fn.html">IOv2::get_money_fn</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a5daa554d89e541dc2a33c3ece4c02535">IOv2::get_money</a></td></tr>
+<tr class="separator:a5daa554d89e541dc2a33c3ece4c02535"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table>
+<a name="details" id="details"></a><h2 class="groupheader">详细描述</h2>
+<div class="textblock"><p>定义了带参数的流操纵符：<code>resetiosflags</code> / <code>setiosflags</code> / <code>setbase</code> / <code>setfill</code> / <code>setprecision</code> / <code>setw</code>（调整格式化状态），以及 <code>put_money</code> / <code>get_money</code> / <code>put_time</code> / <code>get_time</code>（按 locale 格式化或解析货币与时间）。</p>
+<p>每个操纵符由一个工厂和一个 <code>xxx_t</code> 载体类型构成，后者是**实现细节**、不应被直接构造； 工厂是普通函数（如 <code>setw</code>）或函数模板（如 <code>setfill</code>），<code>put_money</code> / <code>get_money</code> 例外—— 它们是**函数对象**，为的是关掉 ADL，理由见 <code>put_money</code>； 全都经由 <code>io_traits</code> 特化生效。载体只携带参数、不带 <code>operator()</code>：调整格式状态的那几个把 逻辑写在**流形式**的 <code>swrite</code> / <code>sread</code> 里，<code>os &lt;&lt; m</code> / <code>is &gt;&gt; m</code> 是仅有的入口（标准里 <code>setw(5)(os)</code> 那样的直接调用形式不存在）；货币与时间那几个提供**迭代器形式**，由通用的格式化 插入/提取运算符负责加锁与哨兵。方向由**哪个成员存在**表达：只有 <code>swrite</code> 即只能插入， 只有 <code>sread</code> 即只能提取，用反了那一侧的运算符不满足约束、没有可行重载，因此编译不过。</p>
+<dl class="section warning"><dt>警告</dt><dd><b>操纵符与随后的 I/O 不构成同一个临界区。</b> <code>os &lt;&lt; setw(5) &lt;&lt; value</code> 里， <code>setw(5)</code> 走流形式，插入运算符**不为它加锁**——它只是对 <code>width</code> 做一次原子写； <code>&lt;&lt; value</code> 走迭代器形式，在自己的临界区里读取 <code>width</code> 并在用完后清零。两者之间 没有任何互斥，另一个线程的 <code>setw</code> 可以落在中间，双方互相吃掉对方的宽度。这与 标准库的行为一致，但本库在其余地方对"单次操作原子"的保证更强，容易让人误以为 这里也是。需要整体原子时，**访问同一条流的每个线程**都要用 <code><a class="el" href="structIOv2_1_1sync.html" title="对流的 I/O 互斥量进行 RAII 加锁的辅助类。">IOv2::sync</a></code> 把自己的 操纵符与随后的 I/O 圈进临界区——**只有一侧加 <code>sync</code> 是不够的**。这与本库其余操作 不同：插入、提取、<code>flush</code> / <code>endl</code> / <code>ws</code>、<code>seek</code>、<code>locale(loc)</code> 等都会去取 <code>io_mutex()</code>，所以单侧 <code>sync</code> 就足以把它们挡在外面；而这几个操纵符的流形式（连同 <code><a class="el" href="io__base_8h.html">io_base.h</a></code> 里 <code>hex</code> / <code>left</code> / <code>boolalpha</code> 那类函数指针操纵符）不取这把锁， 因此也不受别人的 <code>sync</code> 约束，会径直插进对方的临界区中间。注意这不是数据竞争 （改的都是原子成员），TSan 不会报，只能靠约定。 </dd>
+<dd>
+<b>往流形式的 <code>swrite</code> / <code>sread</code> 里放读-改-写逻辑，必须自己取 <code>io_mutex()</code>。</b> 本文件这几个操纵符不取锁，只因为它们各自都是对 <code>ios_base</code> 上某个原子成员的单次 读-改-写（<code>exchange</code> / <code>fetch_or</code> / CAS 循环之一）。像"先读 `flags()`
+         再按结果 `setf()`"这样跨两次调用的逻辑不在此列，写在流形式里就是竞态；范例见 <code>endl</code> 与 <code>ws</code>，两者都自己取锁并自己 <code>catch</code>（理由见 <code><a class="el" href="traits__base_8h.html">traits/traits_base.h</a></code>）。 </dd>
+<dd>
+<b>工厂函数返回的是临时对象，只应作为同一个完整表达式的一部分立即使用。</b> <code>put_money_t</code> / <code>get_money_t</code> 持有对实参的引用，<code>put_time_t</code> / <code>get_time_t</code> 持有 裸指针。写成 <code>os &lt;&lt; put_money(x)</code> 是安全的——临时量活到完整表达式结束；但 <code>auto m = put_money(compute()); os &lt;&lt; m;</code> 会悬垂，因为 <code>compute()</code> 的临时结果 在第一条语句结束时就已销毁。此契约与 <code>std::put_money</code> 等同。 </dd></dl>
+<dl class="section note"><dt>注解</dt><dd><b>本头文件只带来操纵符本身，不带来"往流里写一个数或一个字符串"的能力。</b> 它不包含 <code><a class="el" href="arithmetic_8h.html">IOv2/io/traits/arithmetic.h</a></code> 与 <code><a class="el" href="char__and__str_8h.html">IOv2/io/traits/char_and_str.h</a></code>，因此只 <code>#include &lt;<a class="el" href="io__manip_8h.html">IOv2/io/io_manip.h</a>&gt;</code> 时 <code>os &lt;&lt; 42</code>、<code>os &lt;&lt; "abc"</code> 都编译不过，而 <code>os &lt;&lt; setw(8)</code> 可以。 这是按值类型选配的一贯做法（见 <code><a class="el" href="traits__base_8h.html">IOv2/io/traits/traits_base.h</a></code>）：要写哪类值就包哪个 traits 头，本文件不替你决定。库内的测试文件全都显式补上这两个头。 </dd></dl>
+</div></div><!-- contents -->
+</div><!-- doc-content -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><a class="el" href="dir_d44c64559bbebec7f509842c48db8b23.html">include</a></li><li class="navelem"><a class="el" href="dir_1157f564aec2b3a7d6bde4eba89ab805.html">IOv2</a></li><li class="navelem"><a class="el" href="dir_e6325c10be556c0ae106bae233ca0d0f.html">io</a></li><li class="navelem"><a class="el" href="io__manip_8h.html">io_manip.h</a></li>
+    <li class="footer">制作者 <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8 </li>
+  </ul>
+</div>
+</body>
+</html>

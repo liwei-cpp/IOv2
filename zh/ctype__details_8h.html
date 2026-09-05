@@ -1,0 +1,161 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=11"/>
+<meta name="generator" content="Doxygen 1.9.8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>IOv2: include/IOv2/facet/ctype_details.h 文件参考</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="resize.js"></script>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr id="projectrow">
+  <td id="projectalign">
+   <div id="projectname">IOv2
+   </div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 制作者 Doxygen 1.9.8 -->
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+/* @license-end */
+</script>
+<script type="text/javascript" src="menudata.js"></script>
+<script type="text/javascript" src="menu.js"></script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(function() {
+  initMenu('',true,false,'search.php','搜索');
+  $(document).ready(function() { init_search(); });
+});
+/* @license-end */
+</script>
+<div id="main-nav"></div>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(document).ready(function(){initNavTree('ctype__details_8h.html',''); initResizable(); });
+/* @license-end */
+</script>
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">载入中...</div>
+<div class="SRStatus" id="Searching">搜索中...</div>
+<div class="SRStatus" id="NoMatches">未找到</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="header">
+  <div class="summary">
+<a href="#nested-classes">类</a> &#124;
+<a href="#namespaces">命名空间</a>  </div>
+  <div class="headertitle"><div class="title">ctype_details.h 文件参考</div></div>
+</div><!--header-->
+<div class="contents">
+<div class="textblock"><code>#include &lt;<a class="el" href="clocale__wrapper_8h_source.html">IOv2/common/clocale_wrapper.h</a>&gt;</code><br />
+<code>#include &lt;<a class="el" href="defs_8h_source.html">IOv2/common/defs.h</a>&gt;</code><br />
+<code>#include &lt;<a class="el" href="metafunctions_8h_source.html">IOv2/common/metafunctions.h</a>&gt;</code><br />
+<code>#include &lt;<a class="el" href="facet__common_8h_source.html">IOv2/facet/facet_common.h</a>&gt;</code><br />
+<code>#include &lt;array&gt;</code><br />
+<code>#include &lt;climits&gt;</code><br />
+<code>#include &lt;cstddef&gt;</code><br />
+<code>#include &lt;cstdio&gt;</code><br />
+<code>#include &lt;cwchar&gt;</code><br />
+<code>#include &lt;cwctype&gt;</code><br />
+<code>#include &lt;iterator&gt;</code><br />
+<code>#include &lt;limits&gt;</code><br />
+<code>#include &lt;optional&gt;</code><br />
+<code>#include &lt;string&gt;</code><br />
+<code>#include &lt;type_traits&gt;</code><br />
+</div><div class="textblock"><div class="dynheader">
+ctype_details.h 的引用(Include)关系图:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="ctype__details_8h__incl.svg" width="1648" height="286"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+</div><div class="textblock"><div class="dynheader">
+此图展示该文件直接或间接的被哪些文件引用了:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="ctype__details_8h__dep__incl.svg" width="1640" height="828"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+</div>
+<p><a href="ctype__details_8h_source.html">浏览源代码.</a></p>
+<table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
+类</h2></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1base__ft_3_01ctype_01_4.html">IOv2::base_ft&lt; ctype &gt;</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ctype__conf_3_01char_01_4.html">IOv2::ctype_conf&lt; char &gt;</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ctype__conf_3_01CharT_01_4.html">IOv2::ctype_conf&lt; CharT &gt;</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ctype__conf_3_01char8__t_01_4.html">IOv2::ctype_conf&lt; char8_t &gt;</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="namespaces" name="namespaces"></a>
+命名空间</h2></td></tr>
+<tr class="memitem:namespaceIOv2" id="r_namespaceIOv2"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html">IOv2</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table>
+<a name="details" id="details"></a><h2 class="groupheader">详细描述</h2>
+<div class="textblock"><p><code>ctype</code> facet 的内部实现细节。</p>
+<p>本文件提供以下核心组件：</p><ul>
+<li><code>base_ft&lt;ctype&gt;</code>：<code>ctype</code> facet 专用的基类特化，定义共享的 <code>mask</code> 类型及各字符分类掩码常量。</li>
+<li><code>ctype_conf&lt;char&gt;</code>：<code>char</code> 特化，构造时通过 POSIX <code>*_l</code> 函数为全部 256 个字节值预建 查找表，实现 O(1) 的字符分类、大小写转换与宽窄字符映射。</li>
+<li><code>ctype_conf&lt;CharT&gt;</code>（<code>wchar_t</code> / <code>char32_t</code>）：宽字符特化，构造时初始化 <code>wctype_t</code> 句柄，每次分类调用时通过 <code>iswctype_l</code>/<code>towupper_l</code>/<code>towlower_l</code> 查询 locale； <code>widen</code> 通过预建的 256 项查找表实现 O(1) 映射。</li>
+<li><code>ctype_conf&lt;char8_t&gt;</code>：UTF-8 代码单元特化，利用 UTF-8 编码的结构保证将 [0x00, 0x7F] 区间委托给内部 <code>ctype_conf&lt;char&gt;</code> 处理，对 [0x80, 0xFF] 区间 采用保守策略（不分类、不转换大小写、不映射到 <code>char</code>）。</li>
+</ul>
+<dl class="section user"><dt>构建要求</dt><dd>本文件依赖 POSIX.1-2008（需定义 <code>_POSIX_C_SOURCE &gt;= 200809L</code> 或 <code>_GNU_SOURCE</code>）。 所用的 <code>*_l</code> 字符分类与转换函数（<code>isupper_l</code>、<code>toupper_l</code>、<code>wctype_l</code>、<code>iswctype_l</code>、 <code>towupper_l</code> 等）是 POSIX 扩展，非标准 C++。构建系统须在包含任何系统头文件前定义 相应的特性测试宏。 </dd></dl>
+</div></div><!-- contents -->
+</div><!-- doc-content -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><a class="el" href="dir_d44c64559bbebec7f509842c48db8b23.html">include</a></li><li class="navelem"><a class="el" href="dir_1157f564aec2b3a7d6bde4eba89ab805.html">IOv2</a></li><li class="navelem"><a class="el" href="dir_86635f995fd9ec725e3aec943495dac7.html">facet</a></li><li class="navelem"><a class="el" href="ctype__details_8h.html">ctype_details.h</a></li>
+    <li class="footer">制作者 <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8 </li>
+  </ul>
+</div>
+</body>
+</html>

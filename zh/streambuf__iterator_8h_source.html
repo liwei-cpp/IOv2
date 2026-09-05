@@ -1,0 +1,322 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=11"/>
+<meta name="generator" content="Doxygen 1.9.8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>IOv2: include/IOv2/io/streambuf_iterator.h 源文件</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="resize.js"></script>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr id="projectrow">
+  <td id="projectalign">
+   <div id="projectname">IOv2
+   </div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 制作者 Doxygen 1.9.8 -->
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+/* @license-end */
+</script>
+<script type="text/javascript" src="menudata.js"></script>
+<script type="text/javascript" src="menu.js"></script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(function() {
+  initMenu('',true,false,'search.php','搜索');
+  $(document).ready(function() { init_search(); });
+});
+/* @license-end */
+</script>
+<div id="main-nav"></div>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(document).ready(function() { init_codefold(0); });
+/* @license-end */
+</script>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(document).ready(function(){initNavTree('streambuf__iterator_8h_source.html',''); initResizable(); });
+/* @license-end */
+</script>
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">载入中...</div>
+<div class="SRStatus" id="Searching">搜索中...</div>
+<div class="SRStatus" id="NoMatches">未找到</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="header">
+  <div class="headertitle"><div class="title">streambuf_iterator.h</div></div>
+</div><!--header-->
+<div class="contents">
+<a href="streambuf__iterator_8h.html">浏览该文件的文档.</a><div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span><span class="comment">// SPDX-FileCopyrightText: 2026 liwei &lt;liwei.cpp@gmail.com&gt;</span></div>
+<div class="line"><a id="l00002" name="l00002"></a><span class="lineno">    2</span><span class="comment">// SPDX-License-Identifier: MIT</span></div>
+<div class="line"><a id="l00003" name="l00003"></a><span class="lineno">    3</span> </div>
+<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span><span class="preprocessor">#pragma once</span></div>
+<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span><span class="preprocessor">#include &lt;<a class="code" href="defs_8h.html">IOv2/common/defs.h</a>&gt;</span></div>
+<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span><span class="preprocessor">#include &lt;<a class="code" href="streambuf__defs_8h.html">IOv2/common/streambuf_defs.h</a>&gt;</span></div>
+<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span><span class="preprocessor">#include &lt;<a class="code" href="streambuf_8h.html">IOv2/io/streambuf.h</a>&gt;</span></div>
+<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span> </div>
+<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span><span class="preprocessor">#include &lt;cstddef&gt;</span></div>
+<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span><span class="preprocessor">#include &lt;iterator&gt;</span></div>
+<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span><span class="preprocessor">#include &lt;optional&gt;</span></div>
+<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span> </div>
+<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span><span class="keyword">namespace </span><a class="code hl_namespace" href="namespaceIOv2.html">IOv2</a></div>
+<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span>{</div>
+<div class="line"><a id="l00080" name="l00080"></a><span class="lineno">   80</span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> TStreamBuf&gt;</div>
+<div class="line"><a id="l00081" name="l00081"></a><span class="lineno">   81</span>    <span class="keyword">requires</span> (<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">is_streambuf&lt;TStreamBuf&gt;</a> || <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">is_istreambuf&lt;TStreamBuf&gt;</a>)</div>
+<div class="foldopen" id="foldopen00082" data-start="{" data-end="};">
+<div class="line"><a id="l00082" name="l00082"></a><span class="lineno"><a class="line" href="classIOv2_1_1istreambuf__iterator.html">   82</a></span><span class="keyword">class</span> <a class="code hl_class" href="classIOv2_1_1istreambuf__iterator.html">istreambuf_iterator</a></div>
+<div class="line"><a id="l00083" name="l00083"></a><span class="lineno">   83</span>{</div>
+<div class="line"><a id="l00084" name="l00084"></a><span class="lineno">   84</span><span class="keyword">public</span>:</div>
+<div class="line"><a id="l00085" name="l00085"></a><span class="lineno"><a class="line" href="classIOv2_1_1istreambuf__iterator.html#a621d6baf22049b4ca79a8da61da03265">   85</a></span>    <span class="keyword">using </span><a class="code hl_typedef" href="classIOv2_1_1istreambuf__iterator.html#a621d6baf22049b4ca79a8da61da03265">value_type</a> = <span class="keyword">typename</span> TStreamBuf::char_type;      </div>
+<div class="line"><a id="l00086" name="l00086"></a><span class="lineno"><a class="line" href="classIOv2_1_1istreambuf__iterator.html#aaf8bbccbad623b9334e1a01f800cba53">   86</a></span>    <span class="keyword">using </span><a class="code hl_typedef" href="classIOv2_1_1istreambuf__iterator.html#aaf8bbccbad623b9334e1a01f800cba53">difference_type</a> = std::ptrdiff_t;                 </div>
+<div class="line"><a id="l00087" name="l00087"></a><span class="lineno">   87</span> </div>
+<div class="foldopen" id="foldopen00102" data-start="{" data-end="};">
+<div class="line"><a id="l00102" name="l00102"></a><span class="lineno"><a class="line" href="structIOv2_1_1istreambuf__iterator_1_1proxy.html">  102</a></span>    <span class="keyword">struct </span><a class="code hl_struct" href="structIOv2_1_1istreambuf__iterator_1_1proxy.html">proxy</a></div>
+<div class="line"><a id="l00103" name="l00103"></a><span class="lineno">  103</span>    {</div>
+<div class="line"><a id="l00104" name="l00104"></a><span class="lineno"><a class="line" href="structIOv2_1_1istreambuf__iterator_1_1proxy.html#a28d55ec7f0e03ed62989ae19305026fa">  104</a></span>        <a class="code hl_typedef" href="classIOv2_1_1istreambuf__iterator.html#a621d6baf22049b4ca79a8da61da03265">value_type</a> <a class="code hl_variable" href="structIOv2_1_1istreambuf__iterator_1_1proxy.html#a28d55ec7f0e03ed62989ae19305026fa">m_value</a>;     </div>
+<div class="line"><a id="l00105" name="l00105"></a><span class="lineno"><a class="line" href="structIOv2_1_1istreambuf__iterator_1_1proxy.html#a1c17b1010545a8c08cbeaa8451e5105c">  105</a></span>        <span class="keyword">const</span> <a class="code hl_typedef" href="classIOv2_1_1istreambuf__iterator.html#a621d6baf22049b4ca79a8da61da03265">value_type</a>* <a class="code hl_function" href="structIOv2_1_1istreambuf__iterator_1_1proxy.html#a1c17b1010545a8c08cbeaa8451e5105c">operator-&gt;</a>()<span class="keyword"> const </span>{ <span class="keywordflow">return</span> &amp;m_value; }</div>
+<div class="line"><a id="l00106" name="l00106"></a><span class="lineno"><a class="line" href="structIOv2_1_1istreambuf__iterator_1_1proxy.html#ae02b03529d94499cdd0dceeac03cd51f">  106</a></span>        <a class="code hl_typedef" href="classIOv2_1_1istreambuf__iterator.html#a621d6baf22049b4ca79a8da61da03265">value_type</a> <a class="code hl_function" href="structIOv2_1_1istreambuf__iterator_1_1proxy.html#ae02b03529d94499cdd0dceeac03cd51f">operator*</a>()<span class="keyword"> const </span>{ <span class="keywordflow">return</span> m_value; }</div>
+<div class="line"><a id="l00107" name="l00107"></a><span class="lineno">  107</span>    };</div>
+</div>
+<div class="line"><a id="l00108" name="l00108"></a><span class="lineno">  108</span> </div>
+<div class="line"><a id="l00109" name="l00109"></a><span class="lineno">  109</span><span class="keyword">public</span>:</div>
+<div class="foldopen" id="foldopen00119" data-start="{" data-end="}">
+<div class="line"><a id="l00119" name="l00119"></a><span class="lineno"><a class="line" href="classIOv2_1_1istreambuf__iterator.html#ac4fd1658bb250fe4e0f29b223ba76909">  119</a></span>    <span class="keyword">constexpr</span> <a class="code hl_function" href="classIOv2_1_1istreambuf__iterator.html#ac4fd1658bb250fe4e0f29b223ba76909">istreambuf_iterator</a>()</div>
+<div class="line"><a id="l00120" name="l00120"></a><span class="lineno">  120</span>        : m_streambuf(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">nullptr</a>) {}</div>
+</div>
+<div class="line"><a id="l00121" name="l00121"></a><span class="lineno">  121</span> </div>
+<div class="foldopen" id="foldopen00136" data-start="{" data-end="}">
+<div class="line"><a id="l00136" name="l00136"></a><span class="lineno"><a class="line" href="classIOv2_1_1istreambuf__iterator.html#a8a6c1b0bf4bafdc0706dd6fa7182b6b5">  136</a></span>    <span class="keyword">constexpr</span> <a class="code hl_function" href="classIOv2_1_1istreambuf__iterator.html#a8a6c1b0bf4bafdc0706dd6fa7182b6b5">istreambuf_iterator</a>(std::default_sentinel_t) <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">noexcept</a></div>
+<div class="line"><a id="l00137" name="l00137"></a><span class="lineno">  137</span>      : <a class="code hl_class" href="classIOv2_1_1istreambuf__iterator.html">istreambuf_iterator</a>() {}</div>
+</div>
+<div class="line"><a id="l00138" name="l00138"></a><span class="lineno">  138</span> </div>
+<div class="foldopen" id="foldopen00170" data-start="{" data-end="}">
+<div class="line"><a id="l00170" name="l00170"></a><span class="lineno"><a class="line" href="classIOv2_1_1istreambuf__iterator.html#aa8ad4cde6b76a66ca49cd5b4f0050fe6">  170</a></span>    <a class="code hl_function" href="classIOv2_1_1istreambuf__iterator.html#aa8ad4cde6b76a66ca49cd5b4f0050fe6">istreambuf_iterator</a>(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TStreamBuf</a>&amp; <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">p_streambuf</a>, <span class="keywordtype">bool</span>* <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">saw_eof</a> = <span class="keyword">nullptr</span>)</div>
+<div class="line"><a id="l00171" name="l00171"></a><span class="lineno">  171</span>        : m_streambuf(&amp;<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">p_streambuf</a>), m_saw_eof(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">saw_eof</a>) {}</div>
+</div>
+<div class="line"><a id="l00172" name="l00172"></a><span class="lineno">  172</span> </div>
+<div class="line"><a id="l00173" name="l00173"></a><span class="lineno">  173</span><span class="keyword">public</span>:</div>
+<div class="foldopen" id="foldopen00194" data-start="{" data-end="}">
+<div class="line"><a id="l00194" name="l00194"></a><span class="lineno"><a class="line" href="classIOv2_1_1istreambuf__iterator.html#a024dc02793bce8bcf1ed18235bff760c">  194</a></span>    <a class="code hl_typedef" href="classIOv2_1_1istreambuf__iterator.html#a621d6baf22049b4ca79a8da61da03265">value_type</a> <a class="code hl_function" href="classIOv2_1_1istreambuf__iterator.html#a024dc02793bce8bcf1ed18235bff760c">operator*</a>()<span class="keyword"> const</span></div>
+<div class="line"><a id="l00195" name="l00195"></a><span class="lineno">  195</span><span class="keyword">    </span>{</div>
+<div class="line"><a id="l00196" name="l00196"></a><span class="lineno">  196</span>        <span class="keyword">auto</span> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">res</a> = m_c;</div>
+<div class="line"><a id="l00197" name="l00197"></a><span class="lineno">  197</span>        <span class="keywordflow">if</span> (m_streambuf &amp;&amp; (!<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">res</a>.has_value()))</div>
+<div class="line"><a id="l00198" name="l00198"></a><span class="lineno">  198</span>        {</div>
+<div class="line"><a id="l00199" name="l00199"></a><span class="lineno">  199</span>            <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">res</a> = m_streambuf-&gt;sgetc();</div>
+<div class="line"><a id="l00200" name="l00200"></a><span class="lineno">  200</span>            <span class="keywordflow">if</span> (!<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">res</a>.has_value())</div>
+<div class="line"><a id="l00201" name="l00201"></a><span class="lineno">  201</span>            {</div>
+<div class="line"><a id="l00202" name="l00202"></a><span class="lineno">  202</span>                m_streambuf = <span class="keyword">nullptr</span>;</div>
+<div class="line"><a id="l00203" name="l00203"></a><span class="lineno">  203</span>                <span class="keywordflow">if</span> (m_saw_eof) *m_saw_eof = <span class="keyword">true</span>;</div>
+<div class="line"><a id="l00204" name="l00204"></a><span class="lineno">  204</span>            }</div>
+<div class="line"><a id="l00205" name="l00205"></a><span class="lineno">  205</span>        }</div>
+<div class="line"><a id="l00206" name="l00206"></a><span class="lineno">  206</span>        <span class="keywordflow">if</span> (!<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">res</a>.has_value()) <span class="keywordflow">throw</span> <a class="code hl_struct" href="structIOv2_1_1eof__error.html">eof_error</a>{};</div>
+<div class="line"><a id="l00207" name="l00207"></a><span class="lineno">  207</span>        <span class="keywordflow">return</span> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">res</a>.value();</div>
+<div class="line"><a id="l00208" name="l00208"></a><span class="lineno">  208</span>    }</div>
+</div>
+<div class="line"><a id="l00209" name="l00209"></a><span class="lineno">  209</span> </div>
+<div class="foldopen" id="foldopen00223" data-start="{" data-end="}">
+<div class="line"><a id="l00223" name="l00223"></a><span class="lineno"><a class="line" href="classIOv2_1_1istreambuf__iterator.html#a44172ae91b3ce8351daebe91db190772">  223</a></span>    <a class="code hl_struct" href="structIOv2_1_1istreambuf__iterator_1_1proxy.html">proxy</a> <a class="code hl_function" href="classIOv2_1_1istreambuf__iterator.html#a44172ae91b3ce8351daebe91db190772">operator-&gt;</a>()<span class="keyword"> const</span></div>
+<div class="line"><a id="l00224" name="l00224"></a><span class="lineno">  224</span><span class="keyword">    </span>{</div>
+<div class="line"><a id="l00225" name="l00225"></a><span class="lineno">  225</span>        <span class="keywordflow">return</span> <a class="code hl_struct" href="structIOv2_1_1istreambuf__iterator_1_1proxy.html">proxy</a>{ operator*() };</div>
+<div class="line"><a id="l00226" name="l00226"></a><span class="lineno">  226</span>    }</div>
+</div>
+<div class="line"><a id="l00227" name="l00227"></a><span class="lineno">  227</span> </div>
+<div class="foldopen" id="foldopen00244" data-start="{" data-end="}">
+<div class="line"><a id="l00244" name="l00244"></a><span class="lineno"><a class="line" href="classIOv2_1_1istreambuf__iterator.html#a32f6aeb2759cd29e8fd4fdfbdb3596aa">  244</a></span>    <a class="code hl_class" href="classIOv2_1_1istreambuf__iterator.html">istreambuf_iterator</a>&amp; <a class="code hl_function" href="classIOv2_1_1istreambuf__iterator.html#a32f6aeb2759cd29e8fd4fdfbdb3596aa">operator++</a>()</div>
+<div class="line"><a id="l00245" name="l00245"></a><span class="lineno">  245</span>    {</div>
+<div class="line"><a id="l00246" name="l00246"></a><span class="lineno">  246</span>        <span class="keywordflow">if</span> (m_streambuf &amp;&amp; !m_c.has_value())</div>
+<div class="line"><a id="l00247" name="l00247"></a><span class="lineno">  247</span>            m_streambuf-&gt;sbumpc();</div>
+<div class="line"><a id="l00248" name="l00248"></a><span class="lineno">  248</span>        m_c = std::optional&lt;value_type&gt;{};</div>
+<div class="line"><a id="l00249" name="l00249"></a><span class="lineno">  249</span>        <span class="keywordflow">return</span> *<span class="keyword">this</span>;</div>
+<div class="line"><a id="l00250" name="l00250"></a><span class="lineno">  250</span>    }</div>
+</div>
+<div class="line"><a id="l00251" name="l00251"></a><span class="lineno">  251</span> </div>
+<div class="foldopen" id="foldopen00269" data-start="{" data-end="}">
+<div class="line"><a id="l00269" name="l00269"></a><span class="lineno"><a class="line" href="classIOv2_1_1istreambuf__iterator.html#a8295fb231e1fc6c8fc4c5a4ebfb6ec21">  269</a></span>    <a class="code hl_class" href="classIOv2_1_1istreambuf__iterator.html">istreambuf_iterator</a> <a class="code hl_function" href="classIOv2_1_1istreambuf__iterator.html#a8295fb231e1fc6c8fc4c5a4ebfb6ec21">operator++</a>(<span class="keywordtype">int</span>)</div>
+<div class="line"><a id="l00270" name="l00270"></a><span class="lineno">  270</span>    {</div>
+<div class="line"><a id="l00271" name="l00271"></a><span class="lineno">  271</span>        <a class="code hl_class" href="classIOv2_1_1istreambuf__iterator.html">istreambuf_iterator</a> old = *<span class="keyword">this</span>;</div>
+<div class="line"><a id="l00272" name="l00272"></a><span class="lineno">  272</span>        <span class="keywordflow">if</span> (m_streambuf &amp;&amp; !m_c.has_value())</div>
+<div class="line"><a id="l00273" name="l00273"></a><span class="lineno">  273</span>            old.m_c = m_streambuf-&gt;sbumpc();</div>
+<div class="line"><a id="l00274" name="l00274"></a><span class="lineno">  274</span>        m_c = std::optional&lt;value_type&gt;{};</div>
+<div class="line"><a id="l00275" name="l00275"></a><span class="lineno">  275</span>        <span class="keywordflow">return</span> old;</div>
+<div class="line"><a id="l00276" name="l00276"></a><span class="lineno">  276</span>    }</div>
+</div>
+<div class="line"><a id="l00277" name="l00277"></a><span class="lineno">  277</span> </div>
+<div class="foldopen" id="foldopen00297" data-start="{" data-end="}">
+<div class="line"><a id="l00297" name="l00297"></a><span class="lineno"><a class="line" href="classIOv2_1_1istreambuf__iterator.html#aa5c901f93218a938c88c636ce47c16d3">  297</a></span>    <span class="keywordtype">void</span> <a class="code hl_function" href="classIOv2_1_1istreambuf__iterator.html#aa5c901f93218a938c88c636ce47c16d3">sputbackc</a>(<a class="code hl_typedef" href="classIOv2_1_1istreambuf__iterator.html#a621d6baf22049b4ca79a8da61da03265">value_type</a> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">ch</a>)</div>
+<div class="line"><a id="l00298" name="l00298"></a><span class="lineno">  298</span>    {</div>
+<div class="line"><a id="l00299" name="l00299"></a><span class="lineno">  299</span>        <span class="keywordflow">if</span> (!m_streambuf)</div>
+<div class="line"><a id="l00300" name="l00300"></a><span class="lineno">  300</span>            <span class="keywordflow">throw</span> <a class="code hl_struct" href="structIOv2_1_1cvt__error.html">cvt_error</a>(<span class="stringliteral">&quot;put back fails&quot;</span>);</div>
+<div class="line"><a id="l00301" name="l00301"></a><span class="lineno">  301</span> </div>
+<div class="line"><a id="l00302" name="l00302"></a><span class="lineno">  302</span>        <span class="keywordflow">if</span> (m_c.has_value())</div>
+<div class="line"><a id="l00303" name="l00303"></a><span class="lineno">  303</span>        {</div>
+<div class="line"><a id="l00304" name="l00304"></a><span class="lineno">  304</span>            m_streambuf-&gt;sputbackc(m_c.value());</div>
+<div class="line"><a id="l00305" name="l00305"></a><span class="lineno">  305</span>            m_c = std::optional&lt;value_type&gt;{};</div>
+<div class="line"><a id="l00306" name="l00306"></a><span class="lineno">  306</span>        }</div>
+<div class="line"><a id="l00307" name="l00307"></a><span class="lineno">  307</span>        m_streambuf-&gt;sputbackc(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">ch</a>);</div>
+<div class="line"><a id="l00308" name="l00308"></a><span class="lineno">  308</span>    }</div>
+</div>
+<div class="line"><a id="l00309" name="l00309"></a><span class="lineno">  309</span> </div>
+<div class="foldopen" id="foldopen00332" data-start="{" data-end="};">
+<div class="line"><a id="l00332" name="l00332"></a><span class="lineno"><a class="line" href="classIOv2_1_1istreambuf__iterator.html#a34a5d7198bf516ba566e7912c92b1401">  332</a></span>    <span class="keyword">friend</span> <span class="keywordtype">bool</span> <a class="code hl_friend" href="classIOv2_1_1istreambuf__iterator.html#a34a5d7198bf516ba566e7912c92b1401">operator==</a>(<span class="keyword">const</span> <a class="code hl_class" href="classIOv2_1_1istreambuf__iterator.html">istreambuf_iterator</a>&amp; <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">val1</a>, <span class="keyword">const</span> <a class="code hl_class" href="classIOv2_1_1istreambuf__iterator.html">istreambuf_iterator</a>&amp; <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">val2</a>)</div>
+<div class="line"><a id="l00333" name="l00333"></a><span class="lineno">  333</span>    {</div>
+<div class="line"><a id="l00334" name="l00334"></a><span class="lineno">  334</span>        <span class="keywordflow">return</span> at_end(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">val1</a>) == at_end(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">val2</a>);</div>
+<div class="line"><a id="l00335" name="l00335"></a><span class="lineno">  335</span>    }</div>
+</div>
+<div class="line"><a id="l00336" name="l00336"></a><span class="lineno">  336</span> </div>
+<div class="line"><a id="l00337" name="l00337"></a><span class="lineno">  337</span><span class="keyword">private</span>:</div>
+<div class="line"><a id="l00356" name="l00356"></a><span class="lineno">  356</span>    <span class="keyword">static</span> <span class="keywordtype">bool</span> at_end(<span class="keyword">const</span> <a class="code hl_class" href="classIOv2_1_1istreambuf__iterator.html">istreambuf_iterator</a>&amp; <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">it</a>)</div>
+<div class="line"><a id="l00357" name="l00357"></a><span class="lineno">  357</span>    {</div>
+<div class="line"><a id="l00358" name="l00358"></a><span class="lineno">  358</span>        <span class="keywordflow">if</span> (<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">it</a>.m_c.has_value()) <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
+<div class="line"><a id="l00359" name="l00359"></a><span class="lineno">  359</span>        <span class="keywordflow">if</span> (<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">it</a>.m_streambuf == <span class="keyword">nullptr</span>) <span class="keywordflow">return</span> <span class="keyword">true</span>;</div>
+<div class="line"><a id="l00360" name="l00360"></a><span class="lineno">  360</span>        <span class="keywordflow">if</span> (<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">it</a>.m_streambuf-&gt;is_eof())</div>
+<div class="line"><a id="l00361" name="l00361"></a><span class="lineno">  361</span>        {</div>
+<div class="line"><a id="l00362" name="l00362"></a><span class="lineno">  362</span>            <span class="keywordflow">if</span> (<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">it</a>.m_saw_eof) *<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">it</a>.m_saw_eof = <span class="keyword">true</span>;</div>
+<div class="line"><a id="l00363" name="l00363"></a><span class="lineno">  363</span>            <span class="keywordflow">return</span> <span class="keyword">true</span>;</div>
+<div class="line"><a id="l00364" name="l00364"></a><span class="lineno">  364</span>        }</div>
+<div class="line"><a id="l00365" name="l00365"></a><span class="lineno">  365</span>        <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
+<div class="line"><a id="l00366" name="l00366"></a><span class="lineno">  366</span>    }</div>
+<div class="line"><a id="l00367" name="l00367"></a><span class="lineno">  367</span> </div>
+<div class="line"><a id="l00368" name="l00368"></a><span class="lineno">  368</span><span class="keyword">private</span>:</div>
+<div class="line"><a id="l00369" name="l00369"></a><span class="lineno">  369</span>    <span class="keyword">mutable</span> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TStreamBuf</a>* m_streambuf;    </div>
+<div class="line"><a id="l00370" name="l00370"></a><span class="lineno">  370</span>    std::optional&lt;value_type&gt; m_c;      </div>
+<div class="line"><a id="l00371" name="l00371"></a><span class="lineno">  371</span>    <span class="keywordtype">bool</span>* m_saw_eof = <span class="keyword">nullptr</span>;          </div>
+<div class="line"><a id="l00372" name="l00372"></a><span class="lineno">  372</span>};</div>
+</div>
+<div class="line"><a id="l00373" name="l00373"></a><span class="lineno">  373</span> </div>
+<div class="line"><a id="l00400" name="l00400"></a><span class="lineno">  400</span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> TStreamBuf&gt;</div>
+<div class="line"><a id="l00401" name="l00401"></a><span class="lineno">  401</span>    <span class="keyword">requires</span> (<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">is_streambuf&lt;TStreamBuf&gt;</a> || <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">is_ostreambuf&lt;TStreamBuf&gt;</a>)</div>
+<div class="foldopen" id="foldopen00402" data-start="{" data-end="};">
+<div class="line"><a id="l00402" name="l00402"></a><span class="lineno"><a class="line" href="classIOv2_1_1ostreambuf__iterator.html">  402</a></span><span class="keyword">class</span> <a class="code hl_class" href="classIOv2_1_1ostreambuf__iterator.html">ostreambuf_iterator</a></div>
+<div class="line"><a id="l00403" name="l00403"></a><span class="lineno">  403</span>{</div>
+<div class="line"><a id="l00404" name="l00404"></a><span class="lineno">  404</span><span class="keyword">public</span>:</div>
+<div class="line"><a id="l00405" name="l00405"></a><span class="lineno"><a class="line" href="classIOv2_1_1ostreambuf__iterator.html#a08bc1ca92f96368eaa992a41308d39a0">  405</a></span>    <span class="keyword">using </span><a class="code hl_typedef" href="classIOv2_1_1ostreambuf__iterator.html#a08bc1ca92f96368eaa992a41308d39a0">value_type</a> = <span class="keyword">typename</span> TStreamBuf::char_type;      </div>
+<div class="line"><a id="l00406" name="l00406"></a><span class="lineno"><a class="line" href="classIOv2_1_1ostreambuf__iterator.html#adcd2d57b191453b192d6e4402f64587a">  406</a></span>    <span class="keyword">using </span><a class="code hl_typedef" href="classIOv2_1_1ostreambuf__iterator.html#adcd2d57b191453b192d6e4402f64587a">difference_type</a> = std::ptrdiff_t;                 </div>
+<div class="line"><a id="l00407" name="l00407"></a><span class="lineno">  407</span> </div>
+<div class="line"><a id="l00408" name="l00408"></a><span class="lineno">  408</span><span class="keyword">public</span>:</div>
+<div class="foldopen" id="foldopen00420" data-start="{" data-end="}">
+<div class="line"><a id="l00420" name="l00420"></a><span class="lineno"><a class="line" href="classIOv2_1_1ostreambuf__iterator.html#ac1c21d569f9ca2a426fac61e31be7921">  420</a></span>    <a class="code hl_function" href="classIOv2_1_1ostreambuf__iterator.html#ac1c21d569f9ca2a426fac61e31be7921">ostreambuf_iterator</a>(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TStreamBuf</a>&amp; <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">p_streambuf</a>)</div>
+<div class="line"><a id="l00421" name="l00421"></a><span class="lineno">  421</span>        : m_streambuf(&amp;<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">p_streambuf</a>) {}</div>
+</div>
+<div class="line"><a id="l00422" name="l00422"></a><span class="lineno">  422</span> </div>
+<div class="line"><a id="l00423" name="l00423"></a><span class="lineno">  423</span><span class="keyword">public</span>:</div>
+<div class="foldopen" id="foldopen00428" data-start="{" data-end="}">
+<div class="line"><a id="l00428" name="l00428"></a><span class="lineno"><a class="line" href="classIOv2_1_1ostreambuf__iterator.html#a79f92b6f1d3ed0b1cda127b5c30d3fe6">  428</a></span>    <a class="code hl_class" href="classIOv2_1_1ostreambuf__iterator.html">ostreambuf_iterator</a>&amp; <a class="code hl_function" href="classIOv2_1_1ostreambuf__iterator.html#a79f92b6f1d3ed0b1cda127b5c30d3fe6">operator*</a>()</div>
+<div class="line"><a id="l00429" name="l00429"></a><span class="lineno">  429</span>    { <span class="keywordflow">return</span> *<span class="keyword">this</span>; }</div>
+</div>
+<div class="line"><a id="l00430" name="l00430"></a><span class="lineno">  430</span> </div>
+<div class="foldopen" id="foldopen00435" data-start="{" data-end="}">
+<div class="line"><a id="l00435" name="l00435"></a><span class="lineno"><a class="line" href="classIOv2_1_1ostreambuf__iterator.html#ae264e4f894c4d838ccc32364c53d94f5">  435</a></span>    <a class="code hl_class" href="classIOv2_1_1ostreambuf__iterator.html">ostreambuf_iterator</a>&amp; <a class="code hl_function" href="classIOv2_1_1ostreambuf__iterator.html#ae264e4f894c4d838ccc32364c53d94f5">operator++</a>(<span class="keywordtype">int</span>)</div>
+<div class="line"><a id="l00436" name="l00436"></a><span class="lineno">  436</span>    { <span class="keywordflow">return</span> *<span class="keyword">this</span>; }</div>
+</div>
+<div class="line"><a id="l00437" name="l00437"></a><span class="lineno">  437</span> </div>
+<div class="foldopen" id="foldopen00442" data-start="{" data-end="}">
+<div class="line"><a id="l00442" name="l00442"></a><span class="lineno"><a class="line" href="classIOv2_1_1ostreambuf__iterator.html#a85612bcbbdc7037d53f859c102c214a9">  442</a></span>    <a class="code hl_class" href="classIOv2_1_1ostreambuf__iterator.html">ostreambuf_iterator</a>&amp; <a class="code hl_function" href="classIOv2_1_1ostreambuf__iterator.html#a85612bcbbdc7037d53f859c102c214a9">operator++</a>()</div>
+<div class="line"><a id="l00443" name="l00443"></a><span class="lineno">  443</span>    { <span class="keywordflow">return</span> *<span class="keyword">this</span>; }</div>
+</div>
+<div class="line"><a id="l00444" name="l00444"></a><span class="lineno">  444</span> </div>
+<div class="foldopen" id="foldopen00458" data-start="{" data-end="}">
+<div class="line"><a id="l00458" name="l00458"></a><span class="lineno"><a class="line" href="classIOv2_1_1ostreambuf__iterator.html#a6fe331a06affe5b139dfa376e47c84d2">  458</a></span>    <a class="code hl_class" href="classIOv2_1_1ostreambuf__iterator.html">ostreambuf_iterator</a>&amp; <a class="code hl_function" href="classIOv2_1_1ostreambuf__iterator.html#a6fe331a06affe5b139dfa376e47c84d2">operator=</a>(<a class="code hl_typedef" href="classIOv2_1_1ostreambuf__iterator.html#a08bc1ca92f96368eaa992a41308d39a0">value_type</a> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">c</a>)</div>
+<div class="line"><a id="l00459" name="l00459"></a><span class="lineno">  459</span>    {</div>
+<div class="line"><a id="l00460" name="l00460"></a><span class="lineno">  460</span>        m_streambuf-&gt;sputc(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">c</a>);</div>
+<div class="line"><a id="l00461" name="l00461"></a><span class="lineno">  461</span>        <span class="keywordflow">return</span> *<span class="keyword">this</span>;</div>
+<div class="line"><a id="l00462" name="l00462"></a><span class="lineno">  462</span>    }</div>
+</div>
+<div class="line"><a id="l00463" name="l00463"></a><span class="lineno">  463</span> </div>
+<div class="line"><a id="l00464" name="l00464"></a><span class="lineno">  464</span><span class="keyword">private</span>:</div>
+<div class="line"><a id="l00465" name="l00465"></a><span class="lineno">  465</span>    <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TStreamBuf</a>* m_streambuf;    </div>
+<div class="line"><a id="l00466" name="l00466"></a><span class="lineno">  466</span>};</div>
+</div>
+<div class="line"><a id="l00467" name="l00467"></a><span class="lineno">  467</span>}</div>
+<div class="ttc" id="aclassIOv2_1_1istreambuf__iterator_html"><div class="ttname"><a href="classIOv2_1_1istreambuf__iterator.html">IOv2::istreambuf_iterator</a></div><div class="ttdoc">输入流缓冲区迭代器（单遍输入迭代器）。</div><div class="ttdef"><b>Definition</b> streambuf_iterator.h:83</div></div>
+<div class="ttc" id="aclassIOv2_1_1istreambuf__iterator_html_a024dc02793bce8bcf1ed18235bff760c"><div class="ttname"><a href="classIOv2_1_1istreambuf__iterator.html#a024dc02793bce8bcf1ed18235bff760c">IOv2::istreambuf_iterator::operator*</a></div><div class="ttdeci">value_type operator*() const</div><div class="ttdoc">解引用，返回当前字符（不前进）。</div><div class="ttdef"><b>Definition</b> streambuf_iterator.h:194</div></div>
+<div class="ttc" id="aclassIOv2_1_1istreambuf__iterator_html_a32f6aeb2759cd29e8fd4fdfbdb3596aa"><div class="ttname"><a href="classIOv2_1_1istreambuf__iterator.html#a32f6aeb2759cd29e8fd4fdfbdb3596aa">IOv2::istreambuf_iterator::operator++</a></div><div class="ttdeci">istreambuf_iterator &amp; operator++()</div><div class="ttdoc">前置自增：前进到下一个字符。</div><div class="ttdef"><b>Definition</b> streambuf_iterator.h:244</div></div>
+<div class="ttc" id="aclassIOv2_1_1istreambuf__iterator_html_a34a5d7198bf516ba566e7912c92b1401"><div class="ttname"><a href="classIOv2_1_1istreambuf__iterator.html#a34a5d7198bf516ba566e7912c92b1401">IOv2::istreambuf_iterator::operator==</a></div><div class="ttdeci">friend bool operator==(const istreambuf_iterator &amp;val1, const istreambuf_iterator &amp;val2)</div><div class="ttdoc">比较两个迭代器是否相等。</div><div class="ttdef"><b>Definition</b> streambuf_iterator.h:332</div></div>
+<div class="ttc" id="aclassIOv2_1_1istreambuf__iterator_html_a44172ae91b3ce8351daebe91db190772"><div class="ttname"><a href="classIOv2_1_1istreambuf__iterator.html#a44172ae91b3ce8351daebe91db190772">IOv2::istreambuf_iterator::operator-&gt;</a></div><div class="ttdeci">proxy operator-&gt;() const</div><div class="ttdoc">通过代理访问当前字符的成员。</div><div class="ttdef"><b>Definition</b> streambuf_iterator.h:223</div></div>
+<div class="ttc" id="aclassIOv2_1_1istreambuf__iterator_html_a621d6baf22049b4ca79a8da61da03265"><div class="ttname"><a href="classIOv2_1_1istreambuf__iterator.html#a621d6baf22049b4ca79a8da61da03265">IOv2::istreambuf_iterator::value_type</a></div><div class="ttdeci">typename TStreamBuf::char_type value_type</div><div class="ttdoc">迭代的字符类型。</div><div class="ttdef"><b>Definition</b> streambuf_iterator.h:85</div></div>
+<div class="ttc" id="aclassIOv2_1_1istreambuf__iterator_html_a8295fb231e1fc6c8fc4c5a4ebfb6ec21"><div class="ttname"><a href="classIOv2_1_1istreambuf__iterator.html#a8295fb231e1fc6c8fc4c5a4ebfb6ec21">IOv2::istreambuf_iterator::operator++</a></div><div class="ttdeci">istreambuf_iterator operator++(int)</div><div class="ttdoc">后置自增：前进到下一个字符，返回自增前的迭代器。</div><div class="ttdef"><b>Definition</b> streambuf_iterator.h:269</div></div>
+<div class="ttc" id="aclassIOv2_1_1istreambuf__iterator_html_a8a6c1b0bf4bafdc0706dd6fa7182b6b5"><div class="ttname"><a href="classIOv2_1_1istreambuf__iterator.html#a8a6c1b0bf4bafdc0706dd6fa7182b6b5">IOv2::istreambuf_iterator::istreambuf_iterator</a></div><div class="ttdeci">constexpr istreambuf_iterator(std::default_sentinel_t) noexcept</div><div class="ttdoc">由 std::default_sentinel_t 构造末尾迭代器。</div><div class="ttdef"><b>Definition</b> streambuf_iterator.h:136</div></div>
+<div class="ttc" id="aclassIOv2_1_1istreambuf__iterator_html_aa5c901f93218a938c88c636ce47c16d3"><div class="ttname"><a href="classIOv2_1_1istreambuf__iterator.html#aa5c901f93218a938c88c636ce47c16d3">IOv2::istreambuf_iterator::sputbackc</a></div><div class="ttdeci">void sputbackc(value_type ch)</div><div class="ttdoc">将字符压回底层流缓冲区。</div><div class="ttdef"><b>Definition</b> streambuf_iterator.h:297</div></div>
+<div class="ttc" id="aclassIOv2_1_1istreambuf__iterator_html_aa8ad4cde6b76a66ca49cd5b4f0050fe6"><div class="ttname"><a href="classIOv2_1_1istreambuf__iterator.html#aa8ad4cde6b76a66ca49cd5b4f0050fe6">IOv2::istreambuf_iterator::istreambuf_iterator</a></div><div class="ttdeci">istreambuf_iterator(TStreamBuf &amp;p_streambuf, bool *saw_eof=nullptr)</div><div class="ttdoc">绑定到一个流缓冲区，构造一个可读的起始迭代器；可选地附加一个“已观察到输入 结束”的报告位。</div><div class="ttdef"><b>Definition</b> streambuf_iterator.h:170</div></div>
+<div class="ttc" id="aclassIOv2_1_1istreambuf__iterator_html_aaf8bbccbad623b9334e1a01f800cba53"><div class="ttname"><a href="classIOv2_1_1istreambuf__iterator.html#aaf8bbccbad623b9334e1a01f800cba53">IOv2::istreambuf_iterator::difference_type</a></div><div class="ttdeci">std::ptrdiff_t difference_type</div><div class="ttdoc">迭代器差值类型。</div><div class="ttdef"><b>Definition</b> streambuf_iterator.h:86</div></div>
+<div class="ttc" id="aclassIOv2_1_1istreambuf__iterator_html_ac4fd1658bb250fe4e0f29b223ba76909"><div class="ttname"><a href="classIOv2_1_1istreambuf__iterator.html#ac4fd1658bb250fe4e0f29b223ba76909">IOv2::istreambuf_iterator::istreambuf_iterator</a></div><div class="ttdeci">constexpr istreambuf_iterator()</div><div class="ttdoc">默认构造，得到一个末尾（end）迭代器。</div><div class="ttdef"><b>Definition</b> streambuf_iterator.h:119</div></div>
+<div class="ttc" id="aclassIOv2_1_1ostreambuf__iterator_html"><div class="ttname"><a href="classIOv2_1_1ostreambuf__iterator.html">IOv2::ostreambuf_iterator</a></div><div class="ttdoc">输出流缓冲区迭代器（输出迭代器）。</div><div class="ttdef"><b>Definition</b> streambuf_iterator.h:403</div></div>
+<div class="ttc" id="aclassIOv2_1_1ostreambuf__iterator_html_a08bc1ca92f96368eaa992a41308d39a0"><div class="ttname"><a href="classIOv2_1_1ostreambuf__iterator.html#a08bc1ca92f96368eaa992a41308d39a0">IOv2::ostreambuf_iterator::value_type</a></div><div class="ttdeci">typename TStreamBuf::char_type value_type</div><div class="ttdoc">写入的字符类型。</div><div class="ttdef"><b>Definition</b> streambuf_iterator.h:405</div></div>
+<div class="ttc" id="aclassIOv2_1_1ostreambuf__iterator_html_a6fe331a06affe5b139dfa376e47c84d2"><div class="ttname"><a href="classIOv2_1_1ostreambuf__iterator.html#a6fe331a06affe5b139dfa376e47c84d2">IOv2::ostreambuf_iterator::operator=</a></div><div class="ttdeci">ostreambuf_iterator &amp; operator=(value_type c)</div><div class="ttdoc">写入一个字符：转发给底层流缓冲区的 sputc()。</div><div class="ttdef"><b>Definition</b> streambuf_iterator.h:458</div></div>
+<div class="ttc" id="aclassIOv2_1_1ostreambuf__iterator_html_a79f92b6f1d3ed0b1cda127b5c30d3fe6"><div class="ttname"><a href="classIOv2_1_1ostreambuf__iterator.html#a79f92b6f1d3ed0b1cda127b5c30d3fe6">IOv2::ostreambuf_iterator::operator*</a></div><div class="ttdeci">ostreambuf_iterator &amp; operator*()</div><div class="ttdoc">解引用（空操作）：返回自身，以配合 *it = c 的输出迭代器惯用法。</div><div class="ttdef"><b>Definition</b> streambuf_iterator.h:428</div></div>
+<div class="ttc" id="aclassIOv2_1_1ostreambuf__iterator_html_a85612bcbbdc7037d53f859c102c214a9"><div class="ttname"><a href="classIOv2_1_1ostreambuf__iterator.html#a85612bcbbdc7037d53f859c102c214a9">IOv2::ostreambuf_iterator::operator++</a></div><div class="ttdeci">ostreambuf_iterator &amp; operator++()</div><div class="ttdoc">前置自增（空操作）：返回自身。</div><div class="ttdef"><b>Definition</b> streambuf_iterator.h:442</div></div>
+<div class="ttc" id="aclassIOv2_1_1ostreambuf__iterator_html_ac1c21d569f9ca2a426fac61e31be7921"><div class="ttname"><a href="classIOv2_1_1ostreambuf__iterator.html#ac1c21d569f9ca2a426fac61e31be7921">IOv2::ostreambuf_iterator::ostreambuf_iterator</a></div><div class="ttdeci">ostreambuf_iterator(TStreamBuf &amp;p_streambuf)</div><div class="ttdoc">绑定到一个流缓冲区，构造输出迭代器。</div><div class="ttdef"><b>Definition</b> streambuf_iterator.h:420</div></div>
+<div class="ttc" id="aclassIOv2_1_1ostreambuf__iterator_html_adcd2d57b191453b192d6e4402f64587a"><div class="ttname"><a href="classIOv2_1_1ostreambuf__iterator.html#adcd2d57b191453b192d6e4402f64587a">IOv2::ostreambuf_iterator::difference_type</a></div><div class="ttdeci">std::ptrdiff_t difference_type</div><div class="ttdoc">迭代器差值类型。</div><div class="ttdef"><b>Definition</b> streambuf_iterator.h:406</div></div>
+<div class="ttc" id="aclassIOv2_1_1ostreambuf__iterator_html_ae264e4f894c4d838ccc32364c53d94f5"><div class="ttname"><a href="classIOv2_1_1ostreambuf__iterator.html#ae264e4f894c4d838ccc32364c53d94f5">IOv2::ostreambuf_iterator::operator++</a></div><div class="ttdeci">ostreambuf_iterator &amp; operator++(int)</div><div class="ttdoc">后置自增（空操作）：返回自身。</div><div class="ttdef"><b>Definition</b> streambuf_iterator.h:435</div></div>
+<div class="ttc" id="adefs_8h_html"><div class="ttname"><a href="defs_8h.html">defs.h</a></div></div>
+<div class="ttc" id="anamespaceIOv2_html"><div class="ttname"><a href="namespaceIOv2.html">IOv2</a></div><div class="ttdef"><b>Definition</b> clocale_wrapper.h:22</div></div>
+<div class="ttc" id="anamespaceIOv2_html_a09b31017574cb5471d2558481d0f4d7a"><div class="ttname"><a href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">IOv2::is_small_type_v</a></div><div class="ttdeci">constexpr bool is_small_type_v</div><div class="ttdef"><b>Definition</b> metafunctions.h:83</div></div>
+<div class="ttc" id="astreambuf_8h_html"><div class="ttname"><a href="streambuf_8h.html">streambuf.h</a></div></div>
+<div class="ttc" id="astreambuf__defs_8h_html"><div class="ttname"><a href="streambuf__defs_8h.html">streambuf_defs.h</a></div></div>
+<div class="ttc" id="astructIOv2_1_1cvt__error_html"><div class="ttname"><a href="structIOv2_1_1cvt__error.html">IOv2::cvt_error</a></div><div class="ttdef"><b>Definition</b> defs.h:76</div></div>
+<div class="ttc" id="astructIOv2_1_1eof__error_html"><div class="ttname"><a href="structIOv2_1_1eof__error.html">IOv2::eof_error</a></div><div class="ttdef"><b>Definition</b> defs.h:93</div></div>
+<div class="ttc" id="astructIOv2_1_1istreambuf__iterator_1_1proxy_html"><div class="ttname"><a href="structIOv2_1_1istreambuf__iterator_1_1proxy.html">IOv2::istreambuf_iterator::proxy</a></div><div class="ttdoc">operator-&gt; 的返回代理，持有一份字符值。</div><div class="ttdef"><b>Definition</b> streambuf_iterator.h:103</div></div>
+<div class="ttc" id="astructIOv2_1_1istreambuf__iterator_1_1proxy_html_a1c17b1010545a8c08cbeaa8451e5105c"><div class="ttname"><a href="structIOv2_1_1istreambuf__iterator_1_1proxy.html#a1c17b1010545a8c08cbeaa8451e5105c">IOv2::istreambuf_iterator::proxy::operator-&gt;</a></div><div class="ttdeci">const value_type * operator-&gt;() const</div><div class="ttdef"><b>Definition</b> streambuf_iterator.h:105</div></div>
+<div class="ttc" id="astructIOv2_1_1istreambuf__iterator_1_1proxy_html_a28d55ec7f0e03ed62989ae19305026fa"><div class="ttname"><a href="structIOv2_1_1istreambuf__iterator_1_1proxy.html#a28d55ec7f0e03ed62989ae19305026fa">IOv2::istreambuf_iterator::proxy::m_value</a></div><div class="ttdeci">value_type m_value</div><div class="ttdoc">持有的字符值。</div><div class="ttdef"><b>Definition</b> streambuf_iterator.h:104</div></div>
+<div class="ttc" id="astructIOv2_1_1istreambuf__iterator_1_1proxy_html_ae02b03529d94499cdd0dceeac03cd51f"><div class="ttname"><a href="structIOv2_1_1istreambuf__iterator_1_1proxy.html#ae02b03529d94499cdd0dceeac03cd51f">IOv2::istreambuf_iterator::proxy::operator*</a></div><div class="ttdeci">value_type operator*() const</div><div class="ttdef"><b>Definition</b> streambuf_iterator.h:106</div></div>
+</div><!-- fragment --></div><!-- contents -->
+</div><!-- doc-content -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><a class="el" href="dir_d44c64559bbebec7f509842c48db8b23.html">include</a></li><li class="navelem"><a class="el" href="dir_1157f564aec2b3a7d6bde4eba89ab805.html">IOv2</a></li><li class="navelem"><a class="el" href="dir_e6325c10be556c0ae106bae233ca0d0f.html">io</a></li><li class="navelem"><a class="el" href="streambuf__iterator_8h.html">streambuf_iterator.h</a></li>
+    <li class="footer">制作者 <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8 </li>
+  </ul>
+</div>
+</body>
+</html>

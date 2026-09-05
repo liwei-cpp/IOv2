@@ -1,0 +1,348 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=11"/>
+<meta name="generator" content="Doxygen 1.9.8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>IOv2: include/IOv2/io/iostream.h 源文件</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="resize.js"></script>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr id="projectrow">
+  <td id="projectalign">
+   <div id="projectname">IOv2
+   </div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 制作者 Doxygen 1.9.8 -->
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+/* @license-end */
+</script>
+<script type="text/javascript" src="menudata.js"></script>
+<script type="text/javascript" src="menu.js"></script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(function() {
+  initMenu('',true,false,'search.php','搜索');
+  $(document).ready(function() { init_search(); });
+});
+/* @license-end */
+</script>
+<div id="main-nav"></div>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(document).ready(function() { init_codefold(0); });
+/* @license-end */
+</script>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(document).ready(function(){initNavTree('iostream_8h_source.html',''); initResizable(); });
+/* @license-end */
+</script>
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">载入中...</div>
+<div class="SRStatus" id="Searching">搜索中...</div>
+<div class="SRStatus" id="NoMatches">未找到</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="header">
+  <div class="headertitle"><div class="title">iostream.h</div></div>
+</div><!--header-->
+<div class="contents">
+<a href="iostream_8h.html">浏览该文件的文档.</a><div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span><span class="comment">// SPDX-FileCopyrightText: 2026 liwei &lt;liwei.cpp@gmail.com&gt;</span></div>
+<div class="line"><a id="l00002" name="l00002"></a><span class="lineno">    2</span><span class="comment">// SPDX-License-Identifier: MIT</span></div>
+<div class="line"><a id="l00003" name="l00003"></a><span class="lineno">    3</span> </div>
+<div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span><span class="preprocessor">#pragma once</span></div>
+<div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span><span class="preprocessor">#include &lt;<a class="code" href="copyable__mutex_8h.html">IOv2/common/copyable_mutex.h</a>&gt;</span></div>
+<div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span><span class="preprocessor">#include &lt;<a class="code" href="cvt__concepts_8h.html">IOv2/cvt/cvt_concepts.h</a>&gt;</span></div>
+<div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span><span class="preprocessor">#include &lt;<a class="code" href="device__concepts_8h.html">IOv2/device/device_concepts.h</a>&gt;</span></div>
+<div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span><span class="preprocessor">#include &lt;<a class="code" href="io__base_8h.html">IOv2/io/io_base.h</a>&gt;</span></div>
+<div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span><span class="preprocessor">#include &lt;<a class="code" href="streambuf_8h.html">IOv2/io/streambuf.h</a>&gt;</span></div>
+<div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span><span class="preprocessor">#include &lt;<a class="code" href="streambuf__iterator_8h.html">IOv2/io/streambuf_iterator.h</a>&gt;</span></div>
+<div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span><span class="preprocessor">#include &lt;<a class="code" href="istream__operators_8h.html">IOv2/io/utilities/istream_operators.h</a>&gt;</span></div>
+<div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span><span class="preprocessor">#include &lt;<a class="code" href="ostream__operators_8h.html">IOv2/io/utilities/ostream_operators.h</a>&gt;</span></div>
+<div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span><span class="preprocessor">#include &lt;<a class="code" href="stream__common__operators_8h.html">IOv2/io/utilities/stream_common_operators.h</a>&gt;</span></div>
+<div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span><span class="preprocessor">#include &lt;<a class="code" href="locale_8h.html">IOv2/locale/locale.h</a>&gt;</span></div>
+<div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span> </div>
+<div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span><span class="preprocessor">#include &lt;exception&gt;</span></div>
+<div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span><span class="preprocessor">#include &lt;mutex&gt;</span></div>
+<div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span><span class="preprocessor">#include &lt;type_traits&gt;</span></div>
+<div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span><span class="preprocessor">#include &lt;utility&gt;</span></div>
+<div class="line"><a id="l00078" name="l00078"></a><span class="lineno">   78</span> </div>
+<div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span><span class="keyword">namespace </span><a class="code hl_namespace" href="namespaceIOv2.html">IOv2</a></div>
+<div class="line"><a id="l00080" name="l00080"></a><span class="lineno">   80</span>{</div>
+<div class="line"><a id="l00160" name="l00160"></a><span class="lineno">  160</span><span class="keyword">template</span> &lt;io_device TDevice, <span class="keyword">typename</span> TChar&gt;</div>
+<div class="line"><a id="l00161" name="l00161"></a><span class="lineno">  161</span>    <span class="keyword">requires</span> (dev_cpt::support_get&lt;TDevice&gt; &amp;&amp; dev_cpt::support_put&lt;TDevice&gt;)</div>
+<div class="foldopen" id="foldopen00162" data-start="{" data-end="};">
+<div class="line"><a id="l00162" name="l00162"></a><span class="lineno"><a class="line" href="classIOv2_1_1iostream.html">  162</a></span><span class="keyword">class</span> <a class="code hl_class" href="classIOv2_1_1iostream.html">iostream</a> : <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">public</a> <a class="code hl_struct" href="structIOv2_1_1ios__state.html">ios_state</a>&lt;<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a>&gt;</div>
+<div class="line"><a id="l00163" name="l00163"></a><span class="lineno">  163</span>               , <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">public</a> <a class="code hl_struct" href="structIOv2_1_1istream__operators.html">istream_operators</a>&lt;<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a>&gt;</div>
+<div class="line"><a id="l00164" name="l00164"></a><span class="lineno">  164</span>               , <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">public</a> <a class="code hl_struct" href="structIOv2_1_1out__flusher.html">out_flusher</a>&lt;<a class="code hl_class" href="classIOv2_1_1iostream.html">iostream</a>&lt;<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TDevice</a>, <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a>&gt;&gt;</div>
+<div class="line"><a id="l00165" name="l00165"></a><span class="lineno">  165</span>               , <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">public</a> <a class="code hl_struct" href="structIOv2_1_1ostream__operators.html">ostream_operators</a>&lt;<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a>&gt;</div>
+<div class="line"><a id="l00166" name="l00166"></a><span class="lineno">  166</span>               , <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">public</a> <a class="code hl_struct" href="structIOv2_1_1stream__common__operators.html">stream_common_operators</a></div>
+<div class="line"><a id="l00167" name="l00167"></a><span class="lineno">  167</span>{</div>
+<div class="line"><a id="l00168" name="l00168"></a><span class="lineno">  168</span><span class="keyword">public</span>:</div>
+<div class="line"><a id="l00171" name="l00171"></a><span class="lineno"><a class="line" href="classIOv2_1_1iostream.html#a1d4758138a701bd50bd2bbbc8d78c8e7">  171</a></span>    <span class="keyword">using </span><a class="code hl_typedef" href="classIOv2_1_1iostream.html#a1d4758138a701bd50bd2bbbc8d78c8e7">device_type</a> = <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TDevice</a>;</div>
+<div class="line"><a id="l00175" name="l00175"></a><span class="lineno"><a class="line" href="classIOv2_1_1iostream.html#ae1b892f26d6bd6895a02f67dab7bbd7f">  175</a></span>    <span class="keyword">using </span><a class="code hl_typedef" href="classIOv2_1_1iostream.html#ae1b892f26d6bd6895a02f67dab7bbd7f">char_type</a> = <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a>;</div>
+<div class="line"><a id="l00187" name="l00187"></a><span class="lineno"><a class="line" href="classIOv2_1_1iostream.html#a2d87ebcc99c0697b4d50e1a56332ac15">  187</a></span>    <span class="keyword">using </span><a class="code hl_struct" href="structIOv2_1_1in__sentry.html">in_sentry_type</a> = <a class="code hl_struct" href="structIOv2_1_1in__sentry.html">in_sentry&lt;iostream&lt;TDevice, TChar&gt;</a>, <span class="keyword">true</span>&gt;;</div>
+<div class="line"><a id="l00202" name="l00202"></a><span class="lineno"><a class="line" href="classIOv2_1_1iostream.html#aaa24883ffdd45ea7c0e461b9bcb4e3fa">  202</a></span>    <span class="keyword">using </span><a class="code hl_struct" href="structIOv2_1_1out__sentry.html">out_sentry_type</a> = <a class="code hl_struct" href="structIOv2_1_1out__sentry.html">out_sentry&lt;iostream&lt;TDevice, TChar&gt;</a>, <span class="keyword">true</span>&gt;;</div>
+<div class="line"><a id="l00206" name="l00206"></a><span class="lineno"><a class="line" href="classIOv2_1_1iostream.html#aa2b9425f08693ee7856eba421b3f08d7">  206</a></span>    <span class="keyword">using </span><a class="code hl_class" href="classIOv2_1_1istreambuf__iterator.html">in_iter_type</a> = <a class="code hl_class" href="classIOv2_1_1istreambuf__iterator.html">istreambuf_iterator&lt;streambuf&lt;TDevice, TChar&gt;</a>&gt;;</div>
+<div class="line"><a id="l00210" name="l00210"></a><span class="lineno"><a class="line" href="classIOv2_1_1iostream.html#a00376acd81101533820684c3821c4459">  210</a></span>    <span class="keyword">using </span><a class="code hl_class" href="classIOv2_1_1ostreambuf__iterator.html">out_iter_type</a> = <a class="code hl_class" href="classIOv2_1_1ostreambuf__iterator.html">ostreambuf_iterator&lt;streambuf&lt;TDevice, TChar&gt;</a>&gt;;</div>
+<div class="line"><a id="l00211" name="l00211"></a><span class="lineno">  211</span> </div>
+<div class="line"><a id="l00212" name="l00212"></a><span class="lineno"><a class="line" href="classIOv2_1_1iostream.html#a73ad400182a7886b50ab6ebb47ecbaf6">  212</a></span>    <span class="keyword">friend</span> <a class="code hl_variable" href="classIOv2_1_1iostream.html#a73ad400182a7886b50ab6ebb47ecbaf6">in_sentry_type</a>;</div>
+<div class="line"><a id="l00213" name="l00213"></a><span class="lineno"><a class="line" href="classIOv2_1_1iostream.html#a161f318df67a3d0e19e5d380beb94bdb">  213</a></span>    <span class="keyword">friend</span> <a class="code hl_variable" href="classIOv2_1_1iostream.html#a161f318df67a3d0e19e5d380beb94bdb">out_sentry_type</a>;</div>
+<div class="line"><a id="l00214" name="l00214"></a><span class="lineno"><a class="line" href="classIOv2_1_1iostream.html#a590db7a6c3a51b6989e758652fcaed70">  214</a></span>    <span class="keyword">friend</span> <a class="code hl_struct" href="structIOv2_1_1istream__operators.html">istream_operators&lt;TChar&gt;</a>;</div>
+<div class="line"><a id="l00215" name="l00215"></a><span class="lineno"><a class="line" href="classIOv2_1_1iostream.html#a03630fedb1532e6d7755501b1f137ce4">  215</a></span>    <span class="keyword">friend</span> <a class="code hl_struct" href="structIOv2_1_1out__flusher.html">out_flusher&lt;iostream&lt;TDevice, TChar&gt;</a>&gt;;</div>
+<div class="line"><a id="l00216" name="l00216"></a><span class="lineno"><a class="line" href="classIOv2_1_1iostream.html#a5d5c118bd220be8d704e12848c3c0a10">  216</a></span>    <span class="keyword">friend</span> <a class="code hl_struct" href="structIOv2_1_1ostream__operators.html">ostream_operators&lt;TChar&gt;</a>;</div>
+<div class="line"><a id="l00217" name="l00217"></a><span class="lineno"><a class="line" href="classIOv2_1_1iostream.html#aed34d12ad58ef5b26b23f08b0fc873b0">  217</a></span>    <span class="keyword">friend</span> <a class="code hl_variable" href="classIOv2_1_1iostream.html#aed34d12ad58ef5b26b23f08b0fc873b0">stream_common_operators</a>;</div>
+<div class="line"><a id="l00218" name="l00218"></a><span class="lineno">  218</span> </div>
+<div class="line"><a id="l00219" name="l00219"></a><span class="lineno">  219</span><span class="keyword">public</span>:</div>
+<div class="foldopen" id="foldopen00262" data-start="{" data-end="}">
+<div class="line"><a id="l00262" name="l00262"></a><span class="lineno"><a class="line" href="classIOv2_1_1iostream.html#ad464b4047712d32b0a8937f0c29f04d8">  262</a></span>    <a class="code hl_function" href="classIOv2_1_1iostream.html#ad464b4047712d32b0a8937f0c29f04d8">iostream</a>()</div>
+<div class="line"><a id="l00263" name="l00263"></a><span class="lineno">  263</span>        <span class="keyword">requires</span> (std::is_same_v&lt;typename TDevice::char_type, TChar&gt;</div>
+<div class="line"><a id="l00264" name="l00264"></a><span class="lineno">  264</span>                  &amp;&amp; std::is_default_constructible_v&lt;TDevice&gt;)</div>
+<div class="line"><a id="l00265" name="l00265"></a><span class="lineno">  265</span>        : m_streambuf(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TDevice</a>()) {}</div>
+</div>
+<div class="line"><a id="l00266" name="l00266"></a><span class="lineno">  266</span> </div>
+<div class="foldopen" id="foldopen00283" data-start="{" data-end="}">
+<div class="line"><a id="l00283" name="l00283"></a><span class="lineno"><a class="line" href="classIOv2_1_1iostream.html#aca3295757b7fc4b650abc9261dd6fca5">  283</a></span>    <a class="code hl_function" href="classIOv2_1_1iostream.html#aca3295757b7fc4b650abc9261dd6fca5">iostream</a>(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TDevice</a> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">dev</a>)</div>
+<div class="line"><a id="l00284" name="l00284"></a><span class="lineno">  284</span>        <span class="keyword">requires</span> (std::is_same_v&lt;typename TDevice::char_type, TChar&gt;)</div>
+<div class="line"><a id="l00285" name="l00285"></a><span class="lineno">  285</span>        : m_streambuf(<a class="code hl_namespace" href="namespacestd.html">std</a>::<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">move</a>(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">dev</a>)) {}</div>
+</div>
+<div class="line"><a id="l00286" name="l00286"></a><span class="lineno">  286</span> </div>
+<div class="line"><a id="l00309" name="l00309"></a><span class="lineno">  309</span>    <span class="keyword">template</span> &lt;cvt_creator TCreator&gt;</div>
+<div class="foldopen" id="foldopen00310" data-start="{" data-end="}">
+<div class="line"><a id="l00310" name="l00310"></a><span class="lineno"><a class="line" href="classIOv2_1_1iostream.html#a7d26df3e4475add04ccd68e16a9f9e4e">  310</a></span>    <a class="code hl_function" href="classIOv2_1_1iostream.html#a7d26df3e4475add04ccd68e16a9f9e4e">iostream</a>(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TDevice</a> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">dev</a>, <span class="keyword">const</span> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TCreator</a>&amp; <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">creator</a>)</div>
+<div class="line"><a id="l00311" name="l00311"></a><span class="lineno">  311</span>        <span class="keyword">requires</span> (std::is_same_v&lt;</div>
+<div class="line"><a id="l00312" name="l00312"></a><span class="lineno">  312</span>                      <span class="keyword">typename</span> <span class="keyword">decltype</span>(<a class="code hl_struct" href="structIOv2_1_1streambuf.html">streambuf</a>{std::declval&lt;TDevice&gt;(),</div>
+<div class="line"><a id="l00313" name="l00313"></a><span class="lineno">  313</span>                                              std::declval&lt;const TCreator&amp;&gt;()})::char_type,</div>
+<div class="line"><a id="l00314" name="l00314"></a><span class="lineno">  314</span>                      <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a>&gt;)</div>
+<div class="line"><a id="l00315" name="l00315"></a><span class="lineno">  315</span>        : m_streambuf(std::move(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">dev</a>), <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">creator</a>) {}</div>
+</div>
+<div class="line"><a id="l00316" name="l00316"></a><span class="lineno">  316</span> </div>
+<div class="foldopen" id="foldopen00343" data-start="{" data-end="}">
+<div class="line"><a id="l00343" name="l00343"></a><span class="lineno"><a class="line" href="classIOv2_1_1iostream.html#aab15c4e063dd2af93a5fcd5d7999fa76">  343</a></span>    <a class="code hl_function" href="classIOv2_1_1iostream.html#aab15c4e063dd2af93a5fcd5d7999fa76">iostream</a>(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TDevice</a> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">dev</a>, <a class="code hl_class" href="classIOv2_1_1locale.html">IOv2::locale&lt;char_type&gt;</a> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">loc</a>)</div>
+<div class="line"><a id="l00344" name="l00344"></a><span class="lineno">  344</span>        <span class="keyword">requires</span> (std::is_same_v&lt;typename TDevice::char_type, TChar&gt;)</div>
+<div class="line"><a id="l00345" name="l00345"></a><span class="lineno">  345</span>        : m_streambuf(<a class="code hl_namespace" href="namespacestd.html">std</a>::<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">move</a>(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">dev</a>))</div>
+<div class="line"><a id="l00346" name="l00346"></a><span class="lineno">  346</span>        , m_locale(<a class="code hl_namespace" href="namespacestd.html">std</a>::<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">move</a>(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">loc</a>)) {}</div>
+</div>
+<div class="line"><a id="l00347" name="l00347"></a><span class="lineno">  347</span> </div>
+<div class="line"><a id="l00376" name="l00376"></a><span class="lineno">  376</span>    <span class="keyword">template</span> &lt;cvt_creator TCreator&gt;</div>
+<div class="foldopen" id="foldopen00377" data-start="{" data-end="}">
+<div class="line"><a id="l00377" name="l00377"></a><span class="lineno"><a class="line" href="classIOv2_1_1iostream.html#a689fa5b6e000dff9d033a3c6bf3b2205">  377</a></span>    <a class="code hl_function" href="classIOv2_1_1iostream.html#a689fa5b6e000dff9d033a3c6bf3b2205">iostream</a>(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TDevice</a> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">dev</a>, <span class="keyword">const</span> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TCreator</a>&amp; <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">creator</a>, <a class="code hl_class" href="classIOv2_1_1locale.html">IOv2::locale&lt;char_type&gt;</a> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">loc</a>)</div>
+<div class="line"><a id="l00378" name="l00378"></a><span class="lineno">  378</span>        <span class="keyword">requires</span> (std::is_same_v&lt;</div>
+<div class="line"><a id="l00379" name="l00379"></a><span class="lineno">  379</span>                      <span class="keyword">typename</span> <span class="keyword">decltype</span>(<a class="code hl_struct" href="structIOv2_1_1streambuf.html">streambuf</a>{std::declval&lt;TDevice&gt;(),</div>
+<div class="line"><a id="l00380" name="l00380"></a><span class="lineno">  380</span>                                              std::declval&lt;const TCreator&amp;&gt;()})::char_type,</div>
+<div class="line"><a id="l00381" name="l00381"></a><span class="lineno">  381</span>                      <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a>&gt;)</div>
+<div class="line"><a id="l00382" name="l00382"></a><span class="lineno">  382</span>        : m_streambuf(std::move(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">dev</a>), <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">creator</a>)</div>
+<div class="line"><a id="l00383" name="l00383"></a><span class="lineno">  383</span>        , m_locale(std::move(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">loc</a>)) {}</div>
+</div>
+<div class="line"><a id="l00384" name="l00384"></a><span class="lineno">  384</span> </div>
+<div class="line"><a id="l00385" name="l00385"></a><span class="lineno">  385</span><span class="keyword">private</span>:</div>
+<div class="line"><a id="l00386" name="l00386"></a><span class="lineno">  386</span>    iostream(<span class="keyword">const</span> std::lock_guard&lt;copyable_mutex&lt;std::recursive_mutex&gt;&gt;&amp;,</div>
+<div class="line"><a id="l00387" name="l00387"></a><span class="lineno">  387</span>             <span class="keyword">const</span> iostream&amp; <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">other</a>)</div>
+<div class="line"><a id="l00388" name="l00388"></a><span class="lineno">  388</span>        : ios_state&lt;<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a>&gt;(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">other</a>)</div>
+<div class="line"><a id="l00389" name="l00389"></a><span class="lineno">  389</span>        , istream_operators&lt;<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a>&gt;(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">other</a>)</div>
+<div class="line"><a id="l00390" name="l00390"></a><span class="lineno">  390</span>        , out_flusher&lt;iostream&lt;<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TDevice</a>, <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a>&gt;&gt;(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">other</a>)</div>
+<div class="line"><a id="l00391" name="l00391"></a><span class="lineno">  391</span>        , ostream_operators&lt;<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a>&gt;(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">other</a>)</div>
+<div class="line"><a id="l00392" name="l00392"></a><span class="lineno">  392</span>        , stream_common_operators(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">other</a>)</div>
+<div class="line"><a id="l00393" name="l00393"></a><span class="lineno">  393</span>        , m_streambuf(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">other</a>.m_streambuf)</div>
+<div class="line"><a id="l00394" name="l00394"></a><span class="lineno">  394</span>        , m_locale(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">other</a>.m_locale) {}</div>
+<div class="line"><a id="l00395" name="l00395"></a><span class="lineno">  395</span> </div>
+<div class="line"><a id="l00396" name="l00396"></a><span class="lineno">  396</span><span class="keyword">public</span>:</div>
+<div class="line"><a id="l00423" name="l00423"></a><span class="lineno"><a class="line" href="classIOv2_1_1iostream.html#a14a03e64886b136097f805162e0d5b62">  423</a></span>    <a class="code hl_function" href="classIOv2_1_1iostream.html#a14a03e64886b136097f805162e0d5b62">iostream</a>(<span class="keyword">const</span> <a class="code hl_class" href="classIOv2_1_1iostream.html">iostream</a>&amp; <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">other</a>) : <a class="code hl_class" href="classIOv2_1_1iostream.html">iostream</a>(<a class="code hl_namespace" href="namespacestd.html">std</a>::<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">lock_guard</a>{<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">other</a>.io_mutex()}, <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">other</a>) {}</div>
+<div class="line"><a id="l00424" name="l00424"></a><span class="lineno"><a class="line" href="classIOv2_1_1iostream.html#a9b5d8c627f8c3db0b3ea36d7778b19d1">  424</a></span>    <a class="code hl_function" href="classIOv2_1_1iostream.html#a9b5d8c627f8c3db0b3ea36d7778b19d1">iostream</a>(<a class="code hl_class" href="classIOv2_1_1iostream.html">iostream</a>&amp;&amp;) <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">noexcept</a> = <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default</a>;</div>
+<div class="line"><a id="l00425" name="l00425"></a><span class="lineno">  425</span> </div>
+<div class="foldopen" id="foldopen00426" data-start="{" data-end="}">
+<div class="line"><a id="l00426" name="l00426"></a><span class="lineno"><a class="line" href="classIOv2_1_1iostream.html#ab51021dd99a79828fac211feff60f8f5">  426</a></span>    <a class="code hl_class" href="classIOv2_1_1iostream.html">iostream</a>&amp; <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">operator</a>=(<a class="code hl_class" href="classIOv2_1_1iostream.html">iostream</a>&amp;&amp; <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">other</a>) <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">noexcept</a></div>
+<div class="line"><a id="l00427" name="l00427"></a><span class="lineno">  427</span>    {</div>
+<div class="line"><a id="l00428" name="l00428"></a><span class="lineno">  428</span>        <span class="keywordflow">if</span> (<span class="keyword">this</span> == &amp;<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">other</a>) <span class="keywordflow">return</span> *<span class="keyword">this</span>;</div>
+<div class="line"><a id="l00429" name="l00429"></a><span class="lineno">  429</span> </div>
+<div class="line"><a id="l00430" name="l00430"></a><span class="lineno">  430</span>        std::lock_guard <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">guard</a>(this-&gt;io_mutex());</div>
+<div class="line"><a id="l00431" name="l00431"></a><span class="lineno">  431</span>        <span class="comment">// NOLINTBEGIN(bugprone-use-after-move): each `std::move(other)` below binds to a</span></div>
+<div class="line"><a id="l00432" name="l00432"></a><span class="lineno">  432</span>        <span class="comment">// *different* base subobject, and every one of those base assignments touches only its</span></div>
+<div class="line"><a id="l00433" name="l00433"></a><span class="lineno">  433</span>        <span class="comment">// own members; `m_streambuf` and `m_locale` belong to no base at all. Nothing is read</span></div>
+<div class="line"><a id="l00434" name="l00434"></a><span class="lineno">  434</span>        <span class="comment">// after being moved from -- clang-tidy just cannot see that the operands are disjoint.</span></div>
+<div class="line"><a id="l00435" name="l00435"></a><span class="lineno">  435</span>        <a class="code hl_function" href="classIOv2_1_1ios__base.html#a6a36467c2a28f2dc953b3bf8ba27ae9b">ios_state&lt;TChar&gt;::operator=</a>(std::move(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">other</a>));</div>
+<div class="line"><a id="l00436" name="l00436"></a><span class="lineno">  436</span>        <a class="code hl_struct" href="structIOv2_1_1istream__operators.html">istream_operators&lt;TChar&gt;::operator=</a>(std::move(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">other</a>));</div>
+<div class="line"><a id="l00437" name="l00437"></a><span class="lineno">  437</span>        <a class="code hl_struct" href="structIOv2_1_1out__flusher.html">out_flusher&lt;iostream&lt;TDevice, TChar&gt;</a>&gt;<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">::operator</a>=(std::move(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">other</a>));</div>
+<div class="line"><a id="l00438" name="l00438"></a><span class="lineno">  438</span>        <a class="code hl_struct" href="structIOv2_1_1ostream__operators.html">ostream_operators&lt;TChar&gt;::operator=</a>(std::move(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">other</a>));</div>
+<div class="line"><a id="l00439" name="l00439"></a><span class="lineno">  439</span>        <a class="code hl_function" href="structIOv2_1_1stream__common__operators.html#aba7b275a80c00cce68ebc195beb4e155">stream_common_operators::operator=</a>(std::move(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">other</a>));</div>
+<div class="line"><a id="l00440" name="l00440"></a><span class="lineno">  440</span>        m_streambuf = std::move(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">other</a>.m_streambuf);</div>
+<div class="line"><a id="l00441" name="l00441"></a><span class="lineno">  441</span>        m_locale    = std::move(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">other</a>.m_locale);</div>
+<div class="line"><a id="l00442" name="l00442"></a><span class="lineno">  442</span>        <span class="comment">// NOLINTEND(bugprone-use-after-move)</span></div>
+<div class="line"><a id="l00443" name="l00443"></a><span class="lineno">  443</span>        <span class="keywordflow">return</span> *<span class="keyword">this</span>;</div>
+<div class="line"><a id="l00444" name="l00444"></a><span class="lineno">  444</span>    }</div>
+</div>
+<div class="line"><a id="l00445" name="l00445"></a><span class="lineno">  445</span> </div>
+<div class="line"><a id="l00462" name="l00462"></a><span class="lineno">  462</span>    <span class="comment">// `override` because the `abs_flusher` base (reached through `out_flusher`) has a virtual</span></div>
+<div class="line"><a id="l00463" name="l00463"></a><span class="lineno">  463</span>    <span class="comment">// destructor, so this one is virtual whether or not it says so.</span></div>
+<div class="line"><a id="l00464" name="l00464"></a><span class="lineno"><a class="line" href="classIOv2_1_1iostream.html#a97f8e7d14d88f8cb0a45456b8fb2c361">  464</a></span>    <a class="code hl_function" href="classIOv2_1_1iostream.html#a97f8e7d14d88f8cb0a45456b8fb2c361">~iostream</a>() <span class="keyword">override</span> = <span class="keywordflow">default</span>;</div>
+<div class="line"><a id="l00465" name="l00465"></a><span class="lineno">  465</span> </div>
+<div class="foldopen" id="foldopen00501" data-start="{" data-end="}">
+<div class="line"><a id="l00501" name="l00501"></a><span class="lineno"><a class="line" href="classIOv2_1_1iostream.html#a9c6f824506da37ce2ee2065126a4f5ba">  501</a></span>    <a class="code hl_class" href="classIOv2_1_1iostream.html">iostream</a>&amp; <a class="code hl_function" href="classIOv2_1_1iostream.html#a9c6f824506da37ce2ee2065126a4f5ba">operator=</a>(<span class="keyword">const</span> <a class="code hl_class" href="classIOv2_1_1iostream.html">iostream</a>&amp; <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">other</a>)</div>
+<div class="line"><a id="l00502" name="l00502"></a><span class="lineno">  502</span>    {</div>
+<div class="line"><a id="l00503" name="l00503"></a><span class="lineno">  503</span>        <span class="keyword">static_assert</span>(std::is_nothrow_move_assignable_v&lt;iostream&lt;TDevice, TChar&gt;&gt;,</div>
+<div class="line"><a id="l00504" name="l00504"></a><span class="lineno">  504</span>                      <span class="stringliteral">&quot;the noexcept on move assignment must stay: it is what keeps the commit &quot;</span></div>
+<div class="line"><a id="l00505" name="l00505"></a><span class="lineno">  505</span>                      <span class="stringliteral">&quot;step below from leaving *this half-updated&quot;</span>);</div>
+<div class="line"><a id="l00506" name="l00506"></a><span class="lineno">  506</span>        <span class="keywordflow">if</span> (<span class="keyword">this</span> != &amp;<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">other</a>)</div>
+<div class="line"><a id="l00507" name="l00507"></a><span class="lineno">  507</span>        {</div>
+<div class="line"><a id="l00508" name="l00508"></a><span class="lineno">  508</span>            <a class="code hl_class" href="classIOv2_1_1iostream.html">iostream</a> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">tmp</a>(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">other</a>);</div>
+<div class="line"><a id="l00509" name="l00509"></a><span class="lineno">  509</span>            *<span class="keyword">this</span> = std::move(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">tmp</a>);</div>
+<div class="line"><a id="l00510" name="l00510"></a><span class="lineno">  510</span>        }</div>
+<div class="line"><a id="l00511" name="l00511"></a><span class="lineno">  511</span>        <span class="keywordflow">return</span> *<span class="keyword">this</span>;</div>
+<div class="line"><a id="l00512" name="l00512"></a><span class="lineno">  512</span>    }</div>
+</div>
+<div class="line"><a id="l00513" name="l00513"></a><span class="lineno">  513</span> </div>
+<div class="line"><a id="l00514" name="l00514"></a><span class="lineno">  514</span><span class="keyword">public</span>:</div>
+<div class="foldopen" id="foldopen00592" data-start="{" data-end="}">
+<div class="line"><a id="l00592" name="l00592"></a><span class="lineno"><a class="line" href="classIOv2_1_1iostream.html#ac48556dc70ab43d55494629f1e4ea524">  592</a></span>    <a class="code hl_class" href="classIOv2_1_1iostream.html">iostream</a>&amp; <a class="code hl_function" href="classIOv2_1_1iostream.html#ac48556dc70ab43d55494629f1e4ea524">switch_to_put</a>()</div>
+<div class="line"><a id="l00593" name="l00593"></a><span class="lineno">  593</span>    {</div>
+<div class="line"><a id="l00594" name="l00594"></a><span class="lineno">  594</span>        std::lock_guard <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">guard</a>(this-&gt;io_mutex());</div>
+<div class="line"><a id="l00595" name="l00595"></a><span class="lineno">  595</span>        <span class="keywordflow">if</span> (!<span class="keyword">static_cast&lt;</span><span class="keywordtype">bool</span><span class="keyword">&gt;</span>(*<span class="keyword">this</span>)) <span class="keywordflow">return</span> *<span class="keyword">this</span>;</div>
+<div class="line"><a id="l00596" name="l00596"></a><span class="lineno">  596</span>        <span class="keywordflow">try</span></div>
+<div class="line"><a id="l00597" name="l00597"></a><span class="lineno">  597</span>        {</div>
+<div class="line"><a id="l00598" name="l00598"></a><span class="lineno">  598</span>            m_streambuf.switch_to_put();</div>
+<div class="line"><a id="l00599" name="l00599"></a><span class="lineno">  599</span>        }</div>
+<div class="line"><a id="l00600" name="l00600"></a><span class="lineno">  600</span>        <span class="keywordflow">catch</span>(...)</div>
+<div class="line"><a id="l00601" name="l00601"></a><span class="lineno">  601</span>        {</div>
+<div class="line"><a id="l00602" name="l00602"></a><span class="lineno">  602</span>            this-&gt;handle_exception(std::current_exception());</div>
+<div class="line"><a id="l00603" name="l00603"></a><span class="lineno">  603</span>        }</div>
+<div class="line"><a id="l00604" name="l00604"></a><span class="lineno">  604</span>        <span class="keywordflow">return</span> *<span class="keyword">this</span>;</div>
+<div class="line"><a id="l00605" name="l00605"></a><span class="lineno">  605</span>    }</div>
+</div>
+<div class="line"><a id="l00606" name="l00606"></a><span class="lineno">  606</span> </div>
+<div class="foldopen" id="foldopen00622" data-start="{" data-end="}">
+<div class="line"><a id="l00622" name="l00622"></a><span class="lineno"><a class="line" href="classIOv2_1_1iostream.html#a43a1cc65a6fb32a20058e952423d6d8a">  622</a></span>    <a class="code hl_class" href="classIOv2_1_1iostream.html">iostream</a>&amp; <a class="code hl_function" href="classIOv2_1_1iostream.html#a43a1cc65a6fb32a20058e952423d6d8a">switch_to_get</a>()</div>
+<div class="line"><a id="l00623" name="l00623"></a><span class="lineno">  623</span>    {</div>
+<div class="line"><a id="l00624" name="l00624"></a><span class="lineno">  624</span>        std::lock_guard <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">guard</a>(this-&gt;io_mutex());</div>
+<div class="line"><a id="l00625" name="l00625"></a><span class="lineno">  625</span>        <span class="keywordflow">if</span> (!<span class="keyword">static_cast&lt;</span><span class="keywordtype">bool</span><span class="keyword">&gt;</span>(*<span class="keyword">this</span>)) <span class="keywordflow">return</span> *<span class="keyword">this</span>;</div>
+<div class="line"><a id="l00626" name="l00626"></a><span class="lineno">  626</span>        <span class="keywordflow">try</span></div>
+<div class="line"><a id="l00627" name="l00627"></a><span class="lineno">  627</span>        {</div>
+<div class="line"><a id="l00628" name="l00628"></a><span class="lineno">  628</span>            m_streambuf.switch_to_get();</div>
+<div class="line"><a id="l00629" name="l00629"></a><span class="lineno">  629</span>        }</div>
+<div class="line"><a id="l00630" name="l00630"></a><span class="lineno">  630</span>        <span class="keywordflow">catch</span>(...)</div>
+<div class="line"><a id="l00631" name="l00631"></a><span class="lineno">  631</span>        {</div>
+<div class="line"><a id="l00632" name="l00632"></a><span class="lineno">  632</span>            this-&gt;handle_exception(std::current_exception());</div>
+<div class="line"><a id="l00633" name="l00633"></a><span class="lineno">  633</span>        }</div>
+<div class="line"><a id="l00634" name="l00634"></a><span class="lineno">  634</span>        <span class="keywordflow">return</span> *<span class="keyword">this</span>;</div>
+<div class="line"><a id="l00635" name="l00635"></a><span class="lineno">  635</span>    }</div>
+</div>
+<div class="line"><a id="l00636" name="l00636"></a><span class="lineno">  636</span> </div>
+<div class="line"><a id="l00637" name="l00637"></a><span class="lineno">  637</span><span class="keyword">private</span>:</div>
+<div class="line"><a id="l00638" name="l00638"></a><span class="lineno">  638</span>    <a class="code hl_struct" href="structIOv2_1_1streambuf.html">streambuf&lt;TDevice, TChar&gt;</a> m_streambuf;</div>
+<div class="line"><a id="l00639" name="l00639"></a><span class="lineno">  639</span>    <a class="code hl_class" href="classIOv2_1_1locale.html">IOv2::locale&lt;char_type&gt;</a> m_locale;</div>
+<div class="line"><a id="l00640" name="l00640"></a><span class="lineno">  640</span>};</div>
+</div>
+<div class="line"><a id="l00641" name="l00641"></a><span class="lineno">  641</span> </div>
+<div class="line"><a id="l00665" name="l00665"></a><span class="lineno">  665</span><span class="keyword">template</span> &lt;io_device TDevice&gt;</div>
+<div class="line"><a id="l00666" name="l00666"></a><span class="lineno"><a class="line" href="namespaceIOv2.html#afc97cf34e1048a29a59490ce28251047">  666</a></span><a class="code hl_class" href="classIOv2_1_1iostream.html">iostream</a>(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TDevice</a>) -&gt; <a class="code hl_class" href="classIOv2_1_1iostream.html">iostream&lt;TDevice, typename TDevice::char_type&gt;</a>;</div>
+<div class="line"><a id="l00667" name="l00667"></a><span class="lineno">  667</span> </div>
+<div class="line"><a id="l00684" name="l00684"></a><span class="lineno">  684</span><span class="keyword">template</span> &lt;io_device TDevice, cvt_creator TCreator&gt;</div>
+<div class="line"><a id="l00685" name="l00685"></a><span class="lineno"><a class="line" href="namespaceIOv2.html#a9210e923a8b4ec67aefbc7a20ea1b2b3">  685</a></span><a class="code hl_class" href="classIOv2_1_1iostream.html">iostream</a>(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TDevice</a>, <span class="keyword">const</span> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TCreator</a>&amp;)</div>
+<div class="line"><a id="l00686" name="l00686"></a><span class="lineno">  686</span>    -&gt; <a class="code hl_class" href="classIOv2_1_1iostream.html">iostream</a>&lt;<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TDevice</a>,</div>
+<div class="line"><a id="l00687" name="l00687"></a><span class="lineno">  687</span>                <span class="keyword">typename</span> <span class="keyword">decltype</span>(<a class="code hl_struct" href="structIOv2_1_1streambuf.html">streambuf</a>{std::declval&lt;TDevice&gt;(),</div>
+<div class="line"><a id="l00688" name="l00688"></a><span class="lineno">  688</span>                                            std::declval&lt;const TCreator&amp;&gt;()})::char_type&gt;;</div>
+<div class="line"><a id="l00689" name="l00689"></a><span class="lineno">  689</span> </div>
+<div class="line"><a id="l00690" name="l00690"></a><span class="lineno">  690</span>}</div>
+<div class="ttc" id="aclassIOv2_1_1ios__base_html_a6a36467c2a28f2dc953b3bf8ba27ae9b"><div class="ttname"><a href="classIOv2_1_1ios__base.html#a6a36467c2a28f2dc953b3bf8ba27ae9b">IOv2::ios_base::operator=</a></div><div class="ttdeci">ios_base &amp; operator=(const ios_base &amp;)=default</div></div>
+<div class="ttc" id="aclassIOv2_1_1iostream_html"><div class="ttname"><a href="classIOv2_1_1iostream.html">IOv2::iostream</a></div><div class="ttdoc">双向字符流：把一条 streambuf 与一个 locale 组合成带格式化的输入输出接口。</div><div class="ttdef"><b>Definition</b> iostream.h:167</div></div>
+<div class="ttc" id="aclassIOv2_1_1iostream_html_a14a03e64886b136097f805162e0d5b62"><div class="ttname"><a href="classIOv2_1_1iostream.html#a14a03e64886b136097f805162e0d5b62">IOv2::iostream::iostream</a></div><div class="ttdeci">iostream(const iostream &amp;other)</div><div class="ttdoc">拷贝构造、移动构造与移动赋值。</div><div class="ttdef"><b>Definition</b> iostream.h:423</div></div>
+<div class="ttc" id="aclassIOv2_1_1iostream_html_a161f318df67a3d0e19e5d380beb94bdb"><div class="ttname"><a href="classIOv2_1_1iostream.html#a161f318df67a3d0e19e5d380beb94bdb">IOv2::iostream::out_sentry_type</a></div><div class="ttdeci">friend out_sentry_type</div><div class="ttdef"><b>Definition</b> iostream.h:213</div></div>
+<div class="ttc" id="aclassIOv2_1_1iostream_html_a1d4758138a701bd50bd2bbbc8d78c8e7"><div class="ttname"><a href="classIOv2_1_1iostream.html#a1d4758138a701bd50bd2bbbc8d78c8e7">IOv2::iostream::device_type</a></div><div class="ttdeci">TDevice device_type</div><div class="ttdef"><b>Definition</b> iostream.h:171</div></div>
+<div class="ttc" id="aclassIOv2_1_1iostream_html_a43a1cc65a6fb32a20058e952423d6d8a"><div class="ttname"><a href="classIOv2_1_1iostream.html#a43a1cc65a6fb32a20058e952423d6d8a">IOv2::iostream::switch_to_get</a></div><div class="ttdeci">iostream &amp; switch_to_get()</div><div class="ttdoc">将底层缓冲区切换到读取方向。</div><div class="ttdef"><b>Definition</b> iostream.h:622</div></div>
+<div class="ttc" id="aclassIOv2_1_1iostream_html_a689fa5b6e000dff9d033a3c6bf3b2205"><div class="ttname"><a href="classIOv2_1_1iostream.html#a689fa5b6e000dff9d033a3c6bf3b2205">IOv2::iostream::iostream</a></div><div class="ttdeci">iostream(TDevice dev, const TCreator &amp;creator, IOv2::locale&lt; char_type &gt; loc)</div><div class="ttdoc">以 dev 建立流，由 creator 构造转换器，并装入 locale loc。</div><div class="ttdef"><b>Definition</b> iostream.h:377</div></div>
+<div class="ttc" id="aclassIOv2_1_1iostream_html_a73ad400182a7886b50ab6ebb47ecbaf6"><div class="ttname"><a href="classIOv2_1_1iostream.html#a73ad400182a7886b50ab6ebb47ecbaf6">IOv2::iostream::in_sentry_type</a></div><div class="ttdeci">friend in_sentry_type</div><div class="ttdef"><b>Definition</b> iostream.h:212</div></div>
+<div class="ttc" id="aclassIOv2_1_1iostream_html_a7d26df3e4475add04ccd68e16a9f9e4e"><div class="ttname"><a href="classIOv2_1_1iostream.html#a7d26df3e4475add04ccd68e16a9f9e4e">IOv2::iostream::iostream</a></div><div class="ttdeci">iostream(TDevice dev, const TCreator &amp;creator)</div><div class="ttdoc">以 dev 建立流，并由 creator 构造转换器。</div><div class="ttdef"><b>Definition</b> iostream.h:310</div></div>
+<div class="ttc" id="aclassIOv2_1_1iostream_html_a97f8e7d14d88f8cb0a45456b8fb2c361"><div class="ttname"><a href="classIOv2_1_1iostream.html#a97f8e7d14d88f8cb0a45456b8fb2c361">IOv2::iostream::~iostream</a></div><div class="ttdeci">~iostream() override=default</div><div class="ttdoc">析构函数。</div></div>
+<div class="ttc" id="aclassIOv2_1_1iostream_html_a9b5d8c627f8c3db0b3ea36d7778b19d1"><div class="ttname"><a href="classIOv2_1_1iostream.html#a9b5d8c627f8c3db0b3ea36d7778b19d1">IOv2::iostream::iostream</a></div><div class="ttdeci">iostream(iostream &amp;&amp;) noexcept=default</div></div>
+<div class="ttc" id="aclassIOv2_1_1iostream_html_a9c6f824506da37ce2ee2065126a4f5ba"><div class="ttname"><a href="classIOv2_1_1iostream.html#a9c6f824506da37ce2ee2065126a4f5ba">IOv2::iostream::operator=</a></div><div class="ttdeci">iostream &amp; operator=(const iostream &amp;other)</div><div class="ttdoc">拷贝赋值；提供强异常保证：先整体拷进临时对象（可能抛出，此时目标尚未被触碰）， 再以全程 noexcept 的移动赋值提交。move-only 内核（如 file_device）上的拷贝必然 抛出，故自...</div><div class="ttdef"><b>Definition</b> iostream.h:501</div></div>
+<div class="ttc" id="aclassIOv2_1_1iostream_html_aab15c4e063dd2af93a5fcd5d7999fa76"><div class="ttname"><a href="classIOv2_1_1iostream.html#aab15c4e063dd2af93a5fcd5d7999fa76">IOv2::iostream::iostream</a></div><div class="ttdeci">iostream(TDevice dev, IOv2::locale&lt; char_type &gt; loc)</div><div class="ttdoc">以 dev 建立流，并装入 locale loc。</div><div class="ttdef"><b>Definition</b> iostream.h:343</div></div>
+<div class="ttc" id="aclassIOv2_1_1iostream_html_ac48556dc70ab43d55494629f1e4ea524"><div class="ttname"><a href="classIOv2_1_1iostream.html#ac48556dc70ab43d55494629f1e4ea524">IOv2::iostream::switch_to_put</a></div><div class="ttdeci">iostream &amp; switch_to_put()</div><div class="ttdoc">将底层缓冲区切换到写入方向。</div><div class="ttdef"><b>Definition</b> iostream.h:592</div></div>
+<div class="ttc" id="aclassIOv2_1_1iostream_html_aca3295757b7fc4b650abc9261dd6fca5"><div class="ttname"><a href="classIOv2_1_1iostream.html#aca3295757b7fc4b650abc9261dd6fca5">IOv2::iostream::iostream</a></div><div class="ttdeci">iostream(TDevice dev)</div><div class="ttdoc">以 dev 建立流。</div><div class="ttdef"><b>Definition</b> iostream.h:283</div></div>
+<div class="ttc" id="aclassIOv2_1_1iostream_html_ad464b4047712d32b0a8937f0c29f04d8"><div class="ttname"><a href="classIOv2_1_1iostream.html#ad464b4047712d32b0a8937f0c29f04d8">IOv2::iostream::iostream</a></div><div class="ttdeci">iostream()</div><div class="ttdoc">以默认构造的设备建立流。</div><div class="ttdef"><b>Definition</b> iostream.h:262</div></div>
+<div class="ttc" id="aclassIOv2_1_1iostream_html_ae1b892f26d6bd6895a02f67dab7bbd7f"><div class="ttname"><a href="classIOv2_1_1iostream.html#ae1b892f26d6bd6895a02f67dab7bbd7f">IOv2::iostream::char_type</a></div><div class="ttdeci">TChar char_type</div><div class="ttdef"><b>Definition</b> iostream.h:175</div></div>
+<div class="ttc" id="aclassIOv2_1_1iostream_html_aed34d12ad58ef5b26b23f08b0fc873b0"><div class="ttname"><a href="classIOv2_1_1iostream.html#aed34d12ad58ef5b26b23f08b0fc873b0">IOv2::iostream::stream_common_operators</a></div><div class="ttdeci">friend stream_common_operators</div><div class="ttdef"><b>Definition</b> iostream.h:217</div></div>
+<div class="ttc" id="aclassIOv2_1_1istreambuf__iterator_html"><div class="ttname"><a href="classIOv2_1_1istreambuf__iterator.html">IOv2::istreambuf_iterator</a></div><div class="ttdoc">输入流缓冲区迭代器（单遍输入迭代器）。</div><div class="ttdef"><b>Definition</b> streambuf_iterator.h:83</div></div>
+<div class="ttc" id="aclassIOv2_1_1locale_html"><div class="ttname"><a href="classIOv2_1_1locale.html">IOv2::locale</a></div><div class="ttdoc">管理一组 facet 的本地化对象。</div><div class="ttdef"><b>Definition</b> locale.h:133</div></div>
+<div class="ttc" id="aclassIOv2_1_1ostreambuf__iterator_html"><div class="ttname"><a href="classIOv2_1_1ostreambuf__iterator.html">IOv2::ostreambuf_iterator</a></div><div class="ttdoc">输出流缓冲区迭代器（输出迭代器）。</div><div class="ttdef"><b>Definition</b> streambuf_iterator.h:403</div></div>
+<div class="ttc" id="acopyable__mutex_8h_html"><div class="ttname"><a href="copyable__mutex_8h.html">copyable_mutex.h</a></div></div>
+<div class="ttc" id="acvt__concepts_8h_html"><div class="ttname"><a href="cvt__concepts_8h.html">cvt_concepts.h</a></div></div>
+<div class="ttc" id="adevice__concepts_8h_html"><div class="ttname"><a href="device__concepts_8h.html">device_concepts.h</a></div></div>
+<div class="ttc" id="aio__base_8h_html"><div class="ttname"><a href="io__base_8h.html">io_base.h</a></div></div>
+<div class="ttc" id="aistream__operators_8h_html"><div class="ttname"><a href="istream__operators_8h.html">istream_operators.h</a></div></div>
+<div class="ttc" id="alocale_8h_html"><div class="ttname"><a href="locale_8h.html">locale.h</a></div></div>
+<div class="ttc" id="anamespaceIOv2_html"><div class="ttname"><a href="namespaceIOv2.html">IOv2</a></div><div class="ttdef"><b>Definition</b> clocale_wrapper.h:22</div></div>
+<div class="ttc" id="anamespaceIOv2_html_a09b31017574cb5471d2558481d0f4d7a"><div class="ttname"><a href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">IOv2::is_small_type_v</a></div><div class="ttdeci">constexpr bool is_small_type_v</div><div class="ttdef"><b>Definition</b> metafunctions.h:83</div></div>
+<div class="ttc" id="anamespacestd_html"><div class="ttname"><a href="namespacestd.html">std</a></div><div class="ttdef"><b>Definition</b> ori_facet_buf.h:82</div></div>
+<div class="ttc" id="aostream__operators_8h_html"><div class="ttname"><a href="ostream__operators_8h.html">ostream_operators.h</a></div></div>
+<div class="ttc" id="astream__common__operators_8h_html"><div class="ttname"><a href="stream__common__operators_8h.html">stream_common_operators.h</a></div></div>
+<div class="ttc" id="astreambuf_8h_html"><div class="ttname"><a href="streambuf_8h.html">streambuf.h</a></div></div>
+<div class="ttc" id="astreambuf__iterator_8h_html"><div class="ttname"><a href="streambuf__iterator_8h.html">streambuf_iterator.h</a></div></div>
+<div class="ttc" id="astructIOv2_1_1in__sentry_html"><div class="ttname"><a href="structIOv2_1_1in__sentry.html">IOv2::in_sentry</a></div><div class="ttdoc">输入操作的 RAII 哨兵：在每次提取操作的入口统一完成前置准备。</div><div class="ttdef"><b>Definition</b> istream_operators.h:69</div></div>
+<div class="ttc" id="astructIOv2_1_1ios__state_html"><div class="ttname"><a href="structIOv2_1_1ios__state.html">IOv2::ios_state</a></div><div class="ttdoc">在格式化状态之上，管理流状态位及其关联异常的组件。</div><div class="ttdef"><b>Definition</b> io_base.h:857</div></div>
+<div class="ttc" id="astructIOv2_1_1istream__operators_html"><div class="ttname"><a href="structIOv2_1_1istream__operators.html">IOv2::istream_operators</a></div><div class="ttdoc">为输入流提供各类提取操作的混入（mix-in）基类。</div><div class="ttdef"><b>Definition</b> istream_operators.h:481</div></div>
+<div class="ttc" id="astructIOv2_1_1ostream__operators_html"><div class="ttname"><a href="structIOv2_1_1ostream__operators.html">IOv2::ostream_operators</a></div><div class="ttdoc">为输出流提供各类插入操作的混入（mix-in）基类。</div><div class="ttdef"><b>Definition</b> ostream_operators.h:623</div></div>
+<div class="ttc" id="astructIOv2_1_1out__flusher_html"><div class="ttname"><a href="structIOv2_1_1out__flusher.html">IOv2::out_flusher</a></div><div class="ttdoc">承载多态 try_flush() 的 CRTP 基类：对具体流类型 T 的向下转型集中于此。</div><div class="ttdef"><b>Definition</b> ostream_operators.h:373</div></div>
+<div class="ttc" id="astructIOv2_1_1out__sentry_html"><div class="ttname"><a href="structIOv2_1_1out__sentry.html">IOv2::out_sentry</a></div><div class="ttdoc">输出操作的 RAII 哨兵：在每次插入操作的入口统一完成前置准备与末尾自动刷新。</div><div class="ttdef"><b>Definition</b> ostream_operators.h:73</div></div>
+<div class="ttc" id="astructIOv2_1_1stream__common__operators_html"><div class="ttname"><a href="structIOv2_1_1stream__common__operators.html">IOv2::stream_common_operators</a></div><div class="ttdoc">为输入流与输出流提供公共操作的混入（mix-in）基类。</div><div class="ttdef"><b>Definition</b> stream_common_operators.h:120</div></div>
+<div class="ttc" id="astructIOv2_1_1stream__common__operators_html_aba7b275a80c00cce68ebc195beb4e155"><div class="ttname"><a href="structIOv2_1_1stream__common__operators.html#aba7b275a80c00cce68ebc195beb4e155">IOv2::stream_common_operators::operator=</a></div><div class="ttdeci">stream_common_operators &amp; operator=(const stream_common_operators &amp;) noexcept</div><div class="ttdef"><b>Definition</b> stream_common_operators.h:209</div></div>
+<div class="ttc" id="astructIOv2_1_1streambuf_html"><div class="ttname"><a href="structIOv2_1_1streambuf.html">IOv2::streambuf</a></div><div class="ttdoc">双向流缓冲区：同时支持输入与输出。</div><div class="ttdef"><b>Definition</b> streambuf.h:978</div></div>
+</div><!-- fragment --></div><!-- contents -->
+</div><!-- doc-content -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><a class="el" href="dir_d44c64559bbebec7f509842c48db8b23.html">include</a></li><li class="navelem"><a class="el" href="dir_1157f564aec2b3a7d6bde4eba89ab805.html">IOv2</a></li><li class="navelem"><a class="el" href="dir_e6325c10be556c0ae106bae233ca0d0f.html">io</a></li><li class="navelem"><a class="el" href="iostream_8h.html">iostream.h</a></li>
+    <li class="footer">制作者 <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8 </li>
+  </ul>
+</div>
+</body>
+</html>

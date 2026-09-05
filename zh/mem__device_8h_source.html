@@ -1,0 +1,400 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=11"/>
+<meta name="generator" content="Doxygen 1.9.8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>IOv2: include/IOv2/device/mem_device.h 源文件</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="resize.js"></script>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr id="projectrow">
+  <td id="projectalign">
+   <div id="projectname">IOv2
+   </div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 制作者 Doxygen 1.9.8 -->
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+/* @license-end */
+</script>
+<script type="text/javascript" src="menudata.js"></script>
+<script type="text/javascript" src="menu.js"></script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(function() {
+  initMenu('',true,false,'search.php','搜索');
+  $(document).ready(function() { init_search(); });
+});
+/* @license-end */
+</script>
+<div id="main-nav"></div>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(document).ready(function() { init_codefold(0); });
+/* @license-end */
+</script>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(document).ready(function(){initNavTree('mem__device_8h_source.html',''); initResizable(); });
+/* @license-end */
+</script>
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">载入中...</div>
+<div class="SRStatus" id="Searching">搜索中...</div>
+<div class="SRStatus" id="NoMatches">未找到</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="header">
+  <div class="headertitle"><div class="title">mem_device.h</div></div>
+</div><!--header-->
+<div class="contents">
+<a href="mem__device_8h.html">浏览该文件的文档.</a><div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span><span class="comment">// SPDX-FileCopyrightText: 2026 liwei &lt;liwei.cpp@gmail.com&gt;</span></div>
+<div class="line"><a id="l00002" name="l00002"></a><span class="lineno">    2</span><span class="comment">// SPDX-License-Identifier: MIT</span></div>
+<div class="line"><a id="l00003" name="l00003"></a><span class="lineno">    3</span> </div>
+<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span><span class="preprocessor">#pragma once</span></div>
+<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span><span class="preprocessor">#include &lt;<a class="code" href="defs_8h.html">IOv2/common/defs.h</a>&gt;</span></div>
+<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span><span class="preprocessor">#include &lt;<a class="code" href="device__concepts_8h.html">IOv2/device/device_concepts.h</a>&gt;</span></div>
+<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span> </div>
+<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span><span class="preprocessor">#include &lt;algorithm&gt;</span></div>
+<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span><span class="preprocessor">#include &lt;cassert&gt;</span></div>
+<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span><span class="preprocessor">#include &lt;cstddef&gt;</span></div>
+<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span><span class="preprocessor">#include &lt;cstring&gt;</span></div>
+<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span><span class="preprocessor">#include &lt;memory&gt;</span></div>
+<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span><span class="preprocessor">#include &lt;optional&gt;</span></div>
+<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span><span class="preprocessor">#include &lt;string&gt;</span></div>
+<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span><span class="preprocessor">#include &lt;type_traits&gt;</span></div>
+<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span><span class="preprocessor">#include &lt;utility&gt;</span></div>
+<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span> </div>
+<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span><span class="keyword">namespace </span><a class="code hl_namespace" href="namespaceIOv2.html">IOv2</a></div>
+<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span>{</div>
+<div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span><span class="keyword">template</span> &lt;<span class="keyword">class </span><a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a>,</div>
+<div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span>          <span class="keyword">class </span><a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Traits</a> = std::char_traits&lt;CharT&gt;,</div>
+<div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span>          <span class="keyword">class </span><a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Allocator</a> = std::allocator&lt;CharT&gt;&gt;</div>
+<div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span>    <span class="keyword">requires</span> std::is_trivially_copyable_v&lt;CharT&gt; &amp;&amp;</div>
+<div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span>             (std::allocator_traits&lt;Allocator&gt;::is_always_equal::value ||</div>
+<div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span>              std::allocator_traits&lt;Allocator&gt;::propagate_on_container_move_assignment::value)</div>
+<div class="foldopen" id="foldopen00072" data-start="{" data-end="};">
+<div class="line"><a id="l00072" name="l00072"></a><span class="lineno"><a class="line" href="classIOv2_1_1mem__device.html">   72</a></span><span class="keyword">class</span> <a class="code hl_class" href="classIOv2_1_1mem__device.html">mem_device</a></div>
+<div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span>{</div>
+<div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span><span class="keyword">public</span>:</div>
+<div class="line"><a id="l00075" name="l00075"></a><span class="lineno"><a class="line" href="classIOv2_1_1mem__device.html#af5fcd3b119b72b48bd54bfa09353a6d3">   75</a></span>    <span class="keyword">using </span><a class="code hl_typedef" href="classIOv2_1_1mem__device.html#af5fcd3b119b72b48bd54bfa09353a6d3">char_type</a> = <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a>;</div>
+<div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span> </div>
+<div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span><span class="keyword">public</span>:</div>
+<div class="foldopen" id="foldopen00089" data-start="{" data-end="}">
+<div class="line"><a id="l00089" name="l00089"></a><span class="lineno"><a class="line" href="classIOv2_1_1mem__device.html#a110ad91c5f6e872daf7e72f0bb13cc2c">   89</a></span>    <a class="code hl_function" href="classIOv2_1_1mem__device.html#a110ad91c5f6e872daf7e72f0bb13cc2c">mem_device</a>(std::basic_string&lt;CharT, Traits, Allocator&gt; <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">info</a> = std::basic_string&lt;CharT, Traits, Allocator&gt;{})</div>
+<div class="line"><a id="l00090" name="l00090"></a><span class="lineno">   90</span>        : m_str(<a class="code hl_namespace" href="namespacestd.html">std</a>::<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">move</a>(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">info</a>))</div>
+<div class="line"><a id="l00091" name="l00091"></a><span class="lineno">   91</span>    {}</div>
+</div>
+<div class="line"><a id="l00092" name="l00092"></a><span class="lineno">   92</span> </div>
+<div class="foldopen" id="foldopen00106" data-start="{" data-end="}">
+<div class="line"><a id="l00106" name="l00106"></a><span class="lineno"><a class="line" href="classIOv2_1_1mem__device.html#a757a1e5429c422c6e908105ce86c68f8">  106</a></span>    <span class="keyword">explicit</span> <a class="code hl_function" href="classIOv2_1_1mem__device.html#a757a1e5429c422c6e908105ce86c68f8">mem_device</a>(<span class="keyword">const</span> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a>* str)</div>
+<div class="line"><a id="l00107" name="l00107"></a><span class="lineno">  107</span>        : m_str(str ? str : <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">throw</a> <a class="code hl_struct" href="structIOv2_1_1device__error.html">device_error</a>(<span class="stringliteral">&quot;mem_device: null string pointer&quot;</span>))</div>
+<div class="line"><a id="l00108" name="l00108"></a><span class="lineno">  108</span>    {}</div>
+</div>
+<div class="line"><a id="l00109" name="l00109"></a><span class="lineno">  109</span> </div>
+<div class="line"><a id="l00110" name="l00110"></a><span class="lineno"><a class="line" href="classIOv2_1_1mem__device.html#a077cb6206124be5452bccf48e9a65317">  110</a></span>    <a class="code hl_function" href="classIOv2_1_1mem__device.html#a077cb6206124be5452bccf48e9a65317">mem_device</a>(<span class="keyword">const</span> <a class="code hl_class" href="classIOv2_1_1mem__device.html">mem_device</a>&amp;) = <span class="keywordflow">default</span>;</div>
+<div class="line"><a id="l00111" name="l00111"></a><span class="lineno"><a class="line" href="classIOv2_1_1mem__device.html#ac166c2c30e6893c831da899ada79e073">  111</a></span>    <a class="code hl_class" href="classIOv2_1_1mem__device.html">mem_device</a>&amp; <a class="code hl_function" href="classIOv2_1_1mem__device.html#ac166c2c30e6893c831da899ada79e073">operator=</a>(<span class="keyword">const</span> <a class="code hl_class" href="classIOv2_1_1mem__device.html">mem_device</a>&amp;) = <span class="keywordflow">default</span>;</div>
+<div class="foldopen" id="foldopen00112" data-start="{" data-end="}">
+<div class="line"><a id="l00112" name="l00112"></a><span class="lineno"><a class="line" href="classIOv2_1_1mem__device.html#aed508db6bfd6c2d02ea9b7ade21dc16f">  112</a></span>    <a class="code hl_function" href="classIOv2_1_1mem__device.html#aed508db6bfd6c2d02ea9b7ade21dc16f">mem_device</a>(<a class="code hl_class" href="classIOv2_1_1mem__device.html">mem_device</a>&amp;&amp; <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">other</a>) <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">noexcept</a></div>
+<div class="line"><a id="l00113" name="l00113"></a><span class="lineno">  113</span>        : m_str(std::move(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">other</a>.m_str))</div>
+<div class="line"><a id="l00114" name="l00114"></a><span class="lineno">  114</span>        , m_next_pos(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">other</a>.m_next_pos)</div>
+<div class="line"><a id="l00115" name="l00115"></a><span class="lineno">  115</span>        , m_put_buf_checkpoint(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">other</a>.m_put_buf_checkpoint)</div>
+<div class="line"><a id="l00116" name="l00116"></a><span class="lineno">  116</span>    {</div>
+<div class="line"><a id="l00117" name="l00117"></a><span class="lineno">  117</span>        <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">other</a>.m_next_pos = 0;</div>
+<div class="line"><a id="l00118" name="l00118"></a><span class="lineno">  118</span>        <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">other</a>.m_put_buf_checkpoint.reset();</div>
+<div class="line"><a id="l00119" name="l00119"></a><span class="lineno">  119</span>    }</div>
+</div>
+<div class="line"><a id="l00120" name="l00120"></a><span class="lineno">  120</span> </div>
+<div class="foldopen" id="foldopen00121" data-start="{" data-end="}">
+<div class="line"><a id="l00121" name="l00121"></a><span class="lineno"><a class="line" href="classIOv2_1_1mem__device.html#a30e478bfea044e5521749a49282c394c">  121</a></span>    <a class="code hl_class" href="classIOv2_1_1mem__device.html">mem_device</a>&amp; <a class="code hl_function" href="classIOv2_1_1mem__device.html#a30e478bfea044e5521749a49282c394c">operator=</a>(<a class="code hl_class" href="classIOv2_1_1mem__device.html">mem_device</a>&amp;&amp; <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">other</a>) <span class="keyword">noexcept</span></div>
+<div class="line"><a id="l00122" name="l00122"></a><span class="lineno">  122</span>    {</div>
+<div class="line"><a id="l00123" name="l00123"></a><span class="lineno">  123</span>        <span class="keywordflow">if</span> (<span class="keyword">this</span> != &amp;<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">other</a>)</div>
+<div class="line"><a id="l00124" name="l00124"></a><span class="lineno">  124</span>        {</div>
+<div class="line"><a id="l00125" name="l00125"></a><span class="lineno">  125</span>            m_str = std::move(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">other</a>.m_str);</div>
+<div class="line"><a id="l00126" name="l00126"></a><span class="lineno">  126</span>            m_next_pos = <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">other</a>.m_next_pos;</div>
+<div class="line"><a id="l00127" name="l00127"></a><span class="lineno">  127</span>            m_put_buf_checkpoint = <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">other</a>.m_put_buf_checkpoint;</div>
+<div class="line"><a id="l00128" name="l00128"></a><span class="lineno">  128</span>            <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">other</a>.m_next_pos = 0;</div>
+<div class="line"><a id="l00129" name="l00129"></a><span class="lineno">  129</span>            <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">other</a>.m_put_buf_checkpoint.reset();</div>
+<div class="line"><a id="l00130" name="l00130"></a><span class="lineno">  130</span>        }</div>
+<div class="line"><a id="l00131" name="l00131"></a><span class="lineno">  131</span>        <span class="keywordflow">return</span> *<span class="keyword">this</span>;</div>
+<div class="line"><a id="l00132" name="l00132"></a><span class="lineno">  132</span>    }</div>
+</div>
+<div class="line"><a id="l00133" name="l00133"></a><span class="lineno">  133</span> </div>
+<div class="line"><a id="l00134" name="l00134"></a><span class="lineno"><a class="line" href="classIOv2_1_1mem__device.html#afae33ee5faee3ae4a8a8c8223eb4d0d5">  134</a></span>    <a class="code hl_function" href="classIOv2_1_1mem__device.html#afae33ee5faee3ae4a8a8c8223eb4d0d5">~mem_device</a>() = <span class="keywordflow">default</span>;</div>
+<div class="line"><a id="l00135" name="l00135"></a><span class="lineno">  135</span> </div>
+<div class="line"><a id="l00147" name="l00147"></a><span class="lineno"><a class="line" href="classIOv2_1_1mem__device.html#a3bb907180eef62a86da13cd91202144d">  147</a></span>    [[<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">nodiscard</a>]] <span class="keyword">const</span> std::basic_string&lt;CharT, Traits, Allocator&gt;&amp; <a class="code hl_function" href="classIOv2_1_1mem__device.html#a3bb907180eef62a86da13cd91202144d">str</a>()<span class="keyword"> const </span>{ <span class="keywordflow">return</span> m_str; }</div>
+<div class="line"><a id="l00148" name="l00148"></a><span class="lineno">  148</span> </div>
+<div class="line"><a id="l00149" name="l00149"></a><span class="lineno">  149</span><span class="keyword">public</span>:</div>
+<div class="foldopen" id="foldopen00161" data-start="{" data-end="}">
+<div class="line"><a id="l00161" name="l00161"></a><span class="lineno"><a class="line" href="classIOv2_1_1mem__device.html#a12b14e593fb5d19db071b58103eff63f">  161</a></span>    [[<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">nodiscard</a>]] <span class="keywordtype">bool</span> <a class="code hl_function" href="classIOv2_1_1mem__device.html#a12b14e593fb5d19db071b58103eff63f">deof</a>()<span class="keyword"> const</span></div>
+<div class="line"><a id="l00162" name="l00162"></a><span class="lineno">  162</span><span class="keyword">    </span>{</div>
+<div class="line"><a id="l00163" name="l00163"></a><span class="lineno">  163</span>        <span class="keywordflow">return</span> (m_next_pos &gt;= m_str.size());</div>
+<div class="line"><a id="l00164" name="l00164"></a><span class="lineno">  164</span>    }</div>
+</div>
+<div class="line"><a id="l00165" name="l00165"></a><span class="lineno">  165</span> </div>
+<div class="foldopen" id="foldopen00181" data-start="{" data-end="}">
+<div class="line"><a id="l00181" name="l00181"></a><span class="lineno"><a class="line" href="classIOv2_1_1mem__device.html#ae5f5f52da5748ffbd727b99ac21ceb76">  181</a></span>    std::size_t <a class="code hl_function" href="classIOv2_1_1mem__device.html#ae5f5f52da5748ffbd727b99ac21ceb76">dget</a>(<a class="code hl_typedef" href="classIOv2_1_1mem__device.html#af5fcd3b119b72b48bd54bfa09353a6d3">char_type</a>* <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">s</a>, std::size_t <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">n</a>)</div>
+<div class="line"><a id="l00182" name="l00182"></a><span class="lineno">  182</span>    {</div>
+<div class="line"><a id="l00183" name="l00183"></a><span class="lineno">  183</span>        <span class="keywordflow">if</span> (<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">n</a> == 0) <span class="keywordflow">return</span> 0;</div>
+<div class="line"><a id="l00184" name="l00184"></a><span class="lineno">  184</span>        <span class="keywordflow">if</span> (<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">s</a> == <span class="keyword">nullptr</span>)</div>
+<div class="line"><a id="l00185" name="l00185"></a><span class="lineno">  185</span>            <span class="keywordflow">throw</span> <a class="code hl_struct" href="structIOv2_1_1device__error.html">device_error</a>(<span class="stringliteral">&quot;mem_device::dget fail: null buffer&quot;</span>);</div>
+<div class="line"><a id="l00186" name="l00186"></a><span class="lineno">  186</span>        <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">assert</a>(m_next_pos &lt;= m_str.size());</div>
+<div class="line"><a id="l00187" name="l00187"></a><span class="lineno">  187</span> </div>
+<div class="line"><a id="l00188" name="l00188"></a><span class="lineno">  188</span>        std::size_t <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">res</a> = std::min(m_str.size() - m_next_pos, <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">n</a>);</div>
+<div class="line"><a id="l00189" name="l00189"></a><span class="lineno">  189</span>        std::memmove(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">s</a>, m_str.data() + m_next_pos, <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">res</a> * <span class="keyword">sizeof</span>(<a class="code hl_typedef" href="classIOv2_1_1mem__device.html#af5fcd3b119b72b48bd54bfa09353a6d3">char_type</a>));</div>
+<div class="line"><a id="l00190" name="l00190"></a><span class="lineno">  190</span>        m_next_pos += <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">res</a>;</div>
+<div class="line"><a id="l00191" name="l00191"></a><span class="lineno">  191</span>        <span class="keywordflow">return</span> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">res</a>;</div>
+<div class="line"><a id="l00192" name="l00192"></a><span class="lineno">  192</span>    }</div>
+</div>
+<div class="line"><a id="l00193" name="l00193"></a><span class="lineno">  193</span> </div>
+<div class="foldopen" id="foldopen00205" data-start="{" data-end="}">
+<div class="line"><a id="l00205" name="l00205"></a><span class="lineno"><a class="line" href="classIOv2_1_1mem__device.html#a3d26c148cd787778bdaea19a27905c7e">  205</a></span>    [[<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">nodiscard</a>]] std::size_t <a class="code hl_function" href="classIOv2_1_1mem__device.html#a3d26c148cd787778bdaea19a27905c7e">dtell</a>()<span class="keyword"> const</span></div>
+<div class="line"><a id="l00206" name="l00206"></a><span class="lineno">  206</span><span class="keyword">    </span>{</div>
+<div class="line"><a id="l00207" name="l00207"></a><span class="lineno">  207</span>        <span class="keywordflow">return</span> m_next_pos;</div>
+<div class="line"><a id="l00208" name="l00208"></a><span class="lineno">  208</span>    }</div>
+</div>
+<div class="line"><a id="l00209" name="l00209"></a><span class="lineno">  209</span> </div>
+<div class="foldopen" id="foldopen00221" data-start="{" data-end="}">
+<div class="line"><a id="l00221" name="l00221"></a><span class="lineno"><a class="line" href="classIOv2_1_1mem__device.html#aaae0ca063fe8e46fb07baddf5db4e4a6">  221</a></span>    [[<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">nodiscard</a>]] std::size_t <a class="code hl_function" href="classIOv2_1_1mem__device.html#aaae0ca063fe8e46fb07baddf5db4e4a6">dsize</a>()<span class="keyword"> const</span></div>
+<div class="line"><a id="l00222" name="l00222"></a><span class="lineno">  222</span><span class="keyword">    </span>{</div>
+<div class="line"><a id="l00223" name="l00223"></a><span class="lineno">  223</span>        <span class="keywordflow">return</span> m_str.size();</div>
+<div class="line"><a id="l00224" name="l00224"></a><span class="lineno">  224</span>    }</div>
+</div>
+<div class="line"><a id="l00225" name="l00225"></a><span class="lineno">  225</span> </div>
+<div class="foldopen" id="foldopen00239" data-start="{" data-end="}">
+<div class="line"><a id="l00239" name="l00239"></a><span class="lineno"><a class="line" href="classIOv2_1_1mem__device.html#a13d93bc1427b545bba5d02b7ebd8a3dc">  239</a></span>    <span class="keywordtype">void</span> <a class="code hl_function" href="classIOv2_1_1mem__device.html#a13d93bc1427b545bba5d02b7ebd8a3dc">dseek</a>(std::size_t <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">v</a>)</div>
+<div class="line"><a id="l00240" name="l00240"></a><span class="lineno">  240</span>    {</div>
+<div class="line"><a id="l00241" name="l00241"></a><span class="lineno">  241</span>        <span class="keywordflow">if</span> (<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">v</a> &gt; m_str.size())</div>
+<div class="line"><a id="l00242" name="l00242"></a><span class="lineno">  242</span>            <span class="keywordflow">throw</span> <a class="code hl_struct" href="structIOv2_1_1device__error.html">device_error</a>(<span class="stringliteral">&quot;mem_device::dseek fail: out of bounds&quot;</span>);</div>
+<div class="line"><a id="l00243" name="l00243"></a><span class="lineno">  243</span>        m_next_pos = <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">v</a>;</div>
+<div class="line"><a id="l00244" name="l00244"></a><span class="lineno">  244</span>    }</div>
+</div>
+<div class="line"><a id="l00245" name="l00245"></a><span class="lineno">  245</span> </div>
+<div class="foldopen" id="foldopen00259" data-start="{" data-end="}">
+<div class="line"><a id="l00259" name="l00259"></a><span class="lineno"><a class="line" href="classIOv2_1_1mem__device.html#a9449a2f00a192ad536680e320e5125a9">  259</a></span>    <span class="keywordtype">void</span> <a class="code hl_function" href="classIOv2_1_1mem__device.html#a9449a2f00a192ad536680e320e5125a9">drseek</a>(std::size_t <a class="code hl_enumvalue" href="namespaceIOv2.html#ae5c45ed29b875d3d35e686974d847b1ea7a86c157ee9713c34fbd7a1ee40f0c5a">offset</a>)</div>
+<div class="line"><a id="l00260" name="l00260"></a><span class="lineno">  260</span>    {</div>
+<div class="line"><a id="l00261" name="l00261"></a><span class="lineno">  261</span>        <span class="keywordflow">if</span> (<a class="code hl_enumvalue" href="namespaceIOv2.html#ae5c45ed29b875d3d35e686974d847b1ea7a86c157ee9713c34fbd7a1ee40f0c5a">offset</a> &gt; m_str.size())</div>
+<div class="line"><a id="l00262" name="l00262"></a><span class="lineno">  262</span>            <span class="keywordflow">throw</span> <a class="code hl_struct" href="structIOv2_1_1device__error.html">device_error</a>(<span class="stringliteral">&quot;mem_device::drseek fail: out of bounds&quot;</span>);</div>
+<div class="line"><a id="l00263" name="l00263"></a><span class="lineno">  263</span>        m_next_pos = m_str.size() - <a class="code hl_enumvalue" href="namespaceIOv2.html#ae5c45ed29b875d3d35e686974d847b1ea7a86c157ee9713c34fbd7a1ee40f0c5a">offset</a>;</div>
+<div class="line"><a id="l00264" name="l00264"></a><span class="lineno">  264</span>    }</div>
+</div>
+<div class="line"><a id="l00265" name="l00265"></a><span class="lineno">  265</span> </div>
+<div class="foldopen" id="foldopen00287" data-start="{" data-end="}">
+<div class="line"><a id="l00287" name="l00287"></a><span class="lineno"><a class="line" href="classIOv2_1_1mem__device.html#a1c8681d40ae7bf6e10ce68da317523da">  287</a></span>    <span class="keywordtype">void</span> <a class="code hl_function" href="classIOv2_1_1mem__device.html#a1c8681d40ae7bf6e10ce68da317523da">dput</a>(<span class="keyword">const</span> <a class="code hl_typedef" href="classIOv2_1_1mem__device.html#af5fcd3b119b72b48bd54bfa09353a6d3">char_type</a>* <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">ch</a>, std::size_t <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">n</a>)</div>
+<div class="line"><a id="l00288" name="l00288"></a><span class="lineno">  288</span>    {</div>
+<div class="line"><a id="l00289" name="l00289"></a><span class="lineno">  289</span>        <span class="keywordflow">if</span> (<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">n</a> == 0) <span class="keywordflow">return</span>;</div>
+<div class="line"><a id="l00290" name="l00290"></a><span class="lineno">  290</span>        <span class="keywordflow">if</span> (<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">ch</a> == <span class="keyword">nullptr</span>)</div>
+<div class="line"><a id="l00291" name="l00291"></a><span class="lineno">  291</span>            <span class="keywordflow">throw</span> <a class="code hl_struct" href="structIOv2_1_1device__error.html">device_error</a>(<span class="stringliteral">&quot;mem_device::dput fail: null buffer&quot;</span>);</div>
+<div class="line"><a id="l00292" name="l00292"></a><span class="lineno">  292</span> </div>
+<div class="line"><a id="l00293" name="l00293"></a><span class="lineno">  293</span>        <span class="keywordflow">if</span> (<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">n</a> &gt; m_str.max_size() - m_next_pos)</div>
+<div class="line"><a id="l00294" name="l00294"></a><span class="lineno">  294</span>            <span class="keywordflow">throw</span> <a class="code hl_struct" href="structIOv2_1_1device__error.html">device_error</a>(<span class="stringliteral">&quot;mem_device::dput fail: size overflow&quot;</span>);</div>
+<div class="line"><a id="l00295" name="l00295"></a><span class="lineno">  295</span> </div>
+<div class="line"><a id="l00296" name="l00296"></a><span class="lineno">  296</span>        m_str.replace(m_next_pos, <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">n</a>, <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">ch</a>, <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">n</a>);</div>
+<div class="line"><a id="l00297" name="l00297"></a><span class="lineno">  297</span>        m_next_pos += <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">n</a>;</div>
+<div class="line"><a id="l00298" name="l00298"></a><span class="lineno">  298</span>    }</div>
+</div>
+<div class="line"><a id="l00299" name="l00299"></a><span class="lineno">  299</span> </div>
+<div class="line"><a id="l00309" name="l00309"></a><span class="lineno"><a class="line" href="classIOv2_1_1mem__device.html#a192d0df35ccac5bd0df2ce9b596e2880">  309</a></span>    <span class="keywordtype">void</span> <a class="code hl_function" href="classIOv2_1_1mem__device.html#a192d0df35ccac5bd0df2ce9b596e2880">dflush</a>() {}</div>
+<div class="line"><a id="l00310" name="l00310"></a><span class="lineno">  310</span> </div>
+<div class="line"><a id="l00328" name="l00328"></a><span class="lineno">  328</span>    <span class="keyword">template</span> &lt;<span class="keywordtype">bool</span> Saturate = false&gt;</div>
+<div class="foldopen" id="foldopen00329" data-start="{" data-end="}">
+<div class="line"><a id="l00329" name="l00329"></a><span class="lineno"><a class="line" href="classIOv2_1_1mem__device.html#a65ea9c50cc2f07d4900aba5eeb6aedc0">  329</a></span>    <span class="keyword">auto</span> <a class="code hl_function" href="classIOv2_1_1mem__device.html#a65ea9c50cc2f07d4900aba5eeb6aedc0">get_buf</a>(std::size_t <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">to_max</a>)</div>
+<div class="line"><a id="l00330" name="l00330"></a><span class="lineno">  330</span>    {</div>
+<div class="line"><a id="l00331" name="l00331"></a><span class="lineno">  331</span>        <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">assert</a>(m_str.size() &gt;= m_next_pos);</div>
+<div class="line"><a id="l00332" name="l00332"></a><span class="lineno">  332</span>        <span class="keyword">const</span> std::size_t <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">remain</a> = m_str.size() - m_next_pos;</div>
+<div class="line"><a id="l00333" name="l00333"></a><span class="lineno">  333</span>        <span class="keywordflow">if</span> <span class="keyword">constexpr</span> (<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Saturate</a>)</div>
+<div class="line"><a id="l00334" name="l00334"></a><span class="lineno">  334</span>        {</div>
+<div class="line"><a id="l00335" name="l00335"></a><span class="lineno">  335</span>            <span class="keywordflow">if</span> (<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">to_max</a> &gt; <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">remain</a>)</div>
+<div class="line"><a id="l00336" name="l00336"></a><span class="lineno">  336</span>                <span class="keywordflow">throw</span> <a class="code hl_struct" href="structIOv2_1_1device__error.html">device_error</a>(<span class="stringliteral">&quot;mem_device::get_buf fail: not enough input&quot;</span>);</div>
+<div class="line"><a id="l00337" name="l00337"></a><span class="lineno">  337</span>            <span class="keyword">auto</span> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">res</a> = <span class="keyword">const_cast&lt;</span><span class="keyword">const </span><a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a>*<span class="keyword">&gt;</span>(m_str.c_str() + m_next_pos);</div>
+<div class="line"><a id="l00338" name="l00338"></a><span class="lineno">  338</span>            m_next_pos += <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">to_max</a>;</div>
+<div class="line"><a id="l00339" name="l00339"></a><span class="lineno">  339</span>            <span class="keywordflow">return</span> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">res</a>;</div>
+<div class="line"><a id="l00340" name="l00340"></a><span class="lineno">  340</span>        }</div>
+<div class="line"><a id="l00341" name="l00341"></a><span class="lineno">  341</span>        <span class="keywordflow">else</span></div>
+<div class="line"><a id="l00342" name="l00342"></a><span class="lineno">  342</span>        {</div>
+<div class="line"><a id="l00343" name="l00343"></a><span class="lineno">  343</span>            <span class="keyword">const</span> std::size_t <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">res_len</a> = std::min(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">to_max</a>, <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">remain</a>);</div>
+<div class="line"><a id="l00344" name="l00344"></a><span class="lineno">  344</span>            <span class="keyword">auto</span> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">res</a> = std::pair&lt;const CharT*, std::size_t&gt;{m_str.c_str() + m_next_pos, <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">res_len</a>};</div>
+<div class="line"><a id="l00345" name="l00345"></a><span class="lineno">  345</span>            m_next_pos += <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">res_len</a>;</div>
+<div class="line"><a id="l00346" name="l00346"></a><span class="lineno">  346</span>            <span class="keywordflow">return</span> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">res</a>;</div>
+<div class="line"><a id="l00347" name="l00347"></a><span class="lineno">  347</span>        }</div>
+<div class="line"><a id="l00348" name="l00348"></a><span class="lineno">  348</span>    }</div>
+</div>
+<div class="line"><a id="l00349" name="l00349"></a><span class="lineno">  349</span> </div>
+<div class="foldopen" id="foldopen00363" data-start="{" data-end="}">
+<div class="line"><a id="l00363" name="l00363"></a><span class="lineno"><a class="line" href="classIOv2_1_1mem__device.html#a40f4ffc99b548ed5ab96abe61e9f9c78">  363</a></span>    <span class="keywordtype">void</span> <a class="code hl_function" href="classIOv2_1_1mem__device.html#a40f4ffc99b548ed5ab96abe61e9f9c78">get_rollback</a>(std::size_t <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">len</a>)</div>
+<div class="line"><a id="l00364" name="l00364"></a><span class="lineno">  364</span>    {</div>
+<div class="line"><a id="l00365" name="l00365"></a><span class="lineno">  365</span>        <span class="keywordflow">if</span> (<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">len</a> == 0)</div>
+<div class="line"><a id="l00366" name="l00366"></a><span class="lineno">  366</span>            <span class="keywordflow">throw</span> <a class="code hl_struct" href="structIOv2_1_1device__error.html">device_error</a>(<span class="stringliteral">&quot;mem_device::get_rollback fail, length cannot be zero&quot;</span>);</div>
+<div class="line"><a id="l00367" name="l00367"></a><span class="lineno">  367</span>        <span class="keywordflow">if</span> (m_next_pos &lt; <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">len</a>)</div>
+<div class="line"><a id="l00368" name="l00368"></a><span class="lineno">  368</span>            <span class="keywordflow">throw</span> <a class="code hl_struct" href="structIOv2_1_1device__error.html">device_error</a>(<span class="stringliteral">&quot;mem_device::get_rollback fail, rollback length too large&quot;</span>);</div>
+<div class="line"><a id="l00369" name="l00369"></a><span class="lineno">  369</span>        m_next_pos -= <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">len</a>;</div>
+<div class="line"><a id="l00370" name="l00370"></a><span class="lineno">  370</span>    }</div>
+</div>
+<div class="line"><a id="l00371" name="l00371"></a><span class="lineno">  371</span> </div>
+<div class="foldopen" id="foldopen00402" data-start="{" data-end="}">
+<div class="line"><a id="l00402" name="l00402"></a><span class="lineno"><a class="line" href="classIOv2_1_1mem__device.html#ab2795971d4b04361280a0f7cfc435247">  402</a></span>    <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a>* <a class="code hl_function" href="classIOv2_1_1mem__device.html#ab2795971d4b04361280a0f7cfc435247">put_buf</a>(std::size_t <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">len</a>)</div>
+<div class="line"><a id="l00403" name="l00403"></a><span class="lineno">  403</span>    {</div>
+<div class="line"><a id="l00404" name="l00404"></a><span class="lineno">  404</span>        <span class="keywordflow">if</span> (<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">len</a> &gt; m_str.max_size() - m_next_pos)</div>
+<div class="line"><a id="l00405" name="l00405"></a><span class="lineno">  405</span>            <span class="keywordflow">throw</span> <a class="code hl_struct" href="structIOv2_1_1device__error.html">device_error</a>(<span class="stringliteral">&quot;mem_device::put_buf fail: size overflow&quot;</span>);</div>
+<div class="line"><a id="l00406" name="l00406"></a><span class="lineno">  406</span> </div>
+<div class="line"><a id="l00407" name="l00407"></a><span class="lineno">  407</span>        m_put_buf_checkpoint = m_str.size();</div>
+<div class="line"><a id="l00408" name="l00408"></a><span class="lineno">  408</span>        <span class="keyword">const</span> std::size_t <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">needed</a> = m_next_pos + <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">len</a>;</div>
+<div class="line"><a id="l00409" name="l00409"></a><span class="lineno">  409</span>        <span class="keywordflow">if</span> (<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">needed</a> &gt; m_str.size())</div>
+<div class="line"><a id="l00410" name="l00410"></a><span class="lineno">  410</span>        {</div>
+<div class="line"><a id="l00411" name="l00411"></a><span class="lineno">  411</span>            <span class="keywordflow">if</span> (<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">needed</a> &gt; m_str.capacity())</div>
+<div class="line"><a id="l00412" name="l00412"></a><span class="lineno">  412</span>            {</div>
+<div class="line"><a id="l00413" name="l00413"></a><span class="lineno">  413</span>                <span class="keyword">const</span> std::size_t <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">cap</a> = m_str.capacity();</div>
+<div class="line"><a id="l00414" name="l00414"></a><span class="lineno">  414</span>                m_str.reserve(std::max(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">needed</a>, <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">cap</a> + <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">cap</a> / 2));</div>
+<div class="line"><a id="l00415" name="l00415"></a><span class="lineno">  415</span>            }</div>
+<div class="line"><a id="l00416" name="l00416"></a><span class="lineno">  416</span>            m_str.resize(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">needed</a>);</div>
+<div class="line"><a id="l00417" name="l00417"></a><span class="lineno">  417</span>        }</div>
+<div class="line"><a id="l00418" name="l00418"></a><span class="lineno">  418</span>        <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a>* <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">res</a> = m_str.data() + m_next_pos;</div>
+<div class="line"><a id="l00419" name="l00419"></a><span class="lineno">  419</span>        m_next_pos = <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">needed</a>;</div>
+<div class="line"><a id="l00420" name="l00420"></a><span class="lineno">  420</span>        <span class="keywordflow">return</span> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">res</a>;</div>
+<div class="line"><a id="l00421" name="l00421"></a><span class="lineno">  421</span>    }</div>
+</div>
+<div class="line"><a id="l00422" name="l00422"></a><span class="lineno">  422</span> </div>
+<div class="foldopen" id="foldopen00446" data-start="{" data-end="}">
+<div class="line"><a id="l00446" name="l00446"></a><span class="lineno"><a class="line" href="classIOv2_1_1mem__device.html#ab587007d3613f165bd2199e6dd519d30">  446</a></span>    <span class="keywordtype">void</span> <a class="code hl_function" href="classIOv2_1_1mem__device.html#ab587007d3613f165bd2199e6dd519d30">put_rollback</a>(std::size_t <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">len</a>)</div>
+<div class="line"><a id="l00447" name="l00447"></a><span class="lineno">  447</span>    {</div>
+<div class="line"><a id="l00448" name="l00448"></a><span class="lineno">  448</span>        <span class="keywordflow">if</span> (!m_put_buf_checkpoint.has_value())</div>
+<div class="line"><a id="l00449" name="l00449"></a><span class="lineno">  449</span>            <span class="keywordflow">throw</span> <a class="code hl_struct" href="structIOv2_1_1device__error.html">device_error</a>(<span class="stringliteral">&quot;mem_device::put_rollback fail: no active put_buf&quot;</span>);</div>
+<div class="line"><a id="l00450" name="l00450"></a><span class="lineno">  450</span>        <span class="keywordflow">if</span> (<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">len</a> == 0)</div>
+<div class="line"><a id="l00451" name="l00451"></a><span class="lineno">  451</span>            <span class="keywordflow">throw</span> <a class="code hl_struct" href="structIOv2_1_1device__error.html">device_error</a>(<span class="stringliteral">&quot;mem_device::put_rollback fail: length cannot be zero&quot;</span>);</div>
+<div class="line"><a id="l00452" name="l00452"></a><span class="lineno">  452</span>        <span class="keywordflow">if</span> (m_next_pos &lt; <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">len</a>)</div>
+<div class="line"><a id="l00453" name="l00453"></a><span class="lineno">  453</span>            <span class="keywordflow">throw</span> <a class="code hl_struct" href="structIOv2_1_1device__error.html">device_error</a>(<span class="stringliteral">&quot;mem_device::put_rollback fail: rollback length too large&quot;</span>);</div>
+<div class="line"><a id="l00454" name="l00454"></a><span class="lineno">  454</span> </div>
+<div class="line"><a id="l00455" name="l00455"></a><span class="lineno">  455</span>        <span class="keyword">const</span> std::size_t <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">saved_size</a> = m_put_buf_checkpoint.value();</div>
+<div class="line"><a id="l00456" name="l00456"></a><span class="lineno">  456</span>        m_put_buf_checkpoint.reset();</div>
+<div class="line"><a id="l00457" name="l00457"></a><span class="lineno">  457</span> </div>
+<div class="line"><a id="l00458" name="l00458"></a><span class="lineno">  458</span>        m_next_pos -= <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">len</a>;</div>
+<div class="line"><a id="l00459" name="l00459"></a><span class="lineno">  459</span>        m_str.resize(std::max(m_next_pos, <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">saved_size</a>));</div>
+<div class="line"><a id="l00460" name="l00460"></a><span class="lineno">  460</span>    }</div>
+</div>
+<div class="line"><a id="l00461" name="l00461"></a><span class="lineno">  461</span> </div>
+<div class="line"><a id="l00462" name="l00462"></a><span class="lineno">  462</span><span class="keyword">private</span>:</div>
+<div class="line"><a id="l00463" name="l00463"></a><span class="lineno">  463</span>    std::basic_string&lt;CharT, Traits, Allocator&gt; m_str;</div>
+<div class="line"><a id="l00464" name="l00464"></a><span class="lineno">  464</span>    std::size_t m_next_pos = 0;</div>
+<div class="line"><a id="l00465" name="l00465"></a><span class="lineno">  465</span> </div>
+<div class="line"><a id="l00466" name="l00466"></a><span class="lineno">  466</span>    <span class="comment">// Checkpoint for put_buf/put_rollback pairing.</span></div>
+<div class="line"><a id="l00467" name="l00467"></a><span class="lineno">  467</span>    <span class="comment">// Set by put_buf to record the string size before expansion;</span></div>
+<div class="line"><a id="l00468" name="l00468"></a><span class="lineno">  468</span>    <span class="comment">// consumed and cleared by put_rollback to restore proper size.</span></div>
+<div class="line"><a id="l00469" name="l00469"></a><span class="lineno">  469</span>    <span class="comment">// If empty (nullopt), put_rollback will throw.</span></div>
+<div class="line"><a id="l00470" name="l00470"></a><span class="lineno">  470</span>    std::optional&lt;std::size_t&gt; m_put_buf_checkpoint;</div>
+<div class="line"><a id="l00471" name="l00471"></a><span class="lineno">  471</span>};</div>
+</div>
+<div class="line"><a id="l00472" name="l00472"></a><span class="lineno">  472</span> </div>
+<div class="line"><a id="l00474" name="l00474"></a><span class="lineno">  474</span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> TChar&gt;</div>
+<div class="line"><a id="l00475" name="l00475"></a><span class="lineno">  475</span>mem_device(<span class="keyword">const</span> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a>*) -&gt; <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">mem_device&lt;TChar&gt;</a>;</div>
+<div class="line"><a id="l00477" name="l00477"></a><span class="lineno">  477</span> </div>
+<div class="line"><a id="l00489" name="l00489"></a><span class="lineno">  489</span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt;</div>
+<div class="foldopen" id="foldopen00490" data-start="{" data-end="};">
+<div class="line"><a id="l00490" name="l00490"></a><span class="lineno"><a class="line" href="structIOv2_1_1is__mem__device__impl.html">  490</a></span><span class="keyword">struct </span><a class="code hl_struct" href="structIOv2_1_1is__mem__device__impl.html">is_mem_device_impl</a></div>
+<div class="line"><a id="l00491" name="l00491"></a><span class="lineno">  491</span>{</div>
+<div class="line"><a id="l00492" name="l00492"></a><span class="lineno"><a class="line" href="structIOv2_1_1is__mem__device__impl.html#aeac38ca388c28691cd8be8791b52174e">  492</a></span>    <span class="keyword">static</span> <span class="keyword">constexpr</span> <span class="keywordtype">bool</span> <a class="code hl_variable" href="structIOv2_1_1is__mem__device__impl.html#aeac38ca388c28691cd8be8791b52174e">value</a> = <span class="keyword">false</span>;</div>
+<div class="line"><a id="l00493" name="l00493"></a><span class="lineno">  493</span>};</div>
+</div>
+<div class="line"><a id="l00494" name="l00494"></a><span class="lineno">  494</span> </div>
+<div class="line"><a id="l00504" name="l00504"></a><span class="lineno">  504</span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> CharT, <span class="keyword">typename</span> Traits, <span class="keyword">typename</span> Allocator&gt;</div>
+<div class="foldopen" id="foldopen00505" data-start="{" data-end="};">
+<div class="line"><a id="l00505" name="l00505"></a><span class="lineno"><a class="line" href="structIOv2_1_1is__mem__device__impl_3_01mem__device_3_01CharT_00_01Traits_00_01Allocator_01_4_01_4.html">  505</a></span><span class="keyword">struct </span><a class="code hl_struct" href="structIOv2_1_1is__mem__device__impl.html">is_mem_device_impl</a>&lt;<a class="code hl_class" href="classIOv2_1_1mem__device.html">mem_device</a>&lt;<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a>, <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Traits</a>, <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Allocator</a>&gt;&gt;</div>
+<div class="line"><a id="l00506" name="l00506"></a><span class="lineno">  506</span>{</div>
+<div class="line"><a id="l00507" name="l00507"></a><span class="lineno"><a class="line" href="structIOv2_1_1is__mem__device__impl_3_01mem__device_3_01CharT_00_01Traits_00_01Allocator_01_4_01_4.html#a3314aa2558d224dd8d4183b3b3082985">  507</a></span>    <span class="keyword">static</span> <span class="keyword">constexpr</span> <span class="keywordtype">bool</span> <a class="code hl_variable" href="structIOv2_1_1is__mem__device__impl.html#aeac38ca388c28691cd8be8791b52174e">value</a> = <span class="keyword">true</span>;</div>
+<div class="line"><a id="l00508" name="l00508"></a><span class="lineno">  508</span>};</div>
+</div>
+<div class="line"><a id="l00509" name="l00509"></a><span class="lineno">  509</span> </div>
+<div class="line"><a id="l00521" name="l00521"></a><span class="lineno">  521</span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt;</div>
+<div class="line"><a id="l00522" name="l00522"></a><span class="lineno"><a class="line" href="conceptIOv2_1_1is__mem__device.html">  522</a></span><span class="keyword">concept </span><a class="code hl_concept" href="conceptIOv2_1_1is__mem__device.html">is_mem_device</a> = <a class="code hl_variable" href="structIOv2_1_1is__mem__device__impl.html#aeac38ca388c28691cd8be8791b52174e">is_mem_device_impl&lt;T&gt;::value</a>;</div>
+<div class="line"><a id="l00523" name="l00523"></a><span class="lineno">  523</span>}</div>
+<div class="ttc" id="aclassIOv2_1_1mem__device_html"><div class="ttname"><a href="classIOv2_1_1mem__device.html">IOv2::mem_device</a></div><div class="ttdoc">一个在内存中进行 I/O 操作的设备。</div><div class="ttdef"><b>Definition</b> mem_device.h:73</div></div>
+<div class="ttc" id="aclassIOv2_1_1mem__device_html_a077cb6206124be5452bccf48e9a65317"><div class="ttname"><a href="classIOv2_1_1mem__device.html#a077cb6206124be5452bccf48e9a65317">IOv2::mem_device::mem_device</a></div><div class="ttdeci">mem_device(const mem_device &amp;)=default</div></div>
+<div class="ttc" id="aclassIOv2_1_1mem__device_html_a110ad91c5f6e872daf7e72f0bb13cc2c"><div class="ttname"><a href="classIOv2_1_1mem__device.html#a110ad91c5f6e872daf7e72f0bb13cc2c">IOv2::mem_device::mem_device</a></div><div class="ttdeci">mem_device(std::basic_string&lt; CharT, Traits, Allocator &gt; info=std::basic_string&lt; CharT, Traits, Allocator &gt;{})</div><div class="ttdoc">构造函数，可以从一个现有的 basic_string 初始化设备。</div><div class="ttdef"><b>Definition</b> mem_device.h:89</div></div>
+<div class="ttc" id="aclassIOv2_1_1mem__device_html_a12b14e593fb5d19db071b58103eff63f"><div class="ttname"><a href="classIOv2_1_1mem__device.html#a12b14e593fb5d19db071b58103eff63f">IOv2::mem_device::deof</a></div><div class="ttdeci">bool deof() const</div><div class="ttdoc">检查是否已到达内存缓冲区的末尾。</div><div class="ttdef"><b>Definition</b> mem_device.h:161</div></div>
+<div class="ttc" id="aclassIOv2_1_1mem__device_html_a13d93bc1427b545bba5d02b7ebd8a3dc"><div class="ttname"><a href="classIOv2_1_1mem__device.html#a13d93bc1427b545bba5d02b7ebd8a3dc">IOv2::mem_device::dseek</a></div><div class="ttdeci">void dseek(std::size_t v)</div><div class="ttdoc">将读/写位置移动到绝对位置。</div><div class="ttdef"><b>Definition</b> mem_device.h:239</div></div>
+<div class="ttc" id="aclassIOv2_1_1mem__device_html_a192d0df35ccac5bd0df2ce9b596e2880"><div class="ttname"><a href="classIOv2_1_1mem__device.html#a192d0df35ccac5bd0df2ce9b596e2880">IOv2::mem_device::dflush</a></div><div class="ttdeci">void dflush()</div><div class="ttdoc">刷新设备。对于内存设备，此操作为空。</div><div class="ttdef"><b>Definition</b> mem_device.h:309</div></div>
+<div class="ttc" id="aclassIOv2_1_1mem__device_html_a1c8681d40ae7bf6e10ce68da317523da"><div class="ttname"><a href="classIOv2_1_1mem__device.html#a1c8681d40ae7bf6e10ce68da317523da">IOv2::mem_device::dput</a></div><div class="ttdeci">void dput(const char_type *ch, std::size_t n)</div><div class="ttdoc">向当前位置写入数据。</div><div class="ttdef"><b>Definition</b> mem_device.h:287</div></div>
+<div class="ttc" id="aclassIOv2_1_1mem__device_html_a30e478bfea044e5521749a49282c394c"><div class="ttname"><a href="classIOv2_1_1mem__device.html#a30e478bfea044e5521749a49282c394c">IOv2::mem_device::operator=</a></div><div class="ttdeci">mem_device &amp; operator=(mem_device &amp;&amp;other) noexcept</div><div class="ttdef"><b>Definition</b> mem_device.h:121</div></div>
+<div class="ttc" id="aclassIOv2_1_1mem__device_html_a3bb907180eef62a86da13cd91202144d"><div class="ttname"><a href="classIOv2_1_1mem__device.html#a3bb907180eef62a86da13cd91202144d">IOv2::mem_device::str</a></div><div class="ttdeci">const std::basic_string&lt; CharT, Traits, Allocator &gt; &amp; str() const</div><div class="ttdoc">获取对内部字符串的常量引用。</div><div class="ttdef"><b>Definition</b> mem_device.h:147</div></div>
+<div class="ttc" id="aclassIOv2_1_1mem__device_html_a3d26c148cd787778bdaea19a27905c7e"><div class="ttname"><a href="classIOv2_1_1mem__device.html#a3d26c148cd787778bdaea19a27905c7e">IOv2::mem_device::dtell</a></div><div class="ttdeci">std::size_t dtell() const</div><div class="ttdoc">获取当前读/写位置。</div><div class="ttdef"><b>Definition</b> mem_device.h:205</div></div>
+<div class="ttc" id="aclassIOv2_1_1mem__device_html_a40f4ffc99b548ed5ab96abe61e9f9c78"><div class="ttname"><a href="classIOv2_1_1mem__device.html#a40f4ffc99b548ed5ab96abe61e9f9c78">IOv2::mem_device::get_rollback</a></div><div class="ttdeci">void get_rollback(std::size_t len)</div><div class="ttdoc">回退输入流的读取位置。</div><div class="ttdef"><b>Definition</b> mem_device.h:363</div></div>
+<div class="ttc" id="aclassIOv2_1_1mem__device_html_a65ea9c50cc2f07d4900aba5eeb6aedc0"><div class="ttname"><a href="classIOv2_1_1mem__device.html#a65ea9c50cc2f07d4900aba5eeb6aedc0">IOv2::mem_device::get_buf</a></div><div class="ttdeci">auto get_buf(std::size_t to_max)</div><div class="ttdoc">获取输入缓冲区中的一段连续内存。</div><div class="ttdef"><b>Definition</b> mem_device.h:329</div></div>
+<div class="ttc" id="aclassIOv2_1_1mem__device_html_a757a1e5429c422c6e908105ce86c68f8"><div class="ttname"><a href="classIOv2_1_1mem__device.html#a757a1e5429c422c6e908105ce86c68f8">IOv2::mem_device::mem_device</a></div><div class="ttdeci">mem_device(const CharT *str)</div><div class="ttdoc">从 C 风格字符串构造设备。</div><div class="ttdef"><b>Definition</b> mem_device.h:106</div></div>
+<div class="ttc" id="aclassIOv2_1_1mem__device_html_a9449a2f00a192ad536680e320e5125a9"><div class="ttname"><a href="classIOv2_1_1mem__device.html#a9449a2f00a192ad536680e320e5125a9">IOv2::mem_device::drseek</a></div><div class="ttdeci">void drseek(std::size_t offset)</div><div class="ttdoc">将读/写位置从末尾反向移动。</div><div class="ttdef"><b>Definition</b> mem_device.h:259</div></div>
+<div class="ttc" id="aclassIOv2_1_1mem__device_html_aaae0ca063fe8e46fb07baddf5db4e4a6"><div class="ttname"><a href="classIOv2_1_1mem__device.html#aaae0ca063fe8e46fb07baddf5db4e4a6">IOv2::mem_device::dsize</a></div><div class="ttdeci">std::size_t dsize() const</div><div class="ttdoc">获取内部缓冲区的总大小。</div><div class="ttdef"><b>Definition</b> mem_device.h:221</div></div>
+<div class="ttc" id="aclassIOv2_1_1mem__device_html_ab2795971d4b04361280a0f7cfc435247"><div class="ttname"><a href="classIOv2_1_1mem__device.html#ab2795971d4b04361280a0f7cfc435247">IOv2::mem_device::put_buf</a></div><div class="ttdeci">CharT * put_buf(std::size_t len)</div><div class="ttdoc">获取输出缓冲区中的一段可写入的连续内存。</div><div class="ttdef"><b>Definition</b> mem_device.h:402</div></div>
+<div class="ttc" id="aclassIOv2_1_1mem__device_html_ab587007d3613f165bd2199e6dd519d30"><div class="ttname"><a href="classIOv2_1_1mem__device.html#ab587007d3613f165bd2199e6dd519d30">IOv2::mem_device::put_rollback</a></div><div class="ttdeci">void put_rollback(std::size_t len)</div><div class="ttdoc">回退输出流的写入位置，并根据需要调整底层缓冲区大小。</div><div class="ttdef"><b>Definition</b> mem_device.h:446</div></div>
+<div class="ttc" id="aclassIOv2_1_1mem__device_html_ac166c2c30e6893c831da899ada79e073"><div class="ttname"><a href="classIOv2_1_1mem__device.html#ac166c2c30e6893c831da899ada79e073">IOv2::mem_device::operator=</a></div><div class="ttdeci">mem_device &amp; operator=(const mem_device &amp;)=default</div></div>
+<div class="ttc" id="aclassIOv2_1_1mem__device_html_ae5f5f52da5748ffbd727b99ac21ceb76"><div class="ttname"><a href="classIOv2_1_1mem__device.html#ae5f5f52da5748ffbd727b99ac21ceb76">IOv2::mem_device::dget</a></div><div class="ttdeci">std::size_t dget(char_type *s, std::size_t n)</div><div class="ttdoc">从当前位置读取数据。</div><div class="ttdef"><b>Definition</b> mem_device.h:181</div></div>
+<div class="ttc" id="aclassIOv2_1_1mem__device_html_aed508db6bfd6c2d02ea9b7ade21dc16f"><div class="ttname"><a href="classIOv2_1_1mem__device.html#aed508db6bfd6c2d02ea9b7ade21dc16f">IOv2::mem_device::mem_device</a></div><div class="ttdeci">mem_device(mem_device &amp;&amp;other) noexcept</div><div class="ttdef"><b>Definition</b> mem_device.h:112</div></div>
+<div class="ttc" id="aclassIOv2_1_1mem__device_html_af5fcd3b119b72b48bd54bfa09353a6d3"><div class="ttname"><a href="classIOv2_1_1mem__device.html#af5fcd3b119b72b48bd54bfa09353a6d3">IOv2::mem_device::char_type</a></div><div class="ttdeci">CharT char_type</div><div class="ttdef"><b>Definition</b> mem_device.h:75</div></div>
+<div class="ttc" id="aclassIOv2_1_1mem__device_html_afae33ee5faee3ae4a8a8c8223eb4d0d5"><div class="ttname"><a href="classIOv2_1_1mem__device.html#afae33ee5faee3ae4a8a8c8223eb4d0d5">IOv2::mem_device::~mem_device</a></div><div class="ttdeci">~mem_device()=default</div></div>
+<div class="ttc" id="aconceptIOv2_1_1is__mem__device_html"><div class="ttname"><a href="conceptIOv2_1_1is__mem__device.html">IOv2::is_mem_device</a></div><div class="ttdoc">判断一个类型是否为 mem_device 的概念（Concept）。</div><div class="ttdef"><b>Definition</b> mem_device.h:522</div></div>
+<div class="ttc" id="adefs_8h_html"><div class="ttname"><a href="defs_8h.html">defs.h</a></div></div>
+<div class="ttc" id="adevice__concepts_8h_html"><div class="ttname"><a href="device__concepts_8h.html">device_concepts.h</a></div></div>
+<div class="ttc" id="anamespaceIOv2_html"><div class="ttname"><a href="namespaceIOv2.html">IOv2</a></div><div class="ttdef"><b>Definition</b> clocale_wrapper.h:22</div></div>
+<div class="ttc" id="anamespaceIOv2_html_a09b31017574cb5471d2558481d0f4d7a"><div class="ttname"><a href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">IOv2::is_small_type_v</a></div><div class="ttdeci">constexpr bool is_small_type_v</div><div class="ttdef"><b>Definition</b> metafunctions.h:83</div></div>
+<div class="ttc" id="anamespaceIOv2_html_ae5c45ed29b875d3d35e686974d847b1ea7a86c157ee9713c34fbd7a1ee40f0c5a"><div class="ttname"><a href="namespaceIOv2.html#ae5c45ed29b875d3d35e686974d847b1ea7a86c157ee9713c34fbd7a1ee40f0c5a">IOv2::tz_level::offset</a></div><div class="ttdeci">@ offset</div><div class="ttdoc">解析 z 的 UTC 偏移；Z 仍按字面量处理。</div></div>
+<div class="ttc" id="anamespacestd_html"><div class="ttname"><a href="namespacestd.html">std</a></div><div class="ttdef"><b>Definition</b> ori_facet_buf.h:82</div></div>
+<div class="ttc" id="astructIOv2_1_1device__error_html"><div class="ttname"><a href="structIOv2_1_1device__error.html">IOv2::device_error</a></div><div class="ttdef"><b>Definition</b> defs.h:62</div></div>
+<div class="ttc" id="astructIOv2_1_1is__mem__device__impl_html"><div class="ttname"><a href="structIOv2_1_1is__mem__device__impl.html">IOv2::is_mem_device_impl</a></div><div class="ttdoc">判断一个类型是否为 mem_device 的辅助模板。</div><div class="ttdef"><b>Definition</b> mem_device.h:491</div></div>
+<div class="ttc" id="astructIOv2_1_1is__mem__device__impl_html_aeac38ca388c28691cd8be8791b52174e"><div class="ttname"><a href="structIOv2_1_1is__mem__device__impl.html#aeac38ca388c28691cd8be8791b52174e">IOv2::is_mem_device_impl::value</a></div><div class="ttdeci">static constexpr bool value</div><div class="ttdef"><b>Definition</b> mem_device.h:492</div></div>
+</div><!-- fragment --></div><!-- contents -->
+</div><!-- doc-content -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><a class="el" href="dir_d44c64559bbebec7f509842c48db8b23.html">include</a></li><li class="navelem"><a class="el" href="dir_1157f564aec2b3a7d6bde4eba89ab805.html">IOv2</a></li><li class="navelem"><a class="el" href="dir_b108e28a3320a4d849b5a55ceb1cfc54.html">device</a></li><li class="navelem"><a class="el" href="mem__device_8h.html">mem_device.h</a></li>
+    <li class="footer">制作者 <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8 </li>
+  </ul>
+</div>
+</body>
+</html>

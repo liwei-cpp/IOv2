@@ -1,0 +1,197 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=11"/>
+<meta name="generator" content="Doxygen 1.9.8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>IOv2: include/IOv2/io/utilities/ostream_operators.h 文件参考</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="resize.js"></script>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr id="projectrow">
+  <td id="projectalign">
+   <div id="projectname">IOv2
+   </div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 制作者 Doxygen 1.9.8 -->
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+/* @license-end */
+</script>
+<script type="text/javascript" src="menudata.js"></script>
+<script type="text/javascript" src="menu.js"></script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(function() {
+  initMenu('',true,false,'search.php','搜索');
+  $(document).ready(function() { init_search(); });
+});
+/* @license-end */
+</script>
+<div id="main-nav"></div>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(document).ready(function(){initNavTree('ostream__operators_8h.html',''); initResizable(); });
+/* @license-end */
+</script>
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">载入中...</div>
+<div class="SRStatus" id="Searching">搜索中...</div>
+<div class="SRStatus" id="NoMatches">未找到</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="header">
+  <div class="summary">
+<a href="#nested-classes">类</a> &#124;
+<a href="#namespaces">命名空间</a> &#124;
+<a href="#concepts">概念</a> &#124;
+<a href="#func-members">函数</a>  </div>
+  <div class="headertitle"><div class="title">ostream_operators.h 文件参考</div></div>
+</div><!--header-->
+<div class="contents">
+<div class="textblock"><code>#include &lt;<a class="el" href="defs_8h_source.html">IOv2/common/defs.h</a>&gt;</code><br />
+<code>#include &lt;<a class="el" href="metafunctions_8h_source.html">IOv2/common/metafunctions.h</a>&gt;</code><br />
+<code>#include &lt;<a class="el" href="device__concepts_8h_source.html">IOv2/device/device_concepts.h</a>&gt;</code><br />
+<code>#include &lt;<a class="el" href="io__base_8h_source.html">IOv2/io/io_base.h</a>&gt;</code><br />
+<code>#include &lt;<a class="el" href="streambuf__iterator_8h_source.html">IOv2/io/streambuf_iterator.h</a>&gt;</code><br />
+<code>#include &lt;<a class="el" href="traits__base_8h_source.html">IOv2/io/traits/traits_base.h</a>&gt;</code><br />
+<code>#include &lt;<a class="el" href="locale_8h_source.html">IOv2/locale/locale.h</a>&gt;</code><br />
+<code>#include &lt;concepts&gt;</code><br />
+<code>#include &lt;cstddef&gt;</code><br />
+<code>#include &lt;exception&gt;</code><br />
+<code>#include &lt;mutex&gt;</code><br />
+<code>#include &lt;string&gt;</code><br />
+<code>#include &lt;thread&gt;</code><br />
+<code>#include &lt;type_traits&gt;</code><br />
+</div><div class="textblock"><div class="dynheader">
+ostream_operators.h 的引用(Include)关系图:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="ostream__operators_8h__incl.svg" width="5832" height="535"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+</div><div class="textblock"><div class="dynheader">
+此图展示该文件直接或间接的被哪些文件引用了:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="ostream__operators_8h__dep__incl.svg" width="884" height="476"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+</div>
+<p><a href="ostream__operators_8h_source.html">浏览源代码.</a></p>
+<table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
+类</h2></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1out__sentry.html">IOv2::out_sentry&lt; TStream, involve_input, is_std &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">输出操作的 RAII 哨兵：在每次插入操作的入口统一完成前置准备与末尾自动刷新。  <a href="structIOv2_1_1out__sentry.html#details">更多...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1is__out__sentry__impl.html">IOv2::is_out_sentry_impl&lt; typename &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">类型特征的主模板：默认判定任意类型都不是 <code><a class="el" href="structIOv2_1_1out__sentry.html" title="输出操作的 RAII 哨兵：在每次插入操作的入口统一完成前置准备与末尾自动刷新。">out_sentry</a></code>。  <a href="structIOv2_1_1is__out__sentry__impl.html#details">更多...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1is__out__sentry__impl_3_01out__sentry_3_01TStream_00_01involve__input_00_01is__std_01_4_01_4.html">IOv2::is_out_sentry_impl&lt; out_sentry&lt; TStream, involve_input, is_std &gt; &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight"><code><a class="el" href="structIOv2_1_1is__out__sentry__impl.html" title="类型特征的主模板：默认判定任意类型都不是 out_sentry。">is_out_sentry_impl</a></code> 的偏特化：对 <code><a class="el" href="structIOv2_1_1out__sentry.html" title="输出操作的 RAII 哨兵：在每次插入操作的入口统一完成前置准备与末尾自动刷新。">out_sentry</a></code> 实例判定为真。  <a href="structIOv2_1_1is__out__sentry__impl_3_01out__sentry_3_01TStream_00_01involve__input_00_01is__std_01_4_01_4.html#details">更多...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__flusher.html">IOv2::abs_flusher</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">承载多态 <code><a class="el" href="classIOv2_1_1abs__flusher.html#a802ea48cf50e1e72ad5f263161bf5d09" title="尽力刷新本流的纯虚接口；由 out_flusher&lt;T&gt; 实现。">try_flush()</a></code> 接口的抽象基类。  <a href="classIOv2_1_1abs__flusher.html#details">更多...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1out__flusher.html">IOv2::out_flusher&lt; T &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">承载多态 <code><a class="el" href="structIOv2_1_1out__flusher.html#a7c72bdbf79eeb3a93c719d5c0514066a" title="尽力刷新本流：取到锁就 flush()，取不到就放弃。">try_flush()</a></code> 的 CRTP 基类：对具体流类型 <code>T</code> 的向下转型集中于此。  <a href="structIOv2_1_1out__flusher.html#details">更多...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1ostream__operators.html">IOv2::ostream_operators&lt; TChar &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">为输出流提供各类插入操作的混入（mix-in）基类。  <a href="structIOv2_1_1ostream__operators.html#details">更多...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="namespaces" name="namespaces"></a>
+命名空间</h2></td></tr>
+<tr class="memitem:namespaceIOv2" id="r_namespaceIOv2"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html">IOv2</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:namespaceIOv2_1_1detail" id="r_namespaceIOv2_1_1detail"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2_1_1detail.html">IOv2::detail</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="concepts" name="concepts"></a>
+概念</h2></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">concept &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="conceptIOv2_1_1is__out__sentry.html">IOv2::is_out_sentry</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">判定某类型是否为 <code>out_sentry</code> 实例的概念。 <br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">concept &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="conceptIOv2_1_1ostream__type.html">IOv2::ostream_type</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">输出流类型的概念。 <br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">concept &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="conceptIOv2_1_1detail_1_1insertable__with__stream.html">IOv2::detail::insertable_with_stream</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight"><code>T</code> 能否用 <code>io_traits</code> 的**流形式** <code>swrite(stream, value)</code> 插入 <code>TValue</code>。 <br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">concept &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="conceptIOv2_1_1detail_1_1insertable__with__iter.html">IOv2::detail::insertable_with_iter</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight"><code>T</code> 能否用 <code>io_traits</code> 的**迭代器形式** <code>swrite(iter, io, loc, value)</code> 插入 <code>TValue</code>。 <br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">concept &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="conceptIOv2_1_1detail_1_1insertable.html">IOv2::detail::insertable</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight"><code>os &lt;&lt; value</code> 是否成立：两种形式任一可用即可，每种形式内 <code>TValue</code> 与其衰退型都试。 <br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
+函数</h2></td></tr>
+<tr class="memitem:a9058d8cf9d8e707d878737f4d1fc6ffd" id="r_a9058d8cf9d8e707d878737f4d1fc6ffd"><td class="memTemplParams" colspan="2">template&lt;ostream_type T, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TValue</a> &gt; <br />
+requires detail::insertable&lt;T, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TValue</a>&gt;</td></tr>
+<tr class="memitem:a9058d8cf9d8e707d878737f4d1fc6ffd"><td class="memTemplItemLeft" align="right" valign="top">T &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a9058d8cf9d8e707d878737f4d1fc6ffd">IOv2::operator&lt;&lt;</a> (T &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">obj</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TValue</a> &amp;value)</td></tr>
+<tr class="memdesc:a9058d8cf9d8e707d878737f4d1fc6ffd"><td class="mdescLeft">&#160;</td><td class="mdescRight">插入运算符：把一个 <code>TValue</code> 类型的值或一个操纵符写入流。  <br /></td></tr>
+<tr class="separator:a9058d8cf9d8e707d878737f4d1fc6ffd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8cf627b4b038a6b901bab099239a6b72" id="r_a8cf627b4b038a6b901bab099239a6b72"><td class="memTemplParams" colspan="2">template&lt;ostream_type T&gt; </td></tr>
+<tr class="memitem:a8cf627b4b038a6b901bab099239a6b72"><td class="memTemplItemLeft" align="right" valign="top">T &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a8cf627b4b038a6b901bab099239a6b72">IOv2::operator&lt;&lt;</a> (T &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">obj</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>(*<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">pf</a>)(<a class="el" href="classIOv2_1_1ios__base.html">ios_base</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> T::char_type &gt; &amp;))</td></tr>
+<tr class="memdesc:a8cf627b4b038a6b901bab099239a6b72"><td class="mdescLeft">&#160;</td><td class="mdescRight">插入运算符：应用一个作用于 <code><a class="el" href="classIOv2_1_1ios__base.html" title="所有流的格式化状态基类。">ios_base</a>&lt;char_type&gt;&amp;</code> 的函数指针操纵符。  <br /></td></tr>
+<tr class="separator:a8cf627b4b038a6b901bab099239a6b72"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table>
+<a name="details" id="details"></a><h2 class="groupheader">详细描述</h2>
+<div class="textblock"><p>定义了输出流的格式化与非格式化插入设施。 包含输出哨兵 <code>out_sentry</code>、承载多态 <code>try_flush()</code> 的 CRTP 基类 <code>out_flusher</code>、 输出流概念 <code>ostream_type</code>、承载各类插入操作（<code>put</code>/<code>write</code>）的 <code>ostream_operators</code> 混入基类，以及插入运算符 <code>operator&lt;&lt;</code>：一条泛型的（把类型分派到扩展点 <code>io_traits&lt;TChar, TValue&gt;</code>），外加一条给 <code>ios_base</code> 函数指针操纵符的。 </p>
+</div></div><!-- contents -->
+</div><!-- doc-content -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><a class="el" href="dir_d44c64559bbebec7f509842c48db8b23.html">include</a></li><li class="navelem"><a class="el" href="dir_1157f564aec2b3a7d6bde4eba89ab805.html">IOv2</a></li><li class="navelem"><a class="el" href="dir_e6325c10be556c0ae106bae233ca0d0f.html">io</a></li><li class="navelem"><a class="el" href="dir_a457e81dae2baca4bb30c357338c39be.html">utilities</a></li><li class="navelem"><a class="el" href="ostream__operators_8h.html">ostream_operators.h</a></li>
+    <li class="footer">制作者 <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8 </li>
+  </ul>
+</div>
+</body>
+</html>

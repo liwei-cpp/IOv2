@@ -1,0 +1,184 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=11"/>
+<meta name="generator" content="Doxygen 1.9.8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>IOv2: include/IOv2/io/traits/traits_base.h 文件参考</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="resize.js"></script>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr id="projectrow">
+  <td id="projectalign">
+   <div id="projectname">IOv2
+   </div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 制作者 Doxygen 1.9.8 -->
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+/* @license-end */
+</script>
+<script type="text/javascript" src="menudata.js"></script>
+<script type="text/javascript" src="menu.js"></script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(function() {
+  initMenu('',true,false,'search.php','搜索');
+  $(document).ready(function() { init_search(); });
+});
+/* @license-end */
+</script>
+<div id="main-nav"></div>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(document).ready(function(){initNavTree('traits__base_8h.html',''); initResizable(); });
+/* @license-end */
+</script>
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">载入中...</div>
+<div class="SRStatus" id="Searching">搜索中...</div>
+<div class="SRStatus" id="NoMatches">未找到</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="header">
+  <div class="summary">
+<a href="#nested-classes">类</a> &#124;
+<a href="#namespaces">命名空间</a> &#124;
+<a href="#concepts">概念</a>  </div>
+  <div class="headertitle"><div class="title">traits_base.h 文件参考</div></div>
+</div><!--header-->
+<div class="contents">
+<div class="textblock"><code>#include &lt;iterator&gt;</code><br />
+<code>#include &lt;type_traits&gt;</code><br />
+</div><div class="textblock"><div class="dynheader">
+traits_base.h 的引用(Include)关系图:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="traits__base_8h__incl.svg" width="198" height="124"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+</div><div class="textblock"><div class="dynheader">
+此图展示该文件直接或间接的被哪些文件引用了:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="traits__base_8h__dep__incl.svg" width="1346" height="564"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+</div>
+<p><a href="traits__base_8h_source.html">浏览源代码.</a></p>
+<table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
+类</h2></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1parse__context__type.html">IOv2::parse_context_type&lt; TChar, T &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">提取 <code>T</code> 时实际解析进的中转类型；主模板为恒等映射。见本文件头部"解析上下文"。  <a href="structIOv2_1_1parse__context__type.html#details">更多...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="namespaces" name="namespaces"></a>
+命名空间</h2></td></tr>
+<tr class="memitem:namespaceIOv2" id="r_namespaceIOv2"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html">IOv2</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="concepts" name="concepts"></a>
+概念</h2></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">concept &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="conceptIOv2_1_1char__sink__for.html">IOv2::char_sink_for</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight"><code>TIter</code> 能否作为字符类型为 <code>TChar</code> 的**输出**迭代器使用——插入侧扩展点的迭代器约束。 <br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table>
+<a name="details" id="details"></a><h2 class="groupheader">详细描述</h2>
+<div class="textblock"><p>声明本库唯一的 I/O 扩展点 <code>io_traits&lt;TChar, T&gt;</code>，以及提取端的可选中转类型 <code>parse_context_type&lt;TChar, T&gt;</code>。</p>
+<p>本文件不依赖任何其它头文件，只有声明、没有定义：<code>io_traits</code> 的主模板是**故意不定义**的， 目的是让"某个类型不支持某个方向"这件事表达为「特化不存在」。类模板没有 <code>= delete</code>，这是 唯一能把标准里那些被删除的重载（如向 <code>char</code> 流插入 <code>wchar_t</code>）如实表达出来的手段。</p>
+<h3><a class="anchor" id="autotoc_md0"></a>
+扩展点</h3>
+<p>给自己的类型 <code>T</code> 接上 <code>os &lt;&lt; t</code> / <code>is &gt;&gt; t</code>，只需在命名空间 <code><a class="el" href="namespaceIOv2.html">IOv2</a></code> 里特化 <code>io_traits&lt;TChar, T&gt;</code>，并按需要提供下列成员。名字里的 <code>s</code> 是 <b>static</b> 的意思，与 sentry 无关；<code>write</code> / <code>read</code> 这两个名字留给将来可能出现的非静态成员。</p>
+<p>**迭代器形式**（格式化 I/O 用这一档；加锁与哨兵由运算符负责，成员本身只管把字符搬进/搬出 迭代器）： </p><div class="fragment"><div class="line"><span class="keyword">template</span> &lt;<span class="keyword">typename</span> TChar&gt;</div>
+<div class="line"><span class="keyword">struct </span><a class="code hl_struct" href="structIOv2_1_1io__traits.html">IOv2::io_traits</a>&lt;<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a>, <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">MyType</a>&gt;</div>
+<div class="line">{</div>
+<div class="line">    <span class="keyword">template</span> &lt;<span class="keyword">typename</span> TIter&gt;</div>
+<div class="line">        <span class="keyword">requires</span> (<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">char_sink_for&lt;TIter, TChar&gt;</a>)</div>
+<div class="line">    <span class="keyword">static</span> TIter swrite(TIter <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">it</a>, <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">ios_base&lt;TChar&gt;</a>&amp; <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">io</a>, <span class="keyword">const</span> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">locale&lt;TChar&gt;</a>&amp; <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">loc</a>,</div>
+<div class="line">                        <span class="keyword">const</span> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">MyType</a>&amp; <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">v</a>);</div>
+<div class="line"> </div>
+<div class="line">    <span class="keyword">template</span> &lt;<span class="keyword">typename</span> TIter, std::sentinel_for&lt;TIter&gt; TSent&gt;</div>
+<div class="line">        <span class="keyword">requires</span> (std::is_same_v&lt;TChar, typename TIter::value_type&gt;)</div>
+<div class="line">    <span class="keyword">static</span> TIter sread(TIter <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">it</a>, <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TSent</a> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">end</a>, <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">ios_base&lt;TChar&gt;</a>&amp; <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">io</a>, <span class="keyword">const</span> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">locale&lt;TChar&gt;</a>&amp; <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">loc</a>,</div>
+<div class="line">                       <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">MyType</a>&amp; <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">v</a>);</div>
+<div class="line">};</div>
+<div class="ttc" id="anamespaceIOv2_html_a09b31017574cb5471d2558481d0f4d7a"><div class="ttname"><a href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">IOv2::is_small_type_v</a></div><div class="ttdeci">constexpr bool is_small_type_v</div><div class="ttdef"><b>Definition</b> metafunctions.h:83</div></div>
+<div class="ttc" id="astructIOv2_1_1io__traits_html"><div class="ttname"><a href="structIOv2_1_1io__traits.html">IOv2::io_traits</a></div><div class="ttdoc">把 TChar 流的读写逻辑接到类型 T 上的扩展点。主模板故意不定义；见本文件头部。</div><div class="ttdef"><b>Definition</b> traits_base.h:378</div></div>
+</div><!-- fragment --><p>**流形式**（操纵符用这一档；成员直接拿到流本身，**不加锁、不建哨兵**，需要就自己来—— <code>io_traits&lt;TChar, ws_t&gt;::sread</code> 就是自己加锁、自己构造哨兵、并自己 <code>catch</code> 的）： </p><div class="fragment"><div class="line"><span class="keyword">template</span> &lt;ostream_type T&gt;</div>
+<div class="line">    <span class="keyword">requires</span> std::same_as&lt;typename T::char_type, TChar&gt;</div>
+<div class="line"><span class="keyword">static</span> <span class="keywordtype">void</span> swrite(T&amp; s, <span class="keyword">const</span> MyType&amp; v);</div>
+<div class="line"> </div>
+<div class="line"><span class="keyword">template</span> &lt;istream_type T&gt;</div>
+<div class="line">    <span class="keyword">requires</span> std::same_as&lt;typename T::char_type, TChar&gt;</div>
+<div class="line"><span class="keyword">static</span> <span class="keywordtype">void</span> sread (T&amp; s, <span class="keyword">const</span> MyType&amp; v);</div>
+</div><!-- fragment --><p>那条 <code>requires</code> 不能省：流类型是模板形参，不写它就与键的 <code>TChar</code> 无关，显式限定调用便能把宽键 配窄流。运算符走不到那里（它总是用 <code>T::char_type</code> 实例化），但手写调用够得着，于是本该编译期 报错的事落到运行期（<code>strfailbit</code>）。迭代器形式靠那条迭代器约束达到同一效果：插入侧是本文件 里的 <code>char_sink_for&lt;TIter, TChar&gt;</code>，提取侧是 <code>std::is_same_v&lt;TChar, typename TIter::value_type&gt;</code>。 两侧不对称是有意的——输出迭代器连 <code>value_type</code> 这个 typedef 都不要求存在（C++20 起标准的 输出适配器一律是 <code>void</code>），所以插入侧只能查可写性，能查到的字符类型仍照查；而提取侧实际 传进来的只有 <code>istreambuf_iterator</code> 一族，成员 <code>value_type</code> 查得到，直接查它最省事。注意 「查得到」不是标准给的保证：<code>std::input_iterator</code> 要求的是 <code>iter_value_t</code> 可求值，而不是 有嵌套的 <code>value_type</code>，**裸指针**就没有（<code>char*</code> 满足 <code>std::input_iterator</code>， <code>iter_value_t&lt;char*&gt;</code> 是 <code>char</code>，却没有 <code>char*::value_type</code>）。于是提取侧这条约束顺带把 裸指针排除在外，插入侧的 <code>char_sink_for</code> 则收；这个差别落不到实处，因为 <code>operator&gt;&gt;</code> 永远 只传 <code>istreambuf_iterator</code>。</p>
+<p>两种形式靠**参数个数**区分，一个特化**只能提供其中一种**：两种都提供是编译错误，运算符会就地 <code>static_assert</code>。插入端还会把 <code>TValue</code> 衰退一次再试一遍（这样数组名能衰退成指针、函数名能衰退 成函数指针），同一种形式内不衰退的 <code>TValue</code> 优先。</p>
+<p>库内置的操纵符没有 <code>operator()</code>：单向的（<code>ws</code>、<code>endl</code>、<code>ends</code>、<code>flush</code>）是空标记类型，双向的 只携带参数，逻辑一律写在本扩展点里——一行写得下的就两个成员各写一遍，写不下的走一个私有静态 辅助函数。入口于是只剩 <code>os &lt;&lt; m</code> / <code>is &gt;&gt; m</code> 一条，抛出的异常最终都由运算符接住转交 <code>handle_exception</code>，绝大多数操纵符因此不必自己兜。代价是标准的 <code>std::ws(is)</code> / <code>std::endl(os)</code> 直接调用形式在本库不存在。</p>
+<dl class="section warning"><dt>警告</dt><dd><b>自己加了锁的流形式成员，必须自己 <code>catch</code>：运算符那层的 <code>catch</code> 罩不住你的锁。</b> 运算符对流形式不加锁，它的 <code>try</code> / <code>catch</code> 在你的 <code>lock_guard</code> 之外；异常一旦逃出去， 栈展开会先析构你那个局部的锁守卫，<code>handle_exception</code> 的置位就落到**解锁之后**，失败 路径与成功路径对同一把 <code>io_mutex()</code> 的可见性时序于是对不上。因此凡是取了 <code>io_mutex()</code> 的流形式成员——库内是 <code>io_traits&lt;TChar, ws_t&gt;::sread</code> 与 <code>io_traits&lt;TChar, endl_t&gt;::swrite</code>——都在锁内自己 <code>catch</code> 并调 <code>handle_exception</code>。 掩码命中时异常仍会逃到运算符那层再处理一遍，这是无害的：<code>handle_exception</code> 是幂等的 （见 <code>io_base</code> 上的说明）。反过来，压根不加锁的流形式成员（<code>setw</code>、<code>setfill</code> 那些） 两条路径同样不加锁，一致，交给运算符即可。</dd></dl>
+<p>唯一不经过本扩展点的是只取 <code>ios_base&lt;TChar&gt;&amp;</code> 的**函数指针**操纵符：插入端与提取端各有一条 专门的运算符重载，其形参类型必须是非推导语境——<code>os &lt;&lt; <a class="el" href="group__ios__manipulators.html#ga0dc9293a3d364044d765f759e5b46c40" title="置位 boolalpha：布尔值以文本形式表示。">IOv2::boolalpha</a></code> 里的操纵符是函数 模板，形参不先定下来就推不出模板实参、取不到函数地址。只支持函数指针这一种形状；带状态的 操纵符走本扩展点的流形式即可，它拿到的是真正的流，比 <code>ios_base&amp;</code> 能做的更多。</p>
+<h3><a class="anchor" id="autotoc_md1"></a>
+方向</h3>
+<p>方向由**哪个成员存在**决定：只有 <code>swrite</code> 即只能插入，只有 <code>sread</code> 即只能提取，两个都有 即两个方向都行。这一点不能改用**流类型**的约束来表达——<code>iostream</code> 同时满足 <code>istream_type</code> 与 <code>ostream_type</code>，光靠那个挡不住反向用法；真正判定方向的是运算符的约束 <code>detail::insertable</code> / <code>detail::extractable</code>，它们探的就是对应的成员在不在。用反了因此不是 报一句定制信息，而是这条运算符根本不参与重载决议，得到编译器通用的 "no match for `operator&lt;&lt;`"。</p>
+<p>反过来说，这也让"能不能流式化"变成可以**探测**的：<code>requires { os &lt;&lt; x; }</code> / <code>requires { is &gt;&gt; x; }</code> 现在如实反映结果，泛型代码（日志、序列化、调试打印）可以直接用它分支， 不必知道底下走的是哪一种形式。定制诊断与可探测性二者不可兼得——<code>static_assert</code> 要可达就得让 运算符不加约束，而不加约束就无法探测；本库选了后者。</p>
+<h3><a class="anchor" id="autotoc_md2"></a>
+错误</h3>
+<p>成员**直接抛异常**即可，不要自己去动流的状态位：运算符会接住并交给 <code>handle_exception</code>，转成相应的状态位、并遵守流的异常掩码。本库自己抛的一律是 <code>stream_error</code>。</p>
+<h3><a class="anchor" id="autotoc_md3"></a>
+解析上下文</h3>
+<p>提取端还有一个可选的中转：若 <code>parse_context_type&lt;TChar, T&gt;::type</code> 不是 <code>T</code> 本身，运算符会 先构造一个该类型的临时量、让 <code>io_traits&lt;TChar, 上下文类型&gt;::sread</code> 解析它，再调用上下文的 <code>convert_to(T&amp;)</code> 写回目标。临时量由 <code>parse_context_type&lt;TChar, T&gt;</code> 的静态成员 <code>make_parse_context(const T&amp;)</code> 构造——这就是 <code>std::tm</code> 用旧值作为未解析字段回退值的做法，见 <code><a class="el" href="tm_8h.html">IOv2/io/traits/tm.h</a></code>；没有该成员时默认构造。主模板是恒等映射，不需要这一层就不用管它。 </p>
+</div></div><!-- contents -->
+</div><!-- doc-content -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><a class="el" href="dir_d44c64559bbebec7f509842c48db8b23.html">include</a></li><li class="navelem"><a class="el" href="dir_1157f564aec2b3a7d6bde4eba89ab805.html">IOv2</a></li><li class="navelem"><a class="el" href="dir_e6325c10be556c0ae106bae233ca0d0f.html">io</a></li><li class="navelem"><a class="el" href="dir_3b32b973eea3f549e04ac645eba714a9.html">traits</a></li><li class="navelem"><a class="el" href="traits__base_8h.html">traits_base.h</a></li>
+    <li class="footer">制作者 <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8 </li>
+  </ul>
+</div>
+</body>
+</html>
