@@ -134,10 +134,14 @@ TEST(IoBaseManipMoney, AMissingMonetaryFacetIsReportedByBothDirections)
     const auto loc = locale<char>("C").remove<monetary_conf<char>>();
 
     {
+        // put_money spends the width inside monetary::put, which the throw never reaches;
+        // a leftover would pad the next, unrelated insertion.
         ostream os{mem_device{""}, loc};
+        os.width(10);
         os << put_money(12345);
 
         EXPECT_TRUE(os.str_fail());
+        EXPECT_EQ(os.width(), 0u);
         auto [dev, err] = os.detach();
         EXPECT_TRUE(dev.str().empty());
     }

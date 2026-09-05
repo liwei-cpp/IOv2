@@ -14,6 +14,50 @@
 
 namespace IOv2
 {
+/**
+ * @lang{ZH}
+ * @brief 把一段字符序列按字段宽度补齐后写出——库内所有插入器共用的补齐点。
+ *
+ * @note **`width()` 在补齐之前就被消费掉**，因此后面任何一步抛出都不会把它漏给下一次插入。
+ *       这也是「一次性流状态」的落实处：本库的插入器一律经过这里，`std::put_time` 那种
+ *       既不补齐也不消费的例外由各自的文档单独说明。
+ * @note 补齐边由 `adjustfield` 决定，只分左右两种：`left` 补在后面，其余（含 `internal`）
+ *       一律补在前面。`internal` 在这里没有独立含义——它要求把填充插到符号或基数前缀之后，
+ *       而一段裸字符序列两者都没有。
+ * @note 宽度以**字符**计而非字节；`w <= n` 时一个填充字符都不写。填充量超过
+ *       `ios_defs::max_pad_count` 时抛出而不是照办，免得一个失手的 `setw()` 变成任意长度的
+ *       写入。
+ * @param iter 输出迭代器。
+ * @param io 提供 `width()` / `fill()` / `adjustfield` 的流。
+ * @param s 待写出的字符序列，不要求以空字符结尾。
+ * @param n `s` 的长度。
+ * @return 写完之后的输出迭代器。
+ * @throw stream_error 若所需填充量超过 `ios_defs::max_pad_count`。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief Writes a character sequence padded to the field width -- the one padding point every
+ *        inserter in this library shares.
+ *
+ * @note **`width()` is consumed before any padding happens**, so a throw further down cannot
+ *       leak it into the next insertion. This is where "one-shot stream state" is actually
+ *       enforced: every inserter here routes through this function, and the exceptions that
+ *       neither pad nor consume (`std::put_time` and its like) say so in their own docs.
+ * @note `adjustfield` selects one of two sides only: `left` pads after the sequence, everything
+ *       else -- `internal` included -- pads before it. `internal` has no separate meaning here,
+ *       since it asks for the fill to go after a sign or base prefix and a bare character
+ *       sequence has neither.
+ * @note The width counts **characters**, not bytes, and no fill is written at all when
+ *       `w <= n`. A fill count above `ios_defs::max_pad_count` throws rather than being
+ *       honoured, so that one stray `setw()` cannot turn into a write of arbitrary length.
+ * @param iter The output iterator.
+ * @param io The stream supplying `width()`, `fill()` and `adjustfield`.
+ * @param s The sequence to write; it need not be null-terminated.
+ * @param n The length of @p s.
+ * @return The output iterator past what was written.
+ * @throw stream_error If the required fill count exceeds `ios_defs::max_pad_count`.
+ * @endif
+ */
 template <typename TIter, typename TChar>
     requires (char_sink_for<TIter, TChar>)
 TIter ostream_insert(TIter iter, ios_base<TChar>& io, const TChar* s, std::size_t n)
@@ -40,6 +84,56 @@ TIter ostream_insert(TIter iter, ios_base<TChar>& io, const TChar* s, std::size_
     return iter;
 }
 
+/**
+ * @lang{ZH}
+ * @brief 把一个以空白分隔的词读进调用方给的定容缓冲区——三个定长数组特化共用的提取点。
+ *
+ * @note **上界只可能被收紧。** `num` 由调用方按目标数组的 `N` 给定，`width()` 只在
+ *       `0 < width < num` 时才生效，故 `setw()` 永远越不过 `N`。`width()` 与写侧一样在最前面
+ *       就被消费掉。库里没有裸指针版的提取器，原因见 `io_traits<TChar, TChar[N]>` 的说明。
+ * @note **只要缓冲区放得下终止符，每一条出口都会写终止符**——正常结束、`num == 1` 放不下
+ *       任何字符、缺 `ctype` facet、一个字符都没读到，四种情形一致。对应
+ *       [istream.extractors]/8，避免调用方对一个未初始化的数组 `strlen()` 而读越界。
+ * @note 不跳过前导空白，那是 sentry（`skipws`）的职责：本函数遇到的第一个字符若是空白，
+ *       直接以「未提取到字符」失败。判空白需要 `ctype`，故 facet 缺失时无法开工。
+ *       返回的迭代器停在分隔符之前，分隔符不被消费。
+ * @param iter 输入迭代器。
+ * @param iter_end 输入哨位。
+ * @param io 提供 `width()` 的流。
+ * @param loc 提供 `ctype<TChar>` 的 locale。
+ * @param s 目标缓冲区。
+ * @param num 目标缓冲区的容量，含终止符。
+ * @return 指向最后一个被消费字符之后的输入迭代器。
+ * @throw stream_error 若 `num <= 1`、locale 中没有 `ctype<TChar>` facet，或未提取到任何字符。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief Reads one whitespace-delimited token into a caller-supplied fixed-capacity buffer --
+ *        the extraction point the three fixed-size array specializations share.
+ *
+ * @note **The bound can only ever be tightened.** `num` comes from the caller as the target
+ *       array's `N`, and `width()` applies only where `0 < width < num`, so `setw()` can never
+ *       reach past `N`. As on the write side, `width()` is consumed up front. There is no
+ *       raw-pointer extractor in this library; see `io_traits<TChar, TChar[N]>` for why.
+ * @note **Every exit writes the terminator whenever the buffer has room for one** -- a normal
+ *       stop, a `num == 1` buffer with room for nothing else, a missing `ctype` facet, and
+ *       extracting no characters all behave alike. This is [istream.extractors]/8, and it keeps
+ *       a caller's `strlen()` on an uninitialized array from reading past its end.
+ * @note Leading whitespace is not skipped here -- that is the sentry's job (`skipws`). A first
+ *       character that is whitespace fails outright as "no characters extracted". Testing for
+ *       whitespace needs `ctype`, which is why a missing facet stops the work before it starts.
+ *       The returned iterator stops before the delimiter, which is left unconsumed.
+ * @param iter The input iterator.
+ * @param iter_end The input sentinel.
+ * @param io The stream supplying `width()`.
+ * @param loc The locale supplying `ctype<TChar>`.
+ * @param s The destination buffer.
+ * @param num The capacity of @p s, terminator included.
+ * @return An input iterator past the last consumed character.
+ * @throw stream_error If `num <= 1`, the locale carries no `ctype<TChar>` facet, or no
+ *        characters were extracted.
+ * @endif
+ */
 template <typename TIter, std::sentinel_for<TIter> TSent, typename TChar>
     requires (std::is_same_v<TChar, typename TIter::value_type>)
 TIter istream_extract(TIter iter, TSent iter_end, ios_base<TChar>& io, const locale<TChar>& loc, TChar* s, std::size_t num)
@@ -53,12 +147,15 @@ TIter istream_extract(TIter iter, TSent iter_end, ios_base<TChar>& io, const loc
     if (num <= 1)
     {
         if (num == 1) *s = TChar{};
-        throw stream_error("DO not have enough buffer to save character");
+        throw stream_error("Do not have enough buffer to save character");
     }
 
     auto ct = loc.template get<ctype<TChar>>();
     if (!ct)
+    {
+        *s = TChar{};
         throw stream_error("cannot get ctype facet");
+    }
 
     std::size_t extracted = 0;
 
@@ -102,7 +199,10 @@ struct io_traits<TChar, TChar>
         {
             auto mp = loc.template get<ctype<char>>();
             if (!mp)
+            {
+                io.width(0);
                 throw stream_error("cannot get numeric facet");
+            }
 
             c = mp->widen(c);
         }
@@ -135,7 +235,10 @@ struct io_traits<TChar, char>
     {
         auto mp = loc.template get<ctype<TChar>>();
         if (!mp)
+        {
+            io.width(0);
             throw stream_error("cannot get numeric facet");
+        }
 
         TChar wc = mp->widen(c);
         if (io.width() != 0)
@@ -267,26 +370,28 @@ struct io_traits<TChar, char*>
         requires (char_sink_for<TIter, TChar>)
     static TIter swrite(TIter iter, ios_base<TChar>& io, const locale<TChar>& loc, const char* c)
     {
-        if (c == nullptr)
+        try
+        {
+            if (c == nullptr)
+                throw IOv2::stream_error("Cannot write NULL character sequence");
+
+            auto mp = loc.template get<ctype<TChar>>();
+            if (!mp)
+                throw stream_error("cannot get ctype facet");
+
+            std::size_t n = 0;
+            for (const char* ptr = c; *ptr != 0; ++ptr, ++n);
+
+            std::vector<TChar> buf(n);
+            mp->widen_seq(c, c + n, buf.data());
+
+            return ostream_insert(iter, io, buf.data(), n);
+        }
+        catch (...)
         {
             io.width(0);
-            throw IOv2::stream_error("Cannot write NULL character sequence");
+            throw;
         }
-
-        auto mp = loc.template get<ctype<TChar>>();
-        if (!mp)
-        {
-            io.width(0);
-            throw stream_error("cannot get ctype facet");
-        }
-
-        std::size_t n = 0;
-        for (const char* ptr = c; *ptr != 0; ++ptr, ++n);
-
-        std::vector<TChar> buf(n);
-        mp->widen_seq(c, c + n, buf.data());
-
-        return ostream_insert(iter, io, buf.data(), n);
     }
 };
 

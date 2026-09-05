@@ -4,6 +4,7 @@
 #pragma once
 #include <type_traits>
 #include <IOv2/io/io_base.h>
+#include <IOv2/io/traits/char_and_str.h>
 #include <IOv2/io/traits/traits_base.h>
 #include <IOv2/facet/timeio.h>
 #include <IOv2/locale/locale.h>
@@ -12,6 +13,7 @@
 #include <chrono>
 #include <cstdint>
 #include <ctime>
+#include <iterator>
 #include <string>
 #include <string_view>
 
@@ -72,10 +74,11 @@ struct parse_context_type<TChar, std::tm>
      * @brief 由一个 `std::tm` 构造出以其字段为回退值的解析上下文。
      *
      * 返回的上下文的日期与时间字段被预置为 @p tmb 中的对应值，因此随后 `get()` 未解析到的
-     * 字段会保留 @p tmb 的取值，而不是退回默认构造所采用的挂钟时间。`std::tm` 只带得动部分
-     * 时区信息（`tm_gmtoff` / `tm_zone`，还是实现定义的扩展），所以 `type` 的档位随这两个
-     * 成员而定：都在时是 tz_level::zone，`%z` / `%Z` 都解析、也都写得回去；都不在时退到
-     * tz_level::none，两个说明符一律按字面量处理。见 @ref tm_parse_tz_level。
+     * 字段会保留 @p tmb 的取值——除非其它字段的归一化进位波及到它——而不是退回默认构造所采用
+     * 的挂钟时间。`std::tm` 只带得动部分时区信息（`tm_gmtoff` / `tm_zone`，还是实现定义的
+     * 扩展），所以 `type` 的档位随这两个成员而定：都在时是 tz_level::zone，`%z` / `%Z` 都解析、
+     * 也都写得回去；都不在时退到 tz_level::none，两个说明符一律按字面量处理。
+     * 见 @ref tm_parse_tz_level。
      *
      * 归一化只用 `std::chrono` 完成，**不经 `mktime()`**：后者依赖 `TZ` 环境变量、会因夏令时
      * 而平移小时数、写入 `tzset()` 的全局状态，且在部分实现上对 1970 年之前的时间直接失败——
@@ -97,13 +100,13 @@ struct parse_context_type<TChar, std::tm>
      * @brief Builds a parse context whose fallbacks are the fields of a `std::tm`.
      *
      * The returned context has its date and time fields pre-seeded from @p tmb, so any field a
-     * subsequent `get()` does not parse keeps the value it had in @p tmb rather than falling
-     * back to the wall-clock time a default-constructed context uses. A `std::tm` can carry
-     * only part of a time zone (`tm_gmtoff` / `tm_zone`, and those are implementation-defined
-     * extensions), so `type`'s tier follows those two members: with both it is
-     * `tz_level::zone`, where `%z` and `%Z` both parse and both are written back; with neither
-     * it drops to `tz_level::none`, where both specifiers are treated as literals. See
-     * @ref tm_parse_tz_level.
+     * subsequent `get()` does not parse keeps the value it had in @p tmb -- unless another
+     * field's normalization carry reaches it -- rather than falling back to the wall-clock time
+     * a default-constructed context uses. A `std::tm` can carry only part of a time zone
+     * (`tm_gmtoff` / `tm_zone`, and those are implementation-defined extensions), so `type`'s
+     * tier follows those two members: with both it is `tz_level::zone`, where `%z` and `%Z` both
+     * parse and both are written back; with neither it drops to `tz_level::none`, where both
+     * specifiers are treated as literals. See @ref tm_parse_tz_level.
      *
      * Normalization is done purely with `std::chrono`, **not through `mktime()`**: that
      * function depends on the `TZ` environment variable, shifts the hour across a DST boundary,
@@ -274,16 +277,44 @@ std::basic_string<TChar> tm_stream_format(const timeio<TChar>& tio)
 template <typename TChar>
 struct io_traits<TChar, std::tm>
 {
+    /**
+     * @lang{ZH}
+     * @brief 用 @ref detail::tm_stream_format 的格式串写出一个 `std::tm`，并按字段宽度补齐。
+     *
+     * @note 本插入器应用并消耗 `io.width()`，与本库其余插入器一致；`os << put_time(...)`
+     *       则两样都不做（见 @ref put_time）。分界与标准相同：`std::chrono` 的流插入器补齐
+     *       并消耗，`std::put_time` 不。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Writes a `std::tm` with the format from @ref detail::tm_stream_format, padded to
+     *        the field width.
+     *
+     * @note This inserter applies and consumes `io.width()`, as every other inserter in this
+     *       library does; `os << put_time(...)` does neither (see @ref put_time). The split is
+     *       the standard's: its `std::chrono` stream inserters pad and consume, `std::put_time`
+     *       does not.
+     * @endif
+     */
     template <typename TIter>
         requires (char_sink_for<TIter, TChar>)
     static TIter swrite(TIter s, ios_base<TChar>& io, const locale<TChar>& loc, const std::tm& value)
     {
         auto mp = loc.template get<timeio<TChar>>();
         if (!mp)
+        {
+            io.width(0);
             throw stream_error("cannot get timeio facet");
+        }
 
         const auto fmt = detail::tm_stream_format(*mp);
-        return mp->put(s, value, std::basic_string_view<TChar>(fmt));
+        if (io.width() == 0)
+            return mp->put(s, value, std::basic_string_view<TChar>(fmt));
+
+        // Padding needs the length up front, and an expanded %c has no bounded one.
+        std::basic_string<TChar> buf;
+        mp->put(std::back_inserter(buf), value, std::basic_string_view<TChar>(fmt));
+        return ostream_insert(s, io, buf.data(), buf.size());
     }
 };
 

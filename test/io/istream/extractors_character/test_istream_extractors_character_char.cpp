@@ -322,9 +322,10 @@ TEST(IstreamExtractCharacterChar, AMissingCtypeFacetRejectsTokenExtraction)
         istream is{mem_device{std::string("text")}, loc};
         char    value[8] = "old";
 
+        // The terminator is owed on this failure path too, for the reason spelled out above.
         is >> noskipws >> value;
         EXPECT_TRUE(is.str_fail());
-        EXPECT_STREQ(value, "old");
+        EXPECT_STREQ(value, "");
     }
     {
         istream    is{mem_device{std::string("text")}, loc};

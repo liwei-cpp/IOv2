@@ -18,9 +18,9 @@
 ### 快速开始
 
 ```bash
-cmake --preset gcc-release                     # 配置
+cmake --preset gcc-release                                # 配置
 cmake --build --preset gcc-release --parallel "$(nproc)"  # 编译全部套件
-ctest --preset gcc-release --parallel          # 运行全部
+ctest --preset gcc-release --parallel "$(nproc)"          # 运行全部
 ```
 
 `cmake --list-presets` 列出全部可用配置。

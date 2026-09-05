@@ -1278,6 +1278,40 @@ TEST(TimeioChar, TheTwelveHourClockNeedsItsMeridiem)
     EXPECT_EQ(morning.tm_hour, 7);
 }
 
+// A locale may leave both designators empty -- de_DE and hy_AM do.  %p then writes
+// nothing, so on the way back it has to match nothing rather than fail, which is
+// what strptime and both standard libraries do.  The half of the day is gone from
+// the text either way, so the clock face reads back as the morning hour.
+TEST(TimeioChar, AnAbsentMeridiemMatchesNothingRatherThanFailing)
+{
+    using namespace std::chrono;
+
+    auto conf = std::make_shared<rigged_conf>();
+    conf->m_am.clear();
+    conf->m_pm.clear();
+    const timeio<char> obj(conf);
+
+    const hh_mm_ss<seconds> tp{hours{13} + minutes{33} + seconds{18}};
+
+    for (const char* fmt : {"%I:%M:%S %p", "%p%I:%M:%S", "%r"})
+    {
+        SCOPED_TRACE(::testing::PrintToString(fmt));
+        const std::string written = put_one(obj, tp, std::string_view(fmt));
+        EXPECT_EQ(written.find("AM"), std::string::npos);
+        EXPECT_EQ(written.find("PM"), std::string::npos);
+
+        const auto back = CheckGet<hh_mm_ss<seconds>, false, true, tz_level::none>(
+            obj, written, fmt, ios_defs::eofbit);
+        EXPECT_EQ(back.to_duration(), hours{1} + minutes{33} + seconds{18});
+    }
+
+    // A locale that does have designators still insists on one.
+    const timeio<char> plain = facet_for("C");
+    CheckGet<hh_mm_ss<seconds>, false, true, tz_level::none>(plain, "01:33:18 ", "%I:%M:%S %p", febit);
+    CheckGet<hh_mm_ss<seconds>, false, true, tz_level::none>(plain, "01:33:18 XX", "%I:%M:%S %p",
+                                                            ios_defs::strfailbit);
+}
+
 // A composite is a format indirection, not a fixed-size C buffer.  Supplying a
 // deliberately long format makes that observable without depending on one
 // platform locale continuing to have a particular spelling.
