@@ -2,13 +2,14 @@
 // SPDX-License-Identifier: MIT
 
 #pragma once
+#include <IOv2/facet/numeric.h>
+#include <IOv2/io/io_base.h>
+#include <IOv2/io/traits/traits_base.h>
+#include <IOv2/locale/locale.h>
+
 #include <iterator>
 #include <limits>
 #include <type_traits>
-#include <IOv2/io/io_base.h>
-#include <IOv2/io/traits/traits_base.h>
-#include <IOv2/facet/numeric.h>
-#include <IOv2/locale/locale.h>
 
 namespace IOv2
 {
@@ -35,8 +36,9 @@ namespace IOv2
  *       与 `is_floating_point_v` 都为真，却**不参与默认实参提升**；而 `numeric` facet 的浮点
  *       写出最终落到 `snprintf` 的 `%g`，即可变参数。原样传进去是未定义行为，实测会静默打印
  *       出完全错误的值（`float16_t{3.5}` 写成 `8.47421e-320`）。因此本特化只接纳**存在标准
- *       浮点类型能精确表示**的那些，并在读写两侧都经由该标准类型中转——这正是 C++23
- *       `[ostream.inserters.arithmetic]` 为这些类型规定的做法。
+ *       浮点类型能精确表示**的那些——这正是 C++23 `[ostream.inserters.arithmetic]` 为这些类型
+ *       规定的做法。与该标准类型之间的换算由 `numeric` facet 自己完成（见其 `float_carrier_t`），
+ *       这一层只管把值原样交过去。
  * @note 装不下的就让特化**不存在**，同样有标准依据：这些插入器被规定为**条件存在**，目标标准
  *       类型装不下时该重载根本不提供。本机 `long double` 是 x87 80 位（尾数 64），装不下
  *       `float128_t` 的 113 位尾数，于是 `os << std::float128_t{}` 在 libstdc++ 上是歧义错误，
@@ -72,9 +74,10 @@ namespace IOv2
  *       `numeric` facet ends up in `snprintf`'s `%g`, i.e. in varargs. Passing one through raw
  *       is undefined behaviour and was measured to print a silently wrong value
  *       (`float16_t{3.5}` came out as `8.47421e-320`). This specialization therefore admits
- *       only those for which **some standard floating-point type represents them exactly**, and
- *       relays through that type on both the read and the write side -- which is what C++23
- *       `[ostream.inserters.arithmetic]` prescribes for them.
+ *       only those for which **some standard floating-point type represents them exactly**,
+ *       which is what C++23 `[ostream.inserters.arithmetic]` prescribes for them. Converting to
+ *       and from that type is the `numeric` facet's own business (see its `float_carrier_t`);
+ *       this layer only hands the value over as it is.
  * @note Letting the specialization **not exist** for the ones that do not fit also follows the
  *       standard: those inserters are specified as *conditionally* present and are simply not
  *       provided when the target standard type cannot hold the value. Here `long double` is
@@ -103,27 +106,12 @@ struct io_traits<TChar, TValue>
         requires (char_sink_for<TIter, TChar>)
     static TIter swrite(TIter s, ios_base<TChar>& io, const locale<TChar>& loc, TValue value)
     {
-        // Extended floating-point types do not promote, and the facet's %g path is varargs;
-        // relay through the smallest standard type that holds them exactly. See the class @note.
-        using TFacet = std::conditional_t<
-            std::is_floating_point_v<TValue> && !std::is_same_v<TValue, float>
-                && !std::is_same_v<TValue, double> && !std::is_same_v<TValue, long double>,
-            std::conditional_t<(std::numeric_limits<double>::digits >= std::numeric_limits<TValue>::digits
-                                && std::numeric_limits<double>::max_exponent
-                                       >= std::numeric_limits<TValue>::max_exponent
-                                && std::numeric_limits<double>::min_exponent
-                                       <= std::numeric_limits<TValue>::min_exponent),
-                               double, long double>,
-            TValue>;
-
+        auto width_guard = io.width_guard();
         auto mp = loc.template get<numeric<TChar>>();
         if (!mp)
-        {
-            io.width(0);
             throw stream_error("cannot get numeric facet");
-        }
 
-        return mp->put(s, io, static_cast<TFacet>(value));
+        return mp->put(s, io, value);
     }
 
     /**
@@ -165,32 +153,11 @@ struct io_traits<TChar, TValue>
         requires (!std::is_same_v<TValue, signed char>
                   && !std::is_same_v<TValue, unsigned char>)
     {
-        // Same relay as swrite: parse into the standard type, then narrow back explicitly.
-        // Without it the implicit narrowing happens inside the facet and trips -Wnarrowing.
-        using TFacet = std::conditional_t<
-            std::is_floating_point_v<TValue> && !std::is_same_v<TValue, float>
-                && !std::is_same_v<TValue, double> && !std::is_same_v<TValue, long double>,
-            std::conditional_t<(std::numeric_limits<double>::digits >= std::numeric_limits<TValue>::digits
-                                && std::numeric_limits<double>::max_exponent
-                                       >= std::numeric_limits<TValue>::max_exponent
-                                && std::numeric_limits<double>::min_exponent
-                                       <= std::numeric_limits<TValue>::min_exponent),
-                               double, long double>,
-            TValue>;
-
         auto mp = loc.template get<numeric<TChar>>();
         if (!mp)
             throw stream_error("cannot get numeric facet");
 
-        if constexpr (std::is_same_v<TFacet, TValue>)
-            return mp->get(s, s_end, io, value);
-        else
-        {
-            TFacet tmp{};
-            TIter ret = mp->get(s, s_end, io, tmp);
-            value = static_cast<TValue>(tmp);
-            return ret;
-        }
+        return mp->get(s, s_end, io, value);
     }
 };
 
@@ -311,12 +278,10 @@ struct io_traits<TChar, TValue>
         requires (char_sink_for<TIter, TChar>)
     static TIter swrite(TIter s, ios_base<TChar>& io, const locale<TChar>& loc, TValue value)
     {
+        auto width_guard = io.width_guard();
         auto mp = loc.template get<numeric<TChar>>();
         if (!mp)
-        {
-            io.width(0);
             throw stream_error("cannot get numeric facet");
-        }
 
         return mp->put(s, io, const_cast<const void*>(static_cast<const volatile void*>(value)));
     }

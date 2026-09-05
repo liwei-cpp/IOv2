@@ -1230,7 +1230,17 @@ T& operator>>(T& obj, TValue&& value)
                 TCtx tmp = [&value]() -> TCtx {
                     if constexpr (requires (const TV& v)
                                   { parse_context_type<TChar, TV>::make_parse_context(v); })
+                    {
+                        static_assert(
+                            std::convertible_to<
+                                decltype(parse_context_type<TChar, TV>::make_parse_context(value)),
+                                TCtx>,
+                            "IOv2: this parse_context_type's make_parse_context() does not return "
+                            "anything the parse context can be constructed from -- a missing "
+                            "return statement makes it void. Return the type named by "
+                            "parse_context_type<TChar, T>::type. See io/traits/traits_base.h.");
                         return parse_context_type<TChar, TV>::make_parse_context(value);
+                    }
                     else if constexpr (std::default_initializable<TCtx>)
                         return TCtx{};
                     else

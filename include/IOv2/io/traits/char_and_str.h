@@ -2,15 +2,16 @@
 // SPDX-License-Identifier: MIT
 
 #pragma once
+#include <IOv2/facet/ctype.h>
+#include <IOv2/io/io_base.h>
+#include <IOv2/io/traits/traits_base.h>
+#include <IOv2/locale/locale.h>
+
 #include <algorithm>
 #include <cstddef>
 #include <string>
 #include <type_traits>
 #include <vector>
-#include <IOv2/io/io_base.h>
-#include <IOv2/io/traits/traits_base.h>
-#include <IOv2/facet/ctype.h>
-#include <IOv2/locale/locale.h>
 
 namespace IOv2
 {
@@ -159,16 +160,24 @@ TIter istream_extract(TIter iter, TSent iter_end, ios_base<TChar>& io, const loc
 
     std::size_t extracted = 0;
 
-    while (extracted < num - 1
-           && (iter != iter_end)
-           && !(ct->is_any(base_ft<ctype>::space, *iter)))
+    try
     {
-        *s++ = *iter;
-        ++extracted;
-        ++iter;
-    }
+        while (extracted < num - 1
+               && (iter != iter_end)
+               && !(ct->is_any(base_ft<ctype>::space, *iter)))
+        {
+            *s++ = *iter;
+            ++extracted;
+            ++iter;
+        }
 
-    *s = TChar{};
+        *s = TChar{};
+    }
+    catch (...)
+    {
+        *s = TChar{};
+        throw;
+    }
 
     if (extracted == 0)
         throw stream_error("istream extraction fail: no characters extracted");
@@ -181,32 +190,18 @@ struct io_traits<TChar, TChar>
 {
     /**
      * @lang{ZH}
-     * @note `TChar` 为 `char` 时先经 `ctype<char>::widen()` 再写出，与下面
-     *       `io_traits<TChar, char>` 的加宽路径保持一致；宽流上字符已是 `TChar`，直接写出。
+     * @note 字符已经是流的字符类型，直接写出，不加宽，也不查 locale。
      * @endif
      *
      * @lang{EN}
-     * @note When `TChar` is `char` the character goes through `ctype<char>::widen()` first,
-     *       matching the widening path of `io_traits<TChar, char>` below; on a wide stream the
-     *       character already is a `TChar` and is written straight through.
+     * @note The character already is the stream's character type: it is written straight
+     *       through, with no widening and no locale lookup.
      * @endif
      */
     template <typename TIter>
         requires (char_sink_for<TIter, TChar>)
-    static TIter swrite(TIter iter, ios_base<TChar>& io, const locale<TChar>& loc, TChar c)
+    static TIter swrite(TIter iter, ios_base<TChar>& io, const locale<TChar>&, TChar c)
     {
-        if constexpr (std::is_same_v<TChar, char>)
-        {
-            auto mp = loc.template get<ctype<char>>();
-            if (!mp)
-            {
-                io.width(0);
-                throw stream_error("cannot get numeric facet");
-            }
-
-            c = mp->widen(c);
-        }
-
         if (io.width() != 0)
             return ostream_insert(iter, io, &c, 1);
         *iter++ = c;
@@ -233,12 +228,10 @@ struct io_traits<TChar, char>
         requires (char_sink_for<TIter, TChar>)
     static TIter swrite(TIter iter, ios_base<TChar>& io, const locale<TChar>& loc, char c)
     {
+        auto width_guard = io.width_guard();
         auto mp = loc.template get<ctype<TChar>>();
         if (!mp)
-        {
-            io.width(0);
-            throw stream_error("cannot get numeric facet");
-        }
+            throw stream_error("cannot get ctype facet");
 
         TChar wc = mp->widen(c);
         if (io.width() != 0)
@@ -297,11 +290,9 @@ struct io_traits<TChar, TChar*>
         requires (char_sink_for<TIter, TChar>)
     static TIter swrite(TIter iter, ios_base<TChar>& io, const locale<TChar>&, const TChar* c)
     {
+        auto width_guard = io.width_guard();
         if (c == nullptr)
-        {
-            io.width(0);
             throw IOv2::stream_error("Cannot write NULL character sequence");
-        }
 
         std::size_t n = 0;
         for (const TChar* ptr = c; *ptr != 0; ++ptr, ++n);
@@ -370,28 +361,21 @@ struct io_traits<TChar, char*>
         requires (char_sink_for<TIter, TChar>)
     static TIter swrite(TIter iter, ios_base<TChar>& io, const locale<TChar>& loc, const char* c)
     {
-        try
-        {
-            if (c == nullptr)
-                throw IOv2::stream_error("Cannot write NULL character sequence");
+        auto width_guard = io.width_guard();
+        if (c == nullptr)
+            throw IOv2::stream_error("Cannot write NULL character sequence");
 
-            auto mp = loc.template get<ctype<TChar>>();
-            if (!mp)
-                throw stream_error("cannot get ctype facet");
+        auto mp = loc.template get<ctype<TChar>>();
+        if (!mp)
+            throw stream_error("cannot get ctype facet");
 
-            std::size_t n = 0;
-            for (const char* ptr = c; *ptr != 0; ++ptr, ++n);
+        std::size_t n = 0;
+        for (const char* ptr = c; *ptr != 0; ++ptr, ++n);
 
-            std::vector<TChar> buf(n);
-            mp->widen_seq(c, c + n, buf.data());
+        std::vector<TChar> buf(n);
+        mp->widen_seq(c, c + n, buf.data());
 
-            return ostream_insert(iter, io, buf.data(), n);
-        }
-        catch (...)
-        {
-            io.width(0);
-            throw;
-        }
+        return ostream_insert(iter, io, buf.data(), n);
     }
 };
 
@@ -413,11 +397,9 @@ struct io_traits<char, char*>
         requires (char_sink_for<TIter, char>)
     static TIter swrite(TIter iter, ios_base<char>& io, const locale<char>&, const char* c)
     {
+        auto width_guard = io.width_guard();
         if (c == nullptr)
-        {
-            io.width(0);
             throw IOv2::stream_error("Cannot write NULL character sequence");
-        }
 
         std::size_t n = 0;
         for (const char* ptr = c; *ptr != 0; ++ptr, ++n);

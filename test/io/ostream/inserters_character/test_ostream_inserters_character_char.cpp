@@ -291,19 +291,20 @@ TEST(OstreamInsertCharacterChar, NullptrIsWrittenAsAWordAndPaddedLikeOne)
     helper.template operator()<iostream>();
 }
 
-TEST(OstreamInsertCharacterChar, AMissingCtypeFacetRejectsCharacterAndNullptrFormatting)
+TEST(OstreamInsertCharacterChar, AMissingCtypeFacetRejectsNullptrButNotACharacter)
 {
     const auto loc = locale<char>("C").remove<ctype_conf<char>>();
 
-    // The width is owed even here: these throw before reaching the code that spends it, and a
-    // leftover would pad the next, unrelated insertion.
+    // A char on a char stream is written straight through, so no facet is looked up.
     ostream character{mem_device{""}, loc};
     character.width(10);
     character << 'x';
-    EXPECT_TRUE(character.str_fail());
-    EXPECT_TRUE(character.device().str().empty());
+    EXPECT_TRUE(character.good());
+    EXPECT_EQ(character.device().str(), "         x");
     EXPECT_EQ(character.width(), 0u);
 
+    // The width is owed even here: this throws before reaching the code that spends it, and a
+    // leftover would pad the next, unrelated insertion.
     ostream null_pointer{mem_device{""}, loc};
     null_pointer.width(10);
     null_pointer << nullptr;

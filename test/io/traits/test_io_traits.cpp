@@ -48,6 +48,7 @@ namespace ctx_fixture
 struct via_default {};
 struct via_maker   {};
 struct via_neither {};
+struct via_convertible {};
 
 struct ctx_default
 {
@@ -68,6 +69,19 @@ struct ctx_neither
     ctx_neither() = delete;
     void convert_to(via_neither& ) const {}
 };
+
+// What make_parse_context() returns is required to build the context, not to be it.
+struct ctx_seed
+{
+    int n;
+};
+struct ctx_convertible
+{
+    int n;
+    ctx_convertible(ctx_seed s) : n(s.n) {}
+    ctx_convertible() = delete;
+    void convert_to(via_convertible& ) const {}
+};
 }
 
 namespace IOv2
@@ -87,10 +101,19 @@ template <typename TChar>
 struct parse_context_type<TChar, ctx_fixture::via_neither>
 { using type = ctx_fixture::ctx_neither; };
 
+template <typename TChar>
+struct parse_context_type<TChar, ctx_fixture::via_convertible>
+{
+    using type = ctx_fixture::ctx_convertible;
+    static ctx_fixture::ctx_seed make_parse_context(const ctx_fixture::via_convertible&)
+    { return ctx_fixture::ctx_seed{0}; }
+};
+
 template <typename TChar, typename TCtx>
     requires (std::is_same_v<TCtx, ctx_fixture::ctx_default>
               || std::is_same_v<TCtx, ctx_fixture::ctx_maker>
-              || std::is_same_v<TCtx, ctx_fixture::ctx_neither>)
+              || std::is_same_v<TCtx, ctx_fixture::ctx_neither>
+              || std::is_same_v<TCtx, ctx_fixture::ctx_convertible>)
 struct io_traits<TChar, TCtx>
 {
     template <typename TIter, std::sentinel_for<TIter> TSent>
@@ -256,6 +279,16 @@ static_assert(  insertable<os_c, std::tm> );
 static_assert(  extractable_lvalue<is_c, ctx_fixture::via_default> );
 static_assert(  extractable_lvalue<is_c, ctx_fixture::via_maker>   );
 static_assert( !extractable_lvalue<is_c, ctx_fixture::via_neither> );
+
+// make_parse_context is required to return something the context can be built from, not the
+// context itself; a maker returning a different type is a working specialization, not a broken
+// one. (The broken one -- a return type the context cannot be built from, which a missing return
+// statement produces -- is a static_assert in the operator and so is not reachable from here.)
+static_assert(  extractable_lvalue<is_c, ctx_fixture::via_convertible> );
+static_assert( !std::is_same_v<
+                  decltype(IOv2::parse_context_type<char, ctx_fixture::via_convertible>
+                               ::make_parse_context(std::declval<const ctx_fixture::via_convertible&>())),
+                  IOv2::parse_context_type<char, ctx_fixture::via_convertible>::type> );
 
 // ---------------------------------------------------------------------------------------------
 // 7. The iterator aliases the concepts probe with are the ones the operators really use.
@@ -436,4 +469,17 @@ static_assert(  extractable_lvalue<is_c, long double> );
 TEST(IoTraits, EveryDetectionRuleHoldsAtCompileTime)
 {
     SUCCEED() << "all io_traits detection checks are static_asserts in this file";
+}
+
+// The static_assert above answers for the concept. Only a real extraction instantiates the
+// operator's body, which is the part that has to build the context out of whatever
+// make_parse_context handed back.
+TEST(IoTraits, AMakerReturningAConvertibleTypeStillBuildsTheContext)
+{
+    is_c                          is{IOv2::mem_device<char>{std::string("42")},
+                                     IOv2::locale<char>("C")};
+    ctx_fixture::via_convertible  value{};
+
+    is >> value;
+    EXPECT_FALSE(is.str_fail());
 }

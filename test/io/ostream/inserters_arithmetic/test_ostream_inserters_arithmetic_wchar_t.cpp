@@ -39,6 +39,7 @@
 #include <cstring>
 #include <limits>
 #include <memory>
+#include <stdfloat>
 #include <string>
 #include <type_traits>
 #include <utility>
@@ -463,6 +464,49 @@ TEST(OstreamInsertArithmeticWchar, AValueRoundTripsExactlyThroughItsOwnText)
     helper.template operator()<ostream, double>();
     helper.template operator()<ostream, long double>();
     helper.template operator()<iostream, double>();
+
+    // The extended types travel through a standard one inside the facet, so the round trip has
+    // to survive the widening on the way out and the narrowing on the way back.
+#if defined(__STDCPP_FLOAT16_T__)
+    helper.template operator()<ostream, std::float16_t>();
+#endif
+#if defined(__STDCPP_BFLOAT16_T__)
+    helper.template operator()<ostream, std::bfloat16_t>();
+#endif
+#if defined(__STDCPP_FLOAT32_T__)
+    helper.template operator()<ostream, std::float32_t>();
+#endif
+#if defined(__STDCPP_FLOAT64_T__)
+    helper.template operator()<ostream, std::float64_t>();
+#endif
+}
+
+// These reach snprintf's %g, which reads a double off the varargs; an extended type does not
+// promote to one, so the facet has to widen it first. Dyadic values, so the expectation is exact.
+TEST(OstreamInsertArithmeticWchar, ExtendedFloatingPointTypesWriteTheirValue)
+{
+    [[maybe_unused]] auto write = []<typename T>(T v)
+    {
+        ostream os(mem_device{L""}, locale<wchar_t>("C"));
+        os << v;
+        EXPECT_TRUE(static_cast<bool>(os));
+        return os.detach().first.str();
+    };
+
+#if defined(__STDCPP_FLOAT16_T__)
+    EXPECT_EQ(write(static_cast<std::float16_t>(3.5)), L"3.5");
+    EXPECT_EQ(write(static_cast<std::float16_t>(-0.25)), L"-0.25");
+#endif
+#if defined(__STDCPP_BFLOAT16_T__)
+    EXPECT_EQ(write(static_cast<std::bfloat16_t>(3.5)), L"3.5");
+#endif
+#if defined(__STDCPP_FLOAT32_T__)
+    EXPECT_EQ(write(static_cast<std::float32_t>(3.5)), L"3.5");
+#endif
+#if defined(__STDCPP_FLOAT64_T__)
+    EXPECT_EQ(write(static_cast<std::float64_t>(3.5)), L"3.5");
+    EXPECT_EQ(write(static_cast<std::float64_t>(1024)), L"1024");
+#endif
 }
 
 // The longest output any float format can produce; the C library is the oracle

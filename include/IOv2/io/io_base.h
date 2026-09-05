@@ -484,6 +484,55 @@ public:
 
     /**
      * @lang{ZH}
+     * @brief 返回一个作用域守卫，其析构会把字段宽度**消费掉**（置 0）。
+     *
+     * 供「必须消费 width」的格式化函数使用：把守卫建在函数入口，无论正常返回还是中途抛出，
+     * 宽度都不会残留给下一次无关操作。
+     *
+     * @note **与 `fmtflags_guard` 那类守卫语义不同：它不保存、也不还原旧值，而是一律置 0。**
+     *       这对 width 才是对的——width 是一次性状态，契约是"用掉"，不是"借用后归还"。
+     * @note 守卫不可拷贝、不可移动，靠保证的复制消除从这里返回；
+     *       析构调的是原子 `exchange`，不抛，故栈展开期间也安全。
+     * @note 返回值必须接住（`auto g = io.width_guard();`）。丢弃返回值会让守卫当场析构，
+     *       等同于立即 `width(0)`，`[[nodiscard]]` 会拦下这种写法。
+     * @return 析构时置零宽度的守卫对象。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Returns a scope guard whose destructor **consumes** the field width (sets it to 0).
+     *
+     * For formatted functions that owe the width: build the guard on entry and the width cannot
+     * survive into the next, unrelated operation, whether the function returns or throws.
+     *
+     * @note **This differs from guards such as `fmtflags_guard`: it neither saves nor restores
+     *       the old value, it always sets 0.** That is the right semantics for the width, which
+     *       is one-shot state -- the contract is to spend it, not to borrow and give it back.
+     * @note The guard is neither copyable nor movable and is returned here by guaranteed copy
+     *       elision; its destructor calls an atomic `exchange` and does not throw, so it is safe
+     *       during stack unwinding.
+     * @note The result must be bound (`auto g = io.width_guard();`). Discarding it destroys the
+     *       guard immediately, which is just `width(0)`; `[[nodiscard]]` rejects that spelling.
+     * @return A guard that zeroes the width when destroyed.
+     * @endif
+     */
+    [[nodiscard]] auto width_guard()
+    {
+        struct guard
+        {
+            guard(ios_base& ios) : m_ios(ios) {}
+            guard(const guard&) = delete;
+            guard(guard&&) = delete;
+            guard& operator=(const guard&) = delete;
+            guard& operator=(guard&&) = delete;
+            ~guard() { m_ios.width(0); }
+        private:
+            ios_base& m_ios;
+        };
+        return guard(*this);
+    }
+
+    /**
+     * @lang{ZH}
      * @brief 获取/设置填充字符。
      *
      * 无参重载返回当前填充字符；带参重载将其设置为 @p ch 并返回旧值。

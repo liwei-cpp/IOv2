@@ -372,10 +372,11 @@ public:
      * @lang{ZH}
      * @brief 将浮点值格式化并写入输出迭代器，委托给 `insert_float`。
      *
-     * `long double` 使用 `'L'` 修饰符；其他浮点类型使用空修饰符。
+     * 先加宽到 @ref float_carrier_t 选出的标准浮点类型，再据其选择 `snprintf` 修饰符：
+     * `long double` 用 `'L'`，其他用空修饰符。
      *
      * @tparam TIter 输出迭代器类型。
-     * @tparam TValue 浮点类型。
+     * @tparam TValue 浮点类型：`float`、`double`、`long double`，或它们能容纳的扩展浮点类型。
      * @param s 输出迭代器，写入格式化结果。
      * @param io 提供格式标志、宽度、精度和填充字符的流对象。
      * @param v 要格式化的浮点值。
@@ -385,10 +386,13 @@ public:
      * @lang{EN}
      * @brief Formats a floating-point value and writes it to the output iterator; delegates to `insert_float`.
      *
-     * Uses the `'L'` modifier for `long double`; uses an empty modifier for other floating-point types.
+     * The value is first widened to the standard floating-point type @ref float_carrier_t
+     * selects, which also picks the `snprintf` modifier: `'L'` for `long double`, an empty
+     * modifier for the others.
      *
      * @tparam TIter The output iterator type.
-     * @tparam TValue The floating-point type.
+     * @tparam TValue The floating-point type: `float`, `double`, `long double`, or an extended
+     *         floating-point type one of those represents.
      * @param s Output iterator to receive the formatted result.
      * @param io Stream object providing format flags, width, precision, and fill character.
      * @param v The floating-point value to format.
@@ -399,10 +403,16 @@ public:
         requires (std::is_floating_point_v<TValue>)
     TIter put(TIter s, ios_base<char_type>& io, TValue v) const
     {
-        if constexpr (std::is_same_v<TValue, long double>)
-            return insert_float(s, io, v, 'L');
+        // snprintf takes the value as a vararg, which an extended TValue cannot be passed as.
+        // See @ref float_carrier_t; the modifier follows the carrier, not TValue.
+        using TCarrier = float_carrier_t<TValue>;
+        static_assert(represents_v<TCarrier, TValue>,
+                      "no standard floating-point type represents TValue exactly");
+
+        if constexpr (std::is_same_v<TCarrier, long double>)
+            return insert_float(s, io, static_cast<TCarrier>(v), 'L');
         else
-            return insert_float(s, io, v, char());
+            return insert_float(s, io, static_cast<TCarrier>(v), char());
     }
 
     /**
@@ -697,6 +707,48 @@ public:
     }
 
 private:
+    /**
+     * @lang{ZH}
+     * @brief `TStd` 能否精确表示 `TValue` 的每一个值。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Whether `TStd` represents every value of `TValue` exactly.
+     * @endif
+     */
+    template <typename TStd, typename TValue>
+    static constexpr bool represents_v =
+        std::numeric_limits<TStd>::digits >= std::numeric_limits<TValue>::digits
+        && std::numeric_limits<TStd>::max_exponent >= std::numeric_limits<TValue>::max_exponent
+        && std::numeric_limits<TStd>::min_exponent <= std::numeric_limits<TValue>::min_exponent;
+
+    /**
+     * @lang{ZH}
+     * @brief 承载 `TValue` 进出 C 库的标准浮点类型：能精确表示它的最窄的那个。
+     *
+     * `strtof` / `strtod` / `strtold` 与 `snprintf` 的可变参数都只认识标准的那三个类型。
+     * C++23 扩展浮点类型既不参与默认实参提升，也不允许隐式收窄，因此两个方向都在这个载体
+     * 类型上与 C 库交互：读入时判完范围才收窄到 `TValue`，写出时先加宽到载体再交给
+     * `snprintf`。`TValue` 本身是标准类型时载体就是它自己。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief The standard floating-point type that carries `TValue` in and out of the C
+     *        library: the narrowest one that represents it exactly.
+     *
+     * `strtof` / `strtod` / `strtold` and `snprintf`'s varargs know only the three standard
+     * types. A C++23 extended floating-point type neither takes part in the default argument
+     * promotions nor allows an implicit narrowing, so both directions meet the C library on this
+     * carrier: reading narrows to `TValue` only after the range check, and writing widens to the
+     * carrier before handing the value to `snprintf`. When `TValue` is itself a standard type
+     * the carrier is that same type.
+     * @endif
+     */
+    template <typename TValue>
+    using float_carrier_t =
+        std::conditional_t<represents_v<float, TValue>, float,
+                           std::conditional_t<represents_v<double, TValue>, double, long double>>;
+
     /**
      * @lang{ZH}
      * @brief RAII 守卫，在析构时自动恢复 `ios_base` 的格式标志。
@@ -1886,46 +1938,60 @@ private:
      * @lang{ZH}
      * @brief 将 "C" locale 格式的 ASCII 浮点字符串转换为浮点值。
      *
-     * 在 "C" locale 守卫下调用 `strtof`/`strtod`/`strtold`。
-     * 按 LWG 23 处理特殊情况：无穷大映射为 `numeric_limits::max()` 的有限极值并返回失败；
+     * 在 "C" locale 守卫下调用 `strtof`/`strtod`/`strtold`。`TValue` 是 C++23 扩展浮点类型时，
+     * 解析仍在能精确表示它的最窄标准浮点类型上完成，判定越界之后才收窄到 `TValue`。
+     * 按 LWG 23 处理特殊情况：结果超出 `TValue` 的有限范围（含无穷大）时映射为
+     * `numeric_limits<TValue>::max()` 的有限极值并返回失败；
      * 转换失败（`parse_end == s` 或字符串未完全消耗）时将 `v` 设为 0 并返回失败；
      * NaN 作为完整、非无穷的转换结果原样保留。
      *
-     * @tparam TValue 浮点类型（`float`、`double` 或 `long double`）。
+     * @tparam TValue 浮点类型：`float`、`double`、`long double`，或它们能容纳的扩展浮点类型。
      * @param s 以 `'\0'` 结尾的 "C" locale ASCII 浮点字符串。
      * @param v 转换成功后写入结果的浮点数引用。
-     * @return 若字符串被完整转换且结果不是无穷大则返回 `true`（包括 NaN），否则返回 `false`。
+     * @return 若字符串被完整转换且结果落在 `TValue` 的有限范围内则返回 `true`（包括 NaN），
+     * 否则返回 `false`。
      * @endif
      *
      * @lang{EN}
      * @brief Converts a "C"-locale ASCII floating-point string to a floating-point value.
      *
-     * Calls `strtof`/`strtod`/`strtold` under a "C" locale guard.
-     * Handles special cases per LWG 23: infinity is mapped to the finite extreme value
-     * `numeric_limits::max()` and failure is returned; conversion failure (when
-     * `parse_end == s` or the string is not fully consumed) sets `v` to 0 and returns
-     * failure; a fully converted NaN is retained as a successful result.
+     * Calls `strtof`/`strtod`/`strtold` under a "C" locale guard. When `TValue` is a C++23
+     * extended floating-point type the parse still happens in the narrowest standard
+     * floating-point type that represents it exactly, and the narrowing to `TValue` follows the
+     * range check rather than preceding it.
+     * Handles special cases per LWG 23: a result outside the finite range of `TValue`
+     * (infinity included) is mapped to the finite extreme value `numeric_limits<TValue>::max()`
+     * and failure is returned; conversion failure (when `parse_end == s` or the string is not
+     * fully consumed) sets `v` to 0 and returns failure; a fully converted NaN is retained as a
+     * successful result.
      *
-     * @tparam TValue The floating-point type (`float`, `double`, or `long double`).
+     * @tparam TValue The floating-point type: `float`, `double`, `long double`, or an extended
+     *         floating-point type one of those represents.
      * @param s Null-terminated "C"-locale ASCII floating-point string.
      * @param v Reference to the floating-point variable to receive the converted result.
-     * @return `true` if the whole string converted and the result is not infinity
-     * (including NaN); `false` otherwise.
+     * @return `true` if the whole string converted and the result is within the finite range of
+     * `TValue` (including NaN); `false` otherwise.
      * @endif
      */
     template <typename TValue>
     bool convert_to_v(const char* s, TValue& v) const
     {
-        TValue parsed{};
+        // The parse happens on the carrier, and the narrowing back to TValue is deferred to
+        // the end, where the range has been checked. See @ref float_carrier_t.
+        using TCarrier = float_carrier_t<TValue>;
+        static_assert(represents_v<TCarrier, TValue>,
+                      "no standard floating-point type represents TValue exactly");
+
+        TCarrier parsed{};
         char* parse_end = nullptr;
 
         {
             clocale_wrapper inter_locale("C");
             clocale_user guard(inter_locale);
 
-            if constexpr (std::is_same_v<TValue, float>)
+            if constexpr (std::is_same_v<TCarrier, float>)
                 parsed = strtof(s, &parse_end);
-            else if constexpr (std::is_same_v<TValue, double>)
+            else if constexpr (std::is_same_v<TCarrier, double>)
                 parsed = strtod(s, &parse_end);
             else
                 parsed = strtold(s, &parse_end);
@@ -1939,14 +2005,16 @@ private:
             v = TValue(0);
             return false;
         }
-        if (std::isinf(parsed))
+
+        const TValue limit = std::numeric_limits<TValue>::max();
+        const TCarrier bound = static_cast<TCarrier>(limit);
+        if (std::isinf(parsed) || parsed > bound || parsed < -bound)
         {
-            const TValue limit = std::numeric_limits<TValue>::max();
             v = std::signbit(parsed) ? -limit : limit;
             return false;
         }
 
-        v = parsed;
+        v = static_cast<TValue>(parsed);
         return true;
     }
 

@@ -41,6 +41,7 @@
 #include <iterator>
 #include <limits>
 #include <memory>
+#include <stdfloat>
 #include <string>
 #include <type_traits>
 #include <utility>
@@ -349,6 +350,84 @@ TEST(IstreamExtractArithmeticChar, AValueOutOfRangeIsClampedAndReported)
     expect_far.operator()<unsigned long long>(true);
     expect_far.operator()<float>(false);
     expect_far.operator()<double>(false);
+}
+
+// An extended floating-point type is parsed through a standard one, so the range that decides
+// "out of range" has to be the target's and not the carrier's. A value that fits the carrier but
+// not the target used to be reported as a success and then turned into an infinity by the cast.
+// The target is written on the failure too, exactly as it is for the standard types.
+TEST(IstreamExtractArithmeticChar, AnExtendedFloatingPointValueIsClampedToItsOwnLimit)
+{
+    [[maybe_unused]] auto expect_clamped = []<typename TV>(const char* text)
+    {
+        SCOPED_TRACE(text);
+
+        const TV seed = static_cast<TV>(3);
+        {
+            istream is{mem_device{std::string(text)}, locale<char>("C")};
+            TV      v = seed;
+            is >> v;
+            EXPECT_TRUE(is.str_fail());
+            EXPECT_EQ(v, std::numeric_limits<TV>::max());
+        }
+        {
+            istream is{mem_device{std::string("-") + text}, locale<char>("C")};
+            TV      v = seed;
+            is >> v;
+            EXPECT_TRUE(is.str_fail());
+            EXPECT_EQ(v, -std::numeric_limits<TV>::max());
+        }
+        // A malformed field is the other write-back the standard types already make.
+        {
+            istream is{mem_device{std::string("abc")}, locale<char>("C")};
+            TV      v = seed;
+            is >> v;
+            EXPECT_TRUE(is.str_fail());
+            EXPECT_EQ(v, static_cast<TV>(0));
+        }
+    };
+
+    // The standard type the others are measured against.
+    expect_clamped.operator()<float>("1e300");
+
+#if defined(__STDCPP_FLOAT16_T__)
+    expect_clamped.operator()<std::float16_t>("70000");
+#endif
+#if defined(__STDCPP_BFLOAT16_T__)
+    expect_clamped.operator()<std::bfloat16_t>("1e300");
+#endif
+#if defined(__STDCPP_FLOAT32_T__)
+    expect_clamped.operator()<std::float32_t>("1e300");
+#endif
+#if defined(__STDCPP_FLOAT64_T__)
+    expect_clamped.operator()<std::float64_t>("1e400");
+#endif
+}
+
+// A value that fits the target is not affected by the carrier it travelled through.
+TEST(IstreamExtractArithmeticChar, AnExtendedFloatingPointValueInRangeIsReadExactly)
+{
+    [[maybe_unused]] auto expect_exact = []<typename TV>()
+    {
+        istream is{mem_device{std::string("3.5")}, locale<char>("C")};
+        TV      v{};
+        is >> v;
+        EXPECT_FALSE(is.str_fail());
+        EXPECT_EQ(v, static_cast<TV>(3.5));
+    };
+
+#if defined(__STDCPP_FLOAT16_T__)
+    expect_exact.operator()<std::float16_t>();
+#endif
+#if defined(__STDCPP_BFLOAT16_T__)
+    expect_exact.operator()<std::bfloat16_t>();
+#endif
+#if defined(__STDCPP_FLOAT32_T__)
+    expect_exact.operator()<std::float32_t>();
+#endif
+#if defined(__STDCPP_FLOAT64_T__)
+    expect_exact.operator()<std::float64_t>();
+#endif
 }
 
 // A number of exactly the greatest number of digits the type can always hold

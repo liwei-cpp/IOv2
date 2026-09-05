@@ -2,11 +2,10 @@
 // SPDX-License-Identifier: MIT
 
 #pragma once
-#include <type_traits>
+#include <IOv2/facet/timeio.h>
 #include <IOv2/io/io_base.h>
 #include <IOv2/io/traits/char_and_str.h>
 #include <IOv2/io/traits/traits_base.h>
-#include <IOv2/facet/timeio.h>
 #include <IOv2/locale/locale.h>
 
 #include <algorithm>
@@ -16,6 +15,7 @@
 #include <iterator>
 #include <string>
 #include <string_view>
+#include <type_traits>
 
 namespace IOv2
 {
@@ -90,7 +90,9 @@ struct parse_context_type<TChar, std::tm>
      *   `00:00:-5` 得到前一天的 `23:59:55`，`24:00:00` 得到次日的 `00:00:00`；
      * - `tm_sec == 60`（闰秒）取 `59`，因为 `hh_mm_ss` 无法表示它。这是时间组唯一的
      *   截断，其余越界值一律进位；
-     * - 结果被夹取到 `std::chrono::year` 可表示的日历范围内。
+     * - 日期偏移（`tm_mday` 与时间组的进位之和）先被夹取到 ±4,000,000 天再叠到当月 1 日上，
+     *   使叠加本身不会溢出；所得日期再被夹取到 `std::chrono::year` 可表示的日历范围内。故
+     *   越界极远的 `tm_mday` 停在离当月 1 日约 ±10,951 年处，而不是日历边界。
      *
      * @param tmb 提供回退值的 `std::tm`；其 `tm_wday` / `tm_yday` / `tm_isdst` 不参与计算。
      * @return 已装入回退值的上下文。
@@ -122,7 +124,11 @@ struct parse_context_type<TChar, std::tm>
      *   the previous day, and `24:00:00` yields `00:00:00` on the next one;
      * - `tm_sec == 60` (a leap second) becomes `59`, as `hh_mm_ss` cannot represent it. That is
      *   the only truncation in the time group; every other out-of-range value carries;
-     * - the result is clamped to the calendar range `std::chrono::year` can represent.
+     * - the day offset (`tm_mday` plus whatever the time group carried) is clamped to
+     *   ±4,000,000 days before it is added to the 1st of the month, so that the addition itself
+     *   cannot overflow; the resulting date is then clamped to the calendar range
+     *   `std::chrono::year` can represent. A `tm_mday` far out of range therefore stops about
+     *   ±10,951 years from the 1st of the month rather than at the calendar bound.
      *
      * @param tmb The `std::tm` supplying the fallbacks; its `tm_wday`, `tm_yday`, and
      *            `tm_isdst` take no part in the computation.
@@ -174,7 +180,6 @@ struct parse_context_type<TChar, std::tm>
     }
 };
 
-
 namespace detail
 {
 /**
@@ -183,8 +188,8 @@ namespace detail
  *
  * 先把 locale 的 `%c` 用 @ref timeio::expand_format 展开——不为了过滤（`std::tm` 什么都
  * 供得出，没有说明符会被摘掉），而是为了**看得见**：`%z` 可能藏在 `%r` / `%X` 这类复合
- * 说明符里面，不展开就查不出来。随后 @ref timeio::contains_specifier 判断展开结果里有没有
- * `%z`，没有才补。
+ * 说明符里面，不展开就查不出来。随后 @ref timeio::contains_specifier 分别判断展开结果里有没有
+ * `%z` 和 `%Z`，缺哪个补哪个。
  *
  * **两个说明符各补各的，判据互相独立。** `std::tm` 的时区是两个成员，一个说明符还原一个：
  * `%z` 还原 `tm_gmtoff`，`%Z` 还原 `tm_zone`，谁都替不了谁。`%Z` 供不出偏移——`do_get` 的
@@ -219,15 +224,25 @@ namespace detail
  * The locale's `%c` is first run through @ref timeio::expand_format -- not to filter anything
  * (a `std::tm` supplies every field, so no specifier is dropped) but to make the format
  * **visible**: a `%z` can sit inside a compound such as `%r` or `%X`, where no search would
- * find it. @ref timeio::contains_specifier then decides whether the expansion already has a
- * `%z`, and only if it does not is one appended.
+ * find it. @ref timeio::contains_specifier then decides, for `%z` and for `%Z` separately,
+ * whether the expansion already carries that specifier; whichever is missing is appended.
  *
- * **Only `%z` is appended, never `%Z`,** because `%Z` contributes nothing to the reconstructed
- * `tm`: `do_get`'s `%Z` only fills `m_zone_abbrev` and never sets `m_have_offset`, while
- * `convert_to(std::tm&)` writes `tm_gmtoff` only when `m_have_offset` is set. So `"%F %T %Z"`
- * writes `... CST` and reads back with `tm_gmtoff` still `0`; `%z` alone round-trips. That also
- * makes "skip it when a `%Z` is already there" wrong: en_US's `%c` carries a `%Z` and still
- * loses the offset, so the test looks for `%z` and nothing else.
+ * **Each specifier is appended on its own, on an independent test.** A `std::tm` carries its
+ * time zone in two members, and one specifier restores each: `%z` restores `tm_gmtoff`, `%Z`
+ * restores `tm_zone`, and neither stands in for the other. `%Z` cannot supply the offset --
+ * `do_get`'s `case 'Z'` never sets `m_have_offset`, while `convert_to(std::tm&)` writes
+ * `tm_gmtoff` only when that flag is set; nor does an abbreviation determine an offset at all
+ * (`CST` is US Central −6, China +8 and Cuba −5 at once). Conversely `%z` cannot supply the zone
+ * name. Measured on `tm_gmtoff = 28800, tm_zone = "CST"`: through `%Z` alone the offset reads
+ * back as `0`, through `%z` alone `tm_zone` reads back as a null pointer. So en_US's `%c`
+ * already carrying a `%Z` still does not spare it the appended `%z`.
+ *
+ * **An appended `%Z` is parenthesized, an appended `%z` is not.** The shape is `... +0800 (CST)`,
+ * matching an RFC 5322 date and matching the two locales on this machine that spell `%c` as
+ * `%a %Y %b %d %H:%M:%S (%Z)`. A locale that already has a `%Z` (165 here, 163 of them bare at
+ * the end) gets nothing appended for it and so stays `... %Z %z` -- locale formats differ in
+ * shape to begin with, and all that is asked here is that whatever can be written reads back and
+ * that it looks presentable, not that locales agree.
  *
  * **It is appended unconditionally, not based on this particular `tm`.** A value-level test is
  * impossible here: `sread` holds a `time_parse_context` and no `std::tm` to inspect. Were put
@@ -300,12 +315,10 @@ struct io_traits<TChar, std::tm>
         requires (char_sink_for<TIter, TChar>)
     static TIter swrite(TIter s, ios_base<TChar>& io, const locale<TChar>& loc, const std::tm& value)
     {
+        auto width_guard = io.width_guard();
         auto mp = loc.template get<timeio<TChar>>();
         if (!mp)
-        {
-            io.width(0);
             throw stream_error("cannot get timeio facet");
-        }
 
         const auto fmt = detail::tm_stream_format(*mp);
         if (io.width() == 0)
