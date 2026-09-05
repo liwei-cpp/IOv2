@@ -355,13 +355,15 @@ TEST(OstreamInsertCharacterWchar, AMissingCtypeFacetRejectsValuesThatNeedWidenin
 {
     const auto loc = locale<wchar_t>("C").remove<ctype_conf<wchar_t>>();
 
+    // Widening needs the facet, so these throw before reaching the code that spends the width.
+    // The leftover would otherwise pad the next, unrelated insertion.
     ostream character{mem_device{L""}, loc};
+    character.width(10);
     character << 'x';
     EXPECT_TRUE(character.str_fail());
     EXPECT_TRUE(character.device().str().empty());
+    EXPECT_EQ(character.width(), 0u);
 
-    // Widening needs the facet, so this throws before reaching the code that spends the width.
-    // The leftover would otherwise pad the next, unrelated insertion.
     ostream string{mem_device{L""}, loc};
     string.width(10);
     string << "text";

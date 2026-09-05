@@ -855,7 +855,10 @@ struct io_traits<TChar, put_money_t<TMoney>>
     {
         auto mp = loc.template get<monetary<TChar>>();
         if (!mp)
+        {
+            io.width(0);
             throw stream_error("cannot get monetary facet");
+        }
 
         return mp->put(s, f.m_intl, io, f.m_mon);
     }
@@ -1091,7 +1094,8 @@ template<typename TChar> struct put_time_t
  *       负责，而 `timeio` 的写出路径完全不涉及 width。因此 `os << setw(20) << put_time(...)`
  *       不会补齐到 20 列，且这个 width 会原样留给下一次插入。这与 `std::put_time` 的行为
  *       一致（`time_put` 同样不处理 width），但与 `put_money`、算术类型的插入不同——后两者
- *       经由 `monetary` / `numeric` facet，会消费掉 width。
+ *       经由 `monetary` / `numeric` facet，会消费掉 width。直接插入 `std::tm`（`os << *tmb`）
+ *       同样会补齐并消耗，格式串由库而非调用方给出；见 `io_traits<TChar, std::tm>::swrite`。
  * @warning **`*tmb` 必须描述一个完整且真实存在的时刻，而不只是 @p fmt 用到的那几个字段。**
  *          写出前 `timeio::put` 会校验日期与时刻各字段：`tm_mon` 属于 [0,11]、`tm_mday` 属于 [1,31]、
  *          `tm_hour` 属于 [0,23]、`tm_min` 与 `tm_sec` 属于 [0,59]（**不接受闰秒 `tm_sec == 60`**）、
@@ -1159,7 +1163,9 @@ template<typename TChar> struct put_time_t
  *       columns, and that width is left in place for the next insertion. This matches
  *       `std::put_time` (`time_put` likewise ignores the width), but differs from `put_money`
  *       and from arithmetic insertion, both of which go through the `monetary` / `numeric`
- *       facets and do consume it.
+ *       facets and do consume it. Inserting a `std::tm` directly (`os << *tmb`) also pads and
+ *       consumes, its format coming from the library rather than the caller; see
+ *       `io_traits<TChar, std::tm>::swrite`.
  * @warning **`*tmb` must describe a complete instant that really exists, not merely the fields
  *          @p fmt happens to use.** Before writing, `timeio::put` validates the date and
  *          time-of-day fields: `tm_mon` in [0,11], `tm_mday` in [1,31], `tm_hour` in [0,23],

@@ -61,8 +61,45 @@ TEST(OstreamInsertTimeChar, AMissingTimeFacetRejectsATm)
     value.tm_mday = 29;
 
     ostream os{mem_device{""}, loc};
+    os.width(10);
     os << value;
 
     EXPECT_TRUE(os.str_fail());
     EXPECT_TRUE(os.device().str().empty());
+    // The width is one-shot: the failing path has to spend it too.
+    EXPECT_EQ(os.width(), 0u);
+}
+
+TEST(OstreamInsertTimeChar, TheFieldWidthPadsATmAndIsThenConsumed)
+{
+    const auto loc = locale<char>("C");
+    std::tm    value{};
+    value.tm_year = 2024 - 1900;
+    value.tm_mon  = 9 - 1;
+    value.tm_mday = 4;
+    value.tm_hour = 13;
+    value.tm_min  = 33;
+    value.tm_sec  = 18;
+
+    // The unpadded rendering is locale- and platform-dependent, so measure it.
+    ostream probe{mem_device{""}, loc};
+    probe << value;
+    const std::string plain = probe.detach().first.str();
+
+    auto write = [&](std::size_t w, ios_defs::fmtflags adjust)
+    {
+        ostream os{mem_device{""}, loc};
+        os.fill('.');
+        os.setf(adjust, ios_defs::adjustfield);
+        os.width(w);
+        os << value;
+        EXPECT_TRUE(static_cast<bool>(os));
+        EXPECT_EQ(os.width(), 0u);
+        return os.detach().first.str();
+    };
+
+    EXPECT_EQ(write(plain.size() + 4, ios_defs::right), "...." + plain);
+    EXPECT_EQ(write(plain.size() + 4, ios_defs::left), plain + "....");
+    EXPECT_EQ(write(plain.size(), ios_defs::right), plain);
+    EXPECT_EQ(write(1, ios_defs::right), plain);
 }

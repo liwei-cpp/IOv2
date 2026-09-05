@@ -2816,6 +2816,8 @@ public:
      * @throw stream_error 若解析失败（格式不匹配或字段值超出范围）。
      * @note 上下文无法接收的说明符不构成错误，会转而要求输入中出现 `%` + 修饰符 +
      *       说明符字符这一字面量；详见 `timeio` 的类说明。
+     * @note 若 locale 没有 AM/PM 名称（de_DE、hy_AM 等），`%p` 匹配空串：不消费字符、
+     *       不设上下午标志，也不算失败——与写侧 `%p` 什么都不写对称。
      * @endif
      *
      * @lang{EN}
@@ -2840,6 +2842,9 @@ public:
      * @note A specifier the context cannot receive is not an error: the input is instead
      *       required to carry the literal `%`, modifier and specifier character. See
      *       the `timeio` class documentation.
+     * @note Where the locale has no AM/PM designator (de_DE, hy_AM), `%p` matches the empty
+     *       string: it consumes nothing, leaves the AM/PM flag unset and is not a failure --
+     *       the mirror of `%p` writing nothing.
      * @endif
      */
     template <typename TIter, std::sentinel_for<TIter> TSent, bool HaveDate, bool HaveTime, tz_level TzLevel>
@@ -3349,11 +3354,13 @@ private:
                             return rp;
                         }
                     }
-                    else
+                    else if (!m_am.empty() || !m_pm.empty())
                     {
                         succ = false;
                         return rp;
                     }
+                    // A locale with no designator writes nothing for %p, so matching
+                    // nothing is the round trip rather than a failure.
                 }
                 break;
 
@@ -3761,15 +3768,17 @@ private:
 
         // A format tail consisting solely of whitespace / %n / %t matches
         // zero-or-more whitespace and is satisfied even at end of input,
-        // matching POSIX strptime and std::get_time. Skip such a tail before
-        // judging failure.
+        // matching POSIX strptime and std::get_time. So is a %p where the locale
+        // has no designator, which likewise matches the empty string. Skip such a
+        // tail before judging failure.
         while (fmt != _fmt.cend())
         {
             if (is_space(*fmt)) { ++fmt; continue; }
             auto next = fmt + 1;
             if ((*fmt != static_cast<CharT>('%')) || (next == _fmt.cend()))
                 break;
-            if ((*next != static_cast<CharT>('n')) && (*next != static_cast<CharT>('t')))
+            const bool empty_am_pm = (*next == static_cast<CharT>('p')) && m_am.empty() && m_pm.empty();
+            if ((*next != static_cast<CharT>('n')) && (*next != static_cast<CharT>('t')) && !empty_am_pm)
                 break;
             fmt += 2;
         }
