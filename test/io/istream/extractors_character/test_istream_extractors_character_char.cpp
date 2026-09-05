@@ -34,6 +34,7 @@
 #include <support/file_guard.h>
 #include <support/injectable_device.h>
 #include <support/io_traits_probe.h>
+#include <support/throwing_get_device.h>
 
 #include <cstddef>
 #include <cstring>
@@ -312,6 +313,24 @@ TEST(IstreamExtractCharacterChar, AnEmptyInputStillTerminatesTheDestination)
         EXPECT_TRUE(is.str_fail());
         EXPECT_TRUE(value.empty());
     }
+}
+
+// The terminator is owed on the exception path too. The loop can be left by a throw from the
+// device or from the ctype facet, and the destination is a raw array whose caller has no other
+// way to learn how far it was filled -- under ASan the strlen() below runs off the end without
+// the terminator.
+TEST(IstreamExtractCharacterChar, AnExceptionInsideTheLoopStillTerminatesTheDestination)
+{
+    // Four characters arrive, the fifth dget() throws: the token is under way and unfinished.
+    istream is{throwing_get_device<char>{std::string("abcdefgh"), 5}, locale<char>("C")};
+    char    value[16];
+    std::memset(value, 'Z', sizeof(value));
+
+    is >> noskipws >> value;
+
+    EXPECT_FALSE(static_cast<bool>(is));
+    EXPECT_LT(std::strlen(value), sizeof(value));
+    EXPECT_STREQ(value, "abcd");
 }
 
 TEST(IstreamExtractCharacterChar, AMissingCtypeFacetRejectsTokenExtraction)

@@ -853,12 +853,10 @@ struct io_traits<TChar, put_money_t<TMoney>>
         requires (char_sink_for<TIter, TChar>)
     static TIter swrite(TIter s, ios_base<TChar>& io, const locale<TChar>& loc, put_money_t<TMoney> f)
     {
+        auto width_guard = io.width_guard();
         auto mp = loc.template get<monetary<TChar>>();
         if (!mp)
-        {
-            io.width(0);
             throw stream_error("cannot get monetary facet");
-        }
 
         return mp->put(s, f.m_intl, io, f.m_mon);
     }

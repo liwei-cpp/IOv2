@@ -2,15 +2,15 @@
 // SPDX-License-Identifier: MIT
 
 #pragma once
-#include <cstddef>
-#include <string>
-
-#include <type_traits>
 #include <IOv2/facet/ctype.h>
 #include <IOv2/io/io_base.h>
-#include <IOv2/io/traits/traits_base.h>
 #include <IOv2/io/traits/char_and_str.h>
+#include <IOv2/io/traits/traits_base.h>
 #include <IOv2/locale/locale.h>
+
+#include <cstddef>
+#include <string>
+#include <type_traits>
 
 namespace IOv2
 {
@@ -61,16 +61,13 @@ struct io_traits<TChar, std::nullptr_t>
         requires (char_sink_for<TIter, TChar>)
     static TIter swrite(TIter s, ios_base<TChar>& io, const locale<TChar>& loc, std::nullptr_t)
     {
+        auto width_guard = io.width_guard();
         const char* c_buf = "nullptr";
         constexpr std::size_t n = 7;
 
         auto mp = loc.template get<ctype<TChar>>();
         if (!mp)
-        {
-            // This path never reaches ostream_insert, so it has to spend the width itself.
-            io.width(0);
             throw stream_error("cannot get ctype facet");
-        }
 
         TChar buf[n];
         mp->widen_seq(c_buf, c_buf + n, buf);

@@ -70,6 +70,29 @@ TEST(OstreamInsertTimeChar, AMissingTimeFacetRejectsATm)
     EXPECT_EQ(os.width(), 0u);
 }
 
+// A width other than zero takes the inserter down a second route: the rendering is buffered
+// first, because padding has to know its length up front. Everything on that route runs before
+// the one place that spends the width, so a tm the facet refuses has to spend it anyway.
+TEST(OstreamInsertTimeChar, ATmTheFacetRefusesSpendsTheWidthOnThePaddedPath)
+{
+    std::tm value{};
+    value.tm_year = 2024 - 1900;
+    value.tm_mon  = 12;     // out of range, so timeio::put refuses it
+    value.tm_mday = 4;
+
+    ostream os{mem_device{""}, locale<char>("C")};
+    os.width(20);
+    os << value;
+
+    EXPECT_TRUE(os.str_fail());
+    EXPECT_EQ(os.width(), 0u);
+
+    // A leftover width would pad this unrelated insertion instead.
+    os.clear();
+    os << "ab";
+    EXPECT_EQ(os.device().str(), "ab");
+}
+
 TEST(OstreamInsertTimeChar, TheFieldWidthPadsATmAndIsThenConsumed)
 {
     const auto loc = locale<char>("C");

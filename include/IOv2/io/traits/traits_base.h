@@ -7,9 +7,9 @@
  * 声明本库唯一的 I/O 扩展点 `io_traits<TChar, T>`，以及提取端的可选中转类型
  * `parse_context_type<TChar, T>`。
  *
- * 本文件不依赖任何其它头文件，只有声明、没有定义：`io_traits` 的主模板是**故意不定义**的，
- * 目的是让"某个类型不支持某个方向"这件事表达为「特化不存在」。类模板没有 `= delete`，这是
- * 唯一能把标准里那些被删除的重载（如向 `char` 流插入 `wchar_t`）如实表达出来的手段。
+ * `io_traits` 的主模板是**故意不定义**的，目的是让"某个类型不支持某个方向"这件事表达为
+ * 「特化不存在」。类模板没有 `= delete`，这是唯一能把标准里那些被删除的重载
+ * （如向 `char` 流插入 `wchar_t`）如实表达出来的手段。
  *
  * ### 扩展点
  *
@@ -110,19 +110,20 @@
  * 提取端还有一个可选的中转：若 `parse_context_type<TChar, T>::type` 不是 `T` 本身，运算符会
  * 先构造一个该类型的临时量、让 `io_traits<TChar, 上下文类型>::sread` 解析它，再调用上下文的
  * `convert_to(T&)` 写回目标。临时量由 `parse_context_type<TChar, T>` 的静态成员
- * `make_parse_context(const T&)` 构造——这就是 `std::tm` 用旧值作为未解析字段回退值的做法，见
- * `IOv2/io/traits/tm.h`；没有该成员时默认构造。主模板是恒等映射，不需要这一层就不用管它。
+ * `make_parse_context(const T&)` 构造，它必须返回能构造出 `type` 的东西——这就是 `std::tm` 用
+ * 旧值作为未解析字段回退值的做法，见 `IOv2/io/traits/tm.h`；没有该成员时默认构造。有该成员但
+ * 返回类型不对时不会退回默认构造，而是给出 `static_assert`。主模板是恒等映射，不需要这一层就
+ * 不用管它。
  * @endif
  *
  * @lang{EN}
  * Declares this library's single I/O extension point, `io_traits<TChar, T>`, together with the
  * optional relay type used on the extraction side, `parse_context_type<TChar, T>`.
  *
- * This file depends on nothing else and contains declarations only: the primary `io_traits`
- * template is **deliberately left undefined** so that "this type does not support this
- * direction" can be expressed as "the specialization does not exist". A class template has no
- * `= delete`, and this is the only way to faithfully express the overloads the standard deletes
- * (inserting a `wchar_t` into a `char` stream, for instance).
+ * The primary `io_traits` template is **deliberately left undefined** so that "this type does
+ * not support this direction" can be expressed as "the specialization does not exist". A class
+ * template has no `= delete`, and this is the only way to faithfully express the overloads the
+ * standard deletes (inserting a `wchar_t` into a `char` stream, for instance).
  *
  * ### The extension point
  *
@@ -247,10 +248,12 @@
  * itself, the operator builds a temporary of that type, lets
  * `io_traits<TChar, context type>::sread` parse into it, and calls the context's
  * `convert_to(T&)` to write the result back. The temporary comes from
- * `parse_context_type<TChar, T>`'s static `make_parse_context(const T&)` -- which is how
- * `std::tm` uses its previous contents as the fallbacks for the fields the format string does
- * not parse; see `IOv2/io/traits/tm.h` -- and is default constructed when there is no such
- * member. The primary template is the identity, so ignore this layer if you do not need it.
+ * `parse_context_type<TChar, T>`'s static `make_parse_context(const T&)`, which must return
+ * something `type` can be constructed from -- this is how `std::tm` uses its previous contents
+ * as the fallbacks for the fields the format string does not parse; see `IOv2/io/traits/tm.h`.
+ * It is default constructed when there is no such member; a member that is there but returns
+ * the wrong type is a `static_assert`, not a fallback to default construction. The primary
+ * template is the identity, so ignore this layer if you do not need it.
  * @endif
  */
 #pragma once
