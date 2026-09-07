@@ -68,10 +68,8 @@ namespace IOv2
  * @note 关于读缓冲区与逻辑位置的语义细节（尤其是过度回退时位置在起点处饱和为 0），
  *       见 sputbackc()、tell() 与 switch_to_put() 的说明。
  *
- * @note 方向约束落在四个构造函数上。不带工厂的**输出**那个同时服务 `ostreambuf` 与双向的
- *       `streambuf`（两者都满足 `IsOut`），故它除 `support_put` 外还要在 `IsIn` 为真时
- *       要求 `support_get`——否则双向实例会在此收下只写设备，而 `iostream` 在类级拒绝它。
- *       带工厂的两个改查整条管线（`cvt_fits_direction`），因为管线可以比设备更弱。
+ * @note 方向约束落在四个构造函数上：不带工厂的两个查设备的能力，带工厂的两个改查整条管线
+ *       （`cvt_fits_direction`），因为管线可以比设备更弱。
  *
  * @tparam TDevice 底层设备类型，须满足 `io_device`；构造时 `IsIn` 还要求
  *         `dev_cpt::support_get`、`IsOut` 还要求 `dev_cpt::support_put`。
@@ -99,11 +97,8 @@ namespace IOv2
  *       particular, the position saturating at 0 on over-putback), see sputbackc(),
  *       tell(), and switch_to_put().
  *
- * @note The direction constraint sits on the four constructors. The creator-less *output* one
- *       serves both `ostreambuf` and the bidirectional `streambuf` (both satisfy `IsOut`), so
- *       besides `support_put` it also requires `support_get` when `IsIn` is true -- otherwise a
- *       bidirectional instantiation would accept a write-only device here while `iostream`
- *       rejects it at class level. The creator-taking two check the whole pipeline
+ * @note The direction constraint sits on the four constructors: the creator-less ones check the
+ *       device's capabilities, the creator-taking ones check the whole pipeline
  *       (`cvt_fits_direction`), since a pipeline may be weaker than its device.
  *
  * @tparam TDevice The underlying device type; must satisfy `io_device`. To construct one, `IsIn`
@@ -653,70 +648,50 @@ public:
      * @lang{ZH}
      * @brief 切换到输出模式。
      *
-     * 切换到输出模式。
-     * 若读缓冲区（m_read_buf）中还留有已经被 sgetc()/sputbackc() 取出但尚未被
-     * sbumpc()/sgetn() 消费的字符，则必须先把底层转换器的物理位置回退到这些字符对应
-     * 的逻辑位置，才能保证之后再切回输入模式时仍从**同一逻辑位置**继续读——这一步
-     * 依赖底层转换器支持定位（cvt_cpt::support_positioning）。
-     * 回退恢复的是**位置**而不是**内容**：读缓冲区本身随即被清空，因此凡是
-     * sputbackc() 压回的字符与底层数据不同的（标准与本库都允许压回**替换**字符），
-     * 以及超出实际已读字符数的**过量**压回，都会在这里静默丢失，切回输入后读到的
-     * 是底层的原始数据。未经替换的 sgetc()/peek() 不受影响——回退后重读得到同一字符。
-     * 输出必然要求设备停在写位置，读缓冲区代表的是尚未生效的读侧推测状态，因此这是
-     * 既定语义；需要保留压回内容的调用方应在切向输出之前把它消费掉。
-     * 换言之：一个仅满足 cvt_cpt::support_io_switch（支持读、写、切换方向）而不支持
-     * 定位的转换器，只要读缓冲区非空就无法调用本函数；若读缓冲区为空（即从未调用过
-     * sgetc()/sputbackc()，只用过 sbumpc()/sgetn()），则切换方向不需要定位支持。
-     * 关于过度回退：若 sputbackc() 压回的字符数超过实际已读字符数，回退目标位置
-     * （即 tell()）会在起点处钳位为 0（见 tell()/sputbackc()），因此切换后写入将从
-     * 位置 0 开始。这与逻辑读游标此刻正位于 0 是一致的；又因为 put-back 并不把字符
-     * 真正写回底层，切换到输出后从该位置写入会相应改变逻辑数据流——这是既定语义，
-     * 非错误。
+     * 若读缓冲区中还留有已被 `sgetc()`/`sputbackc()` 取出但尚未消费的字符，则必须先把底层
+     * 转换器的物理位置回退到这些字符对应的逻辑位置，才能保证之后再切回输入模式时仍从**同一
+     * 逻辑位置**继续读——这一步依赖底层转换器支持定位（`cvt_cpt::support_positioning`）。
+     * 因此，只支持读写与方向切换而不支持定位的转换器，在读缓冲区非空时无法调用本函数；
+     * 读缓冲区为空时切换方向则不需要定位支持。
+     *
+     * 回退恢复的是**位置**而不是**内容**：读缓冲区随即被清空，因此 `sputbackc()` 压回的
+     * **替换**字符与**过量**压回都会在这里静默丢失，切回输入后读到的是底层的原始数据；
+     * 未经替换的 `sgetc()`/peek 不受影响。需要保留压回内容的调用方应在切向输出之前把它消费掉。
+     *
+     * 过量回退时，回退目标位置（即 `tell()`）在起点处钳位为 0（见 `tell()`/`sputbackc()`），
+     * 因此切换后写入将从位置 0 开始。这是既定语义，非错误。
      * @endif
      *
      * @lang{EN}
      * @brief Switches to output mode.
      *
-     * Switches to output mode.
-     * If the read buffer (m_read_buf) still holds characters that were fetched by
-     * sgetc()/sputbackc() but not yet consumed by sbumpc()/sgetn(), the underlying
-     * converter's physical position must first be rewound to the logical position
-     * those characters represent, so that a later switch back to input mode resumes
-     * from that same logical position — this step requires the underlying converter
-     * to support positioning (cvt_cpt::support_positioning).
-     * The rewind restores the position, not the contents: the read buffer itself is
-     * then cleared, so any character that sputbackc() pushed back with a value
-     * differing from the underlying data (both the standard and this library allow
-     * put-back to substitute), as well as any over-putback beyond the number of
-     * characters actually read, is silently lost here, and switching back to input
-     * reads the underlying data instead. An unsubstituted sgetc()/peek() is
-     * unaffected — re-reading after the rewind yields the same character.
-     * Output necessarily requires the device to sit at the write position, and the
-     * read buffer holds speculative read-side state that has not taken effect, so
-     * this is by design; a caller that needs the pushed-back content preserved
-     * should consume it before switching to output.
-     * In other words: a converter that only satisfies cvt_cpt::support_io_switch
-     * (get + put + direction switching) but not positioning cannot call this
-     * function while the read buffer is non-empty; if the read buffer is empty
-     * (i.e. only sbumpc()/sgetn() have been used, never sgetc()/sputbackc()),
-     * switching direction does not require positioning support.
-     * On over-putback: if sputbackc() has pushed back more characters than were
-     * actually read, the rewind target (i.e. tell()) saturates at the stream origin
-     * 0 (see tell()/sputbackc()), so writing after the switch begins at position 0.
-     * This is consistent with the logical read cursor being at 0 at that moment;
-     * and because put-back is never written through to the underlying stream,
-     * writing from that position after switching to output changes the logical data
-     * stream accordingly — this is by-design behavior, not a bug.
+     * If the read buffer still holds characters fetched by `sgetc()`/`sputbackc()` but not yet
+     * consumed, the underlying converter's physical position must first be rewound to the logical
+     * position those characters represent, so that a later switch back to input resumes from that
+     * same logical position -- which requires the converter to support positioning
+     * (`cvt_cpt::support_positioning`). A converter that supports get, put and direction
+     * switching but not positioning therefore cannot call this function while the read buffer is
+     * non-empty; with an empty read buffer, switching needs no positioning support.
+     *
+     * The rewind restores the position, not the contents: the read buffer is then cleared, so a
+     * **substituted** put-back character and any **over-putback** are silently lost here, and
+     * switching back to input reads the underlying data instead; an unsubstituted `sgetc()`/peek
+     * is unaffected. A caller that needs the pushed-back content preserved should consume it
+     * before switching to output.
+     *
+     * On over-putback the rewind target (i.e. `tell()`) saturates at the stream origin 0 (see
+     * `tell()`/`sputbackc()`), so writing after the switch begins at position 0. This is
+     * by-design behavior, not a bug.
      * @endif
      *
      * @throws cvt_error
      * @lang{ZH} 有两个抛出源：(1) 读缓冲区非空，而回退这些字符所需的定位被转换器拒绝；
-     * (2) 转换器拒绝离开读方向——这一源与读缓冲区是否为空无关，读缓冲区为空时同样可能抛。
-     * 前者抛在清空之前，后者抛在清空之后。 @endif
+     * (2) 转换器拒绝离开读方向——这一源与读缓冲区是否为空无关。前者抛在清空之前，后者抛在
+     * 清空之后。 @endif
      * @lang{EN} Two sources: (1) the read buffer is non-empty and the converter refuses the
      * reposition needed to rewind those characters; (2) the converter refuses to leave the get
-     * direction -- this one is independent of the read buffer and can throw with it empty.
-     * The first throws before the clear, the second after it. @endif
+     * direction -- this one is independent of the read buffer. The first throws before the clear,
+     * the second after it. @endif
      */
     void switch_to_put() requires (IsIn && IsOut)
     {
@@ -777,11 +752,10 @@ public:
      * @lang{ZH}
      * @brief 分离并取回底层设备。
      *
-     * 在支持输入且读缓冲区非空时，先尝试把底层转换器定位回逻辑读位置（tell()），以便交还
+     * 在支持输入且读缓冲区非空时，先尝试把底层转换器定位回逻辑读位置（`tell()`），以便交还
      * 的设备停在正确位置，随后清空读缓冲区。该定位失败会被**有意吞掉**：不支持定位的设备
-     * （如管道/终端的 stdin）本就无法满足此重定位，这是设备固有属性而非可处理的错误——
-     * 报告它会让此类设备上例行的 detach()/attach() 循环开始抛异常；对这类设备而言，丢失
-     * 预读字符是可接受且不可避免的代价。
+     * （如管道/终端的 stdin）本就无法满足此重定位，报告它会让此类设备上例行的
+     * `detach()`/`attach()` 循环开始抛异常；对这类设备而言，丢失预读字符是不可避免的代价。
      * @return 一个 pair：取回的设备，以及转换器在分离过程中捕获的异常指针（可能为空）。
      * @note 本函数为 noexcept。
      * @endif
@@ -789,15 +763,13 @@ public:
      * @lang{EN}
      * @brief Detaches and retrieves the underlying device.
      *
-     * When input is supported and the read buffer is non-empty, it first tries to
-     * reposition the underlying converter back to the logical read position (tell()), so
-     * that the returned device stops at the correct place, then clears the read buffer.
-     * A failure of that reposition is **swallowed on purpose**: a device that does not
-     * support positioning (e.g. a pipe/tty-backed stdin) inherently cannot honor this
-     * reposition — an intrinsic property of the device, not an actionable error.
-     * Reporting it would make routine detach()/attach() cycles on such devices start
-     * throwing; for those devices, losing the lookahead character is the accepted and
-     * unavoidable cost.
+     * When input is supported and the read buffer is non-empty, it first tries to reposition the
+     * underlying converter back to the logical read position (`tell()`), so that the returned
+     * device stops at the correct place, then clears the read buffer. A failure of that
+     * reposition is **swallowed on purpose**: a device that does not support positioning (e.g. a
+     * pipe/tty-backed stdin) inherently cannot honor it, and reporting it would make routine
+     * `detach()`/`attach()` cycles on such devices start throwing; for those devices, losing the
+     * lookahead character is the unavoidable cost.
      * @return A pair: the retrieved device, and the exception pointer captured by the
      * converter during detach (possibly null).
      * @note This function is noexcept.

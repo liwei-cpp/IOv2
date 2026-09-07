@@ -80,9 +80,7 @@ struct out_sentry
      *          `handle_exception` 需要在锁内更新流状态，才能让成功路径与失败路径对同一把
      *          `io_mutex()` 的可见性保持一致；析构中的 unitbuf/stdio 刷新同样依赖那把仍被持有的锁。
      *          把异常留给外层的 `catch`（例如运算符那层）**不够**：栈展开会先析构本地的锁守卫，置位
-     *          就落到解锁之后了。锁因此必须是调用方的局部变量，而不是哨兵的成员。该前置条件无法在
-     *          运行期校验——`copyable_mutex` 不记录属主，递归锁的 `try_lock()` 也分不清"我已持有"
-     *          与"无人持有"。
+     *          就落到解锁之后了。锁因此必须是调用方的局部变量，而不是哨兵的成员。
      *
      * 关联流的刷新走 `abs_flusher::try_flush()`，取不到对方的锁就跳过，绝不阻塞。本线程因此可以
      * 安全地在持有本流锁的状态下发起它：tie 这条用户看不见的加锁边永远不会成为等待边，死锁只可能
@@ -105,10 +103,8 @@ struct out_sentry
      *          flush in the destructor relies on that still-held lock as well. Leaving the
      *          exception to an outer `catch` -- the operator's, say -- is **not** enough:
      *          unwinding destroys the local lock guard first, so the state bits land after the
-     *          unlock. The lock therefore has to be a local of the caller rather than a member of
-     *          the sentry. The precondition cannot be checked at run time -- `copyable_mutex`
-     *          tracks no owner, and a recursive mutex's `try_lock()` cannot tell "this thread
-     *          already holds it" from "nobody holds it".
+     *          the sentry. The lock therefore has to be a local of the caller rather than a member of
+     *          the sentry.
      *
      * The tied stream is flushed through `abs_flusher::try_flush()`, which skips the flush rather
      * than wait when the target's lock cannot be taken. This thread can therefore start it safely
@@ -169,15 +165,11 @@ struct out_sentry
      *
      * 对设置了 unitbuf 或与 stdio 同步的流，析构会把缓冲区 `flush()` 出去（unitbuf 时再对设备
      * `dflush()`）。刷新失败经 `handle_exception` 上报：按类别置 `devfailbit`/`cvtfailbit`/
-     * `strfailbit`，并在该位处于异常掩码时抛出；该异常会被发起本次输出的操作自身的 try/catch
-     * 接住，并按掩码传播给调用者。无失败位入掩码时（默认）只置位不抛，因此正常输出路径不产生
-     * 异常开销。
+     * `strfailbit`，并在该位处于异常掩码时抛出。无失败位入掩码时（默认）只置位不抛。
      *
-     * 若析构发生在栈展开期间（无论该异常是否早于本哨兵构造即已在飞），则仍尝试刷新但**只置位、
-     * 绝不抛出**，以免触发 `std::terminate`。该判定由 `handle_exception` 自身完成，见其文档，
-     * 故本析构无须、也不应重复判断。
-     *
-     * 为使正常退出路径的通知得以传播，本析构声明为 `noexcept(false)`。
+     * 若析构发生在栈展开期间，则仍尝试刷新但**只置位、绝不抛出**，以免触发 `std::terminate`；
+     * 该判定由 `handle_exception` 自身完成。为使正常退出路径的通知得以传播，本析构声明为
+     * `noexcept(false)`。
      * @endif
      *
      * @lang{EN}
@@ -187,19 +179,13 @@ struct out_sentry
      * For a stream with unitbuf set or synced with stdio, destruction flushes the buffer via
      * `flush()` (and, for unitbuf, `dflush()`es the device). A flush failure is reported through
      * `handle_exception`: it sets `devfailbit`/`cvtfailbit`/`strfailbit` by category and throws
-     * when that bit is in the exception mask; the thrown exception is caught by the originating
-     * output operation's own try/catch and propagated to the caller per the mask. When no such
-     * fail bit is in the mask (the default) the bit is only set and nothing is thrown, so the
-     * normal output path incurs no exception overhead.
+     * when that bit is in the exception mask. When no such bit is in the mask (the default) the
+     * bit is only set and nothing is thrown.
      *
-     * If destruction happens during stack unwinding — including from an exception that was
-     * already in flight before this sentry was constructed — it still attempts the flush but
-     * **only sets bits and never throws**, so as not to trigger `std::terminate`. That test
-     * lives in `handle_exception` itself (see its documentation), so this destructor neither
-     * needs nor should repeat it.
-     *
-     * To let the normal-path notification propagate, this destructor is declared
-     * `noexcept(false)`.
+     * If destruction happens during stack unwinding it still attempts the flush but **only sets
+     * bits and never throws**, so as not to trigger `std::terminate`; that test lives in
+     * `handle_exception` itself. To let the normal-path notification propagate, this destructor
+     * is declared `noexcept(false)`.
      * @endif
      */
     ~out_sentry() noexcept(false)
@@ -350,21 +336,19 @@ public:
  * @lang{ZH}
  * @brief 承载多态 `try_flush()` 的 CRTP 基类：对具体流类型 `T` 的向下转型集中于此。
  *
- * `try_flush()` 覆盖 `abs_flusher::try_flush`，而虚函数无法使用 deducing-this，只能
- * `static_cast<T&>(*this)` 取回具体流类型。单独引入本模板承载该 `T`，从而让
- * `ostream_operators` 不必再携带 CRTP 自身参数（与 `istream_operators<TChar>` 对称）。
- * 每个输出流同时派生 `out_flusher<自身>` 与 `ostream_operators<TChar>`。
+ * 虚函数无法使用 deducing-this，只能 `static_cast<T&>(*this)` 取回具体流类型；本模板专为承载
+ * 该 `T` 而设，使 `ostream_operators` 不必再携带 CRTP 自身参数。每个输出流同时派生
+ * `out_flusher<自身>` 与 `ostream_operators<TChar>`。
  * @tparam T 具体的输出流类型。
  * @endif
  * @lang{EN}
  * @brief CRTP base carrying the polymorphic `try_flush()`: the down-cast to the concrete stream
  * type `T` is localized here.
  *
- * `try_flush()` overrides `abs_flusher::try_flush`; a virtual cannot use deducing-this, so it
- * must `static_cast<T&>(*this)` to recover the concrete stream type. This template exists solely
- * to carry that `T`, letting `ostream_operators` drop its CRTP self-parameter (making it
- * symmetric with `istream_operators<TChar>`). Every output stream derives from both
- * `out_flusher<Self>` and `ostream_operators<TChar>`.
+ * A virtual cannot use deducing-this, so it must `static_cast<T&>(*this)` to recover the concrete
+ * stream type; this template exists solely to carry that `T`, letting `ostream_operators` drop
+ * its CRTP self-parameter. Every output stream derives from both `out_flusher<Self>` and
+ * `ostream_operators<TChar>`.
  * @tparam T The concrete output stream type.
  * @endif
  */
@@ -377,59 +361,44 @@ struct out_flusher : public abs_flusher
      *
      * 锁一律以 `std::try_to_lock` 获取，至多尝试三次、其间让出时间片。放弃时不做任何补偿，
      * 该次 tie 刷新就此跳过。调大尝试次数不会更安全：真正的 AB-BA 场景下对方线程正阻塞在本
-     * 线程持有的锁上，所有尝试注定失败，只是让每次 I/O 更慢。
+     * 线程持有的锁上，所有尝试注定失败。
      *
      * 刷新失败时，异常在**本流**（tie 目标）上经 `handle_exception<true>()` 落地：置对应的失败
      * 位、把原始异常存进对应的 `m_exp_*_fail` 槽位，然后返回。发起方一位不动——理由见
-     * `abs_flusher::try_flush()` 的第二条 `@warning`。
+     * `abs_flusher::try_flush()` 的第二条 `@warning`。这里必须用忽略掩码的那个版本：掩码版会走到
+     * `clear()` 的重抛分支，那里的 `exchange` 会把刚存进去的异常清空，结果恰恰对那些显式把该位
+     * 放进 `exceptions()` 的使用者一个异常对象都不留。
      *
-     * @note **这里用的是 `handle_exception<true>()`（忽略异常掩码），不是默认的
-     *       `handle_exception()`，两者的差别不止"抛不抛"。** 掩码版最终会走到
-     *       `clear()` 的重抛分支，而那里是
-     *       `std::rethrow_exception(std::exchange(m_exp_cvt_fail, nullptr))`——**重抛会顺手把
-     *       刚存进去的原始异常清空**。若在这条路径上用掩码版，重抛出来的异常无处可去（只能被
-     *       调用点吞掉，否则就是上面说的误归属），暂存槽却已经被 `exchange` 清空，结果是
-     *       **恰恰对那些显式把该位放进 `exceptions()` 的使用者，连异常对象都不留**。
-     *       忽略掩码的版本跳过整个重抛块，暂存槽因此得以保留，诊断可事后从 tie 目标取回。
      * @note 因此 **tie 目标的异常掩码在这条路径上不生效**，这是有意的：唯一在场的调用栈属于
      *       一个与本流无关的流，异常送不出去。失败通过本流的状态位与 `m_exp_*_fail` 上报。
      *       这一点与标准库不同——libstdc++ 与 libc++ 都会让 tie 目标的掩码打断**发起方**的操作
      *       （两者一个在插入侧、一个在提取侧，方向正好相反）。
      * @endif
      *
-     * @lang{EN}
-     * @brief Flushes this stream on a best-effort basis: `flush()`es if the lock can be taken,
-     *        gives up otherwise.
-     *
-     * The lock is always taken with `std::try_to_lock`, for at most three attempts with a yield
-     * in between. Giving up leaves nothing pending; that tie flush is simply skipped. Raising
-     * the attempt count does not buy safety: in a genuine AB-BA the other thread is blocked on a
-     * lock this thread holds, so every attempt is doomed and a larger budget only makes each I/O
-     * slower.
-     *
-     * When the flush fails, the exception lands on *this* stream (the tie target) through
-     * `handle_exception<true>()`: the matching failure bit is set, the original exception is
-     * stored in the matching `m_exp_*_fail` slot, and the function returns. The initiator is left
-     * untouched -- see the second `@warning` on `abs_flusher::try_flush()` for why.
-     *
-     * @note **This uses `handle_exception<true>()` (ignoring the exception mask) rather than the
-     *       default `handle_exception()`, and the difference is more than just whether it
-     *       throws.** The mask-honoring version ends up in `clear()`'s rethrow branch, which
-     *       reads `std::rethrow_exception(std::exchange(m_exp_cvt_fail, nullptr))` -- **the
-     *       rethrow also clears the original exception that was just stored**. On this path the
-     *       rethrown exception has nowhere to go (a call site could only swallow it, else the
-     *       misattribution above), yet the slot has already been emptied by the `exchange`, so
-     *       the net effect would be to leave **no exception object at all precisely for those
-     *       users who explicitly put the bit in `exceptions()`**. The mask-ignoring version skips
-     *       the whole rethrow block, so the slot survives and the diagnostic can be recovered
-     *       from the tie target afterwards.
-     * @note Consequently **the tie target's exception mask does not apply on this path**, by
-     *       design: the only stack available belongs to an unrelated stream, so an exception has
-     *       nowhere to be delivered. The failure is reported through this stream's state bits and
-     *       `m_exp_*_fail`. This differs from the standard library, where the tie target's mask
-     *       aborts the *initiator's* operation -- libstdc++ and libc++ both do this, on opposite
-     *       sides (insertion and extraction respectively).
-     * @endif
+ * @lang{EN}
+ * @brief Flushes this stream on a best-effort basis: `flush()`es if the lock can be taken,
+ *        gives up otherwise.
+ *
+ * The lock is always taken with `std::try_to_lock`, for at most three attempts with a yield in
+ * between. Giving up leaves nothing pending; that tie flush is simply skipped. Raising the
+ * attempt count does not buy safety: in a genuine AB-BA the other thread is blocked on a lock
+ * this thread holds, so every attempt is doomed.
+ *
+ * When the flush fails, the exception lands on *this* stream (the tie target) through
+ * `handle_exception<true>()`: the matching failure bit is set, the original exception is stored
+ * in the matching `m_exp_*_fail` slot, and the function returns. The initiator is left untouched
+ * -- see the second `@warning` on `abs_flusher::try_flush()` for why. The mask-ignoring form is
+ * required here: the mask-honoring one would reach `clear()`'s rethrow branch, which empties the
+ * slot it just filled, leaving no exception object at all for exactly those users who put the bit
+ * in `exceptions()`.
+ *
+ * @note Consequently **the tie target's exception mask does not apply on this path**, by
+ *       design: the only stack available belongs to an unrelated stream, so an exception has
+ *       nowhere to be delivered. The failure is reported through this stream's state bits and
+ *       `m_exp_*_fail`. This differs from the standard library, where the tie target's mask
+ *       aborts the *initiator's* operation -- libstdc++ and libc++ both do this, on opposite
+ *       sides (insertion and extraction respectively).
+ * @endif
      */
     void try_flush() noexcept override
     {
@@ -469,21 +438,12 @@ struct ostream_operators;
  * 一个类型要成为输出流，必须提供 `out_sentry_type`、`out_iter_type` 与 `char_type` 类型、
  * 可返回其 locale，且其 `out_sentry_type` 满足 `is_out_sentry`；同时它必须派生自
  * `ios_state<char_type>` 与 `ostream_operators<char_type>`。
- * @note `ios_state` 这一条是必需的，不只是描述性的：本概念约束下的代码会直接调用
- *       `handle_exception()`（插入运算符的 `catch`、`out_sentry` 的析构）与 `operator bool`。
- *       缺了它，这些调用要到模板**体**实例化时才报错，诊断落在库的内部实现里，而不是落在
- *       “这个类型不是输出流”上。
- * @note `ios_base<char_type>` 那一条如今是 `ios_state<char_type>` 的推论，保留它当
- *       检查用：若某个类型在继承 `ios_state<char_type>` 之外又单独继承了一次
- *       `ios_base<char_type>`，就会有两个 `ios_base` 子对象，这一条因基类二义而为假，从而在
- *       概念处报错，而不是拖到后面某个 `io_mutex()` 调用上才报二义。
+ * @note `ios_state` 与 `ios_base` 两条是必需的，不只是描述性的：本概念约束下的代码会直接调用
+ *       `handle_exception()` 与 `operator bool`；而带有两个 `ios_base` 子对象的类型在这里就被
+ *       拒掉，不必拖到后面某个 `io_mutex()` 调用才报二义。
  * @note `out_iter_type` 必须是 `o_iter()` 的返回类型（`o_iter()` 的返回类型就写成它，因此两者
- *       不会漂移）。之所以要把这个**类型**公开出来，是因为 `o_iter()` 本身是私有的——它是一条
- *       绕开哨兵与 `io_mutex()` 直达 `m_streambuf` 的路，不能给出去；而 `detail::insertable`
- *       这类命名概念不是友元，无法在自己的 requires 表达式里调用它。公开类型不等于公开对象：
- *       `ostreambuf_iterator` 只能由 `TStreamBuf&` 构造，而 `m_streambuf` 仍是私有的，所以
- *       这个别名给不出任何构造它的途径。有了它，概念里的探测表达式与运算符里的调用表达式用的
- *       是同一个类型，两者不可能给出不同答案。
+ *       不会漂移）。之所以要把这个**类型**公开出来，是因为 `o_iter()` 本身是私有的，而命名概念
+ *       无法调用它；公开类型不等于公开对象——`ostreambuf_iterator` 只能由 `TStreamBuf&` 构造。
  * @tparam T 待检测的类型。
  * @endif
  *
@@ -494,27 +454,14 @@ struct ostream_operators;
  * `char_type` types, be able to return its locale, and have an `out_sentry_type` that satisfies
  * `is_out_sentry`; it must also derive from `ios_state<char_type>` and
  * `ostream_operators<char_type>`.
- * @note The `ios_state` clause is a requirement, not just a description: code
- *       constrained by this concept calls `handle_exception()` (the insertion operator's
- *       `catch`, `out_sentry`'s destructor) and `operator bool` directly. Without it those
- *       calls only fail once the template **body** is instantiated, putting the diagnostic
- *       deep inside the library's implementation rather than on "this type is not an output
- *       stream".
- * @note The `ios_base<char_type>` clause now follows from `ios_state<char_type>`; it
- *       is kept as a check. A type that derives from `ios_base<char_type>` separately, on
- *       top of `ios_state<char_type>`, has two `ios_base` subobjects, which makes
- *       this clause false through base ambiguity -- so the diagnostic lands on the concept
- *       rather than on some later `io_mutex()` call being ambiguous.
+ * @note The `ios_state` and `ios_base` clauses are requirements, not just descriptions: code
+ *       constrained by this concept calls `handle_exception()` and `operator bool` directly, and
+ *       a type carrying two `ios_base` subobjects is rejected here rather than at some later
+ *       ambiguous `io_mutex()` call.
  * @note `out_iter_type` must be the return type of `o_iter()` -- which is spelled as exactly
- *       that type, so the two cannot drift apart. The **type** has to be public because
- *       `o_iter()` itself is private: it is an unlocked path to `m_streambuf` that bypasses the
- *       sentry and `io_mutex()`, so it cannot be handed out, yet a named concept such as
- *       `detail::insertable` is not a friend and so cannot call it from its own
- *       requires-expression. Exposing the type is not exposing the object: an
- *       `ostreambuf_iterator` can only be built from a `TStreamBuf&`, and `m_streambuf` stays
- *       private, so the alias offers no way to construct one. With it, the probe expression in
- *       the concept and the call expression in the operator name the same type and cannot
- *       disagree.
+ *       that type, so the two cannot drift apart. The type is public because `o_iter()` itself
+ *       is private and a named concept cannot call it; exposing the type is not exposing the
+ *       object, since an `ostreambuf_iterator` can only be built from a `TStreamBuf&`.
  * @tparam T The type under inspection.
  * @endif
  */
@@ -629,12 +576,9 @@ struct ostream_operators
      * @param force_flush 为 `true` 时，无论 `unitbuf` 标志是否置位，本次写入结束后都刷新
      *        缓冲区并对设备 `dflush()`；为 `false`（默认）时只遵循 `unitbuf`。
      * @return 流自身的引用。
-     * @note 本参数存在的原因：`out_sentry` 本就把"是否 unitbuf"作为构造参数接收，所以
-     *       "这一次要不要刷新"从来都是一个**局部**信息。若没有它，像 `endl` 这样需要强制
-     *       刷新的操纵符只能绕道去临时置位再复位全局的 `unitbuf` 标志，而那个读-改-写会
-     *       跨越本函数、既非原子也非异常安全：并发下两个线程会各自读到对方的中间态、其中
-     *       一个静默地不刷新，异常路径上则会把 `unitbuf` 永久遗留在流上。把它作为参数传入
-     *       就从根上消除了这两种失败，也不再污染其它线程看到的格式标志。
+     * @note 本参数存在的原因：「这一次要不要刷新」从来都是一个**局部**信息。若没有它，像 `endl`
+     *       这样需要强制刷新的操纵符只能绕道去临时置位再复位全局的 `unitbuf` 标志，而那个
+     *       读-改-写既非原子也非异常安全。
      * @endif
      *
      * @lang{EN}
@@ -645,16 +589,10 @@ struct ostream_operators
      *        this write regardless of the `unitbuf` flag; when `false` (the default), only
      *        `unitbuf` governs that.
      * @return A reference to the stream itself.
-     * @note Why this parameter exists: `out_sentry` already takes "is this unitbuf" as a
-     *       constructor argument, so "should this particular call flush" has always been
+     * @note Why this parameter exists: "should this particular call flush" has always been
      *       **local** information. Without it, a manipulator that needs a forced flush -- `endl`
-     *       being the one -- has to detour through temporarily setting and clearing the global
-     *       `unitbuf` flag, and that read-modify-write straddles this function while being
-     *       neither atomic nor exception-safe: concurrently, two threads each observe the
-     *       other's intermediate state and one of them silently skips its flush, while on an
-     *       exception path `unitbuf` is left set on the stream for good. Passing it as an
-     *       argument removes both failures at the root, and stops perturbing the format flags
-     *       other threads observe.
+     *       being the one -- would have to temporarily set and clear the global `unitbuf` flag,
+     *       a read-modify-write that is neither atomic nor exception-safe.
      * @endif
      */
     template<typename TSelf>
@@ -743,12 +681,8 @@ struct ostream_operators
      *          `dput` 给设备。因此「`flush()` 被拒」**不意味着**这批字节不会到达设备；
      *          真要丢弃，只能 `detach()` 之后弃用取回的设备，或者先 `clear()` 再 `flush()`。
      * @note 上一条与标准库同构，不是本库的特例：`std::ofstream` 在失败态下 `flush()` 同样
-     *       什么都不写（哨兵以 `good()` 为准），而 `~basic_ofstream()` 经 `~basic_filebuf()`
-     *       → `close()` 照样冲刷 put 区——`iostate` 挂在 `basic_ios` 上，`basic_filebuf`
-     *       根本看不到它，与此处的分层同因。两点小差异：标准还多一条更宽的路径（显式
-     *       `basic_ofstream::close()` 也不看状态位），本库没有 `close()`，最接近的
-     *       `detach()` 会把清理阶段的首个异常以 `exception_ptr` 交还调用方；另外标准的判据是
-     *       `good()`，故单独的 `eofbit` 也会让 `flush()` 什么都不做，本库这里更宽松。
+     *       什么都不写，而 `~basic_ofstream()` 照样冲刷 put 区，分层的原因相同。本库没有
+     *       `close()`，最接近的 `detach()` 会把清理阶段的首个异常以 `exception_ptr` 交还调用方。
      * @tparam TSelf 派生的具体流类型（由 deducing-this 推导）。
      * @endif
      *
@@ -784,17 +718,11 @@ struct ostream_operators
      *          `flush()` therefore **does not** mean the bytes will never reach the device. To
      *          really discard them, `detach()` and drop the device handed back, or `clear()`
      *          first and then `flush()`.
-     * @note The above mirrors the standard library rather than being peculiar to this library:
-     *       `std::ofstream::flush()` on a failed stream writes nothing either (its sentry tests
-     *       `good()`), while `~basic_ofstream()` still flushes the put area through
-     *       `~basic_filebuf()` -> `close()` -- `iostate` lives on `basic_ios` and
-     *       `basic_filebuf` cannot see it, which is the same layering as here. Two small
-     *       differences: the standard has one further unguarded path (an explicit
-     *       `basic_ofstream::close()` ignores the state bits too), and this library has no
-     *       `close()` -- the nearest thing, `detach()`, hands the first exception raised during
-     *       cleanup back to the caller as an `exception_ptr`; and the standard tests `good()`,
-     *       so `eofbit` alone also makes `flush()` do nothing, where this library is the more
-     *       permissive of the two.
+ * @note The above mirrors the standard library rather than being peculiar to this library:
+ *       `std::ofstream::flush()` on a failed stream writes nothing either, while
+ *       `~basic_ofstream()` still flushes the put area, for the same layering reason. This
+ *       library has no `close()`; the nearest thing, `detach()`, hands the first exception
+ *       raised during cleanup back to the caller as an `exception_ptr`.
      * @tparam TSelf The concrete derived stream type (deduced via deducing-this).
      * @endif
      */
@@ -826,19 +754,17 @@ struct ostream_operators
      * @brief 取绑定到本流缓冲区的输出迭代器。
      * @tparam TSelf 派生的具体流类型（由 deducing-this 推导）。
      * @return 绑定到本流缓冲区的 `ostreambuf_iterator`。
-     * @note 返回类型写成 `TSelf::out_iter_type` 而不是 `auto`：探测那一侧
-     *       （`detail::insertable_with_iter`）只能拿到那个公开别名，本函数的返回类型若与它
-     *       不符，这里就直接编译不过——别名与实现因此不可能漂移。
+     * @note 返回类型写成 `TSelf::out_iter_type` 而不是 `auto`，使探测那一侧
+     *       （`detail::insertable_with_iter`）看到的别名与实现不可能漂移。
      * @endif
      *
      * @lang{EN}
      * @brief Gets an output iterator bound to this stream's buffer.
      * @tparam TSelf The concrete derived stream type (deduced via deducing-this).
      * @return An `ostreambuf_iterator` bound to this stream's buffer.
-     * @note The return type is spelled `TSelf::out_iter_type` rather than `auto`: the probing
-     *       side (`detail::insertable_with_iter`) has only that public alias to go on, and if
-     *       this function's return type did not match it, this very line would fail to compile
-     *       -- so the alias and the implementation cannot drift apart.
+     * @note The return type is spelled `TSelf::out_iter_type` rather than `auto`, so the alias the
+     *       probing side (`detail::insertable_with_iter`) sees and the implementation cannot drift
+     *       apart.
      * @endif
      */
 private:
@@ -875,24 +801,19 @@ private:
  *       开头的 `static_assert`。形式内部则保证不衰退的 `TValue` 优先于
  *       `std::decay_t<const TValue&>`。
  * @note 本运算符由 `detail::insertable` 约束，而**函数体内的分派复用同一组概念**，因此
- *       `requires { os << x; }` 与运算符实际选中的通道永远一致——泛型代码（日志、序列化、
- *       调试打印）可以直接探测可流式性，不必知道底下是哪一种形式。链末尾那个 `else` 因此
- *       不可达，只留一句写给维护者的内部不变式断言。
- *       代价是类型不支持时的诊断退化为通用的 "no match for `operator<<`"：从前那两条区分
- *       "根本没有 `io_traits`" 与 "有 `io_traits` 但方向不对" 的定制信息，与"可探测"不可兼得
- *       ——`static_assert` 要可达就得不加约束，不加约束就无法探测。
+ *       `requires { os << x; }` 与运算符实际选中的通道永远一致。该判据只对当前 TU 有效，
+ *       拿它分支前请先看 `traits_base.h` 上关于可探测性的 `@warning`。加约束的代价是类型不
+ *       支持时诊断退化为通用的 "no match for `operator<<`"——`static_assert` 要可达就得不加
+ *       约束，不加约束就无法探测。
  * @note 概念里直接写 `io_traits<TChar, TValue>::swrite(...)` 是安全的：未特化时它是不完整
  *       类型，在 requires 表达式里属于可 SFINAE 的替换失败，结果为 `false` 而非硬错误。
  * @note 加锁位置分两种：迭代器形式由本运算符取 `io_mutex()`，并保证 `handle_exception()`
- *       也在锁内；流形式一律不加锁，由操纵符自己决定——各操纵符所需的锁作用域并不相同
- *       （`endl` 要把读 locale 与 `put()` 一起罩在锁内；`ends` / `flush` 完全不需要显式加锁），
- *       无法上提到这里。相应地，流形式外面的 `catch` 是**最外层**的异常出口，而不是唯一的：
- *       自己取了 `io_mutex()` 的操纵符必须在锁内自己 `catch` 并调 `handle_exception`（库内是
- *       `io_traits<TChar, endl_t>::swrite` 与 `io_traits<TChar, ws_t>::sread`），否则栈展开会先
- *       析构它的锁守卫，置位就落到解锁之后；理由见 `traits_base.h` 上的 `@warning`。这里接住的
- *       是不加锁的那些操纵符，以及掩码命中时从操纵符自己的 `handle_exception` 再抛出来的异常
- *       ——后者被处理两次，但 `handle_exception` 幂等，无害。置位一律按本库的错误模型进行并
- *       遵守异常掩码。
+ *       也在锁内；流形式一律不加锁，由操纵符自己决定——各操纵符所需的锁作用域并不相同。
+ *       相应地，流形式外面的 `catch` 是**最外层**的异常出口，而不是唯一的：自己取了
+ *       `io_mutex()` 的操纵符必须在锁内自己 `catch` 并调 `handle_exception`，否则栈展开会先
+ *       析构它的锁守卫，置位就落到解锁之后；理由见 `traits_base.h` 上的 `@warning`。掩码命中时
+ *       从操纵符自己的 `handle_exception` 再抛出来的异常在这里被处理两次，但 `handle_exception`
+ *       幂等，无害。
  * @tparam T 输出流类型。
  * @tparam TValue 源值类型。
  * @param obj 输出流。
@@ -914,32 +835,23 @@ private:
  *       the undecayed `TValue` is guaranteed to win over `std::decay_t<const TValue&>`.
  * @note This operator is constrained by `detail::insertable`, and the dispatch **inside the body
  *       reuses the same concepts**, so `requires { os << x; }` and the channel the operator
- *       actually picks can never disagree -- generic code (logging, serialization, debug
- *       printing) can test streamability directly without having to know which form is
- *       underneath. That also makes the `else` at the end of the chain unreachable, leaving only
- *       an internal-invariant assertion aimed at maintainers.
- *       The price is that an unsupported type now gets the generic "no match for `operator<<`"
- *       diagnostic: the two tailored messages that used to separate "no `io_traits` at all" from
- *       "an `io_traits` exists but points the other way" cannot coexist with detectability --
- *       a reachable `static_assert` requires an unconstrained operator, and an unconstrained
- *       operator cannot be probed.
+ *       actually picks can never disagree. That test holds for the current TU only; see the
+ *       `@warning` on detectability in `traits_base.h` before branching on it. The price of the
+ *       constraint is that an unsupported type gets the generic "no match for `operator<<`"
+ *       diagnostic, since a reachable `static_assert` would require an unconstrained operator and
+ *       an unconstrained operator cannot be probed.
  * @note Naming `io_traits<TChar, TValue>::swrite(...)` directly in the concepts is safe: where it
  *       is not specialized it is an incomplete type, which inside a requires-expression is a
  *       SFINAE-able substitution failure yielding `false` rather than a hard error.
  * @note Locking splits two ways: for the iterator form this operator takes `io_mutex()` and
  *       keeps `handle_exception()` inside it; the stream form is never locked here and decides
- *       for itself -- the lock scope each manipulator needs differs (`endl` must cover both the
- *       locale read and the `put()`; `ends` / `flush` need no explicit lock at all), so it
- *       cannot be hoisted here. Correspondingly, the `catch` around the stream form is the
- *       **outermost** exception exit, not the only one: a manipulator that takes `io_mutex()`
- *       itself must `catch` and call `handle_exception` inside its own lock
- *       (`io_traits<TChar, endl_t>::swrite` and `io_traits<TChar, ws_t>::sread` in this
- *       library), or unwinding destroys its lock guard first and the state write lands after
- *       the unlock; see the `@warning` in `traits_base.h` for why. What this `catch` handles is
- *       the manipulators that do not lock, plus whatever a manipulator's own
- *       `handle_exception` rethrows on a mask hit -- handled twice, harmlessly, since
- *       `handle_exception` is idempotent. Either way the state is set through this library's
- *       error model and honours the exception mask.
+ *       for itself, since the lock scope each manipulator needs differs. Correspondingly, the
+ *       `catch` around the stream form is the **outermost** exception exit, not the only one: a
+ *       manipulator that takes `io_mutex()` itself must `catch` and call `handle_exception`
+ *       inside its own lock, or unwinding destroys its lock guard first and the state write lands
+ *       after the unlock; see the `@warning` in `traits_base.h`. An exception rethrown from a
+ *       manipulator's own `handle_exception` on a mask hit is handled twice here, harmlessly,
+ *       since `handle_exception` is idempotent.
  * @tparam T The output stream type.
  * @tparam TValue The source value type.
  * @param obj The output stream.
@@ -1010,8 +922,7 @@ T& operator<<(T& obj, const TValue& value)
  * 本条是插入侧唯一**不走 `io_traits` 扩展点**的重载，它的形参类型必须是**非推导语境**：
  * `boolalpha` / `hex` / `defaultfloat` 这些操纵符是函数模板，`os << IOv2::boolalpha` 给出的
  * 是一个模板名而不是某个具体函数，只有形参类型事先确定，编译器才能反推出模板实参、取到函数
- * 地址。泛型运算符的形参是 `const TValue&`，`TValue` 要从实参推导，那里只会报"无法推导
- * TValue"。用户自己写的操纵符函数模板同样依赖这一条。
+ * 地址。用户自己写的操纵符函数模板同样依赖这一条。
  *
  * 只取 `ios_base<char_type>&` 的操纵符碰不到 streambuf 与设备，做不了 I/O，因此**无所谓方向**：
  * 提取侧有形状相同的重载，`os << pf` 与 `is >> pf` 等价。两条都不加锁、不建哨兵——操纵符
@@ -1030,13 +941,11 @@ T& operator<<(T& obj, const TValue& value)
  *        `ios_base<char_type>&`.
  *
  * This is the only insertion-side overload that does **not** go through the `io_traits` extension
- * point, and its parameter type has to be a **non-deduced context**: manipulators
- * such as `boolalpha`, `hex` and `defaultfloat` are function templates, so `os << IOv2::boolalpha`
- * names a template rather than one function, and only a parameter type fixed in advance lets the
- * compiler work backwards to the template arguments and take the function's address. The generic
- * operator's parameter is `const TValue&`, with `TValue` deduced from the argument, so there it
- * can only report "could not deduce TValue". User-written manipulator function templates depend
- * on this too.
+ * point, and its parameter type has to be a **non-deduced context**: manipulators such as
+ * `boolalpha`, `hex` and `defaultfloat` are function templates, so `os << IOv2::boolalpha` names a
+ * template rather than one function, and only a parameter type fixed in advance lets the compiler
+ * work backwards to the template arguments and take the function's address. User-written
+ * manipulator function templates depend on this too.
  *
  * A manipulator taking only `ios_base<char_type>&` cannot reach the streambuf or the device and
  * so cannot do I/O; it therefore has **no direction**. The extraction side carries an overload of

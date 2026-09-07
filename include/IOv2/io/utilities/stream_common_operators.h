@@ -49,12 +49,6 @@ namespace IOv2
  * 本锁是**普通**（非递归）互斥量即可：检测遍历调用的是 tie() 的 getter（一次原子读，
  * 不取本锁），持锁期间不会重入 setter。它与各流的 `io_mutex()` 互不嵌套——setter 只取
  * 本锁、sentry 只取 `io_mutex()`——故不引入新的加锁顺序约束。
- *
- * 采用按需构造的函数内静态量（Meyers 单例）：`tie()` 在静态初始化期间即被调用
- * （如 `__cerr` 构造时 `tie(&cout)`），懒构造保证“首次使用前必已构造”，天然无静态
- * 初始化顺序问题。为在共享库（DSO）模式下仍是**全进程唯一**一份，本函数在 `IOV2_SHARED`
- * 下只声明、定义集中于 `iov2_objects.cpp` 并经 `IOV2_API` 导出；header-only 模式下则为
- * inline 定义。
  * @return 保护整张 tie 图的进程级全局互斥量的引用。
  * @endif
  *
@@ -73,13 +67,6 @@ namespace IOv2
  * holding it. This lock never nests with a stream's `io_mutex()` -- the setter takes only
  * this lock, a sentry takes only `io_mutex()` -- so it adds no new lock-ordering
  * constraint.
- *
- * It is a lazily-constructed function-local static (Meyers singleton): `tie()` runs during
- * static initialization (e.g. `__cerr`'s ctor does `tie(&cout)`), and lazy construction
- * guarantees "constructed before first use", so there is no static-init-order problem. To
- * stay a single process-wide instance under shared-library (DSO) mode, this function is
- * only declared under `IOV2_SHARED` with its one definition living in `iov2_objects.cpp`
- * and exported via `IOV2_API`; in header-only mode it is defined inline here.
  * @return A reference to the process-wide mutex that guards the entire tie graph.
  * @endif
  */
@@ -125,28 +112,23 @@ struct stream_common_operators
      * 四个特殊成员都把目标的 tie 目标置为 `nullptr`，移动还会额外清空源；**自赋值除外**，见下。
      *
      * @note **为什么不搬运。** tie 边不是一个"值"，而是本节点在 tie 图中的一条出边，绑定于
-     *       对象身份。这与 `copyable_mutex` 的取舍完全一致——它的拷贝/移动同样是 no-op，
-     *       产生一把全新的未锁互斥量，理由是"锁标识的是本对象的临界区，而不是需要被拷贝的
-     *       值"。
+     *       对象身份——`copyable_mutex` 的拷贝/移动同样是 no-op，取舍一致。
      * @note **不搬运也是正确性所必需的。** 若赋值把源的 tie 边搬进目标，就等于绕过 `tie()`
      *       写入了 `m_tie_stream`，而 `tie()` 的环检测（`check_tie`）是"图无环"这一
      *       不变式的唯一把关处。例如 `b.tie(&c); c.tie(&a); a = b;` 会闭合出环 `a→c→a`，
      *       且全程没有任何一次 `tie()` 调用；此后任意一次 `tie()` 都会在持有进程级全局锁的
-     *       情况下永久自旋。置空使 `tie()` 重新成为唯一写入者。
-     * @note **移动为何还要清空源。** 移动后的流，其 `m_streambuf` 与 `m_locale` 都已被掏空
-     *       （而格式标志、状态位等是按值搬运、源仍保留）。tie 边属于前一类——它驱动 flush，
-     *       是功能性状态。若不清空，一个被移走的流仍会在其后的每次 I/O 尝试中（经 sentry）
-     *       继续静默地刷新一个调用方以为早已解除的目标。
+     *       情况下永久自旋。
+     * @note **移动为何还要清空源。** tie 边是驱动 flush 的功能性状态，与移动同样掏空的
+     *       `m_streambuf`、`m_locale` 同类。若不清空，一个被移走的流仍会继续静默地刷新一个
+     *       调用方以为早已解除的目标。
      * @note **移后窗口内不得调用 `device()` 与 `detach()`。** 被移走的流**只能由赋值**复活；
      *       `attach()` 复活不了它（其转换器已被掏空，详见 `attach()`）。在复活之前它不持有设备，
-     *       而这两个函数正以"持有设备"为前置条件，其间调用即为未定义行为；详见各自的文档。
-     *       其余操作不受影响，照常把错误转为状态位。
+     *       而这两个函数正以"持有设备"为前置条件，其间调用即为未定义行为。其余操作不受影响，
+     *       照常把错误转为状态位。
      * @note **自赋值到不了这里，因此 tie 边保持不变。** `istream` / `ostream` / `iostream` 的
-     *       拷贝赋值与移动赋值都在更外层以 `if (this == &other) return *this;` 短路（移动赋值
-     *       为了自赋值安全，拷贝赋值另有理由：move-only 内核上的拷贝必然抛出），故 `a = a` 与
-     *       `a = std::move(a)` 根本调不到本类的 `operator=`，`a.tie()` 保持原值。这是有意保留
-     *       的行为——自赋值本就该是恒等操作，悄悄解掉 tie 反而更意外。新增流类型时请照此办理：
-     *       要么同样短路自赋值，要么明确接受"自移动会解掉自己的 tie"这一差异。
+     *       拷贝赋值与移动赋值都在更外层以 `if (this == &other) return *this;` 短路，故 `a = a`
+     *       与 `a = std::move(a)` 根本调不到本类的 `operator=`。这是有意保留的行为——自赋值本就
+     *       该是恒等操作。新增流类型时请照此办理。
      * @warning 这意味着拷贝或移动一个流之后，其 tie 关系**不会**保留，需要重新调用 `tie()`。
      *          另需注意：若某个流是**别人的** tie 目标，移动它并不会更新那些指向它的流——
      *          它们仍指向这个已被移空的对象，其后的 `tie()->try_flush()` 会静默失败（置上该目标
@@ -160,39 +142,30 @@ struct stream_common_operators
      * All four special members set the destination's tie target to `nullptr`; a move
      * additionally clears the source. **Self-assignment is the exception**; see below.
      *
-     * @note **Why it is not carried over.** A tie edge is not a "value" but this node's outgoing
-     *       edge in the tie graph, bound to object identity. This matches the choice made for
-     *       `copyable_mutex`, whose copy/move are likewise no-ops yielding a fresh unlocked
-     *       mutex, on the grounds that "a lock denotes this object's critical section, not a
-     *       value to be copied".
-     * @note **Not carrying it over is also required for correctness.** If assignment moved the
-     *       source's tie edge into the destination, that would write `m_tie_stream` while
-     *       bypassing `tie()`, whose cycle check (`check_tie`) is the only place the
-     *       "graph is acyclic" invariant is enforced. For instance
-     *       `b.tie(&c); c.tie(&a); a = b;` closes the cycle `a→c→a` without a single `tie()`
-     *       call, after which any `tie()` spins forever while holding a process-wide lock.
-     *       Resetting restores `tie()` as the sole writer.
-     * @note **Why a move also clears the source.** After a move the stream's `m_streambuf` and
-     *       `m_locale` have both been emptied (whereas the format flags, state bits and so on
-     *       are carried by value and retained by the source). The tie edge belongs with the
-     *       former: it drives flushing and is functional state. Without clearing, a moved-from
-     *       stream would keep silently flushing (via the sentry, on every later I/O attempt) a
-     *       target the caller believed it had long since given up.
-     * @note **`device()` and `detach()` must not be called inside the moved-from window.** A
-     *       moved-from stream can be revived **only by assignment**; `attach()` cannot revive it
-     *       (its converter has been emptied -- see `attach()`). Until it is revived it holds no
-     *       device -- which is precisely what those two functions require -- so calling them
-     *       meanwhile is undefined behavior; see their own documentation. The other operations
-     *       are unaffected and keep turning errors into state bits as usual.
-     * @note **Self-assignment never gets here, so the tie edge is left as it was.** Copy and
-     *       move assignment on `istream` / `ostream` / `iostream` all short-circuit further out
-     *       with `if (this == &other) return *this;` (move assignment for self-assignment
-     *       safety, copy assignment for a separate reason: a copy always throws on a move-only
-     *       kernel), so `a = a` and `a = std::move(a)` never reach this class's `operator=` and
-     *       `a.tie()` keeps its value. That is deliberate -- self-assignment ought to be the
-     *       identity, and quietly dropping the tie would be the more surprising outcome. A new
-     *       stream type should follow suit: either short-circuit self-assignment as well, or
-     *       accept that a self-move unties it.
+ * @note **Why it is not carried over.** A tie edge is not a "value" but this node's outgoing
+ *       edge in the tie graph, bound to object identity -- the same choice `copyable_mutex`
+ *       makes, whose copy/move are likewise no-ops.
+ * @note **Not carrying it over is also required for correctness.** If assignment moved the
+ *       source's tie edge into the destination, that would write `m_tie_stream` while
+ *       bypassing `tie()`, whose cycle check (`check_tie`) is the only place the
+ *       "graph is acyclic" invariant is enforced. For instance
+ *       `b.tie(&c); c.tie(&a); a = b;` closes the cycle `a→c→a` without a single `tie()`
+ *       call, after which any `tie()` spins forever while holding a process-wide lock.
+ * @note **Why a move also clears the source.** The tie edge is functional state that drives
+ *       flushing, like `m_streambuf` and `m_locale`, which a move also empties. Without
+ *       clearing, a moved-from stream would keep silently flushing a target the caller believed
+ *       it had long since given up.
+ * @note **`device()` and `detach()` must not be called inside the moved-from window.** A
+ *       moved-from stream can be revived **only by assignment**; `attach()` cannot revive it
+ *       (its converter has been emptied -- see `attach()`). Until it is revived it holds no
+ *       device -- which is precisely what those two functions require -- so calling them
+ *       meanwhile is undefined behavior. The other operations are unaffected and keep turning
+ *       errors into state bits as usual.
+ * @note **Self-assignment never gets here, so the tie edge is left as it was.** Copy and move
+ *       assignment on `istream` / `ostream` / `iostream` all short-circuit further out with
+ *       `if (this == &other) return *this;`, so `a = a` and `a = std::move(a)` never reach this
+ *       class's `operator=`. That is deliberate: self-assignment ought to be the identity. A new
+ *       stream type should follow suit.
      * @warning This means a stream's tie relationship is **not** preserved across a copy or a
      *          move; call `tie()` again. Note also that moving a stream which is **someone
      *          else's** tie target does not update the streams pointing at it -- they still
@@ -334,12 +307,10 @@ struct stream_common_operators
      *          **不要把它保存到临界区之外**再使用：在并发变更（如 `attach`/`detach`）下，
      *          离开锁的保护后读取该引用即为数据竞争与未定义行为。
      * @warning **本函数要求流当前持有设备。** 移动之后（转换器已被掏空）与 `detach()` 之后
-     *          （设备已交还调用方）都不满足这个前置条件，其间调用即为未定义行为。当前实现在
-     *          这两种情形下的表现并不相同——移后会抛出 `cvt_error`（来自 `runtime_cvt::device()`），
-     *          `detach()` 之后则返回一个指向已被移走的设备对象的引用——但两者都只是实现细节、
-     *          不构成契约，尤其**不得**以抛不抛异常来判断流是否持有设备。恢复路径在两种情形下
-     *          **并不相同**：`detach()` 之后可用 `attach()` 重新装上设备，也可以用赋值；而移后
-     *          的流**只能由赋值**复活，`attach()` 对它无效（详见 `attach()`）。
+     *          （设备已交还调用方）都不满足这个前置条件，其间调用即为未定义行为；尤其**不得**
+     *          以抛不抛异常来判断流是否持有设备。恢复路径在两种情形下**并不相同**：`detach()`
+     *          之后可用 `attach()` 重新装上设备，也可以用赋值；而移后的流**只能由赋值**复活，
+     *          `attach()` 对它无效（详见 `attach()`）。
      * @tparam TSelf 派生的具体流类型（由 deducing-this 推导）。
      * @return 底层设备的引用。
      * @endif
@@ -353,15 +324,11 @@ struct stream_common_operators
      *          reference outside the lock is a data race and undefined behavior.
      * @warning **This function requires the stream to currently hold a device.** Neither a
      *          moved-from stream (its converter has been emptied) nor one after `detach()` (its
-     *          device has been handed back to the caller) meets that precondition, and calling
-     *          it meanwhile is undefined behavior. What the current implementation does differs
-     *          between the two -- a moved-from stream throws a `cvt_error` (from
-     *          `runtime_cvt::device()`), while after `detach()` it returns a reference to a
-     *          moved-from device object -- but both are implementation details rather than a
-     *          contract, and in particular whether it throws must **not** be used to test
-     *          whether the stream holds a device. The recovery path **differs** between the two:
-     *          after `detach()` a device can be installed again with `attach()`, or by
-     *          assignment; a moved-from stream can be revived **only by assignment**, as
+     *          device has been handed back to the caller) meets that precondition, and calling it
+     *          meanwhile is undefined behavior; in particular, whether it throws must **not** be
+     *          used to test whether the stream holds a device. The recovery path **differs**
+     *          between the two: after `detach()` a device can be installed again with `attach()`
+     *          or by assignment; a moved-from stream can be revived **only by assignment**, as
      *          `attach()` does not work on one (see `attach()`).
      * @tparam TSelf The concrete derived stream type (deduced via deducing-this).
      * @return A reference to the underlying device.
@@ -387,8 +354,6 @@ struct stream_common_operators
      *       `devfailbit` 报出）；`mem_device` 这类移后仍是一个合法空设备的类型则会照常读写，
      *       读立即遇到 `eofbit`，写则进入那个空设备、可由下一次 `detach()` 取回。两种都不是
      *       未定义行为，但只有前者会报错。
-     * @note 本函数是 `noexcept`，加锁在形式上可抛，但对一把已构造的递归互斥量而言只剩"递归计数
-     *       耗尽"这一种可能，本库将其视为不可恢复，即 `terminate`。
      * @note **本函数的冲刷不看状态位。** 与流的析构、赋值一样，分离前的那次冲刷发生在
      *       `root_cvt::detach()` 里，那一层拿不到 `ios_state`，所以即便流已置失败位、
      *       即便 `flush()` 刚刚因此被拒，待刷字节仍会写给设备。详见 `ostream_operators::flush`
@@ -423,10 +388,6 @@ struct stream_common_operators
      *       such as `mem_device`, simply keeps working: reads hit `eofbit` at once and writes go
      *       into that empty device, to be retrieved by the next `detach()`. Neither is undefined
      *       behavior, but only the former reports an error.
-     * @note This function is `noexcept`. Taking the lock can formally throw, but for an
-     *       already-constructed recursive mutex the only remaining cause is an exhausted
-     *       recursion count, which this library treats as unrecoverable -- that is, it
-     *       terminates.
      * @note **The flush this function performs ignores the state bits.** As with the stream's
      *       destructor and assignment, that flush happens inside `root_cvt::detach()`, a layer
      *       with no access to `ios_state`, so the pending bytes are written to the device even
@@ -463,18 +424,14 @@ struct stream_common_operators
      * 一次失败的 `attach()` 会把流永久毒化：即便随后装上完全正常的设备，流仍报告失败，调用方
      * 必须自己记得 `clear()`，"换个设备重试"这条本该走通的恢复路径就断了。
      *
-     * @note 清状态必须排在换设备**之前**，否则失败路径上留下的是新旧混合的状态。底层的
-     *       `streambuf::attach()` 先装入新设备、再初始化转换器，而抛异常的是后一步——异常抛出时
-     *       旧设备已经不复存在、新设备已经就位，没有回滚。若把 `clear()` 放在后面，它在失败时
-     *       根本不会执行，`handle_exception` 置上的新失败位便与旧设备遗留的位叠在一起，得到一个
-     *       描述两个不同设备的状态。清在前面，失败后的状态就只描述这一次 `attach()`。
+     * @note 清状态必须排在换设备**之前**，否则失败路径上留下的是新旧混合的状态：底层的
+     *       `streambuf::attach()` 先装入新设备、再初始化转换器，而抛异常的是后一步，且没有回滚。
+     *       清在前面，失败后的状态就只描述这一次 `attach()`。
      *
-     * @note 安装设备时抛出的异常（如新设备无法确定流起点）交由 `handle_exception` 处理：置相应
-     *       失败位，并按流的异常掩码决定是否重新抛出。这一点与**构造函数**不同——构造函数的成员
-     *       初始化列表若抛出异常，C++ 规定它必然向外传播（构造函数 function-try-block 的处理器
-     *       执行到末尾时会自动重抛，且其中不允许 `return`），流对象根本没有诞生，也就无处安放
-     *       状态位。因此"默认构造后 `attach()`"这条生命周期上，构造那步可能抛，`attach()` 这步
-     *       不会。`detach()` 同样不抛，它把错误作为 `exception_ptr` 返回。
+     * @note 安装设备时抛出的异常交由 `handle_exception` 处理：置相应失败位，并按流的异常掩码
+     *       决定是否重新抛出。这一点与**构造函数**不同——C++ 规定构造函数成员初始化列表抛出的
+     *       异常必然向外传播。因此"默认构造后 `attach()`"这条生命周期上，构造那步可能抛，
+     *       `attach()` 这步不会。`detach()` 同样不抛，它把错误作为 `exception_ptr` 返回。
      * @warning 与 `detach()` 相同，本操作全程持有 `io_mutex()`，清状态与换设备这两步合起来对
      *          其它线程是原子的。它仍是类似构造的生命周期操作：替换底层设备期间的并发读写不再是
      *          未定义行为，但本身仍是不稳定且无意义的——它们只会看到换设备前或换设备后的流。
@@ -498,25 +455,17 @@ struct stream_common_operators
      * failure until the caller remembered to `clear()`, which breaks the "install another device
      * and retry" recovery path.
      *
-     * @note Clearing has to come **before** the replacement, or the failure path is left holding
-     *       a mixture of old and new. The underlying `streambuf::attach()` installs the new
-     *       device first and initializes the converter second, and it is the second step that
-     *       throws -- by then the old device is gone and the new one is in place, with no
-     *       rollback. A `clear()` placed afterwards simply would not run on failure, so the bit
-     *       `handle_exception` sets would sit alongside the old device's leftovers and describe
-     *       two different devices at once. Clearing first leaves a state that describes only
-     *       this `attach()`.
+ * @note Clearing has to come **before** the replacement, or the failure path is left holding a
+ *       mixture of old and new: the underlying `streambuf::attach()` installs the new device
+ *       first and initializes the converter second, and it is the second step that throws, with
+ *       no rollback. Clearing first leaves a state that describes only this `attach()`.
      *
-     * @note An exception thrown while installing the device (a new device whose stream origin
-     *       cannot be determined, say) goes to `handle_exception`: the matching failure bit is
-     *       set, and whether it is rethrown follows the stream's exception mask. This is unlike
-     *       a **constructor**, where C++ requires an exception from the member initializer list
-     *       to propagate (the handler of a constructor function-try-block rethrows when control
-     *       reaches its end, and a `return` is not allowed there), because the stream object
-     *       never came into existence and there is nowhere to put a state bit. So along the
-     *       "default-construct, then `attach()`" lifecycle the construction step may throw and
-     *       the `attach()` step will not. `detach()` likewise does not throw; it returns the
-     *       error as an `exception_ptr`.
+ * @note An exception thrown while installing the device goes to `handle_exception`: the matching
+ *       failure bit is set, and whether it is rethrown follows the stream's exception mask. This
+ *       is unlike a **constructor**, where C++ requires an exception from the member initializer
+ *       list to propagate. So along the "default-construct, then `attach()`" lifecycle the
+ *       construction step may throw and the `attach()` step will not. `detach()` likewise does
+ *       not throw; it returns the error as an `exception_ptr`.
      * @warning Like `detach()`, this operation holds `io_mutex()` throughout, so clearing the
      *          state and replacing the device are atomic together as far as other threads are
      *          concerned. It is still a construction-like lifecycle operation: a concurrent
@@ -636,9 +585,8 @@ struct stream_common_operators
      *       `cvt_error`→`cvtfailbit` 等），并**仅当该位处于异常掩码中时**才向调用方传播。
      *       故默认（掩码为空）情况下本函数不抛出，正常返回旧 locale，仅留下一个失败位供检查；
      *       若该位在掩码中则本函数抛出，此时旧 locale 随返回值一同丢失，无法取回。
-     * @note 本 setter 自身持有本流的 `io_mutex()`。由于 `operator>>`/`operator<<`/`get`/`put`
-     *       等格式化 I/O 在其 sentry 生命周期内持有同一把锁，本次 move-assign `m_locale` 绝不会
-     *       落在某次格式化操作的中途——格式化过程内部持有的 `locale()` 引用因此始终有效。
+     * @note 本 setter 持有本流的 `io_mutex()`，而格式化 I/O 在其 sentry 生命周期内持有同一把锁，
+     *       故本次 move-assign `m_locale` 绝不会落在某次格式化操作的中途。
      * @warning 仍属调用方责任的是：`locale()` getter 返回的是绑定到 `m_locale` 的引用，**不要
      *          把它保存到临界区之外**再使用；一旦离开锁的保护，另一线程的 `locale(loc)` 会把它
      *          指向的对象移走，读取即为数据竞争与未定义行为。若需跨多次操作稳定持有，请以
@@ -674,11 +622,9 @@ struct stream_common_operators
      *       normally and merely leaves a failure bit to be inspected. If the bit is in the
      *       mask this function throws, and the previous locale is lost along with the return
      *       value -- it cannot be recovered.
-     * @note This setter itself holds the stream's `io_mutex()`. Since formatted I/O
-     *       (`operator>>`/`operator<<`/`get`/`put`) holds that same lock for its sentry's
-     *       lifetime, this move-assignment of `m_locale` can never land in the middle of a
-     *       formatting operation, so the `locale()` reference that formatting holds internally
-     *       stays valid throughout.
+     * @note This setter holds the stream's `io_mutex()`, which formatted I/O also holds for its
+     *       sentry's lifetime, so this move-assignment of `m_locale` can never land in the middle
+     *       of a formatting operation.
      * @warning What remains the caller's responsibility: the `locale()` getter returns a
      *          reference bound to `m_locale` — **do not keep it past the critical section**.
      *          Outside the lock, another thread's `locale(loc)` can move the referenced object
@@ -787,13 +733,10 @@ struct stream_common_operators
      *       在调用后用 getter 比较（`self.tie() == str`），或检查 `strfailbit`。
      * @warning 被拒后本流带有 `strfailbit`，`operator bool` 为假，后续 I/O 会在 sentry 处直接
      *          失败；想继续使用该流须先 `clear()`。
-     * @note 上述“检测 + 提交”由进程级全局锁 `tie_graph_mutex()` 合成一个原子步骤，因此即便
-     *       两个线程并发 `tie()`（如 `A.tie(B)` 与 `B.tie(A)`）也无法成环：所有 setter 串行化，
-     *       任一次检测遍历期间整张 tie 图都被冻结，绝不会出现“各自读到对方旧状态、双双通过检测”
-     *       的窗口。该锁为**普通**互斥量即可——遍历调用的是 tie() 的 getter（一次原子读、不取该
-     *       锁），持锁期间不会重入 setter；它也不与各流的 `io_mutex()` 嵌套，故不引入新的加锁
-     *       顺序约束。上报失败要取本流的 `io_mutex()`，故**刻意**放在放掉该锁之后进行，以免
-     *       引入 `tie_graph_mutex()` → `io_mutex()` 这条新的锁序边。
+     * @note 上述"检测 + 提交"由进程级全局锁 `tie_graph_mutex()` 合成一个原子步骤，因此即便
+     *       两个线程并发 `tie()`（如 `A.tie(B)` 与 `B.tie(A)`）也无法成环，详见该函数。
+     *       上报失败要取本流的 `io_mutex()`，故**刻意**放在放掉该锁之后进行，以免引入
+     *       `tie_graph_mutex()` → `io_mutex()` 这条新的锁序边。
      * @endif
      *
      * @lang{EN}
@@ -913,15 +856,9 @@ struct stream_common_operators
      *          subsequent I/O fails at the sentry; call `clear()` before using the stream again.
      * @note This "detect + commit" is fused into one atomic step by the process-wide lock
      *       `tie_graph_mutex()`, so no cycle can form even under concurrent `tie()` (e.g.
-     *       `A.tie(B)` and `B.tie(A)`): all setters are serialized and the whole tie graph
-     *       is frozen for the duration of any detection walk, so the "each reads the other's
-     *       stale state and both pass the check" window never exists. A **plain** mutex
-     *       suffices -- the walk calls tie()'s getter (a single atomic load that does not
-     *       take this lock), so a setter never re-enters while holding it -- and it never
-     *       nests with a stream's `io_mutex()`, so it adds no new lock-ordering constraint.
-     *       Reporting a failure takes this stream's `io_mutex()`, so it is **deliberately**
-     *       done after that lock is released, to avoid introducing a new
-     *       `tie_graph_mutex()` -> `io_mutex()` lock-ordering edge.
+     *       `A.tie(B)` and `B.tie(A)`); see that function. Reporting a failure takes this
+     *       stream's `io_mutex()`, so it is **deliberately** done after the graph lock is
+     *       released, to avoid a new `tie_graph_mutex()` -> `io_mutex()` lock-ordering edge.
      * @endif
      */
     template <typename TSelf>
@@ -985,8 +922,7 @@ private:
      *       防御：若将来又出现绕过 `tie()` 的写入路径（本类的拷贝/移动赋值曾经就是这样一条），
      *       结果是一个能定位的错误，而不是静默死锁。两种失败都归并为返回 `false`，由 `tie()`
      *       给出一条同时提及二者的诊断消息。
-     * @note 用 Floyd 而不是"记录已访问节点"，是因为后者要分配内存，而这里持有全局锁；也不用
-     *       "迭代次数上限"，因为那需要一个既可能误伤长链、又可能失效的魔法常数。
+     * @note 用 Floyd 而不是"记录已访问节点"，是因为后者要分配内存，而这里持有全局锁。
      * @note 本函数只做 `dynamic_cast` 与原子读，故为 `noexcept`：`tie()` 持 `tie_graph_mutex()`
      *       期间不会有任何抛出，报错一律在放锁之后进行。
      * @param str 起点，即待设置的 tie 目标；为 `nullptr`、或指向一个不带出边的裸
@@ -1011,10 +947,8 @@ private:
      *       again (this class's copy/move assignment once was exactly such a path), the result
      *       is a locatable error rather than a silent deadlock. Both failures collapse into
      *       `false`, and `tie()` reports one diagnostic that names both possibilities.
-     * @note Floyd is used rather than "remember every visited node" because the latter
-     *       allocates and a process-wide lock is held here; and rather than "cap the iteration
-     *       count" because that needs a magic constant that can both falsely reject a long chain
-     *       and fail to catch a real cycle.
+     * @note Floyd is used rather than "remember every visited node", which would allocate while a
+     *       process-wide lock is held.
      * @note This function only does `dynamic_cast`s and atomic loads, hence `noexcept`: nothing
      *       throws while `tie()` holds `tie_graph_mutex()`; reporting always happens after the
      *       lock is released.
