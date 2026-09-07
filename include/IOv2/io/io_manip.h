@@ -1258,8 +1258,8 @@ struct io_traits<TChar, put_time_t<TChar>>
      * @note 校验放在 `swrite` 而非 `put_time` 工厂里，是为了让异常落进 `operator<<` 的
      *       catch，经 `handle_exception` 归类为 `strfailbit`，与 `ostream::write` 等处的
      *       空指针处理保持一致的错误模型。
+     * @note `put_time` 既不应用也不消耗流的 `width()`，理由见 `put_time`，故不用到 `ios_base`。
      * @param s   写出所用的输出迭代器。
-     * @param io  流的 `ios_base`。`put_time` 既不应用也不消耗 `io.width()`，理由见 `put_time`。
      * @param loc 流的 locale，`timeio<TChar>` facet 即从中取出。
      * @param f 待写出的时间与格式串；`*(f.tmb)` 必须是完整有效的时刻（见 `put_time`）。
      *          `f.tmb` 或 `f.fmt` 为空指针时什么都不写出，抛出的 `stream_error` 由流转为
@@ -1285,9 +1285,9 @@ struct io_traits<TChar, put_time_t<TChar>>
      *       exception lands in `operator<<`'s catch and is categorized as `strfailbit` by
      *       `handle_exception`, matching the error model of the null-pointer checks in
      *       `ostream::write` and friends.
+     * @note `put_time` neither applies nor consumes the stream's `width()`; see `put_time` for
+     *       why. The `ios_base` is therefore unused.
      * @param s   The output iterator to write through.
-     * @param io  The stream's `ios_base`. `put_time` neither applies nor consumes `io.width()`;
-     *            see `put_time` for why.
      * @param loc The stream's locale, from which the `timeio<TChar>` facet is taken.
      * @param f The time and format string to write; `*(f.tmb)` must be a complete, valid instant
      *          (see `put_time`). If `f.tmb` or `f.fmt` is null nothing is written, and the
@@ -1300,7 +1300,7 @@ struct io_traits<TChar, put_time_t<TChar>>
      */
     template <typename TIter>
         requires (char_sink_for<TIter, TChar>)
-    static TIter swrite(TIter s, ios_base<TChar>& io, const locale<TChar>& loc, put_time_t<TChar> f)
+    static TIter swrite(TIter s, ios_base<TChar>&, const locale<TChar>& loc, put_time_t<TChar> f)
     {
         if (f.tmb == nullptr || f.fmt == nullptr)
             throw stream_error("put_time fail: null tm or format pointer");
@@ -1545,7 +1545,6 @@ struct io_traits<TChar, get_time_t<TChar>>
      *       回写 `*(f.tmb)` 是空指针写入。二者都绕过异常机制直接崩溃。
      * @param s     解析所用的输入迭代器，指向待读取的第一个字符。
      * @param s_end 与 @p s 配对的哨位，标出可读区间的末尾。
-     * @param io    流的 `ios_base`。
      * @param loc   流的 locale，`timeio<TChar>` facet 即从中取出。
      * @param f 用于接收解析结果的 `tm` 与格式串。`*(f.tmb)` 的现有内容会作为格式串未解析字段
      *          的回退值，详见 `get_time`。`f.tmb` 或 `f.fmt` 为空指针时不解析：不回写
@@ -1569,7 +1568,6 @@ struct io_traits<TChar, get_time_t<TChar>>
      *       machinery and crash outright.
      * @param s     The input iterator to parse from, positioned at the first character to read.
      * @param s_end The sentinel paired with @p s, marking the end of the readable range.
-     * @param io    The stream's `ios_base`.
      * @param loc   The stream's locale, from which the `timeio<TChar>` facet is taken.
      * @param f The `tm` receiving the parsed result and the format string. The current contents
      *          of `*(f.tmb)` serve as the fallbacks for the fields the format string does not
@@ -1591,7 +1589,7 @@ struct io_traits<TChar, get_time_t<TChar>>
     template <typename TIter, std::sentinel_for<TIter> TSent>
         requires (std::is_same_v<TChar, typename TIter::value_type>
                   && (steppable_back<TIter> || is_istreambuf_iterator<TIter>))
-    static TIter sread(TIter s, TSent s_end, ios_base<TChar>& io, const locale<TChar>& loc,
+    static TIter sread(TIter s, TSent s_end, ios_base<TChar>&, const locale<TChar>& loc,
                        const get_time_t<TChar>& f)
     {
         if (f.tmb == nullptr || f.fmt == nullptr)
