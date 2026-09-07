@@ -764,14 +764,7 @@ private:
         const split_info& info = isIntl ? m_int : m_nat;
         using part = base_ft<monetary>::part;
 
-        // Capture and consume the field width up front. width() is one-shot, so
-        // it must be cleared exactly once per put; resetting it here — before any
-        // allocation or copy that could throw — guarantees no leftover width
-        // leaks into the next output operation on whichever path we leave by,
-        // including an exception thrown while formatting. The captured value is
-        // used for padding below.
-        const std::size_t width = io.width();
-        io.width(0);
+        const std::size_t width = io.width(0);
 
         // A leading minus is how the caller says the amount is negative. It selects
         // this locale's negative pattern and negative sign string and is then dropped:

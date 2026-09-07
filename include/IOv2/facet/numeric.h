@@ -313,8 +313,7 @@ public:
         const auto& name = v ? m_true_name : m_false_name;
         std::size_t len = name.size();
 
-        const auto w = io.width();
-        io.width(0);
+        const auto w = io.width(0);
         if (w > static_cast<decltype(w)>(len))
         {
             const auto plen = w - len;
@@ -820,11 +819,7 @@ private:
         const std::streamsize prec = io.precision();
         const int max_digits = std::numeric_limits<TValue>::digits10;
 
-        // Consume the field width up front, before any allocation or conversion
-        // that can throw: width() is one-shot and a stale value must not survive
-        // onto the stream if we leave by an exception. Used for padding below.
-        const std::size_t w = io.width();
-        io.width(0);
+        const std::size_t w = io.width(0);
 
         // Build the printf conversion spec, then let the C library render the
         // value into a narrow buffer; everything after this is localisation.
@@ -992,8 +987,7 @@ private:
         using unsigned_type = std::make_unsigned_t<TValue>;
 
         const ios_defs::fmtflags flags = io.flags();
-        const std::size_t w = io.width();
-        io.width(0);
+        const std::size_t w = io.width(0);
 
         const ios_defs::fmtflags basefield = flags & ios_defs::basefield;
         const bool dec = (basefield != ios_defs::oct && basefield != ios_defs::hex);

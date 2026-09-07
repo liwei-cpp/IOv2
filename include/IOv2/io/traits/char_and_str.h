@@ -9,6 +9,7 @@
 
 #include <algorithm>
 #include <cstddef>
+#include <iterator>
 #include <string>
 #include <type_traits>
 #include <vector>
@@ -50,7 +51,7 @@ namespace IOv2
  *       sequence has neither.
  * @note The width counts **characters**, not bytes, and no fill is written at all when
  *       `w <= n`. A fill count above `ios_defs::max_pad_count` throws rather than being
- *       honoured, so that one stray `setw()` cannot turn into a write of arbitrary length.
+ *       honored, so that one stray `setw()` cannot turn into a write of arbitrary length.
  * @param iter The output iterator.
  * @param io The stream supplying `width()`, `fill()` and `adjustfield`.
  * @param s The sequence to write; it need not be null-terminated.
@@ -63,9 +64,7 @@ template <typename TIter, typename TChar>
     requires (char_sink_for<TIter, TChar>)
 TIter ostream_insert(TIter iter, ios_base<TChar>& io, const TChar* s, std::size_t n)
 {
-    const std::size_t w = io.width();
-    // Consumed up front, so it cannot leak into the next insertion if a step below throws.
-    io.width(0);
+    const std::size_t w = io.width(0);
     if (w > n)
     {
         const std::size_t pad = w - n;
@@ -139,9 +138,7 @@ template <typename TIter, std::sentinel_for<TIter> TSent, typename TChar>
     requires (std::is_same_v<TChar, typename TIter::value_type>)
 TIter istream_extract(TIter iter, TSent iter_end, ios_base<TChar>& io, const locale<TChar>& loc, TChar* s, std::size_t num)
 {
-    const std::size_t width = io.width();
-    // Consumed up front, so it cannot leak into the next extraction if a step below throws.
-    io.width(0);
+    const std::size_t width = io.width(0);
     if (0 < width && width < num)
         num = width;
 
@@ -614,10 +611,10 @@ struct io_traits<TChar, std::basic_string<TChar, TTraits, TAlloc>>
     static TIter sread(TIter iter, TSent iter_end, ios_base<TChar>& io, const locale<TChar>& loc, std::basic_string<TChar, TTraits, TAlloc>& str)
     {
         str.erase();
-        TChar buf[128];
+        constexpr std::size_t buf_size = 128;
+        TChar buf[buf_size];
         std::size_t len = 0;
-        const std::size_t w = io.width();
-        io.width(0);
+        const std::size_t w = io.width(0);
         const std::size_t n = w > 0 ? w : str.max_size();
         std::size_t extracted = 0;
 
@@ -628,9 +625,9 @@ struct io_traits<TChar, std::basic_string<TChar, TTraits, TAlloc>>
                && (iter != iter_end)
                && !(ct->is_any(base_ft<ctype>::space, *iter)))
         {
-            if (len == 128)
+            if (len == buf_size)
             {
-                str.append(buf, 128);
+                str.append(buf, buf_size);
                 len = 0;
             }
             buf[len++] = *iter;

@@ -235,7 +235,7 @@
  *
  * Members should simply **throw**; do not touch the stream's state bits yourself. The operator
  * catches and hands the exception to `handle_exception`, which turns it into the matching state
- * bit and honours the stream's exception mask. Everything this library throws itself is a
+ * bit and honors the stream's exception mask. Everything this library throws itself is a
  * `stream_error`.
  *
  * ### Parse contexts
