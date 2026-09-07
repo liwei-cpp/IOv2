@@ -1743,7 +1743,6 @@ private:
      * @tparam TSent 哨兵类型。
      * @param beg 输入范围的起始迭代器。
      * @param end 输入范围的结束哨兵。
-     * @param io 提供格式标志的流对象。
      * @param xtrc 接收规范化 ASCII 字符串的输出字符串；调用前应已预留容量。
      * @return `{成功标志, 消费后迭代器}` 的 `pair`。
      * @endif
@@ -1761,13 +1760,12 @@ private:
      * @tparam TSent The sentinel type.
      * @param beg Start iterator of the input range.
      * @param end End sentinel of the input range.
-     * @param io Stream object providing format flags.
      * @param xtrc Output string that receives the normalized ASCII representation; should have reserved capacity before the call.
      * @return A `pair` of `{success flag, iterator after consumed input}`.
      * @endif
      */
     template <typename TIter, std::sentinel_for<TIter> TSent>
-    std::pair<bool, TIter> extract_float(TIter beg, TSent end, ios_base<char_type>& io, std::string& xtrc) const
+    std::pair<bool, TIter> extract_float(TIter beg, TSent end, ios_base<char_type>&, std::string& xtrc) const
     {
         char_type c = char_type();
         bool at_end = beg == end;

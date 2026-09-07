@@ -21,9 +21,17 @@ namespace IOv2
  *       排除项的作用不止于选择重载，更在于让 `io_traits<char, wchar_t>` 之类**根本不存在**：
  *       类模板没有 `= delete`，这是表达标准所删重载的唯一手段。删掉任何一条，
  *       `os << L'x'` 都会静默打印出一个数字。
- * @note 名单里**没有** `signed char` / `unsigned char`，这是有意的：宽流上它们经整型提升
- *       落到数值插入，必须留给本特化；`char` 流上的两条由 `char_and_str.h` 里的全特化接管，
- *       全特化优先于任何偏特化。
+ * @note 名单里**没有** `signed char` / `unsigned char`，这是有意的：标准在宽流上没有这两个的
+ *       重载，它们经整型提升落到数值插入，故必须留给本特化；`char` 流上的两条由
+ *       `char_and_str.h` 里的全特化接管，全特化优先于任何偏特化。
+ * @warning **写出时本库不做整型提升**，按 `TValue` 自身的位宽格式化，因此宽流上负的
+ *          `signed char` 在 `hex` / `oct` 下比标准短一半：`wos << hex << (signed char)-1` 这里
+ *          写 `ff`，标准写 `ffffffff`（提升到 `int` 后按 LWG 23 重解释为 `unsigned int`）。
+ *          `short` 等有自己重载的类型不受影响——标准按被选中重载的形参宽度重解释，恰与
+ *          `make_unsigned_t<TValue>` 相同；`unsigned char` 提升后仍非负，数字也相同。
+ *          这一格是刻意保留的分歧：读侧两边都不接受宽流上的 `signed char`，复刻标准换不到
+ *          互操作性，而 8 位写法用 `int` 读得回来（`ff` → 255 → `-1`），32 位写法会溢出
+ *          `int` 并置 `strfailbit`。
  * @note 约束里那条 `numeric_limits` 判据管的是 C++23 的扩展浮点类型（`std::float16_t` /
  *       `bfloat16_t` / `float32_t` / `float64_t` / `float128_t`）：本特化只接纳**存在标准浮点
  *       类型能精确表示**的那些，与 C++23 `[ostream.inserters.arithmetic]` 一致。装不下的
@@ -40,10 +48,22 @@ namespace IOv2
  *       all**. A class template has no `= delete`, so this is the only way to express the
  *       standard's deleted overloads; drop any one of them and `os << L'x'` silently prints a
  *       number.
- * @note `signed char` / `unsigned char` are deliberately **absent** from the list: on a wide
- *       stream they reach numeric insertion through integral promotion and must stay here, while
- *       the `char`-stream cases are taken by the explicit specializations in `char_and_str.h`,
- *       which outrank every partial specialization.
+ * @note `signed char` / `unsigned char` are deliberately **absent** from the list: the standard has
+ *       no overload for either on a wide stream, so they reach numeric insertion through integral
+ *       promotion and must stay here, while the `char`-stream cases are taken by the explicit
+ *       specializations in `char_and_str.h`, which outrank every partial specialization.
+ * @warning **This library does not promote on the way out**; it formats at the width of `TValue`
+ *          itself. A negative `signed char` on a wide stream is therefore half as wide as the
+ *          standard's under `hex` / `oct`: `wos << hex << (signed char)-1` writes `ff` here and
+ *          `ffffffff` in the standard, which promotes to `int` and reinterprets it as
+ *          `unsigned int` per LWG 23. Types with an overload of their own, `short` among them, are
+ *          unaffected -- the standard reinterprets at the width of the selected overload's
+ *          parameter, which is exactly `make_unsigned_t<TValue>`; `unsigned char` stays
+ *          non-negative under promotion and prints the same digits either way. The divergence is
+ *          kept on purpose: neither side accepts `signed char` for extraction from a wide stream,
+ *          so matching the standard buys no interoperability, while the 8-bit form reads back
+ *          through `int` (`ff` -> 255 -> `-1`) where the 32-bit one overflows `int` and sets
+ *          `strfailbit`.
  * @note The `numeric_limits` clause in the constraint is about the C++23 extended
  *       floating-point types (`std::float16_t`, `bfloat16_t`, `float32_t`, `float64_t`,
  *       `float128_t`): this specialization admits only those for which **some standard

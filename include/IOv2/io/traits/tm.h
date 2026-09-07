@@ -295,7 +295,7 @@ struct io_traits<TChar, time_parse_context<TChar, true, true, TzLevel>>
 {
     template <typename TIter, std::sentinel_for<TIter> TSent>
         requires (std::is_same_v<TChar, typename TIter::value_type>)
-    static TIter sread(TIter iter, TSent iter_end, ios_base<TChar>& io, const locale<TChar>& loc, time_parse_context<TChar, true, true, TzLevel>& value)
+    static TIter sread(TIter iter, TSent iter_end, ios_base<TChar>&, const locale<TChar>& loc, time_parse_context<TChar, true, true, TzLevel>& value)
     {
         auto mp = loc.template get<timeio<TChar>>();
         if (!mp)

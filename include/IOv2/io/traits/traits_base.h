@@ -107,11 +107,18 @@
  *
  * 提取端还有一个可选的中转：若 `parse_context_type<TChar, T>::type` 不是 `T` 本身，运算符会
  * 先构造一个该类型的临时量、让 `io_traits<TChar, 上下文类型>::sread` 解析它，再调用上下文的
- * `convert_to(T&)` 写回目标。临时量由 `parse_context_type<TChar, T>` 的静态成员
- * `make_parse_context(const T&)` 构造，它必须**恰好返回 `type`**——这就是 `std::tm` 用旧值作为
- * 未解析字段回退值的做法，见 `IOv2/io/traits/tm.h`；没有该成员时默认构造。有该成员但形参不是
- * `const` 引用（它只读取目标作种子，不得改动它）或返回类型不对时，不会退回默认构造，而是给出
- * `static_assert`。主模板是恒等映射，不需要这一层就不用管它。
+ * `convert_to(T&)` 写回目标。临时量由 `parse_context_type<TChar, T>` 的
+ * `make_parse_context` 构造——这就是 `std::tm` 用旧值作为未解析字段回退值的做法，见
+ * `IOv2/io/traits/tm.h`；没有该成员时默认构造。主模板是恒等映射，不需要这一层就不用管它。
+ *
+ * 该成员必须**恰好**声明成 `static type make_parse_context(const T&)`，且是**单一的、非模板、
+ * 非重载、公开、未删除**的成员：它只读取目标作种子，不得改动它，故按 `const` 引用收；`type` 按值
+ * 返回，不接受可转换到它的中间类型。可以带 `noexcept`，也可以是从基类继承来的。凡是**声明了**
+ * 这个名字却不合上述形状的，一律是 `static_assert`，不会静默退回默认构造——因此
+ * `requires { is >> x; }` 对这种写坏的特化答**真**，真正用它时才撞上断言；这是有意的，
+ * 目的是让写坏的特化响亮地失败，而不是被泛型代码静默绕开。
+ * @warning 唯一的例外是把特化写成 `final`：那样本库探测不到形状不符的成员，`make_parse_context`
+ *          会被当作不存在而默认构造上下文，种子被静默丢弃。特化不要写 `final`。
  * @endif
  *
  * @lang{EN}
@@ -244,13 +251,23 @@
  * itself, the operator builds a temporary of that type, lets
  * `io_traits<TChar, context type>::sread` parse into it, and calls the context's
  * `convert_to(T&)` to write the result back. The temporary comes from
- * `parse_context_type<TChar, T>`'s static `make_parse_context(const T&)`, which must return
- * **exactly `type`** -- this is how `std::tm` uses its previous contents as the fallbacks for the
- * fields the format string does not parse; see `IOv2/io/traits/tm.h`. It is default constructed
- * when there is no such member; a member that is there but does not take its argument by `const`
- * reference (it only reads the target as a seed and must not modify it), or returns the wrong
- * type, is a `static_assert`, not a fallback to default construction. The primary template is the
- * identity, so ignore this layer if you do not need it.
+ * `parse_context_type<TChar, T>`'s `make_parse_context` -- this is how `std::tm` uses its previous
+ * contents as the fallbacks for the fields the format string does not parse; see
+ * `IOv2/io/traits/tm.h`. It is default constructed when there is no such member. The primary
+ * template is the identity, so ignore this layer if you do not need it.
+ *
+ * That member must be declared **exactly** `static type make_parse_context(const T&)`, as a
+ * **single, non-template, non-overloaded, public, non-deleted** member: it only reads the target as
+ * a seed and must not modify it, hence the `const` reference; `type` is returned by value, and an
+ * intermediate type convertible to it is not accepted. It may be `noexcept`, and it may be
+ * inherited from a base. Anything that **declares** that name without matching the shape is a
+ * `static_assert`, never a silent fallback to default construction -- so `requires { is >> x; }`
+ * answers **true** for such a mis-written specialization and the assertion fires only when it is
+ * actually used. That is deliberate: a mis-written specialization should fail loudly rather than be
+ * silently routed around by generic code.
+ * @warning The one exception is writing the specialization `final`: a member of the wrong shape is
+ *          then undetectable, `make_parse_context` is taken to be absent, the context is default
+ *          constructed and the seed is silently dropped. Do not mark the specialization `final`.
  * @endif
  */
 #pragma once

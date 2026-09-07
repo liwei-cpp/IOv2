@@ -318,6 +318,90 @@ using in_ctx_t = typename parse_context_type<TChar, std::remove_cvref_t<TValue>>
 
 /**
  * @lang{ZH}
+ * @brief 名字探测用的标签，自带一个同名成员供 `maker_probe` 制造歧义。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief Tag for the name probe; its own member of that name is what `maker_probe` collides with.
+ * @endif
+ */
+struct maker_probe_tag
+{
+    void make_parse_context();
+};
+
+/**
+ * @lang{ZH}
+ * @brief 同时继承待测特化与标签，使同名成员在两个基类里各出现一次。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief Inherits both the specialization under test and the tag, so a member of that name appears
+ *        once in each base.
+ * @endif
+ */
+template <typename TPct>
+struct maker_probe : TPct, maker_probe_tag
+{
+};
+
+/**
+ * @lang{ZH}
+ * @brief `parse_context_type` 的特化**是否声明了** `make_parse_context`，与其形状无关。
+ * @note 主判据是继承歧义：特化没有这个名字时 `&maker_probe<TPct>::make_parse_context` 唯一解析到
+ *       标签那个、表达式合法；有这个名字时两个基类各出一个声明、查找歧义、表达式非法——故"非法"
+ *       即"存在"。静态成员、非静态成员、重载集、成员模板，以及误写成数据成员或类型别名的情形，
+ *       一概查得出。`TPct` 是 `final` 或非类类型时当不了基类，由第二个析取项兜住，它只认得出能
+ *       以目标左值调用的那些形状。
+ * @warning 主判据**只问名字在不在**，不得混入形状检查：形状一旦进入存在性判据，写坏的特化就会被
+ *          判成"没有这个成员"而静默退回默认构造，那正是它要根除的失效模式。形状交给调用点。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief Whether a `parse_context_type` specialization **declares** `make_parse_context`, whatever
+ *        its shape.
+ * @note The main test is inheritance ambiguity: with no such name in the specialization,
+ *       `&maker_probe<TPct>::make_parse_context` resolves to the tag's and is well-formed; with
+ *       one, each base contributes a declaration, lookup is ambiguous and the expression is
+ *       ill-formed -- so "ill-formed" is "present". It sees static members, non-static members,
+ *       overload sets, member templates, and a data member or type alias written by that name. A
+ *       `final` or non-class `TPct` cannot serve as a base; the second disjunct covers it, and
+ *       recognizes only the shapes callable with a target lvalue.
+ * @warning The main test asks **only whether the name is there**, and must not fold in the shape:
+ *          do that and a mis-written specialization reads as "no such member" and silently falls
+ *          back to default construction -- the very failure it exists to remove. Shape is checked
+ *          at the call site.
+ * @endif
+ */
+template <typename TPct, typename TTarget>
+concept declares_maker = (std::is_class_v<TPct> && !std::is_final_v<TPct>
+                          && !requires { &maker_probe<TPct>::make_parse_context; })
+                         || requires (TTarget& v) { TPct::make_parse_context(v); };
+
+/**
+ * @lang{ZH}
+ * @brief `TFn` 是否就是 `make_parse_context` 要求的那个函数指针类型。
+ * @note `noexcept` 单列一档：自 C++17 起它是函数类型的一部分，直接比较类型会把一个写法完全正确
+ *       的 `noexcept` 成员误判成形状不符。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief Whether `TFn` is the function pointer type `make_parse_context` is required to have.
+ * @note `noexcept` needs its own case: since C++17 it is part of the function type, so a plain type
+ *       comparison would reject a perfectly correct `noexcept` member as the wrong shape.
+ * @endif
+ */
+template <typename TCtx, typename TTarget, typename TFn>
+inline constexpr bool maker_signature_v = false;
+
+template <typename TCtx, typename TTarget>
+inline constexpr bool maker_signature_v<TCtx, TTarget, TCtx (*)(const TTarget&)> = true;
+
+template <typename TCtx, typename TTarget>
+inline constexpr bool maker_signature_v<TCtx, TTarget, TCtx (*)(const TTarget&) noexcept> = true;
+
+/**
+ * @lang{ZH}
  * @brief 提取时实际写回的目标类型：左值目标保持原样，右值目标降为 `const`。
  * @note 这一层就是"能不能写进去"的判据。`is >> 5` / `is >> const_obj` 靠它挡下——`int` 的
  *       `sread` 收 `int&`，配不上 `const int&`；而 `setw(5)` 这类工厂产出的操纵符是纯右值，
@@ -389,11 +473,8 @@ concept extractable_with_iter = istream_type<T> &&
 template <typename T, typename TValue>
 concept extractable_with_ctx = istream_type<T> &&
     !std::is_same_v<in_ctx_t<typename T::char_type, TValue>, std::remove_cvref_t<TValue>> &&
-    (requires (const in_target_t<TValue>& v)
-        {
-            parse_context_type<typename T::char_type,
-                               std::remove_cvref_t<TValue>>::make_parse_context(v);
-        }
+    (declares_maker<parse_context_type<typename T::char_type, std::remove_cvref_t<TValue>>,
+                    in_target_t<TValue>>
      || std::default_initializable<in_ctx_t<typename T::char_type, TValue>>) &&
     requires(T& obj, typename T::in_iter_type& iter, in_target_t<TValue>& value,
              in_ctx_t<typename T::char_type, TValue>& ctx)
@@ -1187,27 +1268,29 @@ T& operator>>(T& obj, TValue&& value)
                                             static_cast<TTarget&>(value));
             else
             {
+                using TPct = parse_context_type<TChar, TV>;
                 TCtx tmp = [&value]() -> TCtx {
-                    // Probe with the call as it is actually made, so nothing that would work is
-                    // silently skipped; the shape of the member is then a static_assert.
-                    if constexpr (requires
-                                  { parse_context_type<TChar, TV>::make_parse_context(value); })
+                    // Detect the member by name only, so a mis-written one reaches a static_assert
+                    // instead of being read as absent and silently default constructed.
+                    if constexpr (detail::declares_maker<TPct, TTarget>)
                     {
-                        static_assert(
-                            requires (const TV& v)
-                            { parse_context_type<TChar, TV>::make_parse_context(v); },
-                            "IOv2: this parse_context_type's make_parse_context() must take its "
-                            "argument by const reference -- it seeds the context from the target "
-                            "and must not modify it. See io/traits/traits_base.h.");
-                        static_assert(
-                            std::same_as<decltype(parse_context_type<TChar, TV>::
-                                                      make_parse_context(std::declval<const TV&>())),
-                                         TCtx>,
-                            "IOv2: this parse_context_type's make_parse_context() must return "
-                            "parse_context_type<TChar, T>::type -- a missing return statement "
-                            "makes it void. See io/traits/traits_base.h.");
-                        return parse_context_type<TChar, TV>::make_parse_context(
-                            static_cast<const TV&>(value));
+                        if constexpr (requires { &TPct::make_parse_context; })
+                        {
+                            static_assert(
+                                detail::maker_signature_v<TCtx, TV,
+                                                          decltype(&TPct::make_parse_context)>,
+                                "IOv2: this parse_context_type's make_parse_context() must be "
+                                "declared exactly `static type make_parse_context(const T&)` -- it "
+                                "seeds the context from the target, so it takes the target by const "
+                                "reference and returns parse_context_type<TChar, T>::type by value. "
+                                "See io/traits/traits_base.h.");
+                            return TPct::make_parse_context(static_cast<const TV&>(value));
+                        }
+                        else
+                            static_assert(dependent_false_v<TCtx>,
+                                "IOv2: this parse_context_type's make_parse_context() must be a "
+                                "single non-template, non-overloaded static member function, and "
+                                "must be public and not deleted. See io/traits/traits_base.h.");
                     }
                     else if constexpr (std::default_initializable<TCtx>)
                         return TCtx{};
