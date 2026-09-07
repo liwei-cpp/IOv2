@@ -9,8 +9,6 @@
 #include <IOv2/locale/locale.h>
 
 #include <cstddef>
-#include <string>
-#include <type_traits>
 
 namespace IOv2
 {
@@ -30,8 +28,8 @@ namespace IOv2
  * @brief Writes the null pointer literal as text.
  *
  * @note The output goes through `ostream_insert`, matching the standard's specification of
- *       `operator<<(nullptr_t)` as a delegation to the string inserter. Two behaviours follow:
- *       padding to `width()` with `fill()` (honouring `adjustfield`), and **resetting `width()`
+ *       `operator<<(nullptr_t)` as a delegation to the string inserter. Two behaviors follow:
+ *       padding to `width()` with `fill()` (honoring `adjustfield`), and **resetting `width()`
  *       to 0** on completion. A throw from a missing facet resets it too, so the width is never
  *       leaked into the next insertion.
  * @note The text `"nullptr"` is implementation-defined per the standard; this library always
