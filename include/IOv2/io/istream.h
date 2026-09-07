@@ -73,13 +73,12 @@ namespace IOv2
  * 成员，且按**分层顺序**声明：`m_streambuf` 在前、`m_locale` 在后。
  *
  * IOv2 的输入路径自下而上是设备 → 转换器管线 → 流缓冲区 → 流；locale 位于最上层，只参与格式化与
- * 解析，不参与字符搬运。声明顺序与这条分层一致，于是构造自下而上、析构自上而下：`m_locale` 先
- * 销毁、`m_streambuf` 后销毁，后者一路向下触发的收尾因此始终作用在一个仍然完整的下层上。基类
- * `ios_state` 比两个成员更早构造、更晚析构，状态位在成员的整个生命期内都可用。
+ * 解析，不参与字符搬运。声明顺序与这条分层一致，于是析构自上而下，`m_streambuf` 一路向下触发的
+ * 收尾始终作用在一个仍然完整的下层上。
  *
- * @note 这条顺序同时规定了依赖方向：**下层不得访问上层**。流缓冲区及其以下（转换器、设备）不得
- *       引用 locale——它们的析构在 `m_locale` 之后运行，那时 locale 已经不存在。字符处理归流缓冲
- *       区，格式化与解析归 locale，两者不重叠；反向依赖（流读取 locale）则始终成立。
+ * @note 这条顺序同时规定了依赖方向：**下层不得访问上层**。流缓冲区及其以下不得引用 locale——
+ *       它们的析构在 `m_locale` 之后运行，那时 locale 已经不存在。反向依赖（流读取 locale）
+ *       则始终成立。
  *
  * @tparam TDevice 底层设备类型，须满足 `io_device` 且支持读取。
  * @tparam TChar 字符类型。
@@ -96,17 +95,14 @@ namespace IOv2
  *
  * The IOv2 input path runs bottom-up as device -> converter pipeline -> stream buffer -> stream;
  * the locale sits at the top and takes part only in formatting and parsing, never in moving
- * characters. The declaration order follows that layering, so construction runs bottom-up and
- * destruction top-down: `m_locale` is destroyed first and `m_streambuf` second, so the teardown
- * the latter triggers down the stack always runs against a lower stack that is still intact. The
- * `ios_state` base is constructed before both members and destroyed after them, so the state bits
- * stay available for the members' whole lifetime.
+ * characters. The declaration order follows that layering, so destruction runs top-down and the
+ * teardown `m_streambuf` triggers down the stack always runs against a lower stack that is still
+ * intact.
  *
  * @note The same order fixes the direction of dependency: **a lower layer must not reach up**. The
- *       stream buffer and everything below it (converters, device) must not refer to the locale --
- *       they are destroyed after `m_locale`, by which point it no longer exists. Character
- *       handling belongs to the stream buffer, formatting and parsing to the locale; the two do
- *       not overlap. The reverse dependency -- the stream reading the locale -- always holds.
+ *       stream buffer and everything below it must not refer to the locale -- they are destroyed
+ *       after `m_locale`, by which point it no longer exists. The reverse dependency -- the stream
+ *       reading the locale -- always holds.
  *
  * @tparam TDevice The underlying device type; must satisfy `io_device` and support reading.
  * @tparam TChar The character type.
@@ -330,8 +326,7 @@ public:
      *          不得在其它线程仍可能使用某流时销毁它、或把它作为移动的源。并发契约详见
      *          `operator=(const istream&)`。
      * @note 移动赋值的 `noexcept` 是有意为之：拷贝赋值的强异常保证依赖它（见其中的
-     *       `static_assert`）。加锁在形式上可抛，但对一把已构造的递归互斥量而言只剩"递归计数
-     *       耗尽"这一种可能，本库将其视为不可恢复，即 `terminate`。
+     *       `static_assert`）。
      * @endif
      *
      * @lang{EN}
@@ -342,10 +337,7 @@ public:
      *          responsibility: never destroy, or move from, a stream another thread may still
      *          be using. See `operator=(const istream&)` for the concurrency contract.
      * @note The `noexcept` on move assignment is deliberate: copy assignment's strong guarantee
-     *       depends on it (see the `static_assert` there). Taking the lock can formally throw,
-     *       but for an already-constructed recursive mutex the only remaining cause is an
-     *       exhausted recursion count, which this library treats as unrecoverable -- that is,
-     *       it terminates.
+     *       depends on it (see the `static_assert` there).
      * @endif
      */
     istream(const istream& other) : istream(std::lock_guard{other.io_mutex()}, other) {}

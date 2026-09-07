@@ -400,10 +400,8 @@ public:
      * @note setter 取有符号的 ptrdiff_t（与标准的 std::streamsize 一致），getter 与存储仍用
      * std::uint8_t：形参若就是 std::uint8_t，越界值会在调用点被隐式转换静默窄化（300 变成
      * 44），运行期变量连警告都没有；加宽后负值与过大值都能活到此处被拒。
-     * @note 这笔交换有代价：形参为 std::uint8_t 时，常量实参 `precision(300)` 由 -Woverflow
-     * 报“changes value from '300' to '44'”，配上 -Werror 就是编译失败；加宽后 300 落在
-     * ptrdiff_t 内，编译期无话可说，改由此处在运行期抛出。即以常量那一路的编译期诊断，
-     * 换运行期变量那一路不再被静默窄化 —— 后者才是真正会漏进产品的那种。
+     * @note 这笔交换的代价是：常量实参 `precision(300)` 不再由 -Woverflow 配 -Werror 在编译期
+     * 拒掉，改由此处在运行期抛出。
      * @param prec 目标精度，必须落在 0..255。
      * @return 设置前的旧精度。
      * @throw stream_error 若 @p prec 不在 0..255 内。
@@ -416,12 +414,8 @@ public:
      * out-of-range value would be narrowed silently by the implicit conversion at the call
      * (300 becomes 44), with not even a warning for a run-time argument; widening lets both
      * negative and too-large values reach this check and be rejected.
-     * @note That trade has a price: with a std::uint8_t parameter a constant argument such as
-     * `precision(300)` is reported by -Woverflow as "changes value from '300' to '44'", which
-     * with -Werror is a compile error; once widened, 300 fits in a ptrdiff_t and the compiler
-     * has nothing to say, so the rejection happens here at run time instead. The compile-time
-     * diagnosis of the constant case buys the run-time-argument case not being narrowed
-     * silently -- and the latter is the one that actually ships.
+     * @note The price of that trade is that a constant argument such as `precision(300)` is no
+     * longer a compile error under -Woverflow -Werror; it is rejected here at run time instead.
      * @param prec The target precision; must lie in 0..255.
      * @return The precision in effect before the call.
      * @throw stream_error If @p prec is not in 0..255.
@@ -491,8 +485,7 @@ public:
      *
      * @note **与 `fmtflags_guard` 那类守卫语义不同：它不保存、也不还原旧值，而是一律置 0。**
      *       这对 width 才是对的——width 是一次性状态，契约是"用掉"，不是"借用后归还"。
-     * @note 守卫不可拷贝、不可移动，靠保证的复制消除从这里返回；
-     *       析构调的是原子 `exchange`，不抛，故栈展开期间也安全。
+     * @note 守卫不可拷贝、不可移动；析构不抛，故栈展开期间也安全。
      * @note 返回值必须接住（`auto g = io.width_guard();`）。丢弃返回值会让守卫当场析构，
      *       等同于立即 `width(0)`，`[[nodiscard]]` 会拦下这种写法。
      * @return 析构时置零宽度的守卫对象。
@@ -507,9 +500,8 @@ public:
      * @note **This differs from guards such as `fmtflags_guard`: it neither saves nor restores
      *       the old value, it always sets 0.** That is the right semantics for the width, which
      *       is one-shot state -- the contract is to spend it, not to borrow and give it back.
-     * @note The guard is neither copyable nor movable and is returned here by guaranteed copy
-     *       elision; its destructor calls an atomic `exchange` and does not throw, so it is safe
-     *       during stack unwinding.
+     * @note The guard is neither copyable nor movable; its destructor does not throw, so it is
+     *       safe during stack unwinding.
      * @note The result must be bound (`auto g = io.width_guard();`). Discarding it destroys the
      *       guard immediately, which is just `width(0)`; `[[nodiscard]]` rejects that spelling.
      * @return A guard that zeroes the width when destroyed.
@@ -605,9 +597,8 @@ public:
      *
      * @note 锁本身放在 `ios_base` 而非各个具体流类里，是因为 pword 存储与回调链表是
      *       `ios_base` 自己的成员，而 `locale(loc)` setter 又会经 `access_callbacks()` 改动
-     *       它们。若把它们交给另一把锁，那么"格式化过程中读取 pword 缓存"这一 pword 的
-     *       固有用法就会形成 `io_mutex -> pword_mutex` 的嵌套，凭空多出一条加锁顺序约束。
-     *       一把锁则不存在这个问题。
+     *       它们。若把它们交给另一把锁，pword 的固有用法就会形成 `io_mutex -> pword_mutex`
+     *       的嵌套，凭空多出一条加锁顺序约束。
      * @note 递归形态是必需的：`access_callbacks()` 由已持锁的 locale setter 调用，而回调
      *       允许重入地调用 `set_pword()`（见 `access_callbacks()` 的说明）。
      * @note 流状态位也归本锁保护：`ios_state` 派生自本类，其状态**写**同样在这把锁下
@@ -624,13 +615,11 @@ public:
      * below all work inside its critical section. Combine it with `IOv2::sync` to group
      * several operations into one critical section.
      *
-     * @note The lock lives in `ios_base` rather than in each concrete stream class because
-     *       the pword storage and the callback list are `ios_base`'s own members, and the
-     *       `locale(loc)` setter mutates them through `access_callbacks()`. Giving those a
-     *       separate lock would make the natural use of a pword -- reading a cache from
-     *       inside a formatting operation -- nest `io_mutex -> pword_mutex`, inventing a
-     *       lock-ordering constraint the library does not otherwise have. One lock has no
-     *       such problem.
+     * @note The lock lives in `ios_base` rather than in each concrete stream class because the
+     *       pword storage and the callback list are `ios_base`'s own members, and the
+     *       `locale(loc)` setter mutates them through `access_callbacks()`. A separate lock for
+     *       those would nest `io_mutex -> pword_mutex` on the natural use of a pword, inventing a
+     *       lock-ordering constraint the library does not otherwise have.
      * @note The recursive flavor is required: `access_callbacks()` is called by the locale
      *       setter, which already holds the lock, and a callback may reentrantly call
      *       `set_pword()` (see `access_callbacks()`).
@@ -1164,19 +1153,13 @@ struct ios_state : public ios_base<TChar>
      *          调用仍可能 `std::terminate`。析构器中请只经由本函数报错。
      * @note EOF 类别不保存异常指针（EOF 无需携带原始异常信息）。
      * @note 本函数对同一异常是**幂等**的：以同一个 `ex` 重复调用，与只调用一次的可观测效果
-     *       相同。重复调用出现在嵌套的处理点上——例如 `put()` 自己处理完异常后因掩码重抛，
-     *       异常再落到调用方的 `catch`。第二遍的三步都无害：`m_exp_*` 在首遍 `clear()` 重抛
-     *       时已被消费置空，于是同一异常被重新存入；`setstate` 对已置位的位是按位或空操作；
-     *       `clear()` 再次重抛同一个原始异常。调用方因此**不需要**为了躲开重复调用而在嵌套
-     *       处省略 try。
+     *       相同。重复调用出现在嵌套的处理点上——内层处理完异常后因掩码重抛，异常再落到调用方
+     *       的 `catch`。调用方因此**不需要**为了躲开重复调用而在嵌套处省略 try。
      * @note **传播出去的异常未必就是传入的 `ex`。** 重抛由 `clear()` 按 设备 → 转换 → 流 →
      *       其他 → EOF 的固定优先级挑选，且某类别只在其状态位**既已置位、又落在异常掩码中**
-     *       时才轮得到（见 clear()）。于是当更高优先级的失败位先已满足这两个条件时，本函数
-     *       传播出去的是那个类别保存的异常，而不是本次传入的 `ex`——例如流上已有 `devfailbit`
-     *       且它在掩码中，此时把哨兵的 `stream_error` 交进来，抛出的是先前那条 `device_error`。
-     *       这是刻意的：先报因果链上游那个更根本的故障。幂等性不受影响（以同一 `ex` 重复调用
-     *       效果仍相同），被让位的 `exception_ptr` 也不会丢失——它继续留在自己的类别里，待高
-     *       优先级位被清除后由后续的 clear()/setstate() 抛出。
+     *       时才轮得到（见 clear()）。于是当更高优先级的失败位先已满足这两个条件时，传播出去的
+     *       是那个类别保存的异常——先报因果链上游那个更根本的故障。被让位的 `exception_ptr`
+     *       不会丢失，它继续留在自己的类别里，待高优先级位被清除后由后续的 clear() 抛出。
      * @warning **不支持对阻塞在本库 I/O 中的线程调用 `pthread_cancel`。** glibc 以抛出特殊异常
      *          （`__cxxabiv1::__forced_unwind`）的方式实现线程取消，该异常会落入本函数最后的
      *          `catch(...)` 并被归类为 `otherfailbit`；若 `otherfailbit` 不在异常掩码中就不会被
@@ -1224,25 +1207,17 @@ struct ios_state : public ios_base<TChar>
      * exception information).
      * @note This function is **idempotent** for a given exception: calling it repeatedly with
      * the same `ex` has the same observable effect as calling it once. Repeat calls arise at
-     * nested handling points -- `put()`, for one, handles its own exception and then rethrows
-     * on account of the mask, so the exception reaches the caller's `catch` as well. All three
-     * steps of the second pass are harmless: `m_exp_*` was consumed and nulled by the first
-     * pass's rethrow inside `clear()`, so the same exception is stored again; `setstate` is a
-     * bitwise-or no-op on an already-set bit; and `clear()` rethrows the same original
-     * exception. Callers therefore do **not** need to omit a try at a nested site merely to
-     * avoid a repeat call.
+     * nested handling points, where an inner handler rethrows on account of the mask and the
+     * exception reaches the caller's `catch` as well. Callers therefore do **not** need to omit
+     * a try at a nested site merely to avoid a repeat call.
      * @note **The exception that propagates out is not necessarily the `ex` handed in.** The
      * rethrow is picked by `clear()` in the fixed device → conversion → stream → other → EOF
      * priority order, and a category is only eligible when its state bit is **both set and in
      * the exception mask** (see clear()). So when a higher-priority failure bit already meets
-     * both conditions, what propagates out is the exception stored for *that* category rather
-     * than this call's `ex` -- hand in a sentry's `stream_error` while the stream already has
-     * `devfailbit` set and in the mask, for one, and the earlier `device_error` is what is
-     * thrown. This is deliberate: the more fundamental failure, further up the causal chain,
-     * is reported first. Idempotence is unaffected (repeated calls with the same `ex` still
-     * have the same effect), and the exception that yielded is not lost -- it stays in its own
-     * category and is thrown by a later clear()/setstate() once the higher-priority bit is
-     * cleared.
+     * both conditions, what propagates out is the exception stored for *that* category -- the
+     * more fundamental failure, further up the causal chain, is reported first. The exception
+     * that yielded is not lost: it stays in its own category and is thrown by a later
+     * clear()/setstate() once the higher-priority bit is cleared.
      * @warning **Calling `pthread_cancel` on a thread blocked inside this library is not
      *          supported.** glibc implements thread cancellation by throwing a special
      *          exception (`__cxxabiv1::__forced_unwind`), which lands in this function's

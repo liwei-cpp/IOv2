@@ -322,10 +322,7 @@ struct io_traits<TChar, const TChar*>
  *       `arithmetic.h` 的通用指针特化接走而打印地址（本库早先正是如此），或者干脆
  *       编译不过。
  * @note `TChar` 就是 `char` 时不走这里，而由下面的全特化 `io_traits<char, char*>` 承接：那时
- *       无需加宽，也就不必为此分配缓冲区。之所以要那条全特化，是因为
- *       `io_traits<TChar, TChar*>` 与 `io_traits<TChar, char*>` 在 `TChar == char` 上互不更
- *       特化，会直接构成歧义——`io_traits<TChar, TChar>` 与 `io_traits<TChar, char>` 之间同样
- *       的歧义则由后者的 `requires (!std::is_same_v<TChar, char>)` 排除。
+ *       无需加宽，也就不必为此分配缓冲区。
  * @note 加宽必须先落到一段连续缓冲区再交给 `ostream_insert`，因为补齐要预先知道总宽度。
  *       这是本特化与直接写出的 `io_traits<TChar, TChar*>` 之间唯一的额外代价。
  * @param c 以空字符结尾的窄字符串。
@@ -342,11 +339,7 @@ struct io_traits<TChar, const TChar*>
  *       prints an address (as this library used to do), or fails to compile outright.
  * @note When `TChar` is `char` this specialization is not used; the explicit
  *       `io_traits<char, char*>` below takes over, where no widening -- and hence no buffer --
- *       is needed. That explicit specialization is required because `io_traits<TChar, TChar*>`
- *       and `io_traits<TChar, char*>` are neither more specialized than the other at
- *       `TChar == char` and would simply be ambiguous -- the same ambiguity between
- *       `io_traits<TChar, TChar>` and `io_traits<TChar, char>` is instead ruled out by the
- *       latter's `requires (!std::is_same_v<TChar, char>)`.
+ *       is needed.
  * @note Widening has to land in a contiguous buffer before reaching `ostream_insert`, because
  *       padding needs the total width up front. That is the one extra cost this specialization
  *       carries over the straight-through `io_traits<TChar, TChar*>`.
@@ -497,12 +490,10 @@ struct io_traits<char, const signed char*>
  * @brief 将一个以空白分隔的 token 提取到定长字符数组。
  *
  * @note **本库不提供向裸指针（`TChar*`）提取的 `sread`，`is >> ptr` 无法编译。** 这与
- *       C++20 起的 `std::istream` 一致：P0487R1 删除了 `operator>>(basic_istream&, charT*)`，
- *       只保留数组引用形式 `charT (&)[N]`。理由是内存安全——目标是裸指针时，库无从得知
- *       缓冲区容量：`istream_extract` 的循环只有三个终止条件（写满 `num`、输入流 EOF、
- *       遇到空白），而后两者描述的是**输入源**的状态，与目标缓冲区大小无关。C++17 及更早
- *       的规定是"`width == 0` 即无上界"，于是 `is >> ptr` 会一路写到遇见空白为止，输入
- *       受攻击者控制时即为可利用的缓冲区溢出。
+ *       C++20 起的 `std::istream` 一致（P0487R1 删除了 `operator>>(basic_istream&, charT*)`，
+ *       只保留数组引用形式）。理由是内存安全：目标是裸指针时库无从得知缓冲区容量，
+ *       C++17 及更早的"`width == 0` 即无上界"会让 `is >> ptr` 一路写到遇见空白为止，
+ *       输入受攻击者控制时即为可利用的缓冲区溢出。
  * @note 本重载安全的原因是上界 `N` 来自**类型**而非流状态：实际读入量为
  *       `min(width, N) - 1` 个字符加一个终止符。因此 `setw()` 在这里只能把边界**收紧**，
  *       永远不可能放宽；即便携带了来自上一次操作的陈旧 `width`（算术提取、`get_money`、
@@ -519,15 +510,12 @@ struct io_traits<char, const signed char*>
  * @brief Extracts one whitespace-delimited token into a fixed-size character array.
  *
  * @note **This library provides no `sread` for a raw pointer (`TChar*`); `is >> ptr` does not
- *       compile.** This matches `std::istream` as of C++20: P0487R1 removed
- *       `operator>>(basic_istream&, charT*)`, keeping only the array-reference form
- *       `charT (&)[N]`. The reason is memory safety -- when the target is a raw pointer the
- *       library cannot know the buffer's capacity: `istream_extract`'s loop has only three
- *       termination conditions (`num` reached, input at EOF, whitespace found), and the
- *       latter two describe the state of the *input source* and say nothing about the
- *       destination's size. The rule through C++17 was "`width == 0` means no bound", so
- *       `is >> ptr` wrote on until whitespace -- an exploitable buffer overflow when the
- *       input is attacker-controlled.
+ *       compile.** This matches `std::istream` as of C++20 (P0487R1 removed
+ *       `operator>>(basic_istream&, charT*)`, keeping only the array-reference form). The reason
+ *       is memory safety: when the target is a raw pointer the library cannot know the buffer's
+ *       capacity, and the rule through C++17 -- "`width == 0` means no bound" -- let `is >> ptr`
+ *       write on until whitespace, an exploitable buffer overflow when the input is
+ *       attacker-controlled.
  * @note What makes this overload safe is that the bound `N` comes from the **type** rather
  *       than from stream state: at most `min(width, N) - 1` characters plus a terminator are
  *       stored. `setw()` can therefore only **tighten** the bound here, never loosen it --
@@ -579,6 +567,38 @@ struct io_traits<char, signed char[N]>
     }
 };
 
+/**
+ * @lang{ZH}
+ * @brief 写出 `std::basic_string` 的内容，或把一个以空白分隔的词提取进去。
+ *
+ * @note 提取**先清空目标**，且清空发生在任何可能抛出的操作之前。因此提取失败时字符串留下的是
+ *       空串而非原值——这与定长数组形式不同，那里原内容至少还在。
+ * @note 上界来自流状态而非类型：`width()` 非 0 时最多提取那么多字符，为 0 时只由空白或 EOF
+ *       收尾。`width` 在这里被**消费并清零**，成功与失败都是如此。定长数组形式那条「需要运行期
+ *       确定容量就提取到 `basic_string`」指的正是后一种情形。
+ * @param str 写出的源，或提取的目标。
+ * @return 指向最后一个被消费字符之后的输入迭代器。
+ * @throw stream_error 若一个字符都没提取到，或 locale 中没有 `ctype<TChar>` facet。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief Writes the contents of a `std::basic_string`, or extracts one whitespace-delimited token
+ *        into it.
+ *
+ * @note Extraction **clears the target first**, and does so before anything that can throw. A
+ *       failed extraction therefore leaves the string empty rather than untouched -- unlike the
+ *       fixed-size array form, where the previous contents at least survive.
+ * @note The bound comes from stream state rather than from the type: a non-zero `width()` caps the
+ *       number of characters, and a zero one lets whitespace or EOF decide. `width` is
+ *       **consumed and reset** here, on success and on failure alike. This is the case the array
+ *       form's "extract into a `basic_string` when the capacity is only known at run time" note
+ *       points at.
+ * @param str The source to write, or the target to extract into.
+ * @return An input iterator past the last consumed character.
+ * @throw stream_error If no characters were extracted, or the locale carries no `ctype<TChar>`
+ *        facet.
+ * @endif
+ */
 template <typename TChar, typename TTraits, typename TAlloc>
 struct io_traits<TChar, std::basic_string<TChar, TTraits, TAlloc>>
 {

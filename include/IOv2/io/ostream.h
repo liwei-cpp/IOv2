@@ -87,13 +87,12 @@ namespace IOv2
  * `m_streambuf` 在前、`m_locale` 在后。
  *
  * IOv2 的输出路径自上而下是流 → 流缓冲区 → 转换器管线 → 设备；locale 位于最上层，只参与格式化与
- * 解析，不参与字符搬运。声明顺序与这条分层一致，于是构造自下而上、析构自上而下：`m_locale` 先
- * 销毁、`m_streambuf` 后销毁，`~root_cvt` 把残留缓冲冲刷进设备这一步因此始终作用在一个仍然完整的
- * 下层上。基类 `ios_state` 比两个成员更早构造、更晚析构，状态位在成员的整个生命期内都可用。
+ * 解析，不参与字符搬运。声明顺序与这条分层一致，于是析构自上而下，`~root_cvt` 把残留缓冲冲刷进
+ * 设备这一步始终作用在一个仍然完整的下层上。
  *
- * @note 这条顺序同时规定了依赖方向：**下层不得访问上层**。流缓冲区及其以下（转换器、设备）不得
- *       引用 locale——析构期的那次冲刷跑在 `m_locale` 之后，那时 locale 已经不存在。字符处理归流
- *       缓冲区，格式化与解析归 locale，两者不重叠；反向依赖（流读取 locale）则始终成立。
+ * @note 这条顺序同时规定了依赖方向：**下层不得访问上层**。流缓冲区及其以下不得引用 locale——
+ *       析构期的那次冲刷跑在 `m_locale` 之后，那时 locale 已经不存在。反向依赖（流读取
+ *       locale）则始终成立。
  *
  * @tparam TDevice 底层设备类型，须满足 `io_device` 且支持写入。
  * @tparam TChar 字符类型。
@@ -111,17 +110,14 @@ namespace IOv2
  *
  * The IOv2 output path runs top-down as stream -> stream buffer -> converter pipeline -> device;
  * the locale sits at the top and takes part only in formatting and parsing, never in moving
- * characters. The declaration order follows that layering, so construction runs bottom-up and
- * destruction top-down: `m_locale` is destroyed first and `m_streambuf` second, so the step where
- * `~root_cvt` flushes what is left in the buffer to the device always runs against a lower stack
- * that is still intact. The `ios_state` base is constructed before both members and destroyed
- * after them, so the state bits stay available for the members' whole lifetime.
+ * characters. The declaration order follows that layering, so destruction runs top-down and the
+ * step where `~root_cvt` flushes what is left in the buffer to the device always runs against a
+ * lower stack that is still intact.
  *
  * @note The same order fixes the direction of dependency: **a lower layer must not reach up**. The
- *       stream buffer and everything below it (converters, device) must not refer to the locale --
- *       that destructor-time flush runs after `m_locale`, by which point it no longer exists.
- *       Character handling belongs to the stream buffer, formatting and parsing to the locale; the
- *       two do not overlap. The reverse dependency -- the stream reading the locale -- always holds.
+ *       stream buffer and everything below it must not refer to the locale -- that
+ *       destructor-time flush runs after `m_locale`, by which point it no longer exists. The
+ *       reverse dependency -- the stream reading the locale -- always holds.
  *
  * @tparam TDevice The underlying device type; must satisfy `io_device` and support writing.
  * @tparam TChar The character type.
@@ -352,8 +348,7 @@ public:
      *          不得在其它线程仍可能使用某流时销毁它、或把它作为移动的源。并发契约详见
      *          `operator=(const ostream&)`。
      * @note 移动赋值的 `noexcept` 是有意为之：拷贝赋值的强异常保证依赖它（见其中的
-     *       `static_assert`）。加锁在形式上可抛，但对一把已构造的递归互斥量而言只剩"递归计数
-     *       耗尽"这一种可能，本库将其视为不可恢复，即 `terminate`。
+     *       `static_assert`）。
      * @note **赋值会先冲刷目标自己的待刷字节，且不看状态位。** `m_streambuf` 的赋值最终落到
      *       `root_cvt::operator=`，它在覆盖前先 `flush()` 目标的缓冲（异常被吞），把那批字节
      *       写进目标**原来**的设备。好处是"整体替换设备"不伴随目标待刷数据的静默丢弃；代价是
@@ -369,10 +364,7 @@ public:
      *          responsibility: never destroy, or move from, a stream another thread may still
      *          be using. See `operator=(const ostream&)` for the concurrency contract.
      * @note The `noexcept` on move assignment is deliberate: copy assignment's strong guarantee
-     *       depends on it (see the `static_assert` there). Taking the lock can formally throw,
-     *       but for an already-constructed recursive mutex the only remaining cause is an
-     *       exhausted recursion count, which this library treats as unrecoverable -- that is,
-     *       it terminates.
+     *       depends on it (see the `static_assert` there).
      * @note **Assignment first flushes the destination's own pending bytes, ignoring the state
      *       bits.** Assigning `m_streambuf` ends up in `root_cvt::operator=`, which `flush()`es
      *       the destination's buffer before overwriting it (exceptions swallowed), sending those
@@ -579,8 +571,7 @@ inline constexpr struct endl_t {} endl{};
  *       的移动赋值不加任何锁——锁外读取即为对其内部两个哈希表的数据竞争。`put()` 内部会在这把
  *       递归锁上重入，无碍。
  * @note 抛出在这把锁内被接住并交给 `handle_exception`：`operator<<` 那层 `catch` 在锁之外，
- *       只靠它的话置位会发生在解锁之后。掩码命中时这里同样会重抛，异常继续逃到运算符那层再处理
- *       一遍；`put()` 抛出的更是三处依次处理（`put()` 自己、这里、运算符）。都是无害的，
+ *       只靠它的话置位会发生在解锁之后。掩码命中时异常会继续逃到运算符那层再处理一遍，无害——
  *       `handle_exception` 是幂等的。
  * @param os 目标输出流。
  * @endif
@@ -609,10 +600,8 @@ inline constexpr struct endl_t {} endl{};
  *       maps. `put()` re-enters the same recursive mutex, which is harmless.
  * @note A throw is caught under this same lock and handed to `handle_exception`: `operator<<`'s
  *       own `catch` sits outside it, so relying on that one alone would set the state bits after
- *       the unlock. On a masked bit this rethrows in turn and the exception goes on to be handled
- *       once more by the operator; one thrown out of `put()` passes three handling points in a row
- *       (`put()` itself, here, and the operator). All of it is harmless: `handle_exception` is
- *       idempotent.
+ *       the unlock. On a masked bit the exception goes on to be handled once more by the
+ *       operator, which is harmless: `handle_exception` is idempotent.
  * @param os The target output stream.
  * @endif
  */
