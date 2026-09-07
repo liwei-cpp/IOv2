@@ -75,9 +75,7 @@ struct in_sentry
      *          之后。** 哨兵自己不加锁：它在 `try` 块末尾就析构了，而 `catch` 里的
      *          `handle_exception` 需要在锁内更新流状态，才能让成功路径与失败路径对同一把
      *          `io_mutex()` 的可见性保持一致。把异常留给外层的 `catch`（例如运算符那层）**不够**：
-     *          栈展开会先析构本地的锁守卫，置位就落到解锁之后了。锁因此必须是调用方的局部变量，而
-     *          不是哨兵的成员。该前置条件无法在运行期校验——`copyable_mutex` 不记录属主，递归锁的
-     *          `try_lock()` 也分不清"我已持有"与"无人持有"。
+     *          不是哨兵的成员。
      *
      * 关联流的刷新走 `abs_flusher::try_flush()`，取不到对方的锁就跳过，绝不阻塞。本线程因此可以
      * 安全地在持有本流锁的状态下发起它：tie 这条用户看不见的加锁边永远不会成为等待边，死锁只可能
@@ -98,11 +96,7 @@ struct in_sentry
      *          `catch` needs the lock to update the stream state, so that the success and failure
      *          paths stay consistent with respect to the same `io_mutex()`. Leaving the exception
      *          to an outer `catch` -- the operator's, say -- is **not** enough: unwinding destroys
-     *          the local lock guard first, so the state bits land after the unlock. The lock
-     *          therefore has to be a local of the caller rather than a member of the sentry. The
-     *          precondition cannot be checked at run time -- `copyable_mutex` tracks no owner, and
-     *          a recursive mutex's `try_lock()` cannot tell "this thread already holds it" from
-     *          "nobody holds it".
+     *          therefore has to be a local of the caller rather than a member of the sentry.
      *
      * The tied stream is flushed through `abs_flusher::try_flush()`, which skips the flush rather
      * than wait when the target's lock cannot be taken. This thread can therefore start it safely
@@ -267,18 +261,12 @@ struct istream_operators;
  * 一个类型要成为输入流，必须提供 `in_sentry_type`、`in_iter_type` 与 `char_type` 类型、
  * 可返回其 locale，且其 `in_sentry_type` 满足 `is_in_sentry`；同时它必须派生自
  * `ios_state<char_type>` 与 `istream_operators<char_type>`。
- * @note `ios_state` 这一条是必需的，不只是描述性的：本概念约束下的代码会直接调用
- *       `handle_exception()`（提取运算符的 `catch`、`in_sentry` 的构造）与 `operator bool`。
- *       缺了它，这些调用要到模板**体**实例化时才报错，诊断落在库的内部实现里，而不是落在
- *       “这个类型不是输入流”上。
- * @note `ios_base<char_type>` 那一条如今是 `ios_state<char_type>` 的推论，保留它当
- *       检查用；理由见 `ostream_operators.h` 中 `ostream_type` 的对应说明。
+ * @note `ios_state` 与 `ios_base` 两条是必需的，不只是描述性的：本概念约束下的代码会直接调用
+ *       `handle_exception()` 与 `operator bool`；而带有两个 `ios_base` 子对象的类型在这里就被
+ *       拒掉。
  * @note `in_iter_type` 必须是 `i_iter()` 的返回类型（`i_iter()` 的返回类型就写成它，因此两者
- *       不会漂移）。之所以要把这个**类型**公开出来，理由与插入侧的 `out_iter_type` 相同：
- *       `i_iter()` 本身是私有的，而 `detail::extractable` 这类命名概念不是友元，无法在自己的
- *       requires 表达式里调用它。公开类型不等于公开对象——`istreambuf_iterator` 只能由
- *       `TStreamBuf&` 构造，而 `m_streambuf` 仍是私有的。详见
- *       `ostream_operators.h` 中 `ostream_type` 的对应说明。
+ *       不会漂移）。之所以要把这个**类型**公开出来，理由与插入侧的 `out_iter_type` 相同，
+ *       详见 `ostream_operators.h` 中 `ostream_type` 的对应说明。
  * @tparam T 待检测的类型。
  * @endif
  *
@@ -289,22 +277,13 @@ struct istream_operators;
  * `char_type` types, be able to return its locale, and have an `in_sentry_type` that satisfies
  * `is_in_sentry`; it must also derive from `ios_state<char_type>` and
  * `istream_operators<char_type>`.
- * @note The `ios_state` clause is a requirement, not just a description: code
- *       constrained by this concept calls `handle_exception()` (the extraction operator's
- *       `catch`, `in_sentry`'s constructor) and `operator bool` directly. Without it those
- *       calls only fail once the template **body** is instantiated, putting the diagnostic
- *       deep inside the library's implementation rather than on "this type is not an input
- *       stream".
- * @note The `ios_base<char_type>` clause now follows from `ios_state<char_type>` and
- *       is kept as a check; see the matching note on `ostream_type` in
- *       `ostream_operators.h`.
+ * @note The `ios_state` and `ios_base` clauses are requirements, not just descriptions: code
+ *       constrained by this concept calls `handle_exception()` and `operator bool` directly, and
+ *       a type carrying two `ios_base` subobjects is rejected here rather than later.
  * @note `in_iter_type` must be the return type of `i_iter()` -- which is spelled as exactly that
- *       type, so the two cannot drift apart. The **type** has to be public for the same reason
- *       as `out_iter_type` on the insertion side: `i_iter()` itself is private, and a named
- *       concept such as `detail::extractable` is not a friend and so cannot call it from its own
- *       requires-expression. Exposing the type is not exposing the object -- an
- *       `istreambuf_iterator` can only be built from a `TStreamBuf&`, and `m_streambuf` stays
- *       private. See the matching note on `ostream_type` in `ostream_operators.h`.
+ *       type, so the two cannot drift apart. The type is public for the same reason as
+ *       `out_iter_type` on the insertion side; see the matching note on `ostream_type` in
+ *       `ostream_operators.h`.
  * @tparam T The type under inspection.
  * @endif
  */
@@ -431,7 +410,8 @@ concept extractable_with_ctx = istream_type<T> &&
  *        于此。
  * @note 与插入侧不同，这里**没有衰退档**：提取按引用写回，数组目标衰退成指针就会丢掉长度。
  * @note 本概念就是 `operator>>` 的约束，运算符体内的分派也复用它的三个组成部分，因此
- *       `requires { is >> x; }` 与运算符实际选中的通道永远一致。
+ *       `requires { is >> x; }` 与运算符实际选中的通道永远一致。该判据只对当前 TU 有效，
+ *       拿它分支前请先看 `traits_base.h` 上关于可探测性的 `@warning`。
  * @endif
  *
  * @lang{EN}
@@ -442,7 +422,8 @@ concept extractable_with_ctx = istream_type<T> &&
  *       reference, and decaying an array target to a pointer would throw away its length.
  * @note This concept *is* the constraint on `operator>>`, and the dispatch inside the operator
  *       reuses its three components, so `requires { is >> x; }` and the channel the operator
- *       actually picks can never disagree.
+ *       actually picks can never disagree. That test holds for the current TU only; see the
+ *       `@warning` on detectability in `traits_base.h` before branching on it.
  * @endif
  */
 template <typename T, typename TValue>
@@ -828,13 +809,10 @@ struct istream_operators
      * @return 指向最后一个写入位置之后的指针（即 `s + 实际读取数`）。
      * @throw stream_error 若 @p n 为负、`s` 为空指针而 `n != 0`，或无法读满 `n` 个字符。
      * @note 未能读满时置位 `eofbit`。
-     * @note 形参取有符号的 ptrdiff_t（与标准的 std::streamsize 一致），而不是 size_t，
-     * 理由与 `ios_base::width()` / `ios_base::precision()` 相同：读取长度常由含 size_t 的算式
-     * 得出（`end - cur`、`cap - used`），越界时会回绕成接近 2^64 的巨值；有符号形参可让传参时
-     * 的窄化把回绕抵消回来、还原成负数并在此拒掉。这一点在本函数上比在 width 上更要紧——
-     * width 传负数只是填充列数不对，而本函数写的是**调用方的缓冲区**，无符号形参下
-     * `read(s, -1)` 会一路读到输入耗尽，写入量与缓冲区大小完全无关，是实打实的堆破坏。
-     * 判负后转 size_t 不会溢出。
+     * @note 形参取有符号的 ptrdiff_t（与标准的 std::streamsize 一致）而不是 size_t：读取长度
+     *       常由含 size_t 的算式得出（`end - cur`、`cap - used`），越界时会回绕成巨值，有符号
+     *       形参可让传参时的窄化把回绕抵消回来、还原成负数并在此拒掉。无符号形参下
+     *       `read(s, -1)` 会一路读到输入耗尽，写入量与缓冲区大小完全无关。
      * @endif
      *
      * @lang{EN}
@@ -850,15 +828,11 @@ struct istream_operators
      *        `n` characters could not be read.
      * @note Sets `eofbit` when fewer than `n` characters could be read.
      * @note The parameter is a signed ptrdiff_t (as the standard's std::streamsize is) rather
-     * than a size_t, for the same reason as `ios_base::width()` / `ios_base::precision()`: a
-     * read length is often computed by an expression involving a size_t (`end - cur`,
-     * `cap - used`), which wraps to a value near 2^64 when it goes below zero; a signed
-     * parameter lets the narrowing at the call undo that wrap, restoring the negative value to
-     * be rejected here. That matters more here than it does for width: a negative width only
-     * gets the padding column count wrong, whereas this function writes into the **caller's
-     * buffer**, so with a size_t parameter `read(s, -1)` would read until the input is
-     * exhausted, with the amount written bearing no relation to the buffer size -- outright
-     * heap corruption. The conversion to size_t after the check cannot overflow.
+     *       than a size_t: a read length is often computed from size_t arithmetic (`end - cur`,
+     *       `cap - used`) that wraps to a huge value when it goes below zero, and a signed
+     *       parameter lets the narrowing at the call restore the negative value to be rejected
+     *       here. With a size_t parameter `read(s, -1)` would read until the input is exhausted,
+     *       writing an amount unrelated to the buffer size.
      * @endif
      */
     template <typename TSelf>
@@ -1055,9 +1029,8 @@ struct istream_operators
      * @param saw_eof 可选的报告位；生存期必须覆盖迭代器及其所有副本，`nullptr` 表示不
      *                上报。详见 istreambuf_iterator。
      * @return 绑定到本流缓冲区的 `istreambuf_iterator`。
-     * @note 返回类型写成 `TSelf::in_iter_type` 而不是 `auto`：探测那一侧
-     *       （`detail::extractable_with_iter`）只能拿到那个公开别名，本函数的返回类型若与它
-     *       不符，这里就直接编译不过——别名与实现因此不可能漂移。
+     * @note 返回类型写成 `TSelf::in_iter_type` 而不是 `auto`，使探测那一侧
+     *       （`detail::extractable_with_iter`）看到的别名与实现不可能漂移。
      * @endif
      * @lang{EN}
      * @brief Gets an input iterator; optionally attaches an "observed end of input" flag.
@@ -1065,10 +1038,9 @@ struct istream_operators
      * @param saw_eof Optional report flag; its lifetime must cover the iterator and all
      *                copies, `nullptr` means do not report. See istreambuf_iterator.
      * @return An `istreambuf_iterator` bound to this stream's buffer.
-     * @note The return type is spelled `TSelf::in_iter_type` rather than `auto`: the probing side
-     *       (`detail::extractable_with_iter`) has only that public alias to go on, and if this
-     *       function's return type did not match it, this very line would fail to compile -- so
-     *       the alias and the implementation cannot drift apart.
+     * @note The return type is spelled `TSelf::in_iter_type` rather than `auto`, so the alias the
+     *       probing side (`detail::extractable_with_iter`) sees and the implementation cannot
+     *       drift apart.
      * @endif
      */
 private:
@@ -1103,21 +1075,16 @@ private:
  *
  * @note 同一个 `io_traits` 特化**只能提供其中一种形式**的 `sread`：两种都提供会撞上本函数体
  *       开头的 `static_assert`。
- * @note 形参是转发引用而非 `TValue&`。工厂函数产出的操纵符（`setw(5)`、`get_money(x)`）都是
- *       纯右值，绑不上非常量左值引用；从前那是靠两条按值传的 `operator>>` 特事特办的。改成
- *       转发引用之后，"能不能写进去"由 `detail::in_target_t` 判定：右值目标一律以 `const` 左值
- *       探测**并以同一形式传给** `sread`——`get_money(x)` 的 `sread` 不修改操纵符对象本身、
+ * @note 形参是转发引用而非 `TValue&`，因为工厂函数产出的操纵符（`setw(5)`、`get_money(x)`）
+ *       都是纯右值，绑不上非常量左值引用。「能不能写进去」由 `detail::in_target_t` 判定：
+ *       右值目标一律以 `const` 左值探测**并以同一形式传给** `sread`——`get_money(x)` 的 `sread`
  *       收 const 引用，因而通过；而 `int` 的 `sread` 收 `int&`，`is >> 5` 于是连重载都选不中，
- *       不会静默地解析进一个临时量。常量左值目标同理被挡下。
- * @note 承上：`value` **有意不做 `std::forward`**，因此 `cppcoreguidelines-missing-std-forward`
- *       在这里是误报，已就地 `NOLINT`。转发引用在本函数里只承担两件事——绑得下左值与右值，
- *       以及把值类别带进 `TValue` 供 `detail::in_target_t` 判定 const-ness；值本身始终以
- *       `static_cast<TTarget&>(value)` 这个**左值**形式交给 `sread`。真去 `forward` 反而是错的：
- *       `sread` 的形参是 `TTarget&`，右值实参转发出来的右值根本绑不上去。
+ *       不会静默地解析进一个临时量。常量左值目标同理被挡下。因此 `value` **有意不做
+ *       `std::forward`**：`sread` 的形参是 `TTarget&`，转发出来的右值根本绑不上去。
  * @note 本运算符由 `detail::extractable` 约束，而**函数体内的分派复用同一组概念**，因此
- *       `requires { is >> x; }` 与运算符实际选中的通道永远一致。链末尾那个 `else` 因此不可达，
- *       只留一句写给维护者的内部不变式断言。代价与插入侧相同：类型不支持时的诊断退化为通用的
- *       "no match for `operator>>`"。
+ *       `requires { is >> x; }` 与运算符实际选中的通道永远一致。该判据只对当前 TU 有效，
+ *       拿它分支前请先看 `traits_base.h` 上关于可探测性的 `@warning`。加约束的代价与插入侧
+ *       相同：类型不支持时诊断退化为通用的 "no match for `operator>>`"。
  * @note 概念里直接写 `io_traits<TChar, TCtx>::sread(...)` 是安全的：未特化时它是不完整类型，
  *       在 requires 表达式里属于可 SFINAE 的替换失败，结果为 `false` 而非硬错误。
  * @tparam T 输入流类型。
@@ -1141,28 +1108,21 @@ private:
  *
  * @note One `io_traits` specialization may provide **only one of the two forms** of `sread`:
  *       providing both hits the `static_assert` at the top of this function body.
- * @note The parameter is a forwarding reference rather than `TValue&`. Manipulators produced by
- *       a factory (`setw(5)`, `get_money(x)`) are prvalues and cannot bind to a non-const lvalue
- *       reference; that used to be worked around with two by-value `operator>>` overloads. With
- *       a forwarding reference, "can this be written into" is decided by `detail::in_target_t`:
- *       an rvalue target is probed as a `const` lvalue **and passed to `sread` in that same
- *       form** -- the `sread` of `get_money(x)` does not modify the manipulator object and takes
- *       a const reference, so it passes, while the one for `int` takes `int&`, so `is >> 5` does
- *       not select the overload at all instead of silently parsing into a temporary. A const
- *       lvalue target is rejected the same way.
- * @note It follows that `value` is **deliberately never `std::forward`ed**, so
- *       `cppcoreguidelines-missing-std-forward` is a false positive here and is `NOLINT`ed at the
- *       signature. The forwarding reference does only two jobs in this function: bind both lvalues
- *       and rvalues, and carry the value category into `TValue` so `detail::in_target_t` can
- *       decide const-ness. The value itself always reaches `sread` as the **lvalue**
- *       `static_cast<TTarget&>(value)`. Actually forwarding would be wrong: `sread` takes a
- *       `TTarget&`, which the rvalue produced for an rvalue argument could not bind to.
+ * @note The parameter is a forwarding reference rather than `TValue&`, because manipulators
+ *       produced by a factory (`setw(5)`, `get_money(x)`) are prvalues and cannot bind to a
+ *       non-const lvalue reference. "Can this be written into" is then decided by
+ *       `detail::in_target_t`: an rvalue target is probed as a `const` lvalue **and passed to
+ *       `sread` in that same form** -- the `sread` of `get_money(x)` takes a const reference and
+ *       passes, while the one for `int` takes `int&`, so `is >> 5` does not select the overload at
+ *       all instead of silently parsing into a temporary. A const lvalue target is rejected the
+ *       same way. `value` is therefore **deliberately never `std::forward`ed**: `sread` takes a
+ *       `TTarget&`, which a forwarded rvalue could not bind to.
  * @note This operator is constrained by `detail::extractable`, and the dispatch **inside the body
  *       reuses the same concepts**, so `requires { is >> x; }` and the channel the operator
- *       actually picks can never disagree. That also makes the `else` at the end of the chain
- *       unreachable, leaving only an internal-invariant assertion aimed at maintainers. The price
- *       is the same as on the insertion side: an unsupported type gets the generic "no match for
- *       `operator>>`" diagnostic.
+ *       actually picks can never disagree. That test holds for the current TU only; see the
+ *       `@warning` on detectability in `traits_base.h` before branching on it. The price of the
+ *       constraint is that an unsupported type gets the generic "no match for `operator>>`"
+ *       diagnostic.
  * @note Naming `io_traits<TChar, TCtx>::sread(...)` directly in the concepts is safe: where it is
  *       not specialized it is an incomplete type, which inside a requires-expression is a
  *       SFINAE-able substitution failure yielding `false` rather than a hard error.
@@ -1228,18 +1188,26 @@ T& operator>>(T& obj, TValue&& value)
             else
             {
                 TCtx tmp = [&value]() -> TCtx {
-                    if constexpr (requires (const TV& v)
-                                  { parse_context_type<TChar, TV>::make_parse_context(v); })
+                    // Probe with the call as it is actually made, so nothing that would work is
+                    // silently skipped; the shape of the member is then a static_assert.
+                    if constexpr (requires
+                                  { parse_context_type<TChar, TV>::make_parse_context(value); })
                     {
                         static_assert(
-                            std::convertible_to<
-                                decltype(parse_context_type<TChar, TV>::make_parse_context(value)),
-                                TCtx>,
-                            "IOv2: this parse_context_type's make_parse_context() does not return "
-                            "anything the parse context can be constructed from -- a missing "
-                            "return statement makes it void. Return the type named by "
-                            "parse_context_type<TChar, T>::type. See io/traits/traits_base.h.");
-                        return parse_context_type<TChar, TV>::make_parse_context(value);
+                            requires (const TV& v)
+                            { parse_context_type<TChar, TV>::make_parse_context(v); },
+                            "IOv2: this parse_context_type's make_parse_context() must take its "
+                            "argument by const reference -- it seeds the context from the target "
+                            "and must not modify it. See io/traits/traits_base.h.");
+                        static_assert(
+                            std::same_as<decltype(parse_context_type<TChar, TV>::
+                                                      make_parse_context(std::declval<const TV&>())),
+                                         TCtx>,
+                            "IOv2: this parse_context_type's make_parse_context() must return "
+                            "parse_context_type<TChar, T>::type -- a missing return statement "
+                            "makes it void. See io/traits/traits_base.h.");
+                        return parse_context_type<TChar, TV>::make_parse_context(
+                            static_cast<const TV&>(value));
                     }
                     else if constexpr (std::default_initializable<TCtx>)
                         return TCtx{};
@@ -1316,15 +1284,12 @@ T& operator>>(T& obj, void (*pf)(ios_base<typename T::char_type>&))
  * 本声明补上这个缺口——`nullptr` 精确匹配到此处即报删除；`0` 到 `std::nullptr_t` 与到函数指针
  * 同为指针转换、等级相同，于是报歧义。`std::cin >> 0` 在标准库里同样是歧义。
  * @note 能让本重载可行的只有两种实参：空指针常量，以及 `std::nullptr_t` 类型的对象——除此之外
- *       没有任何类型能转换到 `std::nullptr_t`，因此对其他类型的可探测性都不受影响。后一种也一并
- *       拒绝是对的：提取到一个 `std::nullptr_t` 对象同样没有意义。
+ *       没有任何类型能转换到 `std::nullptr_t`，因此对其他类型的可探测性都不受影响。
  * @note **空的函数指针变量不受影响**：它精确匹配上一条重载，仍按文档所述在运行期置
  *       `strfailbit`。能在编译期判定的只有字面量写法。
  * @note 插入侧没有对应声明：`os << nullptr` 是有意义的，由 `io_traits<TChar, std::nullptr_t>`
- *       打印 `nullptr`，泛型运算符以精确匹配直接胜出。但这只在 `<IOv2/io/traits/nullptr.h>` 被包含时
- *       成立——漏掉它，`os << nullptr` 仍会被上一条形状的插入侧操纵符重载接走，退回运行期置
- *       `strfailbit`。这里**有意不补**对应的已删除声明：漏 include 是个普遍的失败模式，不该在
- *       `nullptr` 这一处特事特办。
+ *       打印 `nullptr`，泛型运算符以精确匹配直接胜出——前提是包含了
+ *       `<IOv2/io/traits/nullptr.h>`。
  * @endif
  *
  * @lang{EN}
@@ -1340,18 +1305,13 @@ T& operator>>(T& obj, void (*pf)(ios_base<typename T::char_type>&))
  * reason.
  * @note Exactly two kinds of argument make this overload viable: a null pointer constant, and an
  *       object of type `std::nullptr_t` -- nothing else converts to `std::nullptr_t`, so
- *       detectability for every other type is unaffected. Rejecting the latter too is right:
- *       extracting into a `std::nullptr_t` object is no more meaningful.
+ *       detectability for every other type is unaffected.
  * @note **A null function-pointer variable is unaffected**: it is an exact match for the
  *       overload above and still reports `strfailbit` at run time, as documented there. Only the
  *       literal spellings can be decided at compile time.
  * @note The insertion side carries no counterpart: `os << nullptr` is meaningful --
  *       `io_traits<TChar, std::nullptr_t>` prints `nullptr` -- and the generic operator wins there
- *       outright as an exact match. That holds only where `<IOv2/io/traits/nullptr.h>` is included,
- *       though: without it `os << nullptr` is still swallowed by the insertion-side manipulator
- *       overload of the shape above and falls back to reporting `strfailbit` at run time. No
- *       counterpart deletion is added there **on purpose**: a forgotten include is a general
- *       failure mode and does not deserve a special case at `nullptr`.
+ *       outright as an exact match, provided `<IOv2/io/traits/nullptr.h>` is included.
  * @endif
  */
 template <istream_type T>

@@ -70,7 +70,8 @@ struct ctx_neither
     void convert_to(via_neither& ) const {}
 };
 
-// What make_parse_context() returns is required to build the context, not to be it.
+// A maker may build the context out of whatever it likes internally, but must hand back the
+// context type itself.
 struct ctx_seed
 {
     int n;
@@ -105,8 +106,8 @@ template <typename TChar>
 struct parse_context_type<TChar, ctx_fixture::via_convertible>
 {
     using type = ctx_fixture::ctx_convertible;
-    static ctx_fixture::ctx_seed make_parse_context(const ctx_fixture::via_convertible&)
-    { return ctx_fixture::ctx_seed{0}; }
+    static type make_parse_context(const ctx_fixture::via_convertible&)
+    { return type{ctx_fixture::ctx_seed{0}}; }
 };
 
 template <typename TChar, typename TCtx>
@@ -280,12 +281,11 @@ static_assert(  extractable_lvalue<is_c, ctx_fixture::via_default> );
 static_assert(  extractable_lvalue<is_c, ctx_fixture::via_maker>   );
 static_assert( !extractable_lvalue<is_c, ctx_fixture::via_neither> );
 
-// make_parse_context is required to return something the context can be built from, not the
-// context itself; a maker returning a different type is a working specialization, not a broken
-// one. (The broken one -- a return type the context cannot be built from, which a missing return
-// statement produces -- is a static_assert in the operator and so is not reachable from here.)
+// make_parse_context must return the context type exactly, however it builds it internally. A
+// wrong return type (a missing return statement makes it void) and a non-const parameter are both
+// static_asserts in the operator, so neither is reachable from here.
 static_assert(  extractable_lvalue<is_c, ctx_fixture::via_convertible> );
-static_assert( !std::is_same_v<
+static_assert(  std::is_same_v<
                   decltype(IOv2::parse_context_type<char, ctx_fixture::via_convertible>
                                ::make_parse_context(std::declval<const ctx_fixture::via_convertible&>())),
                   IOv2::parse_context_type<char, ctx_fixture::via_convertible>::type> );
@@ -472,9 +472,9 @@ TEST(IoTraits, EveryDetectionRuleHoldsAtCompileTime)
 }
 
 // The static_assert above answers for the concept. Only a real extraction instantiates the
-// operator's body, which is the part that has to build the context out of whatever
-// make_parse_context handed back.
-TEST(IoTraits, AMakerReturningAConvertibleTypeStillBuildsTheContext)
+// operator's body, which is the part that has to seed the context from what make_parse_context
+// handed back.
+TEST(IoTraits, AMakerBuildingTheContextFromASeedStillSeedsIt)
 {
     is_c                          is{IOv2::mem_device<char>{std::string("42")},
                                      IOv2::locale<char>("C")};
