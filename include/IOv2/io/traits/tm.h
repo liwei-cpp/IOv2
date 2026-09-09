@@ -71,6 +71,11 @@ struct parse_context_type<TChar, std::tm>
      *   所得日期再被夹取到 `std::chrono::year` 可表示的日历范围内。故越界极远的 `tm_mday`
      *   停在离当月 1 日约 ±10,951 年处，而不是日历边界。
      *
+     * @warning **@p tmb 必须是已初始化的对象**（例如 `std::tm t{}`）。那六项在解析开始前被
+     *          **无条件读取**一次以铺好回退值，与格式串之后是否覆盖它们无关，故传入未初始化的
+     *          `std::tm` 即为未定义行为（[basic.indet]/2 读取不确定值），即使格式串填满六项也一样。
+     *          这一点与 `std::get_time` 不同——`std::time_get::get` 只写不读。`is >> tm` 与
+     *          `get_time` 两条入口都经由本函数，故两者同受此约束；详见 `get_time` 的同名警告。
      * @param tmb 提供回退值的 `std::tm`；其 `tm_wday` / `tm_yday` / `tm_isdst` 不参与计算。
      * @return 已装入回退值的上下文。
      * @endif
@@ -101,6 +106,14 @@ struct parse_context_type<TChar, std::tm>
      *   out of range therefore stops about ±10,951 years from the 1st of the month rather than
      *   at the calendar bound.
      *
+     * @warning **@p tmb must be an initialized object** (a `std::tm t{}`, say). Those six fields
+     *          are read **unconditionally** before parsing starts, to seed the fallbacks, whether
+     *          or not the format string later overwrites them; passing an uninitialized `std::tm`
+     *          is therefore undefined behavior ([basic.indet]/2, reading an indeterminate value)
+     *          even when the format string fills in all six. This differs from `std::get_time`,
+     *          where `std::time_get::get` only writes and never reads. Both `is >> tm` and
+     *          `get_time` reach the seeding through this function, so the constraint applies to
+     *          either spelling; see the matching warning on `get_time`.
      * @param tmb The `std::tm` supplying the fallbacks; its `tm_wday`, `tm_yday`, and
      *            `tm_isdst` take no part in the computation.
      * @return The context with the fallbacks installed.
@@ -271,26 +284,32 @@ struct io_traits<TChar, std::tm>
 
 /**
  * @lang{ZH}
- * @brief 日期＋时间解析上下文的抽取实现，对全部三个时区档通用。
+ * @brief 日期＋时间解析上下文的抽取实现，限定在本平台那一档上。
  *
- * 对 `TzLevel` 做偏特化而不钉死某一档，是因为 `parse_context_type<TChar, std::tm>::type`
- * 的档位随平台而定（见 @ref parse_context_type<TChar, std::tm>::tm_parse_tz_level）。
- * 三个档在这里的行为一致，档位只影响 `do_get` 内部 `%z` / `%Z` 是真解析还是退化为字面量。
+ * 对 `TzLevel` 做偏特化而不钉死某一档，是因为档位随平台而定；`requires` 再把它收回到
+ * `parse_context_type<TChar, std::tm>::tm_parse_tz_level`，即本平台**实际会产生**的那一档。
+ * 收紧的理由是 `detail::tm_stream_format` 按平台而非按 `TzLevel` 生成格式串：两者同源，
+ * 故对平台档恒一致；而显式写出离平台的档位会拿到不匹配的格式串，`%z` / `%Z` 被按字面量
+ * 匹配而必然失配。有了这条约束，那种写法是**编译错误**，不是运行期静默失败。
  * 格式串与 `io_traits<TChar, std::tm>::swrite` 取自同一个函数，因此写出来的一定读得回。
  * @endif
  *
  * @lang{EN}
- * @brief Extraction for a date-and-time parse context, common to all three time-zone tiers.
+ * @brief Extraction for a date-and-time parse context, restricted to this platform's tier.
  *
- * It is partially specialized on `TzLevel` rather than pinned to one tier because
- * `parse_context_type<TChar, std::tm>::type` picks its tier from the platform (see
- * @ref parse_context_type<TChar, std::tm>::tm_parse_tz_level). All three tiers behave alike
- * here; the tier only decides whether `%z` / `%Z` really parse or degrade to literals inside
- * `do_get`. The format comes from the same function `io_traits<TChar, std::tm>::swrite` uses,
- * so whatever is written can be read back.
+ * It is partially specialized on `TzLevel` rather than pinned to one tier because the tier is
+ * chosen per platform; the `requires` then ties it back to
+ * `parse_context_type<TChar, std::tm>::tm_parse_tz_level`, the tier this platform actually
+ * produces. The restriction is there because `detail::tm_stream_format` builds its format from
+ * the platform rather than from `TzLevel`: both read the same traits, so they always agree for
+ * the platform's tier, whereas an explicitly named off-platform tier would get a format whose
+ * `%z` / `%Z` are matched as literals and can only fail. With this constraint that spelling is a
+ * **compile error** instead of a silent run-time failure. The format comes from the same function
+ * `io_traits<TChar, std::tm>::swrite` uses, so whatever is written can be read back.
  * @endif
  */
 template <typename TChar, tz_level TzLevel>
+    requires (TzLevel == parse_context_type<TChar, std::tm>::tm_parse_tz_level)
 struct io_traits<TChar, time_parse_context<TChar, true, true, TzLevel>>
 {
     template <typename TIter, std::sentinel_for<TIter> TSent>
