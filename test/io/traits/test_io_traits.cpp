@@ -126,6 +126,81 @@ struct io_traits<TChar, TCtx>
 };
 }
 
+// Fixtures for section 10. Each names a differently shaped make_parse_context; the section only
+// evaluates predicates on them, never an extraction, so shapes the operator would reject with a
+// static_assert are safe to declare here.
+namespace maker_shape
+{
+struct ctx  { int n = 0; void convert_to(struct target&) const; };
+struct target { int n = 0; };
+struct seed { int copy; seed(const target& t) : copy(t.n) {} };
+
+struct ok        {};   // static type f(const T&)
+struct ok_nx     {};   // ... noexcept -- part of the function type since C++17
+struct nonconst  {};   // f(T&)        -- caught before this round too
+struct rvalue    {};   // f(T&&)       -- used to be skipped silently
+struct nonstatic {};   // member       -- used to be skipped silently
+struct middleman {};   // f(const U&)  -- used to dangle
+struct voidret   {};   // static void f(const T&)
+struct absent    {};   // no such member at all
+}
+
+namespace IOv2
+{
+template <typename TChar> struct parse_context_type<TChar, maker_shape::ok>
+{ using type = maker_shape::ctx;
+  static type make_parse_context(const maker_shape::ok&) { return {}; } };
+
+template <typename TChar> struct parse_context_type<TChar, maker_shape::ok_nx>
+{ using type = maker_shape::ctx;
+  static type make_parse_context(const maker_shape::ok_nx&) noexcept { return {}; } };
+
+template <typename TChar> struct parse_context_type<TChar, maker_shape::nonconst>
+{ using type = maker_shape::ctx;
+  static type make_parse_context(maker_shape::nonconst&) { return {}; } };
+
+template <typename TChar> struct parse_context_type<TChar, maker_shape::rvalue>
+{ using type = maker_shape::ctx;
+  static type make_parse_context(maker_shape::rvalue&&) { return {}; } };
+
+template <typename TChar> struct parse_context_type<TChar, maker_shape::nonstatic>
+{ using type = maker_shape::ctx;
+  type make_parse_context(const maker_shape::nonstatic&) const { return {}; } };
+
+template <typename TChar> struct parse_context_type<TChar, maker_shape::middleman>
+{ using type = maker_shape::ctx;
+  static type make_parse_context(const maker_shape::seed&) { return {}; } };
+
+template <typename TChar> struct parse_context_type<TChar, maker_shape::voidret>
+{ using type = maker_shape::ctx;
+  static void make_parse_context(const maker_shape::voidret&) {} };
+
+template <typename TChar> struct parse_context_type<TChar, maker_shape::absent>
+{ using type = maker_shape::ctx; };
+}
+
+// Fixture for section 12: the one shape that reaches char_sink_for's is_void_v disjunct.
+namespace sink_shape
+{
+struct traits_void_sink
+{
+    traits_void_sink& operator*()      { return *this; }
+    traits_void_sink& operator++()     { return *this; }
+    traits_void_sink  operator++(int)  { return *this; }
+    traits_void_sink& operator=(char)  { return *this; }
+};
+}
+
+template <>
+struct std::iterator_traits<sink_shape::traits_void_sink>
+{
+    using iterator_category = std::output_iterator_tag;
+    using value_type        = void;
+    using difference_type   = std::ptrdiff_t;
+    using pointer           = void;
+    using reference         = void;
+};
+
 namespace
 {
 using os_c = IOv2::ostream<IOv2::mem_device<char>, char>;
@@ -462,6 +537,90 @@ static_assert(  insertable<os_c, long double>         );
 static_assert(  extractable_lvalue<is_c, float>       );
 static_assert(  extractable_lvalue<is_c, double>      );
 static_assert(  extractable_lvalue<is_c, long double> );
+
+// ---------------------------------------------------------------------------------------------
+// 11. make_parse_context is detected by name, and its shape is checked separately.
+//
+// Three rounds of review kept finding holes here, each time because the check asked whether a
+// *call* succeeds: the set of declarations whose call happens to succeed is open-ended, so some
+// new shape always slipped through. Detection is now shape-agnostic (inheritance ambiguity) and
+// the shape is one comparison against the required function-pointer type. These assertions pin
+// both halves so the split cannot quietly collapse back into one.
+// ---------------------------------------------------------------------------------------------
+template <typename T>
+using pct = IOv2::parse_context_type<char, T>;
+
+// Detection must see the name whatever shape it has -- fold shape in here and a mis-written
+// specialization reads as "no such member" and is silently default constructed, which is exactly
+// the failure this split removes.
+static_assert(  IOv2::detail::declares_maker<pct<maker_shape::ok>,        maker_shape::ok>        );
+static_assert(  IOv2::detail::declares_maker<pct<maker_shape::ok_nx>,     maker_shape::ok_nx>     );
+static_assert(  IOv2::detail::declares_maker<pct<maker_shape::nonconst>,  maker_shape::nonconst>  );
+static_assert(  IOv2::detail::declares_maker<pct<maker_shape::rvalue>,    maker_shape::rvalue>    );
+static_assert(  IOv2::detail::declares_maker<pct<maker_shape::nonstatic>, maker_shape::nonstatic> );
+static_assert(  IOv2::detail::declares_maker<pct<maker_shape::middleman>, maker_shape::middleman> );
+static_assert(  IOv2::detail::declares_maker<pct<maker_shape::voidret>,   maker_shape::voidret>   );
+static_assert( !IOv2::detail::declares_maker<pct<maker_shape::absent>,    maker_shape::absent>    );
+
+template <typename T>
+concept maker_shape_ok =
+    requires { &pct<T>::make_parse_context; }
+    && IOv2::detail::maker_signature_v<typename pct<T>::type, T, decltype(&pct<T>::make_parse_context)>;
+
+// Only the exact declaration passes. noexcept has to be its own case in maker_signature_v: since
+// C++17 it is part of the function type, so a plain type comparison would reject a correct member.
+static_assert(  maker_shape_ok<maker_shape::ok>        );
+static_assert(  maker_shape_ok<maker_shape::ok_nx>     );
+static_assert( !maker_shape_ok<maker_shape::nonconst>  );
+static_assert( !maker_shape_ok<maker_shape::rvalue>    );
+static_assert( !maker_shape_ok<maker_shape::nonstatic> );
+static_assert( !maker_shape_ok<maker_shape::middleman> );
+static_assert( !maker_shape_ok<maker_shape::voidret>   );
+
+// ---------------------------------------------------------------------------------------------
+// 12. The std::tm parse context is admitted for this platform's time-zone tier only.
+//
+// tm_stream_format builds its format from the platform rather than from TzLevel, so an
+// explicitly named off-platform tier would get a format whose %z / %Z are matched as literals and
+// could only fail. The tier is spelled relative to tm_parse_tz_level rather than hard-coded, so
+// these hold on a platform whose std::tm carries neither field.
+// ---------------------------------------------------------------------------------------------
+template <IOv2::tz_level L>
+concept tm_ctx_admitted =
+    requires { sizeof(IOv2::io_traits<char, IOv2::time_parse_context<char, true, true, L>>); };
+
+inline constexpr IOv2::tz_level tm_tier = IOv2::parse_context_type<char, std::tm>::tm_parse_tz_level;
+
+static_assert(  tm_ctx_admitted<tm_tier> );
+static_assert(  tm_ctx_admitted<IOv2::tz_level::zone>   == (tm_tier == IOv2::tz_level::zone)   );
+static_assert(  tm_ctx_admitted<IOv2::tz_level::offset> == (tm_tier == IOv2::tz_level::offset) );
+static_assert(  tm_ctx_admitted<IOv2::tz_level::none>   == (tm_tier == IOv2::tz_level::none)   );
+
+// ---------------------------------------------------------------------------------------------
+// 13. Which disjunct of char_sink_for catches what.
+//
+// Every standard output adaptor declares a member value_type of void, yet iter_value_t on it is
+// ill-formed rather than void -- so the leading !requires absorbs all of them and the is_void_v
+// disjunct reaches none. That is the opposite of what the shape suggests, and the note in
+// traits_base.h said it the wrong way round until this was measured.
+// ---------------------------------------------------------------------------------------------
+template <typename I>
+concept ivt_ill_formed = !requires { typename std::iter_value_t<I>; };
+
+static_assert( ivt_ill_formed<std::back_insert_iterator<std::string>>  );
+static_assert( ivt_ill_formed<std::front_insert_iterator<std::string>> );
+static_assert( ivt_ill_formed<std::insert_iterator<std::string>>       );
+static_assert( ivt_ill_formed<std::ostream_iterator<char>>             );
+static_assert( ivt_ill_formed<std::ostreambuf_iterator<char>>          );
+
+// The is_void_v disjunct is reached only by an explicit std::iterator_traits specialization whose
+// value_type is void. That shape is reachable, so the disjunct is not dead code.
+static_assert( std::is_void_v<std::iter_value_t<sink_shape::traits_void_sink>>   );
+static_assert( IOv2::char_sink_for<sink_shape::traits_void_sink, char>           );
+
+// The library's own sink is accepted, and only for its own character type.
+static_assert(  IOv2::char_sink_for<typename os_c::out_iter_type, char>    );
+static_assert( !IOv2::char_sink_for<typename os_c::out_iter_type, wchar_t> );
 }
 
 // The static_asserts above are the test; compiling this file is what passes it. This case
@@ -474,6 +633,65 @@ TEST(IoTraits, EveryDetectionRuleHoldsAtCompileTime)
 // The static_assert above answers for the concept. Only a real extraction instantiates the
 // operator's body, which is the part that has to seed the context from what make_parse_context
 // handed back.
+// The section-10 rows ask the concept, which never instantiates the operator's
+// body -- so they cannot reach the numeric facet's own static_assert that a
+// carrier exists. Running a real insertion and extraction does, which is what
+// makes this the check that the two criteria agree rather than merely look
+// alike: if the io-side numeric_limits clause ever admitted a type the facet's
+// float_carrier_t rejects, this case would stop compiling.
+TEST(IoTraits, EveryAdmittedFloatingTypeReallyReachesTheFacet)
+{
+    auto round_trip = [](auto value)
+    {
+        using T = decltype(value);
+
+        os_c os{IOv2::mem_device<char>{}, IOv2::locale<char>("C")};
+        os << value;
+        ASSERT_FALSE(os.str_fail());
+        ASSERT_FALSE(os.device().str().empty());
+
+        is_c is{IOv2::mem_device<char>{os.device().str()}, IOv2::locale<char>("C")};
+        T    back{};
+        is >> back;
+        EXPECT_FALSE(is.str_fail());
+        EXPECT_EQ(back, value);
+    };
+
+    round_trip(1.5f);
+    round_trip(1.5);
+    round_trip(1.5L);
+#if defined(__STDCPP_FLOAT16_T__)
+    round_trip(std::float16_t{1.5f16});
+#endif
+#if defined(__STDCPP_BFLOAT16_T__)
+    round_trip(std::bfloat16_t{1.5bf16});
+#endif
+#if defined(__STDCPP_FLOAT32_T__)
+    round_trip(std::float32_t{1.5f32});
+#endif
+#if defined(__STDCPP_FLOAT64_T__)
+    round_trip(std::float64_t{1.5f64});
+#endif
+}
+
+// Out-of-range input saturates at the extremes of the *target* type, not of the
+// carrier, and the decision is made before the narrowing rather than after --
+// [conv.double] makes narrowing an out-of-range value undefined, so the order is
+// load-bearing. float16_t is the telling case: its carrier is float, which holds
+// 70000 comfortably, so a check made on the carrier would let it through.
+#if defined(__STDCPP_FLOAT16_T__)
+TEST(IoTraits, AnOutOfRangeFloatSaturatesAtTheTargetTypesExtreme)
+{
+    is_c          is{IOv2::mem_device<char>{std::string("70000")}, IOv2::locale<char>("C")};
+    std::float16_t value{};
+
+    is >> value;
+
+    EXPECT_TRUE(is.str_fail()) << "LWG 23 wants the failure bit as well as the saturated value";
+    EXPECT_EQ(value, std::numeric_limits<std::float16_t>::max());
+}
+#endif
+
 TEST(IoTraits, AMakerBuildingTheContextFromASeedStillSeedsIt)
 {
     is_c                          is{IOv2::mem_device<char>{std::string("42")},
