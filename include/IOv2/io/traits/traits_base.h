@@ -294,9 +294,14 @@ namespace IOv2
  * `wchar_t buf[64]` 配 `TChar == char` 这种手写汇；`std::format_to` 在同一位置是放行的，
  * 此处比标准严。
  *
- * @note 两个析取项都需要：`std::back_insert_iterator` 的 `iter_value_t` 是 **ill-formed** 而不是
- *       `void`，由 `!requires` 那一项兜住；`is_void_v` 那一项覆盖的是 `iterator_traits`
- *       well-formed 且把 `value_type` 定成 `void` 的输出适配器。
+ * @note 三个析取项里的前两个都需要，但它们各自覆盖的形状与直觉相反。标准的输出适配器
+ *       （`back_insert_iterator` / `front_insert_iterator` / `insert_iterator` /
+ *       `ostream_iterator` / `ostreambuf_iterator`）虽然都声明了**成员** `value_type = void`，
+ *       它们的 `std::iter_value_t` 却是 **ill-formed** 而不是 `void`，因此**全部**由
+ *       `!requires` 那一项兜住——这也正是本合取项查 `iter_value_t` 而不查成员的用处所在。
+ *       `is_void_v` 那一项**够不到任何标准适配器**，它覆盖的是显式特化了
+ *       `std::iterator_traits<I>` 并把其 `value_type` 定成 `void` 的类型；这种形状实测可达，
+ *       故该析取项不是死代码。
  * @warning 对**报不出**字符类型的汇（`iter_value_t` ill-formed 或为 `void`），无从可查，
  *          只剩可写性这一关。于是宽窄错配会经隐式转换静默通过：窄 facet 写进 `std::wstring`
  *          得到的是"把字节当字符"的伪宽串，宽 facet 写进 `std::string` 则逐码元截断。两者都
@@ -311,6 +316,11 @@ namespace IOv2
  * @brief Whether `TIter` is usable as an **output** iterator over character type `TChar` -- the
  *        iterator constraint used by insertion-side extension points.
  *
+ * Why this constraint cannot be omitted is explained at the top of this file: the iterator is a
+ * function-template parameter rather than part of the type, so an explicitly qualified
+ * hand-written call could pair a wide key with a narrow sink; this concept ties `TIter` back to
+ * the key's `TChar`.
+ *
  * The first conjunct is taken straight from `<format>`: the standard `format_to` family uses
  * exactly `std::output_iterator<Out, const charT&>`, testing the property actually needed --
  * that a `TChar` lvalue can be written through the iterator. It deliberately does not test the
@@ -323,10 +333,15 @@ namespace IOv2
  * hand-written sink such as `wchar_t buf[64]` paired with `TChar == char`; `std::format_to`
  * accepts that pairing, so here the library is stricter than the standard.
  *
- * @note Both disjuncts are needed: `std::back_insert_iterator`'s `iter_value_t` is
- *       **ill-formed** rather than `void`, which the leading `!requires` absorbs, while the
- *       `is_void_v` disjunct covers output adaptors whose `iterator_traits` is well-formed and
- *       names `value_type` as `void`.
+ * @note The first two of the three disjuncts are both needed, but what each one covers is the
+ *       opposite of what one would guess. The standard output adaptors
+ *       (`back_insert_iterator`, `front_insert_iterator`, `insert_iterator`, `ostream_iterator`,
+ *       `ostreambuf_iterator`) all declare a **member** `value_type` of `void`, yet their
+ *       `std::iter_value_t` is **ill-formed** rather than `void`, so the leading `!requires`
+ *       absorbs **all** of them -- which is precisely what testing `iter_value_t` instead of the
+ *       member buys. The `is_void_v` disjunct reaches **no standard adaptor at all**; it covers
+ *       types that explicitly specialize `std::iterator_traits<I>` with a `value_type` of `void`.
+ *       That shape is reachable in practice, so the disjunct is not dead code.
  * @warning For a sink that **cannot** name a character type (`iter_value_t` ill-formed or
  *          `void`) there is nothing to check, and only writability remains. A width mismatch
  *          then passes silently through an implicit conversion: a narrow facet writing into a

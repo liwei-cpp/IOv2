@@ -21,9 +21,10 @@ namespace IOv2
  *       排除项的作用不止于选择重载，更在于让 `io_traits<char, wchar_t>` 之类**根本不存在**：
  *       类模板没有 `= delete`，这是表达标准所删重载的唯一手段。删掉任何一条，
  *       `os << L'x'` 都会静默打印出一个数字。
- * @note 名单里**没有** `signed char` / `unsigned char`，这是有意的：标准在宽流上没有这两个的
- *       重载，它们经整型提升落到数值插入，故必须留给本特化；`char` 流上的两条由
- *       `char_and_str.h` 里的全特化接管，全特化优先于任何偏特化。
+ * @note `signed char` / `unsigned char` 的排除**挂着 `TChar == char` 这个条件**，因为这两个
+ *       类型是二维的：`char` 流上它们是字符，归 `char_and_str.h`；宽流上标准没有它们的重载，
+ *       它们经整型提升落到数值插入，必须留在本特化。条件排除让缺少 `char_and_str.h` 时
+ *       `os << (signed char)` 成为**编译错误**，而不是静默按数值写出。
  * @warning **写出时本库不做整型提升**，按 `TValue` 自身的位宽格式化，因此宽流上负的
  *          `signed char` 在 `hex` / `oct` 下比标准短一半：`wos << hex << (signed char)-1` 这里
  *          写 `ff`，标准写 `ffffffff`（提升到 `int` 后按 LWG 23 重解释为 `unsigned int`）。
@@ -48,10 +49,12 @@ namespace IOv2
  *       all**. A class template has no `= delete`, so this is the only way to express the
  *       standard's deleted overloads; drop any one of them and `os << L'x'` silently prints a
  *       number.
- * @note `signed char` / `unsigned char` are deliberately **absent** from the list: the standard has
- *       no overload for either on a wide stream, so they reach numeric insertion through integral
- *       promotion and must stay here, while the `char`-stream cases are taken by the explicit
- *       specializations in `char_and_str.h`, which outrank every partial specialization.
+ * @note The exclusion of `signed char` / `unsigned char` is **conditioned on `TChar == char`**,
+ *       because those two types are two-dimensional: on a `char` stream they are characters and
+ *       belong to `char_and_str.h`, while on a wide stream the standard has no overload for them,
+ *       so they reach numeric insertion through integral promotion and must stay here. Making the
+ *       exclusion conditional is what turns `os << (signed char)` without `char_and_str.h` into a
+ *       **compile error** rather than a silent numeric write.
  * @warning **This library does not promote on the way out**; it formats at the width of `TValue`
  *          itself. A negative `signed char` on a wide stream is therefore half as wide as the
  *          standard's under `hex` / `oct`: `wos << hex << (signed char)-1` writes `ff` here and
@@ -86,7 +89,9 @@ template <typename TChar, typename TValue>
               && !std::is_same_v<TValue, wchar_t>
               && !std::is_same_v<TValue, char8_t>
               && !std::is_same_v<TValue, char16_t>
-              && !std::is_same_v<TValue, char32_t>)
+              && !std::is_same_v<TValue, char32_t>
+              && !(std::is_same_v<TChar, char> && std::is_same_v<TValue, signed char>)
+              && !(std::is_same_v<TChar, char> && std::is_same_v<TValue, unsigned char>))
 struct io_traits<TChar, TValue>
 {
     template <typename TIter>
@@ -108,7 +113,7 @@ struct io_traits<TChar, TValue>
      * @note 本成员比类模板的名单多排除 `signed char` 与 `unsigned char`，这处**不对称是有意
      *       的**。提取按引用传参，拿不到插入侧的整型提升，标准也只为 `char` 流定义了这两个
      *       提取器，因此宽流上的 `wis >> sc` 编译不过，而不是退回去按数值解析。`char` 流上的
-     *       两条由 `char_and_str.h` 里的全特化承接。
+     *       两条已由类模板的名单排除，归 `char_and_str.h`。
      * @endif
      *
      * @lang{EN}
@@ -119,7 +124,8 @@ struct io_traits<TChar, TValue>
      *       reference and gets none of the integral promotion the insertion side enjoys, and the
      *       standard defines those two extractors for `char` streams only, so `wis >> sc` on a
      *       wide stream does not compile instead of falling back to parsing a number. The
-     *       `char`-stream cases are taken by the explicit specializations in `char_and_str.h`.
+     *       `char`-stream cases are already off the class template's list and belong to
+     *       `char_and_str.h`.
      * @endif
      */
     template <typename TIter, std::sentinel_for<TIter> TSent>
@@ -157,8 +163,10 @@ struct io_traits<TChar, TValue>
  *       给 `basic_ostream` 添加的 `operator<<(const volatile void*)` 一致。地址只被格式化，
  *       从不解引用。
  * @note 指向类型与流的 `char_type` 一致时（`wos << L"hi"`），`io_traits<TChar, const TChar*>`
- *       更特化，本特化本来就轮不到；`char` / `signed char` / `unsigned char` 的字符串重载
- *       同理由 `char_and_str.h` 承接，因此不在排除名单里。
+ *       更特化，本特化本来就轮不到。`char` 被指类型**无条件排除**——`char_and_str.h` 对任何流
+ *       都提供加宽特化，宽流上标准也写文本。`signed char` / `unsigned char` 被指类型只在
+ *       `char` 流上排除：宽流上标准没有它们的字符串重载，落到 `operator<<(const void*)` 打地址，
+ *       正是本特化该做的。三处排除都键在 `remove_const_t` 上，故 `volatile char*` 仍打地址。
  * @endif
  *
  * @lang{EN}
@@ -188,18 +196,27 @@ struct io_traits<TChar, TValue>
  *       `basic_ostream`. The address is only formatted, never dereferenced.
  * @note When the pointee matches the stream's `char_type` (`wos << L"hi"`),
  *       `io_traits<TChar, const TChar*>` is more specialized and this one was never in the
- *       running; the string overloads for `char` / `signed char` / `unsigned char` are taken by
- *       `char_and_str.h` for the same reason, which is why they are not on the exclusion list.
+ *       running. A `char` pointee is excluded **unconditionally**: `char_and_str.h` supplies a
+ *       widening specialization for every stream, and the standard writes text on a wide stream
+ *       too. `signed char` / `unsigned char` pointees are excluded only on a `char` stream: on a
+ *       wide one the standard has no string overload for them, so they fall to
+ *       `operator<<(const void*)` and print an address, which is exactly this specialization's
+ *       job. All three keys are `remove_const_t`, so `volatile char*` still prints an address.
  * @endif
  */
 template <typename TChar, typename TValue>
     requires (std::is_same_v<TValue, std::remove_cv_t<TValue>>
               && std::is_pointer_v<TValue>
               && !std::is_function_v<std::remove_pointer_t<TValue>>
+              && !std::is_same_v<std::remove_const_t<std::remove_pointer_t<TValue>>, char>
               && !std::is_same_v<std::remove_const_t<std::remove_pointer_t<TValue>>, wchar_t>
               && !std::is_same_v<std::remove_const_t<std::remove_pointer_t<TValue>>, char8_t>
               && !std::is_same_v<std::remove_const_t<std::remove_pointer_t<TValue>>, char16_t>
-              && !std::is_same_v<std::remove_const_t<std::remove_pointer_t<TValue>>, char32_t>)
+              && !std::is_same_v<std::remove_const_t<std::remove_pointer_t<TValue>>, char32_t>
+              && !(std::is_same_v<TChar, char>
+                   && std::is_same_v<std::remove_const_t<std::remove_pointer_t<TValue>>, signed char>)
+              && !(std::is_same_v<TChar, char>
+                   && std::is_same_v<std::remove_const_t<std::remove_pointer_t<TValue>>, unsigned char>))
 struct io_traits<TChar, TValue>
 {
     template <typename TIter>

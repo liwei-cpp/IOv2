@@ -91,9 +91,13 @@ TIter ostream_insert(TIter iter, ios_base<TChar>& io, const TChar* s, std::size_
  * @note **上界只可能被收紧。** `num` 由调用方按目标数组的 `N` 给定，`width()` 只在
  *       `0 < width < num` 时才生效，故 `setw()` 永远越不过 `N`。`width()` 与写侧一样在最前面
  *       就被消费掉。库里没有裸指针版的提取器，原因见 `io_traits<TChar, TChar[N]>` 的说明。
- * @note **只要缓冲区放得下终止符，每一条出口都会写终止符**——正常结束、`num == 1` 放不下
- *       任何字符、缺 `ctype` facet、一个字符都没读到，四种情形一致。对应
- *       [istream.extractors]/8，避免调用方对一个未初始化的数组 `strlen()` 而读越界。
+ * @note **只要本函数被调用且缓冲区放得下终止符，每一条出口都会写终止符**——正常结束、
+ *       `num == 1` 放不下任何字符、缺 `ctype` facet、一个字符都没读到，四种情形一致。
+ * @warning 这条保证**只覆盖本函数内部**。哨兵失败时（空输入、全空白输入、流已处于失败态）
+ *          提取运算符按 [istream.formatted.reqmts] 「不尝试获取任何输入」就返回，
+ *          **本函数根本不被调用，目标数组一个字节都不被触碰**。此行为与标准及 libstdc++
+ *          一致（实测三格逐项相同），故调用方必须**先判流状态再用缓冲区**，不能因为本条
+ *          `@note` 就对一个未初始化的数组直接 `strlen()`。
  * @note 不跳过前导空白，那是 sentry（`skipws`）的职责：本函数遇到的第一个字符若是空白，
  *       直接以「未提取到字符」失败。判空白需要 `ctype`，故 facet 缺失时无法开工。
  *       返回的迭代器停在分隔符之前，分隔符不被消费。
@@ -117,8 +121,14 @@ TIter ostream_insert(TIter iter, ios_base<TChar>& io, const TChar* s, std::size_
  *       raw-pointer extractor in this library; see `io_traits<TChar, TChar[N]>` for why.
  * @note **Every exit writes the terminator whenever the buffer has room for one** -- a normal
  *       stop, a `num == 1` buffer with room for nothing else, a missing `ctype` facet, and
- *       extracting no characters all behave alike. This is [istream.extractors]/8, and it keeps
- *       a caller's `strlen()` on an uninitialized array from reading past its end.
+ *       extracting no characters all behave alike.
+ * @warning That guarantee covers **the inside of this function only**. When the sentry fails --
+ *          empty input, all-whitespace input, a stream already in a failed state -- the
+ *          extractor returns "without attempting to obtain any input"
+ *          ([istream.formatted.reqmts]), **this function is never called, and not one byte of
+ *          the target array is touched**. That matches the standard and libstdc++ (measured
+ *          identical on every case), so a caller must **check the stream state before using the
+ *          buffer**; this note is not licence to `strlen()` an uninitialized array.
  * @note Leading whitespace is not skipped here -- that is the sentry's job (`skipws`). A first
  *       character that is whitespace fails outright as "no characters extracted". Testing for
  *       whitespace needs `ctype`, which is why a missing facet stops the work before it starts.
@@ -491,8 +501,10 @@ struct io_traits<char, const signed char*>
  *       只保留数组引用形式）。理由是内存安全：目标是裸指针时库无从得知缓冲区容量，
  *       C++17 及更早的"`width == 0` 即无上界"会让 `is >> ptr` 一路写到遇见空白为止，
  *       输入受攻击者控制时即为可利用的缓冲区溢出。
- * @note 本重载安全的原因是上界 `N` 来自**类型**而非流状态：实际读入量为
- *       `min(width, N) - 1` 个字符加一个终止符。因此 `setw()` 在这里只能把边界**收紧**，
+ * @note 本重载安全的原因是上界 `N` 来自**类型**而非流状态：至多读入
+ *       `width == 0 ? N - 1 : min(width, N) - 1` 个字符，再加一个终止符。`width == 0`（默认值）
+ *       是「不设宽度」而非「宽度为零」，故上界退回 `N`——把 0 代进 `min` 会得到无意义的结果。
+ *       因此 `setw()` 在这里只能把边界**收紧**，
  *       永远不可能放宽；即便携带了来自上一次操作的陈旧 `width`（算术提取、`get_money`、
  *       `get_time` 等都不消费 `width`，与标准一致），也绝不会越过 `N`。
  * @note 需要运行期确定容量的缓冲区，请提取到 `std::basic_string`（自动增长），或改用
@@ -500,7 +512,8 @@ struct io_traits<char, const signed char*>
  * @param c 目标缓冲区。
  * @return 指向最后一个被消费字符之后的输入迭代器。
  * @throw stream_error 若未提取到任何字符——`N == 1` 时必然如此，因为这个缓冲区只放得下
- *        终止符。无论哪种情形，终止符都已写入。
+ *        终止符。**只要本函数被调用**，无论哪种情形终止符都已写入；哨兵失败时本函数不被调用，
+ *        数组保持原样，详见 `istream_extract` 的 `@warning`。
  * @endif
  *
  * @lang{EN}
@@ -514,8 +527,11 @@ struct io_traits<char, const signed char*>
  *       write on until whitespace, an exploitable buffer overflow when the input is
  *       attacker-controlled.
  * @note What makes this overload safe is that the bound `N` comes from the **type** rather
- *       than from stream state: at most `min(width, N) - 1` characters plus a terminator are
- *       stored. `setw()` can therefore only **tighten** the bound here, never loosen it --
+ *       than from stream state: at most `width == 0 ? N - 1 : min(width, N) - 1` characters plus a
+ *       terminator are stored. A `width` of 0 -- the default -- means "no width set" rather than
+ *       "a width of zero", so the bound falls back to `N`; substituting 0 into the `min` would
+ *       give a meaningless answer. `setw()` can therefore only **tighten** the bound here, never
+ *       loosen it --
  *       even a stale `width` left over from an earlier operation (arithmetic extraction,
  *       `get_money` and `get_time` do not consume `width`, matching the standard) can never
  *       reach past `N`.
@@ -525,7 +541,9 @@ struct io_traits<char, const signed char*>
  * @param c The destination buffer.
  * @return An input iterator past the last consumed character.
  * @throw stream_error If no characters were extracted -- which `N == 1` always is, that buffer
- *        having room for the terminator alone. The terminator is written either way.
+ *        having room for the terminator alone. The terminator is written either way **provided
+ *        this function is called at all**; a failed sentry skips it and leaves the array
+ *        untouched. See the `@warning` on `istream_extract`.
  * @endif
  */
 template <typename TChar, std::size_t N>
