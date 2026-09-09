@@ -670,7 +670,11 @@ struct io_traits<TChar, std::basic_string<TChar, TTraits, TAlloc>>
         {
             // Retried rather than skipped: append is strongly exception-safe, so a failed one
             // left nothing behind and this is the only chance to keep the staged characters.
-            str.append(buf, len);
+            try
+            {
+                str.append(buf, len);
+            }
+            catch (...) {} // NOLINT(bugprone-empty-catch)
             throw;
         }
 
