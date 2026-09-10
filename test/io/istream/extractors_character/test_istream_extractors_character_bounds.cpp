@@ -140,3 +140,22 @@ TEST(IstreamExtractCharacterBounds, TheDelimiterIsLeftInTheStream)
     EXPECT_STREQ(first, "ab");
     EXPECT_STREQ(second, "cd");
 }
+
+TEST(IstreamExtractCharacterBounds, TheStringFormLeavesTheDelimiterToo)
+{
+    // Two consecutive extractions would succeed either way, because the second one's sentry
+    // skips leading whitespace. peek() is what actually distinguishes "stopped before the
+    // delimiter" from "consumed it", and only the array form had that check.
+    is_c        is = stream_over("ab cd");
+    std::string first;
+
+    is >> first;
+
+    EXPECT_EQ(first, "ab");
+    EXPECT_EQ(is.peek(), ' ');
+    EXPECT_TRUE(is.good());
+
+    std::string second;
+    is >> second;
+    EXPECT_EQ(second, "cd");
+}

@@ -701,6 +701,14 @@ static_assert( IOv2::char_sink_for<sink_shape::traits_void_sink, char>          
 // The library's own sink is accepted, and only for its own character type.
 static_assert(  IOv2::char_sink_for<typename os_c::out_iter_type, char>    );
 static_assert( !IOv2::char_sink_for<typename os_c::out_iter_type, wchar_t> );
+
+// A raw pointer is an accepted sink, and the concept says nothing about how much room it has --
+// how much gets written is decided by width(). That is what the capacity @warning on
+// char_sink_for describes, so tightening the concept here would leave the warning stale; this
+// assertion is the tripwire that forces the two to move together.
+static_assert(  IOv2::char_sink_for<char*, char>       );
+static_assert(  IOv2::char_sink_for<wchar_t*, wchar_t> );
+static_assert( !IOv2::char_sink_for<char*, wchar_t>    );
 }
 
 // The static_asserts above are the test; compiling this file is what passes it. This case

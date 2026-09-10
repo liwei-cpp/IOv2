@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: MIT
 
 #pragma once
+#include <IOv2/common/defs.h>
 #include <IOv2/facet/timeio.h>
 #include <IOv2/io/io_base.h>
 #include <IOv2/io/traits/char_and_str.h>
