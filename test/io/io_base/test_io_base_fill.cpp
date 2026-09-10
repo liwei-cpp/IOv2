@@ -224,3 +224,60 @@ TEST(IosBaseFill, TheSameCriterionHoldsOnAWideStream)
         EXPECT_EQ(dev.str(), L"ffffff42");
     }
 }
+
+// And on the two remaining character types the library instantiates streams for. char16_t is
+// absent on purpose: no locale can be built for it, so the stream type does not exist.
+//
+// A char8_t locale has to be a UTF-8 one -- locale<char8_t>("C") throws from collate_conf -- and
+// the default-constructed locale would be whatever the environment says, which is not something
+// a criterion test should depend on. Hence the explicit "C.UTF-8" here and the bare default for
+// char32_t, which takes "C" happily.
+TEST(IosBaseFill, TheSameCriterionHoldsOnUtf8AndUtf32Streams)
+{
+    {
+        ostream out{mem_device<char8_t>{}, locale<char8_t>("C.UTF-8")};
+        out.setf(ios_defs::hex, ios_defs::basefield);
+        out << setfill(u8'f') << setw(8) << 0xabUL;
+        EXPECT_FALSE(out.good());
+        EXPECT_TRUE(out.rdstate() & ios_defs::strfailbit);
+    }
+    {
+        ostream out{mem_device<char8_t>{}, locale<char8_t>("C.UTF-8")};
+        out.setf(ios_defs::hex, ios_defs::basefield);
+        out << setfill(u8'0') << setw(8) << 0xabUL;
+        EXPECT_TRUE(out.good());
+        auto [dev, err] = out.detach();
+        EXPECT_EQ(dev.str(), u8"000000ab");
+    }
+    {
+        // Decimal: 'f' is not a digit, so the same fill that was refused above is fine.
+        ostream out{mem_device<char8_t>{}, locale<char8_t>("C.UTF-8")};
+        out << setfill(u8'f') << setw(8) << 42UL;
+        EXPECT_TRUE(out.good());
+        auto [dev, err] = out.detach();
+        EXPECT_EQ(dev.str(), u8"ffffff42");
+    }
+
+    {
+        ostream out{mem_device<char32_t>{}, locale<char32_t>("C")};
+        out.setf(ios_defs::hex, ios_defs::basefield);
+        out << setfill(U'f') << setw(8) << 0xabUL;
+        EXPECT_FALSE(out.good());
+        EXPECT_TRUE(out.rdstate() & ios_defs::strfailbit);
+    }
+    {
+        ostream out{mem_device<char32_t>{}, locale<char32_t>("C")};
+        out.setf(ios_defs::hex, ios_defs::basefield);
+        out << setfill(U'0') << setw(8) << 0xabUL;
+        EXPECT_TRUE(out.good());
+        auto [dev, err] = out.detach();
+        EXPECT_EQ(dev.str(), U"000000ab");
+    }
+    {
+        ostream out{mem_device<char32_t>{}, locale<char32_t>("C")};
+        out << setfill(U'f') << setw(8) << 42UL;
+        EXPECT_TRUE(out.good());
+        auto [dev, err] = out.detach();
+        EXPECT_EQ(dev.str(), U"ffffff42");
+    }
+}
