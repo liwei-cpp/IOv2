@@ -182,6 +182,33 @@ TEST(IstreamExtractCharacterFailureShapes, AThrowMidTokenKeepsTheWholeConsumedPr
     }
 }
 
+TEST(IstreamExtractCharacterFailureShapes, TheArrayFormKeepsTheSamePrefixAndHasNoStagingToLose)
+{
+    // The array form's guarantee is the stronger of the two: characters go straight into the
+    // caller's buffer, so there is no staging buffer for a failing append to drop. This walks the
+    // same boom points as the string case and holds the two side by side, since the note used to
+    // say the array form guaranteed nothing.
+    for (std::size_t boom : {std::size_t{2}, std::size_t{17}, std::size_t{64}, std::size_t{100}})
+    {
+        const std::string source = patterned(512);
+        const std::size_t consumed = boom - 1;
+
+        char buf[128];
+        std::memset(buf, k_unwritten, sizeof buf);
+
+        is_throwing arr_is{throwing_get_device<char>{source, boom}, IOv2::locale<char>("C")};
+        arr_is >> buf;
+
+        is_throwing str_is{throwing_get_device<char>{source, boom}, IOv2::locale<char>("C")};
+        std::string value;
+        str_is >> value;
+
+        ASSERT_EQ(std::strlen(buf), consumed) << "boom " << boom;
+        EXPECT_EQ(std::string(buf), source.substr(0, consumed)) << "boom " << boom;
+        EXPECT_EQ(std::string(buf), value) << "boom " << boom;
+    }
+}
+
 TEST(IstreamExtractCharacterFailureShapes, AFailingRescueAppendKeepsTheOriginalException)
 {
     // Same shape as the case above, but with the string's max_size() cut down

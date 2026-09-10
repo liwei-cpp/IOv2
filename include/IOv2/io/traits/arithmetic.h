@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: MIT
 
 #pragma once
+#include <IOv2/common/defs.h>
 #include <IOv2/facet/numeric.h>
 #include <IOv2/io/io_base.h>
 #include <IOv2/io/traits/traits_base.h>

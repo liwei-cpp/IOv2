@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: MIT
 
 #pragma once
+#include <IOv2/common/defs.h>
 #include <IOv2/facet/ctype.h>
 #include <IOv2/io/io_base.h>
 #include <IOv2/io/traits/traits_base.h>
@@ -169,11 +170,13 @@ TIter istream_extract(TIter iter, TSent iter_end, ios_base<TChar>& io, const loc
 
     try
     {
-        while (extracted < num - 1
-               && (iter != iter_end)
-               && !(ct->is_any(base_ft<ctype>::space, *iter)))
+        while (extracted < num - 1 && (iter != iter_end))
         {
-            *s++ = *iter;
+            const TChar c = *iter;
+            if (ct->is_any(base_ft<ctype>::space, c))
+                break;
+
+            *s++ = c;
             ++extracted;
             ++iter;
         }
@@ -590,8 +593,8 @@ struct io_traits<char, signed char[N]>
  *       facet、设备）时留下的是**已消费字符的完整前缀**：提取循环包在 `try` 内，暂存缓冲区在
  *       异常路径上照样追加进去；一个字符都没提取到时才是空串。**例外是追加本身失败**
  *       （`bad_alloc` / `length_error`）：那时暂存区里最多 128 个字符无处可放，`str` 会短于
- *       已消费的量。定长数组形式则没有前缀保证——那里已提取的字符直接写进调用方数组，
- *       抛出时只补终止符。
+ *       已消费的量。定长数组形式的前缀保证反而**更强**：那里已提取的字符直接写进调用方数组、
+ *       没有暂存区，抛出时只补终止符，因此不存在上面这条例外。
  * @note 上界来自流状态而非类型：`width()` 非 0 时最多提取那么多字符，为 0 时只由空白或 EOF
  *       收尾。`width` 在这里被**消费并清零**，成功与失败都是如此。定长数组形式那条「需要运行期
  *       确定容量就提取到 `basic_string`」指的正是后一种情形。
@@ -610,9 +613,9 @@ struct io_traits<char, signed char[N]>
  *       `try` and the staging buffer is appended on the exception path too. It is empty only when
  *       no character was extracted at all. **The exception is a failing append**
  *       (`bad_alloc` / `length_error`): up to 128 staged characters then have nowhere to go and
- *       `str` ends up shorter than what was consumed. The fixed-size array form offers no prefix
- *       guarantee at all -- there the extracted characters go straight into the caller's array and
- *       a throw only adds the terminator.
+ *       `str` ends up shorter than what was consumed. The fixed-size array form's prefix guarantee
+ *       is **stronger**: the extracted characters go straight into the caller's array with no
+ *       staging buffer, a throw only adds the terminator, and that exception does not arise.
  * @note The bound comes from stream state rather than from the type: a non-zero `width()` caps the
  *       number of characters, and a zero one lets whitespace or EOF decide. `width` is
  *       **consumed and reset** here, on success and on failure alike. This is the case the array
@@ -651,16 +654,18 @@ struct io_traits<TChar, std::basic_string<TChar, TTraits, TAlloc>>
             throw stream_error("cannot get ctype facet");
         try
         {
-            while (extracted < n
-                   && (iter != iter_end)
-                   && !(ct->is_any(base_ft<ctype>::space, *iter)))
+            while (extracted < n && (iter != iter_end))
             {
+                const TChar c = *iter;
+                if (ct->is_any(base_ft<ctype>::space, c))
+                    break;
+
                 if (len == buf_size)
                 {
                     str.append(buf, buf_size);
                     len = 0;
                 }
-                buf[len++] = *iter;
+                buf[len++] = c;
                 ++extracted;
                 ++iter;
             }

@@ -307,6 +307,12 @@ namespace IOv2
  *          得到的是"把字节当字符"的伪宽串，宽 facet 写进 `std::string` 则逐码元截断。两者都
  *          不是 UB、不越界、不崩溃，只是字符损坏，且 ASCII 部分看着正常。这与标准的行为一致
  *          （`std::format_to`、`std::copy` 到 `back_inserter` 皆然）。
+ * @warning 本概念**不检查容量**，插入侧整条链路也不带哨位：写出多少由 `width()` 决定，而不由汇
+ *          决定。因此把固定容量的汇（例如 `char buf[8]`）配上大于它的 `width()`，写出会越过
+ *          缓冲区末尾——**容量由调用方保证**。这与标准的输出迭代器约定一致
+ *          （`std::format_to`、`std::num_put::put` 同样越界；`<format>` 另给 `format_to_n`
+ *          作为有界形式）。与提取侧拒绝裸指针（见 `io_traits<TChar, TChar[N]>` 的说明）**不矛盾**：
+ *          那里的长度来自输入数据，可被攻击者左右；这里的长度来自调用方自己设的流状态。
  *
  * @tparam TIter 待检测的输出迭代器类型
  * @tparam TChar 流的字符类型
@@ -350,6 +356,15 @@ namespace IOv2
  *          bounds, or a crash -- just character corruption, and the ASCII part still looks
  *          correct. This matches the standard (`std::format_to` and `std::copy` into a
  *          `back_inserter` behave the same).
+ * @warning This concept does **not** check capacity, and nothing on the insertion side carries a
+ *          sentinel: how much is written is decided by `width()`, not by the sink. Pairing a
+ *          fixed-capacity sink (`char buf[8]`, say) with a larger `width()` therefore writes past
+ *          the end of the buffer -- **capacity is the caller's guarantee**. This follows the
+ *          standard's output-iterator convention (`std::format_to` and `std::num_put::put` overrun
+ *          alike; `<format>` offers `format_to_n` as the bounded form). It does **not** contradict
+ *          the extraction side's refusal of raw pointers (see `io_traits<TChar, TChar[N]>`): there
+ *          the length comes from the input and an attacker can steer it, here it comes from stream
+ *          state the caller set.
  *
  * @tparam TIter The output iterator type under inspection
  * @tparam TChar The stream's character type
