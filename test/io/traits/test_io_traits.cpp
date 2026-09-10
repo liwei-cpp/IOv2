@@ -143,6 +143,23 @@ struct nonstatic {};   // member       -- used to be skipped silently
 struct middleman {};   // f(const U&)  -- used to dangle
 struct voidret   {};   // static void f(const T&)
 struct absent    {};   // no such member at all
+
+// The rest of the shapes the contract names. Detection has to see every one of them -- a shape
+// it misses is silently default constructed, which is the failure the name/shape split removes --
+// and the shape check has to reject all but the inherited one, which the contract allows.
+struct other      {};  // a second key, only so `overloaded` has something to overload on
+struct templated  {};  // template <class U> static type f(const U&)
+struct overloaded {};  // two overloads
+struct priv       {};  // private
+struct deleted    {};  // = delete
+struct byvalue    {};  // f(T)          -- the parameter must be const T&, not a copy
+struct crvalue    {};  // f(const T&&)
+struct datamember {};  // a data member wearing the name
+struct nestedtype {};  // a nested type wearing the name
+struct inherited  {};  // the exact shape, but reached through a base -- must pass
+
+template <typename T>
+struct maker_base { static ctx make_parse_context(const T&) { return {}; } };
 }
 
 namespace IOv2
@@ -174,6 +191,44 @@ template <typename TChar> struct parse_context_type<TChar, maker_shape::middlema
 template <typename TChar> struct parse_context_type<TChar, maker_shape::voidret>
 { using type = maker_shape::ctx;
   static void make_parse_context(const maker_shape::voidret&) {} };
+
+template <typename TChar> struct parse_context_type<TChar, maker_shape::templated>
+{ using type = maker_shape::ctx;
+  template <typename U> static type make_parse_context(const U&) { return {}; } };
+
+template <typename TChar> struct parse_context_type<TChar, maker_shape::overloaded>
+{ using type = maker_shape::ctx;
+  static type make_parse_context(const maker_shape::overloaded&) { return {}; }
+  static type make_parse_context(const maker_shape::other&)      { return {}; } };
+
+template <typename TChar> struct parse_context_type<TChar, maker_shape::priv>
+{ using type = maker_shape::ctx;
+private:
+  static type make_parse_context(const maker_shape::priv&) { return {}; } };
+
+template <typename TChar> struct parse_context_type<TChar, maker_shape::deleted>
+{ using type = maker_shape::ctx;
+  static type make_parse_context(const maker_shape::deleted&) = delete; };
+
+template <typename TChar> struct parse_context_type<TChar, maker_shape::byvalue>
+{ using type = maker_shape::ctx;
+  static type make_parse_context(maker_shape::byvalue) { return {}; } };
+
+template <typename TChar> struct parse_context_type<TChar, maker_shape::crvalue>
+{ using type = maker_shape::ctx;
+  static type make_parse_context(const maker_shape::crvalue&&) { return {}; } };
+
+template <typename TChar> struct parse_context_type<TChar, maker_shape::datamember>
+{ using type = maker_shape::ctx;
+  int make_parse_context = 0; };
+
+template <typename TChar> struct parse_context_type<TChar, maker_shape::nestedtype>
+{ using type = maker_shape::ctx;
+  struct make_parse_context {}; };
+
+template <typename TChar>
+struct parse_context_type<TChar, maker_shape::inherited> : maker_shape::maker_base<maker_shape::inherited>
+{ using type = maker_shape::ctx; };
 
 template <typename TChar> struct parse_context_type<TChar, maker_shape::absent>
 { using type = maker_shape::ctx; };
@@ -562,6 +617,18 @@ static_assert(  IOv2::detail::declares_maker<pct<maker_shape::middleman>, maker_
 static_assert(  IOv2::detail::declares_maker<pct<maker_shape::voidret>,   maker_shape::voidret>   );
 static_assert( !IOv2::detail::declares_maker<pct<maker_shape::absent>,    maker_shape::absent>    );
 
+// Detection is shape-agnostic, so every one of these is seen -- including the ones that are not
+// functions at all. Access is checked after lookup, so `private` does not hide the name either.
+static_assert(  IOv2::detail::declares_maker<pct<maker_shape::templated>,  maker_shape::templated>  );
+static_assert(  IOv2::detail::declares_maker<pct<maker_shape::overloaded>, maker_shape::overloaded> );
+static_assert(  IOv2::detail::declares_maker<pct<maker_shape::priv>,       maker_shape::priv>       );
+static_assert(  IOv2::detail::declares_maker<pct<maker_shape::deleted>,    maker_shape::deleted>    );
+static_assert(  IOv2::detail::declares_maker<pct<maker_shape::byvalue>,    maker_shape::byvalue>    );
+static_assert(  IOv2::detail::declares_maker<pct<maker_shape::crvalue>,    maker_shape::crvalue>    );
+static_assert(  IOv2::detail::declares_maker<pct<maker_shape::datamember>, maker_shape::datamember> );
+static_assert(  IOv2::detail::declares_maker<pct<maker_shape::nestedtype>, maker_shape::nestedtype> );
+static_assert(  IOv2::detail::declares_maker<pct<maker_shape::inherited>,  maker_shape::inherited>  );
+
 template <typename T>
 concept maker_shape_ok =
     requires { &pct<T>::make_parse_context; }
@@ -576,6 +643,19 @@ static_assert( !maker_shape_ok<maker_shape::rvalue>    );
 static_assert( !maker_shape_ok<maker_shape::nonstatic> );
 static_assert( !maker_shape_ok<maker_shape::middleman> );
 static_assert( !maker_shape_ok<maker_shape::voidret>   );
+
+static_assert( !maker_shape_ok<maker_shape::templated>  );
+static_assert( !maker_shape_ok<maker_shape::overloaded> );
+static_assert( !maker_shape_ok<maker_shape::priv>       );
+static_assert( !maker_shape_ok<maker_shape::deleted>    );
+static_assert( !maker_shape_ok<maker_shape::byvalue>    );
+static_assert( !maker_shape_ok<maker_shape::crvalue>    );
+static_assert( !maker_shape_ok<maker_shape::datamember> );
+static_assert( !maker_shape_ok<maker_shape::nestedtype> );
+
+// Inheritance is the one indirection the contract allows, so this is the section's second
+// positive case: detected through the base and accepted on shape.
+static_assert(  maker_shape_ok<maker_shape::inherited>  );
 
 // ---------------------------------------------------------------------------------------------
 // 12. The std::tm parse context is admitted for this platform's time-zone tier only.

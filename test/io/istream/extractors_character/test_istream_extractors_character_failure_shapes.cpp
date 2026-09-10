@@ -209,6 +209,72 @@ TEST(IstreamExtractCharacterFailureShapes, AFailingRescueAppendKeepsTheOriginalE
     EXPECT_EQ(extract_into_capped<100>(cap), cap);
 }
 
+TEST(IstreamExtractCharacterFailureShapes, EveryExitOfTheStringFormSpendsTheWidth)
+{
+    // sread takes the width with one exchange before anything that can throw, so every exit it
+    // reaches owes width() == 0. The device-throw exit is pinned beside the array form in
+    // test_istream_extractors_character_char.cpp; these are the two that were left.
+    {
+        // Sentry succeeds on the leading space thanks to noskipws, then nothing is extracted.
+        is_c is{IOv2::mem_device<char>{std::string(" ab")}, IOv2::locale<char>("C")};
+        is.unsetf(IOv2::ios_defs::skipws);
+        std::string value = "PREVIOUS";
+
+        is >> IOv2::setw(5) >> value;
+
+        EXPECT_TRUE(is.str_fail());
+        EXPECT_EQ(is.width(), 0);
+        EXPECT_EQ(value, "");
+    }
+    {
+        // The facet lookup inside sread throws after the width has been taken. noskipws is what
+        // makes it reachable at all -- see the next case.
+        const auto loc = IOv2::locale<char>("C").remove<IOv2::ctype_conf<char>>();
+        is_c       is{IOv2::mem_device<char>{std::string("abc")}, loc};
+        is.unsetf(IOv2::ios_defs::skipws);
+        std::string value = "PREVIOUS";
+
+        is >> IOv2::setw(5) >> value;
+
+        EXPECT_FALSE(is.good());
+        EXPECT_EQ(is.width(), 0);
+        EXPECT_EQ(value, "");
+    }
+}
+
+TEST(IstreamExtractCharacterFailureShapes, AMissingCtypeStopsAtTheSentryWhileSkippingWhitespace)
+{
+    // The same missing facet lands on opposite sides of the boundary depending on skipws, because
+    // skipping leading whitespace needs ctype too. With skipws the sentry asks first and fails, so
+    // sread is never entered: the width is not spent and the target keeps its value. That is the
+    // "the guarantee covers the inside of this function only" warning in istream_extract, seen
+    // from the basic_string side.
+    const auto loc = IOv2::locale<char>("C").remove<IOv2::ctype_conf<char>>();
+    is_c       is{IOv2::mem_device<char>{std::string("abc")}, loc};
+    std::string value = "PREVIOUS";
+
+    is >> IOv2::setw(5) >> value;
+
+    EXPECT_FALSE(is.good());
+    EXPECT_EQ(is.width(), 5);
+    EXPECT_EQ(value, "PREVIOUS");
+}
+
+TEST(IstreamExtractCharacterFailureShapes, AFailedSentryDoesNotSpendTheWidth)
+{
+    // The mirror image, and the one asymmetry in the contract: the width is taken inside sread,
+    // which a failed sentry never reaches. Nothing on the extraction side holds a width_guard,
+    // so the width survives for the next extraction -- as it does in libstdc++.
+    is_c is{IOv2::mem_device<char>{std::string("")}, IOv2::locale<char>("C")};
+    std::string value = "PREVIOUS";
+
+    is >> IOv2::setw(5) >> value;
+
+    EXPECT_TRUE(is.str_fail());
+    EXPECT_EQ(is.width(), 5);
+    EXPECT_EQ(value, "PREVIOUS");
+}
+
 TEST(IstreamExtractCharacterFailureShapes, AFailedSentryLeavesTheStringAtItsPreviousValue)
 {
     // The clear happens inside the extraction helper, which a failed sentry

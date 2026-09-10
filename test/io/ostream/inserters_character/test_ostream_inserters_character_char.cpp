@@ -31,6 +31,7 @@
 #include <gtest/gtest.h>
 
 #include <cstddef>
+#include <memory>
 #include <string>
 
 using namespace IOv2;
@@ -289,6 +290,31 @@ TEST(OstreamInsertCharacterChar, NullptrIsWrittenAsAWordAndPaddedLikeOne)
 
     helper.template operator()<ostream>();
     helper.template operator()<iostream>();
+}
+
+TEST(OstreamInsertCharacterChar, AHostileWidenStillYieldsExactlySevenCharacters)
+{
+    // io_traits<TChar, nullptr_t>::swrite widens "nullptr" into a TChar buf[7] whose margin is
+    // zero. Nothing above the single-character widen() is customizable -- widen_seq is a
+    // non-virtual member writing strictly one output per input -- so a facet cannot lengthen the
+    // sequence. This pins that: a widen() answering something else for every byte still produces
+    // exactly seven characters, and they are the hostile ones, which is what shows the
+    // customization point really ran rather than the assertion passing by accident.
+    struct shouty_ctype : ctype_conf<char>
+    {
+        shouty_ctype() : ctype_conf<char>("C") {}
+        char widen(char) const override { return '#'; }
+    };
+
+    const auto loc = locale<char>("C").involve(std::make_shared<shouty_ctype>());
+
+    ostream os{mem_device{""}, loc};
+    os << nullptr;
+
+    EXPECT_TRUE(os.good());
+    auto [dev, err] = os.detach();
+    EXPECT_EQ(dev.str(), "#######");
+    EXPECT_EQ(dev.str().size(), 7u);
 }
 
 TEST(OstreamInsertCharacterChar, AMissingCtypeFacetRejectsNullptrButNotACharacter)
