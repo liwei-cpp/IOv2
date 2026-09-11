@@ -31,6 +31,7 @@
 #include <IOv2/io/traits/traits_base.h>
 #include <IOv2/locale/locale.h>
 
+#include <array>
 #include <cstddef>
 
 namespace IOv2
@@ -109,10 +110,10 @@ struct io_traits<TChar, std::nullptr_t>
         if (!mp)
             throw stream_error("cannot get ctype facet");
 
-        TChar buf[n];
-        mp->widen_seq(c_buf, c_buf + n, buf);
+        std::array<TChar, n> buf;
+        mp->widen_seq(c_buf, c_buf + n, buf.data());
 
-        return ostream_insert(s, io, buf, n);
+        return ostream_insert(s, io, buf.data(), n);
     }
 };
 }

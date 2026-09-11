@@ -431,7 +431,7 @@ jobs:
     - name: Run clang-tidy
       run: |
         # Use default clang-tidy from the image (which will be a recent version)
-        clang-tidy $(find include/IOv2/common include/IOv2/device include/IOv2/cvt include/IOv2/facet include/IOv2/locale include/IOv2/io/utilities -name '*.h') \
+        clang-tidy $(find include/IOv2/common include/IOv2/device include/IOv2/cvt include/IOv2/facet include/IOv2/locale include/IOv2/io/utilities include/IOv2/io/traits -name '*.h') \
           include/IOv2/io/streambuf.h include/IOv2/io/streambuf_iterator.h include/IOv2/io/io_concepts.h include/IOv2/io/io_base.h \
           include/IOv2/io/io_manip.h include/IOv2/io/istream.h include/IOv2/io/ostream.h include/IOv2/io/iostream.h \
           --checks='bugprone-*,performance-*,modernize-*,cppcoreguidelines-*,-modernize-use-trailing-return-type,-cppcoreguidelines-avoid-magic-numbers,-cppcoreguidelines-pro-bounds-pointer-arithmetic,-cppcoreguidelines-pro-bounds-constant-array-index,-cppcoreguidelines-avoid-non-const-global-variables,-cppcoreguidelines-pro-bounds-avoid-unchecked-container-access,-clang-diagnostic-pragma-once-outside-header' \
