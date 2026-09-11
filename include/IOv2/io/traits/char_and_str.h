@@ -61,6 +61,7 @@
 #include <IOv2/locale/locale.h>
 
 #include <algorithm>
+#include <array>
 #include <cstddef>
 #include <iterator>
 #include <string>
@@ -517,7 +518,7 @@ struct io_traits<char, unsigned char>
         requires (std::is_same_v<char, typename TIter::value_type>)
     static TIter sread(TIter iter, TSent iter_end, ios_base<char>& io, const locale<char>& loc, unsigned char& c)
     {
-        char tmp;
+        char tmp{};
         auto res = io_traits<char, char>::sread(iter, iter_end, io, loc, tmp);
         c = tmp;
         return res;
@@ -604,7 +605,7 @@ struct io_traits<char, signed char>
         requires (std::is_same_v<char, typename TIter::value_type>)
     static TIter sread(TIter iter, TSent iter_end, ios_base<char>& io, const locale<char>& loc, signed char& c)
     {
-        char tmp;
+        char tmp{};
         auto res = io_traits<char, char>::sread(iter, iter_end, io, loc, tmp);
         c = tmp;
         return res;
@@ -1047,7 +1048,7 @@ struct io_traits<char, unsigned char*>
         requires (char_sink_for<TIter, char>)
     static TIter swrite(TIter iter, ios_base<char>& io, const locale<char>& loc, const unsigned char* c)
     {
-        return io_traits<char, char*>::swrite(iter, io, loc, reinterpret_cast<const char*>(c));
+        return io_traits<char, char*>::swrite(iter, io, loc, reinterpret_cast<const char*>(c)); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
     }
 };
 
@@ -1091,7 +1092,7 @@ struct io_traits<char, const unsigned char*>
         requires (char_sink_for<TIter, char>)
     static TIter swrite(TIter iter, ios_base<char>& io, const locale<char>& loc, const unsigned char* c)
     {
-        return io_traits<char, char*>::swrite(iter, io, loc, reinterpret_cast<const char*>(c));
+        return io_traits<char, char*>::swrite(iter, io, loc, reinterpret_cast<const char*>(c)); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
     }
 };
 
@@ -1136,7 +1137,7 @@ struct io_traits<char, signed char*>
         requires (char_sink_for<TIter, char>)
     static TIter swrite(TIter iter, ios_base<char>& io, const locale<char>& loc, const signed char* c)
     {
-        return io_traits<char, char*>::swrite(iter, io, loc, reinterpret_cast<const char*>(c));
+        return io_traits<char, char*>::swrite(iter, io, loc, reinterpret_cast<const char*>(c)); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
     }
 };
 
@@ -1181,7 +1182,7 @@ struct io_traits<char, const signed char*>
         requires (char_sink_for<TIter, char>)
     static TIter swrite(TIter iter, ios_base<char>& io, const locale<char>& loc, const signed char* c)
     {
-        return io_traits<char, char*>::swrite(iter, io, loc, reinterpret_cast<const char*>(c));
+        return io_traits<char, char*>::swrite(iter, io, loc, reinterpret_cast<const char*>(c)); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
     }
 };
 
@@ -1233,7 +1234,7 @@ struct io_traits<char, const signed char*>
  * @endif
  */
 template <typename TChar, std::size_t N>
-struct io_traits<TChar, TChar[N]>
+struct io_traits<TChar, TChar[N]> // NOLINT(cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays): the key is the user's array type
 {
     /**
      * @lang{ZH}
@@ -1302,7 +1303,7 @@ struct io_traits<TChar, TChar[N]>
  * @endif
  */
 template <std::size_t N>
-struct io_traits<char, unsigned char[N]>
+struct io_traits<char, unsigned char[N]> // NOLINT(cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays): the key is the user's array type
 {
     /**
      * @lang{ZH}
@@ -1335,7 +1336,7 @@ struct io_traits<char, unsigned char[N]>
     static TIter sread(TIter iter, TSent iter_end, ios_base<char>& io, const locale<char>& loc, unsigned char* c)
     {
         constexpr std::size_t n = N;
-        return istream_extract(iter, iter_end, io, loc, reinterpret_cast<char*>(c), n);
+        return istream_extract(iter, iter_end, io, loc, reinterpret_cast<char*>(c), n); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
     }
 };
 
@@ -1353,7 +1354,7 @@ struct io_traits<char, unsigned char[N]>
  * @endif
  */
 template <std::size_t N>
-struct io_traits<char, signed char[N]>
+struct io_traits<char, signed char[N]> // NOLINT(cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays): the key is the user's array type
 {
     /**
      * @lang{ZH}
@@ -1386,7 +1387,7 @@ struct io_traits<char, signed char[N]>
     static TIter sread(TIter iter, TSent iter_end, ios_base<char>& io, const locale<char>& loc, signed char* c)
     {
         constexpr std::size_t n = N;
-        return istream_extract(iter, iter_end, io, loc, reinterpret_cast<char*>(c), n);
+        return istream_extract(iter, iter_end, io, loc, reinterpret_cast<char*>(c), n); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
     }
 };
 
@@ -1510,7 +1511,7 @@ struct io_traits<TChar, std::basic_string<TChar, TTraits, TAlloc>>
     {
         str.erase();
         constexpr std::size_t buf_size = 128;
-        TChar buf[buf_size];
+        std::array<TChar, buf_size> buf;
         std::size_t len = 0;
         const std::size_t w = io.width(0);
         const std::size_t n = w > 0 ? w : str.max_size();
@@ -1529,14 +1530,14 @@ struct io_traits<TChar, std::basic_string<TChar, TTraits, TAlloc>>
 
                 if (len == buf_size)
                 {
-                    str.append(buf, buf_size);
+                    str.append(buf.data(), buf_size);
                     len = 0;
                 }
                 buf[len++] = c;
                 ++extracted;
                 ++iter;
             }
-            str.append(buf, len);
+            str.append(buf.data(), len);
         }
         catch (...)
         {
@@ -1544,7 +1545,7 @@ struct io_traits<TChar, std::basic_string<TChar, TTraits, TAlloc>>
             // left nothing behind and this is the only chance to keep the staged characters.
             try
             {
-                str.append(buf, len);
+                str.append(buf.data(), len);
             }
             catch (...) {} // NOLINT(bugprone-empty-catch)
             throw;

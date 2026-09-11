@@ -46,6 +46,7 @@
 #include <IOv2/locale/locale.h>
 
 #include <algorithm>
+#include <array>
 #include <chrono>
 #include <cstdint>
 #include <ctime>
@@ -209,7 +210,7 @@ struct parse_context_type<TChar, std::tm>
 
         constexpr sys_days cal_min{year::min() / January / 1};
         constexpr sys_days cal_max{year::max() / December / 31};
-        constexpr std::int64_t secs_per_day = 24 * 60 * 60;
+        constexpr std::int64_t secs_per_day = std::int64_t{24} * 60 * 60;
 
         // The time group is folded into one second-of-day count and normalized with the same
         // carry the date group uses, so an out-of-range hour/minute/second moves the date
@@ -293,9 +294,9 @@ std::basic_string<TChar> tm_stream_format(const timeio<TChar>& tio)
     {
         if (!timeio<TChar>::contains_specifier(fmt, 'z'))
         {
-            const TChar tail[] = { static_cast<TChar>(' '), static_cast<TChar>('%'),
-                                   static_cast<TChar>('z'), TChar() };
-            fmt += tail;
+            constexpr std::array<TChar, 3> tail{ static_cast<TChar>(' '), static_cast<TChar>('%'),
+                                                 static_cast<TChar>('z') };
+            fmt.append(tail.data(), tail.size());
         }
     }
 
@@ -303,10 +304,10 @@ std::basic_string<TChar> tm_stream_format(const timeio<TChar>& tio)
     {
         if (!timeio<TChar>::contains_specifier(fmt, 'Z'))
         {
-            const TChar tail[] = { static_cast<TChar>(' '), static_cast<TChar>('('),
-                                   static_cast<TChar>('%'), static_cast<TChar>('Z'),
-                                   static_cast<TChar>(')'), TChar() };
-            fmt += tail;
+            constexpr std::array<TChar, 5> tail{ static_cast<TChar>(' '), static_cast<TChar>('('),
+                                                 static_cast<TChar>('%'), static_cast<TChar>('Z'),
+                                                 static_cast<TChar>(')') };
+            fmt.append(tail.data(), tail.size());
         }
     }
     return fmt;

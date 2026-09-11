@@ -357,7 +357,7 @@ struct io_traits<TChar, TValue>
         if (!mp)
             throw stream_error("cannot get numeric facet");
 
-        return mp->put(s, io, const_cast<const void*>(static_cast<const volatile void*>(value)));
+        return mp->put(s, io, const_cast<const void*>(static_cast<const volatile void*>(value))); // NOLINT(cppcoreguidelines-pro-type-const-cast)
     }
 
     /**
