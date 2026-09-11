@@ -144,29 +144,29 @@ namespace IOv2
 static ori_facet_buf::init _ori_facet_buf_init;
 IOV2_API ori_facet_buf&    s_ori_facet_buf = *ori_facet_buf::ptr();
 
-static __cout::init _cout_init;
-IOV2_API __cout&    cout = *__cout::ptr();
+static cout_t::init _cout_init;
+IOV2_API cout_t&    cout = *cout_t::ptr();
 
-static __cerr::init _cerr_init;
-IOV2_API __cerr&    cerr = *__cerr::ptr();
+static cerr_t::init _cerr_init;
+IOV2_API cerr_t&    cerr = *cerr_t::ptr();
 
-static __clog::init _clog_init;
-IOV2_API __clog&    clog = *__clog::ptr();
+static clog_t::init _clog_init;
+IOV2_API clog_t&    clog = *clog_t::ptr();
 
-static __wcout::init _wcout_init;
-IOV2_API __wcout&    wcout = *__wcout::ptr();
+static wcout_t::init _wcout_init;
+IOV2_API wcout_t&    wcout = *wcout_t::ptr();
 
-static __wcerr::init _wcerr_init;
-IOV2_API __wcerr&    wcerr = *__wcerr::ptr();
+static wcerr_t::init _wcerr_init;
+IOV2_API wcerr_t&    wcerr = *wcerr_t::ptr();
 
-static __wclog::init _wclog_init;
-IOV2_API __wclog&    wclog = *__wclog::ptr();
+static wclog_t::init _wclog_init;
+IOV2_API wclog_t&    wclog = *wclog_t::ptr();
 
-static __cin::init _cin_init;
-IOV2_API __cin&    cin = *__cin::ptr();
+static cin_t::init _cin_init;
+IOV2_API cin_t&    cin = *cin_t::ptr();
 
-static __wcin::init _wcin_init;
-IOV2_API __wcin&    wcin = *__wcin::ptr();
+static wcin_t::init _wcin_init;
+IOV2_API wcin_t&    wcin = *wcin_t::ptr();
 
 /**
  * @lang{ZH}
