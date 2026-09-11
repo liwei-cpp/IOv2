@@ -1,6 +1,42 @@
 // SPDX-FileCopyrightText: 2026 liwei <liwei.cpp@gmail.com>
 // SPDX-License-Identifier: MIT
 
+/**
+ * @file tm.h
+ * @lang{ZH}
+ * 让 `os << tm` 与 `is >> tm` 工作：为 `std::tm` 提供插入端的 `io_traits`，并经
+ * `parse_context_type` 中转提供提取端。
+ *
+ * 提取不直接解析进 `std::tm`，而是先解析进 `time_parse_context`，再由后者的
+ * `convert_to(std::tm&)` 写回——这正是 `IOv2/io/traits/traits_base.h` 里"解析上下文"一节
+ * 描述的机制，`std::tm` 是它在库内的唯一用户。走这一层的原因是**回退值**：
+ * `parse_context_type<TChar, std::tm>::make_parse_context` 用目标 `std::tm` 的现有字段
+ * 铺好回退值，格式串未覆盖的字段于是保留旧值，而不是退回挂钟时间。
+ *
+ * 两个方向共用 `detail::tm_stream_format` 生成的格式串（展开后的 locale `%c`，按平台补
+ * `%z` / `%Z`），因此写得出的一定读得回。标准里 `operator<<(std::tm)` 并不存在（只有
+ * `put_time` / `get_time`），本库把它补上并让它遵守与其它插入器相同的字段宽度约定。
+ * @endif
+ *
+ * @lang{EN}
+ * Makes `os << tm` and `is >> tm` work: an insertion-side `io_traits` for `std::tm`, and an
+ * extraction side routed through `parse_context_type`.
+ *
+ * Extraction does not parse into the `std::tm` directly; it parses into a `time_parse_context`
+ * whose `convert_to(std::tm&)` then writes the result back -- exactly the mechanism described
+ * under "Parse contexts" in `IOv2/io/traits/traits_base.h`, of which `std::tm` is the library's
+ * only user. The reason for the extra layer is **fallbacks**:
+ * `parse_context_type<TChar, std::tm>::make_parse_context` seeds the context from the target's
+ * existing fields, so any field the format string does not cover keeps its old value instead of
+ * reverting to the wall clock.
+ *
+ * Both directions share the format built by `detail::tm_stream_format` (the locale's `%c`,
+ * expanded, with `%z` / `%Z` appended as the platform requires), so whatever is written can be
+ * read back. The standard has no `operator<<(std::tm)` at all (only `put_time` / `get_time`);
+ * this library adds one and makes it follow the same field-width contract as every other
+ * inserter.
+ * @endif
+ */
 #pragma once
 #include <IOv2/common/defs.h>
 #include <IOv2/facet/timeio.h>
@@ -20,6 +56,29 @@
 
 namespace IOv2
 {
+/**
+ * @lang{ZH}
+ * @brief 把 `std::tm` 的提取改道到 `time_parse_context`，并用目标的现有字段作回退值。
+ *
+ * 这是 `traits_base.h` 所述"解析上下文"机制的实例：`type` 指定实际解析进的中转类型，
+ * `make_parse_context` 从待写入的 `std::tm` 构造它。`operator>>` 先让
+ * `io_traits<TChar, type>::sread` 解析进中转对象，再调用其 `convert_to(std::tm&)` 写回。
+ *
+ * @tparam TChar 流的字符类型。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief Reroutes extraction of a `std::tm` through a `time_parse_context`, seeded with the
+ *        target's existing fields as fallbacks.
+ *
+ * An instance of the "parse context" mechanism described in `traits_base.h`: `type` names the
+ * relay type actually parsed into, and `make_parse_context` builds it from the `std::tm` about
+ * to be written. `operator>>` lets `io_traits<TChar, type>::sread` parse into the relay and
+ * then calls its `convert_to(std::tm&)` to write the result back.
+ *
+ * @tparam TChar The stream's character type.
+ * @endif
+ */
 template <typename TChar>
 struct parse_context_type<TChar, std::tm>
 {
@@ -49,6 +108,17 @@ struct parse_context_type<TChar, std::tm>
       : time_value_fields<std::tm>::has_offset ? tz_level::offset
                                                : tz_level::none;
 
+    /**
+     * @lang{ZH}
+     * @brief 实际解析进的中转类型：带日期、带时间、时区档取 @ref tm_parse_tz_level 的
+     *        `time_parse_context`。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief The relay type actually parsed into: a `time_parse_context` with date, with time,
+     *        and at the tier @ref tm_parse_tz_level names.
+     * @endif
+     */
     using type = time_parse_context<TChar, true, true, tm_parse_tz_level>;
 
     /**
@@ -57,7 +127,7 @@ struct parse_context_type<TChar, std::tm>
      *
      * 返回的上下文的日期与时间字段被预置为 @p tmb 中的对应值，因此随后 `get()` 未解析到的
      * 字段会保留 @p tmb 的取值——除非其它字段的归一化进位波及到它——而不是退回默认构造所采用
-     * 的挂钟时间。时区档随平台而定，见 @ref tm_parse_tz_level。
+     * 的挂钟时间。时区档随平台而定，见 @ref tm_parse_tz_level "tm_parse_tz_level"。
      *
      * 归一化只用 `std::chrono` 完成，**不经 `mktime()`**（后者依赖 `TZ`、会因夏令时平移小时数、
      * 且写入全局状态）。规则为：
@@ -183,6 +253,7 @@ namespace detail
  * 两侧共用这一个与取值无关的格式串，才能保证写得出的一定读得回。平台的 `std::tm` 没有
  * `tm_gmtoff` / `tm_zone` 时两个都不补，补了只会在输出里留下 `%z` / `%Z` 这几个字符。
  *
+ * @tparam TChar 流的字符类型。
  * @param tio 提供 locale 数据的 facet。
  * @return 供 `put` 与 `get` 共用的格式串。
  * @endif
@@ -208,6 +279,7 @@ namespace detail
  * `std::tm` has neither `tm_gmtoff` nor `tm_zone`, where appending would only put those
  * characters in the output.
  *
+ * @tparam TChar The stream's character type.
  * @param tio The facet supplying the locale data.
  * @return The format string shared by `put` and `get`.
  * @endif
@@ -241,6 +313,26 @@ std::basic_string<TChar> tm_stream_format(const timeio<TChar>& tio)
 }
 } // namespace detail
 
+/**
+ * @lang{ZH}
+ * @brief `std::tm` 的插入端：`os << tm`。
+ *
+ * 只有 `swrite`。提取端不在这里——`parse_context_type<TChar, std::tm>` 把 `is >> tm` 改道到
+ * `time_parse_context`，`sread` 因此定义在下面那个以中转类型为键的特化上。
+ *
+ * @tparam TChar 流的字符类型。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief The insertion side for `std::tm`: `os << tm`.
+ *
+ * `swrite` only. The extraction side is not here: `parse_context_type<TChar, std::tm>` reroutes
+ * `is >> tm` to a `time_parse_context`, so `sread` lives on the specialization below, keyed on
+ * the relay type.
+ *
+ * @tparam TChar The stream's character type.
+ * @endif
+ */
 template <typename TChar>
 struct io_traits<TChar, std::tm>
 {
@@ -249,8 +341,15 @@ struct io_traits<TChar, std::tm>
      * @brief 用 @ref detail::tm_stream_format 的格式串写出一个 `std::tm`，并按字段宽度补齐。
      *
      * @note 本插入器应用并消耗 `io.width()`，与本库其余插入器一致；`os << put_time(...)`
-     *       则两样都不做（见 @ref put_time）。分界与标准相同：`std::chrono` 的流插入器补齐
-     *       并消耗，`std::put_time` 不。
+     *       则两样都不做（见 @ref put_time "put_time"）。分界与标准相同：`std::chrono` 的
+     *       流插入器补齐并消耗，`std::put_time` 不。
+     * @param s 输出迭代器。
+     * @param io 提供宽度、填充字符与对齐标志的流。
+     * @param loc 提供 `timeio<TChar>` facet 的 locale。
+     * @param value 要写出的 `std::tm`；字段越界或 `tm_sec == 60` 由 facet 拒绝。
+     * @return 写完之后的输出迭代器。
+     * @throw stream_error 若 locale 中没有 `timeio<TChar>` facet、facet 拒绝该 `std::tm`，
+     *        或所需填充量超过 `ios_defs::max_pad_count`。
      * @endif
      *
      * @lang{EN}
@@ -261,6 +360,14 @@ struct io_traits<TChar, std::tm>
      *       library does; `os << put_time(...)` does neither (see @ref put_time). The split is
      *       the standard's: its `std::chrono` stream inserters pad and consume, `std::put_time`
      *       does not.
+     * @param s The output iterator.
+     * @param io The stream supplying width, fill character and adjustment flags.
+     * @param loc The locale supplying the `timeio<TChar>` facet.
+     * @param value The `std::tm` to write; out-of-range fields and `tm_sec == 60` are rejected
+     *              by the facet.
+     * @return The output iterator past what was written.
+     * @throw stream_error If the locale carries no `timeio<TChar>` facet, the facet rejects the
+     *        `std::tm`, or the required fill count exceeds `ios_defs::max_pad_count`.
      * @endif
      */
     template <typename TIter>
@@ -293,6 +400,9 @@ struct io_traits<TChar, std::tm>
  * 故对平台档恒一致；而显式写出离平台的档位会拿到不匹配的格式串，`%z` / `%Z` 被按字面量
  * 匹配而必然失配。有了这条约束，那种写法是**编译错误**，不是运行期静默失败。
  * 格式串与 `io_traits<TChar, std::tm>::swrite` 取自同一个函数，因此写出来的一定读得回。
+ *
+ * @tparam TChar 流的字符类型。
+ * @tparam TzLevel 上下文的时区档；受 `requires` 约束，只能是本平台的那一档。
  * @endif
  *
  * @lang{EN}
@@ -307,12 +417,51 @@ struct io_traits<TChar, std::tm>
  * `%z` / `%Z` are matched as literals and can only fail. With this constraint that spelling is a
  * **compile error** instead of a silent run-time failure. The format comes from the same function
  * `io_traits<TChar, std::tm>::swrite` uses, so whatever is written can be read back.
+ *
+ * @tparam TChar The stream's character type.
+ * @tparam TzLevel The context's time-zone tier; the `requires` restricts it to this platform's.
  * @endif
  */
 template <typename TChar, tz_level TzLevel>
     requires (TzLevel == parse_context_type<TChar, std::tm>::tm_parse_tz_level)
 struct io_traits<TChar, time_parse_context<TChar, true, true, TzLevel>>
 {
+    /**
+     * @lang{ZH}
+     * @brief 用 @ref detail::tm_stream_format 的格式串把日期时间解析进上下文。
+     *
+     * 解析交给 locale 的 `timeio<TChar>` facet；解析到的字段写入 @p value，未解析到的保留
+     * `make_parse_context` 铺好的回退值。与标准的 `get_time` 一致，本函数**不消费**
+     * `width()`，`ios_base` 形参因此未被使用。
+     *
+     * @param iter 输入迭代器。
+     * @param iter_end 输入哨位。
+     * @param loc 提供 `timeio<TChar>` facet 的 locale。
+     * @param value 接收解析结果的上下文；随后由 `operator>>` 调用其 `convert_to(std::tm&)`。
+     * @return 指向最后一个被消费字符之后的输入迭代器。
+     * @throw stream_error 若 locale 中没有 `timeio<TChar>` facet，或解析失败（格式不匹配、
+     *        字段值越界）。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Parses a date and time into the context with the format from
+     *        @ref detail::tm_stream_format.
+     *
+     * Parsing is done by the locale's `timeio<TChar>` facet; parsed fields are stored in
+     * @p value, and the rest keep the fallbacks `make_parse_context` installed. As with the
+     * standard's `get_time`, this function does **not** consume `width()`, which is why the
+     * `ios_base` parameter goes unused.
+     *
+     * @param iter The input iterator.
+     * @param iter_end The input sentinel.
+     * @param loc The locale supplying the `timeio<TChar>` facet.
+     * @param value The context receiving the parse; `operator>>` then calls its
+     *              `convert_to(std::tm&)`.
+     * @return An input iterator past the last consumed character.
+     * @throw stream_error If the locale carries no `timeio<TChar>` facet, or parsing fails (format
+     *        mismatch, field value out of range).
+     * @endif
+     */
     template <typename TIter, std::sentinel_for<TIter> TSent>
         requires (std::is_same_v<TChar, typename TIter::value_type>)
     static TIter sread(TIter iter, TSent iter_end, ios_base<TChar>&, const locale<TChar>& loc, time_parse_context<TChar, true, true, TzLevel>& value)

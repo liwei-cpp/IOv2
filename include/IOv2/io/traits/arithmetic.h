@@ -1,6 +1,31 @@
 // SPDX-FileCopyrightText: 2026 liwei <liwei.cpp@gmail.com>
 // SPDX-License-Identifier: MIT
 
+/**
+ * @file arithmetic.h
+ * @lang{ZH}
+ * 为算术类型与指针类型特化 `io_traits`，提供数值格式与地址格式的读写。
+ *
+ * 两个特化都把实际的格式化与解析交给 locale 里的 `numeric<TChar>` facet，自身只做三件事：
+ * 取 facet、经 `width_guard` 兑现"字段宽度一次性"的约定，以及用 `requires` 子句把字符类型和
+ * 标准 `= delete` 掉的重载排除在外——后一点是本文件大部分说明的主题。`signed char` /
+ * `unsigned char` 及其指针在 `char` 流上的字符语义由 `IOv2/io/traits/char_and_str.h` 提供，
+ * 本文件只在那份头缺席时让相应表达式**编译不过**，而不是静默按数值写出。
+ * @endif
+ *
+ * @lang{EN}
+ * Specializes `io_traits` for arithmetic and pointer types, providing numeric-format and
+ * address-format reading and writing.
+ *
+ * Both specializations hand the actual formatting and parsing to the locale's `numeric<TChar>`
+ * facet and do only three things themselves: fetch the facet, honor the "field width is one-shot"
+ * contract through `width_guard`, and use their requires-clauses to keep character types and the
+ * overloads the standard deletes out -- the latter is what most of the commentary in this file
+ * is about. The character semantics of `signed char` / `unsigned char` and their pointers on a
+ * `char` stream live in `IOv2/io/traits/char_and_str.h`; this file merely makes those expressions
+ * **fail to compile** when that header is absent, rather than silently writing a number.
+ * @endif
+ */
 #pragma once
 #include <IOv2/common/defs.h>
 #include <IOv2/facet/numeric.h>
@@ -21,7 +46,7 @@ namespace IOv2
  * @note 排除的那五个类型是**字符**类型，归 `IOv2/io/traits/char_and_str.h` 管，不是数值。
  *       排除项的作用不止于选择重载，更在于让 `io_traits<char, wchar_t>` 之类**根本不存在**：
  *       类模板没有 `= delete`，这是表达标准所删重载的唯一手段。删掉任何一条，
- *       `os << L'x'` 都会静默打印出一个数字。
+ *       <tt>os << L'x'</tt> 都会静默打印出一个数字。
  * @note `signed char` / `unsigned char` 的排除**挂着 `TChar == char` 这个条件**，因为这两个
  *       类型是二维的：`char` 流上它们是字符，归 `char_and_str.h`；宽流上标准没有它们的重载，
  *       它们经整型提升落到数值插入，必须留在本特化。条件排除让缺少 `char_and_str.h` 时
@@ -39,6 +64,8 @@ namespace IOv2
  *       类型能精确表示**的那些，与 C++23 `[ostream.inserters.arithmetic]` 一致。装不下的
  *       让特化不存在，因此本机（`long double` 为 x87 80 位）上 `os << std::float128_t{}`
  *       报「没有 `operator<<`」。
+ * @tparam TChar 流的字符类型。
+ * @tparam TValue 算术类型；须不带顶层 cv 限定，且不是上述被排除的字符类型。
  * @endif
  *
  * @lang{EN}
@@ -48,7 +75,7 @@ namespace IOv2
  *       `IOv2/io/traits/char_and_str.h`, not here. The exclusions do more than steer overload
  *       selection: they are what makes `io_traits<char, wchar_t>` and friends **not exist at
  *       all**. A class template has no `= delete`, so this is the only way to express the
- *       standard's deleted overloads; drop any one of them and `os << L'x'` silently prints a
+ *       standard's deleted overloads; drop any one of them and <tt>os << L'x'</tt> silently prints a
  *       number.
  * @note The exclusion of `signed char` / `unsigned char` is **conditioned on `TChar == char`**,
  *       because those two types are two-dimensional: on a `char` stream they are characters and
@@ -74,7 +101,10 @@ namespace IOv2
  *       floating-point type represents them exactly**, as C++23
  *       `[ostream.inserters.arithmetic]` prescribes. The ones that do not fit get no
  *       specialization at all, so here (`long double` being x87 80-bit)
- *       `os << std::float128_t{}` reports "no `operator<<`".
+ *       `os << std::float128_t{}` reports that there is no `operator<<`.
+ * @tparam TChar The stream's character type.
+ * @tparam TValue An arithmetic type; must carry no top-level cv-qualifier and must not be one of
+ *         the excluded character types above.
  * @endif
  */
 template <typename TChar, typename TValue>
@@ -95,6 +125,40 @@ template <typename TChar, typename TValue>
               && !(std::is_same_v<TChar, char> && std::is_same_v<TValue, unsigned char>))
 struct io_traits<TChar, TValue>
 {
+    /**
+     * @lang{ZH}
+     * @brief 把一个算术值按数值格式写出。
+     *
+     * 基数、符号、精度、浮点记法、分组以及按 `width()` / `fill()` / `adjustfield` 补齐，
+     * 全部由 locale 的 `numeric<TChar>` facet 依据 @p io 的状态完成；本函数只取 facet 并
+     * 转交。`width()` 由 facet 消费，`width_guard` 保证取不到 facet 而抛出时也同样清零。
+     *
+     * @param s 输出迭代器。
+     * @param io 提供格式标志、精度、宽度与填充字符的流。
+     * @param loc 提供 `numeric<TChar>` facet 的 locale。
+     * @param value 要写出的值，按 `TValue` 自身的位宽格式化（见类说明中的 `@warning`）。
+     * @return 写完之后的输出迭代器。
+     * @throw stream_error 若 locale 中没有 `numeric<TChar>` facet。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Writes an arithmetic value in numeric format.
+     *
+     * Base, sign, precision, floating-point notation, grouping, and padding to `width()` with
+     * `fill()` per `adjustfield` are all done by the locale's `numeric<TChar>` facet from the
+     * state of @p io; this function only fetches the facet and delegates. The facet consumes
+     * `width()`; `width_guard` makes sure it is zeroed as well when the facet is missing and
+     * the function throws.
+     *
+     * @param s The output iterator.
+     * @param io The stream supplying format flags, precision, width and fill character.
+     * @param loc The locale supplying the `numeric<TChar>` facet.
+     * @param value The value to write, formatted at the width of `TValue` itself (see the
+     *              `@warning` in the class description).
+     * @return The output iterator past what was written.
+     * @throw stream_error If the locale carries no `numeric<TChar>` facet.
+     * @endif
+     */
     template <typename TIter>
         requires (char_sink_for<TIter, TChar>)
     static TIter swrite(TIter s, ios_base<TChar>& io, const locale<TChar>& loc, TValue value)
@@ -111,14 +175,30 @@ struct io_traits<TChar, TValue>
      * @lang{ZH}
      * @brief 从流中解析一个算术值。
      *
+     * 解析全部交给 locale 的 `numeric<TChar>` facet，它按 @p io 的 `basefield` 等标志识别
+     * 记法、按 locale 规则处理分组，解析失败或溢出时抛出。与标准一致，本函数**不消费**
+     * `width()`。
+     *
      * @note 本成员比类模板的名单多排除 `signed char` 与 `unsigned char`，这处**不对称是有意
      *       的**。提取按引用传参，拿不到插入侧的整型提升，标准也只为 `char` 流定义了这两个
      *       提取器，因此宽流上的 `wis >> sc` 编译不过，而不是退回去按数值解析。`char` 流上的
      *       两条已由类模板的名单排除，归 `char_and_str.h`。
+     * @param s 输入迭代器。
+     * @param s_end 输入哨位。
+     * @param io 提供 `basefield` 等解析标志的流。
+     * @param loc 提供 `numeric<TChar>` facet 的 locale。
+     * @param value 接收结果的变量；溢出时按 LWG 23 置为 `numeric_limits` 的极值后再抛出。
+     * @return 指向最后一个被消费字符之后的输入迭代器。
+     * @throw stream_error 若 locale 中没有 `numeric<TChar>` facet，或解析失败（含溢出）。
      * @endif
      *
      * @lang{EN}
      * @brief Parses an arithmetic value from the stream.
+     *
+     * Parsing is done entirely by the locale's `numeric<TChar>` facet, which recognizes the
+     * notation from the `basefield` and related flags of @p io, applies the locale's grouping
+     * rules, and throws on a parse failure or an overflow. As in the standard, this function
+     * does **not** consume `width()`.
      *
      * @note This member excludes `signed char` and `unsigned char` on top of the class
      *       template's list, and that **asymmetry is deliberate**. Extraction takes its target by
@@ -127,6 +207,15 @@ struct io_traits<TChar, TValue>
      *       wide stream does not compile instead of falling back to parsing a number. The
      *       `char`-stream cases are already off the class template's list and belong to
      *       `char_and_str.h`.
+     * @param s The input iterator.
+     * @param s_end The input sentinel.
+     * @param io The stream supplying `basefield` and the other parsing flags.
+     * @param loc The locale supplying the `numeric<TChar>` facet.
+     * @param value Receives the result; on overflow it is set to the `numeric_limits` extreme
+     *              per LWG 23 before the throw.
+     * @return An input iterator past the last consumed character.
+     * @throw stream_error If the locale carries no `numeric<TChar>` facet, or parsing fails
+     *        (overflow included).
      * @endif
      */
     template <typename TIter, std::sentinel_for<TIter> TSent>
@@ -168,12 +257,15 @@ struct io_traits<TChar, TValue>
  *       都提供加宽特化，宽流上标准也写文本。`signed char` / `unsigned char` 被指类型只在
  *       `char` 流上排除：宽流上标准没有它们的字符串重载，落到 `operator<<(const void*)` 打地址，
  *       正是本特化该做的。三处排除都键在 `remove_const_t` 上，故 `volatile char*` 仍打地址。
+ * @tparam TChar 流的字符类型。
+ * @tparam TValue 对象指针类型；须不带顶层 cv 限定，且被指类型不在上述排除名单内。
  * @endif
  *
  * @lang{EN}
  * @brief Address-format reading and writing of pointers.
  *
- * @note The four excluded pointees correspond to the string overloads the standard `= delete`s:
+ * @note The four excluded pointees correspond to the string overloads the standard deletes
+ *       (`= delete`):
  *       `const wchar_t*` (on a narrow stream), `const char8_t*`, `const char16_t*` and
  *       `const char32_t*`. With them excluded no `io_traits` matches, so `os << L"hi"` does not
  *       compile instead of silently printing an address while the stream stays `good()`. A class
@@ -203,6 +295,9 @@ struct io_traits<TChar, TValue>
  *       wide one the standard has no string overload for them, so they fall to
  *       `operator<<(const void*)` and print an address, which is exactly this specialization's
  *       job. All three keys are `remove_const_t`, so `volatile char*` still prints an address.
+ * @tparam TChar The stream's character type.
+ * @tparam TValue An object pointer type; must carry no top-level cv-qualifier, and its pointee
+ *         must not be on the exclusion list above.
  * @endif
  */
 template <typename TChar, typename TValue>
@@ -220,6 +315,39 @@ template <typename TChar, typename TValue>
                    && std::is_same_v<std::remove_const_t<std::remove_pointer_t<TValue>>, unsigned char>))
 struct io_traits<TChar, TValue>
 {
+    /**
+     * @lang{ZH}
+     * @brief 把一个指针的地址按十六进制写出。
+     *
+     * 指针先被转成 `const void*`（`volatile` 一并转掉）再交给 locale 的 `numeric<TChar>`
+     * facet，补齐与 `width()` 的消费也由 facet 完成；`width_guard` 保证取不到 facet 而抛出时
+     * 宽度同样清零。地址只被格式化，从不解引用，因此悬空指针也能安全写出。
+     *
+     * @param s 输出迭代器。
+     * @param io 提供格式标志、宽度与填充字符的流。
+     * @param loc 提供 `numeric<TChar>` facet 的 locale。
+     * @param value 要写出地址的指针。
+     * @return 写完之后的输出迭代器。
+     * @throw stream_error 若 locale 中没有 `numeric<TChar>` facet。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Writes a pointer's address in hexadecimal.
+     *
+     * The pointer is converted to `const void*` first (casting any `volatile` away) and handed
+     * to the locale's `numeric<TChar>` facet, which also does the padding and consumes
+     * `width()`; `width_guard` makes sure the width is zeroed as well when the facet is missing
+     * and the function throws. The address is only formatted, never dereferenced, so a dangling
+     * pointer is safe to write.
+     *
+     * @param s The output iterator.
+     * @param io The stream supplying format flags, width and fill character.
+     * @param loc The locale supplying the `numeric<TChar>` facet.
+     * @param value The pointer whose address is written.
+     * @return The output iterator past what was written.
+     * @throw stream_error If the locale carries no `numeric<TChar>` facet.
+     * @endif
+     */
     template <typename TIter>
         requires (char_sink_for<TIter, TChar>)
     static TIter swrite(TIter s, ios_base<TChar>& io, const locale<TChar>& loc, TValue value)
@@ -236,6 +364,9 @@ struct io_traits<TChar, TValue>
      * @lang{ZH}
      * @brief 从流中解析一个地址，写入 `void*`。
      *
+     * 解析交给 locale 的 `numeric<TChar>` facet，按十六进制整数读入并转成指针。与标准一致，
+     * 本函数**不消费** `width()`。
+     *
      * @note 与 `swrite` 不同，`sread` **只接受 `void*`**，不接受任意指针类型，与标准一致——
      *       `std::istream` 只有 `operator>>(void*&)`。因此 `is >> intptr` / `is >> charptr`
      *       没有可行重载，编译不过，而不是把文本地址 `reinterpret_cast` 成野指针，
@@ -243,10 +374,21 @@ struct io_traits<TChar, TValue>
      * @note 这处收窄由**两处**共同表达：`requires` 里的 `is_same_v<TValue, void*>` 钉住键，
      *       形参 `void*&` 钉住目标。走 `operator>>` 时任一处都够，显式限定调用则需要两处齐备，
      *       所以任何一处都不是冗余的。
+     * @param s 输入迭代器。
+     * @param s_end 输入哨位。
+     * @param io 提供解析标志的流。
+     * @param loc 提供 `numeric<TChar>` facet 的 locale。
+     * @param value 接收解析出的地址。
+     * @return 指向最后一个被消费字符之后的输入迭代器。
+     * @throw stream_error 若 locale 中没有 `numeric<TChar>` facet，或解析失败。
      * @endif
      *
      * @lang{EN}
      * @brief Parses an address from the stream into a `void*`.
+     *
+     * Parsing is done by the locale's `numeric<TChar>` facet, which reads a hexadecimal integer
+     * and converts it to a pointer. As in the standard, this function does **not** consume
+     * `width()`.
      *
      * @note Unlike `swrite`, `sread` accepts **`void*` only**, not an arbitrary pointer type,
      *       matching the standard, where `std::istream` provides only `operator>>(void*&)`.
@@ -257,6 +399,13 @@ struct io_traits<TChar, TValue>
      *       requires-clause pins the key, and the `void*&` parameter pins the target. Either one
      *       suffices for `operator>>`; an explicitly qualified call needs both, so neither is
      *       redundant.
+     * @param s The input iterator.
+     * @param s_end The input sentinel.
+     * @param io The stream supplying the parsing flags.
+     * @param loc The locale supplying the `numeric<TChar>` facet.
+     * @param value Receives the parsed address.
+     * @return An input iterator past the last consumed character.
+     * @throw stream_error If the locale carries no `numeric<TChar>` facet, or parsing fails.
      * @endif
      */
     template <typename TIter, std::sentinel_for<TIter> TSent>
