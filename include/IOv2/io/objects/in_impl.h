@@ -16,8 +16,8 @@
 
 namespace IOv2
 {
-class __cin;
-class __wcin;
+class cin_t;
+class wcin_t;
 
 template <typename T, io_device TDevice, typename TChar>
 class stdin_api : public ios_state<TChar>
@@ -101,52 +101,52 @@ protected:
 
 
 /// cin
-class __cin : public stdin_api<__cin, std_device<STDIN_FILENO>, char>
-            , public sing_temp<__cin>
+class cin_t : public stdin_api<cin_t, std_device<STDIN_FILENO>, char>
+            , public sing_temp<cin_t>
 {
-    using BT = stdin_api<__cin, std_device<STDIN_FILENO>, char>;
-    friend sing_temp<__cin>;
+    using BT = stdin_api<cin_t, std_device<STDIN_FILENO>, char>;
+    friend sing_temp<cin_t>;
 
 private:
-    __cin()
+    cin_t()
         : BT()
     {
         tie(&cout);
     }
 
-    __cin(const __cin&) = delete;
-    __cin& operator=(const __cin&) = delete;
+    cin_t(const cin_t&) = delete;
+    cin_t& operator=(const cin_t&) = delete;
 };
 
 #if defined(IOV2_SHARED)
-extern IOV2_API __cin& cin;   // defined in iov2_objects.cpp
+extern IOV2_API cin_t& cin;   // defined in iov2_objects.cpp
 #else
-inline __cin::init _cin_init;
-inline __cin&      cin = *__cin::ptr();
+inline cin_t::init _cin_init;
+inline cin_t&      cin = *cin_t::ptr();
 #endif
 
 /// wcin
-class __wcin : public stdin_api<__wcin, std_device<STDIN_FILENO>, wchar_t>
-             , public sing_temp<__wcin>
+class wcin_t : public stdin_api<wcin_t, std_device<STDIN_FILENO>, wchar_t>
+             , public sing_temp<wcin_t>
 {
-    using BT = stdin_api<__wcin, std_device<STDIN_FILENO>, wchar_t>;
-    friend sing_temp<__wcin>;
+    using BT = stdin_api<wcin_t, std_device<STDIN_FILENO>, wchar_t>;
+    friend sing_temp<wcin_t>;
 
 private:
-    __wcin()
+    wcin_t()
         : BT(code_cvt_stdio_creator(IOv2::locale<char>::initial_locale_name(LC_CTYPE)))
     {
         tie(&wcout);
     }
 
-    __wcin(const __wcin&) = delete;
-    __wcin& operator=(const __wcin&) = delete;
+    wcin_t(const wcin_t&) = delete;
+    wcin_t& operator=(const wcin_t&) = delete;
 };
 
 #if defined(IOV2_SHARED)
-extern IOV2_API __wcin& wcin;   // defined in iov2_objects.cpp
+extern IOV2_API wcin_t& wcin;   // defined in iov2_objects.cpp
 #else
-inline __wcin::init _wcin_init;
-inline __wcin&      wcin = *__wcin::ptr();
+inline wcin_t::init _wcin_init;
+inline wcin_t&      wcin = *wcin_t::ptr();
 #endif
 }

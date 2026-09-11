@@ -18,12 +18,12 @@
 
 namespace IOv2
 {
-class __cout;
-class __cerr;
-class __clog;
-class __wcout;
-class __wcerr;
-class __wclog;
+class cout_t;
+class cerr_t;
+class clog_t;
+class wcout_t;
+class wcerr_t;
+class wclog_t;
 
 template <typename T, typename TDevice, typename TChar>
 class stdout_api : public ios_state<TChar>
@@ -92,173 +92,173 @@ protected:
     copyable_atomic<bool> m_sync_with_stdio{true};   ///< @lang{ZH} 是否随析构与 stdio 同步刷新；原子量，使 `sync_with_stdio()` 可与并发输出操作安全竞争。 @endif @lang{EN} Whether destruction flushes in sync with stdio; atomic so `sync_with_stdio()` is safe against concurrent output operations. @endif
 };
 
-/// __cout
-class __cout : public stdout_api<__cout, std_device<STDOUT_FILENO>, char>
-             , public sing_temp<__cout>
+/// cout_t
+class cout_t : public stdout_api<cout_t, std_device<STDOUT_FILENO>, char>
+             , public sing_temp<cout_t>
 {
-    using BT = stdout_api<__cout, std_device<STDOUT_FILENO>, char>;
-    friend sing_temp<__cout>;
+    using BT = stdout_api<cout_t, std_device<STDOUT_FILENO>, char>;
+    friend sing_temp<cout_t>;
 
 private:
-    __cout() = default;
-    __cout(const __cout&) = delete;
-    __cout& operator=(const __cout&) = delete;
+    cout_t() = default;
+    cout_t(const cout_t&) = delete;
+    cout_t& operator=(const cout_t&) = delete;
 
-    ~__cout()
+    ~cout_t()
     {
         try { flush(); } catch (...) {}
     }
 };
 
 #if defined(IOV2_SHARED)
-extern IOV2_API __cout& cout;   // defined in iov2_objects.cpp
+extern IOV2_API cout_t& cout;   // defined in iov2_objects.cpp
 #else
-inline __cout::init _cout_init;
-inline __cout&      cout = *__cout::ptr();
+inline cout_t::init _cout_init;
+inline cout_t&      cout = *cout_t::ptr();
 #endif
 
 
 /// cerr
-class __cerr : public stdout_api<__cerr, std_device<STDERR_FILENO>, char>
-             , public sing_temp<__cerr>
+class cerr_t : public stdout_api<cerr_t, std_device<STDERR_FILENO>, char>
+             , public sing_temp<cerr_t>
 {
-    using BT = stdout_api<__cerr, std_device<STDERR_FILENO>, char>;
-    friend sing_temp<__cerr>;
+    using BT = stdout_api<cerr_t, std_device<STDERR_FILENO>, char>;
+    friend sing_temp<cerr_t>;
 
 private:
-    __cerr()
+    cerr_t()
         : BT()
     {
         tie(&cout);
         setf(ios_defs::unitbuf);
     }
 
-    __cerr(const __cerr&) = delete;
-    __cerr& operator=(const __cerr&) = delete;
+    cerr_t(const cerr_t&) = delete;
+    cerr_t& operator=(const cerr_t&) = delete;
 
-    ~__cerr()
+    ~cerr_t()
     {
         try { flush(); } catch (...) {}
     }
 };
 
 #if defined(IOV2_SHARED)
-extern IOV2_API __cerr& cerr;   // defined in iov2_objects.cpp
+extern IOV2_API cerr_t& cerr;   // defined in iov2_objects.cpp
 #else
-inline __cerr::init _cerr_init;
-inline __cerr&      cerr = *__cerr::ptr();
+inline cerr_t::init _cerr_init;
+inline cerr_t&      cerr = *cerr_t::ptr();
 #endif
 
 /// clog
-class __clog : public stdout_api<__clog, std_device<STDERR_FILENO>, char>
-             , public sing_temp<__clog>
+class clog_t : public stdout_api<clog_t, std_device<STDERR_FILENO>, char>
+             , public sing_temp<clog_t>
 {
-    using BT = stdout_api<__clog, std_device<STDERR_FILENO>, char>;
-    friend sing_temp<__clog>;
+    using BT = stdout_api<clog_t, std_device<STDERR_FILENO>, char>;
+    friend sing_temp<clog_t>;
 
 private:
-    __clog() = default;
+    clog_t() = default;
 
-    __clog(const __clog&) = delete;
-    __clog& operator=(const __clog&) = delete;
+    clog_t(const clog_t&) = delete;
+    clog_t& operator=(const clog_t&) = delete;
 
-    ~__clog()
+    ~clog_t()
     {
         try { flush(); } catch (...) {}
     }
 };
 
 #if defined(IOV2_SHARED)
-extern IOV2_API __clog& clog;   // defined in iov2_objects.cpp
+extern IOV2_API clog_t& clog;   // defined in iov2_objects.cpp
 #else
-inline __clog::init _clog_init;
-inline __clog&      clog = *__clog::ptr();
+inline clog_t::init _clog_init;
+inline clog_t&      clog = *clog_t::ptr();
 #endif
 
 /// wcout
-class __wcout : public stdout_api<__wcout, std_device<STDOUT_FILENO>, wchar_t>
-              , public sing_temp<__wcout>
+class wcout_t : public stdout_api<wcout_t, std_device<STDOUT_FILENO>, wchar_t>
+              , public sing_temp<wcout_t>
 {
-    using BT = stdout_api<__wcout, std_device<STDOUT_FILENO>, wchar_t>;
-    friend sing_temp<__wcout>;
+    using BT = stdout_api<wcout_t, std_device<STDOUT_FILENO>, wchar_t>;
+    friend sing_temp<wcout_t>;
 
 private:
-    __wcout()
+    wcout_t()
         : BT(code_cvt_stdio_creator(IOv2::locale<char>::initial_locale_name(LC_CTYPE)))
     {}
 
-    __wcout(const __wcout&) = delete;
-    __wcout& operator=(const __wcout&) = delete;
+    wcout_t(const wcout_t&) = delete;
+    wcout_t& operator=(const wcout_t&) = delete;
 
-    ~__wcout()
+    ~wcout_t()
     {
         try { flush(); } catch (...) {}
     }
 };
 
 #if defined(IOV2_SHARED)
-extern IOV2_API __wcout& wcout;   // defined in iov2_objects.cpp
+extern IOV2_API wcout_t& wcout;   // defined in iov2_objects.cpp
 #else
-inline __wcout::init _wcout_init;
-inline __wcout&      wcout = *__wcout::ptr();
+inline wcout_t::init _wcout_init;
+inline wcout_t&      wcout = *wcout_t::ptr();
 #endif
 
 /// wcerr
-class __wcerr : public stdout_api<__wcerr, std_device<STDERR_FILENO>, wchar_t>
-              , public sing_temp<__wcerr>
+class wcerr_t : public stdout_api<wcerr_t, std_device<STDERR_FILENO>, wchar_t>
+              , public sing_temp<wcerr_t>
 {
-    using BT = stdout_api<__wcerr, std_device<STDERR_FILENO>, wchar_t>;
-    friend sing_temp<__wcerr>;
+    using BT = stdout_api<wcerr_t, std_device<STDERR_FILENO>, wchar_t>;
+    friend sing_temp<wcerr_t>;
 
 private:
-    __wcerr()
+    wcerr_t()
         : BT(code_cvt_stdio_creator(IOv2::locale<char>::initial_locale_name(LC_CTYPE)))
     {
         tie(&wcout);
         setf(ios_defs::unitbuf);
     }
 
-    __wcerr(const __wcerr&) = delete;
-    __wcerr& operator=(const __wcerr&) = delete;
+    wcerr_t(const wcerr_t&) = delete;
+    wcerr_t& operator=(const wcerr_t&) = delete;
 
-    ~__wcerr()
+    ~wcerr_t()
     {
         try { flush(); } catch (...) {}
     }
 };
 
 #if defined(IOV2_SHARED)
-extern IOV2_API __wcerr& wcerr;   // defined in iov2_objects.cpp
+extern IOV2_API wcerr_t& wcerr;   // defined in iov2_objects.cpp
 #else
-inline __wcerr::init _wcerr_init;
-inline __wcerr&      wcerr = *__wcerr::ptr();
+inline wcerr_t::init _wcerr_init;
+inline wcerr_t&      wcerr = *wcerr_t::ptr();
 #endif
 
 /// wclog
-class __wclog : public stdout_api<__wclog, std_device<STDERR_FILENO>, wchar_t>
-              , public sing_temp<__wclog>
+class wclog_t : public stdout_api<wclog_t, std_device<STDERR_FILENO>, wchar_t>
+              , public sing_temp<wclog_t>
 {
-    using BT = stdout_api<__wclog, std_device<STDERR_FILENO>, wchar_t>;
-    friend sing_temp<__wclog>;
+    using BT = stdout_api<wclog_t, std_device<STDERR_FILENO>, wchar_t>;
+    friend sing_temp<wclog_t>;
 
 private:
-    __wclog()
+    wclog_t()
         : BT(code_cvt_stdio_creator(IOv2::locale<char>::initial_locale_name(LC_CTYPE)))
     {}
 
-    __wclog(const __wclog&) = delete;
-    __wclog& operator=(const __wclog&) = delete;
+    wclog_t(const wclog_t&) = delete;
+    wclog_t& operator=(const wclog_t&) = delete;
 
-    ~__wclog()
+    ~wclog_t()
     {
         try { flush(); } catch (...) {}
     }
 };
 
 #if defined(IOV2_SHARED)
-extern IOV2_API __wclog& wclog;   // defined in iov2_objects.cpp
+extern IOV2_API wclog_t& wclog;   // defined in iov2_objects.cpp
 #else
-inline __wclog::init _wclog_init;
-inline __wclog&      wclog = *__wclog::ptr();
+inline wclog_t::init _wclog_init;
+inline wclog_t&      wclog = *wclog_t::ptr();
 #endif
 }

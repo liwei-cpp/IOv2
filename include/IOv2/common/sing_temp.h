@@ -37,22 +37,22 @@ namespace IOv2
  * @par 示例
  * @code
  * // 定义单例类
- * class __my_singleton : public some_base_class
- *                      , public sing_temp<__my_singleton>
+ * class my_singleton_t : public some_base_class
+ *                      , public sing_temp<my_singleton_t>
  * {
- *     friend sing_temp<__my_singleton>;
+ *     friend sing_temp<my_singleton_t>;
  *
  * private:
- *     __my_singleton() { ... }  // 私有构造函数
- *     ~__my_singleton() { ... }
+ *     my_singleton_t() { ... }  // 私有构造函数
+ *     ~my_singleton_t() { ... }
  *
- *     __my_singleton(const __my_singleton&) = delete;
- *     __my_singleton& operator=(const __my_singleton&) = delete;
+ *     my_singleton_t(const my_singleton_t&) = delete;
+ *     my_singleton_t& operator=(const my_singleton_t&) = delete;
  * };
  *
  * // 在头文件中声明 inline 初始化器和引用（inline = 全程序唯一实体）
- * inline __my_singleton::init _my_singleton_init;
- * inline __my_singleton& my_singleton = *__my_singleton::ptr();
+ * inline my_singleton_t::init _my_singleton_init;
+ * inline my_singleton_t& my_singleton = *my_singleton_t::ptr();
  *
  * // 使用单例
  * my_singleton.doSomething();
@@ -76,22 +76,22 @@ namespace IOv2
  * @par Example
  * @code
  * // Define the singleton class
- * class __my_singleton : public some_base_class
- *                      , public sing_temp<__my_singleton>
+ * class my_singleton_t : public some_base_class
+ *                      , public sing_temp<my_singleton_t>
  * {
- *     friend sing_temp<__my_singleton>;
+ *     friend sing_temp<my_singleton_t>;
  *
  * private:
- *     __my_singleton() { ... }  // Private constructor
- *     ~__my_singleton() { ... }
+ *     my_singleton_t() { ... }  // Private constructor
+ *     ~my_singleton_t() { ... }
  *
- *     __my_singleton(const __my_singleton&) = delete;
- *     __my_singleton& operator=(const __my_singleton&) = delete;
+ *     my_singleton_t(const my_singleton_t&) = delete;
+ *     my_singleton_t& operator=(const my_singleton_t&) = delete;
  * };
  *
  * // Declare inline initializer and reference in header (inline = one entity program-wide)
- * inline __my_singleton::init _my_singleton_init;
- * inline __my_singleton& my_singleton = *__my_singleton::ptr();
+ * inline my_singleton_t::init _my_singleton_init;
+ * inline my_singleton_t& my_singleton = *my_singleton_t::ptr();
  *
  * // Use the singleton
  * my_singleton.doSomething();
