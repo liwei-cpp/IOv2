@@ -1999,7 +1999,7 @@ private:
         }
 
         const TValue limit = std::numeric_limits<TValue>::max();
-        const TCarrier bound = static_cast<TCarrier>(limit);
+        const auto bound = static_cast<TCarrier>(limit);
         if (std::isinf(parsed) || parsed > bound || parsed < -bound)
         {
             v = std::signbit(parsed) ? -limit : limit;
