@@ -2,6 +2,9 @@
 // SPDX-License-Identifier: MIT
 
 #pragma once
+#include <cstdlib>
+#include <mutex>
+
 #include <IOv2/common/copyable_mutex.h>
 #include <IOv2/common/sing_temp.h>
 #include <IOv2/cvt/code_cvt_stdio.h>
@@ -68,6 +71,7 @@ public:
 
     void reset() // mainly used for unit-test
     {
+        std::lock_guard guard(this->io_mutex());
         this->clear();
         this->exceptions(ios_defs::goodbit);
         m_streambuf.attach();
@@ -76,6 +80,7 @@ public:
     std::string code() const
         requires std::is_same_v<TChar, wchar_t>
     {
+        std::lock_guard guard(this->io_mutex());
         code_cvt_access acc;
         m_streambuf.retrieve(acc);
         return acc.code;
@@ -84,6 +89,7 @@ public:
     std::string switch_code(const std::string& new_code)
         requires std::is_same_v<TChar, wchar_t>
     {
+        std::lock_guard guard(this->io_mutex());
         auto res = code();
         if (res != new_code)
         {
