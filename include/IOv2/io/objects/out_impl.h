@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: MIT
 
 #pragma once
+#include <mutex>
 #include <type_traits>
 
 #include <IOv2/common/copyable_atomic.h>
@@ -59,6 +60,7 @@ public:
     std::string code() const
         requires std::is_same_v<TChar, wchar_t>
     {
+        std::lock_guard guard(this->io_mutex());
         code_cvt_access acc;
         m_streambuf.retrieve(acc);
         return acc.code;
@@ -67,6 +69,7 @@ public:
     std::string switch_code(const std::string& new_code)
         requires std::is_same_v<TChar, wchar_t>
     {
+        std::lock_guard guard(this->io_mutex());
         auto res = code();
         if (res != new_code)
         {
@@ -81,6 +84,7 @@ public:
 
     void reset() // mainly used for unit-test
     {
+        std::lock_guard guard(this->io_mutex());
         this->clear();
         this->exceptions(ios_defs::goodbit);
         m_streambuf.attach();

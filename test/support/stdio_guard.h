@@ -28,6 +28,13 @@ namespace
             if (m_old_stdin == -1 || ::dup2(m_fds[0], STDIN_FILENO) == -1)
                 throw std::runtime_error("Cannot re-direct stdin");
 
+            feed(buf);
+        }
+
+        // Appends more input. Blocks while the pipe is full, i.e. until the reader
+        // has consumed enough of what was fed before.
+        void feed(const std::string& buf)
+        {
             if (!buf.empty() && ::write(m_fds[1], buf.c_str(), buf.size())
                                     != static_cast<ssize_t>(buf.size()))
                 throw std::runtime_error("Cannot fill pipe");
