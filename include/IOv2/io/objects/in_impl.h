@@ -172,7 +172,7 @@ private:
 extern IOV2_API cin_t& cin;   // defined in iov2_objects.cpp
 #else
 inline cin_t::init _cin_init;
-inline cin_t&      cin = *cin_t::ptr();
+inline cin_t&      cin = _cin_init.get();
 #endif
 
 /// wcin
@@ -198,6 +198,6 @@ private:
 extern IOV2_API wcin_t& wcin;   // defined in iov2_objects.cpp
 #else
 inline wcin_t::init _wcin_init;
-inline wcin_t&      wcin = *wcin_t::ptr();
+inline wcin_t&      wcin = _wcin_init.get();
 #endif
 }

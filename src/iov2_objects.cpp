@@ -141,31 +141,31 @@ namespace IOv2
  */
 
 static ori_facet_buf::init _ori_facet_buf_init;
-IOV2_API ori_facet_buf&    s_ori_facet_buf = *ori_facet_buf::ptr();
+IOV2_API ori_facet_buf&    s_ori_facet_buf = _ori_facet_buf_init.get();
 
 static cout_t::init _cout_init;
-IOV2_API cout_t&    cout = *cout_t::ptr();
+IOV2_API cout_t&    cout = _cout_init.get();
 
 static cerr_t::init _cerr_init;
-IOV2_API cerr_t&    cerr = *cerr_t::ptr();
+IOV2_API cerr_t&    cerr = _cerr_init.get();
 
 static clog_t::init _clog_init;
-IOV2_API clog_t&    clog = *clog_t::ptr();
+IOV2_API clog_t&    clog = _clog_init.get();
 
 static wcout_t::init _wcout_init;
-IOV2_API wcout_t&    wcout = *wcout_t::ptr();
+IOV2_API wcout_t&    wcout = _wcout_init.get();
 
 static wcerr_t::init _wcerr_init;
-IOV2_API wcerr_t&    wcerr = *wcerr_t::ptr();
+IOV2_API wcerr_t&    wcerr = _wcerr_init.get();
 
 static wclog_t::init _wclog_init;
-IOV2_API wclog_t&    wclog = *wclog_t::ptr();
+IOV2_API wclog_t&    wclog = _wclog_init.get();
 
 static cin_t::init _cin_init;
-IOV2_API cin_t&    cin = *cin_t::ptr();
+IOV2_API cin_t&    cin = _cin_init.get();
 
 static wcin_t::init _wcin_init;
-IOV2_API wcin_t&    wcin = *wcin_t::ptr();
+IOV2_API wcin_t&    wcin = _wcin_init.get();
 
 /**
  * @lang{ZH}

@@ -560,14 +560,14 @@ private:
  * @lang{ZH}
  * `ori_facet_buf` 单例的全局访问引用。共享库构建（`IOV2_SHARED`）下由
  * `iov2_objects.cpp` 定义并跨库导出，以保证全程序唯一实例；静态构建下就地初始化并
- * 绑定到单例指针。库内代码通过它访问 facet 缓存与初始 locale 名称。
+ * 由其 init 对象给出引用。库内代码通过它访问 facet 缓存与初始 locale 名称。
  * @endif
  *
  * @lang{EN}
  * Global access reference to the `ori_facet_buf` singleton. In a shared-library build
  * (`IOV2_SHARED`) it is defined in `iov2_objects.cpp` and exported across the library
  * boundary to guarantee a single program-wide instance; in a static build it is
- * initialized in place and bound to the singleton pointer. Library code reaches the
+ * initialized in place from its init object. Library code reaches the
  * facet caches and the initial locale names through it.
  * @endif
  */
@@ -575,6 +575,6 @@ private:
 extern IOV2_API ori_facet_buf& s_ori_facet_buf;   // defined in iov2_objects.cpp
 #else
 inline ori_facet_buf::init _ori_facet_buf_init;
-inline ori_facet_buf&      s_ori_facet_buf = *ori_facet_buf::ptr();
+inline ori_facet_buf&      s_ori_facet_buf = _ori_facet_buf_init.get();
 #endif
 }

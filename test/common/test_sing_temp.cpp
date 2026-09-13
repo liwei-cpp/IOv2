@@ -79,58 +79,53 @@ private:
 
 TEST(SingTemp, InitOwnsExactlyOneLifecycle)
 {
-    EXPECT_EQ(singleton_probe::ptr(), nullptr);
     EXPECT_EQ(singleton_probe::constructions, 0);
     EXPECT_EQ(singleton_probe::destructions, 0);
 
-    singleton_probe* observed = nullptr;
     {
         singleton_probe::init lifetime;
-        observed = singleton_probe::ptr();
+        singleton_probe& observed = lifetime.get();
 
-        ASSERT_NE(observed, nullptr);
-        EXPECT_EQ(singleton_probe::ptr(), observed);
-        EXPECT_EQ(observed->value(), 42);
+        EXPECT_EQ(&lifetime.get(), &observed);
+        EXPECT_EQ(observed.value(), 42);
         EXPECT_EQ(singleton_probe::constructions, 1);
         EXPECT_EQ(singleton_probe::destructions, 0);
     }
 
-    EXPECT_EQ(singleton_probe::ptr(), nullptr);
     EXPECT_EQ(singleton_probe::constructions, 1);
     EXPECT_EQ(singleton_probe::destructions, 1);
 }
 
 TEST(SingTemp, ExitHookReplacesDestruction)
 {
-    EXPECT_EQ(flushing_probe::ptr(), nullptr);
-
     flushing_probe* observed = nullptr;
     {
         flushing_probe::init lifetime;
-        observed = flushing_probe::ptr();
+        observed = &lifetime.get();
 
-        ASSERT_NE(observed, nullptr);
         EXPECT_EQ(flushing_probe::flushes, 0);
         EXPECT_EQ(flushing_probe::destructions, 0);
     }
 
-    // The hook ran once, the object was not destroyed, and it is still reachable
-    // through ptr() -- exactly what std::cout guarantees after exit begins.
+    // The hook ran once and the object was not destroyed: it lives in static
+    // storage and is still usable through the reference taken earlier -- exactly
+    // what std::cout guarantees after exit begins.
     EXPECT_EQ(flushing_probe::flushes, 1);
     EXPECT_EQ(flushing_probe::destructions, 0);
-    EXPECT_EQ(flushing_probe::ptr(), observed);
     observed->flush();
     EXPECT_EQ(flushing_probe::flushes, 2);
 }
 
 TEST(SingTemp, ExitHookSurvivesAThrowingFlush)
 {
+    throwing_probe* observed = nullptr;
     {
         throwing_probe::init lifetime;
-        ASSERT_NE(throwing_probe::ptr(), nullptr);
+        observed = &lifetime.get();
     }
 
     EXPECT_EQ(throwing_probe::flushes, 1);
     EXPECT_EQ(throwing_probe::destructions, 0);
-    EXPECT_NE(throwing_probe::ptr(), nullptr);
+    EXPECT_THROW(observed->flush(), std::runtime_error);   // still alive, still throwing
+    EXPECT_EQ(throwing_probe::flushes, 2);
 }
