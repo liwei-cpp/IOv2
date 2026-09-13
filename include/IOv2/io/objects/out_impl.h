@@ -52,7 +52,30 @@ public:
         : m_streambuf(device_type{}, creator) {}
 
 public:
-    bool sync_with_stdio(bool sync = true)
+    /**
+     * @lang{ZH}
+     * @brief 切换本流是否与 C stdio 同步：同步时每次插入结束都把本流缓冲推进 stdio 缓冲，
+     * 以保持与 `printf` 等的交错顺序；不同步时本流自行缓冲。
+     *
+     * 只是一次原子交换，不会失败；与并发的插入操作安全竞争。
+     *
+     * @param sync `true` 为同步（默认），`false` 为自行缓冲。
+     * @return 调用前的同步状态。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Switches whether this stream is synchronized with C stdio: synchronized
+     * pushes this stream's buffer into the stdio buffer at the end of every insertion,
+     * keeping the interleaving with `printf` and friends; unsynchronized buffers on its
+     * own.
+     *
+     * A single atomic exchange, cannot fail; safe against concurrent insertions.
+     *
+     * @param sync `true` for synchronized (the default), `false` for own buffering.
+     * @return The synchronization state before the call.
+     * @endif
+     */
+    bool sync_with_stdio(bool sync = true) noexcept
     {
         return m_sync_with_stdio.exchange(sync);
     }
@@ -93,7 +116,7 @@ public:
 protected:
     ostreambuf<device_type, char_type> m_streambuf;
     IOv2::locale<char_type> m_locale;
-    copyable_atomic<bool> m_sync_with_stdio{true};   ///< @lang{ZH} 是否随析构与 stdio 同步刷新；原子量，使 `sync_with_stdio()` 可与并发输出操作安全竞争。 @endif @lang{EN} Whether destruction flushes in sync with stdio; atomic so `sync_with_stdio()` is safe against concurrent output operations. @endif
+    copyable_atomic<bool> m_sync_with_stdio{true};   ///< @lang{ZH} 为 true 时每次插入结束（输出哨兵析构）都把本流缓冲推进 stdio 缓冲；与进程退出时的刷新无关。原子量，使 `sync_with_stdio()` 可与并发输出操作安全竞争。 @endif @lang{EN} When true, every insertion (the output sentry's destructor) pushes this stream's buffer into the stdio buffer; unrelated to the flush at process exit. Atomic so `sync_with_stdio()` is safe against concurrent output operations. @endif
 };
 
 /// cout_t
