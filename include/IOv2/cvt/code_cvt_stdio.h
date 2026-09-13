@@ -225,10 +225,9 @@ public:
      */
     void adjust(const cvt_behavior& acc)
     {
+        this->assert_not_tainted();
         if (const auto* ptr = dynamic_cast<const code_cvt_switch*>(&acc); ptr)
         {
-            // BT::adjust checks this too, but only after the commit below.
-            this->assert_not_tainted();
             if (!this->m_cvt_kernel.is_init_state())
                 throw cvt_error("code_cvt_stdio::adjust fail: invalid state");
             // Perform all potentially-throwing operations first, then commit with

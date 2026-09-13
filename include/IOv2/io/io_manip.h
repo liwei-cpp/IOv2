@@ -703,9 +703,9 @@ private:
  * @tparam TMoney The type of the monetary value; for the accepted set see `put_money`.
  * @endif
  */
-// NOLINTNEXTLINE(cppcoreguidelines-avoid-const-or-ref-data-members)
 template<typename TMoney> struct put_money_t
 {
+    // NOLINTNEXTLINE(cppcoreguidelines-avoid-const-or-ref-data-members)
     const TMoney& m_mon;  ///< @lang{ZH} 对待写出货币值的引用；生存期契约见上。 @endif @lang{EN} A reference to the monetary value to write; see above for the lifetime contract. @endif
     bool m_intl;          ///< @lang{ZH} `true` 用国际格式（如 `USD`），`false` 用本地格式（如 `$`）。 @endif @lang{EN} `true` selects the international format (e.g. `USD`), `false` the national one (e.g. `$`). @endif
 };
@@ -886,9 +886,9 @@ struct io_traits<TChar, put_money_t<TMoney>>
  * @tparam TMoney The type receiving the parsed result; for the accepted set see `put_money`.
  * @endif
  */
-// NOLINTNEXTLINE(cppcoreguidelines-avoid-const-or-ref-data-members)
 template<typename TMoney> struct get_money_t
 {
+    // NOLINTNEXTLINE(cppcoreguidelines-avoid-const-or-ref-data-members)
     TMoney& m_mon;  ///< @lang{ZH} 对接收解析结果的对象的引用；生存期契约见上。 @endif @lang{EN} A reference to the object receiving the parsed result; see above for the lifetime contract. @endif
     bool m_intl;    ///< @lang{ZH} `true` 按国际格式解析，`false` 按本地格式解析。 @endif @lang{EN} `true` parses the international format, `false` the national one. @endif
 };
