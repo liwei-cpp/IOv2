@@ -194,13 +194,14 @@ public:
      * 若 `acc` 为 `code_cvt_switch` 类型，则执行区域设置切换：
      * 用 `acc.code` 构造新的 `codecvt_kernel` 并原子地替换当前内核，
      * 同时更新缓存的区域设置名称 `m_code`。
-     * 切换时要求编码转换状态（`m_cvt_kernel`）处于初始状态，否则抛出异常。
-     * 所有可能抛出异常的操作均在提交前完成，确保强异常安全保证。
+     * 切换时要求转换器未被污染（tainted）且编码转换状态（`m_cvt_kernel`）处于初始状态，
+     * 否则抛出异常。所有可能抛出异常的操作均在提交前完成，确保强异常安全保证。
      * 无论 `acc` 类型如何，最终均链式调用基类 `BT::adjust(acc)`。
      *
      * @param acc 行为策略对象。
      *
-     * @throws cvt_error 若当前编码转换状态不处于初始状态。
+     * @throws cvt_error 若转换器处于 tainted 状态，或当前编码转换状态不处于初始状态；
+     *         两种情况下都不切换。
      * @endif
      *
      * @lang{EN}
@@ -209,21 +210,25 @@ public:
      * If `acc` is of type `code_cvt_switch`, performs a locale switch: constructs a
      * new `codecvt_kernel` from `acc.code` and atomically replaces the current kernel,
      * also updating the cached locale name `m_code`.
-     * The encoding conversion state (`m_cvt_kernel`) must be in its initial state at
-     * the time of switching; otherwise an exception is thrown.
+     * The converter must not be tainted and the encoding conversion state
+     * (`m_cvt_kernel`) must be in its initial state at the time of switching;
+     * otherwise an exception is thrown.
      * All potentially-throwing operations are completed before any commit, ensuring
      * the strong exception safety guarantee.
      * In all cases the call is forwarded to the base-class `BT::adjust(acc)`.
      *
      * @param acc Behavior policy object.
      *
-     * @throws cvt_error If the encoding conversion state is not in its initial state.
+     * @throws cvt_error If the converter is tainted, or the encoding conversion state
+     *         is not in its initial state; nothing is switched in either case.
      * @endif
      */
     void adjust(const cvt_behavior& acc)
     {
         if (const auto* ptr = dynamic_cast<const code_cvt_switch*>(&acc); ptr)
         {
+            // BT::adjust checks this too, but only after the commit below.
+            this->assert_not_tainted();
             if (!this->m_cvt_kernel.is_init_state())
                 throw cvt_error("code_cvt_stdio::adjust fail: invalid state");
             // Perform all potentially-throwing operations first, then commit with
