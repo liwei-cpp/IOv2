@@ -1,0 +1,31 @@
+<map id="IOv2::out_flusher&lt; T &gt;" name="IOv2::out_flusher&lt; T &gt;">
+<area shape="rect" id="Node000001" title="承载多态 try_flush() 的 CRTP 基类：对具体流类型 T 的向下转型集中于此。" alt="" coords="188,256,359,281"/>
+<area shape="rect" id="Node000003" href="$classIOv2_1_1stdout__api.html" title=" " alt="" coords="409,5,587,60"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="283,242,302,205,329,159,364,111,405,69,421,58,424,62,408,73,368,115,333,162,307,207,288,245"/>
+<area shape="rect" id="Node000005" href="$classIOv2_1_1stdout__api.html" title=" " alt="" coords="409,84,587,139"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="294,244,342,197,405,148,425,136,428,141,408,152,346,201,298,248"/>
+<area shape="rect" id="Node000007" href="$classIOv2_1_1stdout__api.html" title=" " alt="" coords="407,163,589,217"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="323,249,418,215,420,220,324,254"/>
+<area shape="rect" id="Node000009" href="$classIOv2_1_1stdout__api.html" title=" " alt="" coords="409,241,587,296"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="373,266,409,266,409,271,373,271"/>
+<area shape="rect" id="Node000011" href="$classIOv2_1_1stdout__api.html" title=" " alt="" coords="407,320,589,375"/>
+<area shape="poly" id="edge10_Node000001_Node000011" title=" " alt="" coords="324,283,420,317,418,322,323,288"/>
+<area shape="rect" id="Node000013" href="$classIOv2_1_1stdout__api.html" title=" " alt="" coords="407,399,589,453"/>
+<area shape="poly" id="edge12_Node000001_Node000013" title=" " alt="" coords="298,290,346,337,408,385,428,396,425,401,405,390,342,341,294,294"/>
+<area shape="rect" id="Node000015" href="$classIOv2_1_1stdout__api.html" title=" " alt="" coords="421,478,575,518"/>
+<area shape="poly" id="edge14_Node000001_Node000015" title=" " alt="" coords="288,293,306,331,333,377,367,423,408,464,427,476,425,480,405,468,363,427,328,380,301,333,283,295"/>
+<area shape="rect" id="Node000002" href="$classIOv2_1_1abs__flusher.html" title="承载多态 try_flush() 接口的抽象基类。" alt="" coords="5,256,140,281"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="154,266,188,266,188,271,154,271"/>
+<area shape="rect" id="Node000004" href="$classIOv2_1_1cerr__t.html" title="cerr" alt="" coords="644,20,741,45"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="601,30,644,30,644,35,601,35"/>
+<area shape="rect" id="Node000006" href="$classIOv2_1_1clog__t.html" title="clog" alt="" coords="643,99,742,124"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="601,109,643,109,643,114,601,114"/>
+<area shape="rect" id="Node000008" href="$classIOv2_1_1cout__t.html" title="cout_t" alt="" coords="643,177,743,203"/>
+<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="602,187,642,187,642,193,602,193"/>
+<area shape="rect" id="Node000010" href="$classIOv2_1_1wcerr__t.html" title="wcerr" alt="" coords="639,256,747,281"/>
+<area shape="poly" id="edge9_Node000009_Node000010" title=" " alt="" coords="601,266,638,266,638,271,601,271"/>
+<area shape="rect" id="Node000012" href="$classIOv2_1_1wclog__t.html" title="wclog" alt="" coords="637,335,748,360"/>
+<area shape="poly" id="edge11_Node000011_Node000012" title=" " alt="" coords="603,345,637,345,637,350,603,350"/>
+<area shape="rect" id="Node000014" href="$classIOv2_1_1wcout__t.html" title="wcout" alt="" coords="637,413,748,439"/>
+<area shape="poly" id="edge13_Node000013_Node000014" title=" " alt="" coords="603,423,637,423,637,429,603,429"/>
+</map>

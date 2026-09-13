@@ -1,0 +1,17 @@
+<map id="include/IOv2/io/utilities/istream_operators.h" name="include/IOv2/io/utilities/istream_operators.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="142,5,314,45"/>
+<area shape="rect" id="Node000002" href="$io__manip_8h.html" title=" " alt="" coords="54,167,188,207"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="129,34,97,42,65,54,37,72,14,95,9,105,9,114,20,133,43,150,71,164,68,169,40,155,16,137,3,116,4,104,10,92,34,67,63,49,95,37,128,29"/>
+<area shape="rect" id="Node000003" href="$iostream_8h.html" title=" " alt="" coords="24,93,218,119"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="193,56,139,95,135,91,189,51"/>
+<area shape="rect" id="Node000004" href="$istream_8h.html" title=" " alt="" coords="242,93,427,119"/>
+<area shape="poly" id="edge4_Node000001_Node000004" title=" " alt="" coords="266,51,320,91,317,95,263,56"/>
+<area shape="rect" id="Node000005" href="$in__impl_8h.html" title=" " alt="" coords="372,167,542,207"/>
+<area shape="poly" id="edge9_Node000001_Node000005" title=" " alt="" coords="328,33,359,41,389,53,417,70,442,92,453,109,459,129,461,166,456,167,454,130,448,111,438,95,414,74,387,58,357,47,327,38"/>
+<area shape="poly" id="edge3_Node000003_Node000002" title=" " alt="" coords="124,132,124,167,118,167,118,132"/>
+<area shape="poly" id="edge5_Node000004_Node000002" title=" " alt="" coords="291,126,173,169,171,164,290,121"/>
+<area shape="poly" id="edge6_Node000004_Node000005" title=" " alt="" coords="366,124,429,164,426,169,363,129"/>
+<area shape="rect" id="Node000006" href="$objects_8h.html" title=" " alt="" coords="310,255,481,295"/>
+<area shape="poly" id="edge8_Node000004_Node000006" title=" " alt="" coords="342,132,362,206,386,253,381,255,357,208,337,134"/>
+<area shape="poly" id="edge7_Node000005_Node000006" title=" " alt="" coords="438,220,411,256,407,253,433,216"/>
+</map>

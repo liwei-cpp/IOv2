@@ -1,0 +1,47 @@
+<map id="IOv2::ios_state&lt; TChar &gt;" name="IOv2::ios_state&lt; TChar &gt;">
+<area shape="rect" id="Node000001" title="在格式化状态之上，管理流状态位及其关联异常的组件。" alt="" coords="237,492,424,517"/>
+<area shape="rect" id="Node000003" href="$classIOv2_1_1stdin__api.html" title=" " alt="" coords="484,5,651,60"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="330,478,338,400,360,292,377,233,401,174,432,119,470,70,483,58,487,62,474,73,436,122,406,177,383,235,365,293,344,401,336,478"/>
+<area shape="rect" id="Node000005" href="$classIOv2_1_1stdin__api.html" title=" " alt="" coords="484,84,651,139"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="333,478,345,413,369,325,387,278,410,231,437,187,470,148,484,137,487,141,474,152,441,191,414,234,392,280,374,327,350,414,338,479"/>
+<area shape="rect" id="Node000007" href="$classIOv2_1_1stdout__api.html" title=" " alt="" coords="478,163,657,217"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="336,478,353,426,380,360,419,290,443,257,470,228,487,215,490,220,474,232,447,261,423,293,385,362,358,428,341,480"/>
+<area shape="rect" id="Node000009" href="$classIOv2_1_1stdout__api.html" title=" " alt="" coords="478,241,657,296"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="342,478,391,396,427,348,470,307,489,294,492,298,474,311,431,352,395,399,346,481"/>
+<area shape="rect" id="Node000011" href="$classIOv2_1_1stdout__api.html" title=" " alt="" coords="477,320,658,375"/>
+<area shape="poly" id="edge10_Node000001_Node000011" title=" " alt="" coords="352,480,404,434,471,385,494,372,496,377,473,390,408,438,356,484"/>
+<area shape="rect" id="Node000013" href="$classIOv2_1_1stdout__api.html" title=" " alt="" coords="478,399,657,453"/>
+<area shape="poly" id="edge12_Node000001_Node000013" title=" " alt="" coords="382,485,483,451,485,456,384,490"/>
+<area shape="rect" id="Node000015" href="$classIOv2_1_1stdout__api.html" title=" " alt="" coords="477,477,658,532"/>
+<area shape="poly" id="edge14_Node000001_Node000015" title=" " alt="" coords="438,502,477,502,477,507,438,507"/>
+<area shape="rect" id="Node000017" href="$classIOv2_1_1stdout__api.html" title=" " alt="" coords="476,556,659,611"/>
+<area shape="poly" id="edge16_Node000001_Node000017" title=" " alt="" coords="384,519,485,553,483,558,382,524"/>
+<area shape="rect" id="Node000019" href="$classIOv2_1_1iostream.html" title="双向字符流：把一条 streambuf 与一个 locale 组合成带格式化的输入输出接口。" alt="" coords="472,635,663,675"/>
+<area shape="poly" id="edge18_Node000001_Node000019" title=" " alt="" coords="355,525,407,573,439,599,473,621,498,633,496,638,471,626,436,603,403,577,352,529"/>
+<area shape="rect" id="Node000020" href="$classIOv2_1_1istream.html" title="字符输入流：把一条 istreambuf 与一个 locale 组合成带格式化的输入接口。" alt="" coords="476,699,659,739"/>
+<area shape="poly" id="edge19_Node000001_Node000020" title=" " alt="" coords="347,528,367,563,396,605,432,648,474,685,494,697,491,701,470,689,428,652,392,609,363,566,342,531"/>
+<area shape="rect" id="Node000021" href="$classIOv2_1_1ostream.html" title="字符输出流：把一条 ostreambuf 与一个 locale 组合成带格式化的输出接口。" alt="" coords="474,763,661,803"/>
+<area shape="poly" id="edge20_Node000001_Node000021" title=" " alt="" coords="342,530,359,576,387,636,425,697,448,725,474,749,492,761,489,766,470,753,444,728,420,700,382,638,354,578,337,531"/>
+<area shape="rect" id="Node000022" href="$classIOv2_1_1stdin__api.html" title=" " alt="" coords="494,827,641,867"/>
+<area shape="poly" id="edge21_Node000001_Node000022" title=" " alt="" coords="339,530,353,588,378,664,396,705,418,744,444,781,474,813,495,828,492,832,470,817,439,784,413,747,391,707,373,666,348,590,334,531"/>
+<area shape="rect" id="Node000023" href="$classIOv2_1_1stdout__api.html" title=" " alt="" coords="490,891,645,931"/>
+<area shape="poly" id="edge22_Node000001_Node000023" title=" " alt="" coords="337,531,347,600,370,693,388,742,411,791,439,837,474,877,491,890,488,894,470,881,435,840,406,794,383,744,365,694,342,601,332,531"/>
+<area shape="rect" id="Node000002" href="$classIOv2_1_1ios__base.html" title="所有流的格式化状态基类。" alt="" coords="5,492,189,517"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="203,502,237,502,237,507,203,507"/>
+<area shape="rect" id="Node000004" href="$classIOv2_1_1cin__t.html" title="cin" alt="" coords="721,20,811,45"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="665,30,720,30,720,35,665,35"/>
+<area shape="rect" id="Node000006" href="$classIOv2_1_1wcin__t.html" title="wcin" alt="" coords="715,99,817,124"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="665,109,715,109,715,114,665,114"/>
+<area shape="rect" id="Node000008" href="$classIOv2_1_1cerr__t.html" title="cerr" alt="" coords="717,177,815,203"/>
+<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="671,187,717,187,717,193,671,193"/>
+<area shape="rect" id="Node000010" href="$classIOv2_1_1clog__t.html" title="clog" alt="" coords="717,256,815,281"/>
+<area shape="poly" id="edge9_Node000009_Node000010" title=" " alt="" coords="670,266,717,266,717,271,670,271"/>
+<area shape="rect" id="Node000012" href="$classIOv2_1_1cout__t.html" title="cout_t" alt="" coords="716,335,816,360"/>
+<area shape="poly" id="edge11_Node000011_Node000012" title=" " alt="" coords="672,345,716,345,716,350,672,350"/>
+<area shape="rect" id="Node000014" href="$classIOv2_1_1wcerr__t.html" title="wcerr" alt="" coords="712,413,820,439"/>
+<area shape="poly" id="edge13_Node000013_Node000014" title=" " alt="" coords="671,423,712,423,712,429,671,429"/>
+<area shape="rect" id="Node000016" href="$classIOv2_1_1wclog__t.html" title="wclog" alt="" coords="711,492,821,517"/>
+<area shape="poly" id="edge15_Node000015_Node000016" title=" " alt="" coords="671,502,710,502,710,507,671,507"/>
+<area shape="rect" id="Node000018" href="$classIOv2_1_1wcout__t.html" title="wcout" alt="" coords="711,571,821,596"/>
+<area shape="poly" id="edge17_Node000017_Node000018" title=" " alt="" coords="673,581,710,581,710,586,673,586"/>
+</map>

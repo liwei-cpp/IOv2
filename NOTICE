@@ -1,0 +1,211 @@
+IOv2 -- NOTICE
+==============
+
+Copyright (c) 2026 liwei <liwei.cpp@gmail.com>
+
+IOv2 is distributed under the MIT License.  See the LICENSE file for the
+full text.
+
+
+SCOPE OF THIS LICENCE
+---------------------
+
+The MIT License applies to the source tree as of commit
+
+    b40a29d58ca7afff6c79b2201cbe6f580a835992
+
+and to every later revision of the 'main' branch, except where an
+individual file says otherwise in its own header.
+
+Every .h and .cpp file under include/, src/, test/ and cmake/ carries an
+SPDX-License-Identifier line stating this, so the attribution travels
+with the file if it is copied out of the repository.
+
+It does NOT apply retroactively to earlier revisions in this
+repository's history.  A licence is granted over a work, not over a Git
+reachability relation: the presence of this file at one commit says
+nothing about the contents of that commit's ancestors.
+
+
+HISTORICAL REVISIONS
+--------------------
+
+Revisions of this repository that precede the commit named above
+contain code, comments and identifier naming derived from the GNU ISO
+C++ Library (libstdc++) and, in the date/time facets, from the GNU C
+Library (glibc):
+
+    libstdc++  Copyright (C) 1997-2026 Free Software Foundation, Inc.
+               SPDX-License-Identifier: GPL-3.0-or-later
+                                        WITH GCC-exception-3.1
+    glibc      Copyright (C) 1991-2026 Free Software Foundation, Inc.
+               SPDX-License-Identifier: LGPL-2.1-or-later
+
+Those revisions are therefore NOT offered under the MIT License.  They
+are retained, deliberately and in full, as the audit record of how the
+derived material was identified and replaced; PROVENANCE.md documents
+that work.  Anyone wishing to use one of those historical revisions must
+comply with the upstream licences above.  So far as the author's own
+contributions to those revisions are concerned, they are offered under
+the GNU General Public License version 3 or later, matching the
+'book-v1' line described below.
+
+The GCC Runtime Library Exception that the Free Software Foundation
+attaches to libstdc++ covers Target Code produced by an Eligible
+Compilation Process.  It does not grant permission to redistribute
+libstdc++ *source* under more permissive terms, and no such permission
+is claimed here.
+
+
+THE book-v1 LINE
+----------------
+
+The 'book-v1' branch and the 'book-v1.0.*' tags are a separate, frozen
+line of work: the source code accompanying the book.  That line contains
+the derived material described above and is distributed under the GNU
+General Public License version 3 or later.
+
+The authoritative terms for it are the LICENSE and NOTICE files at the
+most recent 'book-v1.0.*' tag.  Every tag on that line carries the
+identical source tree; they differ only in those two files, each tag
+superseding the ones before it.
+
+Code from that line may not be treated as MIT-licensed.
+
+
+THIRD-PARTY MATERIAL IN THE CURRENT TREE
+----------------------------------------
+
+No third-party source is vendored.  The core header-only components depend
+only on the C++ standard library.  The optional zlib_cvt and hash_cvt
+components require externally supplied zlib and Botan, respectively; neither
+dependency is copied into this repository.
+
+The test suites use GoogleTest (BSD-3-Clause), which CMake fetches at
+configure time; it is a build-time test dependency only and its source is not
+committed to this Git repository.
+
+Three classes of thing in the current tree resemble their upstream
+counterparts because they cannot do otherwise, and are retained
+knowingly:
+
+  * Names, signatures and the required sequence of operations that ISO
+    C++ prescribes for the locale facets.
+  * Conversion-specifier semantics that POSIX prescribes for strptime
+    and strftime: the field bounds, the two-digit-year split, the
+    accepted zone-offset forms, the month-length table, and the leap
+    rule.
+  * The binary layout of glibc's era data, which is read through
+    nl_langinfo.  A description of an interface is not an expression of
+    it, and PROVENANCE.md records why "rewriting" it is not meaningful.
+
+
+AI ASSISTANCE
+-------------
+
+Some commits in this repository carry trailers naming Claude (an AI assistant
+made by Anthropic PBC), and one earlier commit names Gemini CLI (made by
+Google).  Historical commits used 'Co-Authored-By:'; commits after the boundary
+named above use 'Helped-by:'.
+
+These trailers record only that an AI assistant was used as a development
+tool; they do not designate Anthropic PBC, Google, or a model as a copyright
+holder.  The human author reviewed and adopted the resulting changes, takes
+responsibility for them, and licenses all rights they hold in the current tree
+under the MIT terms in LICENSE.
+
+
+================================================================================
+中文摘要
+================================================================================
+
+（本节为便利翻译，仅供参考；一切条款以上文英文正文及 LICENSE 文件为准。）
+
+版权所有 (c) 2026 liwei <liwei.cpp@gmail.com>
+
+IOv2 依据 MIT 许可证分发，全文见 LICENSE 文件。
+
+
+本许可证的适用范围
+------------------
+
+MIT 许可证适用于下述提交所代表的源码树
+
+    b40a29d58ca7afff6c79b2201cbe6f580a835992
+
+以及 'main' 分支此后的每一个修订版本；个别文件在自身头部另有声明的除外。
+
+`include/`、`src/`、`test/`、`cmake/` 下的每个 `.h` 与 `.cpp` 文件都带有
+SPDX-License-Identifier 标记声明这一点，因此文件被单独拷贝出仓库时，归属
+信息也随之带走。
+
+它**不**向前追溯适用于本仓库历史中更早的修订版本。许可是对作品的授予，
+而不是对 Git 可达关系的授予：本文件出现在某个提交上，并不说明该提交的
+祖先包含什么内容。
+
+
+历史修订版本
+------------
+
+早于上述提交的修订版本中，含有衍生自 GNU ISO C++ Library (libstdc++) 的
+代码、注释与标识符命名；在日期时间 facet 部分，还含有衍生自 GNU C Library
+(glibc) 的内容：
+
+    libstdc++  版权所有 (C) 1997-2026 Free Software Foundation, Inc.
+               SPDX-License-Identifier: GPL-3.0-or-later
+                                        WITH GCC-exception-3.1
+    glibc      版权所有 (C) 1991-2026 Free Software Foundation, Inc.
+               SPDX-License-Identifier: LGPL-2.1-or-later
+
+因此这些修订版本**不**按 MIT 许可证提供。保留它们是有意为之：它们是"衍生
+材料如何被识别并替换"这一过程的完整审计记录，相应工作记载于 PROVENANCE.md。
+任何人若要使用其中某个历史修订版本，须遵守上述上游许可证。就作者本人对这些
+修订版本的贡献而言，按 GNU 通用公共许可证第 3 版或任何更新版本提供，与下文
+'book-v1' 线保持一致。
+
+自由软件基金会附加于 libstdc++ 的 GCC Runtime Library Exception，覆盖的是由
+符合条件的编译过程（Eligible Compilation Process）所产生的 Target Code。它并
+不授予以更宽松的条款再分发 libstdc++ *源码* 的权利，此处亦不主张该项权利。
+
+
+book-v1 线
+----------
+
+'book-v1' 分支与 'book-v1.0.*' 系列 tag 是一条独立且已冻结的工作线：本书的配套
+源码。该线含有上述衍生材料，依据 GNU 通用公共许可证第 3 版或任何更新版本分发。
+
+以该线上最新的 'book-v1.0.*' tag 所带的 LICENSE 与 NOTICE 文件为准。该线各 tag
+的源码树完全相同，差异只在这两个文件上，后一个 tag 取代它之前的各个 tag。
+
+该线中的代码不得被当作 MIT 许可的代码使用。
+
+
+当前树中的第三方材料
+--------------------
+
+没有内置（vendored）任何第三方源码。核心 header-only 组件仅依赖 C++ 标准库；
+可选的 zlib_cvt 与 hash_cvt 分别要求外部提供 zlib 与 Botan，二者均未被复制进
+本仓库。
+
+测试套件使用 GoogleTest（BSD-3-Clause），由 CMake 在 configure 阶段拉取；它
+只是构建期的测试依赖，其源码未提交到本 Git 仓库。
+
+当前树中有三类内容与上游对应物相似，因为它们不可能不相似，属有意保留：
+
+  * ISO C++ 为 locale facet 规定的名称、签名与必需的操作次序。
+  * POSIX 为 strptime / strftime 规定的转换说明符语义：字段取值范围、两位
+    年份的世纪划分、可接受的时区偏移形式、月份长度表，以及闰年规则。
+  * glibc 纪元数据的二进制布局——它经由 nl_langinfo 读取。对接口的描述不是
+    对接口的表达，PROVENANCE.md 记录了为什么"重写"它没有意义。
+
+
+AI 协助
+-------
+
+本仓库的一些提交带有指明 Claude（Anthropic PBC 出品的 AI 助手）的尾注；另有
+一个较早提交指明了 Google 的 Gemini CLI。历史提交使用 'Co-Authored-By:'，上述
+边界之后的提交使用 'Helped-by:'。
+
+这些尾注只记录开发过程中使用了 AI 助手这一工具，并不把 Anthropic PBC、Google
+或任何模型列为著作权人。人类作者审阅并采纳了相应修改、对其负责，并依据 LICENSE
+中的 MIT 条款许可其对当前代码树持有的全部权利。

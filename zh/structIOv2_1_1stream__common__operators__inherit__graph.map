@@ -1,0 +1,45 @@
+<map id="IOv2::stream_common_operators" name="IOv2::stream_common_operators">
+<area shape="rect" id="Node000001" title="为输入流与输出流提供公共操作的混入（mix&#45;in）基类。" alt="" coords="5,485,176,525"/>
+<area shape="rect" id="Node000002" href="$classIOv2_1_1stdin__api.html" title=" " alt="" coords="236,5,403,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="90,471,97,391,117,285,134,228,156,171,186,118,222,70,235,58,239,62,226,73,190,121,161,173,139,229,122,286,103,392,96,471"/>
+<area shape="rect" id="Node000004" href="$classIOv2_1_1stdin__api.html" title=" " alt="" coords="236,84,403,139"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="93,471,104,404,127,319,144,273,165,228,191,186,222,148,236,137,239,141,226,152,195,189,170,231,149,275,132,320,109,405,98,472"/>
+<area shape="rect" id="Node000006" href="$classIOv2_1_1stdout__api.html" title=" " alt="" coords="230,163,409,217"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="97,470,112,418,138,353,174,286,196,255,222,227,237,215,240,220,226,231,200,258,178,289,142,355,118,420,102,472"/>
+<area shape="rect" id="Node000008" href="$classIOv2_1_1stdout__api.html" title=" " alt="" coords="230,241,409,296"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="104,471,123,433,150,389,183,345,222,305,239,294,242,298,226,309,187,348,154,392,128,436,109,473"/>
+<area shape="rect" id="Node000010" href="$classIOv2_1_1stdout__api.html" title=" " alt="" coords="229,320,410,375"/>
+<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="118,473,165,428,223,384,243,372,246,377,225,388,168,432,122,476"/>
+<area shape="rect" id="Node000012" href="$classIOv2_1_1stdout__api.html" title=" " alt="" coords="230,399,409,453"/>
+<area shape="poly" id="edge11_Node000001_Node000012" title=" " alt="" coords="162,478,238,451,240,456,163,483"/>
+<area shape="rect" id="Node000014" href="$classIOv2_1_1stdout__api.html" title=" " alt="" coords="229,477,410,532"/>
+<area shape="poly" id="edge13_Node000001_Node000014" title=" " alt="" coords="190,502,228,502,228,507,190,507"/>
+<area shape="rect" id="Node000016" href="$classIOv2_1_1stdout__api.html" title=" " alt="" coords="228,556,411,611"/>
+<area shape="poly" id="edge15_Node000001_Node000016" title=" " alt="" coords="163,527,240,553,238,558,162,532"/>
+<area shape="rect" id="Node000018" href="$classIOv2_1_1iostream.html" title="双向字符流：把一条 streambuf 与一个 locale 组合成带格式化的输入输出接口。" alt="" coords="224,635,415,675"/>
+<area shape="poly" id="edge17_Node000001_Node000018" title=" " alt="" coords="121,533,167,578,225,621,249,633,247,638,223,626,164,582,117,537"/>
+<area shape="rect" id="Node000019" href="$classIOv2_1_1istream.html" title="字符输入流：把一条 istreambuf 与一个 locale 组合成带格式化的输入接口。" alt="" coords="228,699,411,739"/>
+<area shape="poly" id="edge18_Node000001_Node000019" title=" " alt="" coords="110,536,155,611,188,651,226,685,245,697,243,701,222,689,184,654,151,614,105,538"/>
+<area shape="rect" id="Node000020" href="$classIOv2_1_1ostream.html" title="字符输出流：把一条 ostreambuf 与一个 locale 组合成带格式化的输出接口。" alt="" coords="226,763,413,803"/>
+<area shape="poly" id="edge19_Node000001_Node000020" title=" " alt="" coords="104,537,120,584,145,641,180,699,202,726,226,749,243,761,240,765,222,753,198,729,176,702,140,644,115,586,99,539"/>
+<area shape="rect" id="Node000021" href="$classIOv2_1_1stdin__api.html" title=" " alt="" coords="246,827,393,867"/>
+<area shape="poly" id="edge20_Node000001_Node000021" title=" " alt="" coords="100,538,113,597,136,671,153,709,173,747,197,782,226,813,247,828,244,832,222,817,193,786,169,750,148,712,131,673,107,598,94,539"/>
+<area shape="rect" id="Node000022" href="$classIOv2_1_1stdout__api.html" title=" " alt="" coords="242,891,397,931"/>
+<area shape="poly" id="edge21_Node000001_Node000022" title=" " alt="" coords="97,538,106,608,128,699,144,747,166,794,193,838,226,877,243,890,240,894,222,881,189,842,161,797,140,749,123,701,101,609,92,539"/>
+<area shape="rect" id="Node000003" href="$classIOv2_1_1cin__t.html" title="cin" alt="" coords="473,20,563,45"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="417,30,472,30,472,35,417,35"/>
+<area shape="rect" id="Node000005" href="$classIOv2_1_1wcin__t.html" title="wcin" alt="" coords="467,99,569,124"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="417,109,467,109,467,114,417,114"/>
+<area shape="rect" id="Node000007" href="$classIOv2_1_1cerr__t.html" title="cerr" alt="" coords="469,177,567,203"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="423,187,469,187,469,193,423,193"/>
+<area shape="rect" id="Node000009" href="$classIOv2_1_1clog__t.html" title="clog" alt="" coords="469,256,567,281"/>
+<area shape="poly" id="edge8_Node000008_Node000009" title=" " alt="" coords="422,266,469,266,469,271,422,271"/>
+<area shape="rect" id="Node000011" href="$classIOv2_1_1cout__t.html" title="cout_t" alt="" coords="468,335,568,360"/>
+<area shape="poly" id="edge10_Node000010_Node000011" title=" " alt="" coords="424,345,468,345,468,350,424,350"/>
+<area shape="rect" id="Node000013" href="$classIOv2_1_1wcerr__t.html" title="wcerr" alt="" coords="464,413,572,439"/>
+<area shape="poly" id="edge12_Node000012_Node000013" title=" " alt="" coords="423,423,464,423,464,429,423,429"/>
+<area shape="rect" id="Node000015" href="$classIOv2_1_1wclog__t.html" title="wclog" alt="" coords="463,492,573,517"/>
+<area shape="poly" id="edge14_Node000014_Node000015" title=" " alt="" coords="423,502,462,502,462,507,423,507"/>
+<area shape="rect" id="Node000017" href="$classIOv2_1_1wcout__t.html" title="wcout" alt="" coords="463,571,573,596"/>
+<area shape="poly" id="edge16_Node000016_Node000017" title=" " alt="" coords="425,581,462,581,462,586,425,586"/>
+</map>

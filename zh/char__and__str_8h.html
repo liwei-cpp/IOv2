@@ -1,0 +1,218 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=11"/>
+<meta name="generator" content="Doxygen 1.9.8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>IOv2: include/IOv2/io/traits/char_and_str.h 文件参考</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="resize.js"></script>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr id="projectrow">
+  <td id="projectalign">
+   <div id="projectname">IOv2
+   </div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 制作者 Doxygen 1.9.8 -->
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+/* @license-end */
+</script>
+<script type="text/javascript" src="menudata.js"></script>
+<script type="text/javascript" src="menu.js"></script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(function() {
+  initMenu('',true,false,'search.php','搜索');
+  $(document).ready(function() { init_search(); });
+});
+/* @license-end */
+</script>
+<div id="main-nav"></div>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(document).ready(function(){initNavTree('char__and__str_8h.html',''); initResizable(); });
+/* @license-end */
+</script>
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">载入中...</div>
+<div class="SRStatus" id="Searching">搜索中...</div>
+<div class="SRStatus" id="NoMatches">未找到</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="header">
+  <div class="summary">
+<a href="#nested-classes">类</a> &#124;
+<a href="#namespaces">命名空间</a> &#124;
+<a href="#func-members">函数</a>  </div>
+  <div class="headertitle"><div class="title">char_and_str.h 文件参考</div></div>
+</div><!--header-->
+<div class="contents">
+<div class="textblock"><code>#include &lt;<a class="el" href="defs_8h_source.html">IOv2/common/defs.h</a>&gt;</code><br />
+<code>#include &lt;<a class="el" href="ctype_8h_source.html">IOv2/facet/ctype.h</a>&gt;</code><br />
+<code>#include &lt;<a class="el" href="io__base_8h_source.html">IOv2/io/io_base.h</a>&gt;</code><br />
+<code>#include &lt;<a class="el" href="traits__base_8h_source.html">IOv2/io/traits/traits_base.h</a>&gt;</code><br />
+<code>#include &lt;<a class="el" href="locale_8h_source.html">IOv2/locale/locale.h</a>&gt;</code><br />
+<code>#include &lt;algorithm&gt;</code><br />
+<code>#include &lt;array&gt;</code><br />
+<code>#include &lt;cstddef&gt;</code><br />
+<code>#include &lt;iterator&gt;</code><br />
+<code>#include &lt;string&gt;</code><br />
+<code>#include &lt;type_traits&gt;</code><br />
+<code>#include &lt;vector&gt;</code><br />
+</div><div class="textblock"><div class="dynheader">
+char_and_str.h 的引用(Include)关系图:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="char__and__str_8h__incl.svg" width="6840" height="608"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+</div><div class="textblock"><div class="dynheader">
+此图展示该文件直接或间接的被哪些文件引用了:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="char__and__str_8h__dep__incl.svg" width="640" height="315"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+</div>
+<p><a href="char__and__str_8h_source.html">浏览源代码.</a></p>
+<table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
+类</h2></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1io__traits_3_01TChar_00_01TChar_01_4.html">IOv2::io_traits&lt; TChar, TChar &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">流自身字符类型的单个字符的读写：<code>os &lt;&lt; c</code> / <code>is &gt;&gt; c</code>。  <a href="structIOv2_1_1io__traits_3_01TChar_00_01TChar_01_4.html#details">更多...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1io__traits_3_01TChar_00_01char_01_4.html">IOv2::io_traits&lt; TChar, char &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">把一个窄字符加宽后写入非 <code>char</code> 流：<code>wos &lt;&lt; 'x'</code>。  <a href="structIOv2_1_1io__traits_3_01TChar_00_01char_01_4.html#details">更多...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1io__traits_3_01char_00_01unsigned_01char_01_4.html">IOv2::io_traits&lt; char, unsigned char &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight"><code>char</code> 流上 <code>unsigned char</code> 的字符语义读写：<code>os &lt;&lt; uc</code> / <code>is &gt;&gt; uc</code>。  <a href="structIOv2_1_1io__traits_3_01char_00_01unsigned_01char_01_4.html#details">更多...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1io__traits_3_01char_00_01signed_01char_01_4.html">IOv2::io_traits&lt; char, signed char &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight"><code>char</code> 流上 <code>signed char</code> 的字符语义读写：<code>os &lt;&lt; sc</code> / <code>is &gt;&gt; sc</code>。  <a href="structIOv2_1_1io__traits_3_01char_00_01signed_01char_01_4.html#details">更多...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1io__traits_3_01TChar_00_01TChar_01_5_01_4.html">IOv2::io_traits&lt; TChar, TChar * &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">写出与流同字符类型的 C 风格字符串：<code>os &lt;&lt; str</code>。  <a href="structIOv2_1_1io__traits_3_01TChar_00_01TChar_01_5_01_4.html#details">更多...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1io__traits_3_01TChar_00_01const_01TChar_01_5_01_4.html">IOv2::io_traits&lt; TChar, const TChar * &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight"><code><a class="el" href="structIOv2_1_1io__traits.html" title="把 TChar 流的读写逻辑接到类型 T 上的扩展点。主模板故意不定义；见本文件头部。">io_traits</a>&lt;TChar, TChar*&gt;</code> 的 <code>const</code> 指针版本，全部转交后者。  <a href="structIOv2_1_1io__traits_3_01TChar_00_01const_01TChar_01_5_01_4.html#details">更多...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1io__traits_3_01TChar_00_01char_01_5_01_4.html">IOv2::io_traits&lt; TChar, char * &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">把一个窄字符串加宽后写入 <code>TChar</code> 流。  <a href="structIOv2_1_1io__traits_3_01TChar_00_01char_01_5_01_4.html#details">更多...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1io__traits_3_01TChar_00_01const_01char_01_5_01_4.html">IOv2::io_traits&lt; TChar, const char * &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight"><code><a class="el" href="structIOv2_1_1io__traits.html" title="把 TChar 流的读写逻辑接到类型 T 上的扩展点。主模板故意不定义；见本文件头部。">io_traits</a>&lt;TChar, char*&gt;</code> 的 <code>const</code> 指针版本，全部转交后者。  <a href="structIOv2_1_1io__traits_3_01TChar_00_01const_01char_01_5_01_4.html#details">更多...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1io__traits_3_01char_00_01char_01_5_01_4.html">IOv2::io_traits&lt; char, char * &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight"><code>char</code> 流上的窄字符串：<code>os &lt;&lt; "hi"</code>。  <a href="structIOv2_1_1io__traits_3_01char_00_01char_01_5_01_4.html#details">更多...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1io__traits_3_01char_00_01const_01char_01_5_01_4.html">IOv2::io_traits&lt; char, const char * &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight"><code><a class="el" href="structIOv2_1_1io__traits.html" title="把 TChar 流的读写逻辑接到类型 T 上的扩展点。主模板故意不定义；见本文件头部。">io_traits</a>&lt;char, char*&gt;</code> 的 <code>const</code> 指针版本，全部转交后者。  <a href="structIOv2_1_1io__traits_3_01char_00_01const_01char_01_5_01_4.html#details">更多...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1io__traits_3_01char_00_01unsigned_01char_01_5_01_4.html">IOv2::io_traits&lt; char, unsigned char * &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">把 <code>signed char</code> / <code>unsigned char</code> 字符串写入 <code>char</code> 流。  <a href="structIOv2_1_1io__traits_3_01char_00_01unsigned_01char_01_5_01_4.html#details">更多...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1io__traits_3_01char_00_01const_01unsigned_01char_01_5_01_4.html">IOv2::io_traits&lt; char, const unsigned char * &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight"><code><a class="el" href="structIOv2_1_1io__traits.html" title="把 TChar 流的读写逻辑接到类型 T 上的扩展点。主模板故意不定义；见本文件头部。">io_traits</a>&lt;char, unsigned char*&gt;</code> 的 <code>const</code> 指针版本；说明见那里。  <a href="structIOv2_1_1io__traits_3_01char_00_01const_01unsigned_01char_01_5_01_4.html#details">更多...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1io__traits_3_01char_00_01signed_01char_01_5_01_4.html">IOv2::io_traits&lt; char, signed char * &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight"><code>signed char</code> 字符串写入 <code>char</code> 流；与 <code><a class="el" href="structIOv2_1_1io__traits.html" title="把 TChar 流的读写逻辑接到类型 T 上的扩展点。主模板故意不定义；见本文件头部。">io_traits</a>&lt;char, unsigned char*&gt;</code> 相同， 说明见那里。  <a href="structIOv2_1_1io__traits_3_01char_00_01signed_01char_01_5_01_4.html#details">更多...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1io__traits_3_01char_00_01const_01signed_01char_01_5_01_4.html">IOv2::io_traits&lt; char, const signed char * &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight"><code><a class="el" href="structIOv2_1_1io__traits.html" title="把 TChar 流的读写逻辑接到类型 T 上的扩展点。主模板故意不定义；见本文件头部。">io_traits</a>&lt;char, signed char*&gt;</code> 的 <code>const</code> 指针版本；说明见 <code><a class="el" href="structIOv2_1_1io__traits.html" title="把 TChar 流的读写逻辑接到类型 T 上的扩展点。主模板故意不定义；见本文件头部。">io_traits</a>&lt;char, unsigned char*&gt;</code>。  <a href="structIOv2_1_1io__traits_3_01char_00_01const_01signed_01char_01_5_01_4.html#details">更多...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1io__traits_3_01TChar_00_01TChar_0fN_0e_4.html">IOv2::io_traits&lt; TChar, TChar[N]&gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">将一个以空白分隔的 token 提取到定长字符数组。  <a href="structIOv2_1_1io__traits_3_01TChar_00_01TChar_0fN_0e_4.html#details">更多...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1io__traits_3_01char_00_01unsigned_01char_0fN_0e_4.html">IOv2::io_traits&lt; char, unsigned char[N]&gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">把一个以空白分隔的词提取到 <code>char</code> 流上的 <code>unsigned char</code> 定长数组。  <a href="structIOv2_1_1io__traits_3_01char_00_01unsigned_01char_0fN_0e_4.html#details">更多...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1io__traits_3_01char_00_01signed_01char_0fN_0e_4.html">IOv2::io_traits&lt; char, signed char[N]&gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">把一个以空白分隔的词提取到 <code>char</code> 流上的 <code>signed char</code> 定长数组；与 <code><a class="el" href="structIOv2_1_1io__traits.html" title="把 TChar 流的读写逻辑接到类型 T 上的扩展点。主模板故意不定义；见本文件头部。">io_traits</a>&lt;char, unsigned char[N]&gt;</code> 相同，说明见那里。  <a href="structIOv2_1_1io__traits_3_01char_00_01signed_01char_0fN_0e_4.html#details">更多...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1io__traits_3_01TChar_00_01std_1_1basic__string_3_01TChar_00_01TTraits_00_01TAlloc_01_4_01_4.html">IOv2::io_traits&lt; TChar, std::basic_string&lt; TChar, TTraits, TAlloc &gt; &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">写出 <code>std::basic_string</code> 的内容，或把一个以空白分隔的词提取进去。  <a href="structIOv2_1_1io__traits_3_01TChar_00_01std_1_1basic__string_3_01TChar_00_01TTraits_00_01TAlloc_01_4_01_4.html#details">更多...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="namespaces" name="namespaces"></a>
+命名空间</h2></td></tr>
+<tr class="memitem:namespaceIOv2" id="r_namespaceIOv2"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html">IOv2</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
+函数</h2></td></tr>
+<tr class="memitem:aed3174c35924fe628b2797b92663e409" id="r_aed3174c35924fe628b2797b92663e409"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> TIter , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt; <br />
+requires (char_sink_for&lt;TIter, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a>&gt;)</td></tr>
+<tr class="memitem:aed3174c35924fe628b2797b92663e409"><td class="memTemplItemLeft" align="right" valign="top">TIter&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#aed3174c35924fe628b2797b92663e409">IOv2::ostream_insert</a> (TIter <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">iter</a>, <a class="el" href="classIOv2_1_1ios__base.html">ios_base</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt; &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">io</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> *<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">s</a>, std::size_t <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">n</a>)</td></tr>
+<tr class="memdesc:aed3174c35924fe628b2797b92663e409"><td class="mdescLeft">&#160;</td><td class="mdescRight">把一段字符序列按字段宽度补齐后写出——库内所有插入器共用的补齐点。  <br /></td></tr>
+<tr class="separator:aed3174c35924fe628b2797b92663e409"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a029604d0757616cabc08f51da3c55c15" id="r_a029604d0757616cabc08f51da3c55c15"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> TIter , std::sentinel_for&lt; TIter &gt; TSent, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt; <br />
+requires (std::is_same_v&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> TIter::value_type&gt;)</td></tr>
+<tr class="memitem:a029604d0757616cabc08f51da3c55c15"><td class="memTemplItemLeft" align="right" valign="top">TIter&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a029604d0757616cabc08f51da3c55c15">IOv2::istream_extract</a> (TIter <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">iter</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TSent</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">iter_end</a>, <a class="el" href="classIOv2_1_1ios__base.html">ios_base</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt; &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">io</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="classIOv2_1_1locale.html">locale</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt; &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">loc</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> *<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">s</a>, std::size_t <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">num</a>)</td></tr>
+<tr class="memdesc:a029604d0757616cabc08f51da3c55c15"><td class="mdescLeft">&#160;</td><td class="mdescRight">把一个以空白分隔的词读进调用方给的定容缓冲区——三个定长数组特化共用的提取点。  <br /></td></tr>
+<tr class="separator:a029604d0757616cabc08f51da3c55c15"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table>
+<a name="details" id="details"></a><h2 class="groupheader">详细描述</h2>
+<div class="textblock"><p>为字符与字符串特化 <code>io_traits</code>：单个字符、C 风格字符串、定长字符数组与 <code>std::basic_string</code>，并提供所有插入器共用的补齐点 <code>ostream_insert</code> 与三个定长数组 特化共用的提取点 <code>istream_extract</code>。</p>
+<p>特化的取舍逐条对照标准 <code>&lt;ostream&gt;</code> / <code>&lt;istream&gt;</code> 的字符与字符串重载：</p><ul>
+<li><b>同字符类型**（<code>TChar</code> / <code>TChar*</code> / <code>TChar[N]</code> / <code>basic_string&lt;TChar&gt;</code>）对任何流都成立；</b></li>
+<li><b>**窄字符与窄字符串**（<code>char</code> / <code>char*</code>）可以写进任意字符类型的流，逐字符经 <code>ctype&lt;TChar&gt;::widen()</code> 加宽，对应标准里对 <code>charT</code> 模板化的那两条重载；</b></li>
+<li><b>**<code>signed char</code> / <code>unsigned char</code></b> 及其指针、数组只对 <code>char</code> 流成立，按字节原样处理， 对应标准只给 <code>basic_ostream&lt;char&gt;</code> / <code>basic_istream&lt;char&gt;</code> 的那几条重载。宽流上它们落到 <code><a class="el" href="arithmetic_8h.html">IOv2/io/traits/arithmetic.h</a></code>，行为与标准相同：值按数值写出，指针按地址写出。</li>
+</ul>
+<p>提取端刻意**只有**引用到定长数组与 <code>basic_string</code> 两种形状，没有裸指针形式，理由见 <code>io_traits&lt;TChar, TChar[N]&gt;</code> 的说明。每一对 <code>T*</code> / <code>const T*</code> 特化都成对出现， <code>const</code> 版一律转交非 <code>const</code> 版，这样 <code>operator&lt;&lt;</code> 无论收到哪种键都能命中。</p>
+<p>本文件不包含 <code><a class="el" href="arithmetic_8h.html">arithmetic.h</a></code>，两者相互独立；但 <code><a class="el" href="arithmetic_8h.html">arithmetic.h</a></code> 的排除名单是按本文件的存在 设计的——缺了本文件时 <code>os &lt;&lt; 'x'</code>、<code>os &lt;&lt; (signed char)</code> 等是编译错误而不是按数值写出。 </p>
+</div></div><!-- contents -->
+</div><!-- doc-content -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><a class="el" href="dir_d44c64559bbebec7f509842c48db8b23.html">include</a></li><li class="navelem"><a class="el" href="dir_1157f564aec2b3a7d6bde4eba89ab805.html">IOv2</a></li><li class="navelem"><a class="el" href="dir_e6325c10be556c0ae106bae233ca0d0f.html">io</a></li><li class="navelem"><a class="el" href="dir_3b32b973eea3f549e04ac645eba714a9.html">traits</a></li><li class="navelem"><a class="el" href="char__and__str_8h.html">char_and_str.h</a></li>
+    <li class="footer">制作者 <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8 </li>
+  </ul>
+</div>
+</body>
+</html>

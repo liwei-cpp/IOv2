@@ -1,0 +1,33 @@
+<map id="IOv2::ostream_operators&lt; TChar &gt;" name="IOv2::ostream_operators&lt; TChar &gt;">
+<area shape="rect" id="Node000001" title="为输出流提供各类插入操作的混入（mix&#45;in）基类。" alt="" coords="5,327,188,367"/>
+<area shape="rect" id="Node000002" href="$classIOv2_1_1stdout__api.html" title=" " alt="" coords="242,5,421,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="104,313,120,261,147,196,185,129,208,97,234,69,249,58,252,62,238,73,212,101,189,132,152,198,126,262,109,315"/>
+<area shape="rect" id="Node000004" href="$classIOv2_1_1stdout__api.html" title=" " alt="" coords="242,84,421,139"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="111,314,159,232,194,187,234,148,251,137,254,141,238,152,198,191,163,235,116,316"/>
+<area shape="rect" id="Node000006" href="$classIOv2_1_1stdout__api.html" title=" " alt="" coords="241,163,422,217"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="125,315,174,271,235,226,255,215,258,220,237,231,178,275,129,319"/>
+<area shape="rect" id="Node000008" href="$classIOv2_1_1stdout__api.html" title=" " alt="" coords="242,241,421,296"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="169,320,248,294,250,299,171,325"/>
+<area shape="rect" id="Node000010" href="$classIOv2_1_1stdout__api.html" title=" " alt="" coords="241,320,422,375"/>
+<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="202,345,241,345,241,350,202,350"/>
+<area shape="rect" id="Node000012" href="$classIOv2_1_1stdout__api.html" title=" " alt="" coords="240,399,423,453"/>
+<area shape="poly" id="edge11_Node000001_Node000012" title=" " alt="" coords="171,369,250,396,248,401,169,374"/>
+<area shape="rect" id="Node000014" href="$classIOv2_1_1iostream.html" title="双向字符流：把一条 streambuf 与一个 locale 组合成带格式化的输入输出接口。" alt="" coords="236,478,427,518"/>
+<area shape="poly" id="edge13_Node000001_Node000014" title=" " alt="" coords="128,376,177,421,237,464,262,475,260,480,235,468,174,425,125,379"/>
+<area shape="rect" id="Node000015" href="$classIOv2_1_1ostream.html" title="字符输出流：把一条 ostreambuf 与一个 locale 组合成带格式化的输出接口。" alt="" coords="238,542,425,582"/>
+<area shape="poly" id="edge14_Node000001_Node000015" title=" " alt="" coords="117,378,165,453,199,493,238,528,258,540,255,544,234,532,195,497,161,457,112,381"/>
+<area shape="rect" id="Node000016" href="$classIOv2_1_1stdout__api.html" title=" " alt="" coords="254,606,409,646"/>
+<area shape="poly" id="edge15_Node000001_Node000016" title=" " alt="" coords="110,379,128,427,155,484,191,542,213,568,238,592,255,604,252,608,234,596,209,572,187,545,150,486,123,429,105,381"/>
+<area shape="rect" id="Node000003" href="$classIOv2_1_1cerr__t.html" title="cerr" alt="" coords="481,20,579,45"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="435,30,481,30,481,35,435,35"/>
+<area shape="rect" id="Node000005" href="$classIOv2_1_1clog__t.html" title="clog" alt="" coords="481,99,579,124"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="434,109,481,109,481,114,434,114"/>
+<area shape="rect" id="Node000007" href="$classIOv2_1_1cout__t.html" title="cout_t" alt="" coords="480,177,580,203"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="436,187,480,187,480,193,436,193"/>
+<area shape="rect" id="Node000009" href="$classIOv2_1_1wcerr__t.html" title="wcerr" alt="" coords="476,256,584,281"/>
+<area shape="poly" id="edge8_Node000008_Node000009" title=" " alt="" coords="435,266,476,266,476,271,435,271"/>
+<area shape="rect" id="Node000011" href="$classIOv2_1_1wclog__t.html" title="wclog" alt="" coords="475,335,585,360"/>
+<area shape="poly" id="edge10_Node000010_Node000011" title=" " alt="" coords="435,345,474,345,474,350,435,350"/>
+<area shape="rect" id="Node000013" href="$classIOv2_1_1wcout__t.html" title="wcout" alt="" coords="475,413,585,439"/>
+<area shape="poly" id="edge12_Node000012_Node000013" title=" " alt="" coords="437,423,474,423,474,429,437,429"/>
+</map>
