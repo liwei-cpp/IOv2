@@ -400,16 +400,27 @@ private:
      * @lang{ZH}
      * @brief 私有构造：单例创建时经 `resolve_locale` 从环境变量解析五个 `LC_*` 类别的
      * 初始 locale 名称。仅 `sing_temp`（友元）可调用。
+     *
+     * 登记的退出钩子为空操作：本单例在进程退出时**不析构**。标准流对象退出时同样不析构，
+     * 它们的 `locale::get` 在退出阶段仍可能回到本缓存构造未命中的 facet；若本缓存先行
+     * 析构，那就是释放后使用。存储与缓存持有的堆内存保持可达，由操作系统回收。
      * @endif
      *
      * @lang{EN}
      * @brief Private constructor: on singleton creation, resolves the initial locale
      * names for the five `LC_*` categories from the environment via `resolve_locale`.
      * Callable only by `sing_temp` (a friend).
+     *
+     * The registered exit hook is a no-op: this singleton is **not destroyed** at process
+     * exit. The standard stream objects are not destroyed at exit either, and their
+     * `locale::get` may still come back to this cache during exit to build a facet that
+     * is not cached yet; destroying the cache first would make that a use-after-free. The
+     * storage and the heap the caches own stay reachable and are reclaimed by the OS.
      * @endif
      */
     ori_facet_buf()
-        : m_ctype(resolve_locale("LC_CTYPE")),
+        : sing_temp<ori_facet_buf>([](ori_facet_buf*) noexcept {}),
+          m_ctype(resolve_locale("LC_CTYPE")),
           m_collate(resolve_locale("LC_COLLATE")),
           m_monetary(resolve_locale("LC_MONETARY")),
           m_numeric(resolve_locale("LC_NUMERIC")),

@@ -100,14 +100,12 @@ class cout_t : public stdout_api<cout_t, std_device<STDOUT_FILENO>, char>
     friend sing_temp<cout_t>;
 
 private:
-    cout_t() = default;
+    cout_t()
+        : sing_temp<cout_t>([](cout_t* p) noexcept { try { p->flush(); } catch (...) {} })
+    {}
+
     cout_t(const cout_t&) = delete;
     cout_t& operator=(const cout_t&) = delete;
-
-    ~cout_t()
-    {
-        try { flush(); } catch (...) {}
-    }
 };
 
 #if defined(IOV2_SHARED)
@@ -128,6 +126,7 @@ class cerr_t : public stdout_api<cerr_t, std_device<STDERR_FILENO>, char>
 private:
     cerr_t()
         : BT()
+        , sing_temp<cerr_t>([](cerr_t* p) noexcept { try { p->flush(); } catch (...) {} })
     {
         tie(&cout);
         setf(ios_defs::unitbuf);
@@ -135,11 +134,6 @@ private:
 
     cerr_t(const cerr_t&) = delete;
     cerr_t& operator=(const cerr_t&) = delete;
-
-    ~cerr_t()
-    {
-        try { flush(); } catch (...) {}
-    }
 };
 
 #if defined(IOV2_SHARED)
@@ -157,15 +151,12 @@ class clog_t : public stdout_api<clog_t, std_device<STDERR_FILENO>, char>
     friend sing_temp<clog_t>;
 
 private:
-    clog_t() = default;
+    clog_t()
+        : sing_temp<clog_t>([](clog_t* p) noexcept { try { p->flush(); } catch (...) {} })
+    {}
 
     clog_t(const clog_t&) = delete;
     clog_t& operator=(const clog_t&) = delete;
-
-    ~clog_t()
-    {
-        try { flush(); } catch (...) {}
-    }
 };
 
 #if defined(IOV2_SHARED)
@@ -185,15 +176,11 @@ class wcout_t : public stdout_api<wcout_t, std_device<STDOUT_FILENO>, wchar_t>
 private:
     wcout_t()
         : BT(code_cvt_stdio_creator(IOv2::locale<char>::initial_locale_name(LC_CTYPE)))
+        , sing_temp<wcout_t>([](wcout_t* p) noexcept { try { p->flush(); } catch (...) {} })
     {}
 
     wcout_t(const wcout_t&) = delete;
     wcout_t& operator=(const wcout_t&) = delete;
-
-    ~wcout_t()
-    {
-        try { flush(); } catch (...) {}
-    }
 };
 
 #if defined(IOV2_SHARED)
@@ -213,6 +200,7 @@ class wcerr_t : public stdout_api<wcerr_t, std_device<STDERR_FILENO>, wchar_t>
 private:
     wcerr_t()
         : BT(code_cvt_stdio_creator(IOv2::locale<char>::initial_locale_name(LC_CTYPE)))
+        , sing_temp<wcerr_t>([](wcerr_t* p) noexcept { try { p->flush(); } catch (...) {} })
     {
         tie(&wcout);
         setf(ios_defs::unitbuf);
@@ -220,11 +208,6 @@ private:
 
     wcerr_t(const wcerr_t&) = delete;
     wcerr_t& operator=(const wcerr_t&) = delete;
-
-    ~wcerr_t()
-    {
-        try { flush(); } catch (...) {}
-    }
 };
 
 #if defined(IOV2_SHARED)
@@ -244,15 +227,11 @@ class wclog_t : public stdout_api<wclog_t, std_device<STDERR_FILENO>, wchar_t>
 private:
     wclog_t()
         : BT(code_cvt_stdio_creator(IOv2::locale<char>::initial_locale_name(LC_CTYPE)))
+        , sing_temp<wclog_t>([](wclog_t* p) noexcept { try { p->flush(); } catch (...) {} })
     {}
 
     wclog_t(const wclog_t&) = delete;
     wclog_t& operator=(const wclog_t&) = delete;
-
-    ~wclog_t()
-    {
-        try { flush(); } catch (...) {}
-    }
 };
 
 #if defined(IOV2_SHARED)
