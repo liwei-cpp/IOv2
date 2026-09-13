@@ -577,6 +577,28 @@ TEST(CodeCvtStdio, TheEncodingCannotBeSwitchedMidCharacter)
     EXPECT_THROW(obj.adjust(code_cvt_switch{"C"}), cvt_error);
 }
 
+// A failed put taints the converter, and a tainted converter refuses to switch.
+// The refusal has to come before anything is committed: the natural reaction to
+// an encoding failure is to try another encoding, and a caller who sees the
+// throw must be able to trust that the converter is still on the old one.
+TEST(CodeCvtStdio, ASwitchRefusedByTaintLeavesTheEncodingAlone)
+{
+    code_cvt_stdio<rb_root_cvt<mem_device<char>>> obj{rb_root_cvt{mem_device(std::string{})},
+                                                      "zh_CN.UTF-8"};
+
+    EXPECT_EQ(obj.bos(), io_status::output);
+    obj.main_cont_beg();
+
+    const wchar_t lone_surrogate[] = {L'\xD800'};
+    EXPECT_THROW(obj.put(lone_surrogate, 1), cvt_error); // no encoding holds it: tainted
+
+    EXPECT_THROW(obj.adjust(code_cvt_switch{"C"}), cvt_error);
+
+    code_cvt_access status;
+    obj.retrieve(status);
+    EXPECT_EQ(status.code, "zh_CN.UTF-8");
+}
+
 TEST(CodeCvtStdio, RetrieveReportsTheCurrentEncoding)
 {
     code_cvt_stdio<rb_root_cvt<mem_device<char>>> obj{rb_root_cvt{mem_device(std::string{})},
