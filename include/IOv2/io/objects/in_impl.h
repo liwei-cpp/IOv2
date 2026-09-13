@@ -48,21 +48,64 @@ public:
     {}
 
 public:
-    bool sync_with_stdio(bool sync = true)
+    /**
+     * @lang{ZH}
+     * @brief 切换本流是否与 C stdio 同步：同步时逐字节读 `stdin`，不同步时自带读缓冲。
+     *
+     * 切换意味着换掉整个 streambuf（先 `detach()` 旧的，再以同一设备重建）。已缓冲但未消费的
+     * 输入按 streambuf.h 的 `detach()` 契约丢弃；因此应在任何 stdin 读取之前调用。
+     *
+     * 本函数**不会失败**。重建 streambuf 只可能因内存耗尽或（`wchar_t`）当前编码的 locale
+     * 数据库在运行期间消失而抛出——两者都是运行环境已坏、调用方无从处置的情形，此时直接
+     * `std::abort()`，而不是留下一个半换的流。这与 `sing_temp::init` 构造标准流失败即
+     * `abort` 的策略一致；libstdc++ 在同一位置失败后留下的是悬垂的 `rdbuf`（未定义行为）。
+     *
+     * @param sync `true` 为同步（默认），`false` 为自带缓冲。
+     * @return 调用前的同步状态。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Switches whether this stream is synchronized with C stdio: synchronized
+     * reads `stdin` byte by byte, unsynchronized reads through its own buffer.
+     *
+     * Switching replaces the whole streambuf (`detach()` the old one, rebuild on the
+     * same device). Input that was buffered but not yet consumed is discarded per the
+     * `detach()` contract in streambuf.h; call this before any stdin read.
+     *
+     * This function **cannot fail**. Rebuilding the streambuf can only throw on memory
+     * exhaustion or (`wchar_t`) when the locale database of the current code vanished
+     * while the process runs -- both mean the runtime environment is broken and there
+     * is nothing the caller could do, so this calls `std::abort()` instead of leaving a
+     * half-replaced stream. This matches the `sing_temp::init` policy of aborting when
+     * a standard stream cannot be constructed; libstdc++ failing at the same point
+     * leaves a dangling `rdbuf` (undefined behavior).
+     *
+     * @param sync `true` for synchronized (the default), `false` for own buffering.
+     * @return The synchronization state before the call.
+     * @endif
+     */
+    bool sync_with_stdio(bool sync = true) noexcept
     {
+        std::lock_guard guard(this->io_mutex());
         auto old_sync_state = m_sync_with_stdio;
         if (old_sync_state == sync)
             return old_sync_state;
-        m_sync_with_stdio = sync;
 
-        auto [dev, err] = m_streambuf.detach();
-        if constexpr (std::is_same_v<char_type, char>)
-            m_streambuf = istreambuf<device_type, char_type>(std::move(dev), !sync);
-        else if constexpr (std::is_same_v<char_type, wchar_t>)
-            m_streambuf = istreambuf<device_type, wchar_t>(std::move(dev), code_cvt_stdio_creator(code()), !sync);
-        else
-            static_assert(dependent_false_v<char_type>, "invalid character type");
-        if (err) std::rethrow_exception(err);
+        try {
+            auto [dev, err] = m_streambuf.detach();
+            if (err) std::abort();
+            if constexpr (std::is_same_v<char_type, char>)
+                m_streambuf = istreambuf<device_type, char_type>(std::move(dev), !sync);
+            else if constexpr (std::is_same_v<char_type, wchar_t>)
+                m_streambuf = istreambuf<device_type, wchar_t>(std::move(dev), code_cvt_stdio_creator(code()), !sync);
+            else
+                static_assert(dependent_false_v<char_type>, "invalid character type");
+        } catch (...) {
+            // Memory exhaustion or a vanished locale database: no usable stream to
+            // hand back. Same policy as sing_temp::init.
+            std::abort();
+        }
+        m_sync_with_stdio = sync;
         return old_sync_state;
     }
 
