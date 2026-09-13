@@ -24,6 +24,7 @@
 #include <IOv2/io/objects/objects.h>
 #include <IOv2/io/objects/out_impl.h>
 #include <IOv2/io/ostream.h>
+#include <IOv2/io/traits/arithmetic.h>
 
 #include <support/stdio_guard.h>
 
@@ -188,4 +189,91 @@ TEST(IoObjectsWchar, TheOutputEncodingCanBeSwitchedMidStream)
     EXPECT_EQ(IOv2::wcout.code(), "zh_CN.GBK");
 
     EXPECT_EQ(out.contents(), "\xe8\xaf\xb7 \xd0\xbb\xd0\xbb");
+}
+
+// What a user does after an encoding error is what std::wcout users do: look at
+// the state bits, clear() them, carry on. The converter was tainted by the
+// unencodable character and reattaches the same fd by itself; nothing before
+// the bad character is lost and nothing after it needs reset().
+TEST(IoObjectsWchar, WcoutRecoversFromAnUnencodableCharacterWithClear)
+{
+    oguard<true> out;
+    IOv2::wcout.reset();
+    IOv2::wcout.switch_code("zh_CN.UTF-8");
+
+    IOv2::wcout << L"a" << L'\xD800';
+    EXPECT_TRUE(IOv2::wcout.cvt_fail());
+
+    IOv2::wcout << L"x";   // refused while the stream is failed
+    IOv2::wcout.clear();
+    IOv2::wcout << L"b" << IOv2::flush;
+    EXPECT_TRUE(IOv2::wcout.good());
+
+    EXPECT_EQ(out.contents(), "ab");
+}
+
+// Switching encoding is the natural reaction to an encoding failure; it must be
+// accepted right after one and take effect.
+TEST(IoObjectsWchar, WcoutCanSwitchEncodingRightAfterAnUnencodableCharacter)
+{
+    oguard<true> out;
+    IOv2::wcout.reset();
+    IOv2::wcout.switch_code("zh_CN.UTF-8");
+
+    IOv2::wcout << L'\xD800';
+    EXPECT_TRUE(IOv2::wcout.cvt_fail());
+    IOv2::wcout.clear();
+
+    EXPECT_NO_THROW(IOv2::wcout.switch_code("zh_CN.GBK"));
+    IOv2::wcout << L"中" << IOv2::flush;
+    EXPECT_TRUE(IOv2::wcout.good());
+    EXPECT_EQ(out.contents(), "\xd6\xd0"); // 中 in GBK
+
+    IOv2::wcout.switch_code("zh_CN.UTF-8");
+}
+
+// GBK: 璇 | b7 20 (a lead byte the space cannot complete) | 谢谢 | newline | 42.
+// The decoder must not pair the stale lead byte with the bytes that follow:
+// after clear() the next token is 谢谢, not 沸恍, and the number after it reads.
+TEST(IoObjectsWchar, WcinStaysAlignedAfterAnInvalidSequence)
+{
+    iguard g("\xe8\xaf\xb7\x20\xd0\xbb\xd0\xbb\x0a" "42\n");
+    IOv2::wcin.reset();
+    IOv2::wcin.switch_code("zh_CN.GBK");
+
+    std::wstring first;
+    std::wstring second;
+    int          n = -1;
+
+    IOv2::wcin >> first;
+    EXPECT_EQ(first, L"璇");
+    EXPECT_TRUE(IOv2::wcin.cvt_fail());
+
+    IOv2::wcin.clear();
+    IOv2::wcin >> second;
+    IOv2::wcin >> n;
+    EXPECT_EQ(second, L"谢谢");
+    EXPECT_EQ(n, 42);
+    EXPECT_TRUE(IOv2::wcin.good());
+
+    IOv2::wcin.switch_code("zh_CN.UTF-8");
+}
+
+// ... and switching encoding after the error is accepted too: the decoder's state
+// is back to initial, so there is no half character to reinterpret.
+TEST(IoObjectsWchar, WcinCanSwitchEncodingRightAfterAnInvalidSequence)
+{
+    iguard g("\xb7\x20" "\xe8\xaf\xb7\n");
+    IOv2::wcin.reset();
+    IOv2::wcin.switch_code("zh_CN.GBK");
+
+    std::wstring w;
+    IOv2::wcin >> w;
+    EXPECT_TRUE(IOv2::wcin.cvt_fail());
+    IOv2::wcin.clear();
+
+    EXPECT_NO_THROW(IOv2::wcin.switch_code("zh_CN.UTF-8"));
+    IOv2::wcin >> w;
+    EXPECT_EQ(w, L"请");
+    EXPECT_TRUE(IOv2::wcin.good());
 }

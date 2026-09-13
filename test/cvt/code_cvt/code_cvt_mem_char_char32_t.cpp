@@ -1361,6 +1361,67 @@ TEST(CodeCvtMemChar32, SetTaintedMakesEveryLaterOperationRefuse)
     EXPECT_THROW(obj.flush(), cvt_error);
 }
 
+// is_tainted() is the observable a derived converter recovers on: false from
+// construction through normal use, true from the failure until attach() or
+// detach() clears it -- exactly the flag the refusals above are made from.
+TEST(CodeCvtMemChar32, IsTaintedFollowsTheFlagAndIsClearedByAttach)
+{
+    code_cvt<rb_root_cvt<throw_on_put>, char32_t> obj{rb_root_cvt{throw_on_put{}}, "C"};
+    EXPECT_FALSE(obj.is_tainted());
+
+    EXPECT_EQ(obj.bos(), io_status::output);
+    obj.main_cont_beg();
+    const char32_t ch = U'A';
+    obj.put(&ch, 1);
+    EXPECT_FALSE(obj.is_tainted());
+
+    obj.device().should_throw = true;
+    EXPECT_THROW(obj.flush(), device_error);
+    EXPECT_TRUE(obj.is_tainted());
+
+    // attach() first detaches the old device, which flushes what it still holds;
+    // while the device keeps failing that flush, the attach fails and the taint
+    // stays. detach() drops the unflushed bytes, so the next attach() goes through
+    // and clears it.
+    EXPECT_THROW(obj.attach(throw_on_put{}), device_error);
+    EXPECT_TRUE(obj.is_tainted());
+
+    EXPECT_NO_THROW(obj.attach(throw_on_put{}));
+    EXPECT_FALSE(obj.is_tainted());
+}
+
+TEST(CodeCvtMemChar32, IsTaintedIsClearedByDetach)
+{
+    struct taintable : RbCvt
+    {
+        using RbCvt::RbCvt;
+        void expose_set_tainted() { set_tainted(); }
+    };
+
+    taintable obj{rb_root_cvt{mem_device("")}, "C"};
+    EXPECT_EQ(obj.bos(), io_status::output);
+    obj.main_cont_beg();
+
+    obj.expose_set_tainted();
+    EXPECT_TRUE(obj.is_tainted());
+
+    auto [dev, err] = obj.detach();
+    EXPECT_FALSE(obj.is_tainted());
+}
+
+// A read error is not a taint: the bytes are still there to be re-read, so the
+// flag stays down and nothing refuses afterwards.
+TEST(CodeCvtMemChar32, AnInvalidSequenceDoesNotTaint)
+{
+    RbCvt obj{rb_root_cvt{mem_device(std::string("\xb7\x20"))}, "zh_CN.GBK"};
+    EXPECT_EQ(obj.bos(), io_status::input);
+    obj.main_cont_beg();
+
+    char32_t ch = 0;
+    EXPECT_THROW(obj.get(&ch, 1), cvt_error);
+    EXPECT_FALSE(obj.is_tainted());
+}
+
 // The encode/decode helpers take a range and must reject one that is inverted --
 // a caller error that would otherwise read or write outside the buffer.
 TEST(CodeCvtMemChar32, TheEncodeHelperRejectsAnInvertedRange)
@@ -1414,4 +1475,75 @@ TEST(CodeCvtMemChar32, SwitchingToWritingIsRefusedMidCharacter)
     obj.get(buf, 4); // consumes 0xE6; mbrtowc reports the sequence as incomplete
 
     EXPECT_THROW(obj.switch_to_put(), cvt_error);
+}
+
+namespace
+{
+    // GBK: e8 af (璇) | b7 20 -- b7 opens a two-byte character that 0x20 cannot
+    // complete | d0 bb (谢) | d0 bb (谢) | 0a. Read one character at a time, so the
+    // lone lead byte is first parked in the decoder's state (-2) and the space then
+    // turns it into an error (-1).
+    const std::string kGbkWithABadLead = "\xe8\xaf\xb7\x20\xd0\xbb\xd0\xbb\x0a";
+
+    template <class Cvt>
+    std::vector<char32_t> read_one_at_a_time_skipping_errors(Cvt& obj, int& errors)
+    {
+        std::vector<char32_t> got;
+        for (int round = 0; round < 16; ++round)
+        {
+            char32_t ch = 0;
+            try
+            {
+                if (obj.get(&ch, 1) == 0) break;
+                got.push_back(ch);
+            }
+            catch (const cvt_error&) { ++errors; }
+        }
+        return got;
+    }
+}
+
+// C11 7.29.6.3.2 leaves the conversion state unspecified after mbrtowc reports an
+// invalid sequence. The decoder must reset it: with the stale lead byte still
+// parked, the bytes after the error pair up wrongly (b7 d0 = 沸, bb d0 = 恍) and the
+// stream stays misaligned for good. After the reset the error costs exactly the
+// byte it was reported on, and decoding continues in step.
+TEST(CodeCvtMemChar32, AnInvalidSequenceDoesNotMisalignWhatFollows)
+{
+    int errors = 0;
+    RbCvt obj{rb_root_cvt{mem_device(kGbkWithABadLead)}, "zh_CN.GBK"};
+    EXPECT_EQ(obj.bos(), io_status::input);
+    obj.main_cont_beg();
+
+    const auto got = read_one_at_a_time_skipping_errors(obj, errors);
+
+    EXPECT_EQ(errors, 1);
+    EXPECT_EQ(got, (std::vector<char32_t>{U'璇', U'谢', U'谢', U'\n'}));
+}
+
+TEST(CodeCvtMemChar32, AnInvalidSequenceDoesNotMisalignWhatFollowsWithoutAReadBuffer)
+{
+    int errors = 0;
+    NoRbCvt obj{no_rb_root_cvt{mem_device(kGbkWithABadLead)}, "zh_CN.GBK"};
+    EXPECT_EQ(obj.bos(), io_status::input);
+    obj.main_cont_beg();
+
+    const auto got = read_one_at_a_time_skipping_errors(obj, errors);
+
+    EXPECT_EQ(errors, 1);
+    EXPECT_EQ(got, (std::vector<char32_t>{U'璇', U'谢', U'谢', U'\n'}));
+}
+
+// The same reset is what lets the converter turn round after an error: with the
+// state back to initial there is no half character to strand.
+TEST(CodeCvtMemChar32, SwitchingToWritingIsAllowedAfterAnInvalidSequence)
+{
+    RbCvt obj{rb_root_cvt{mem_device(std::string("\xb7\x20"))}, "zh_CN.GBK"};
+    EXPECT_EQ(obj.bos(), io_status::input);
+    obj.main_cont_beg();
+
+    char32_t ch = 0;
+    EXPECT_THROW(obj.get(&ch, 1), cvt_error);
+
+    EXPECT_NO_THROW(obj.switch_to_put());
 }

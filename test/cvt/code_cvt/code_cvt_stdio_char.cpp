@@ -32,6 +32,10 @@ namespace
     using StdoutCvt = code_cvt<rb_root_cvt<std_device<STDOUT_FILENO>>, char32_t>;
     using StderrCvt = code_cvt<rb_root_cvt<std_device<STDERR_FILENO>>, char32_t>;
 
+    // The converter behind wcin / wcout: code_cvt_stdio accepts standard devices only.
+    using StdioIn  = code_cvt_stdio<rb_root_cvt<std_device<STDIN_FILENO>>>;
+    using StdioOut = code_cvt_stdio<rb_root_cvt<std_device<STDOUT_FILENO>>>;
+
     constexpr std::size_t kExtSize = 4102;          // bytes on the descriptor
     constexpr std::size_t kIntSize = 4102 / 7 * 3;  // char32_t they decode to
 
@@ -548,7 +552,7 @@ TEST(CodeCvtStdio, AWholePutEncodesTheSameBytesOnStderrThroughARuntimeCvt)
 // IOv2::cout has to do.
 TEST(CodeCvtStdio, TheEncodingCanBeSwitchedAtRunTime)
 {
-    code_cvt_stdio<rb_root_cvt<mem_device<char>>> obj{rb_root_cvt{mem_device(std::string{})}, "C"};
+    StdioOut obj{rb_root_cvt{std_device<STDOUT_FILENO>{}}, "C"};
 
     obj.adjust(code_cvt_switch{"zh_CN.UTF-8"});
 
@@ -564,10 +568,9 @@ TEST(CodeCvtStdio, TheEncodingCannotBeSwitchedMidCharacter)
 {
     std::string partial;
     partial += '\xE6';
+    iguard g(partial);
 
-    code_cvt_stdio<rb_root_cvt<mem_device<char>>> obj{rb_root_cvt{mem_device(partial)},
-                                                     "zh_CN.UTF-8"};
-
+    StdioIn obj{rb_root_cvt{std_device<STDIN_FILENO>{}}, "zh_CN.UTF-8"};
     EXPECT_EQ(obj.bos(), io_status::input);
     obj.main_cont_beg();
 
@@ -577,32 +580,75 @@ TEST(CodeCvtStdio, TheEncodingCannotBeSwitchedMidCharacter)
     EXPECT_THROW(obj.adjust(code_cvt_switch{"C"}), cvt_error);
 }
 
-// A failed put taints the converter, and a tainted converter refuses to switch.
-// The refusal has to come before anything is committed: the natural reaction to
-// an encoding failure is to try another encoding, and a caller who sees the
-// throw must be able to trust that the converter is still on the old one.
-TEST(CodeCvtStdio, ASwitchRefusedByTaintLeavesTheEncodingAlone)
+// The standard streams cannot be given another device, so code_cvt_stdio recovers
+// from a taint by itself: the next put/get/flush/adjust reattaches the same fd and
+// carries on. A character no encoding holds is the everyday way to get tainted --
+// wcout << L'\xD800' -- and the caller's next insertion after clear() must work.
+TEST(CodeCvtStdio, PutRecoversFromATaintOnItsOwn)
 {
-    code_cvt_stdio<rb_root_cvt<mem_device<char>>> obj{rb_root_cvt{mem_device(std::string{})},
-                                                      "zh_CN.UTF-8"};
+    oguard<true> g;
+    StdioOut     obj{rb_root_cvt{std_device<STDOUT_FILENO>{}}, "zh_CN.UTF-8"};
+    EXPECT_EQ(obj.bos(), io_status::output);
+    obj.main_cont_beg();
 
+    const wchar_t a[] = {L'a'};
+    const wchar_t lone_surrogate[] = {L'\xD800'};
+    const wchar_t b[] = {L'b'};
+
+    obj.put(a, 1);
+    EXPECT_THROW(obj.put(lone_surrogate, 1), cvt_error);
+    EXPECT_TRUE(obj.is_tainted());
+
+    EXPECT_NO_THROW(obj.put(b, 1));
+    EXPECT_FALSE(obj.is_tainted());
+    obj.flush();
+    EXPECT_EQ(g.contents(), "ab"); // what was committed before the taint survives it
+}
+
+TEST(CodeCvtStdio, FlushRecoversFromATaintOnItsOwn)
+{
+    oguard<true> g;
+    StdioOut     obj{rb_root_cvt{std_device<STDOUT_FILENO>{}}, "zh_CN.UTF-8"};
     EXPECT_EQ(obj.bos(), io_status::output);
     obj.main_cont_beg();
 
     const wchar_t lone_surrogate[] = {L'\xD800'};
-    EXPECT_THROW(obj.put(lone_surrogate, 1), cvt_error); // no encoding holds it: tainted
+    EXPECT_THROW(obj.put(lone_surrogate, 1), cvt_error);
+    EXPECT_TRUE(obj.is_tainted());
 
-    EXPECT_THROW(obj.adjust(code_cvt_switch{"C"}), cvt_error);
+    EXPECT_NO_THROW(obj.flush());
+    EXPECT_FALSE(obj.is_tainted());
+}
+
+// Trying another encoding is the natural reaction to an encoding failure; it must
+// work right after one, and switch for real.
+TEST(CodeCvtStdio, ASwitchRecoversFromATaintAndSwitches)
+{
+    oguard<true> g;
+    StdioOut     obj{rb_root_cvt{std_device<STDOUT_FILENO>{}}, "zh_CN.UTF-8"};
+    EXPECT_EQ(obj.bos(), io_status::output);
+    obj.main_cont_beg();
+
+    const wchar_t lone_surrogate[] = {L'\xD800'};
+    EXPECT_THROW(obj.put(lone_surrogate, 1), cvt_error);
+    EXPECT_TRUE(obj.is_tainted());
+
+    EXPECT_NO_THROW(obj.adjust(code_cvt_switch{"zh_CN.GBK"}));
+    EXPECT_FALSE(obj.is_tainted());
 
     code_cvt_access status;
     obj.retrieve(status);
-    EXPECT_EQ(status.code, "zh_CN.UTF-8");
+    EXPECT_EQ(status.code, "zh_CN.GBK");
+
+    const wchar_t zhong[] = {L'中'};
+    obj.put(zhong, 1);
+    obj.flush();
+    EXPECT_EQ(g.contents(), "\xd6\xd0"); // 中 in GBK: the new encoding is in effect
 }
 
 TEST(CodeCvtStdio, RetrieveReportsTheCurrentEncoding)
 {
-    code_cvt_stdio<rb_root_cvt<mem_device<char>>> obj{rb_root_cvt{mem_device(std::string{})},
-                                                      "zh_CN.UTF-8"};
+    StdioOut obj{rb_root_cvt{std_device<STDOUT_FILENO>{}}, "zh_CN.UTF-8"};
 
     code_cvt_access status;
     obj.retrieve(status);
@@ -613,7 +659,7 @@ TEST(CodeCvtStdio, RetrieveReportsTheCurrentEncoding)
 // passes it down so another stage of a pipe can answer it.
 TEST(CodeCvtStdio, RetrieveWithAnUnknownStatusFallsThroughToTheBase)
 {
-    code_cvt_stdio<rb_root_cvt<mem_device<char>>> obj{rb_root_cvt{mem_device(std::string{})}, "C"};
+    StdioOut obj{rb_root_cvt{std_device<STDOUT_FILENO>{}}, "C"};
 
     cvt_status s;
     EXPECT_NO_THROW(obj.retrieve(s));
@@ -624,7 +670,7 @@ TEST(CodeCvtStdio, TheCreatorCarriesTheEncodingIntoTheConverter)
     static_assert(cvt_creator<code_cvt_stdio_creator>);
 
     code_cvt_stdio_creator creator{"zh_CN.UTF-8"};
-    auto                   obj = creator.create(rb_root_cvt{mem_device(std::string{})});
+    auto                   obj = creator.create(rb_root_cvt{std_device<STDOUT_FILENO>{}});
 
     code_cvt_access status;
     obj.retrieve(status);

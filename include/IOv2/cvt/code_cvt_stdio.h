@@ -29,6 +29,7 @@
  */
 #pragma once
 #include <IOv2/cvt/code_cvt.h>
+#include <IOv2/device/std_device.h>
 
 #include <string>
 #include <type_traits>
@@ -99,8 +100,17 @@ struct code_cvt_access : cvt_status
  * - 向 `adjust()` 传入 `code_cvt_switch` 策略以切换编码；
  * - 向 `retrieve()` 传入 `code_cvt_access` 对象以查询当前编码名称。
  *
+ * 本类专用于标准流：底层设备只能是 `std_device<STDIN_FILENO>` / `<STDOUT_FILENO>` /
+ * `<STDERR_FILENO>`。这类设备是无状态的 fd 包装，缺省构造的对象与被替换的对象指向同一个
+ * fd，于是「转换器 tainted 后缺省构造一个设备重新 `attach()`」等价于就地重新初始化——
+ * 本类据此在 `put`/`get`/`flush`/`adjust` 入口自动恢复：发现 `is_tainted()` 即先重新附接
+ * 同一 fd（`attach()` + `bos()` + `main_cont_beg()`），再执行本次操作。调用方（标准流对象）
+ * 因此只需 `clear()` 状态位即可继续，与 `std::wcout`/`std::wcin` 的用法一致；出错那一批里
+ * 尚未提交的数据随 taint 丢失，已提交到根转换器的数据在重新附接时刷出。对 `mem_device`
+ * 之类有内容的设备，这样的重新附接会换成一个空设备，因此不允许。
+ *
  * @tparam KernelType 底层 I/O 转换器类型，须满足 `io_converter` 概念；
- *                    其 `internal_type` 须为 `char`。
+ *                    其 `internal_type` 须为 `char`，`device_type` 须为上述三种标准设备之一。
  *
  * @note 线程安全性：本类**不是**线程安全的。多线程并发访问同一实例须通过外部同步机制保护。
  * @endif
@@ -114,18 +124,40 @@ struct code_cvt_access : cvt_status
  * - Pass a `code_cvt_switch` policy to `adjust()` to switch the encoding.
  * - Pass a `code_cvt_access` object to `retrieve()` to query the current locale name.
  *
+ * This class is for the standard streams only: the underlying device must be
+ * `std_device<STDIN_FILENO>` / `<STDOUT_FILENO>` / `<STDERR_FILENO>`. Those devices are
+ * stateless fd wrappers -- a default-constructed one refers to the same fd as the one it
+ * replaces -- so "default-construct a device and `attach()` it once the converter is
+ * tainted" amounts to re-initializing in place. The class uses that to recover on its
+ * own at the `put`/`get`/`flush`/`adjust` entry points: when `is_tainted()` it first
+ * reattaches the same fd (`attach()` + `bos()` + `main_cont_beg()`), then performs the
+ * operation. The caller (a standard stream object) therefore only has to `clear()` its
+ * state bits to carry on, the same way `std::wcout`/`std::wcin` are used; what the
+ * failing batch had not yet committed is lost with the taint, what had reached the root
+ * converter is flushed by the reattach. A device with content of its own, such as
+ * `mem_device`, would be swapped for an empty one by such a reattach, hence the
+ * restriction.
+ *
  * @tparam KernelType Underlying I/O converter type, must satisfy the `io_converter`
- *                    concept; its `internal_type` must be `char`.
+ *                    concept; its `internal_type` must be `char` and its `device_type`
+ *                    one of the three standard devices above.
  *
  * @note Thread Safety: This class is NOT thread-safe. Concurrent access to the same
  *       instance from multiple threads requires external synchronization.
  * @endif
  */
 template <io_converter KernelType>
+    requires (std::is_same_v<typename KernelType::device_type, std_device<STDIN_FILENO>> ||
+              std::is_same_v<typename KernelType::device_type, std_device<STDOUT_FILENO>> ||
+              std::is_same_v<typename KernelType::device_type, std_device<STDERR_FILENO>>)
 class code_cvt_stdio : public code_cvt<KernelType, wchar_t>
 {
 private:
     using BT = code_cvt<KernelType, wchar_t>;
+
+    // recover() reattaches a default-constructed device of the same type.
+    static_assert(std::is_default_constructible_v<typename KernelType::device_type>,
+                  "code_cvt_stdio: the device must be default-constructible");
 
 public:
     /**
@@ -153,6 +185,55 @@ public:
     code_cvt_stdio(code_cvt_stdio&& val) = default;
     code_cvt_stdio& operator=(code_cvt_stdio&& val) = default;
     ~code_cvt_stdio() = default;
+
+public:
+    /**
+     * @lang{ZH}
+     * @brief 同 `code_cvt::put`，但转换器 tainted 时先重新附接同一 fd 再写（见类文档）。
+     * @endif
+     * @lang{EN}
+     * @brief As `code_cvt::put`, but reattaches the same fd first when the converter is
+     * tainted (see the class documentation).
+     * @endif
+     */
+    void put(const typename BT::internal_type* to, std::size_t to_size)
+        requires (cvt_cpt::support_put<KernelType>)
+    {
+        if (this->is_tainted()) recover();
+        BT::put(to, to_size);
+    }
+
+    /**
+     * @lang{ZH}
+     * @brief 同 `code_cvt::get`，但转换器 tainted 时先重新附接同一 fd 再读（见类文档）。
+     * @endif
+     * @lang{EN}
+     * @brief As `code_cvt::get`, but reattaches the same fd first when the converter is
+     * tainted (see the class documentation).
+     * @endif
+     */
+    std::size_t get(typename BT::internal_type* to, std::size_t to_max)
+        requires (cvt_cpt::support_get<KernelType>)
+    {
+        if (this->is_tainted()) recover();
+        return BT::get(to, to_max);
+    }
+
+    /**
+     * @lang{ZH}
+     * @brief 同 `code_cvt::flush`，但转换器 tainted 时先重新附接同一 fd（见类文档）。
+     * @endif
+     * @lang{EN}
+     * @brief As `code_cvt::flush`, but reattaches the same fd first when the converter is
+     * tainted (see the class documentation).
+     * @endif
+     */
+    void flush()
+        requires (cvt_cpt::support_put<KernelType>)
+    {
+        if (this->is_tainted()) recover();
+        BT::flush();
+    }
 
 public:
     /**
@@ -194,14 +275,13 @@ public:
      * 若 `acc` 为 `code_cvt_switch` 类型，则执行区域设置切换：
      * 用 `acc.code` 构造新的 `codecvt_kernel` 并原子地替换当前内核，
      * 同时更新缓存的区域设置名称 `m_code`。
-     * 切换时要求转换器未被污染（tainted）且编码转换状态（`m_cvt_kernel`）处于初始状态，
-     * 否则抛出异常。所有可能抛出异常的操作均在提交前完成，确保强异常安全保证。
+     * 转换器 tainted 时先重新附接同一 fd（见类文档），之后要求编码转换状态（`m_cvt_kernel`）
+     * 处于初始状态，否则抛出异常。所有可能抛出异常的操作均在提交前完成，确保强异常安全保证。
      * 无论 `acc` 类型如何，最终均链式调用基类 `BT::adjust(acc)`。
      *
      * @param acc 行为策略对象。
      *
-     * @throws cvt_error 若转换器处于 tainted 状态，或当前编码转换状态不处于初始状态；
-     *         两种情况下都不切换。
+     * @throws cvt_error 若当前编码转换状态不处于初始状态；此时不切换。
      * @endif
      *
      * @lang{EN}
@@ -210,22 +290,22 @@ public:
      * If `acc` is of type `code_cvt_switch`, performs a locale switch: constructs a
      * new `codecvt_kernel` from `acc.code` and atomically replaces the current kernel,
      * also updating the cached locale name `m_code`.
-     * The converter must not be tainted and the encoding conversion state
-     * (`m_cvt_kernel`) must be in its initial state at the time of switching;
-     * otherwise an exception is thrown.
+     * A tainted converter is first reattached to the same fd (see the class
+     * documentation); after that the encoding conversion state (`m_cvt_kernel`) must be
+     * in its initial state at the time of switching, otherwise an exception is thrown.
      * All potentially-throwing operations are completed before any commit, ensuring
      * the strong exception safety guarantee.
      * In all cases the call is forwarded to the base-class `BT::adjust(acc)`.
      *
      * @param acc Behavior policy object.
      *
-     * @throws cvt_error If the converter is tainted, or the encoding conversion state
-     *         is not in its initial state; nothing is switched in either case.
+     * @throws cvt_error If the encoding conversion state is not in its initial state;
+     *         nothing is switched then.
      * @endif
      */
     void adjust(const cvt_behavior& acc)
     {
-        this->assert_not_tainted();
+        if (this->is_tainted()) recover();
         if (const auto* ptr = dynamic_cast<const code_cvt_switch*>(&acc); ptr)
         {
             if (!this->m_cvt_kernel.is_init_state())
@@ -248,7 +328,38 @@ public:
         }
         return BT::adjust(acc);
     }
+
 private:
+    /**
+     * @lang{ZH}
+     * @brief 把 tainted 的转换器重新附接到同一 fd 并重新初始化。
+     *
+     * 等价于 `streambuf::attach()` 对本层做的事：`attach()` 装入缺省构造的同 fd 设备
+     * （其内部先 `detach()` 旧设备、刷出根转换器里已提交的数据、清除 taint），再
+     * `bos()` + `main_cont_beg()` 回到主内容阶段。旧设备的刷新若再次失败（fd 仍不可写），
+     * `attach()` 原样抛出、taint 保持——下一次入口会再试，届时未刷出的数据已被 `detach()`
+     * 丢弃，重新附接得以完成。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Reattaches a tainted converter to the same fd and re-initializes it.
+     *
+     * Equivalent to what `streambuf::attach()` does for this layer: `attach()` installs a
+     * default-constructed device on the same fd (internally detaching the old one, which
+     * flushes what the root converter had committed and clears the taint), then `bos()` +
+     * `main_cont_beg()` return to the main-content phase. If flushing the old device fails
+     * again (the fd is still unwritable) `attach()` propagates that and the taint stays;
+     * the next entry retries, by which time `detach()` has dropped the unflushed bytes and
+     * the reattach goes through.
+     * @endif
+     */
+    void recover()
+    {
+        this->attach(typename BT::device_type{});
+        this->bos();
+        this->main_cont_beg();
+    }
+
     std::string m_code; ///< 当前使用的区域设置名称 / Currently active locale name.
 };
 

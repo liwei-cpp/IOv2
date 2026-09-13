@@ -105,7 +105,30 @@ public:
     std::pair<device_type, std::exception_ptr> detach() = delete;
     void attach(device_type&& dev = device_type{}) = delete;
 
-    void reset() // mainly used for unit-test
+    /**
+     * @lang{ZH}
+     * @brief 在同一 fd 上从头开始：清状态位与异常掩码，丢弃本流尚未提交的输出，重新附接设备
+     * 并重新初始化转换器。
+     *
+     * 供需要「放弃当前一切、回到刚构造时的样子」的场合使用——例如程序自己的错误处理决定
+     * 丢掉半截输出重新开始，或单元测试在用例之间复位。它**不是**出错后的必经之路：编码失败
+     * 置 `cvtfailbit` 后 `clear()` 即可继续（转换器会自行重新附接同一 fd，见 `code_cvt_stdio`），
+     * 与 `std::wcout` 的用法相同。
+     * @endif
+     * @lang{EN}
+     * @brief Starts over on the same fd: clears the state bits and the exception mask,
+     * drops output this stream has not committed yet, reattaches the device and
+     * re-initializes the converter.
+     *
+     * For the cases that want to abandon everything and be back where construction left
+     * the stream -- a program's own error handling deciding to discard a half-written
+     * output and begin again, or a unit test resetting between cases. It is **not** the
+     * required step after a failure: once an encoding failure has set `cvtfailbit`,
+     * `clear()` is enough to carry on (the converter reattaches the same fd by itself,
+     * see `code_cvt_stdio`), just as with `std::wcout`.
+     * @endif
+     */
+    void reset()
     {
         std::lock_guard guard(this->io_mutex());
         this->clear();
