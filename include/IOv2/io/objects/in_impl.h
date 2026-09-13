@@ -110,6 +110,7 @@ class cin_t : public stdin_api<cin_t, std_device<STDIN_FILENO>, char>
 private:
     cin_t()
         : BT()
+        , sing_temp<cin_t>([](cin_t*) noexcept {})   // never destroyed at exit, like std::cin
     {
         tie(&cout);
     }
@@ -135,6 +136,7 @@ class wcin_t : public stdin_api<wcin_t, std_device<STDIN_FILENO>, wchar_t>
 private:
     wcin_t()
         : BT(code_cvt_stdio_creator(IOv2::locale<char>::initial_locale_name(LC_CTYPE)))
+        , sing_temp<wcin_t>([](wcin_t*) noexcept {})   // never destroyed at exit, like std::wcin
     {
         tie(&wcout);
     }

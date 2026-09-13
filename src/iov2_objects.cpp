@@ -82,19 +82,20 @@ namespace IOv2
  *   - **初始化**:libiov2.so 的 initializer(即此处这些单例的构造)先于依赖方模块的
  *     静态构造 → 消费者静态对象的**构造函数**里可安全使用它们;
  *   - **终止**:finalize 是 init 的逆序,libiov2.so 最后 finalize → 消费者静态对象的
- *     **析构函数**里也可安全使用它们(此刻单例仍存活)。
- * 因此当前"load 时构造 / fini 时析构"对正常链接的消费者两端都正确,无需额外处理。
+ *     **析构函数**里也可安全使用它们。
+ * 而且这些单例在 finalize 时**不析构**(与 libstdc++ 对 `std::cout` 的处理相同):各
+ * `_*_init` 的析构只执行构造时登记的退出钩子——输出流 flush、其余空操作,见
+ * `sing_temp::exit_hook`。对象存储是静态缓冲,连同其持有的堆内存保持可达、由 OS 回收,
+ * 不构成泄漏;退出阶段仍在其它线程中使用这些流也不会成为释放后使用。
  *
  * @warning 不支持 dlopen/dlclose 语义。上述保证依赖一条**静态链接依赖边**。若 libiov2.so
- * 在仍有引用存活时被显式 `dlclose` 卸载,这些单例会在该点被析构,之后再经导出引用
- * (或任何持有它们的对象)访问即为悬空引用 / UB;若消费者与本库仅在运行期耦合而无加载器
- * 可见的依赖边(如 `dlopen(RTLD_GLOBAL)` 靠符号插桩),顺序同样无保证。libiov2.so 被设计为
- * **常规链接期依赖的基础库**(全进程保持加载),而非被 dlopen/dlclose 的插件。若将来确需
- * 对 dlopen/dlclose 鲁棒,有两种办法:(a) 加载器层面——把 libiov2.so 链接时标记为不可卸载
+ * 在仍有引用存活时被显式 `dlclose` 卸载,单例虽不析构,其存储与代码却随 .so 被 unmap,
+ * 之后再经导出引用(或任何持有它们的对象)访问即为悬空引用 / UB;若消费者与本库仅在运行期
+ * 耦合而无加载器可见的依赖边(如 `dlopen(RTLD_GLOBAL)` 靠符号插桩),顺序同样无保证。
+ * libiov2.so 被设计为**常规链接期依赖的基础库**(全进程保持加载),而非被 dlopen/dlclose
+ * 的插件。若将来确需对 dlopen/dlclose 鲁棒,在加载器层面把 libiov2.so 标记为不可卸载
  * (`-Wl,-z,nodelete`,或调用方 `dlopen(..., RTLD_NODELETE)`),这样 `dlclose` 只减引用计数、
- * **不 unmap**,单例活到进程真正退出,上述悬空即消除(析构仍在最终退出时运行);(b) 代码
- * 层面——改用 libstdc++ 的做法:共享库模式下**不析构**这些单例(存储为静态缓冲,退出由 OS 回收,
- * 仍可达故非泄漏),仅经钩子执行退出副作用(如流 flush)。基础库最省事的是 (a)。
+ * **不 unmap**,单例活到进程真正退出,上述悬空即消除。
  * @endif
  *
  * @lang{EN}
@@ -115,29 +116,27 @@ namespace IOv2
  *     singletons) run before a dependent module's static constructors -- so a
  *     consumer static may use them in its *constructor*;
  *   - Termination: finalization is the reverse of initialization, so libiov2.so is
- *     finalized last -- so a consumer static may also use them in its *destructor*
- *     (the singletons are still alive at that point).
- * The current "construct at load / destroy at fini" scheme is therefore correct on
- * both ends for a normally-linked consumer, with nothing extra required.
+ *     finalized last -- so a consumer static may also use them in its *destructor*.
+ * Moreover the singletons are **not destroyed** at finalization (as libstdc++ treats
+ * `std::cout`): each `_*_init` destructor only runs the exit hook registered at
+ * construction -- flush for the output streams, a no-op for the rest, see
+ * `sing_temp::exit_hook`. The objects live in static buffers and, together with the
+ * heap they own, stay reachable and are reclaimed by the OS, so this is not a leak;
+ * nor does using the streams from another thread during exit become a use-after-free.
  *
  * @warning dlopen/dlclose is NOT supported. The guarantee above relies on a static
  * link-dependency edge. If libiov2.so is explicitly `dlclose`d (unloaded) while
- * references are still live, these singletons are destroyed at that point, and any
- * later use of the exported references (or of anything holding them) is a dangling
- * reference / UB. Likewise, if a consumer is coupled to this library only at runtime
- * with no loader-visible dependency edge (e.g. `dlopen(RTLD_GLOBAL)` via symbol
- * interposition), the ordering is unguaranteed. libiov2.so is designed to be a normal
- * link-time dependency -- a base library that stays loaded for the whole process --
- * not a dlopen/dlclose'd plugin. If dlopen/dlclose robustness is ever required, adopt
- * one of two things: (a) at the loader level, mark libiov2.so non-unloadable at link
- * time (`-Wl,-z,nodelete`, or have callers pass `dlopen(..., RTLD_NODELETE)`), so that
- * `dlclose` only drops the reference count and never unmaps -- the singletons then live
- * until real process exit and the dangling reference above disappears (destructors still
- * run, but only at final exit); or (b) at the code level, adopt the libstdc++ approach:
- * in shared-library mode do NOT destroy these singletons (their storage is a static
- * buffer, reclaimed by the OS at exit and still reachable, hence not a leak) and run
- * exit side effects (e.g. stream flush) via a hook instead. For a base library, (a) is
- * the simplest.
+ * references are still live, the singletons are not destroyed but their storage and
+ * code are unmapped with the .so, and any later use of the exported references (or of
+ * anything holding them) is a dangling reference / UB. Likewise, if a consumer is
+ * coupled to this library only at runtime with no loader-visible dependency edge (e.g.
+ * `dlopen(RTLD_GLOBAL)` via symbol interposition), the ordering is unguaranteed.
+ * libiov2.so is designed to be a normal link-time dependency -- a base library that
+ * stays loaded for the whole process -- not a dlopen/dlclose'd plugin. If
+ * dlopen/dlclose robustness is ever required, mark libiov2.so non-unloadable at the
+ * loader level (`-Wl,-z,nodelete`, or have callers pass `dlopen(..., RTLD_NODELETE)`),
+ * so that `dlclose` only drops the reference count and never unmaps -- the singletons
+ * then live until real process exit and the dangling reference above disappears.
  * @endif
  */
 
