@@ -112,7 +112,31 @@ public:
     std::pair<device_type, std::exception_ptr> detach() = delete;
     void attach(device_type&&) = delete;
 
-    void reset() // mainly used for unit-test
+    /**
+     * @lang{ZH}
+     * @brief 在同一 fd 上从头开始：清状态位与异常掩码，丢弃已缓冲但未消费的输入，重新附接
+     * 设备并重新初始化转换器。
+     *
+     * 供需要「放弃残余输入、回到刚构造时的样子」的场合使用——例如交互程序在出错后丢掉这一行
+     * 剩下的内容重新提示，或单元测试在用例之间复位。它**不是**出错后的必经之路：解码失败后
+     * `clear()` 即可继续，解码器已复位到初始状态、从坏字节之后对齐读取，`switch_code()` 也随之
+     * 可用。
+     * @endif
+     * @lang{EN}
+     * @brief Starts over on the same fd: clears the state bits and the exception mask,
+     * drops input that was buffered but not yet consumed, reattaches the device and
+     * re-initializes the converter.
+     *
+     * For the cases that want to abandon the pending input and be back where
+     * construction left the stream -- an interactive program discarding the rest of a
+     * line after an error before prompting again, or a unit test resetting between
+     * cases. It is **not** the required step after a failure: after a decode failure
+     * `clear()` is enough to carry on -- the decoder has reset to its initial state and
+     * reads on, aligned, from the byte after the bad one, and `switch_code()` is
+     * available again as well.
+     * @endif
+     */
+    void reset()
     {
         std::lock_guard guard(this->io_mutex());
         this->clear();

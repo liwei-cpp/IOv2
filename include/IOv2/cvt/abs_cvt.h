@@ -1067,6 +1067,29 @@ namespace IOv2
 
         /**
          * @lang{ZH}
+         * @brief 转换器是否已被标记为 tainted（见类文档的 tainted 契约）。
+         *
+         * 为 `true` 时，`put`/`get`/`flush`/`adjust` 等依赖内核状态的操作都会拒绝执行，
+         * 直到 `attach()`/`detach()` 清除该标志。派生类可据此在入口处自行恢复，而不是
+         * 把拒绝抛给调用方。
+         * @return `m_is_tainted` 的当前值。
+         * @endif
+         *
+         * @lang{EN}
+         * @brief Whether the converter has been marked tainted (see the taint contract in
+         * the class documentation).
+         *
+         * While `true`, operations that depend on the kernel state -- `put`/`get`/`flush`/
+         * `adjust` -- refuse to run until `attach()`/`detach()` clears the flag. A derived
+         * class may use this to recover at its entry points instead of passing the refusal
+         * on to the caller.
+         * @return The current value of `m_is_tainted`.
+         * @endif
+         */
+        [[nodiscard]] bool is_tainted() const noexcept { return m_is_tainted; }
+
+        /**
+         * @lang{ZH}
          * 分离并返回底层设备，同时将转换器状态重置为初始状态。
          *
          * 调用后 `m_io_status` 恢复为 `neutral`，`m_is_bos_done` 与 `m_is_tainted`

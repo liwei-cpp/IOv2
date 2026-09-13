@@ -371,7 +371,12 @@ struct codecvt_kernel<char, TInt>
             auto tmp_state = m_state;
             std::size_t conv = mbrtowc(&wch, from, from_end - from, &tmp_state);
             if (conv == static_cast<std::size_t>(-1)) // NOLINT(modernize-use-integer-sign-comparison)
+            {
+                // EILSEQ leaves the state unspecified (C11 7.29.6.3.2); a partial
+                // sequence kept from an earlier -2 must not pair with what follows.
+                init_state();
                 return std::pair{false, i_count};
+            }
             else if (conv == static_cast<std::size_t>(-2)) // NOLINT(modernize-use-integer-sign-comparison)
             {
                 from = from_end;
