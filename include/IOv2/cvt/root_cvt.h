@@ -377,6 +377,8 @@ public:
      * 将底层设备从 root_cvt 中分离并返回。
      * - 若当前处于输出状态，先尝试将缓冲区刷入设备。
      * - 若当前处于输入状态且缓冲区中仍有未消费数据，则将设备位置倒回到未消费数据的起始处（需设备支持定位）。
+     *   设备**不支持定位**时（管道/终端的 stdin 等）不做倒回，这些已从设备读出但未消费的数据
+     *   （最多 `s_buffer_length` 字节）随缓冲区一起**静默丢弃**——它们无法退还给设备。
      *
      * 本函数为 `noexcept`：清理阶段的异常会被捕获并存入返回值的 `second`（`exception_ptr`），
      * 设备始终通过返回值的 `first` 无条件交还给调用方，即便清理失败。
@@ -388,6 +390,10 @@ public:
      * - If currently in output mode, attempts to flush buffered data to the device.
      * - If currently in input mode with unconsumed buffered data, seeks the device
      *   back to the start of unconsumed data (requires the device to support positioning).
+     *   On a device that does **not** support positioning (a pipe/tty-backed stdin, say) no
+     *   seek is attempted, and the data already read from the device but not yet consumed
+     *   (up to `s_buffer_length` bytes) is **silently discarded** with the buffer -- it cannot
+     *   be handed back to the device.
      *
      * This function is `noexcept`: any exception thrown during cleanup is captured
      * into the returned pair's `second` (`exception_ptr`); the device is always

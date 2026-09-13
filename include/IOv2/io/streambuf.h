@@ -755,7 +755,10 @@ public:
      * 在支持输入且读缓冲区非空时，先尝试把底层转换器定位回逻辑读位置（`tell()`），以便交还
      * 的设备停在正确位置，随后清空读缓冲区。该定位失败会被**有意吞掉**：不支持定位的设备
      * （如管道/终端的 stdin）本就无法满足此重定位，报告它会让此类设备上例行的
-     * `detach()`/`attach()` 循环开始抛异常；对这类设备而言，丢失预读字符是不可避免的代价。
+     * `detach()`/`attach()` 循环开始抛异常；对这类设备而言，丢失预读数据是不可避免的代价。
+     * @warning 在不支持定位的设备上，丢失的不只是本缓冲区里的那个前瞻字符：根转换器自己的读缓冲
+     *          （`root_cvt`，最多 `s_buffer_length` 字节的已读未消费数据）也在 `m_cvt.detach()` 里一并
+     *          丢弃，见 `root_cvt::detach`。切换 `sync_with_stdio` 这类换缓冲的操作应在任何读取之前进行。
      * @return 一个 pair：取回的设备，以及转换器在分离过程中捕获的异常指针（可能为空）。
      * @note 本函数为 noexcept。
      * @endif
@@ -769,7 +772,12 @@ public:
      * reposition is **swallowed on purpose**: a device that does not support positioning (e.g. a
      * pipe/tty-backed stdin) inherently cannot honor it, and reporting it would make routine
      * `detach()`/`attach()` cycles on such devices start throwing; for those devices, losing the
-     * lookahead character is the unavoidable cost.
+     * lookahead is the unavoidable cost.
+     * @warning On a device that does not support positioning, more than this buffer's one
+     *          lookahead character is lost: the root converter's own read buffer (`root_cvt`, up
+     *          to `s_buffer_length` bytes already read but not yet consumed) is discarded too,
+     *          inside `m_cvt.detach()`; see `root_cvt::detach`. Buffer-replacing operations such
+     *          as switching `sync_with_stdio` belong before any read.
      * @return A pair: the retrieved device, and the exception pointer captured by the
      * converter during detach (possibly null).
      * @note This function is noexcept.
@@ -800,7 +808,8 @@ public:
                     // routine detach()/attach() cycles on such devices start throwing
                     // (e.g. sync_with_stdio() right after a formatted read has left
                     // one buffered lookahead character), even though nothing is
-                    // actually broken; losing that lookahead character is the
+                    // actually broken; losing that lookahead (and, below, the root
+                    // converter's read buffer) is the
                     // accepted, unavoidable cost for non-positionable devices.
                 }
                 m_read_buf.clear();
