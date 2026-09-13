@@ -66,7 +66,7 @@ namespace IOv2
  *
  * // 在头文件中声明 inline 初始化器和引用（inline = 全程序唯一实体）
  * inline my_singleton_t::init _my_singleton_init;
- * inline my_singleton_t& my_singleton = *my_singleton_t::ptr();
+ * inline my_singleton_t& my_singleton = _my_singleton_init.get();
  *
  * // 使用单例
  * my_singleton.doSomething();
@@ -121,7 +121,7 @@ namespace IOv2
  *
  * // Declare inline initializer and reference in header (inline = one entity program-wide)
  * inline my_singleton_t::init _my_singleton_init;
- * inline my_singleton_t& my_singleton = *my_singleton_t::ptr();
+ * inline my_singleton_t& my_singleton = _my_singleton_init.get();
  *
  * // Use the singleton
  * my_singleton.doSomething();
@@ -138,9 +138,9 @@ public:
      *
      * 派生类通过 `sing_temp(exit_hook)` 构造函数登记它，唯一的 init 对象析构时以
      * `T*` 调用一次；对单例做什么——析构、刷新、放着不管——由钩子自己决定。未登记
-     * （默认构造 `sing_temp`）时 init 对象析构单例（`~T()`，之后 `ptr()` 返回 nullptr）。
+     * （默认构造 `sing_temp`）时 init 对象析构单例（`~T()`）。
      * 钩子不析构单例时，单例的存储（静态缓冲）与其持有的堆内存保持可达、由操作系统在
-     * 进程结束时回收，退出后 `ptr()` 与既有引用仍然有效——这正是 libstdc++ 对
+     * 进程结束时回收，退出后既有引用仍然有效——这正是 libstdc++ 对
      * `std::cout` 等标准流对象的处理方式，也是需要在退出阶段被其它线程继续使用的
      * 进程级单例应当采用的方式。无捕获的 `noexcept` lambda 可直接转换为本类型。
      *
@@ -156,10 +156,10 @@ public:
      * it is called once with a `T*` when the single init object is destroyed, and what
      * it does to the singleton -- destroy it, flush it, leave it alone -- is up to the
      * hook. Without a hook (default-constructed `sing_temp`) the init object destroys
-     * the singleton (`~T()`, after which `ptr()` returns nullptr). When the hook does
+     * the singleton (`~T()`). When the hook does
      * not destroy the singleton, its storage (a static buffer) and the heap it owns stay
-     * reachable and are reclaimed by the operating system at process end, and `ptr()`
-     * and existing references remain valid after exit begins -- exactly how libstdc++
+     * reachable and are reclaimed by the operating system at process end, and
+     * existing references remain valid after exit begins -- exactly how libstdc++
      * treats `std::cout` and the other standard stream objects, and the right choice for
      * any process-wide singleton that other threads may still use during exit. A
      * captureless `noexcept` lambda converts to this type directly.
@@ -232,6 +232,32 @@ public:
             }
         }
 
+        /**
+         * @lang{ZH}
+         * @brief 返回本 init 对象所构造的单例的引用。
+         *
+         * 这是取得单例的唯一途径：只有持有 init 对象才能拿到引用，而 init 对象存在
+         * 即意味着单例已构造，因此不存在「尚未构造」或「已析构」的返回值。
+         * 惯用法是紧跟 init 的定义写 `inline my_t& my = _my_init.get();`。
+         * @return 单例的引用。
+         * @endif
+         *
+         * @lang{EN}
+         * @brief Returns a reference to the singleton this init object constructed.
+         *
+         * This is the only way to obtain the singleton: a reference is available only
+         * through an init object, and an init object's existence means the singleton
+         * has been constructed, so there is no "not yet constructed" or "already
+         * destroyed" return value. The idiom is `inline my_t& my = _my_init.get();`
+         * right after the init's definition.
+         * @return Reference to the singleton.
+         * @endif
+         */
+        [[nodiscard]] T& get() const noexcept
+        {
+            return *sing_temp::instance();
+        }
+
         init(const init&) = delete;
         init& operator=(const init&) = delete;
         init(init&&) = delete;
@@ -283,36 +309,6 @@ public:
     sing_temp& operator=(const sing_temp&) = delete;
     sing_temp(sing_temp&&) = delete;
     sing_temp& operator=(sing_temp&&) = delete;
-
-    /**
-     * @lang{ZH}
-     * 获取指向单例对象的指针。
-     *
-     * @return 指向单例对象的指针
-     *
-     * @warning 调用此函数前必须确保至少有一个 init 对象存在，
-     *          否则返回的指针指向未构造的内存，解引用会导致未定义行为。
-     * @note 未登记退出钩子时，init 对象析构后本函数返回 nullptr；
-     *       登记的钩子不析构单例时，本函数继续返回有效指针。
-     * @endif
-     *
-     * @lang{EN}
-     * Get a pointer to the singleton object.
-     *
-     * @return Pointer to the singleton object
-     *
-     * @warning At least one init object must exist before calling this function,
-     *          otherwise the returned pointer points to unconstructed memory
-     *          and dereferencing it causes undefined behavior.
-     * @note Without an exit hook this returns nullptr once the init object has been
-     *       destroyed; when the registered hook does not destroy the singleton it keeps
-     *       returning a valid pointer.
-     * @endif
-     */
-    [[nodiscard]] static T* ptr() noexcept
-    {
-        return instance();
-    }
 
 private:
     /**

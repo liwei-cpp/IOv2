@@ -139,7 +139,7 @@ private:
 extern IOV2_API cout_t& cout;   // defined in iov2_objects.cpp
 #else
 inline cout_t::init _cout_init;
-inline cout_t&      cout = *cout_t::ptr();
+inline cout_t&      cout = _cout_init.get();
 #endif
 
 
@@ -167,7 +167,7 @@ private:
 extern IOV2_API cerr_t& cerr;   // defined in iov2_objects.cpp
 #else
 inline cerr_t::init _cerr_init;
-inline cerr_t&      cerr = *cerr_t::ptr();
+inline cerr_t&      cerr = _cerr_init.get();
 #endif
 
 /// clog
@@ -190,7 +190,7 @@ private:
 extern IOV2_API clog_t& clog;   // defined in iov2_objects.cpp
 #else
 inline clog_t::init _clog_init;
-inline clog_t&      clog = *clog_t::ptr();
+inline clog_t&      clog = _clog_init.get();
 #endif
 
 /// wcout
@@ -214,7 +214,7 @@ private:
 extern IOV2_API wcout_t& wcout;   // defined in iov2_objects.cpp
 #else
 inline wcout_t::init _wcout_init;
-inline wcout_t&      wcout = *wcout_t::ptr();
+inline wcout_t&      wcout = _wcout_init.get();
 #endif
 
 /// wcerr
@@ -241,7 +241,7 @@ private:
 extern IOV2_API wcerr_t& wcerr;   // defined in iov2_objects.cpp
 #else
 inline wcerr_t::init _wcerr_init;
-inline wcerr_t&      wcerr = *wcerr_t::ptr();
+inline wcerr_t&      wcerr = _wcerr_init.get();
 #endif
 
 /// wclog
@@ -265,6 +265,6 @@ private:
 extern IOV2_API wclog_t& wclog;   // defined in iov2_objects.cpp
 #else
 inline wclog_t::init _wclog_init;
-inline wclog_t&      wclog = *wclog_t::ptr();
+inline wclog_t&      wclog = _wclog_init.get();
 #endif
 }
