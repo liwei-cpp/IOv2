@@ -6,6 +6,7 @@
 
 #include <gtest/gtest.h>
 
+#include <string>
 #include <type_traits>
 #include <utility>
 
@@ -18,10 +19,10 @@ TEST(ClocaleWrapper, NothrowTraits)
     static_assert(std::is_nothrow_move_assignable_v<clocale_wrapper>);
 }
 
-// c_locale is private and clocale_wrapper exposes no accessor, so the only
-// thing the move and copy paths can be checked for here is that they neither
-// throw nor double-free. The freelocale() side is what the sanitizer and
-// valgrind jobs are watching.
+// name() says which locale a wrapper holds but not whether it holds exactly one, so
+// what the move and copy paths are checked for here is that they neither throw nor
+// double-free. The freelocale() side is what the sanitizer and valgrind jobs are
+// watching; NameSurvivesCopyAndMove covers the identity of what was handed over.
 TEST(ClocaleWrapper, MoveConstructAndAssign)
 {
     EXPECT_NO_THROW({
@@ -88,6 +89,33 @@ TEST(ClocaleWrapper, CopyFromMovedFrom)
 TEST(ClocaleWrapper, NullNameThrows)
 {
     EXPECT_THROW((void)clocale_wrapper(nullptr), cvt_error);
+}
+
+// name() reports the locale's own resolved LC_CTYPE name, which is what lets it stand
+// in for the string the wrapper was built from: "" is a lookup rather than a name and
+// comes back concrete, an alias comes back normalized, and whatever comes back builds
+// the same locale again.
+TEST(ClocaleWrapper, NameReportsTheResolvedLocale)
+{
+    EXPECT_EQ(clocale_wrapper("C").name(), "C");
+    EXPECT_EQ(clocale_wrapper("POSIX").name(), "C");
+
+    const std::string resolved = clocale_wrapper("").name();
+    EXPECT_FALSE(resolved.empty());
+    EXPECT_EQ(clocale_wrapper(resolved.c_str()).name(), resolved);
+}
+
+// duplocale() hands out a locale of its own, and it has to be the same locale; the
+// source of a move keeps nothing and can no longer be asked.
+TEST(ClocaleWrapper, NameSurvivesCopyAndMove)
+{
+    clocale_wrapper loc1("POSIX");
+    clocale_wrapper loc2(loc1);
+    EXPECT_EQ(loc2.name(), "C");
+
+    clocale_wrapper loc3(std::move(loc1));
+    EXPECT_EQ(loc3.name(), "C");
+    EXPECT_THROW((void)loc1.name(), cvt_error);
 }
 
 TEST(ClocaleWrapper, ClocaleUserRejectsMovedFrom)

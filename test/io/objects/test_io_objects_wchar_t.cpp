@@ -25,12 +25,14 @@
 #include <IOv2/io/objects/out_impl.h>
 #include <IOv2/io/ostream.h>
 #include <IOv2/io/traits/arithmetic.h>
+#include <IOv2/io/traits/char_and_str.h>
 
 #include <support/stdio_guard.h>
 
 #include <gtest/gtest.h>
 
 #include <cstddef>
+#include <cstdlib>
 #include <string>
 
 TEST(IoObjectsWchar, EachStreamWritesToItsOwnDestination)
@@ -276,4 +278,29 @@ TEST(IoObjectsWchar, WcinCanSwitchEncodingRightAfterAnInvalidSequence)
     IOv2::wcin >> w;
     EXPECT_EQ(w, L"请");
     EXPECT_TRUE(IOv2::wcin.good());
+}
+
+// "" is not an encoding name, it is a request to look at the environment, and the
+// lookup happens once -- at the call. What the stream reports afterwards is the
+// concrete locale that was found, so a later change to the environment cannot move
+// the stream's encoding under it. Were "" kept verbatim instead, the rebuild inside
+// sync_with_stdio() would resolve it again against a hostile LC_ALL and abort.
+TEST(IoObjectsWchar, SwitchCodeResolvesTheEmptyNameAtTheCallAndKeepsTheConcreteOne)
+{
+    // The CI runner sets LC_ALL for the whole suite; put it back the way it was.
+    const char* const saved = std::getenv("LC_ALL");
+    const std::string previous = saved ? saved : "";
+
+    ::setenv("LC_ALL", "zh_CN.GBK", 1);
+    IOv2::wcin.switch_code("");
+    EXPECT_EQ(IOv2::wcin.code(), "zh_CN.GBK");
+
+    ::setenv("LC_ALL", "xx_YY.NOPE", 1);
+    const bool sync = IOv2::wcin.sync_with_stdio(false);
+    EXPECT_EQ(IOv2::wcin.code(), "zh_CN.GBK");
+    IOv2::wcin.sync_with_stdio(sync);
+
+    if (saved) ::setenv("LC_ALL", previous.c_str(), 1);
+    else       ::unsetenv("LC_ALL");
+    IOv2::wcin.switch_code("zh_CN.UTF-8");
 }

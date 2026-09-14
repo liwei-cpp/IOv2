@@ -7,9 +7,8 @@
  * 支持运行时区域设置动态切换的字符编码转换器（code_cvt_stdio）及其配套类型定义文件。
  * 本文件在 `code_cvt` 的基础上增加了以下能力：
  * - `code_cvt_switch`：行为策略，用于在运行时切换字符编码（区域设置）。
- * - `code_cvt_access`：状态对象，用于查询转换器当前使用的区域设置名称。
- * - `code_cvt_stdio`：继承自 `code_cvt<KernelType, wchar_t>`，通过 `adjust()`/`retrieve()`
- *   接口支持编码的动态切换与查询。
+ * - `code_cvt_stdio`：继承自 `code_cvt<KernelType, wchar_t>`，通过 `adjust()` 支持编码的
+ *   动态切换；查询走基类的 `retrieve()` + `code_cvt_access`（见 `code_cvt.h`）。
  * - `code_cvt_stdio_creator`：`code_cvt_stdio` 的工厂类，满足 `cvt_creator` 概念。
  * @endif
  *
@@ -19,10 +18,9 @@
  * with the following capabilities:
  * - `code_cvt_switch`: Behavior policy for switching the character encoding (locale)
  *   at runtime.
- * - `code_cvt_access`: Status object for querying the locale name currently in use
- *   by the converter.
- * - `code_cvt_stdio`: Inherits from `code_cvt<KernelType, wchar_t>` and supports
- *   dynamic encoding switching and querying via the `adjust()`/`retrieve()` interface.
+ * - `code_cvt_stdio`: Inherits from `code_cvt<KernelType, wchar_t>` and supports dynamic
+ *   encoding switching via `adjust()`; querying goes through the base class's
+ *   `retrieve()` with `code_cvt_access` (see `code_cvt.h`).
  * - `code_cvt_stdio_creator`: Factory class for `code_cvt_stdio`, satisfying the
  *   `cvt_creator` concept.
  * @endif
@@ -75,30 +73,11 @@ struct code_cvt_switch : cvt_behavior
 
 /**
  * @lang{ZH}
- * 用于查询转换器当前区域设置名称的状态对象。
- * 将此对象传入 `code_cvt_stdio::retrieve()` 后，`code` 字段将被填充为
- * 转换器当前使用的区域设置名称。
- * @endif
- *
- * @lang{EN}
- * Status object for querying the converter's current locale name.
- * After passing this object to `code_cvt_stdio::retrieve()`, the `code` field
- * is populated with the locale name currently in use by the converter.
- * @endif
- */
-struct code_cvt_access : cvt_status
-{
-    std::string code; ///< 查询结果：转换器当前的区域设置名称 / Query result: the converter's current locale name.
-};
-
-/**
- * @lang{ZH}
  * 支持运行时区域设置动态切换的字符编码转换器（char <-> wchar_t）。
  *
- * 继承自 `code_cvt<KernelType, wchar_t>`，并通过覆写 `adjust()` 和 `retrieve()` 接口
- * 支持在任意时刻切换字符编码（区域设置）及查询当前编码：
- * - 向 `adjust()` 传入 `code_cvt_switch` 策略以切换编码；
- * - 向 `retrieve()` 传入 `code_cvt_access` 对象以查询当前编码名称。
+ * 继承自 `code_cvt<KernelType, wchar_t>`，并通过覆写 `adjust()` 支持在任意时刻切换
+ * 字符编码（区域设置）：向 `adjust()` 传入 `code_cvt_switch` 策略即可。查询当前编码用
+ * 基类的 `retrieve()` + `code_cvt_access`，报的是内核实际持有的 locale 的名字。
  *
  * 本类专用于标准流：底层设备只能是 `std_device<STDIN_FILENO>` / `<STDOUT_FILENO>` /
  * `<STDERR_FILENO>`。这类设备是无状态的 fd 包装，缺省构造的对象与被替换的对象指向同一个
@@ -118,11 +97,10 @@ struct code_cvt_access : cvt_status
  * @lang{EN}
  * Character encoding converter with runtime locale switching support (char <-> wchar_t).
  *
- * Inherits from `code_cvt<KernelType, wchar_t>` and overrides `adjust()` and
- * `retrieve()` to support dynamically switching the character encoding (locale)
- * at any time and querying the current encoding:
- * - Pass a `code_cvt_switch` policy to `adjust()` to switch the encoding.
- * - Pass a `code_cvt_access` object to `retrieve()` to query the current locale name.
+ * Inherits from `code_cvt<KernelType, wchar_t>` and overrides `adjust()` so the character
+ * encoding (locale) can be switched at any time: pass it a `code_cvt_switch` policy. The
+ * current encoding is queried through the base class's `retrieve()` with a
+ * `code_cvt_access`, which reports the name of the locale the kernel actually holds.
  *
  * This class is for the standard streams only: the underlying device must be
  * `std_device<STDIN_FILENO>` / `<STDOUT_FILENO>` / `<STDERR_FILENO>`. Those devices are
@@ -177,7 +155,6 @@ public:
      */
     code_cvt_stdio(KernelType kernel, const std::string& code)
         : BT(std::move(kernel), code)
-        , m_code(code)
     {}
 
     code_cvt_stdio(const code_cvt_stdio& val) = default;
@@ -238,48 +215,17 @@ public:
 public:
     /**
      * @lang{ZH}
-     * 响应状态查询调用，支持查询当前区域设置名称。
-     *
-     * 若 `s` 为 `code_cvt_access` 类型，则将当前区域设置名称（`m_code`）
-     * 填充至 `s.code` 并返回。
-     * 否则将调用委托给基类 `retrieve()`。
-     *
-     * @param s 状态对象（输出参数）。
-     * @endif
-     *
-     * @lang{EN}
-     * Respond to a status query call, supporting retrieval of the current locale name.
-     *
-     * If `s` is of type `code_cvt_access`, populates `s.code` with the current
-     * locale name (`m_code`) and returns.
-     * Otherwise, delegates the call to the base class `retrieve()`.
-     *
-     * @param s Status object (output parameter).
-     * @endif
-     */
-    void retrieve(cvt_status& s) const
-    {
-        if (auto* ptr = dynamic_cast<code_cvt_access*>(&s); ptr)
-        {
-            ptr->code = m_code;
-            return;
-        }
-        BT::retrieve(s);
-    }
-
-public:
-    /**
-     * @lang{ZH}
      * 响应行为策略调用，支持运行时切换字符编码。
      *
      * 若 `acc` 为 `code_cvt_switch` 类型，则执行区域设置切换：
-     * 用 `acc.code` 构造新的 `codecvt_kernel` 并原子地替换当前内核，
-     * 同时更新缓存的区域设置名称 `m_code`。
+     * 用 `acc.code` 构造新的 `codecvt_kernel` 并原子地替换当前内核。
      * 转换器 tainted 时先重新附接同一 fd（见类文档），之后要求编码转换状态（`m_cvt_kernel`）
-     * 处于初始状态，否则抛出异常。所有可能抛出异常的操作均在提交前完成，确保强异常安全保证。
+     * 处于初始状态，否则抛出异常。新内核在提交前构造完毕，替换本身是 `noexcept` 的移动赋值，
+     * 故提供强异常安全保证。
      * 无论 `acc` 类型如何，最终均链式调用基类 `BT::adjust(acc)`。
      *
-     * @param acc 行为策略对象。
+     * @param acc 行为策略对象。`acc.code` 为 `""` 时按 POSIX 规则查环境，转换器此后持有
+     *            的是查到的具体 locale，`retrieve()` 报的也是它，不是 `""`。
      *
      * @throws cvt_error 若当前编码转换状态不处于初始状态；此时不切换。
      * @endif
@@ -288,16 +234,17 @@ public:
      * Respond to a behavior policy call, supporting runtime character encoding switching.
      *
      * If `acc` is of type `code_cvt_switch`, performs a locale switch: constructs a
-     * new `codecvt_kernel` from `acc.code` and atomically replaces the current kernel,
-     * also updating the cached locale name `m_code`.
+     * new `codecvt_kernel` from `acc.code` and atomically replaces the current kernel.
      * A tainted converter is first reattached to the same fd (see the class
      * documentation); after that the encoding conversion state (`m_cvt_kernel`) must be
      * in its initial state at the time of switching, otherwise an exception is thrown.
-     * All potentially-throwing operations are completed before any commit, ensuring
-     * the strong exception safety guarantee.
+     * The new kernel is built before anything is committed and the replacement itself is
+     * a `noexcept` move-assign, so the strong exception guarantee holds.
      * In all cases the call is forwarded to the base-class `BT::adjust(acc)`.
      *
-     * @param acc Behavior policy object.
+     * @param acc Behavior policy object. An `acc.code` of `""` means "look at the
+     *            environment" per POSIX; the converter then holds whatever concrete locale
+     *            that resolved to, and `retrieve()` reports that name, not `""`.
      *
      * @throws cvt_error If the encoding conversion state is not in its initial state;
      *         nothing is switched then.
@@ -310,21 +257,15 @@ public:
         {
             if (!this->m_cvt_kernel.is_init_state())
                 throw cvt_error("code_cvt_stdio::adjust fail: invalid state");
-            // Perform all potentially-throwing operations first, then commit with
-            // noexcept moves. The two commit moves below MUST be noexcept; otherwise
-            // a partial-throw could leave m_cvt_kernel and m_code mutually
-            // inconsistent (mismatched locale handle vs. cached code string).
+            // Build the new kernel before committing: the commit move below MUST be
+            // noexcept, otherwise a partial throw would leave the converter without a
+            // usable kernel.
             static_assert(
                 std::is_nothrow_move_assignable_v<codecvt_kernel<char, wchar_t>>,
                 "codecvt_kernel<char, wchar_t> move-assign must be noexcept; "
                 "otherwise code_cvt_stdio::adjust loses its strong exception guarantee");
-            static_assert(
-                std::is_nothrow_move_assignable_v<std::string>,
-                "std::string move-assign must be noexcept");
             codecvt_kernel<char, wchar_t> new_kernel(ptr->code);
-            std::string new_code = ptr->code;
             this->m_cvt_kernel = std::move(new_kernel);
-            m_code = std::move(new_code);
         }
         return BT::adjust(acc);
     }
@@ -359,8 +300,6 @@ private:
         this->bos();
         this->main_cont_beg();
     }
-
-    std::string m_code; ///< 当前使用的区域设置名称 / Currently active locale name.
 };
 
 /**
