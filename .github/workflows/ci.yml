@@ -362,7 +362,10 @@ jobs:
         cmp NOTICE /opt/iov2-ho/share/licenses/IOv2/NOTICE
         # Written outside the repo: this job also configures CMake in this tree.
         smoke=$(mktemp -d)
-        printf '%s\n' '#include <IOv2/io/objects/out_impl.h>' \
+        # Inserting a string literal needs the traits header; objects.h alone
+        # brings in the stream objects only (see its @note).
+        printf '%s\n' '#include <IOv2/io/objects/objects.h>' \
+          '#include <IOv2/io/traits/char_and_str.h>' \
           'int main() { IOv2::cout << "iov2 header-only ok\n"; return 0; }' \
           > "$smoke/consumer_ho.cpp"
         export PKG_CONFIG_PATH=/opt/iov2-ho/lib/pkgconfig

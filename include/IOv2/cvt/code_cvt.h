@@ -262,6 +262,19 @@ struct codecvt_kernel<char, TInt>
 
     /**
      * @lang{ZH}
+     * 返回本内核实际持有的 locale 的名字（locale 自己解析后的名字，不是构造实参，
+     * 见 `clocale_wrapper::name()`）。
+     * @endif
+     *
+     * @lang{EN}
+     * Return the name of the locale this kernel actually holds -- the name the locale
+     * resolved to, not the construction argument; see `clocale_wrapper::name()`.
+     * @endif
+     */
+    [[nodiscard]] std::string code() const { return m_inter_locale.name(); }
+
+    /**
+     * @lang{ZH}
      * 将单个内部字符编码为外部字节序列，并追加写入输出缓冲区。
      *
      * @param ch      待编码的内部字符。
@@ -539,6 +552,25 @@ struct codecvt_kernel<char8_t, TInt>
 
     /**
      * @lang{ZH}
+     * 返回本内核的编码名。本内核不经过任何 locale，自己实现 UTF-8，故返回一个带括号的
+     * 伪名字 `"(builtin)UTF-8"`——它**不是** locale 名，`newlocale()` 必然拒绝它。
+     *
+     * @return 始终返回 `"(builtin)UTF-8"`。
+     * @endif
+     *
+     * @lang{EN}
+     * Return this kernel's encoding name. This kernel goes through no locale at all and
+     * implements UTF-8 itself, so it returns the parenthesized pseudo-name
+     * `"(builtin)UTF-8"` -- which is **not** a locale name and which `newlocale()` is
+     * guaranteed to reject.
+     *
+     * @return Always `"(builtin)UTF-8"`.
+     * @endif
+     */
+    [[nodiscard]] std::string code() const { return "(builtin)UTF-8"; }
+
+    /**
+     * @lang{ZH}
      * 将单个内部字符（UTF-32 码点）编码为 UTF-8 字节序列，并追加写入输出缓冲区。
      * 拒绝代理码点（[0xD800, 0xDFFF]）及超出 Unicode 范围（> 0x10FFFF）的码点。
      *
@@ -716,6 +748,45 @@ struct codecvt_kernel<char8_t, TInt>
 
         return std::pair{true, static_cast<std::size_t>(to - ori_to)};
     }
+};
+
+/**
+ * @lang{ZH}
+ * 用于查询转换器当前编码名的状态对象。
+ * 将此对象传入 `code_cvt::retrieve()` 后，`code` 字段将被填充。
+ *
+ * 填入的值有两种形态：
+ * - 走 locale 的内核（`codecvt_kernel<char, TInt>`）填 locale 名，可再交给 `newlocale()`；
+ * - 不走 locale 的内核（`codecvt_kernel<char8_t, TInt>`）填带括号的伪名字，如
+ *   `"(builtin)UTF-8"`，它**不是** locale 名，`newlocale()` 必然拒绝。
+ *
+ * 两种形态都非空，因此拿回空串只意味着一件事：链上没有 `code_cvt`，没人回答。
+ *
+ * @note locale 名填的是 locale 自己解析后的名字，不是构造或 `code_cvt_switch` 时给的
+ *       实参，见 `clocale_wrapper::name()`。
+ * @endif
+ *
+ * @lang{EN}
+ * Status object for querying the converter's current encoding name.
+ * After passing this object to `code_cvt::retrieve()`, the `code` field is populated.
+ *
+ * What is written takes one of two shapes:
+ * - a kernel that goes through a locale (`codecvt_kernel<char, TInt>`) writes a locale
+ *   name, which can be handed back to `newlocale()`;
+ * - a kernel that does not (`codecvt_kernel<char8_t, TInt>`) writes a parenthesized
+ *   pseudo-name such as `"(builtin)UTF-8"`, which is **not** a locale name and which
+ *   `newlocale()` is guaranteed to reject.
+ *
+ * Neither shape is ever empty, so an empty string back means one thing only: there is no
+ * `code_cvt` in the chain and nobody answered.
+ *
+ * @note A locale name is the name the locale resolved to, not the argument given at
+ *       construction or to `code_cvt_switch`; see `clocale_wrapper::name()`.
+ * @endif
+ */
+struct code_cvt_access : cvt_status
+{
+    std::string code; ///< 查询结果：转换器当前的区域设置名称 / Query result: the converter's current locale name.
 };
 
 /**
@@ -924,6 +995,26 @@ private:
     {
         m_cvt_kernel.init_state();
         m_accu_len = 0;
+    }
+
+    /**
+     * @lang{ZH}
+     * `abs_cvt::retrieve()` 的 CRTP 钩子，在 kernel 层 `retrieve()` 之前调用。
+     *
+     * 认识 `code_cvt_access`：填入本层内核的编码名（`m_cvt_kernel.code()`）。
+     * @endif
+     *
+     * @lang{EN}
+     * CRTP hook for `abs_cvt::retrieve()`, called before the kernel-level `retrieve()`.
+     *
+     * Recognizes `code_cvt_access`: fills in this layer's kernel's encoding name
+     * (`m_cvt_kernel.code()`).
+     * @endif
+     */
+    void retrieve_impl(cvt_status& s) const
+    {
+        if (auto* ptr = dynamic_cast<code_cvt_access*>(&s); ptr)
+            ptr->code = m_cvt_kernel.code();
     }
 
     /**

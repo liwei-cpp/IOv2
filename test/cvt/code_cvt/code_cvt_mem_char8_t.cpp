@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2026 liwei <liwei.cpp@gmail.com>
 // SPDX-License-Identifier: MIT
 
+#include <IOv2/common/clocale_wrapper.h>
 #include <IOv2/common/defs.h>
 #include <IOv2/cvt/code_cvt.h>
 #include <IOv2/cvt/cvt_concepts.h>
@@ -239,6 +240,22 @@ TEST(CodeCvtMemChar8, TraitsWithoutAReadBuffer)
     static_assert(std::is_same_v<CheckType::device_type, mem_device<char8_t>>);
     static_assert(std::is_same_v<CheckType::internal_type, char32_t>);
     static_assert(std::is_same_v<CheckType::external_type, char8_t>);
+}
+
+// This kernel reaches no locale, so what it reports for itself is a pseudo-name and
+// not a locale name. It is never empty -- an empty answer means no code_cvt answered
+// at all -- and it is deliberately not a name newlocale() takes, so feeding it to a
+// locale-based kernel fails loudly instead of silently resolving the environment the
+// way an empty name would.
+TEST(CodeCvtMemChar8, RetrieveReportsTheBuiltInEncoding)
+{
+    RbCvt obj{rb_root_cvt{mem_device(std::u8string{})}};
+
+    code_cvt_access acc;
+    obj.retrieve(acc);
+
+    EXPECT_EQ(acc.code, "(builtin)UTF-8");
+    EXPECT_THROW((void)clocale_wrapper(acc.code.c_str()), cvt_error);
 }
 
 // The decoder carries state between chunks -- a multi-byte sequence can be split

@@ -19,6 +19,7 @@
 #include <IOv2/io/objects/objects.h>
 #include <IOv2/io/objects/out_impl.h>
 #include <IOv2/io/ostream.h>
+#include <IOv2/io/traits/char_and_str.h>
 
 #include <support/stdio_guard.h>
 
@@ -26,6 +27,9 @@
 
 #include <cstddef>
 #include <string>
+
+#include <fcntl.h>
+#include <unistd.h>
 
 TEST(IoObjectsChar, EachStreamWritesToItsOwnDestination)
 {
@@ -129,6 +133,38 @@ TEST(IoObjectsChar, CinReadsAndPutsBack)
         IOv2::cin.reset();
         EXPECT_TRUE(static_cast<bool>(IOv2::cin.ignore(1)));
     }
+}
+
+// reset() offers the bytes it is about to drop to the old device once. When
+// that write cannot land, the loss is reported as devfailbit rather than
+// thrown, and the stream is still fully usable after clear() -- the device has
+// been replaced and the converter is initialized, not left half-way.
+TEST(IoObjectsChar, ResetReportsAFailedFlushOfTheDroppedBytesAndStaysUsable)
+{
+    const int full = ::open("/dev/full", O_WRONLY);
+    if (full == -1) GTEST_SKIP() << "no /dev/full here";
+
+    oguard<true> out;
+    const bool   sync = IOv2::cout.sync_with_stdio(false);
+
+    IOv2::cout << "DROPPED";                      // still in this stream's buffer
+
+    const int saved = ::dup(STDOUT_FILENO);
+    ::dup2(full, STDOUT_FILENO);                  // the pending bytes cannot land
+    EXPECT_NO_THROW(IOv2::cout.reset());
+    ::dup2(saved, STDOUT_FILENO);
+    ::close(saved);
+    ::close(full);
+
+    EXPECT_EQ(IOv2::cout.rdstate(), IOv2::ios_defs::devfailbit);
+
+    IOv2::cout.clear();
+    IOv2::cout << "AFTER" << IOv2::flush;
+
+    EXPECT_TRUE(IOv2::cout.good());
+    EXPECT_EQ(out.contents(), "AFTER");
+
+    IOv2::cout.sync_with_stdio(sync);
 }
 
 // sync_with_stdio changes how the objects reach the C streams, not which

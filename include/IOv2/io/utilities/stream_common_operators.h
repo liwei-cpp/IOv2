@@ -425,8 +425,13 @@ struct stream_common_operators
      * 必须自己记得 `clear()`，"换个设备重试"这条本该走通的恢复路径就断了。
      *
      * @note 清状态必须排在换设备**之前**，否则失败路径上留下的是新旧混合的状态：底层的
-     *       `streambuf::attach()` 先装入新设备、再初始化转换器，而抛异常的是后一步，且没有回滚。
-     *       清在前面，失败后的状态就只描述这一次 `attach()`。
+     *       `streambuf::attach()` 先装入新设备、再初始化转换器，且没有回滚。清在前面，失败后的
+     *       状态就只描述这一次 `attach()`。
+     * @warning 抛异常的是**前一步**：`root_cvt::attach()` 内部先 `detach()` 旧设备，在输出方向上
+     *          那一步会 `flush()`，写失败的异常被它留到最后重抛（`root_cvt.h:476-486`）。异常因此
+     *          来自**旧**设备的收尾，新设备此时已经装好；但正因为抛在前一步，第二步
+     *          （`bos()` / `main_cont_beg()`）没有执行，转换器停在 `io_status::neutral`，此后每次
+     *          读写都会抛 `cvt_error`，`clear()` 也救不回，只能再 `attach()` 一次。
      *
      * @note 安装设备时抛出的异常交由 `handle_exception` 处理：置相应失败位，并按流的异常掩码
      *       决定是否重新抛出。这一点与**构造函数**不同——C++ 规定构造函数成员初始化列表抛出的
@@ -457,8 +462,15 @@ struct stream_common_operators
      *
  * @note Clearing has to come **before** the replacement, or the failure path is left holding a
  *       mixture of old and new: the underlying `streambuf::attach()` installs the new device
- *       first and initializes the converter second, and it is the second step that throws, with
- *       no rollback. Clearing first leaves a state that describes only this `attach()`.
+ *       first and initializes the converter second, with no rollback. Clearing first leaves a
+ *       state that describes only this `attach()`.
+ * @warning It is the **first** step that throws: `root_cvt::attach()` starts by detaching the old
+ *          device, which in the output direction `flush()`es it, and it holds that write failure
+ *          back to rethrow at the very end (`root_cvt.h:476-486`). The exception thus comes from
+ *          winding up the **old** device, and the new one is installed by then -- but precisely
+ *          because it is thrown in the first step, the second step (`bos()` / `main_cont_beg()`)
+ *          does not run: the converter is left in `io_status::neutral`, every later read or write
+ *          throws `cvt_error`, and `clear()` cannot recover it -- only another `attach()` can.
      *
  * @note An exception thrown while installing the device goes to `handle_exception`: the matching
  *       failure bit is set, and whether it is rethrown follows the stream's exception mask. This
