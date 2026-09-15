@@ -63,11 +63,13 @@ namespace IOv2
          * @brief 设备支持写入操作的概念。
          *
          * 要求设备提供写入数据（dput）和刷新缓冲区（dflush）的接口。
-         * @note **自带内部缓冲的设备必须在自己的析构函数里 `dflush()`。** 销毁一个流只会把
+         * @note **自带内部缓冲的设备必须在自己的析构函数里 `dflush()`。** 正常销毁一个流只会把
          *       转换器的缓冲经 `dput()` 推给设备（`root_cvt::~root_cvt` 调的是 `flush()`），
-         *       **不会**调用设备的 `dflush()`；后者只在 unitbuf 哨兵析构与 `flush(true)`
-         *       两处显式发生。`file_device` 与 `std_device` 都是这么做的，`mem_device`
-         *       无内部缓冲故不需要。不遵守则设备缓冲里的数据在流销毁时丢失。
+         *       **不会**替设备调用 `dflush()`；单独的 `detach()` 也只把仍打开的设备交还调用方。
+         *       显式的设备冲刷发生在 unitbuf 哨兵析构、`flush(true)`、`root_cvt::attach()` 销毁
+         *       被替换的旧输出设备之前，以及标准输出流 `reset()` 丢弃已分离设备之前。
+         *       `file_device` 与 `std_device` 的析构函数仍自行 `dflush()`，以覆盖正常析构和调用方
+         *       取得设备后的生命周期；`mem_device` 无内部缓冲故不需要。
          * @tparam T 要检查的设备类型。
          * @endif
          *
@@ -77,12 +79,15 @@ namespace IOv2
          * Requires the device to provide interfaces for writing data (dput) and
          * flushing the buffer (dflush).
          * @note **A device that buffers internally must `dflush()` in its own destructor.**
-         *       Destroying a stream only pushes the converter's buffer down to the device via
-         *       `dput()` (`root_cvt::~root_cvt` calls `flush()`); it does **not** call the
-         *       device's `dflush()`, which happens explicitly only in the unitbuf sentry's
-         *       destructor and in `flush(true)`. `file_device` and `std_device` both do this;
-         *       `mem_device` has no internal buffer and so needs nothing. A device that skips
-         *       it loses whatever sits in its own buffer when the stream is destroyed.
+         *       Normal stream destruction only pushes the converter's buffer down to the device
+         *       via `dput()` (`root_cvt::~root_cvt` calls `flush()`); it does **not** call the
+         *       device's `dflush()`. A standalone `detach()` likewise returns the still-open
+         *       device to its caller. Explicit device flushes occur in the unitbuf sentry's
+         *       destructor, in `flush(true)`, before `root_cvt::attach()` destroys a replaced
+         *       output device, and before a standard output stream's `reset()` discards its
+         *       detached device. The destructors of `file_device` and `std_device` still call
+         *       `dflush()` themselves to cover normal destruction and the returned device's
+         *       subsequent lifetime; `mem_device` has no internal buffer and needs no such step.
          * @tparam T The device type to check.
          * @endif
          */

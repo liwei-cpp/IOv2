@@ -190,33 +190,45 @@ public:
      * @brief 切换本流把 `wchar_t` 编码成字节时使用的编码（locale）。
      *
      * `new_code` 与 `code()` 相同时什么也不做。与本流其余操作不同，失败**不落状态位，而是
-     * 抛出**：`code_cvt_stdio::adjust` 把所有可能抛出的步骤都放在提交之前，因此抛出时编码、
-     * 状态位、已缓冲的字节都没有改变（强保证）。
+     * 抛出**。若转换器进入本函数时未 tainted，`code_cvt_stdio::adjust` 会把所有可能抛出的
+     * 步骤都放在提交之前，因此抛出时编码、状态位、已缓冲的字节都没有改变（强保证）。
+     * 若转换器已 tainted，则切换前须先重新附接同一 fd；这一步会终结旧转换器流并冲刷旧设备，
+     * 因而不属于上述强保证。
      *
      * @param new_code 新的编码名，须为 `newlocale()` 接受的 locale 名。`""` 按 POSIX 规则
      *        查环境（`LC_ALL` > `LC_CTYPE` > `LANG` > `"C"`）：查在此刻发生，切换成功后
      *        `code()` 报的是查到的具体名字，不是 `""`。
      * @return 调用前的编码名。
-     * @throws cvt_error 该名字不被 `newlocale()` 接受，或编码转换状态不处于初始状态（有状态
-     *         编码写出非 ASCII 之后）；两种情况都不切换。详见 `cvt/code_cvt_stdio.h`。
+     * @throws cvt_error 该名字不被 `newlocale()` 接受、编码转换状态不处于初始状态（有状态
+     *         编码写出非 ASCII 之后），或已 tainted 转换器的预先恢复无法完成终结；这些情况
+     *         均不切换编码。详见 `cvt/code_cvt_stdio.h`。
+     * @throws device_error 转换器已 tainted，且预先恢复时旧设备冲刷失败；编码不切换，但待冲刷
+     *         的字节可能已经丢失。
      * @endif
      *
      * @lang{EN}
      * @brief Switches the encoding (locale) this stream uses to encode `wchar_t` into bytes.
      *
      * Does nothing when `new_code` equals `code()`. Unlike the stream's other operations, a
-     * failure **throws instead of setting a state bit**: `code_cvt_stdio::adjust` puts every
-     * potentially-throwing step before the commit, so on a throw the encoding, the state bits
-     * and the buffered bytes are all unchanged (the strong guarantee).
+     * failure **throws instead of setting a state bit**. If the converter is not tainted on
+     * entry, `code_cvt_stdio::adjust` puts every potentially-throwing step before the commit,
+     * so on a throw the encoding, the state bits and the buffered bytes are all unchanged
+     * (the strong guarantee). A tainted converter must first be reattached to the same fd;
+     * that step finalizes the old converter stream and flushes the old device, so it is not
+     * covered by that guarantee.
      *
      * @param new_code The new encoding name; must be a locale name `newlocale()` accepts.
      *        `""` means "look at the environment" per POSIX (`LC_ALL` > `LC_CTYPE` > `LANG` >
      *        `"C"`); the lookup happens at this moment, and once the switch succeeds `code()`
      *        reports the concrete name it resolved to, not `""`.
      * @return The encoding name before the call.
-     * @throws cvt_error The name is not accepted by `newlocale()`, or the encoding conversion
+     * @throws cvt_error The name is not accepted by `newlocale()`, the encoding conversion
      *         state is not in its initial state (after a stateful encoding has written
-     *         non-ASCII); neither case switches. See `cvt/code_cvt_stdio.h`.
+     *         non-ASCII), or preliminary recovery cannot finalize a tainted converter;
+     *         none of these cases switches the encoding. See `cvt/code_cvt_stdio.h`.
+     * @throws device_error The converter was tainted and flushing the old device during the
+     *         preliminary recovery failed; the encoding is not switched, but pending bytes
+     *         may already have been lost.
      * @endif
      */
     std::string switch_code(const std::string& new_code)
@@ -267,6 +279,10 @@ public:
      * 已缓冲的那批字节是交给旧设备写出的；写不出去（fd 是 `/dev/full`、管道已断、tty 已挂断）
      * 才丢失，此时不抛出，而是置 `devfailbit`：字节已经丢了，而 `reset()` 没有返回值，状态位是
      * 唯一能报告这件事的通道。这一位不妨碍继续用，`clear()` 之后照常插入。
+     * 旧设备的 `dflush()` 在其析构前显式调用，因此 stdio 自身缓冲区的失败也经同一通道报告；
+     * 若转换器清理与设备冲刷均失败，保留较早发生的转换器清理错误。
+     * @note `dflush()` 冲刷的是整个 `stdout` / `stderr` 的 `FILE` 缓冲，因此报告的失败也可能
+     *       涉及调用方通过 `printf` 等 C stdio 接口写入的字节。
      *
      * @note 换设备本身失败（`cvtfailbit` / `otherfailbit`，例如宽流重建编码转换状态失败）是另一
      *       回事：那时转换器没有初始化完，流不可用，须再次 `reset()`，`clear()` 不够。
@@ -299,6 +315,12 @@ public:
      * throw but sets `devfailbit`: the bytes are gone and `reset()` returns nothing, so a
      * state bit is the only channel left to report it. That bit does not stand in the way:
      * after `clear()` insertions work as usual.
+     * The old device's `dflush()` is called explicitly before its destructor, so failures in
+     * stdio's own buffer are reported through the same channel. If converter cleanup and the
+     * device flush both fail, the earlier converter-cleanup error is preserved.
+     * @note `dflush()` flushes the whole `stdout` / `stderr` `FILE` buffer, so the reported
+     *       failure may also involve bytes written by the caller through C stdio such as
+     *       `printf`.
      *
      * @note Failing to replace the device is a different matter (`cvtfailbit` /
      *       `otherfailbit`, e.g. a wide stream unable to rebuild its conversion state):
@@ -320,6 +342,13 @@ public:
         this->exceptions(ios_defs::goodbit);
 
         auto detached = m_streambuf.detach();
+
+        try { detached.first.dflush(); }
+        catch (...)
+        {
+            if (!detached.second)
+                detached.second = std::current_exception();
+        }
 
         try { m_streambuf.attach(); }
         catch (...) { this->handle_exception(std::current_exception()); }

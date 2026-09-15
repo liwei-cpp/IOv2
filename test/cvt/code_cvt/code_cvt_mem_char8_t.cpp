@@ -1106,6 +1106,17 @@ TEST(CodeCvtMemChar8, TheEncodeHelperReportsABufferTooSmallForTheWidestSequence)
     EXPECT_FALSE(kernel.out_helper(U'A', to, to_end));
 }
 
+// UTF-8 has no shift state, so closing its output conversion stream emits no
+// suffix and leaves the caller's scratch buffer untouched.
+TEST(CodeCvtMemChar8, TheUtf8KernelUnshiftIsANoop)
+{
+    codecvt_kernel<char8_t, char32_t> kernel;
+    char8_t buffer[1] = {u8'x'};
+
+    EXPECT_EQ(kernel.unshift(buffer, sizeof(buffer)), 0u);
+    EXPECT_EQ(buffer[0], u8'x');
+}
+
 TEST(CodeCvtMemChar8, TheDecodeHelperRejectsAnInvertedRange)
 {
     codecvt_kernel<char8_t, char32_t> kernel;

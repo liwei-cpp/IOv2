@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: MIT
 
 #pragma once
+#include <array>
 #include <cstdio>
 #include <filesystem>
 #include <fstream>
@@ -143,5 +144,32 @@ namespace
     private:
         int         m_old_std;
         const char* m_dir_file_name;
+    };
+
+    // Puts stdout into full buffering on a buffer this object owns, the way glibc
+    // buffers a stdout that is not a tty. The destructor hands stdout back to
+    // unbuffered mode (what oguard and the surrounding suites expect) before the
+    // buffer dies, so an early return from a failed ASSERT cannot leave stdout
+    // pointing at freed storage.
+    struct stdout_full_buffer
+    {
+        stdout_full_buffer()
+        {
+            if (std::setvbuf(stdout, m_buffer.data(), _IOFBF, m_buffer.size()) != 0)
+                throw std::runtime_error("Cannot make stdout fully buffered");
+        }
+
+        ~stdout_full_buffer()
+        {
+            std::clearerr(stdout);
+            std::setbuf(stdout, nullptr);
+            std::clearerr(stdout);
+        }
+
+        stdout_full_buffer(const stdout_full_buffer&) = delete;
+        stdout_full_buffer& operator=(const stdout_full_buffer&) = delete;
+
+    private:
+        std::array<char, BUFSIZ> m_buffer{};
     };
 }

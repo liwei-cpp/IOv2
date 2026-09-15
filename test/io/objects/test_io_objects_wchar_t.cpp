@@ -35,6 +35,9 @@
 #include <cstdlib>
 #include <string>
 
+#include <fcntl.h>
+#include <unistd.h>
+
 TEST(IoObjectsWchar, EachStreamWritesToItsOwnDestination)
 {
     {
@@ -232,6 +235,53 @@ TEST(IoObjectsWchar, WcoutCanSwitchEncodingRightAfterAnUnencodableCharacter)
     EXPECT_EQ(out.contents(), "\xd6\xd0"); // 中 in GBK
 
     IOv2::wcout.switch_code("zh_CN.UTF-8");
+}
+
+// A tainted converter recovers before switch_code() commits the new encoding.
+// If already-committed bytes are waiting in stdout's FILE buffer, that recovery
+// must flush the old device and surface an fflush failure instead of silently
+// switching encodings while the bytes disappear.
+TEST(IoObjectsWchar, SwitchCodeReportsAFullBufferedStdoutFailureBeforeSwitching)
+{
+    const int full = ::open("/dev/full", O_WRONLY);
+    if (full == -1) GTEST_SKIP() << "no /dev/full here";
+
+    oguard<true> out;
+    IOv2::wcout.reset();
+    IOv2::wcout.switch_code("zh_CN.UTF-8");
+    const bool sync = IOv2::wcout.sync_with_stdio(true);
+
+    {
+        stdout_full_buffer buffered;                // restores unbuffered stdout on any exit
+
+        IOv2::wcout << L"PENDING";                  // committed into stdout's FILE buffer
+        EXPECT_TRUE(out.contents().empty());
+
+        // Keep the failing insertion's sentry from immediately auto-recovering the
+        // tainted converter while stdout still points at the healthy file.
+        IOv2::wcout.sync_with_stdio(false);
+        IOv2::wcout << L'\xD800';                   // invalid Unicode scalar: taints code_cvt
+        ASSERT_TRUE(IOv2::wcout.cvt_fail());
+        IOv2::wcout.clear();
+
+        const int saved = ::dup(STDOUT_FILENO);
+        ASSERT_NE(saved, -1);
+        EXPECT_EQ(::dup2(full, STDOUT_FILENO), STDOUT_FILENO);
+        EXPECT_THROW(IOv2::wcout.switch_code("zh_CN.GBK"), IOv2::device_error);
+        EXPECT_EQ(::dup2(saved, STDOUT_FILENO), STDOUT_FILENO);
+        ::close(saved);
+        ::close(full);
+    }
+
+    EXPECT_EQ(IOv2::wcout.code(), "zh_CN.UTF-8");
+
+    // The failed recovery leaves the converter tainted; the next insertion
+    // retries recovery on the restored fd and remains usable.
+    IOv2::wcout << L"AFTER" << IOv2::flush;
+    EXPECT_TRUE(IOv2::wcout.good());
+    EXPECT_NE(out.contents().find("AFTER"), std::string::npos);
+
+    IOv2::wcout.sync_with_stdio(sync);
 }
 
 // GBK: 璇 | b7 20 (a lead byte the space cannot complete) | 谢谢 | newline | 42.
