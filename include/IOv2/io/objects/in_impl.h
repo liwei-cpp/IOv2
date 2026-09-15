@@ -154,7 +154,14 @@ public:
             if constexpr (std::is_same_v<char_type, char>)
                 m_streambuf = istreambuf<device_type, char_type>(std::move(dev), !sync);
             else if constexpr (std::is_same_v<char_type, wchar_t>)
-                m_streambuf = istreambuf<device_type, wchar_t>(std::move(dev), code_cvt_stdio_creator(code()), !sync);
+            {
+                // Straight from the streambuf, not through code(): that wrapper reports a
+                // failure as a state bit and an empty name, which would rebuild on the
+                // environment's encoding instead of the current one. Here a failure aborts.
+                code_cvt_access acc;
+                m_streambuf.retrieve(acc);
+                m_streambuf = istreambuf<device_type, wchar_t>(std::move(dev), code_cvt_stdio_creator(acc.code), !sync);
+            }
             else
                 static_assert(dependent_false_v<char_type>, "invalid character type");
         } catch (...) {
@@ -252,7 +259,11 @@ public:
      * 返回的是转换器**实际持有**的那个 locale 自己报出的名字，不是当初传进去的实参：
      * 以 `""` 切换过的话，得到的是那一刻查环境得到的具体名字，不是 `""`；别名也按平台
      * 规范化（glibc 把 `"POSIX"` 报成 `"C"`）。不做 I/O。返回值可再交给 `switch_code()`
-     * 得到同一个编码，`sync_with_stdio()` 重建 streambuf 时正是用它来复原编码。
+     * 得到同一个编码。
+     *
+     * 只是 `retrieve(code_cvt_access)` 的包装，走本流通用的加锁与错误处理：失败（只在转换器
+     * 内核已被移出时发生，正常生命周期不可达）经 `handle_exception` 置 `cvtfailbit`、返回空串，
+     * `exceptions()` 掩码含该位时抛出。
      *
      * @return 当前编码名。
      * @endif
@@ -265,18 +276,21 @@ public:
      * argument it was given: after a switch to `""` this is the concrete name the environment
      * resolved to at that moment, not `""`, and aliases come back platform-normalized (glibc
      * reports `"POSIX"` as `"C"`). Does no I/O. The result can be handed back to
-     * `switch_code()` to get the same encoding, and it is what `sync_with_stdio()` uses to
-     * carry the encoding over when it rebuilds the streambuf.
+     * `switch_code()` to get the same encoding.
+     *
+     * A thin wrapper over `retrieve(code_cvt_access)`, so it shares the stream's locking and
+     * error handling: a failure (only when the converter's kernel has been moved out, which a
+     * live stream never reaches) goes through `handle_exception`, sets `cvtfailbit` and yields
+     * an empty string; it throws when the `exceptions()` mask includes that bit.
      *
      * @return The current encoding name.
      * @endif
      */
-    std::string code() const
+    std::string code()
         requires std::is_same_v<TChar, wchar_t>
     {
-        std::lock_guard guard(this->io_mutex());
         code_cvt_access acc;
-        m_streambuf.retrieve(acc);
+        this->retrieve(acc);
         return acc.code;
     }
 
@@ -284,48 +298,52 @@ public:
      * @lang{ZH}
      * @brief 切换本流把字节解码成 `wchar_t` 时使用的编码（locale）。
      *
-     * `new_code` 与 `code()` 相同时什么也不做。与本流其余操作不同，失败**不落状态位，而是
-     * 抛出**：`code_cvt_stdio::adjust` 把所有可能抛出的步骤都放在提交之前，因此抛出时编码、
-     * 状态位、已缓冲的字节都没有改变（强保证）。解码失败之后不必先 `reset()`：`clear()` 即可
-     * 让解码器回到初始状态，`switch_code()` 也随之可用。
+     * `new_code` 与 `code()` 相同时什么也不做。只是 `adjust(code_cvt_switch)` 的包装，走本流
+     * 通用的加锁与错误处理：失败按状态位报告，`exceptions()` 掩码含该位时才抛出；失败时编码、
+     * 已缓冲的字节都没有改变（`code_cvt_stdio::adjust` 把所有可能失败的步骤都放在提交之前）。
+     * 解码失败之后不必先 `reset()`：`clear()` 即可让解码器回到初始状态，`switch_code()` 也随之
+     * 可用。
      *
      * @param new_code 新的编码名，须为 `newlocale()` 接受的 locale 名。`""` 按 POSIX 规则
      *        查环境（`LC_ALL` > `LC_CTYPE` > `LANG` > `"C"`）：查在此刻发生，切换成功后
      *        `code()` 报的是查到的具体名字，不是 `""`。
-     * @return 调用前的编码名。
-     * @throws cvt_error 该名字不被 `newlocale()` 接受，或编码转换状态不处于初始状态；两种情况
-     *         都不切换。详见 `cvt/code_cvt_stdio.h`。
+     * @return 调用前的编码名；失败时它仍是当前编码名，请查 `fail()`。
+     * @note 置 `cvtfailbit`：该名字不被 `newlocale()` 接受，或编码转换状态不处于初始状态
+     *       （例如输入在一个多字节字符中间到达 EOF，此时 `clear()` 不够、须 `reset()`）。
+     *       详见 `cvt/code_cvt_stdio.h`。
      * @endif
      *
      * @lang{EN}
      * @brief Switches the encoding (locale) this stream uses to decode bytes into `wchar_t`.
      *
-     * Does nothing when `new_code` equals `code()`. Unlike the stream's other operations, a
-     * failure **throws instead of setting a state bit**: `code_cvt_stdio::adjust` puts every
-     * potentially-throwing step before the commit, so on a throw the encoding, the state bits
-     * and the buffered bytes are all unchanged (the strong guarantee). A decode failure needs
-     * no `reset()` first: `clear()` already puts the decoder back in its initial state, and
-     * `switch_code()` is available again with it.
+     * Does nothing when `new_code` equals `code()`. A thin wrapper over
+     * `adjust(code_cvt_switch)`, so it shares the stream's locking and error handling: a
+     * failure is reported through the state bits and throws only when the `exceptions()` mask
+     * includes the bit; on failure the encoding and the buffered bytes are unchanged
+     * (`code_cvt_stdio::adjust` puts every step that can fail before the commit). A decode
+     * failure needs no `reset()` first: `clear()` already puts the decoder back in its initial
+     * state, and `switch_code()` is available again with it.
      *
      * @param new_code The new encoding name; must be a locale name `newlocale()` accepts.
      *        `""` means "look at the environment" per POSIX (`LC_ALL` > `LC_CTYPE` > `LANG` >
      *        `"C"`); the lookup happens at this moment, and once the switch succeeds `code()`
      *        reports the concrete name it resolved to, not `""`.
-     * @return The encoding name before the call.
-     * @throws cvt_error The name is not accepted by `newlocale()`, or the encoding conversion
-     *         state is not in its initial state; neither case switches. See
-     *         `cvt/code_cvt_stdio.h`.
+     * @return The encoding name before the call; on failure that is still the current one,
+     *         check `fail()`.
+     * @note Sets `cvtfailbit`: the name is not accepted by `newlocale()`, or the encoding
+     *       conversion state is not in its initial state (input that hit EOF in the middle of
+     *       a multibyte character, say -- there `clear()` is not enough and `reset()` is).
+     *       See `cvt/code_cvt_stdio.h`.
      * @endif
      */
     std::string switch_code(const std::string& new_code)
         requires std::is_same_v<TChar, wchar_t>
     {
-        std::lock_guard guard(this->io_mutex());
         auto res = code();
         if (res != new_code)
         {
             code_cvt_switch acc(new_code);
-            m_streambuf.adjust(acc);
+            this->adjust(acc);
         }
         return res;
     }

@@ -19,7 +19,7 @@
  * not depend on where the switch landed. The writer must not format numbers: under
  * a locale with digit grouping (fr_CA, de_DE, ...) `wcout << 1000` inserts a
  * non-ASCII separator, which the GBK leg cannot encode, and the resulting taint
- * would make the next switch_code() throw for a reason that has nothing to do
+ * would make the next switch_code() fail for a reason that has nothing to do
  * with locking. sync_with_stdio() may discard
  * input it had buffered when switching back to the unbuffered mode (documented in
  * streambuf.h), so the reader's total is not asserted, only that it reaches EOF
