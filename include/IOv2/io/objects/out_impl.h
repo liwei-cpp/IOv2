@@ -160,6 +160,10 @@ public:
      * 规范化（glibc 把 `"POSIX"` 报成 `"C"`）。不做 I/O。返回值可再交给 `switch_code()`
      * 得到同一个编码。
      *
+     * 只是 `retrieve(code_cvt_access)` 的包装，走本流通用的加锁与错误处理：失败（只在转换器
+     * 内核已被移出时发生，正常生命周期不可达）经 `handle_exception` 置 `cvtfailbit`、返回空串，
+     * `exceptions()` 掩码含该位时抛出。
+     *
      * @return 当前编码名。
      * @endif
      *
@@ -173,15 +177,19 @@ public:
      * reports `"POSIX"` as `"C"`). Does no I/O. The result can be handed back to
      * `switch_code()` to get the same encoding.
      *
+     * A thin wrapper over `retrieve(code_cvt_access)`, so it shares the stream's locking and
+     * error handling: a failure (only when the converter's kernel has been moved out, which a
+     * live stream never reaches) goes through `handle_exception`, sets `cvtfailbit` and yields
+     * an empty string; it throws when the `exceptions()` mask includes that bit.
+     *
      * @return The current encoding name.
      * @endif
      */
-    std::string code() const
+    std::string code()
         requires std::is_same_v<TChar, wchar_t>
     {
-        std::lock_guard guard(this->io_mutex());
         code_cvt_access acc;
-        m_streambuf.retrieve(acc);
+        this->retrieve(acc);
         return acc.code;
     }
 
@@ -189,57 +197,55 @@ public:
      * @lang{ZH}
      * @brief 切换本流把 `wchar_t` 编码成字节时使用的编码（locale）。
      *
-     * `new_code` 与 `code()` 相同时什么也不做。与本流其余操作不同，失败**不落状态位，而是
-     * 抛出**。若转换器进入本函数时未 tainted，`code_cvt_stdio::adjust` 会把所有可能抛出的
-     * 步骤都放在提交之前，因此抛出时编码、状态位、已缓冲的字节都没有改变（强保证）。
-     * 若转换器已 tainted，则切换前须先重新附接同一 fd；这一步会终结旧转换器流并冲刷旧设备，
-     * 因而不属于上述强保证。
+     * `new_code` 与 `code()` 相同时什么也不做。只是 `adjust(code_cvt_switch)` 的包装，走本流
+     * 通用的加锁与错误处理：失败按状态位报告，`exceptions()` 掩码含该位时才抛出；失败时编码
+     * 不切换。若转换器进入本函数时未 tainted，`code_cvt_stdio::adjust` 把所有可能失败的步骤都
+     * 放在提交之前，已缓冲的字节也原样保留。若转换器已 tainted，则切换前须先重新附接同一 fd；
+     * 这一步会终结旧转换器流并冲刷旧设备，冲刷失败时那批字节已经丢了。
      *
      * @param new_code 新的编码名，须为 `newlocale()` 接受的 locale 名。`""` 按 POSIX 规则
      *        查环境（`LC_ALL` > `LC_CTYPE` > `LANG` > `"C"`）：查在此刻发生，切换成功后
      *        `code()` 报的是查到的具体名字，不是 `""`。
-     * @return 调用前的编码名。
-     * @throws cvt_error 该名字不被 `newlocale()` 接受、编码转换状态不处于初始状态（有状态
-     *         编码写出非 ASCII 之后），或已 tainted 转换器的预先恢复无法完成终结；这些情况
-     *         均不切换编码。详见 `cvt/code_cvt_stdio.h`。
-     * @throws device_error 转换器已 tainted，且预先恢复时旧设备冲刷失败；编码不切换，但待冲刷
-     *         的字节可能已经丢失。
+     * @return 调用前的编码名；失败时它仍是当前编码名，请查 `fail()`。
+     * @note 置 `cvtfailbit`：该名字不被 `newlocale()` 接受、编码转换状态不处于初始状态（有状态
+     *       编码写出非 ASCII 之后），或已 tainted 转换器的预先恢复无法完成终结。
+     *       置 `devfailbit`：转换器已 tainted，且预先恢复时旧设备冲刷失败。详见
+     *       `cvt/code_cvt_stdio.h`。
      * @endif
      *
      * @lang{EN}
      * @brief Switches the encoding (locale) this stream uses to encode `wchar_t` into bytes.
      *
-     * Does nothing when `new_code` equals `code()`. Unlike the stream's other operations, a
-     * failure **throws instead of setting a state bit**. If the converter is not tainted on
-     * entry, `code_cvt_stdio::adjust` puts every potentially-throwing step before the commit,
-     * so on a throw the encoding, the state bits and the buffered bytes are all unchanged
-     * (the strong guarantee). A tainted converter must first be reattached to the same fd;
-     * that step finalizes the old converter stream and flushes the old device, so it is not
-     * covered by that guarantee.
+     * Does nothing when `new_code` equals `code()`. A thin wrapper over
+     * `adjust(code_cvt_switch)`, so it shares the stream's locking and error handling: a
+     * failure is reported through the state bits and throws only when the `exceptions()` mask
+     * includes the bit; on failure the encoding is not switched. If the converter is not
+     * tainted on entry, `code_cvt_stdio::adjust` puts every step that can fail before the
+     * commit and the buffered bytes stay as they were. A tainted converter must first be
+     * reattached to the same fd; that step finalizes the old converter stream and flushes the
+     * old device, and if that flush fails those bytes are already gone.
      *
      * @param new_code The new encoding name; must be a locale name `newlocale()` accepts.
      *        `""` means "look at the environment" per POSIX (`LC_ALL` > `LC_CTYPE` > `LANG` >
      *        `"C"`); the lookup happens at this moment, and once the switch succeeds `code()`
      *        reports the concrete name it resolved to, not `""`.
-     * @return The encoding name before the call.
-     * @throws cvt_error The name is not accepted by `newlocale()`, the encoding conversion
-     *         state is not in its initial state (after a stateful encoding has written
-     *         non-ASCII), or preliminary recovery cannot finalize a tainted converter;
-     *         none of these cases switches the encoding. See `cvt/code_cvt_stdio.h`.
-     * @throws device_error The converter was tainted and flushing the old device during the
-     *         preliminary recovery failed; the encoding is not switched, but pending bytes
-     *         may already have been lost.
+     * @return The encoding name before the call; on failure that is still the current one,
+     *         check `fail()`.
+     * @note Sets `cvtfailbit`: the name is not accepted by `newlocale()`, the encoding
+     *       conversion state is not in its initial state (after a stateful encoding has
+     *       written non-ASCII), or preliminary recovery cannot finalize a tainted converter.
+     *       Sets `devfailbit`: the converter was tainted and flushing the old device during
+     *       the preliminary recovery failed. See `cvt/code_cvt_stdio.h`.
      * @endif
      */
     std::string switch_code(const std::string& new_code)
         requires std::is_same_v<TChar, wchar_t>
     {
-        std::lock_guard guard(this->io_mutex());
         auto res = code();
         if (res != new_code)
         {
             code_cvt_switch acc(new_code);
-            m_streambuf.adjust(acc);
+            this->adjust(acc);
         }
         return res;
     }

@@ -229,7 +229,9 @@ TEST(IoObjectsWchar, WcoutCanSwitchEncodingRightAfterAnUnencodableCharacter)
     EXPECT_TRUE(IOv2::wcout.cvt_fail());
     IOv2::wcout.clear();
 
-    EXPECT_NO_THROW(IOv2::wcout.switch_code("zh_CN.GBK"));
+    IOv2::wcout.switch_code("zh_CN.GBK");
+    EXPECT_TRUE(IOv2::wcout.good());
+    EXPECT_EQ(IOv2::wcout.code(), "zh_CN.GBK");
     IOv2::wcout << L"中" << IOv2::flush;
     EXPECT_TRUE(IOv2::wcout.good());
     EXPECT_EQ(out.contents(), "\xd6\xd0"); // 中 in GBK
@@ -237,10 +239,36 @@ TEST(IoObjectsWchar, WcoutCanSwitchEncodingRightAfterAnUnencodableCharacter)
     IOv2::wcout.switch_code("zh_CN.UTF-8");
 }
 
+// switch_code() is adjust(code_cvt_switch) with the stream's usual error
+// handling: a name newlocale() rejects sets cvtfailbit, leaves the encoding
+// alone, and throws only when the exception mask asks for it.
+TEST(IoObjectsWchar, SwitchCodeReportsARejectedNameThroughTheStateBits)
+{
+    oguard<true> out;
+    IOv2::wcout.reset();
+    IOv2::wcout.switch_code("zh_CN.UTF-8");
+
+    EXPECT_EQ(IOv2::wcout.switch_code("xx_YY.NOPE"), "zh_CN.UTF-8");
+    EXPECT_EQ(IOv2::wcout.rdstate(), IOv2::ios_defs::cvtfailbit);
+    EXPECT_EQ(IOv2::wcout.code(), "zh_CN.UTF-8");
+
+    IOv2::wcout.clear();
+    IOv2::wcout.exceptions(IOv2::ios_defs::cvtfailbit);
+    EXPECT_THROW(IOv2::wcout.switch_code("xx_YY.NOPE"), IOv2::cvt_error);
+    IOv2::wcout.exceptions(IOv2::ios_defs::goodbit);
+    IOv2::wcout.clear();
+
+    EXPECT_EQ(IOv2::wcout.code(), "zh_CN.UTF-8");
+    IOv2::wcout << L"中" << IOv2::flush;
+    EXPECT_TRUE(IOv2::wcout.good());
+    EXPECT_EQ(out.contents(), "\xe4\xb8\xad");
+}
+
 // A tainted converter recovers before switch_code() commits the new encoding.
 // If already-committed bytes are waiting in stdout's FILE buffer, that recovery
-// must flush the old device and surface an fflush failure instead of silently
-// switching encodings while the bytes disappear.
+// must flush the old device and report an fflush failure -- as devfailbit, like
+// every other operation on the stream -- instead of silently switching encodings
+// while the bytes disappear.
 TEST(IoObjectsWchar, SwitchCodeReportsAFullBufferedStdoutFailureBeforeSwitching)
 {
     const int full = ::open("/dev/full", O_WRONLY);
@@ -267,7 +295,8 @@ TEST(IoObjectsWchar, SwitchCodeReportsAFullBufferedStdoutFailureBeforeSwitching)
         const int saved = ::dup(STDOUT_FILENO);
         ASSERT_NE(saved, -1);
         EXPECT_EQ(::dup2(full, STDOUT_FILENO), STDOUT_FILENO);
-        EXPECT_THROW(IOv2::wcout.switch_code("zh_CN.GBK"), IOv2::device_error);
+        EXPECT_NO_THROW(IOv2::wcout.switch_code("zh_CN.GBK"));
+        EXPECT_EQ(IOv2::wcout.rdstate(), IOv2::ios_defs::devfailbit);
         EXPECT_EQ(::dup2(saved, STDOUT_FILENO), STDOUT_FILENO);
         ::close(saved);
         ::close(full);
@@ -277,6 +306,7 @@ TEST(IoObjectsWchar, SwitchCodeReportsAFullBufferedStdoutFailureBeforeSwitching)
 
     // The failed recovery leaves the converter tainted; the next insertion
     // retries recovery on the restored fd and remains usable.
+    IOv2::wcout.clear();
     IOv2::wcout << L"AFTER" << IOv2::flush;
     EXPECT_TRUE(IOv2::wcout.good());
     EXPECT_NE(out.contents().find("AFTER"), std::string::npos);
@@ -324,7 +354,9 @@ TEST(IoObjectsWchar, WcinCanSwitchEncodingRightAfterAnInvalidSequence)
     EXPECT_TRUE(IOv2::wcin.cvt_fail());
     IOv2::wcin.clear();
 
-    EXPECT_NO_THROW(IOv2::wcin.switch_code("zh_CN.UTF-8"));
+    IOv2::wcin.switch_code("zh_CN.UTF-8");
+    EXPECT_TRUE(IOv2::wcin.good());
+    EXPECT_EQ(IOv2::wcin.code(), "zh_CN.UTF-8");
     IOv2::wcin >> w;
     EXPECT_EQ(w, L"请");
     EXPECT_TRUE(IOv2::wcin.good());
