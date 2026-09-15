@@ -34,6 +34,7 @@
 #include <IOv2/cvt/cvt_concepts.h>
 
 #include <algorithm>
+#include <array>
 #include <climits>
 #include <concepts>
 #include <cstddef>
@@ -193,7 +194,29 @@ struct codecvt_kernel<char, TInt>
      * Reset the encoding conversion state (`mbstate_t`) to its initial value.
      * @endif
      */
-    void init_state() { m_state = std::mbstate_t{}; }
+    void init_state() noexcept { m_state = std::mbstate_t{}; }
+
+    /**
+     * Emit the sequence required to return a state-dependent encoding to its
+     * initial shift state. The terminating null byte produced by wcrtomb is
+     * excluded from the returned length.
+     */
+    std::size_t unshift(char* to, std::size_t capacity)
+    {
+        if (to == nullptr || capacity < m_epc)
+            throw cvt_error("codecvt_kernel::unshift fail: insufficient output buffer");
+
+        clocale_user guard(m_inter_locale);
+        const std::size_t count = std::wcrtomb(to, L'\0', &m_state);
+        if (count == static_cast<std::size_t>(-1))
+        {
+            init_state();
+            throw cvt_error("codecvt_kernel::unshift fail");
+        }
+
+        // wcrtomb writes: unshift sequence + terminating null byte.
+        return count - 1;
+    }
 
     /**
      * @lang{ZH}
@@ -486,7 +509,12 @@ struct codecvt_kernel<char8_t, TInt>
      * Reset the encoding conversion state (no-op for stateless UTF-8).
      * @endif
      */
-    void init_state() { /* no-op for stateless UTF-8 */ }
+    void init_state() noexcept { /* no-op for stateless UTF-8 */ }
+
+    std::size_t unshift(char8_t*, std::size_t) noexcept
+    {
+        return 0;
+    }
 
     /**
      * @lang{ZH}
@@ -933,6 +961,11 @@ public:
     code_cvt& operator=(code_cvt&& val) noexcept
     {
         if (this == &val) return *this;
+
+        // Finalize this object's old encoding stream before replacing it.
+        try { close_stream(); }
+        catch (...) {} // NOLINT(bugprone-empty-catch)
+
         BT::operator=(std::move(val));
         m_cvt_kernel = std::move(val.m_cvt_kernel);
         m_accu_len = val.m_accu_len;
@@ -940,7 +973,11 @@ public:
         return *this;
     }
 
-    ~code_cvt() = default;
+    ~code_cvt() noexcept
+    {
+        try { close_stream(); }
+        catch (...) {} // NOLINT(bugprone-empty-catch)
+    }
 
 private:
     /**
@@ -1313,10 +1350,34 @@ private:
      */
     void close_stream()
     {
-        m_cvt_kernel.init_state();
-        BT::m_io_status = io_status::neutral;
-        BT::m_is_bos_done = false;
-        m_accu_len = 0;
+        struct state_guard
+        {
+            code_cvt& self;
+
+            explicit state_guard(code_cvt& value) noexcept : self(value) {}
+            state_guard(const state_guard&) = delete;
+            state_guard& operator=(const state_guard&) = delete;
+
+            ~state_guard() noexcept
+            {
+                self.m_cvt_kernel.init_state();
+                self.BT::m_io_status = io_status::neutral;
+                self.BT::m_is_bos_done = false;
+                self.m_accu_len = 0;
+            }
+        } guard{*this};
+
+        if constexpr (cvt_cpt::support_put<KernelType>)
+        {
+            if (BT::m_io_status == io_status::output)
+            {
+                std::array<external_type, MB_LEN_MAX> buffer{};
+                const std::size_t count = m_cvt_kernel.unshift(buffer.data(), buffer.size());
+
+                if (count != 0)
+                    BT::m_kernel.put(buffer.data(), count);
+            }
+        }
     }
 
 protected:

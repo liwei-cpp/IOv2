@@ -1446,6 +1446,18 @@ TEST(CodeCvtMemChar32, TheEncodeHelperReportsAFullBuffer)
     EXPECT_FALSE(kernel.out_helper(U'A', to, to_end));
 }
 
+// wcrtomb(L'\0') returns the unshift bytes followed by a terminating null. In
+// the stateless C locale there are no unshift bytes, so that null must not be
+// counted and code_cvt::detach() must never append it to the device.
+TEST(CodeCvtMemChar32, TheLocaleKernelExcludesTheTerminatingNullFromUnshift)
+{
+    codecvt_kernel<char, char32_t> kernel("C");
+    char buffer[1] = {'x'};
+
+    EXPECT_EQ(kernel.unshift(buffer, sizeof(buffer)), 0u);
+    EXPECT_EQ(buffer[0], '\0');
+}
+
 TEST(CodeCvtMemChar32, TheDecodeHelperRejectsAnInvertedRange)
 {
     codecvt_kernel<char, char32_t> kernel("C");

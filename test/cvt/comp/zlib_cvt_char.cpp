@@ -58,6 +58,24 @@ namespace
     CharCvt     static_cvt(unsigned level = 8) { return CharCvt{rb_root_cvt{mem_device("")}, level}; }
     auto        runtime_of(CharCvt&& obj) { return runtime_cvt{std::move(obj)}; }
 
+    // Even with no payload and no main_cont_beg(), detach() must turn the zlib
+    // state created by bos() into a complete, independently decodable stream.
+    template <typename T>
+    void expect_bos_only_stream_is_finished_on_detach(T& obj)
+    {
+        EXPECT_EQ(obj.bos(), io_status::output);
+        auto [dev, error] = obj.detach();
+        ASSERT_FALSE(error);
+
+        CharCvt reader{rb_root_cvt{mem_device(dev.str())}, 0};
+        EXPECT_EQ(reader.bos(), io_status::input);
+        reader.main_cont_beg();
+
+        char output[1] = {};
+        EXPECT_EQ(reader.get(output, 1), 0u);
+        EXPECT_TRUE(reader.is_eof());
+    }
+
     // Writes the whole sample through obj in rotating chunks and returns what the
     // device ended up holding.
     template <typename T>
@@ -319,6 +337,33 @@ TEST(ZlibCvt, MainContBegEmitsTheZlibHeaderThroughARuntimeCvt)
     EXPECT_EQ(obj.bos(), io_status::output);
     obj.main_cont_beg();
     EXPECT_EQ(dev.str(), "\x78\x9c");
+}
+
+TEST(ZlibCvt, DetachFinishesAStreamAfterBosOnly)
+{
+    CharCvt obj = static_cvt(6);
+    expect_bos_only_stream_is_finished_on_detach(obj);
+}
+
+TEST(ZlibCvt, DetachFinishesAStreamAfterBosOnlyThroughARuntimeCvt)
+{
+    runtime_cvt obj = runtime_of(static_cvt(6));
+    expect_bos_only_stream_is_finished_on_detach(obj);
+}
+
+// Before bos() there is no zlib state and no I/O direction. Destruction must
+// take the empty-state path without trying to write or flush anything.
+TEST(ZlibCvt, DestructionBeforeBosDoesNotTouchTheDevice)
+{
+    injectable_device<char> dev;
+    auto state = dev.shared_state();
+
+    {
+        Comp::zlib_cvt obj{rb_root_cvt{std::move(dev)}, 6};
+    }
+
+    EXPECT_EQ(state->dput, 0u);
+    EXPECT_EQ(state->dflush, 0u);
 }
 
 // Data written between bos() and main_cont_beg() still lands after the header:

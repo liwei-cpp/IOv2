@@ -167,6 +167,44 @@ TEST(IoObjectsChar, ResetReportsAFailedFlushOfTheDroppedBytesAndStaysUsable)
     IOv2::cout.sync_with_stdio(sync);
 }
 
+// In synchronized mode an insertion can leave this stream's bytes in stdout's
+// FILE buffer: fwrite succeeds, and only a later fflush sees the broken fd.
+// reset() must report that later failure too, before discarding the old device.
+TEST(IoObjectsChar, ResetReportsAFlushFailureFromAFullBufferedStdout)
+{
+    const int full = ::open("/dev/full", O_WRONLY);
+    if (full == -1) GTEST_SKIP() << "no /dev/full here";
+
+    oguard<true> out;
+    IOv2::cout.reset();
+    const bool sync = IOv2::cout.sync_with_stdio(true);
+
+    {
+        stdout_full_buffer buffered;                // restores unbuffered stdout on any exit
+
+        IOv2::cout << "DROPPED";                    // moved into stdout's FILE buffer
+        EXPECT_TRUE(out.contents().empty());
+
+        const int saved = ::dup(STDOUT_FILENO);
+        ASSERT_NE(saved, -1);
+        EXPECT_EQ(::dup2(full, STDOUT_FILENO), STDOUT_FILENO);
+        EXPECT_NO_THROW(IOv2::cout.reset());
+        EXPECT_EQ(::dup2(saved, STDOUT_FILENO), STDOUT_FILENO);
+        ::close(saved);
+        ::close(full);
+    }
+
+    EXPECT_EQ(IOv2::cout.rdstate(), IOv2::ios_defs::devfailbit);
+
+    IOv2::cout.clear();
+    IOv2::cout << "AFTER" << IOv2::flush;
+
+    EXPECT_TRUE(IOv2::cout.good());
+    EXPECT_NE(out.contents().find("AFTER"), std::string::npos);
+
+    IOv2::cout.sync_with_stdio(sync);
+}
+
 // sync_with_stdio changes how the objects reach the C streams, not which
 // objects they are.
 TEST(IoObjectsChar, SyncWithStdioDoesNotReplaceTheObjects)

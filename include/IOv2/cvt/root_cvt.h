@@ -444,10 +444,14 @@ public:
      * 函数内部被静默析构。如需保留原设备，调用方应先单独调用 `detach()` 取得
      * 设备，再调用本函数装入新设备。
      *
-     * 异常：若 `detach()` 在清理原设备时捕获到异常（详见 `detach()` 文档），
-     * 本函数会在新设备装入并完成所有状态重置之后将该异常重新抛出。换言之，
-     * 即使抛出异常，root_cvt 也已切换到新设备并处于可用的 `neutral` 状态——
-     * 不提供强异常安全保证（不会回滚到调用前状态）。
+     * 若原设备处于输出状态，本函数在 `detach()` 将 root_cvt 的缓冲区送入设备后，
+     * 还会在销毁原设备前调用其 `dflush()`，以便设备自身缓冲区的刷新错误能够被报告，
+     * 而不是在设备析构函数中被静默忽略。
+     *
+     * 即使 `detach()` 已捕获到异常，仍会尝试调用 `dflush()`；若两者均失败，
+     * `detach()` 捕获到的较早异常优先。最终异常会在新设备装入并完成所有状态重置后
+     * 重新抛出。因此即使抛出异常，root_cvt 也已切换到新设备并处于可用的
+     * `neutral` 状态——不提供强异常安全保证（不会回滚到调用前状态）。
      * @endif
      *
      * @lang{EN}
@@ -460,12 +464,17 @@ public:
      * who need to preserve the old device must call `detach()` first to retrieve
      * it, then call this function to install the new device.
      *
-     * Exceptions: if `detach()` captures an exception while cleaning up the old
-     * device (see `detach()` for details), this function rethrows that exception
-     * after the new device has been installed and all state has been reset. In
-     * other words, even when the function throws, root_cvt has already switched
-     * to the new device and is in a usable `neutral` state — this provides no
-     * strong exception safety guarantee (no rollback to pre-call state).
+     * If the old device was in output mode, after `detach()` has pushed root_cvt's
+     * buffer into it, this function also calls `dflush()` before destroying the
+     * old device. This makes failures in the device's own buffer observable instead
+     * of silently losing them in its destructor.
+     *
+     * `dflush()` is attempted even if `detach()` already captured an exception.
+     * If both operations fail, the earlier error from `detach()` takes priority.
+     * The resulting exception is rethrown only after the new device has been
+     * installed and all state has been reset. Thus, even when this function throws,
+     * root_cvt has already switched to the new device and is in a usable `neutral`
+     * state; no strong exception guarantee is provided.
      * @endif
      *
      * @param dev
@@ -474,7 +483,27 @@ public:
      */
     void attach(device_type&& dev = device_type{})
     {
+        const bool was_output = (m_io_status == io_status::output);
         auto detach_res = detach();
+
+        if constexpr (dev_cpt::support_put<device_type>)
+        {
+            if (was_output)
+            {
+                try
+                {
+                    detach_res.first.dflush();
+                }
+                catch (...)
+                {
+                    // detach() performs the converter-level flush first, so its
+                    // error has priority over a later device-level flush error.
+                    if (!detach_res.second)
+                        detach_res.second = std::current_exception();
+                }
+            }
+        }
+
         m_device = std::move(dev);
         m_bos_len = 0;
 
@@ -482,7 +511,8 @@ public:
         m_buf_cur = m_buffer.data();
         m_buf_end = m_buffer.data();
         m_io_status = io_status::neutral;
-        if (detach_res.second) std::rethrow_exception(detach_res.second);
+        if (detach_res.second)
+            std::rethrow_exception(detach_res.second);
     }
 
     /**
