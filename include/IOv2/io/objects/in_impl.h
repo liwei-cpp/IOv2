@@ -48,6 +48,7 @@
  * @endif
  */
 #pragma once
+#include <IOv2/common/copyable_atomic.h>
 #include <IOv2/common/iov2_export.h>
 #include <IOv2/common/metafunctions.h>
 #include <IOv2/common/sing_temp.h>
@@ -111,6 +112,10 @@ public:
      * 一次提取进行中（例如用户 `io_traits::sread` 里）重入调用：`io_mutex()` 是递归锁不会拦，
      * 但正在使用的 streambuf 会被整个换掉。
      *
+     * 查询当前状态请用 `synced_with_stdio()`：本函数的无参形式等于 `sync_with_stdio(true)`，
+     * 会真的切换——在输入流上「调一次查、再调一次设回去」等于重建两次 streambuf，已缓冲的
+     * 输入随之丢失。
+     *
      * 本函数**不会失败**。重建 streambuf 只可能因内存耗尽或（`wchar_t`）当前编码的 locale
      * 数据库在运行期间消失而抛出——两者都是运行环境已坏、调用方无从处置的情形，此时直接
      * `std::abort()`，而不是留下一个半换的流。这与 `sing_temp::init` 构造标准流失败即
@@ -130,6 +135,11 @@ public:
      * re-enter it from inside an extraction (a user `io_traits::sread`, say): `io_mutex()`
      * is recursive and will not stop it, but the streambuf in use is replaced wholesale.
      *
+     * To ask for the current state use `synced_with_stdio()`: with no argument this one means
+     * `sync_with_stdio(true)` and does switch -- on an input stream, "call once to read it,
+     * call again to put it back" rebuilds the streambuf twice and loses whatever it had
+     * buffered.
+     *
      * This function **cannot fail**. Rebuilding the streambuf can only throw on memory
      * exhaustion or (`wchar_t`) when the locale database of the current code vanished
      * while the process runs -- both mean the runtime environment is broken and there
@@ -145,7 +155,7 @@ public:
     bool sync_with_stdio(bool sync = true) noexcept
     {
         std::lock_guard guard(this->io_mutex());
-        auto old_sync_state = m_sync_with_stdio;
+        auto old_sync_state = m_sync_with_stdio.load();
         if (old_sync_state == sync)
             return old_sync_state;
 
@@ -170,8 +180,32 @@ public:
             // hand back. Same policy as sing_temp::init.
             std::abort();
         }
-        m_sync_with_stdio = sync;
+        m_sync_with_stdio.store(sync);
         return old_sync_state;
+    }
+
+    /**
+     * @lang{ZH}
+     * @brief 查询本流当前是否与 C stdio 同步。
+     *
+     * 纯读，不切换任何东西——`sync_with_stdio()` 不是 getter，它的无参形式等于
+     * `sync_with_stdio(true)`。
+     *
+     * @return 当前的同步状态。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Asks whether this stream is currently synchronized with C stdio.
+     *
+     * A pure read that switches nothing -- `sync_with_stdio()` is not a getter; with no
+     * argument it means `sync_with_stdio(true)`.
+     *
+     * @return The current synchronization state.
+     * @endif
+     */
+    [[nodiscard]] bool synced_with_stdio() const noexcept
+    {
+        return m_sync_with_stdio.load();
     }
 
     /**
@@ -302,7 +336,10 @@ public:
      * @lang{ZH}
      * @brief 切换本流把字节解码成 `wchar_t` 时使用的编码（locale）。
      *
-     * `new_code` 与 `code()` 相同时什么也不做。只是 `adjust(code_cvt_switch)` 的包装，走本流
+     * `new_code` 与 `code()` 相同时什么也不做——比较的是 `code()` 报出的**解析后**的名字与实参
+     * 本身，所以 `""` 与别名（当前是 `zh_CN.UTF-8` 时给 `zh_CN.utf8`、当前是 `C` 时给 `POSIX`）
+     * 都不会命中早退，会真的重建一次（结果相同，代价是一次 `newlocale`）。只是
+     * `adjust(code_cvt_switch)` 的包装，走本流
      * 通用的加锁与错误处理：失败按状态位报告，`exceptions()` 掩码含该位时才抛出；失败时编码、
      * 已缓冲的字节都没有改变（`code_cvt_stdio::adjust` 把所有可能失败的步骤都放在提交之前）。
      * 解码失败之后不必先 `reset()`：`clear()` 即可让解码器回到初始状态，`switch_code()` 也随之
@@ -323,7 +360,11 @@ public:
      * @lang{EN}
      * @brief Switches the encoding (locale) this stream uses to decode bytes into `wchar_t`.
      *
-     * Does nothing when `new_code` equals `code()`. A thin wrapper over
+     * Does nothing when `new_code` equals `code()` -- the comparison is between the
+     * **resolved** name `code()` reports and the argument itself, so `""` and aliases
+     * (`zh_CN.utf8` while the current name is `zh_CN.UTF-8`, `POSIX` while it is `C`) miss the
+     * early exit and do rebuild once, to the same result, at the cost of one `newlocale`.
+     * A thin wrapper over
      * `adjust(code_cvt_switch)`, so it shares the stream's locking and error handling: a
      * failure is reported through the state bits and throws only when the `exceptions()` mask
      * includes the bit; on failure the encoding and the buffered bytes are unchanged
@@ -361,7 +402,7 @@ public:
 protected:
     istreambuf<device_type, char_type>      m_streambuf;
     IOv2::locale<char_type>                 m_locale;
-    bool m_sync_with_stdio = true;
+    copyable_atomic<bool> m_sync_with_stdio{true};   ///< @lang{ZH} 为 true 时逐字节读 `stdin`，为 false 时自带读缓冲；该语义在构造 streambuf 时就固化进 kernel 类型，故除本标志的读写外无人查询它。写入在 `io_mutex()` 之下，原子量只为让 `synced_with_stdio()` 与全库其它查询函数一样无锁读取。 @endif @lang{EN} When true this stream reads `stdin` byte by byte, when false through its own buffer; that semantics is baked into the kernel type when the streambuf is built, so nothing but this flag's own reads and writes consults it. Writes happen under `io_mutex()`; the atomic is only so that `synced_with_stdio()` reads lock-free like the library's other query functions. @endif
 };
 
 /// cin

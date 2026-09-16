@@ -129,7 +129,8 @@ public:
      * @brief 切换本流是否与 C stdio 同步：同步时每次插入结束都把本流缓冲推进 stdio 缓冲，
      * 以保持与 `printf` 等的交错顺序；不同步时本流自行缓冲。
      *
-     * 只是一次原子交换，不会失败；与并发的插入操作安全竞争。
+     * 只是一次原子交换，不会失败；与并发的插入操作安全竞争。查询当前状态请用
+     * `synced_with_stdio()`：本函数的无参形式等于 `sync_with_stdio(true)`，会真的切换。
      *
      * @param sync `true` 为同步（默认），`false` 为自行缓冲。
      * @return 调用前的同步状态。
@@ -141,7 +142,9 @@ public:
      * keeping the interleaving with `printf` and friends; unsynchronized buffers on its
      * own.
      *
-     * A single atomic exchange, cannot fail; safe against concurrent insertions.
+     * A single atomic exchange, cannot fail; safe against concurrent insertions. To ask for
+     * the current state use `synced_with_stdio()`: with no argument this one means
+     * `sync_with_stdio(true)` and does switch.
      *
      * @param sync `true` for synchronized (the default), `false` for own buffering.
      * @return The synchronization state before the call.
@@ -150,6 +153,30 @@ public:
     bool sync_with_stdio(bool sync = true) noexcept
     {
         return m_sync_with_stdio.exchange(sync);
+    }
+
+    /**
+     * @lang{ZH}
+     * @brief 查询本流当前是否与 C stdio 同步。
+     *
+     * 纯读，不切换任何东西——`sync_with_stdio()` 不是 getter，它的无参形式等于
+     * `sync_with_stdio(true)`。
+     *
+     * @return 当前的同步状态。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Asks whether this stream is currently synchronized with C stdio.
+     *
+     * A pure read that switches nothing -- `sync_with_stdio()` is not a getter; with no
+     * argument it means `sync_with_stdio(true)`.
+     *
+     * @return The current synchronization state.
+     * @endif
+     */
+    [[nodiscard]] bool synced_with_stdio() const noexcept
+    {
+        return m_sync_with_stdio.load();
     }
 
     /**
@@ -198,7 +225,10 @@ public:
      * @lang{ZH}
      * @brief 切换本流把 `wchar_t` 编码成字节时使用的编码（locale）。
      *
-     * `new_code` 与 `code()` 相同时什么也不做。只是 `adjust(code_cvt_switch)` 的包装，走本流
+     * `new_code` 与 `code()` 相同时什么也不做——比较的是 `code()` 报出的**解析后**的名字与实参
+     * 本身，所以 `""` 与别名（当前是 `zh_CN.UTF-8` 时给 `zh_CN.utf8`、当前是 `C` 时给 `POSIX`）
+     * 都不会命中早退，会真的重建一次（结果相同，代价是一次 `newlocale`）。只是
+     * `adjust(code_cvt_switch)` 的包装，走本流
      * 通用的加锁与错误处理：失败按状态位报告，`exceptions()` 掩码含该位时才抛出；失败时编码
      * 不切换。若转换器进入本函数时未 tainted，`code_cvt_stdio::adjust` 把所有可能失败的步骤都
      * 放在提交之前，已缓冲的字节也原样保留。若转换器已 tainted，则切换前须先重新附接同一 fd；
@@ -220,7 +250,11 @@ public:
      * @lang{EN}
      * @brief Switches the encoding (locale) this stream uses to encode `wchar_t` into bytes.
      *
-     * Does nothing when `new_code` equals `code()`. A thin wrapper over
+     * Does nothing when `new_code` equals `code()` -- the comparison is between the
+     * **resolved** name `code()` reports and the argument itself, so `""` and aliases
+     * (`zh_CN.utf8` while the current name is `zh_CN.UTF-8`, `POSIX` while it is `C`) miss the
+     * early exit and do rebuild once, to the same result, at the cost of one `newlocale`.
+     * A thin wrapper over
      * `adjust(code_cvt_switch)`, so it shares the stream's locking and error handling: a
      * failure is reported through the state bits and throws only when the `exceptions()` mask
      * includes the bit; on failure the encoding is not switched. If the converter is not
@@ -296,7 +330,11 @@ public:
      * 旧设备的 `dflush()` 在其析构前显式调用，因此 stdio 自身缓冲区的失败也经同一通道报告；
      * 若转换器清理与设备冲刷均失败，保留较早发生的转换器清理错误。
      * @note `dflush()` 冲刷的是整个 `stdout` / `stderr` 的 `FILE` 缓冲，因此报告的失败也可能
-     *       涉及调用方通过 `printf` 等 C stdio 接口写入的字节。
+     *       涉及调用方通过 `printf` 等 C stdio 接口写入的字节，**以及共用同一 `FILE` 的另一个
+     *       标准流**（`cout` 与 `wcout` 共用 `stdout`，`cerr` 与 `clog` 共用 `stderr`）交出去
+     *       但尚未落盘的字节：那些字节在这里一并被冲刷，失败却只记在本流的状态位上，另一个流
+     *       仍是 `good()`。一个 `FILE` 只有一份缓冲，谁冲刷都会波及另一个，`std::cout` /
+     *       `std::wcout` 上同样如此。
      *
      * @note 换设备本身失败（`cvtfailbit` / `otherfailbit`，例如宽流重建编码转换状态失败）是另一
      *       回事：那时转换器没有初始化完，流不可用，须再次 `reset()`，`clear()` 不够。
@@ -335,7 +373,12 @@ public:
      * device flush both fail, the earlier converter-cleanup error is preserved.
      * @note `dflush()` flushes the whole `stdout` / `stderr` `FILE` buffer, so the reported
      *       failure may also involve bytes written by the caller through C stdio such as
-     *       `printf`.
+     *       `printf`, **and bytes the other standard stream sharing that `FILE`** (`cout` and
+     *       `wcout` share `stdout`, `cerr` and `clog` share `stderr`) has handed over but not
+     *       yet landed: those are flushed here too, while the failure is recorded only on this
+     *       stream's state bits and the other one stays `good()`. One `FILE` has one buffer,
+     *       so whoever flushes it reaches the other stream as well -- the same holds for
+     *       `std::cout` / `std::wcout`.
      *
      * @note Failing to replace the device is a different matter (`cvtfailbit` /
      *       `otherfailbit`, e.g. a wide stream unable to rebuild its conversion state):

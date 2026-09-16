@@ -217,4 +217,41 @@ TEST(IoObjectsChar, SyncWithStdioDoesNotReplaceTheObjects)
 
     for (std::size_t i = 0; i < 4; ++i)
         EXPECT_EQ(before[i], after[i]) << "object " << i;
+
+    IOv2::sync_with_stdio(true);
+}
+
+// synced_with_stdio() reports the state; sync_with_stdio() sets it. Reading the
+// state through the setter is what the standard's one-function interface forces,
+// and on an input stream it costs the buffered input: each call rebuilds the
+// streambuf. The getter exists so that query and switch are separate operations.
+TEST(IoObjectsChar, SyncWithStdioCanBeQueriedWithoutSwitching)
+{
+    iguard g("one two three\n");
+    IOv2::cin.reset();
+    IOv2::cout.reset();
+
+    EXPECT_TRUE(IOv2::cin.synced_with_stdio());
+    EXPECT_TRUE(IOv2::cout.synced_with_stdio());
+
+    EXPECT_TRUE(IOv2::cin.sync_with_stdio(false));     // returns the previous state
+    EXPECT_FALSE(IOv2::cin.synced_with_stdio());
+    EXPECT_TRUE(IOv2::cout.synced_with_stdio());       // and switches that stream alone
+
+    std::string first;
+    IOv2::cin >> first;                                // pulls the rest into cin's buffer
+    EXPECT_EQ(first, "one");
+
+    // The query leaves both the state and the buffered input alone. Through the
+    // setter this would be sync_with_stdio() + sync_with_stdio(false): two
+    // rebuilds, and " two three\n" would be gone.
+    EXPECT_FALSE(IOv2::cin.synced_with_stdio());
+
+    std::string second;
+    IOv2::cin >> second;
+    EXPECT_EQ(second, "two");
+    EXPECT_TRUE(IOv2::cin.good());
+
+    IOv2::cin.sync_with_stdio(true);
+    EXPECT_TRUE(IOv2::cin.synced_with_stdio());
 }
