@@ -51,6 +51,7 @@
 #include <IOv2/common/iov2_export.h>
 #include <IOv2/common/metafunctions.h>
 #include <IOv2/common/sing_temp.h>
+#include <IOv2/cvt/code_cvt.h>
 #include <IOv2/cvt/code_cvt_stdio.h>
 #include <IOv2/cvt/cvt_concepts.h>
 #include <IOv2/device/device_concepts.h>
@@ -208,8 +209,10 @@ public:
      * @note 换设备本身失败（`cvtfailbit` / `otherfailbit`，例如宽流重建编码转换状态失败）时转换器
      *       没有初始化完，流不可用，须再次 `reset()`，`clear()` 不够。丢弃缓冲这一步在 fd 0 上不会
      *       失败（stdin 不可定位，重定位那步的异常在 `streambuf::detach` 里就被有意吞掉了），置
-     *       `devfailbit` 的那条路在这里走不到；形状与 `stdout_api::reset()` 保持一致。
+     *       `devfailbit` 的那条路在这里走不到；除输出侧多一步旧设备 `dflush()` 外，形状与
+     *       `stdout_api::reset()` 一致。
      * @endif
+     *
      * @lang{EN}
      * @brief Carries on on the same fd: clears the state bits and the exception mask,
      * drops input that was buffered but not yet consumed, reattaches the device and
@@ -234,8 +237,9 @@ public:
      *       uninitialized, the stream is unusable, and another `reset()` is required --
      *       `clear()` is not enough. Dropping the buffer cannot fail on fd 0 (stdin is not
      *       positionable, and the exception from that reposition is swallowed on purpose in
-     *       `streambuf::detach`), so the `devfailbit` path is unreachable here; the shape is
-     *       kept identical to `stdout_api::reset()`.
+     *       `streambuf::detach`), so the `devfailbit` path is unreachable here; apart from
+     *       the output side's extra `dflush()` of the old device, the shape is the same as
+     *       `stdout_api::reset()`.
      * @endif
      */
     void reset()
@@ -307,7 +311,9 @@ public:
      * @param new_code 新的编码名，须为 `newlocale()` 接受的 locale 名。`""` 按 POSIX 规则
      *        查环境（`LC_ALL` > `LC_CTYPE` > `LANG` > `"C"`）：查在此刻发生，切换成功后
      *        `code()` 报的是查到的具体名字，不是 `""`。
-     * @return 调用前的编码名；失败时它仍是当前编码名，请查 `fail()`。
+     * @return 调用前的编码名；失败时它仍是当前编码名。判断成败请在进入前保证 `good()`，之后查
+     *         `cvt_fail()`；或者直接比较 `code()` 与目标——本函数不设 `good()` 门槛，状态位已置时
+     *         照常切换、位不变。
      * @note 置 `cvtfailbit`：该名字不被 `newlocale()` 接受，或编码转换状态不处于初始状态
      *       （例如输入在一个多字节字符中间到达 EOF，此时 `clear()` 不够、须 `reset()`）。
      *       详见 `cvt/code_cvt_stdio.h`。
@@ -328,8 +334,10 @@ public:
      *        `""` means "look at the environment" per POSIX (`LC_ALL` > `LC_CTYPE` > `LANG` >
      *        `"C"`); the lookup happens at this moment, and once the switch succeeds `code()`
      *        reports the concrete name it resolved to, not `""`.
-     * @return The encoding name before the call; on failure that is still the current one,
-     *         check `fail()`.
+     * @return The encoding name before the call; on failure that is still the current one.
+     *         To tell the two apart enter with `good()` and check `cvt_fail()` afterwards, or
+     *         compare `code()` with the target: this function has no `good()` gate, so with a
+     *         state bit already set it switches as usual and leaves the bits alone.
      * @note Sets `cvtfailbit`: the name is not accepted by `newlocale()`, or the encoding
      *       conversion state is not in its initial state (input that hit EOF in the middle of
      *       a multibyte character, say -- there `clear()` is not enough and `reset()` is).
