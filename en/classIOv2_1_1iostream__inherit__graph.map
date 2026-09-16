@@ -1,0 +1,17 @@
+<map id="IOv2::iostream&lt; TDevice, TChar &gt;" name="IOv2::iostream&lt; TDevice, TChar &gt;">
+<area shape="rect" id="Node000001" title="Bidirectional character stream: combines a streambuf and a locale into a formatted input/output inter..." alt="" coords="472,127,663,167"/>
+<area shape="rect" id="Node000002" href="$structIOv2_1_1ios__state.html" title="Component that adds the stream state bits and their associated exceptions on top of the formatting st..." alt="" coords="237,5,424,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="404,32,425,41,493,83,546,125,542,129,490,87,423,46,402,37"/>
+<area shape="rect" id="Node000003" href="$classIOv2_1_1ios__base.html" title="Base class holding the formatting state of every stream." alt="" coords="5,5,189,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="203,15,237,15,237,21,203,21"/>
+<area shape="rect" id="Node000004" href="$structIOv2_1_1istream__operators.html" title="Mix&#45;in base that provides the various extraction operations for input streams." alt="" coords="241,55,420,95"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="411,97,502,125,500,130,409,102"/>
+<area shape="rect" id="Node000005" href="$structIOv2_1_1out__flusher.html" title=" " alt="" coords="253,120,409,175"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="423,145,472,145,472,150,423,150"/>
+<area shape="rect" id="Node000006" href="$classIOv2_1_1abs__flusher.html" title="Abstract base carrying the polymorphic try_flush() interface." alt="" coords="30,135,165,160"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="178,145,253,145,253,150,178,150"/>
+<area shape="rect" id="Node000007" href="$structIOv2_1_1ostream__operators.html" title="Mix&#45;in base that provides the various insertion operations for output streams." alt="" coords="239,199,422,239"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="409,193,500,165,502,170,411,198"/>
+<area shape="rect" id="Node000008" href="$structIOv2_1_1stream__common__operators.html" title="Mix&#45;in base that provides operations common to input and output streams." alt="" coords="245,263,416,303"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="409,256,423,249,489,207,541,166,544,170,492,211,425,254,411,261"/>
+</map>

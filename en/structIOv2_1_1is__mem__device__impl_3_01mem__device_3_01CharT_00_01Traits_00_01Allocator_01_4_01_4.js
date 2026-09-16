@@ -1,0 +1,4 @@
+var structIOv2_1_1is__mem__device__impl_3_01mem__device_3_01CharT_00_01Traits_00_01Allocator_01_4_01_4 =
+[
+    [ "value", "structIOv2_1_1is__mem__device__impl_3_01mem__device_3_01CharT_00_01Traits_00_01Allocator_01_4_01_4.html#a3314aa2558d224dd8d4183b3b3082985", null ]
+];
