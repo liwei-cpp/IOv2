@@ -75,6 +75,7 @@
 #include <IOv2/common/copyable_atomic.h>
 #include <IOv2/common/iov2_export.h>
 #include <IOv2/common/sing_temp.h>
+#include <IOv2/cvt/code_cvt.h>
 #include <IOv2/cvt/code_cvt_stdio.h>
 #include <IOv2/cvt/cvt_concepts.h>
 #include <IOv2/device/device_concepts.h>
@@ -206,7 +207,9 @@ public:
      * @param new_code 新的编码名，须为 `newlocale()` 接受的 locale 名。`""` 按 POSIX 规则
      *        查环境（`LC_ALL` > `LC_CTYPE` > `LANG` > `"C"`）：查在此刻发生，切换成功后
      *        `code()` 报的是查到的具体名字，不是 `""`。
-     * @return 调用前的编码名；失败时它仍是当前编码名，请查 `fail()`。
+     * @return 调用前的编码名；失败时它仍是当前编码名。判断成败请在进入前保证 `good()`，之后查
+     *         `cvt_fail()` / `dev_fail()`；或者直接比较 `code()` 与目标——本函数不设 `good()` 门槛，
+     *         状态位已置时照常切换、位不变。
      * @note 置 `cvtfailbit`：该名字不被 `newlocale()` 接受、编码转换状态不处于初始状态（有状态
      *       编码写出非 ASCII 之后），或已 tainted 转换器的预先恢复无法完成终结。
      *       置 `devfailbit`：转换器已 tainted，且预先恢复时旧设备冲刷失败。详见
@@ -229,8 +232,11 @@ public:
      *        `""` means "look at the environment" per POSIX (`LC_ALL` > `LC_CTYPE` > `LANG` >
      *        `"C"`); the lookup happens at this moment, and once the switch succeeds `code()`
      *        reports the concrete name it resolved to, not `""`.
-     * @return The encoding name before the call; on failure that is still the current one,
-     *         check `fail()`.
+     * @return The encoding name before the call; on failure that is still the current one.
+     *         To tell the two apart enter with `good()` and check `cvt_fail()` / `dev_fail()`
+     *         afterwards, or compare `code()` with the target: this function has no `good()`
+     *         gate, so with a state bit already set it switches as usual and leaves the bits
+     *         alone.
      * @note Sets `cvtfailbit`: the name is not accepted by `newlocale()`, the encoding
      *       conversion state is not in its initial state (after a stateful encoding has
      *       written non-ASCII), or preliminary recovery cannot finalize a tainted converter.
@@ -298,6 +304,7 @@ public:
      *       上的 `@warning`。`detach()` 是 `noexcept` 的，把那个错误作为返回值交出来，之后的
      *       `attach()` 面对的是空缓冲，没有东西可重抛。
      * @endif
+     *
      * @lang{EN}
      * @brief Carries on on the same fd: clears the state bits and the exception mask,
      * writes the buffered output out to the fd, reattaches the device and re-initializes
