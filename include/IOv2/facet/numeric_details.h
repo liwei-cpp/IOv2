@@ -102,7 +102,7 @@ public:
         std::string dp_raw, ts_raw, grp_raw, yes_raw, no_raw;
         bool yes_set = false, no_set = false;
         {
-            clocale_wrapper inter_locale(name.c_str());
+            clocale_wrapper inter_locale(name);
             clocale_user guard(inter_locale);
             const lconv* lc = localeconv();
             if (lc->decimal_point) dp_raw  = lc->decimal_point;
@@ -337,7 +337,7 @@ public:
         std::string dp_raw, ts_raw, grp_raw, yes_raw, no_raw;
         bool yes_set = false, no_set = false;
         {
-            clocale_wrapper inter_locale(name.c_str());
+            clocale_wrapper inter_locale(name);
             clocale_user guard(inter_locale);
             const lconv* lc = localeconv();
             if (lc->decimal_point) dp_raw  = lc->decimal_point;

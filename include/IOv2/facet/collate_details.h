@@ -123,7 +123,7 @@ public:
      */
     collate_conf(const std::string& name)
         : ft_basic<collate<CharT>>()
-        , m_inter_locale(name.c_str())
+        , m_inter_locale(name)
     {
         if constexpr (std::is_same_v<CharT, char8_t>)
         {

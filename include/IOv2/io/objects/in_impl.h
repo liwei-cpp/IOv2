@@ -314,7 +314,8 @@ public:
      * @return 调用前的编码名；失败时它仍是当前编码名。判断成败请在进入前保证 `good()`，之后查
      *         `cvt_fail()`；或者直接比较 `code()` 与目标——本函数不设 `good()` 门槛，状态位已置时
      *         照常切换、位不变。
-     * @note 置 `cvtfailbit`：该名字不被 `newlocale()` 接受，或编码转换状态不处于初始状态
+     * @note 置 `cvtfailbit`：该名字不被 `newlocale()` 接受（含内嵌 NUL 的名字按全长拒绝，不在
+     *       第一个 NUL 处截断），或编码转换状态不处于初始状态
      *       （例如输入在一个多字节字符中间到达 EOF，此时 `clear()` 不够、须 `reset()`）。
      *       详见 `cvt/code_cvt_stdio.h`。
      * @endif
@@ -338,7 +339,8 @@ public:
      *         To tell the two apart enter with `good()` and check `cvt_fail()` afterwards, or
      *         compare `code()` with the target: this function has no `good()` gate, so with a
      *         state bit already set it switches as usual and leaves the bits alone.
-     * @note Sets `cvtfailbit`: the name is not accepted by `newlocale()`, or the encoding
+     * @note Sets `cvtfailbit`: the name is not accepted by `newlocale()` (a name with an
+     *       embedded NUL is rejected at its full length, not cut at the first NUL), or the encoding
      *       conversion state is not in its initial state (input that hit EOF in the middle of
      *       a multibyte character, say -- there `clear()` is not enough and `reset()` is).
      *       See `cvt/code_cvt_stdio.h`.
