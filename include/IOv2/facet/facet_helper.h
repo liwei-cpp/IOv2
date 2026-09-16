@@ -121,7 +121,7 @@ namespace IOv2::FacetHelper
         if ((head != "C") && (head != "POSIX"))
             return false;
 
-        clocale_wrapper probe(name.c_str());
+        clocale_wrapper probe(name);
         return true;
     }
 
@@ -193,7 +193,7 @@ namespace IOv2::FacetHelper
         // masks this path never reads. The out_of_wchar_range guard used there
         // is unnecessary here: the value is a wchar_t and is therefore always
         // representable as wchar_t.
-        clocale_wrapper loc(locale_name.c_str());
+        clocale_wrapper loc(locale_name);
         clocale_user guard(loc);
         const int c = wctob(static_cast<wint_t>(wide_str[0]));
         return c == EOF ? '\0' : static_cast<char>(c);

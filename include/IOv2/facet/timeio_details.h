@@ -827,7 +827,7 @@ public:
         }
         else
         {
-            clocale_wrapper inter_locale(name.c_str());
+            clocale_wrapper inter_locale(name);
             clocale_user guard(inter_locale);
 
             m_date_format = nl_langinfo(D_FMT);

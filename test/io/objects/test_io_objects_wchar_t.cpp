@@ -264,6 +264,26 @@ TEST(IoObjectsWchar, SwitchCodeReportsARejectedNameThroughTheStateBits)
     EXPECT_EQ(out.contents(), "\xe4\xb8\xad");
 }
 
+// A std::string can carry a NUL. Read as a C string a leading one is "", which
+// newlocale() takes as "look at the environment": the caller asked for GBK and
+// would get whatever LC_ALL says, with good() still true. The name is rejected
+// at its full length instead, before anything is switched.
+TEST(IoObjectsWchar, SwitchCodeRejectsANameWithAnEmbeddedNul)
+{
+    oguard<true> out;
+    IOv2::wcout.reset();
+    IOv2::wcout.switch_code("zh_CN.UTF-8");
+
+    EXPECT_EQ(IOv2::wcout.switch_code(std::string("\0zh_CN.GBK", 10)), "zh_CN.UTF-8");
+    EXPECT_EQ(IOv2::wcout.rdstate(), IOv2::ios_defs::cvtfailbit);
+    EXPECT_EQ(IOv2::wcout.code(), "zh_CN.UTF-8");
+
+    IOv2::wcout.clear();
+    IOv2::wcout << L"中" << IOv2::flush;
+    EXPECT_TRUE(IOv2::wcout.good());
+    EXPECT_EQ(out.contents(), "\xe4\xb8\xad");
+}
+
 // A tainted converter recovers before switch_code() commits the new encoding.
 // If already-committed bytes are waiting in stdout's FILE buffer, that recovery
 // must flush the old device and report an fflush failure -- as devfailbit, like

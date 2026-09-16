@@ -44,14 +44,40 @@ struct clocale_wrapper
     friend struct clocale_user;
     template <typename CharT> friend class ctype_conf;
 
-    explicit clocale_wrapper(const char* name)
-        : c_locale(name ? newlocale(LC_ALL_MASK, name, nullptr) : nullptr)
+    /**
+     * @lang{ZH}
+     * @brief 以 `newlocale(LC_ALL_MASK, name)` 构造。
+     *
+     * `name` 按 `std::string` 的全长解释：含内嵌 NUL 的名字在此拒绝，而不是在 `c_str()` 处
+     * 静默截断——否则首字节为 NUL 的名字会变成 `""`、按环境解析，调用方显式给的名字被丢掉
+     * 却没有任何报告。这是唯一一处本类自己做的判定；名字是否合法仍由 C 库说了算。
+     *
+     * @param name locale 名；`""` 按 POSIX 规则查环境。
+     * @throws cvt_error `name` 含内嵌 NUL，或 `newlocale` 拒绝该名字。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Constructs from `newlocale(LC_ALL_MASK, name)`.
+     *
+     * `name` is taken at its full `std::string` length: a name with an embedded NUL is
+     * rejected here rather than silently cut at `c_str()` -- otherwise a name whose first
+     * byte is NUL would turn into `""`, be resolved from the environment, and the name the
+     * caller explicitly gave would be dropped without a word. This is the only check the
+     * class makes itself; whether a name is valid is still the C library's call.
+     *
+     * @param name The locale name; `""` looks at the environment per POSIX.
+     * @throws cvt_error `name` contains an embedded NUL, or `newlocale` rejects it.
+     * @endif
+     */
+    explicit clocale_wrapper(const std::string& name)
+        : c_locale(name.find('\0') == std::string::npos ? newlocale(LC_ALL_MASK, name.c_str(), nullptr)
+                                                          : nullptr)
     {
-        if (!name)
-            throw cvt_error("clocale_wrapper: name cannot be null");
+        if (name.find('\0') != std::string::npos)
+            throw cvt_error("clocale_wrapper: locale name contains an embedded NUL");
 
         if (!c_locale)
-            throw cvt_error(std::string("Cannot construct a C locale: ") + name);
+            throw cvt_error("Cannot construct a C locale: " + name);
     }
 
     ~clocale_wrapper() noexcept

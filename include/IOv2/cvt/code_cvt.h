@@ -160,7 +160,7 @@ struct codecvt_kernel<char, TInt>
      * @endif
      */
     explicit codecvt_kernel(const std::string& name)
-        : m_inter_locale(name.c_str())
+        : m_inter_locale(name)
     {
         clocale_user guard(m_inter_locale);
 

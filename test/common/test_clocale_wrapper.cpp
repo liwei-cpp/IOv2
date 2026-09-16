@@ -86,9 +86,14 @@ TEST(ClocaleWrapper, CopyFromMovedFrom)
     });
 }
 
-TEST(ClocaleWrapper, NullNameThrows)
+// The name is taken at its full std::string length. Cut at c_str() instead, a
+// leading NUL would read as "" and quietly resolve the environment's locale in
+// place of the one the caller named; a NUL further in would silently shorten it.
+TEST(ClocaleWrapper, ANameWithAnEmbeddedNulIsRejected)
 {
-    EXPECT_THROW((void)clocale_wrapper(nullptr), cvt_error);
+    EXPECT_THROW((void)clocale_wrapper(std::string("\0C", 2)), cvt_error);
+    EXPECT_THROW((void)clocale_wrapper(std::string("C\0junk", 6)), cvt_error);
+    EXPECT_THROW((void)clocale_wrapper(std::string("C\0", 2)), cvt_error);
 }
 
 // name() reports the locale's own resolved LC_CTYPE name, which is what lets it stand
@@ -102,7 +107,7 @@ TEST(ClocaleWrapper, NameReportsTheResolvedLocale)
 
     const std::string resolved = clocale_wrapper("").name();
     EXPECT_FALSE(resolved.empty());
-    EXPECT_EQ(clocale_wrapper(resolved.c_str()).name(), resolved);
+    EXPECT_EQ(clocale_wrapper(resolved).name(), resolved);
 }
 
 // duplocale() hands out a locale of its own, and it has to be the same locale; the

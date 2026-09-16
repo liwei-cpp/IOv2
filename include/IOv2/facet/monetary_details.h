@@ -394,7 +394,7 @@ public:
         }
         else
         {
-            clocale_wrapper inter_locale(name.c_str());
+            clocale_wrapper inter_locale(name);
             clocale_user guard(inter_locale);
             const lconv* lc = localeconv();
 
@@ -810,7 +810,7 @@ public:
         }
         else
         {
-            clocale_wrapper inter_locale(name.c_str());
+            clocale_wrapper inter_locale(name);
             clocale_user guard(inter_locale);
             const lconv* lc = localeconv();
 

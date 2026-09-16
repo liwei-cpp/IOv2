@@ -233,7 +233,7 @@ public:
      */
     ctype_conf(const std::string& name)
         : ft_basic<ctype<char>>()
-        , m_inter_locale(name.c_str())
+        , m_inter_locale(name)
     {
         // Build lookup tables using standard POSIX functions
         for (unsigned c = 0; c <= std::numeric_limits<unsigned char>::max(); ++c)
@@ -455,7 +455,7 @@ public:
      */
     ctype_conf(const std::string& name)
         : ft_basic<ctype<CharT>>()
-        , m_inter_locale(name.c_str())
+        , m_inter_locale(name)
     {
         {
             clocale_user guard(m_inter_locale);

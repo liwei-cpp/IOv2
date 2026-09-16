@@ -483,7 +483,7 @@ private:
         // once per category at construction, so locale_name stays a plain O(1) read.
         try
         {
-            clocale_wrapper probe(name.c_str());
+            clocale_wrapper probe(name);
             return name;
         }
         catch (const cvt_error&)

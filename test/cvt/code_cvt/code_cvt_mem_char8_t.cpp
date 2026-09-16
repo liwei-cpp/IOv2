@@ -255,7 +255,7 @@ TEST(CodeCvtMemChar8, RetrieveReportsTheBuiltInEncoding)
     obj.retrieve(acc);
 
     EXPECT_EQ(acc.code, "(builtin)UTF-8");
-    EXPECT_THROW((void)clocale_wrapper(acc.code.c_str()), cvt_error);
+    EXPECT_THROW((void)clocale_wrapper(acc.code), cvt_error);
 }
 
 // The decoder carries state between chunks -- a multi-byte sequence can be split
