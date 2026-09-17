@@ -287,11 +287,10 @@ TEST(IoObjectsChar, SwitchingBackToSyncPushesWhatWasAlreadyBuffered)
     IOv2::cout.sync_with_stdio(sync);
 }
 
-// The flush that switching back performs cannot fail loudly -- the function is
-// noexcept -- and it must not invent a failure either: a stream that is already
-// in a failed state has nothing to flush, and stream-level flush() would throw
-// stream_error there, which would show up as a strfailbit this switch did not
-// cause.
+// The flush that switching back performs must not invent a failure: a stream
+// that is already in a failed state has nothing to flush, and stream-level
+// flush() would throw stream_error there, which would show up as a strfailbit
+// this switch did not cause.
 TEST(IoObjectsChar, SwitchingBackToSyncOnAFailedStreamAddsNoState)
 {
     oguard<true> out;
@@ -310,4 +309,68 @@ TEST(IoObjectsChar, SwitchingBackToSyncOnAFailedStreamAddsNoState)
     EXPECT_EQ(out.contents(), "AFTER");
 
     IOv2::cout.sync_with_stdio(sync);
+}
+
+// The eight streams are independent, so the free function attempts all of them
+// and reports what happened to each: a stream whose exceptions() mask is armed
+// throws, the rest still switch, and the collected outcomes travel in one
+// sync_error whose what() names the streams that failed and why. Under the
+// default mask nothing throws at all.
+TEST(IoObjectsChar, SyncWithStdioReportsEveryStreamThatFailed)
+{
+    const int full = ::open("/dev/full", O_WRONLY);
+    if (full == -1) GTEST_SKIP() << "no /dev/full here";
+
+    oguard<true> out;
+    IOv2::cout.reset();
+    ASSERT_TRUE(out.contents().empty());
+
+    IOv2::sync_with_stdio(false);
+    IOv2::cout << "DROPPED";                  // stays in cout's own buffer
+    IOv2::cout.exceptions(IOv2::ios_defs::devfailbit);
+
+    const int saved = ::dup(STDOUT_FILENO);
+    ASSERT_NE(saved, -1);
+    EXPECT_EQ(::dup2(full, STDOUT_FILENO), STDOUT_FILENO);
+
+    bool threw = false;
+    std::string reported;
+    bool only_cout = false;
+    try
+    {
+        IOv2::sync_with_stdio(true);          // cout's flush fails on /dev/full
+    }
+    catch (const IOv2::sync_error& e)
+    {
+        threw = true;
+        reported = e.what();
+        const auto& f = e.failed();
+        only_cout = static_cast<bool>(f.cout_err) && !f.cerr_err && !f.clog_err
+                 && !f.wcout_err && !f.wcerr_err && !f.wclog_err
+                 && !f.cin_err && !f.wcin_err;
+    }
+
+    EXPECT_EQ(::dup2(saved, STDOUT_FILENO), STDOUT_FILENO);
+    ::close(saved);
+    ::close(full);
+
+    EXPECT_TRUE(threw);
+    EXPECT_TRUE(only_cout) << "the failure table must name exactly the stream that failed";
+    // The reason is whatever the device reported -- an unbuffered stdout fails in
+    // dput, a buffered one in dflush -- so what() is checked for the stream's name
+    // and for carrying a reason at all, not for one layer's wording.
+    EXPECT_NE(reported.find("cout"), std::string::npos) << reported;
+    EXPECT_NE(reported.find("std_device"), std::string::npos) << reported;
+
+    // The streams that did not fail switched anyway.
+    EXPECT_TRUE(IOv2::cerr.synced_with_stdio());
+    EXPECT_TRUE(IOv2::cin.synced_with_stdio());
+
+    IOv2::cout.exceptions(IOv2::ios_defs::goodbit);
+    IOv2::cout.clear();
+
+    // With no mask armed the same failure is only a state bit, and nothing throws.
+    EXPECT_NO_THROW(IOv2::sync_with_stdio(false));
+    EXPECT_NO_THROW(IOv2::sync_with_stdio(true));
+    EXPECT_TRUE(IOv2::cout.good());
 }

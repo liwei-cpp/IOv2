@@ -69,20 +69,122 @@
  */
 #pragma once
 
+#include <IOv2/common/defs.h>
 #include <IOv2/io/istream.h>
 #include <IOv2/io/objects/in_impl.h>
 #include <IOv2/io/objects/out_impl.h>
 #include <IOv2/io/ostream.h>
 
+#include <exception>
+#include <string>
+#include <utility>
+
 namespace IOv2
 {
 /**
  * @lang{ZH}
+ * @brief `sync_with_stdio()` 的失败报告：哪些标准流没能切换，以及各自的原因。
+ *
+ * 自由函数 `sync_with_stdio()` 对八个流逐个操作，它们彼此独立、没有先后关系，因此任何
+ * 「只保留第一个异常」的做法都是在做任意选择。本类型把八个结果一并带出来：每个流一个
+ * 具名成员，非空即该流失败、其中是它抛出的那个异常，空即该流已按要求切换。
+ * `what()` 把失败的流名与各自的原因依次拼出，只 `log(e.what())` 的调用方也能看到全貌。
+ *
+ * 哪个流失败也记在**该流自己的状态位**上，那是权威来源；本异常只是当调用方武装了某个流的
+ * `exceptions()` 掩码时，用来大声通知的通道。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief How `sync_with_stdio()` reports failure: which standard streams did not switch, and why.
+ *
+ * The free `sync_with_stdio()` operates on the eight streams one by one. They are independent
+ * of each other and have no order among them, so keeping "the first" exception would be an
+ * arbitrary choice. This type carries all eight results instead: one named member per stream,
+ * non-null meaning that stream failed and holding the exception it threw, null meaning it
+ * switched as asked. `what()` spells out the failing streams and their reasons in turn, so a
+ * caller that only does `log(e.what())` still sees the whole picture.
+ *
+ * Which stream failed is also recorded in **that stream's own state bits**, which are the
+ * authoritative source; this exception is only the channel that speaks up when the caller has
+ * armed a stream's `exceptions()` mask.
+ * @endif
+ */
+class sync_error : public io_error
+{
+public:
+    /**
+     * @lang{ZH} 每个标准流一个成员：非空为该流失败时抛出的异常，空为该流切换成功。 @endif
+     * @lang{EN} One member per standard stream: non-null is the exception that stream threw,
+     * null means it switched successfully. @endif
+     */
+    struct failures
+    {
+        std::exception_ptr cout_err;
+        std::exception_ptr cerr_err;
+        std::exception_ptr clog_err;
+        std::exception_ptr wcout_err;
+        std::exception_ptr wcerr_err;
+        std::exception_ptr wclog_err;
+        std::exception_ptr cin_err;
+        std::exception_ptr wcin_err;
+
+        /// @lang{ZH} 是否有任何一个流失败。 @endif @lang{EN} Whether any stream failed. @endif
+        [[nodiscard]] bool any() const noexcept
+        {
+            return cout_err || cerr_err || clog_err || wcout_err
+                || wcerr_err || wclog_err || cin_err || wcin_err;
+        }
+    };
+
+    explicit sync_error(failures failed)
+        : io_error(describe(failed))
+        , m_failed(std::move(failed))
+    {}
+
+    /**
+     * @lang{ZH} @brief 八个流各自的结果。 @return 对 `failures` 的常引用。 @endif
+     * @lang{EN} @brief The outcome for each of the eight streams. @return A const reference
+     * to the `failures`. @endif
+     */
+    [[nodiscard]] const failures& failed() const noexcept { return m_failed; }
+
+private:
+    // Each reason is recovered by rethrowing the pointer and catching it -- which leaves the
+    // pointer intact, so `failed()` still hands out every exception afterwards.
+    static std::string describe(const failures& f)
+    {
+        std::string msg = "IOv2::sync_with_stdio failed for";
+        bool first = true;
+
+        const auto add = [&](const char* name, const std::exception_ptr& err)
+        {
+            if (!err) return;
+            msg += first ? " " : "; ";
+            first = false;
+            msg += name;
+            msg += ": ";
+            try { std::rethrow_exception(err); }
+            catch (const std::exception& e) { msg += e.what(); }
+            catch (...) { msg += "unknown exception"; }
+        };
+
+        add("cout", f.cout_err);   add("cerr", f.cerr_err);   add("clog", f.clog_err);
+        add("wcout", f.wcout_err); add("wcerr", f.wcerr_err); add("wclog", f.wclog_err);
+        add("cin", f.cin_err);     add("wcin", f.wcin_err);
+        return msg;
+    }
+
+    failures m_failed;
+};
+
+/**
+ * @lang{ZH}
  * @brief 对全部八个标准流对象调用 `sync_with_stdio(sync)`。
  *
- * 各流的 `sync_with_stdio` 都不会失败（输出流翻标志，切回同步时的那次冲刷失败只记状态位；
- * 输入流重建 streambuf，失败即 `std::abort()`），因此本函数要么把八个流全部切换，要么进程
- * 终止，不存在部分完成的状态。
+ * **八个流一律都会被尝试**：某个流失败不会妨碍其余的切换。每个流的失败先记在它自己的状态位上
+ * （输出流是切回同步时那次冲刷失败，输入流是重建 streambuf 失败），若该流的 `exceptions()`
+ * 掩码含该位，它会抛出——本函数把这些异常收齐，最后抛一个 `sync_error`。默认掩码
+ * （`goodbit`）下本函数不抛任何异常，八个流全部切换完毕，失败只体现在状态位上。
  *
  * 应在任何 `stdin` 读取之前调用：输入流会换掉整个 streambuf，已缓冲但未消费的输入随之
  * 丢弃（见 `stdin_api::sync_with_stdio`）。输出侧没有这个限制，随时可切，与并发的插入操作
@@ -90,15 +192,20 @@ namespace IOv2
  * （见 `stdout_api::sync_with_stdio`）。
  *
  * @param sync `true` 为同步（默认），`false` 为各流自行缓冲。
+ * @throws sync_error 至少一个流失败，且该流的 `exceptions()` 掩码含相应的位。异常里带着八个流
+ *         各自的结果（见 `sync_error::failed()`），`what()` 列出失败的流名与原因。
  * @endif
  *
  * @lang{EN}
  * @brief Calls `sync_with_stdio(sync)` on all eight standard stream objects.
  *
- * No stream's `sync_with_stdio` can fail (the output streams flip a flag, and a failed
- * flush when switching back to synchronized is only recorded as a state bit; the input
- * streams rebuild their streambuf and `std::abort()` on failure), so this function either
- * switches all eight or the process ends -- there is no partially completed state.
+ * **All eight streams are attempted**: one that fails cannot keep the others from switching.
+ * Each failure is first recorded in that stream's own state bits (on an output stream, the
+ * flush performed when switching back to synchronized; on an input stream, rebuilding the
+ * streambuf), and if that stream's `exceptions()` mask includes the bit it throws -- this
+ * function collects those exceptions and finally throws one `sync_error`. Under the default
+ * mask (`goodbit`) it throws nothing: all eight switch and the failures show up only as
+ * state bits.
  *
  * Call it before any `stdin` read: the input streams replace their whole streambuf, which
  * discards input that was buffered but not yet consumed (see `stdin_api::sync_with_stdio`).
@@ -108,19 +215,35 @@ namespace IOv2
  * `stdout_api::sync_with_stdio`).
  *
  * @param sync `true` for synchronized (the default), `false` for per-stream buffering.
+ * @throws sync_error At least one stream failed and its `exceptions()` mask included the
+ *         matching bit. The exception carries the outcome of all eight streams (see
+ *         `sync_error::failed()`), and `what()` lists the failing streams and their reasons.
  * @endif
  */
-inline void sync_with_stdio(bool sync = true) noexcept
+inline void sync_with_stdio(bool sync = true)
 {
-    cout.sync_with_stdio(sync);
-    cerr.sync_with_stdio(sync);
-    clog.sync_with_stdio(sync);
+    sync_error::failures failed;
 
-    wcout.sync_with_stdio(sync);
-    wcerr.sync_with_stdio(sync);
-    wclog.sync_with_stdio(sync);
+    // Every stream is attempted, so one that throws cannot keep the others from
+    // switching. Collecting costs nothing that can fail: assigning an exception_ptr
+    // is noexcept, and the table is a local.
+    const auto one = [sync](auto& stream, std::exception_ptr& slot) noexcept
+    {
+        try { stream.sync_with_stdio(sync); }
+        catch (...) { slot = std::current_exception(); }
+    };
 
-    cin.sync_with_stdio(sync);
-    wcin.sync_with_stdio(sync);
+    one(cout, failed.cout_err);
+    one(cerr, failed.cerr_err);
+    one(clog, failed.clog_err);
+
+    one(wcout, failed.wcout_err);
+    one(wcerr, failed.wcerr_err);
+    one(wclog, failed.wclog_err);
+
+    one(cin, failed.cin_err);
+    one(wcin, failed.wcin_err);
+
+    if (failed.any()) throw sync_error(std::move(failed));
 }
 }

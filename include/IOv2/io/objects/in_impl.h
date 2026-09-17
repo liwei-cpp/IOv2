@@ -134,13 +134,16 @@ public:
      * 会真的切换——在输入流上「调一次查、再调一次设回去」等于重建两次 streambuf，已缓冲的
      * 输入随之丢失。
      *
-     * 本函数**不会失败**。重建 streambuf 只可能因内存耗尽或（`wchar_t`）当前编码的 locale
-     * 数据库在运行期间消失而抛出——两者都是运行环境已坏、调用方无从处置的情形，此时直接
-     * `std::abort()`，而不是留下一个半换的流。这与 `sing_temp::init` 构造标准流失败即
-     * `abort` 的策略一致；libstdc++ 在同一位置失败后留下的是悬垂的 `rdbuf`（未定义行为）。
+     * 失败按本库统一的方式报告：置状态位，`exceptions()` 掩码含该位时才抛出。重建 streambuf
+     * 只可能因内存耗尽或（`wchar_t`）当前编码的 locale 数据库在运行期间消失而失败——都是运行
+     * 环境已坏的情形，实际不可达。
      *
      * @param sync `true` 为同步（默认），`false` 为自带缓冲。
-     * @return 调用前的同步状态。
+     * @return 调用前的同步状态；失败时同步状态未改变，返回的就是当前状态。
+     * @note 重建失败时旧 streambuf 已经 detach、新的没建起来，流停在**未附接**状态：此后每次
+     *       操作都按状态位失败（`cvtfailbit`），`clear()` 不够，须 `reset()` 在同一 fd 上重新
+     *       附接。同步标志保持原值，因此「流报告的模式」与「它实际怎么读」始终一致。
+     *       本函数不像别的失败那样只是“这一次没做成”，而是会让流暂时不可用，故值得单独提醒。
      * @endif
      *
      * @lang{EN}
@@ -171,35 +174,40 @@ public:
      * call again to put it back" rebuilds the streambuf twice and loses whatever it had
      * buffered.
      *
-     * This function **cannot fail**. Rebuilding the streambuf can only throw on memory
-     * exhaustion or (`wchar_t`) when the locale database of the current code vanished
-     * while the process runs -- both mean the runtime environment is broken and there
-     * is nothing the caller could do, so this calls `std::abort()` instead of leaving a
-     * half-replaced stream. This matches the `sing_temp::init` policy of aborting when
-     * a standard stream cannot be constructed; libstdc++ failing at the same point
-     * leaves a dangling `rdbuf` (undefined behavior).
+     * A failure is reported the way this library reports every other one: a state bit is
+     * set, and it throws only when the `exceptions()` mask includes that bit. Rebuilding the
+     * streambuf can only fail on memory exhaustion or, on `wchar_t`, when the locale database
+     * of the current code vanished while the process runs -- a broken runtime environment,
+     * unreachable in practice.
      *
      * @param sync `true` for synchronized (the default), `false` for own buffering.
-     * @return The synchronization state before the call.
+     * @return The synchronization state before the call; on failure the state is unchanged, so
+     *         that is also the current one.
+     * @note When the rebuild fails the old streambuf has been detached and the new one was
+     *       never built, leaving the stream **unattached**: every operation then fails through
+     *       the state bits (`cvtfailbit`), `clear()` is not enough, and `reset()` is what
+     *       attaches a fresh device on the same fd. The synchronization flag keeps its old
+     *       value, so what the stream reports and how it actually reads never disagree.
+     *       Unlike most failures this one leaves the stream unusable for a while, which is why
+     *       it is called out here.
      * @endif
      */
-    bool sync_with_stdio(bool sync = true) noexcept
+    bool sync_with_stdio(bool sync = true)
     {
         std::lock_guard guard(this->io_mutex());
         auto old_sync_state = m_sync_with_stdio.load();
         if (old_sync_state == sync)
             return old_sync_state;
 
+        auto [dev, err] = m_streambuf.detach();
         try {
-            auto [dev, err] = m_streambuf.detach();
-            if (err) std::abort();
             if constexpr (std::is_same_v<char_type, char>)
                 m_streambuf = istreambuf<device_type, char_type>(std::move(dev), !sync);
             else if constexpr (std::is_same_v<char_type, wchar_t>)
             {
                 // Straight from the streambuf, not through code(): that wrapper reports a
                 // failure as a state bit and an empty name, which would rebuild on the
-                // environment's encoding instead of the current one. Here a failure aborts.
+                // environment's encoding instead of the current one.
                 code_cvt_access acc;
                 m_streambuf.retrieve(acc);
                 m_streambuf = istreambuf<device_type, wchar_t>(std::move(dev), code_cvt_stdio_creator(acc.code), !sync);
@@ -207,10 +215,14 @@ public:
             else
                 static_assert(dependent_false_v<char_type>, "invalid character type");
         } catch (...) {
-            // Memory exhaustion or a vanished locale database: no usable stream to
-            // hand back. Same policy as sing_temp::init.
-            std::abort();
+            // The streambuf was detached and the new one was never built: every
+            // operation now fails through the state bits until reset() attaches a
+            // fresh device. The flag stays where it was, so what the stream reports
+            // and how it actually reads still agree.
+            this->handle_exception(std::current_exception());
+            return old_sync_state;
         }
+        if (err) this->handle_exception(err);
         m_sync_with_stdio.store(sync);
         return old_sync_state;
     }
