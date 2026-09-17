@@ -164,9 +164,10 @@ public:
      * 之后，甚至留到进程退出。因此本函数在 `false` → `true` 这一支取本流的 `io_mutex()`
      * 并 `flush()` 一次；其余三种取值组合只是一次原子交换，不做任何 I/O。
      *
-     * 本函数**不会失败**：冲刷失败经 `handle_exception` 记成状态位（`devfailbit` /
-     * `cvtfailbit`），不抛出、也不因 `exceptions()` 掩码而抛——这与退出钩子的
-     * `out_flusher::try_flush()` 同一处置。已处于失败态的流不冲刷，也就不会因此多一个位。
+     * 那次冲刷的失败按本库统一的方式报告：置状态位（`devfailbit` / `cvtfailbit`），
+     * `exceptions()` 掩码含该位时才抛出——与 `reset()` 里那次冲刷同一处置。注意此时**模式已经
+     * 切换成功**，失败的只是把先前缓冲的字节交给 stdio 这一步。已处于失败态的流不冲刷，
+     * 也就不会因此多一个位。
      *
      * 查询当前状态请用 `synced_with_stdio()`：本函数的无参形式等于 `sync_with_stdio(true)`，
      * 会真的切换。
@@ -191,10 +192,11 @@ public:
      * takes this stream's `io_mutex()` and `flush()`es once; the other three combinations are
      * a single atomic exchange that does no I/O.
      *
-     * This function **cannot fail**: a failed flush is recorded through `handle_exception` as
-     * a state bit (`devfailbit` / `cvtfailbit`), never thrown, not even when the
-     * `exceptions()` mask includes it -- the same treatment the exit hooks'
-     * `out_flusher::try_flush()` gives it. A stream already in a failed state is not flushed,
+     * A failure of that flush is reported the way this library reports every other one: a
+     * state bit is set (`devfailbit` / `cvtfailbit`) and it throws only when the
+     * `exceptions()` mask includes that bit -- the same treatment the flush inside `reset()`
+     * gets. Note that the mode **has** switched by then; what failed is only handing the
+     * previously buffered bytes to stdio. A stream already in a failed state is not flushed,
      * so this cannot add a bit of its own.
      *
      * To ask for the current state use `synced_with_stdio()`: with no argument this one means
@@ -208,7 +210,7 @@ public:
      *       construction, so it reaches stdio at the end of the next insertion.
      * @endif
      */
-    bool sync_with_stdio(bool sync = true) noexcept
+    bool sync_with_stdio(bool sync = true)
     {
         const bool old_sync_state = m_sync_with_stdio.exchange(sync);
         if (!sync || old_sync_state)
@@ -220,19 +222,12 @@ public:
         try
         {
             std::lock_guard guard(this->io_mutex());
-            try
-            {
-                if (static_cast<bool>(*this)) this->flush();
-            }
-            catch (...)
-            {
-                // <true> only records the bits: the mask-driven rethrow is compiled out,
-                // and the lock it takes is this one, re-entered.
-                this->template handle_exception<true>(std::current_exception());
-            }
+            if (static_cast<bool>(*this)) this->flush();
         }
-        catch (...) // NOLINT(bugprone-empty-catch) -- only the lock itself is left
+        catch (...)
         {
+            // The mode did switch; only the hand-over of what was buffered failed.
+            this->handle_exception(std::current_exception());
         }
         return old_sync_state;
     }
