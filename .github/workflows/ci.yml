@@ -333,6 +333,37 @@ jobs:
           echo "pkg-config must expose the include root, not the package directory"; exit 1
         fi
 
+    - name: A consumer that forgot IOV2_SHARED is detectable in its symbol table
+      run: |
+        # Consuming libiov2.so with the switch off compiles, links and runs, but
+        # leaves two sets of singletons: the headers define the inline ones in the
+        # executable, the .so's references bind to those, and the executable's own
+        # initialization constructs a second set over the top. Nothing diagnoses it
+        # at link time. The symbol table does, and this is the recipe the @warning
+        # in iov2_export.h hands to users -- checked here with both controls, so
+        # neither the recipe nor the property it relies on can rot unnoticed.
+        d=$(mktemp -d)
+        printf '%s\n' '#include <IOv2/io/objects/objects.h>' \
+          '#include <IOv2/io/traits/char_and_str.h>' \
+          'int main() { IOv2::cout << "ok\n"; return 0; }' > "$d/c.cpp"
+        # Source-tree headers on purpose: the installed ones turn the switch on by
+        # themselves, which is what makes them immune to this mistake.
+        for mode in correct missed; do
+          [ "$mode" = correct ] && sw="-DIOV2_SHARED" || sw=""
+          g++ -std=c++23 -D_POSIX_C_SOURCE=200809L -Iinclude $sw \
+              "$d/c.cpp" -o "$d/$mode" -Lbuild/make -liov2 -Wl,-rpath,"$PWD/build/make"
+          readelf -d "$d/$mode" | grep -q libiov2.so \
+            || { echo "[!] $mode does not link libiov2.so"; exit 1; }
+          own=$(nm -D "$d/$mode" | grep -c ' u _ZN4IOv2' || true)
+          echo "$mode: $own IOv2 singleton symbols defined in the executable"
+          if [ "$mode" = correct ] && [ "$own" -ne 0 ]; then
+            echo "[!] a correct consumer must not define the singletons"; exit 1
+          fi
+          if [ "$mode" = missed ] && [ "$own" -eq 0 ]; then
+            echo "[!] the check no longer detects a missing IOV2_SHARED"; exit 1
+          fi
+        done
+
     - name: Run the full test suite against the installed shared library
       run: |
         # Consume libiov2 the real-user way: installed headers (switch already
