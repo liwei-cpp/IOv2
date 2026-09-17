@@ -62,12 +62,14 @@ namespace IOv2
  * @lang{ZH}
  * @brief 对全部八个标准流对象调用 `sync_with_stdio(sync)`。
  *
- * 各流的 `sync_with_stdio` 都不会失败（输出流是原子交换；输入流重建 streambuf，失败即
- * `std::abort()`），因此本函数要么把八个流全部切换，要么进程终止，不存在部分完成的状态。
+ * 各流的 `sync_with_stdio` 都不会失败（输出流翻标志，切回同步时的那次冲刷失败只记状态位；
+ * 输入流重建 streambuf，失败即 `std::abort()`），因此本函数要么把八个流全部切换，要么进程
+ * 终止，不存在部分完成的状态。
  *
  * 应在任何 `stdin` 读取之前调用：输入流会换掉整个 streambuf，已缓冲但未消费的输入随之
- * 丢弃（见 `stdin_api::sync_with_stdio`）。输出侧没有这个限制——那只是一次原子交换，随时
- * 可切，与并发的插入操作安全竞争。
+ * 丢弃（见 `stdin_api::sync_with_stdio`）。输出侧没有这个限制，随时可切，与并发的插入操作
+ * 安全竞争；切回同步时它会取该流的锁冲刷一次，因此可能等待正在进行的插入结束
+ * （见 `stdout_api::sync_with_stdio`）。
  *
  * @param sync `true` 为同步（默认），`false` 为各流自行缓冲。
  * @endif
@@ -75,15 +77,17 @@ namespace IOv2
  * @lang{EN}
  * @brief Calls `sync_with_stdio(sync)` on all eight standard stream objects.
  *
- * No stream's `sync_with_stdio` can fail (the output streams do an atomic exchange;
- * the input streams rebuild their streambuf and `std::abort()` on failure), so this
- * function either switches all eight or the process ends -- there is no partially
- * completed state.
+ * No stream's `sync_with_stdio` can fail (the output streams flip a flag, and a failed
+ * flush when switching back to synchronized is only recorded as a state bit; the input
+ * streams rebuild their streambuf and `std::abort()` on failure), so this function either
+ * switches all eight or the process ends -- there is no partially completed state.
  *
  * Call it before any `stdin` read: the input streams replace their whole streambuf, which
  * discards input that was buffered but not yet consumed (see `stdin_api::sync_with_stdio`).
- * The output side carries no such restriction -- there it is a single atomic exchange,
- * switchable at any time and safe against concurrent insertions.
+ * The output side carries no such restriction and is switchable at any time, safe against
+ * concurrent insertions; switching back to synchronized takes that stream's lock to flush
+ * once, so it may wait for an insertion already under way (see
+ * `stdout_api::sync_with_stdio`).
  *
  * @param sync `true` for synchronized (the default), `false` for per-stream buffering.
  * @endif
