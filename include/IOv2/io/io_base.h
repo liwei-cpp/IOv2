@@ -921,7 +921,9 @@ struct ios_state : public ios_base<TChar>
      *         为 `true` 时跳过“按掩码触发异常”这一步：仍替换状态位、并释放被清除失败位的
      *         `exception_ptr`，但**不会因异常掩码而（重）抛出**，也不消费仍被置位类别已保存的
      *         `exception_ptr`。因此下列 @throw 仅在 `ignore_exception_mask == false` 时可能发生
-     *         （加锁失败等底层抛出不受本参数影响，两种取值下均可能发生）。
+     *         ——这也是本函数在该参数为 `true` 时标为 `noexcept` 的理由：那时剩下的动作（写状态位、
+     *         释放 `exception_ptr`）都不会失败，而取 `io_mutex()` 只会因失控递归或 OS 资源耗尽而失败，
+     *         那种情形下终止进程才是诚实的结果（`true` 形式的调用方本身都是 `noexcept` 或吞异常的）。
      * @throw device_error 当 `devfailbit` 被置位且在异常掩码中，且无保存的原始异常时。
      * @throw cvt_error 当 `cvtfailbit` 被置位且在异常掩码中，且无保存的原始异常时。
      * @throw stream_error 当 `strfailbit`/`otherfailbit` 被置位且在异常掩码中，
@@ -947,8 +949,11 @@ struct ios_state : public ios_base<TChar>
      *         cleared failure bits released, but it **does not (re)throw on account of the
      *         exception mask**, nor consume the stored `exception_ptr` of a still-set category.
      *         The @throw cases below can therefore occur only when
-     *         `ignore_exception_mask == false` (a lower-level throw such as a lock failure is
-     *         unaffected by this parameter and may occur either way).
+     *         `ignore_exception_mask == false`, which is why this function is `noexcept` when
+     *         the parameter is `true`: what is left there -- storing the bits and releasing
+     *         the `exception_ptr`s -- cannot fail, and taking `io_mutex()` fails only on a
+     *         runaway recursion or an exhausted OS, where terminating is the honest outcome
+     *         (every caller of the `true` form is itself `noexcept` or swallows).
      * @throw device_error When `devfailbit` is set and in the exception mask, with no
      *        stored original exception.
      * @throw cvt_error When `cvtfailbit` is set and in the exception mask, with no stored
@@ -959,7 +964,7 @@ struct ios_state : public ios_base<TChar>
      * @endif
      */
     template <bool ignore_exception_mask = false>
-    void clear(ios_defs::iostate s = ios_defs::goodbit)
+    void clear(ios_defs::iostate s = ios_defs::goodbit) noexcept(ignore_exception_mask)
     {
         std::lock_guard guard(this->io_mutex());
         m_stream_state.store(s);
@@ -1028,7 +1033,7 @@ struct ios_state : public ios_base<TChar>
      * @endif
      */
     template <bool ignore_exception_mask = false>
-    void setstate(ios_defs::iostate s)
+    void setstate(ios_defs::iostate s) noexcept(ignore_exception_mask)
     {
         std::lock_guard guard(this->io_mutex());
         clear<ignore_exception_mask>(rdstate() | s);
@@ -1137,7 +1142,9 @@ struct ios_state : public ios_base<TChar>
      * 位。是否再抛由模板参数决定：`ignore_exception_mask == false`（默认）时，若该位在异常掩码
      * 中则**（重）抛出异常**；`ignore_exception_mask == true` 时**只置位、不因掩码抛出**，且不
      * 消费已保存的 `exception_ptr`（适用于需绕过展开判定的上下文，如 `noexcept` 析构器）。
-     * 注意：无论取值如何，加锁失败等底层抛出仍可能发生，故本函数并非 `noexcept`。
+     * 后者因此标为 `noexcept`：剩下的动作只有写状态位与登记 `exception_ptr`，都不会失败，
+     * 取 `io_mutex()` 只会因失控递归或 OS 资源耗尽而失败——那时终止进程才是诚实的结果。
+     * 调用方不必再为它包一层防御性的 `catch`。
      *
      * @param ex 要处理的异常指针；若为空指针则不做任何事。
      * @tparam ignore_exception_mask `false`（默认）遵循异常掩码、可能（重）抛出；`true` 只登记
@@ -1182,9 +1189,11 @@ struct ios_state : public ios_base<TChar>
      * (default) it **(re)throws** if that bit is in the exception mask; when
      * `ignore_exception_mask == true` it **only sets the bit and does not throw on account of
      * the mask**, leaving the stored `exception_ptr` unconsumed (for a context that must bypass
-     * the unwinding check below, such as a `noexcept` destructor). Note that, regardless of the
-     * value, a lower-level throw such as a lock failure may still occur, so this function is
-     * not `noexcept`.
+     * the unwinding check below, such as a `noexcept` destructor). That form is therefore
+     * `noexcept`: all it does is store the bits and record the `exception_ptr`, neither of
+     * which can fail, and taking `io_mutex()` fails only on a runaway recursion or an
+     * exhausted OS, where terminating is the honest outcome. Callers need no defensive
+     * `catch` around it.
      *
      * @param ex The exception pointer to handle; does nothing if it is null.
      * @tparam ignore_exception_mask `false` (default) honors the exception mask and may
@@ -1232,14 +1241,14 @@ struct ios_state : public ios_base<TChar>
      */
     template <bool ignore_exception_mask = false>
     void handle_exception(const std::exception_ptr& ex, bool at_eof = false)
+        noexcept(ignore_exception_mask)
     {
         if (!ex) return;
         if constexpr (!ignore_exception_mask)
         {
             if (std::uncaught_exceptions() != 0)
             {
-                try { handle_exception<true>(ex, at_eof); }
-                catch (...) {}   // NOLINT(bugprone-empty-catch)
+                handle_exception<true>(ex, at_eof);
                 return;
             }
         }
