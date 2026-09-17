@@ -413,8 +413,11 @@ public:
      *       仍是 `good()`。一个 `FILE` 只有一份缓冲，谁冲刷都会波及另一个，`std::cout` /
      *       `std::wcout` 上同样如此。
      *
-     * @note 换设备本身失败（`cvtfailbit` / `otherfailbit`，例如宽流重建编码转换状态失败）是另一
-     *       回事：那时转换器没有初始化完，流不可用，须再次 `reset()`，`clear()` 不够。
+     * @note 重新附接这一步在标准流上**没有可失败的操作**：装的是同一 fd 的缺省设备，不分配、
+     *       不做 I/O、不重建 locale——实测五个标准流在全部分配失败且 fd 指向 `/dev/full` 时
+     *       `reset()` 均 0 次分配、状态位全 0。围住它的 `handle_exception` 只是兜底：若将来这里
+     *       真抛了什么（`cvtfailbit` / `otherfailbit`），转换器会停在未初始化状态，流不可用，
+     *       须再次 `reset()`，`clear()` 不够。
      * @note 实现上是 `detach()` 加 `attach()` 两步，而不是一次 `attach()`：`streambuf::attach()`
      *       会在第一步把旧设备的冲刷失败重抛出来，第二步（初始化转换器）因此不执行，转换器停在
      *       `io_status::neutral`，`clear()` 也救不回——详见 `stream_common_operators::attach()`
@@ -457,10 +460,13 @@ public:
      *       so whoever flushes it reaches the other stream as well -- the same holds for
      *       `std::cout` / `std::wcout`.
      *
-     * @note Failing to replace the device is a different matter (`cvtfailbit` /
-     *       `otherfailbit`, e.g. a wide stream unable to rebuild its conversion state):
-     *       the converter is then left uninitialized, the stream is unusable, and another
-     *       `reset()` is required -- `clear()` is not enough.
+     * @note Reattaching has **nothing that can fail** on a standard stream: it installs a
+     *       default device on the same fd, allocates nothing, does no I/O and rebuilds no
+     *       locale -- measured on all five standard streams with every allocation failing and
+     *       the fd on `/dev/full`: zero allocations, no state bit. The `handle_exception`
+     *       around it is only a backstop: should something ever throw there (`cvtfailbit` /
+     *       `otherfailbit`), the converter is left uninitialized, the stream is unusable, and
+     *       another `reset()` is required -- `clear()` is not enough.
      * @note This is implemented as `detach()` plus `attach()`, not as one `attach()`:
      *       `streambuf::attach()` rethrows the old device's flush failure in its first step, so
      *       its second step (initializing the converter) does not run and the converter is left
