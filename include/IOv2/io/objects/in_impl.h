@@ -283,11 +283,13 @@ public:
      * `switch_code()` 选定的编码都**保持原样**（`std::basic_ios::clear` 同样不动格式状态）；
      * 拿它在单元测试用例之间复位时要留意这一点：上个用例留下的 `noskipws` 不会被清掉。
      *
-     * @note 换设备本身失败（`cvtfailbit` / `otherfailbit`，例如宽流重建编码转换状态失败）时转换器
-     *       没有初始化完，流不可用，须再次 `reset()`，`clear()` 不够。丢弃缓冲这一步在 fd 0 上不会
-     *       失败（stdin 不可定位，重定位那步的异常在 `streambuf::detach` 里就被有意吞掉了），置
-     *       `devfailbit` 的那条路在这里走不到；除输出侧多一步旧设备 `dflush()` 外，形状与
-     *       `stdout_api::reset()` 一致。
+     * @note 重新附接这一步在标准流上**没有可失败的操作**：装的是同一 fd 的缺省设备，不分配、
+     *       不做 I/O、不重建 locale（转换状态的「重建」只是 `mbstate_t` 复位）——实测五个标准流在
+     *       全部分配失败且 fd 指向 `/dev/full` 时 `reset()` 均 0 次分配、状态位全 0。围住它的
+     *       `handle_exception` 只是兜底：若将来这里真抛了什么，转换器会停在未初始化状态，流不可用，
+     *       须再次 `reset()`，`clear()` 不够。丢弃缓冲这一步在 fd 0 上同样不会失败（stdin 不可定位，
+     *       重定位那步的异常在 `streambuf::detach` 里就被有意吞掉了），置 `devfailbit` 的那条路在这里
+     *       走不到；除输出侧多一步旧设备 `dflush()` 外，形状与 `stdout_api::reset()` 一致。
      * @endif
      *
      * @lang{EN}
@@ -309,12 +311,16 @@ public:
      * resetting between cases has to keep that in mind, as the `noskipws` left behind by
      * the previous case is still set.
      *
-     * @note When replacing the device itself fails (`cvtfailbit` / `otherfailbit`, e.g. a
-     *       wide stream unable to rebuild its conversion state) the converter is left
+     * @note Reattaching has **nothing that can fail** on a standard stream: it installs a
+     *       default device on the same fd, allocates nothing, does no I/O and rebuilds no
+     *       locale ("rebuilding" the conversion state is an `mbstate_t` reset) -- measured on
+     *       all five standard streams with every allocation failing and the fd on
+     *       `/dev/full`: zero allocations, no state bit. The `handle_exception` around it is
+     *       only a backstop: should something ever throw there, the converter is left
      *       uninitialized, the stream is unusable, and another `reset()` is required --
-     *       `clear()` is not enough. Dropping the buffer cannot fail on fd 0 (stdin is not
-     *       positionable, and the exception from that reposition is swallowed on purpose in
-     *       `streambuf::detach`), so the `devfailbit` path is unreachable here; apart from
+     *       `clear()` is not enough. Dropping the buffer cannot fail on fd 0 either (stdin is
+     *       not positionable, and the exception from that reposition is swallowed on purpose
+     *       in `streambuf::detach`), so the `devfailbit` path is unreachable here; apart from
      *       the output side's extra `dflush()` of the old device, the shape is the same as
      *       `stdout_api::reset()`.
      * @endif
