@@ -262,6 +262,12 @@ namespace IOv2
          * 构建它，无论是否用到 `%Z`（本机实测约 16 ms、约 3.2 MB 常驻，770 个键、4095 个
          * 节点）。这是有意的取舍：换来的是全程序一棵树，而不是每个字符类型一棵。
          *
+         * 成员本身是一个**引用**，绑定到 `new` 出来、永不 `delete` 的树：进程退出时没有任何
+         * 析构函数会跑，`%Z` 在退出阶段仍可解析——标准流对象退出时不析构（见
+         * `common/sing_temp.h`），它们经 `timeio` 触到的数据也必须活到最后，否则更早构造的
+         * 静态对象的析构函数、或 `main` 返回后仍在运行的线程，会在已释放的树上读。
+         * 树经这个静态引用可达，泄漏检测器不会报它。
+         *
          * 供 `%Z` 格式说明符的解析使用。若时区数据库在静态初始化期间不可用或格式
          * 有误，树里将只剩 @ref s_unknown_zone 一条，`%Z` 解析会在运行时产生可捕获的
          * `stream_error` 而非调用 `std::terminate`。
@@ -321,6 +327,14 @@ namespace IOv2
          * here at roughly 16 ms and 3.2 MB resident, for 770 keys across 4095 nodes). That is
          * the deliberate trade: one trie per program instead of one per character type.
          *
+         * The member itself is a **reference**, bound to a trie that is `new`ed and never
+         * `delete`d: no destructor runs at process exit, so `%Z` still parses while the
+         * process is exiting. The standard stream objects are not destroyed at exit (see
+         * `common/sing_temp.h`), and the data they reach through `timeio` has to live as long,
+         * or the destructor of a static object constructed earlier, or a thread still running
+         * after `main` returned, would read a freed trie. The trie stays reachable through this
+         * static reference, so leak checkers do not report it.
+         *
          * Used by the `%Z` format specifier during parsing. If the timezone database is
          * unavailable or malformed at static-initialization time, the trie is left holding
          * nothing but @ref s_unknown_zone, and `%Z` parsing produces a catchable `stream_error`
@@ -333,8 +347,8 @@ namespace IOv2
          *       `links`".
          * @endif
          */
-        inline static const prefix_tree<char, zone_ref> s_timezone_tree =
-        []()
+        inline static const prefix_tree<char, zone_ref>& s_timezone_tree =
+        *new prefix_tree<char, zone_ref>([]()
         {
             prefix_tree<char, zone_ref> res;
 
@@ -412,7 +426,7 @@ namespace IOv2
                 // behaviour of time_zone_parse_helper.
             }
             return res;
-        }();
+        }());
     };
 
     /**

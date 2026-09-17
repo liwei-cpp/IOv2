@@ -18,6 +18,10 @@
  * 退出阶段既有引用仍然有效。构造时各自 `tie()` 到同字符类型的输出流（`cin` → `cout`，
  * `wcin` → `wcout`）。
  *
+ * @note 「退出阶段仍可用」只覆盖本库自己的流对象、locale、facet 与 facet 触到的进程级数据；
+ *       用户经 `locale(loc)` 装进来的自定义 facet 若持有会在退出时析构的全局量，不在此列。
+ *       详见 `out_impl.h` 的同名说明。
+ *
  * @note 一般不直接包含本头文件，而是包含 `IOv2/io/objects/objects.h`：入口那里还有一次切换全部
  *       八个标准流的 `sync_with_stdio()` 与 `ws` / `endl` 等操纵符，并说明了本系列头文件不带来
  *       哪些能力。
@@ -40,6 +44,11 @@
  * hook -- like `std::cin` they are not destroyed at exit, so existing references stay valid
  * once exit begins. Each ties itself at construction to the output stream of the same
  * character type (`cin` to `cout`, `wcin` to `wcout`).
+ *
+ * @note "Still usable while the process exits" covers this library's own stream objects,
+ *       locales, facets and the process-wide data those facets reach; a user facet installed
+ *       through `locale(loc)` that holds a global with a destructor is outside that. See the
+ *       note of the same name in `out_impl.h`.
  *
  * @note Prefer including `IOv2/io/objects/objects.h` over this header: the entry point also
  *       brings the `sync_with_stdio()` that switches all eight standard streams at once and
