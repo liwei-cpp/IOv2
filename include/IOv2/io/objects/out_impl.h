@@ -27,6 +27,12 @@
  *          `_IO_flush_all_lockp(0)` 不取 FILE 锁，正是同一个理由。要确保某一批输出一定到达
  *          设备，请在退出前自己 `flush()`，那时还有调用栈可以报告失败。
  *
+ * @note **「退出阶段仍可用」只覆盖本库自己的东西**：流对象、它们的 locale 与 facet，以及
+ *       facet 触到的进程级数据（`timeio` 的时区树、`messages` 的文本域表）都不在退出时析构。
+ *       用户经 `locale(loc)` 装进来的自定义 facet 若持有会在退出时析构的全局量，`main` 返回后
+ *       另一线程的一次插入、或更早构造的静态对象析构里的一次插入，仍会读到已销毁的对象——
+ *       这一层本库无从保证，与 `std::cout` 相同。
+ *
  * @note 一般不直接包含本头文件，而是包含 `IOv2/io/objects/objects.h`：入口那里还有一次切换全部
  *       八个标准流的 `sync_with_stdio()` 与 `endl` / `ends` / `flush` 等操纵符，并说明了本系列
  *       头文件不带来哪些能力。
@@ -64,6 +70,14 @@
  *          the same reason. To be sure a particular batch of output reaches the device,
  *          `flush()` it yourself before exiting, while there is still a call stack to report
  *          a failure on.
+ *
+ * @note **"Still usable while the process exits" covers this library's own parts only**: the
+ *       stream objects, their locales and facets, and the process-wide data those facets reach
+ *       (the time-zone trie of `timeio`, the text-domain table of `messages`) are none of them
+ *       destroyed at exit. A user facet installed through `locale(loc)` that holds a global with a
+ *       destructor is outside that: an insertion from another thread after `main` returned, or
+ *       from the destructor of a static object constructed earlier, still reads a destroyed
+ *       object. This library cannot vouch for that layer, and neither can `std::cout`.
  *
  * @note Prefer including `IOv2/io/objects/objects.h` over this header: the entry point also
  *       brings the `sync_with_stdio()` that switches all eight standard streams at once and

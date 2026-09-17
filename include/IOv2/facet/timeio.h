@@ -3727,7 +3727,7 @@ private:
                 else
                 {
                     if (modifier) goto bad_parse_format;
-                    typename decltype(base_ft<timeio>::s_timezone_tree)::match_out_type zone_res{};
+                    typename std::remove_cvref_t<decltype(base_ft<timeio>::s_timezone_tree)>::match_out_type zone_res{};
                     rp = base_ft<timeio>::s_timezone_tree.max_match(rp, rp_end, zone_res);
                     if (!zone_res) { succ = false; return rp; }
                     if (zone_res->is_name)   ctx.m_zone_name   = zone_res->text.c_str();

@@ -121,8 +121,7 @@ public:
      */
     const std::basic_string<char_type>& translate(const std::basic_string<char_type>& ori) const
     {
-        const static std::basic_string<char_type> empty_res;
-        if (ori.empty()) return empty_res;
+        if (ori.empty()) return ori;
 
         const auto* p = m_obj->translate(ori);
         return p ? *p : ori;
@@ -260,7 +259,9 @@ public:
      */
     const std::basic_string<char_type>& head_entry() const
     {
-        const static std::basic_string<char_type> empty_msgid;
+        // Returned by reference, so it must never be destroyed: a reference to a
+        // leaked string, not a static string (see common/sing_temp.h on exit).
+        static const auto& empty_msgid = *new std::basic_string<char_type>();
         const auto* p = m_obj->translate(empty_msgid);
         return p ? *p : empty_msgid;
     }

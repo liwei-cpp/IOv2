@@ -39,6 +39,7 @@
 #include <filesystem>
 #include <mutex>
 #include <string>
+#include <string_view>
 #include <unordered_map>
 #include <utility>
 #include <vector>
@@ -153,11 +154,11 @@ public:
      */
     static std::string get_dirname(const std::string& domain)
     {
-        const static std::string def_dir = "/usr/share/locale";
+        static constexpr std::string_view def_dir = "/usr/share/locale";
 
         std::scoped_lock guard(s_domain_mutex);
         auto it = s_domain_dirs.find(domain);
-        return (it == s_domain_dirs.end()) ? def_dir : it->second;
+        return (it == s_domain_dirs.end()) ? std::string{def_dir} : it->second;
     }
 
     /**
@@ -745,7 +746,11 @@ private:
 
     // Global mapping from text domain name to its directory path.
     // Protected by s_domain_mutex; read/write only while holding the lock.
-    inline static std::unordered_map<std::string, std::string> s_domain_dirs;
+    // A reference to a map that is never deleted: the standard stream objects are
+    // not destroyed at exit, so the data their messages facet reaches must not be
+    // either (see common/sing_temp.h). The mutex is trivially destructible.
+    inline static std::unordered_map<std::string, std::string>& s_domain_dirs =
+        *new std::unordered_map<std::string, std::string>;
     inline static std::mutex s_domain_mutex;
 
 private:
