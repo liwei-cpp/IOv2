@@ -146,30 +146,38 @@ namespace
         const char* m_dir_file_name;
     };
 
-    // Puts stdout into full buffering on a buffer this object owns, the way glibc
-    // buffers a stdout that is not a tty. The destructor hands stdout back to
-    // unbuffered mode (what oguard and the surrounding suites expect) before the
-    // buffer dies, so an early return from a failed ASSERT cannot leave stdout
-    // pointing at freed storage.
-    struct stdout_full_buffer
+    // Puts stdout (isOut) or stderr into full buffering on a buffer this object
+    // owns, the way glibc buffers a stdout that is not a tty -- stderr is never
+    // buffered by default, so for it this is the shape a caller's own setvbuf
+    // creates. The destructor hands the stream back to unbuffered mode (what
+    // oguard and the surrounding suites expect) before the buffer dies, so an
+    // early return from a failed ASSERT cannot leave the stream pointing at freed
+    // storage.
+    template <bool isOut>
+    struct full_buffer
     {
-        stdout_full_buffer()
+        full_buffer()
         {
-            if (std::setvbuf(stdout, m_buffer.data(), _IOFBF, m_buffer.size()) != 0)
-                throw std::runtime_error("Cannot make stdout fully buffered");
+            if (std::setvbuf(stream(), m_buffer.data(), _IOFBF, m_buffer.size()) != 0)
+                throw std::runtime_error("Cannot make the standard stream fully buffered");
         }
 
-        ~stdout_full_buffer()
+        ~full_buffer()
         {
-            std::clearerr(stdout);
-            std::setbuf(stdout, nullptr);
-            std::clearerr(stdout);
+            std::clearerr(stream());
+            std::setbuf(stream(), nullptr);
+            std::clearerr(stream());
         }
 
-        stdout_full_buffer(const stdout_full_buffer&) = delete;
-        stdout_full_buffer& operator=(const stdout_full_buffer&) = delete;
+        full_buffer(const full_buffer&) = delete;
+        full_buffer& operator=(const full_buffer&) = delete;
 
     private:
+        static FILE* stream() { return isOut ? stdout : stderr; }
+
         std::array<char, BUFSIZ> m_buffer{};
     };
+
+    using stdout_full_buffer = full_buffer<true>;
+    using stderr_full_buffer = full_buffer<false>;
 }
