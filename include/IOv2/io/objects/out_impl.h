@@ -27,6 +27,13 @@
  *          `_IO_flush_all_lockp(0)` 不取 FILE 锁，正是同一个理由。要确保某一批输出一定到达
  *          设备，请在退出前自己 `flush()`，那时还有调用栈可以报告失败。
  *
+ * @note 上面说的「退出时」只指 `exit()`（含 `main` 返回）：钩子是经 `__cxa_atexit` 登记的静态
+ *       析构。`std::quick_exit`、`_exit`、未捕获的信号与 `std::abort` **一概不跑钩子**，本流
+ *       缓冲里的字节全部丢失；同步模式下已交给 stdio 的字节也一并丢失，因为这些路径同样不
+ *       冲刷 `FILE` 缓冲——与 `std::cout` 在这些路径上的行为逐字节相同（实测）。要在这类路径
+ *       之前保住输出，请自己 `flush()`，并在 stdout 不是 tty 时再 `fflush(stdout)`（或
+ *       `setvbuf(stdout, nullptr, _IONBF, 0)`）。
+ *
  * @note **「退出阶段仍可用」只覆盖本库自己的东西**：流对象、它们的 locale 与 facet，以及
  *       facet 触到的进程级数据（`timeio` 的时区树、`messages` 的文本域表）都不在退出时析构。
  *       用户经 `locale(loc)` 装进来的自定义 facet 若持有会在退出时析构的全局量，`main` 返回后
@@ -70,6 +77,15 @@
  *          the same reason. To be sure a particular batch of output reaches the device,
  *          `flush()` it yourself before exiting, while there is still a call stack to report
  *          a failure on.
+ *
+ * @note "At exit" above means `exit()` (including returning from `main`) only: the hooks are
+ *       static destructors registered through `__cxa_atexit`. `std::quick_exit`, `_exit`, an
+ *       unhandled signal and `std::abort` run **no** hook, so every byte still in this
+ *       stream's buffer is lost; in synchronized mode the bytes already handed to stdio are
+ *       lost too, since those paths do not flush `FILE` buffers either -- byte for byte what
+ *       `std::cout` does on the same paths (measured). To keep output ahead of such a path,
+ *       `flush()` yourself and, when stdout is not a tty, `fflush(stdout)` as well (or
+ *       `setvbuf(stdout, nullptr, _IONBF, 0)`).
  *
  * @note **"Still usable while the process exits" covers this library's own parts only**: the
  *       stream objects, their locales and facets, and the process-wide data those facets reach

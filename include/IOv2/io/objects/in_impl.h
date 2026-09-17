@@ -121,6 +121,15 @@ public:
      * 一次提取进行中（例如用户 `io_traits::sread` 里）重入调用：`io_mutex()` 是递归锁不会拦，
      * 但正在使用的 streambuf 会被整个换掉。
      *
+     * @warning 这里的「同步」只表示**逐字节 `read(0)`**，不是与 C stdio 共享缓冲：本流的设备
+     *          直接用 POSIX `read()`，绕过 `stdin` 的 `FILE` 缓冲（见 `device/std_device.h`
+     *          的类级 `@warning`）。因此与 `std::cin` 不同：(1) 格式化提取探到的分隔符留在本流
+     *          的读缓冲里，`getchar()` / `fgets()` 看不到它、拿到的是它之后的字节，而
+     *          `cin.get()` 能把它取回；(2) 反过来，终端上一次 `getchar()` 会让 stdio 读走整行，
+     *          本流随后只能看见下一行；(3) `cin` 与 `wcin` 也各有自己的读缓冲，一方探过的字节
+     *          另一方看不到。三种形态都**不丢字节**，只是跨边界不可见。请勿在 `stdin` 上混用
+     *          本流与 C stdio 函数或另一条标准输入流。
+     *
      * 查询当前状态请用 `synced_with_stdio()`：本函数的无参形式等于 `sync_with_stdio(true)`，
      * 会真的切换——在输入流上「调一次查、再调一次设回去」等于重建两次 streambuf，已缓冲的
      * 输入随之丢失。
@@ -143,6 +152,19 @@ public:
      * `detach()` contract in streambuf.h; call this before any stdin read, and never
      * re-enter it from inside an extraction (a user `io_traits::sread`, say): `io_mutex()`
      * is recursive and will not stop it, but the streambuf in use is replaced wholesale.
+     *
+     * @warning "Synchronized" here means **reading `stdin` byte by byte with `read(0)`**, not
+     *          sharing a buffer with C stdio: this stream's device calls POSIX `read()`
+     *          directly and bypasses the `FILE` buffer of `stdin` (see the class-level
+     *          `@warning` in `device/std_device.h`). Unlike `std::cin`, therefore: (1) the
+     *          delimiter a formatted extraction peeks at stays in this stream's read buffer,
+     *          where `getchar()` / `fgets()` never see it -- they get the byte after it --
+     *          while `cin.get()` returns it; (2) conversely, on a terminal one `getchar()`
+     *          lets stdio read the whole line, after which this stream only sees the next
+     *          one; (3) `cin` and `wcin` have separate read buffers as well, so a byte one of
+     *          them peeked at is invisible to the other. **No byte is lost** in any of the
+     *          three; they are only invisible across the boundary. Do not mix this stream
+     *          with C stdio functions, or with the other standard input stream, on `stdin`.
      *
      * To ask for the current state use `synced_with_stdio()`: with no argument this one means
      * `sync_with_stdio(true)` and does switch -- on an input stream, "call once to read it,

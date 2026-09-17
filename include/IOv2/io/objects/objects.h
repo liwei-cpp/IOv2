@@ -20,6 +20,13 @@
  * @note 八个流对象是进程级单例，但「一份」的范围随构建模式而变：`IOV2_SHARED` 下它们是
  *       `libiov2.so` 里唯一的一份，头文件模式下是本程序内的 `inline` 变量。`IOV2_SHARED`
  *       必须在同一次链接的所有翻译单元里口径一致，见 `IOv2/common/iov2_export.h` 的 `@warning`。
+ * @note **哪些静态对象的构造 / 析构里可以用这八个流**：口径与 `std::cout`
+ *       （[iostream.objects.overview]/3）相同——**同一个翻译单元里、定义在本头文件之后**的
+ *       静态对象可以。它们的析构也一样安全：八个流退出时不析构（见 `out_impl.h` 的 `@note`）。
+ *       其它两种形态取决于实现的初始化顺序，标准只保证 [basic.start.dynamic]/3.3 的
+ *       indeterminately sequenced：不包含本头文件的翻译单元里的静态对象（实测取决于 `.o` 的
+ *       链接顺序），以及**定义在本头文件包含之前**的静态对象（gcc 15 上是空引用，clang 21 上
+ *       正常——两家都合规）。这两种形态请改用函数内静态量（首次使用时才构造）。
  * @endif
  *
  * @lang{EN}
@@ -47,6 +54,17 @@
  *       and in header-only mode they are `inline` variables of the program itself.
  *       `IOV2_SHARED` must be defined consistently across every translation unit of a single
  *       link; see the `@warning` in `IOv2/common/iov2_export.h`.
+ * @note **Which static objects may use the eight streams from their constructors and
+ *       destructors**: the same scope `std::cout` gives ([iostream.objects.overview]/3) --
+ *       a static object **defined after this header is included, in the same translation
+ *       unit**. Its destructor is as safe, since the eight are not destroyed at exit (see
+ *       the `@note` in `out_impl.h`). The other two shapes depend on the implementation's
+ *       initialization order, the standard guaranteeing only [basic.start.dynamic]/3.3,
+ *       indeterminately sequenced: a static object in a translation unit that does not
+ *       include this header (measured to depend on the link order of the `.o` files), and
+ *       one **defined before this header is included** (a null reference on gcc 15, fine on
+ *       clang 21 -- both conforming). Use a function-local static, constructed on first use,
+ *       for those two.
  * @endif
  */
 #pragma once
