@@ -26,6 +26,7 @@
 #include <gtest/gtest.h>
 
 #include <cstddef>
+#include <cstdio>
 #include <string>
 
 #include <fcntl.h>
@@ -254,4 +255,59 @@ TEST(IoObjectsChar, SyncWithStdioCanBeQueriedWithoutSwitching)
 
     IOv2::cin.sync_with_stdio(true);
     EXPECT_TRUE(IOv2::cin.synced_with_stdio());
+}
+
+// Synchronized means this stream's bytes reach stdio in the order they were
+// written relative to printf. Switching back to it has to make that true of the
+// bytes already buffered, not only of the insertions that follow: the flag is
+// read by each insertion's sentry, so without a flush here what was buffered
+// while unsynchronized would sit in this stream's own buffer and surface after
+// the next printf -- or at exit.
+TEST(IoObjectsChar, SwitchingBackToSyncPushesWhatWasAlreadyBuffered)
+{
+    oguard<true> out;
+    IOv2::cout.reset();
+
+    const bool sync = IOv2::cout.sync_with_stdio(false);
+    IOv2::cout << "A";
+    EXPECT_TRUE(out.contents().empty());            // still in this stream's buffer
+
+    EXPECT_FALSE(IOv2::cout.sync_with_stdio(true)); // returns the previous state...
+    EXPECT_EQ(out.contents(), "A");                 // ...and hands the bytes over
+
+    std::printf("B");
+    std::fflush(stdout);
+    EXPECT_EQ(out.contents(), "AB");
+    EXPECT_TRUE(IOv2::cout.good());
+
+    // Already synchronized: nothing to hand over, and no second flush.
+    EXPECT_TRUE(IOv2::cout.sync_with_stdio(true));
+    EXPECT_EQ(out.contents(), "AB");
+
+    IOv2::cout.sync_with_stdio(sync);
+}
+
+// The flush that switching back performs cannot fail loudly -- the function is
+// noexcept -- and it must not invent a failure either: a stream that is already
+// in a failed state has nothing to flush, and stream-level flush() would throw
+// stream_error there, which would show up as a strfailbit this switch did not
+// cause.
+TEST(IoObjectsChar, SwitchingBackToSyncOnAFailedStreamAddsNoState)
+{
+    oguard<true> out;
+    IOv2::cout.reset();
+    ASSERT_TRUE(out.contents().empty());   // nothing carried over from an earlier case
+
+    const bool sync = IOv2::cout.sync_with_stdio(false);
+    IOv2::cout.setstate(IOv2::ios_defs::devfailbit);
+
+    EXPECT_FALSE(IOv2::cout.sync_with_stdio(true));
+    EXPECT_EQ(IOv2::cout.rdstate(), IOv2::ios_defs::devfailbit);
+
+    IOv2::cout.clear();
+    IOv2::cout << "AFTER" << IOv2::flush;
+    EXPECT_TRUE(IOv2::cout.good());
+    EXPECT_EQ(out.contents(), "AFTER");
+
+    IOv2::cout.sync_with_stdio(sync);
 }

@@ -143,11 +143,23 @@ public:
      * @brief 切换本流是否与 C stdio 同步：同步时每次插入结束都把本流缓冲推进 stdio 缓冲，
      * 以保持与 `printf` 等的交错顺序；不同步时本流自行缓冲。
      *
-     * 只是一次原子交换，不会失败；与并发的插入操作安全竞争。查询当前状态请用
-     * `synced_with_stdio()`：本函数的无参形式等于 `sync_with_stdio(true)`，会真的切换。
+     * 从「自行缓冲」切回「同步」时，此前缓冲的字节要在这里交给 stdio：标志由每次插入的
+     * 输出哨兵读取，只影响之后的插入，若不在这里冲刷一次，那批字节会排到下一次 `printf`
+     * 之后，甚至留到进程退出。因此本函数在 `false` → `true` 这一支取本流的 `io_mutex()`
+     * 并 `flush()` 一次；其余三种取值组合只是一次原子交换，不做任何 I/O。
+     *
+     * 本函数**不会失败**：冲刷失败经 `handle_exception` 记成状态位（`devfailbit` /
+     * `cvtfailbit`），不抛出、也不因 `exceptions()` 掩码而抛——这与退出钩子的
+     * `out_flusher::try_flush()` 同一处置。已处于失败态的流不冲刷，也就不会因此多一个位。
+     *
+     * 查询当前状态请用 `synced_with_stdio()`：本函数的无参形式等于 `sync_with_stdio(true)`，
+     * 会真的切换。
      *
      * @param sync `true` 为同步（默认），`false` 为自行缓冲。
      * @return 调用前的同步状态。
+     * @note 切回同步只保证**此刻**已缓冲的字节到达 stdio。若在一次插入进行中（用户的
+     *       `io_traits::swrite` 里）切回，该次插入尚未写出的部分仍按哨兵构造时的取值处理，
+     *       到下一次插入结束才进入 stdio。
      * @endif
      *
      * @lang{EN}
@@ -156,17 +168,57 @@ public:
      * keeping the interleaving with `printf` and friends; unsynchronized buffers on its
      * own.
      *
-     * A single atomic exchange, cannot fail; safe against concurrent insertions. To ask for
-     * the current state use `synced_with_stdio()`: with no argument this one means
+     * Switching from own buffering back to synchronized hands the bytes buffered so far to
+     * stdio here: the flag is read by each insertion's output sentry and so only governs the
+     * insertions that follow, and without a flush at this point those bytes would surface
+     * after the next `printf`, or not until the process exits. So the `false` -> `true` case
+     * takes this stream's `io_mutex()` and `flush()`es once; the other three combinations are
+     * a single atomic exchange that does no I/O.
+     *
+     * This function **cannot fail**: a failed flush is recorded through `handle_exception` as
+     * a state bit (`devfailbit` / `cvtfailbit`), never thrown, not even when the
+     * `exceptions()` mask includes it -- the same treatment the exit hooks'
+     * `out_flusher::try_flush()` gives it. A stream already in a failed state is not flushed,
+     * so this cannot add a bit of its own.
+     *
+     * To ask for the current state use `synced_with_stdio()`: with no argument this one means
      * `sync_with_stdio(true)` and does switch.
      *
      * @param sync `true` for synchronized (the default), `false` for own buffering.
      * @return The synchronization state before the call.
+     * @note Switching back only guarantees that the bytes buffered **at that moment** reach
+     *       stdio. Switching back from inside an insertion (a user's `io_traits::swrite`)
+     *       leaves the rest of that insertion governed by the value its sentry read on
+     *       construction, so it reaches stdio at the end of the next insertion.
      * @endif
      */
     bool sync_with_stdio(bool sync = true) noexcept
     {
-        return m_sync_with_stdio.exchange(sync);
+        const bool old_sync_state = m_sync_with_stdio.exchange(sync);
+        if (!sync || old_sync_state)
+            return old_sync_state;
+
+        // Exchanged first, then locked: an insertion starting after this point flushes
+        // itself, and one already running -- which read the old value and will not flush --
+        // holds the lock, so waiting for it leaves nothing behind.
+        try
+        {
+            std::lock_guard guard(this->io_mutex());
+            try
+            {
+                if (static_cast<bool>(*this)) this->flush();
+            }
+            catch (...)
+            {
+                // <true> only records the bits: the mask-driven rethrow is compiled out,
+                // and the lock it takes is this one, re-entered.
+                this->template handle_exception<true>(std::current_exception());
+            }
+        }
+        catch (...) // NOLINT(bugprone-empty-catch) -- only the lock itself is left
+        {
+        }
+        return old_sync_state;
     }
 
     /**
@@ -431,7 +483,7 @@ public:
 protected:
     ostreambuf<device_type, char_type> m_streambuf;
     IOv2::locale<char_type> m_locale;
-    copyable_atomic<bool> m_sync_with_stdio{true};   ///< @lang{ZH} 为 true 时每次插入结束（输出哨兵析构）都把本流缓冲推进 stdio 缓冲；与进程退出时的刷新无关。原子量，使 `sync_with_stdio()` 可与并发输出操作安全竞争。 @endif @lang{EN} When true, every insertion (the output sentry's destructor) pushes this stream's buffer into the stdio buffer; unrelated to the flush at process exit. Atomic so `sync_with_stdio()` is safe against concurrent output operations. @endif
+    copyable_atomic<bool> m_sync_with_stdio{true};   ///< @lang{ZH} 为 true 时每次插入结束（输出哨兵析构）都把本流缓冲推进 stdio 缓冲；与进程退出时的刷新无关。哨兵在构造时读它一次并沿用到析构，故本标志只影响之后**开始**的插入——切回同步时那批已缓冲的字节由 `sync_with_stdio` 自己持锁冲刷。原子量，使标志的翻转与 `synced_with_stdio()` 的查询可与并发输出操作安全竞争。 @endif @lang{EN} When true, every insertion (the output sentry's destructor) pushes this stream's buffer into the stdio buffer; unrelated to the flush at process exit. A sentry reads it once on construction and uses that value through its destructor, so the flag governs the insertions that **start** afterwards -- what was already buffered when switching back to synchronized is flushed by `sync_with_stdio` itself, under the lock. Atomic so that flipping the flag and querying it through `synced_with_stdio()` are safe against concurrent output operations. @endif
 };
 
 /// cout
