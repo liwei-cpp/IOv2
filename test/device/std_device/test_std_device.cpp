@@ -223,8 +223,9 @@ TEST(StdDevice, StderrDoesNotWaitForAFlush)
 }
 
 // ---------------------------------------------------------------------------
-// Move semantics.  Only the input device carries state: the sticky EOF flag and
-// the one byte deof() reads ahead.
+// Move semantics.  The input device carries the sticky EOF flag and the one
+// byte deof() reads ahead; every device carries the duty to flush the stream
+// when it dies, and a move hands that duty over too.
 // ---------------------------------------------------------------------------
 
 TEST(StdDevice, MoveCarriesTheLatchedEof)
@@ -282,6 +283,102 @@ TEST(StdDevice, AnOutputDeviceMovesEvenThoughItHoldsNothing)
     std_output_device d3;
     d3 = std::move(d2);
     SUCCEED();
+}
+
+// A moved-from output device is inert: the flush that runs when a device dies
+// belongs to whichever object currently holds it, and a move passes it along.
+// Bytes left in a fully buffered stdout therefore reach the file when the
+// receiving device dies, not when the moved-from one does.
+TEST(StdDevice, MoveHandsOverTheClosingFlush)
+{
+    oguard<true> g;
+    char buffer[BUFSIZ];
+    std::setvbuf(stdout, buffer, _IOFBF, sizeof(buffer));
+
+    {
+        std_output_device d3;
+        {
+            std_output_device d2;
+            {
+                std_output_device d1;
+                d1.dput("moved", 5);
+                d2 = std::move(d1);
+            }                                   // d1 (moved-from) dies: no flush
+            EXPECT_TRUE(g.contents().empty());
+
+            std_output_device d2b(std::move(d2));
+            d3 = std::move(d2b);
+        }                                       // d2, d2b (both moved-from) die: no flush
+        EXPECT_TRUE(g.contents().empty());
+    }                                           // d3 holds the duty: flushes
+    EXPECT_EQ(g.contents(), "moved");
+
+    std::setvbuf(stdout, nullptr, _IONBF, 0);
+}
+
+// Move assignment is a pure hand-over: the target's state, the flush duty
+// included, becomes the source's. Moving an inert device onto a live one leaves
+// the target inert as well, and it does no I/O of its own -- the bytes stay in
+// the stdio buffer until someone else flushes. A self-move changes nothing.
+TEST(StdDevice, MoveAssignmentHandsOverTheDutyWithoutFlushing)
+{
+    oguard<true> g;
+    char buffer[BUFSIZ];
+    std::setvbuf(stdout, buffer, _IOFBF, sizeof(buffer));
+
+    {
+        std_output_device target;
+        target.dput("later", 5);
+
+        std_output_device source;
+        std_output_device sink(std::move(source));  // source is now inert
+        target = std::move(source);                 // inert source overwrites the live target
+        EXPECT_TRUE(g.contents().empty());          // ...and flushes nothing on the way
+
+#if defined(__GNUC__) || defined(__clang__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wself-move"
+#endif
+        sink = std::move(sink);                     // sink keeps the duty it was given
+#if defined(__GNUC__) || defined(__clang__)
+#pragma GCC diagnostic pop
+#endif
+        sink.dput("!", 1);
+    }                                               // target: no flush; sink: flushes both
+    EXPECT_EQ(g.contents(), "later!");
+
+    std::setvbuf(stdout, nullptr, _IONBF, 0);
+}
+
+// The reason a moved-from device must stay quiet: glibc discards the buffer
+// when fflush fails, so the first flush is the only one that can see the error.
+// If the moved-from object's destructor took that flush, its catch(...) would
+// swallow the failure and the owner's own dflush() would find nothing to report.
+TEST(StdDevice, AMovedFromDeviceDoesNotConsumeTheFlushFailure)
+{
+    bool flush_threw = false;
+    {
+        oguard<true> g;
+        char buffer[BUFSIZ];
+        std::setvbuf(stdout, buffer, _IOFBF, sizeof(buffer));
+
+        const int saved = ::dup(STDOUT_FILENO);
+        std_output_device owner;
+        {
+            std_output_device original;
+            original.dput("some data", 9);      // fills the FILE buffer only
+            owner = std::move(original);
+            ::close(STDOUT_FILENO);
+        }                                       // original dies with the fd gone
+
+        try { owner.dflush(); }
+        catch (const device_error&) { flush_threw = true; }
+
+        ::dup2(saved, STDOUT_FILENO);
+        ::close(saved);
+        std::setvbuf(stdout, nullptr, _IONBF, 0);
+    }
+    EXPECT_TRUE(flush_threw);
 }
 
 // ---------------------------------------------------------------------------

@@ -24,6 +24,7 @@
 #include <limits>
 #include <optional>
 #include <type_traits>
+#include <utility>
 #include <variant>
 
 #include <poll.h>
@@ -77,7 +78,30 @@ public:
     std_device() = default;
     std_device(const std_device&) = delete;
     std_device& operator=(const std_device&) = delete;
+
+    /**
+     * @lang{ZH}
+     * @brief 移动构造：接过 `other` 的全部状态，`other` 随之变为惰性。
+     *
+     * 搬走的除了 stdin 的 EOF 标记与预读字节，还有「本对象销毁时冲刷该流」这份责任
+     * （见 `m_active`）。被移走的对象析构时不再冲刷：一个流只有一份 stdio 缓冲，
+     * 冲刷责任必须唯一，否则先死的那个中转副本会抢先做那次可能失败的 `fflush`、
+     * 在析构函数里把错误吞掉，真正的持有者随后什么也报告不了。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Move construction: takes over everything `other` holds and leaves it inert.
+     *
+     * Besides stdin's EOF flag and lookahead byte, this hands over the duty to flush the
+     * stream when this object dies (see `m_active`). A moved-from object no longer flushes
+     * in its destructor: one stream has one stdio buffer, so that duty has to be unique --
+     * otherwise whichever intermediate copy dies first takes the one `fflush` that can
+     * fail, swallows the error inside its destructor, and the real holder is left with
+     * nothing to report.
+     * @endif
+     */
     std_device(std_device&& other) noexcept
+        : m_active(std::exchange(other.m_active, false))
     {
         if constexpr (ID == STDIN_FILENO)
         {
@@ -87,11 +111,34 @@ public:
             other.m_c.reset();
         }
     }
+
+    /**
+     * @lang{ZH}
+     * @brief 移动赋值：同移动构造，本对象的全部状态换成 `other` 的，`other` 变为惰性。
+     *
+     * 纯转交，不做任何 I/O：本对象原先持有的冲刷责任随其它状态一并被覆盖，这里不会
+     * 为它补一次冲刷——两个对象包的是同一个流，字节仍在 stdio 缓冲里，由下一次冲刷或
+     * 进程退出送达；能报告失败的冲刷应由调用方在替换设备前显式 `dflush()`。
+     * 自我移动不改变状态。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Move assignment: as move construction; this object's whole state becomes
+     * `other`'s and `other` is left inert.
+     *
+     * A pure hand-over with no I/O: a flush duty this object held is overwritten along with
+     * the rest of its state, and no flush is made up for it here -- both objects wrap the
+     * same stream, the bytes are still in the stdio buffer, and the next flush or process
+     * exit delivers them; a flush whose failure should be reported belongs to the caller,
+     * as an explicit `dflush()` before the device is replaced. A self-move changes nothing.
+     * @endif
+     */
     std_device& operator=(std_device&& other) noexcept
     {
-        if constexpr (ID == STDIN_FILENO)
+        if (this != &other)
         {
-            if (this != &other)
+            m_active = std::exchange(other.m_active, false);
+            if constexpr (ID == STDIN_FILENO)
             {
                 m_eof_hit = other.m_eof_hit;
                 other.m_eof_hit = false;
@@ -104,17 +151,23 @@ public:
 
     /**
      * @lang{ZH}
-     * @brief 析构函数，在销毁时刷新标准输出或标准错误流。
+     * @brief 析构函数：仍持有冲刷责任（未被移走）的标准输出 / 标准错误设备在销毁时刷新
+     * 对应的流。冲刷失败被吞掉——析构函数无法报告；要拿到失败请在销毁前显式
+     * `dflush()`。
      * @endif
      *
      * @lang{EN}
-     * @brief Destructor that flushes standard output or standard error upon destruction.
+     * @brief Destructor: a standard output / standard error device that still holds the
+     * flush duty (has not been moved from) flushes its stream on destruction. A flush
+     * failure is swallowed -- a destructor cannot report it; call `dflush()` explicitly
+     * before destruction to see it.
      * @endif
      */
     ~std_device()
     {
         if constexpr ((ID == STDOUT_FILENO) || (ID == STDERR_FILENO))
         {
+            if (!m_active) return;
             try {
                 dflush();
             } catch (...) { // NOLINT(bugprone-empty-catch)
@@ -336,6 +389,7 @@ private:
 private:
     [[no_unique_address]] std::conditional_t<ID == STDIN_FILENO, bool, std::monostate> m_eof_hit{};
     [[no_unique_address]] std::conditional_t<ID == STDIN_FILENO, std::optional<char_type>, std::monostate> m_c;
+    bool m_active = true;   ///< @lang{ZH} 本对象是否仍持有该流的收尾冲刷责任：缺省构造为 true，随移动转交给目标、源对象变 false。析构函数只在为 true 时冲刷（fd 1 / 2）；stdin 上只是状态标记。 @endif @lang{EN} Whether this object still holds the duty to flush the stream when it dies: true on default construction, handed to the target by a move, false on the moved-from object. The destructor flushes (fd 1 / 2) only while it is true; on stdin it is a state marker only. @endif
 };
 
 /**
