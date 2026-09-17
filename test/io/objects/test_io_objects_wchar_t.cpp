@@ -284,6 +284,60 @@ TEST(IoObjectsWchar, SwitchCodeRejectsANameWithAnEmbeddedNul)
     EXPECT_EQ(out.contents(), "\xe4\xb8\xad");
 }
 
+namespace
+{
+    // The wide counterpart of IoObjectsChar.ResetReportsAFlushFailureFromAFullBufferedStdout.
+    // A wide stream's detach() runs one converter layer deeper than a narrow
+    // one's, and that layer hands the device through a temporary on its way
+    // out. If a moved-from std_device still flushed in its destructor, that
+    // temporary would take the one fflush that can fail, swallow the error, and
+    // leave reset() with nothing to report -- in either synchronization mode.
+    void reset_reports_a_full_buffered_stdout_failure(bool sync_mode)
+    {
+        const int full = ::open("/dev/full", O_WRONLY);
+        if (full == -1) GTEST_SKIP() << "no /dev/full here";
+
+        oguard<true> out;
+        IOv2::wcout.reset();
+        const bool sync = IOv2::wcout.sync_with_stdio(sync_mode);
+
+        {
+            stdout_full_buffer buffered;            // restores unbuffered stdout on any exit
+
+            IOv2::wcout << L"DROPPED";              // sync: in stdout's FILE buffer; unsync: still in the stream's
+            EXPECT_TRUE(out.contents().empty());
+
+            const int saved = ::dup(STDOUT_FILENO);
+            ASSERT_NE(saved, -1);
+            EXPECT_EQ(::dup2(full, STDOUT_FILENO), STDOUT_FILENO);
+            EXPECT_NO_THROW(IOv2::wcout.reset());
+            EXPECT_EQ(::dup2(saved, STDOUT_FILENO), STDOUT_FILENO);
+            ::close(saved);
+            ::close(full);
+        }
+
+        EXPECT_EQ(IOv2::wcout.rdstate(), IOv2::ios_defs::devfailbit);
+
+        IOv2::wcout.clear();
+        IOv2::wcout << L"AFTER" << IOv2::flush;
+
+        EXPECT_TRUE(IOv2::wcout.good());
+        EXPECT_NE(out.contents().find("AFTER"), std::string::npos);
+
+        IOv2::wcout.sync_with_stdio(sync);
+    }
+}
+
+TEST(IoObjectsWchar, ResetReportsAFlushFailureFromAFullBufferedStdout)
+{
+    reset_reports_a_full_buffered_stdout_failure(true);
+}
+
+TEST(IoObjectsWchar, ResetReportsAFlushFailureFromAFullBufferedStdoutWhenUnsynchronized)
+{
+    reset_reports_a_full_buffered_stdout_failure(false);
+}
+
 // A tainted converter recovers before switch_code() commits the new encoding.
 // If already-committed bytes are waiting in stdout's FILE buffer, that recovery
 // must flush the old device and report an fflush failure -- as devfailbit, like
