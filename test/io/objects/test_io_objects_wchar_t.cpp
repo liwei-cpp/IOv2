@@ -338,6 +338,47 @@ TEST(IoObjectsWchar, ResetReportsAFlushFailureFromAFullBufferedStdoutWhenUnsynch
     reset_reports_a_full_buffered_stdout_failure(false);
 }
 
+// The same path on fd 2. stderr is unbuffered by default, so this is the shape a
+// caller's own setvbuf(stderr, ..., _IOFBF, ...) creates; the device behind wclog is
+// std_device<2>, whose moved-from copies have to stay as quiet as std_device<1>'s.
+// wclog rather than wcerr: wcerr is unit-buffered, so every insertion already
+// pushes its bytes through fflush while the fd is still healthy, and there is
+// never anything left for reset() to lose.
+TEST(IoObjectsWchar, ResetReportsAFlushFailureFromAFullBufferedStderr)
+{
+    const int full = ::open("/dev/full", O_WRONLY);
+    if (full == -1) GTEST_SKIP() << "no /dev/full here";
+
+    oguard<false> err;
+    IOv2::wclog.reset();
+    const bool sync = IOv2::wclog.sync_with_stdio(true);
+
+    {
+        stderr_full_buffer buffered;            // restores unbuffered stderr on any exit
+
+        IOv2::wclog << L"DROPPED";              // moved into stderr's FILE buffer
+        EXPECT_TRUE(err.contents().empty());
+
+        const int saved = ::dup(STDERR_FILENO);
+        ASSERT_NE(saved, -1);
+        EXPECT_EQ(::dup2(full, STDERR_FILENO), STDERR_FILENO);
+        EXPECT_NO_THROW(IOv2::wclog.reset());
+        EXPECT_EQ(::dup2(saved, STDERR_FILENO), STDERR_FILENO);
+        ::close(saved);
+        ::close(full);
+    }
+
+    EXPECT_EQ(IOv2::wclog.rdstate(), IOv2::ios_defs::devfailbit);
+
+    IOv2::wclog.clear();
+    IOv2::wclog << L"AFTER" << IOv2::flush;
+
+    EXPECT_TRUE(IOv2::wclog.good());
+    EXPECT_NE(err.contents().find("AFTER"), std::string::npos);
+
+    IOv2::wclog.sync_with_stdio(sync);
+}
+
 // A tainted converter recovers before switch_code() commits the new encoding.
 // If already-committed bytes are waiting in stdout's FILE buffer, that recovery
 // must flush the old device and report an fflush failure -- as devfailbit, like
