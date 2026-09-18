@@ -129,6 +129,8 @@
 namespace IOv2
 {
 template <typename T, io_device TDevice, typename TChar>
+    requires (std::is_same_v<TDevice, std_device<STDOUT_FILENO>> ||
+              std::is_same_v<TDevice, std_device<STDERR_FILENO>>)
 class stdout_api : public ios_state<TChar>
                  , public out_flusher<T>
                  , public ostream_operators<TChar>
