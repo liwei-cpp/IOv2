@@ -6,7 +6,8 @@
  * @lang{ZH}
  * 本库标准流的入口：带来八个全局流对象——`cin` / `cout` / `cerr` / `clog` 与四个宽字符对应物
  * `wcin` / `wcout` / `wcerr` / `wclog`（定义在 `in_impl.h` 与 `out_impl.h`）——以及一次切换全部
- * 八个流的自由函数 `sync_with_stdio()`。调用时机见 `stdin_api::sync_with_stdio`。
+ * 八个流的自由函数 `sync_with_stdio()` 与它的失败报告类型 `sync_error`。调用时机见
+ * `stdin_api::sync_with_stdio`。
  *
  * 本头文件还包含 `IOv2/io/istream.h` 与 `IOv2/io/ostream.h`，因此四个不带参数的操纵符 `ws` /
  * `endl` / `ends` / `flush` 随之可用。这是入口有意做的 re-export：两个实现头只带流对象本身。
@@ -33,8 +34,8 @@
  * The entry point for this library's standard streams: brings in the eight global stream
  * objects -- `cin` / `cout` / `cerr` / `clog` and the four wide-character counterparts
  * `wcin` / `wcout` / `wcerr` / `wclog` (defined in `in_impl.h` and `out_impl.h`) -- along
- * with the free function `sync_with_stdio()` that switches all eight at once. See
- * `stdin_api::sync_with_stdio` for when to call it.
+ * with the free function `sync_with_stdio()` that switches all eight at once and its failure
+ * report `sync_error`. See `stdin_api::sync_with_stdio` for when to call it.
  *
  * This header also includes `IOv2/io/istream.h` and `IOv2/io/ostream.h`, so the four
  * parameterless manipulators `ws` / `endl` / `ends` / `flush` come with it. That re-export is
@@ -188,7 +189,7 @@ private:
  *
  * 应在任何 `stdin` 读取之前调用：输入流会换掉整个 streambuf，已缓冲但未消费的输入随之
  * 丢弃（见 `stdin_api::sync_with_stdio`）。输出侧没有这个限制，随时可切，与并发的插入操作
- * 安全竞争；切回同步时它会取该流的锁冲刷一次，因此可能等待正在进行的插入结束
+ * 安全竞争；切回同步时它会取该流的锁把本流缓冲搬进 stdio 缓冲，因此可能等待正在进行的插入结束
  * （见 `stdout_api::sync_with_stdio`）。
  *
  * @param sync `true` 为同步（默认），`false` 为各流自行缓冲。
@@ -210,8 +211,8 @@ private:
  * Call it before any `stdin` read: the input streams replace their whole streambuf, which
  * discards input that was buffered but not yet consumed (see `stdin_api::sync_with_stdio`).
  * The output side carries no such restriction and is switchable at any time, safe against
- * concurrent insertions; switching back to synchronized takes that stream's lock to flush
- * once, so it may wait for an insertion already under way (see
+ * concurrent insertions; switching back to synchronized takes that stream's lock to move its
+ * buffer into stdio's, so it may wait for an insertion already under way (see
  * `stdout_api::sync_with_stdio`).
  *
  * @param sync `true` for synchronized (the default), `false` for per-stream buffering.
