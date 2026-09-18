@@ -11,9 +11,9 @@
  * 的设备 `std_device<STDOUT_FILENO>` 或 `std_device<STDERR_FILENO>`）与一个 `locale` 组合起来，
  * 对外接口来自 `ios_state`（状态位与异常掩码）、`out_flusher`（tie 刷新用的多态 `try_flush()`）、
  * `ostream_operators`（输出操作）与 `stream_common_operators`（`tell()` / `locale()` 等）四个
- * 基类。与 `ostream` 的差别都来自「设备是固定 fd 的进程级单例」：多了 `sync_with_stdio()`、
- * `reset()` 与（宽流）`code()` / `switch_code()`，换设备的 `detach()` / `attach()` 则被
- * `= delete`。
+ * 基类。与 `ostream` 的差别都来自「设备是固定 fd 的进程级单例」：多了 `sync_with_stdio()` /
+ * `synced_with_stdio()`、`reset()` 与（宽流）`code()` / `switch_code()`，换设备的 `detach()` /
+ * `attach()` 则被 `= delete`。
  *
  * 六个流对象经 `sing_temp` 成为进程级单例，退出钩子只 `try_flush()`、不析构——与 `std::cout`
  * 一样，退出阶段既有引用仍然有效。`cerr` / `wcerr` 构造时另外 `tie()` 到 `cout` / `wcout` 并置
@@ -57,8 +57,8 @@
  * `try_flush()` used by tie), `ostream_operators` (the output operations) and
  * `stream_common_operators` (`tell()` / `locale()` and friends). Every difference from
  * `ostream` follows from the device being a fixed fd owned by a process-wide singleton: it
- * adds `sync_with_stdio()`, `reset()` and, on the wide streams, `code()` / `switch_code()`,
- * while `detach()` / `attach()`, which would replace the device, are `= delete`.
+ * adds `sync_with_stdio()` / `synced_with_stdio()`, `reset()` and, on the wide streams, `code()` /
+ * `switch_code()`, while `detach()` / `attach()`, which would replace the device, are `= delete`.
  *
  * All six stream objects are process-wide singletons through `sing_temp` whose exit hook only
  * calls `try_flush()` and never destroys them -- like `std::cout`, existing references stay
@@ -160,14 +160,17 @@ public:
      * 以保持与 `printf` 等的交错顺序；不同步时本流自行缓冲。
      *
      * 从「自行缓冲」切回「同步」时，此前缓冲的字节要在这里交给 stdio：标志由每次插入的
-     * 输出哨兵读取，只影响之后的插入，若不在这里冲刷一次，那批字节会排到下一次 `printf`
-     * 之后，甚至留到进程退出。因此本函数在 `false` → `true` 这一支取本流的 `io_mutex()`
-     * 并 `flush()` 一次；其余三种取值组合只是一次原子交换，不做任何 I/O。
+     * 输出哨兵读取，只影响之后的插入，若不在这里搬一次，那批字节会排到下一次 `printf`
+     * 之后，甚至留到进程退出。因此切到 `true` 时本函数取本流的 `io_mutex()`，在锁内翻标志，
+     * 若此前为 `false` 则把本流缓冲搬进 stdio 缓冲一次——与哨兵是同一个操作，**不** `fflush`：
+     * stdio 缓冲里可能还有 `printf` 的字节，何时落盘由 stdio 决定。锁内翻标志保证任何从本函数
+     * 返回的调用者都能依赖「此前缓冲的字节已在 stdio 手里」，无论搬运是自己做的还是先到的
+     * 那次做的。切到 `false` 只是一次原子交换，不取锁、不做 I/O。
      *
-     * 那次冲刷的失败按本库统一的方式报告：置状态位（`devfailbit` / `cvtfailbit`），
-     * `exceptions()` 掩码含该位时才抛出——与 `reset()` 里那次冲刷同一处置。注意此时**模式已经
-     * 切换成功**，失败的只是把先前缓冲的字节交给 stdio 这一步。已处于失败态的流不冲刷，
-     * 也就不会因此多一个位。
+     * 那次搬运的失败按本库统一的方式报告：置状态位（`devfailbit` / `cvtfailbit`），
+     * `exceptions()` 掩码含该位时才抛出。注意此时**模式已经切换成功**，失败的只是把先前缓冲的
+     * 字节交给 stdio 这一步；与同步模式的插入一样，stdout 全缓冲时设备写失败要到 stdio 自己
+     * 冲刷才暴露，这里看不到。已处于失败态的流不搬，也就不会因此多一个位。
      *
      * 查询当前状态请用 `synced_with_stdio()`：本函数的无参形式等于 `sync_with_stdio(true)`，
      * 会真的切换。
@@ -187,17 +190,22 @@ public:
      *
      * Switching from own buffering back to synchronized hands the bytes buffered so far to
      * stdio here: the flag is read by each insertion's output sentry and so only governs the
-     * insertions that follow, and without a flush at this point those bytes would surface
-     * after the next `printf`, or not until the process exits. So the `false` -> `true` case
-     * takes this stream's `io_mutex()` and `flush()`es once; the other three combinations are
-     * a single atomic exchange that does no I/O.
+     * insertions that follow, and without a hand-over at this point those bytes would surface
+     * after the next `printf`, or not until the process exits. So switching to `true` takes
+     * this stream's `io_mutex()`, flips the flag under it, and if it was `false` moves this
+     * stream's buffer into stdio's buffer once -- the sentry's operation, with **no** `fflush`:
+     * stdio's buffer may hold `printf`'s bytes as well, and when they land is stdio's call.
+     * Flipping under the lock lets every caller that returns from here rely on the bytes
+     * buffered before the call being in stdio's hands, whether this call moved them or the
+     * one it waited for did. Switching to `false` is a single atomic exchange: no lock, no I/O.
      *
-     * A failure of that flush is reported the way this library reports every other one: a
+     * A failure of that hand-over is reported the way this library reports every other one: a
      * state bit is set (`devfailbit` / `cvtfailbit`) and it throws only when the
-     * `exceptions()` mask includes that bit -- the same treatment the flush inside `reset()`
-     * gets. Note that the mode **has** switched by then; what failed is only handing the
-     * previously buffered bytes to stdio. A stream already in a failed state is not flushed,
-     * so this cannot add a bit of its own.
+     * `exceptions()` mask includes that bit. Note that the mode **has** switched by then; what
+     * failed is only handing the previously buffered bytes to stdio -- and, as with a
+     * synchronized insertion, on a fully buffered stdout a device failure shows up only when
+     * stdio itself flushes, not here. A stream already in a failed state is left alone, so
+     * this cannot add a bit of its own.
      *
      * To ask for the current state use `synced_with_stdio()`: with no argument this one means
      * `sync_with_stdio(true)` and does switch.
@@ -212,24 +220,26 @@ public:
      */
     bool sync_with_stdio(bool sync = true)
     {
-        const bool old_sync_state = m_sync_with_stdio.exchange(sync);
-        if (!sync || old_sync_state)
-            return old_sync_state;
+        if (!sync)
+            return m_sync_with_stdio.exchange(false);
 
-        // Exchanged first, then locked: an insertion starting after this point flushes
-        // itself, and one already running -- which read the old value and will not flush --
-        // holds the lock, so waiting for it leaves nothing behind.
+        // Flag and hand-over under one lock, so a caller that returns can rely on the
+        // bytes buffered before the call being in stdio's hands.
+        std::lock_guard guard(this->io_mutex());
+        if (m_sync_with_stdio.exchange(true))
+            return true;
+
         try
         {
-            std::lock_guard guard(this->io_mutex());
-            if (static_cast<bool>(*this)) this->flush();
+            // The sentry's operation, not the stream-level flush(): no fflush of bytes
+            // that are not this stream's.
+            if (static_cast<bool>(*this)) m_streambuf.flush();
         }
         catch (...)
         {
-            // The mode did switch; only the hand-over of what was buffered failed.
             this->handle_exception(std::current_exception());
         }
-        return old_sync_state;
+        return false;
     }
 
     /**
@@ -500,7 +510,7 @@ public:
 protected:
     ostreambuf<device_type, char_type> m_streambuf;
     IOv2::locale<char_type> m_locale;
-    copyable_atomic<bool> m_sync_with_stdio{true};   ///< @lang{ZH} 为 true 时每次插入结束（输出哨兵析构）都把本流缓冲推进 stdio 缓冲；与进程退出时的刷新无关。哨兵在构造时读它一次并沿用到析构，故本标志只影响之后**开始**的插入——切回同步时那批已缓冲的字节由 `sync_with_stdio` 自己持锁冲刷。原子量，使标志的翻转与 `synced_with_stdio()` 的查询可与并发输出操作安全竞争。 @endif @lang{EN} When true, every insertion (the output sentry's destructor) pushes this stream's buffer into the stdio buffer; unrelated to the flush at process exit. A sentry reads it once on construction and uses that value through its destructor, so the flag governs the insertions that **start** afterwards -- what was already buffered when switching back to synchronized is flushed by `sync_with_stdio` itself, under the lock. Atomic so that flipping the flag and querying it through `synced_with_stdio()` are safe against concurrent output operations. @endif
+    copyable_atomic<bool> m_sync_with_stdio{true};   ///< @lang{ZH} 为 true 时每次插入结束（输出哨兵析构）都把本流缓冲推进 stdio 缓冲；与进程退出时的刷新无关。哨兵在构造时读它一次并沿用到析构，故本标志只影响之后**开始**的插入——切回同步时那批已缓冲的字节由 `sync_with_stdio` 自己持锁搬进 stdio 缓冲。原子量，使标志的翻转与 `synced_with_stdio()` 的查询可与并发输出操作安全竞争。 @endif @lang{EN} When true, every insertion (the output sentry's destructor) pushes this stream's buffer into the stdio buffer; unrelated to the flush at process exit. A sentry reads it once on construction and uses that value through its destructor, so the flag governs the insertions that **start** afterwards -- what was already buffered when switching back to synchronized is moved into stdio's buffer by `sync_with_stdio` itself, under the lock. Atomic so that flipping the flag and querying it through `synced_with_stdio()` are safe against concurrent output operations. @endif
 };
 
 /// cout

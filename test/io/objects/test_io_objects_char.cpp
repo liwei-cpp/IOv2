@@ -311,6 +311,41 @@ TEST(IoObjectsChar, SwitchingBackToSyncOnAFailedStreamAddsNoState)
     IOv2::cout.sync_with_stdio(sync);
 }
 
+// Switching back moves this stream's buffer into stdio's buffer -- the sentry's
+// operation -- and stops there. It must not fflush on top of that: stdout's FILE
+// buffer may hold printf's bytes, and a failure to write those is not this
+// stream's to report (nor to consume: glibc drops the buffer and clears the
+// error on a failed fflush).
+TEST(IoObjectsChar, SwitchingBackToSyncDoesNotFlushStdioForOthers)
+{
+    const int full = ::open("/dev/full", O_WRONLY);
+    if (full == -1) GTEST_SKIP() << "no /dev/full here";
+
+    oguard<true> out;
+    IOv2::cout.reset();
+    ASSERT_TRUE(out.contents().empty());
+    const bool sync = IOv2::cout.sync_with_stdio(false);
+
+    {
+        stdout_full_buffer buffered;
+
+        std::printf("P");                          // stdio's bytes only; cout holds nothing
+
+        const int saved = ::dup(STDOUT_FILENO);
+        ASSERT_NE(saved, -1);
+        EXPECT_EQ(::dup2(full, STDOUT_FILENO), STDOUT_FILENO);
+        EXPECT_FALSE(IOv2::cout.sync_with_stdio(true));
+        EXPECT_TRUE(IOv2::cout.good());            // nothing of cout's failed
+        EXPECT_EQ(::dup2(saved, STDOUT_FILENO), STDOUT_FILENO);
+        ::close(saved);
+        ::close(full);
+        std::fflush(stdout);                       // stdio delivers its own bytes on its own
+    }
+
+    EXPECT_EQ(out.contents(), "P");
+    IOv2::cout.sync_with_stdio(sync);
+}
+
 // The eight streams are independent, so the free function attempts all of them
 // and reports what happened to each: a stream whose exceptions() mask is armed
 // throws, the rest still switch, and the collected outcomes travel in one

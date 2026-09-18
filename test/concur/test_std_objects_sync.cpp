@@ -38,6 +38,9 @@
 #include <gtest/gtest.h>
 
 #include <atomic>
+#include <chrono>
+#include <cstdio>
+#include <mutex>
 #include <string>
 #include <thread>
 
@@ -152,4 +155,42 @@ TEST(StdObjectsSync, WcinSwitchCodeAndSyncWithStdioAgainstExtraction)
     IOv2::wcin.sync_with_stdio(true);
     IOv2::wcin.reset();
     IOv2::wcin.switch_code(original);
+}
+
+// Two threads switch cout back to synchronized while an insertion holds the lock.
+// Whichever of them returns must be able to rely on the bytes buffered before its
+// call being in stdio's hands -- so a printf it issues next lands after them. That
+// holds only if the flag flips under the lock: flipped outside it, the second
+// switcher sees "already synchronized", returns at once, and its printf overtakes
+// the bytes the first switcher is still waiting to move.
+//
+// The insertion is stood in for by holding io_mutex() directly. The two sleeps only
+// give the switchers time to arrive; a correct implementation passes under any
+// scheduling, since neither switcher can return before the lock is released.
+TEST(StdObjectsSync, ASecondSwitcherCannotReturnBeforeTheHandOver)
+{
+    oguard<true> out;
+    IOv2::cout.reset();
+    const bool sync = IOv2::cout.sync_with_stdio(false);
+    IOv2::cout << "P";                              // in cout's own buffer
+
+    std::thread first, second;
+    {
+        std::lock_guard held(IOv2::cout.io_mutex());  // the insertion in progress
+
+        first = std::thread([] { IOv2::cout.sync_with_stdio(true); });
+        std::this_thread::sleep_for(std::chrono::milliseconds(50));
+
+        second = std::thread([] {
+            IOv2::cout.sync_with_stdio(true);
+            std::printf("B");                       // "now it is safe to printf"
+        });
+        std::this_thread::sleep_for(std::chrono::milliseconds(50));
+    }                                               // the insertion ends
+    first.join();
+    second.join();
+
+    EXPECT_EQ(out.contents(), "PB");
+    EXPECT_TRUE(IOv2::cout.synced_with_stdio());
+    IOv2::cout.sync_with_stdio(sync);
 }
