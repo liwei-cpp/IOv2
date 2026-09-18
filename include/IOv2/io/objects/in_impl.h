@@ -11,8 +11,8 @@
  * 的设备 `std_device<STDIN_FILENO>`）与一个 `locale` 组合起来，对外接口来自 `ios_state`（状态位
  * 与异常掩码）、`istream_operators`（输入操作）与 `stream_common_operators`（`tell()` /
  * `locale()` 等）三个基类。与 `istream` 的差别都来自「设备是固定 fd 的进程级单例」：多了
- * `sync_with_stdio()`、`reset()` 与（宽流）`code()` / `switch_code()`，换设备的 `detach()` /
- * `attach()` 则被 `= delete`。
+ * `sync_with_stdio()` / `synced_with_stdio()`、`reset()` 与（宽流）`code()` / `switch_code()`，换设备的
+ * `detach()` / `attach()` 则被 `= delete`。
  *
  * 两个流对象经 `sing_temp` 成为进程级单例，退出钩子为空——与 `std::cin` 一样，退出时不析构，
  * 退出阶段既有引用仍然有效。构造时各自 `tie()` 到同字符类型的输出流（`cin` → `cout`，
@@ -37,8 +37,8 @@
  * the exception mask), `istream_operators` (the input operations) and
  * `stream_common_operators` (`tell()` / `locale()` and friends). Every difference from
  * `istream` follows from the device being a fixed fd owned by a process-wide singleton: it
- * adds `sync_with_stdio()`, `reset()` and, on the wide stream, `code()` / `switch_code()`,
- * while `detach()` / `attach()`, which would replace the device, are `= delete`.
+ * adds `sync_with_stdio()` / `synced_with_stdio()`, `reset()` and, on the wide stream, `code()` /
+ * `switch_code()`, while `detach()` / `attach()`, which would replace the device, are `= delete`.
  *
  * Both stream objects are process-wide singletons through `sing_temp` with an empty exit
  * hook -- like `std::cin` they are not destroyed at exit, so existing references stay valid
@@ -75,7 +75,6 @@
 #include <IOv2/locale/locale.h>
 
 #include <clocale>
-#include <cstdlib>
 #include <exception>
 #include <mutex>
 #include <string>
@@ -117,7 +116,7 @@ public:
      * @brief 切换本流是否与 C stdio 同步：同步时逐字节读 `stdin`，不同步时自带读缓冲。
      *
      * 切换意味着换掉整个 streambuf（先 `detach()` 旧的，再以同一设备重建）。已缓冲但未消费的
-     * 输入按 streambuf.h 的 `detach()` 契约丢弃；因此应在任何 stdin 读取之前调用，也**不得**在
+     * 输入按 `io/streambuf.h` 的 `detach()` 契约丢弃；因此应在任何 stdin 读取之前调用，也**不得**在
      * 一次提取进行中（例如用户 `io_traits::sread` 里）重入调用：`io_mutex()` 是递归锁不会拦，
      * 但正在使用的 streambuf 会被整个换掉。
      *
@@ -143,7 +142,7 @@ public:
      * @note 重建失败时旧 streambuf 已经 detach、新的没建起来，流停在**未附接**状态：此后每次
      *       操作都按状态位失败（`cvtfailbit`），`clear()` 不够，须 `reset()` 在同一 fd 上重新
      *       附接。同步标志保持原值，因此「流报告的模式」与「它实际怎么读」始终一致。
-     *       本函数不像别的失败那样只是“这一次没做成”，而是会让流暂时不可用，故值得单独提醒。
+     *       本函数不像别的失败那样只是「这一次没做成」，而是会让流暂时不可用，故值得单独提醒。
      * @endif
      *
      * @lang{EN}
@@ -152,7 +151,7 @@ public:
      *
      * Switching replaces the whole streambuf (`detach()` the old one, rebuild on the
      * same device). Input that was buffered but not yet consumed is discarded per the
-     * `detach()` contract in streambuf.h; call this before any stdin read, and never
+     * `detach()` contract in `io/streambuf.h`; call this before any stdin read, and **never**
      * re-enter it from inside an extraction (a user `io_traits::sread`, say): `io_mutex()`
      * is recursive and will not stop it, but the streambuf in use is replaced wholesale.
      *
