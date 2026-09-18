@@ -222,8 +222,8 @@ public:
             this->handle_exception(std::current_exception());
             return old_sync_state;
         }
-        if (err) this->handle_exception(err);
         m_sync_with_stdio.store(sync);
+        if (err) this->handle_exception(err);
         return old_sync_state;
     }
 
