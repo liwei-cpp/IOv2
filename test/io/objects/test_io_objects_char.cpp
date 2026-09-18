@@ -14,6 +14,7 @@
  * The objects also have to survive sync_with_stdio: it changes how they reach
  * the C streams, not which objects they are, so their addresses must not move.
  */
+#include <IOv2/device/std_device.h>
 #include <IOv2/io/io_base.h>
 #include <IOv2/io/objects/in_impl.h>
 #include <IOv2/io/objects/objects.h>
@@ -31,6 +32,27 @@
 
 #include <fcntl.h>
 #include <unistd.h>
+
+// The two implementation templates exist for the fixed-fd devices only: every
+// "cannot fail" argument in their headers assumes std_device<0/1/2>. Naming the
+// template with any other device must be rejected at the template head.
+namespace
+{
+    struct probe_stream;
+
+    template <typename Dev>
+    concept stdin_api_accepts = requires { typename IOv2::stdin_api<probe_stream, Dev, char>; };
+    template <typename Dev>
+    concept stdout_api_accepts = requires { typename IOv2::stdout_api<probe_stream, Dev, char>; };
+
+    static_assert(stdin_api_accepts<IOv2::std_device<STDIN_FILENO>>);
+    static_assert(!stdin_api_accepts<IOv2::std_device<STDOUT_FILENO>>);
+    static_assert(!stdin_api_accepts<IOv2::std_device<STDERR_FILENO>>);
+
+    static_assert(stdout_api_accepts<IOv2::std_device<STDOUT_FILENO>>);
+    static_assert(stdout_api_accepts<IOv2::std_device<STDERR_FILENO>>);
+    static_assert(!stdout_api_accepts<IOv2::std_device<STDIN_FILENO>>);
+}
 
 TEST(IoObjectsChar, EachStreamWritesToItsOwnDestination)
 {
