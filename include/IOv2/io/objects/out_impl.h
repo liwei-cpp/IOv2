@@ -24,7 +24,9 @@
  *          丢掉。这是有意的取舍——若改成阻塞取锁，另一个线程持锁不放（在用户的
  *          `io_traits::swrite` 里等网络、等一个本该由正在退出的线程唤醒的条件变量，或
  *          `tie` 成环）就会让 `exit()` 永不返回；glibc 的 `_IO_cleanup` 用
- *          `_IO_flush_all_lockp(0)` 不取 FILE 锁，正是同一个理由。要确保某一批输出一定到达
+ *          `_IO_flush_all_lockp(0)` 不取 FILE 锁，正是同一个理由。处于失败态（`eofbit`
+ *          除外）的流退出时也不刷：钩子走的是流级 `flush()`，它对失败态什么也不做（`std::cout`
+ *          相同）；失败后仍想要缓冲里的字节，先 `clear()` 再 `flush()`。要确保某一批输出一定到达
  *          设备，请在退出前自己 `flush()`，那时还有调用栈可以报告失败。
  *
  * @note 上面说的「退出时」只指 `exit()`（含 `main` 返回）：钩子是经 `__cxa_atexit` 登记的静态
@@ -74,9 +76,12 @@
  *          `io_traits::swrite` on a socket or on a condition variable the exiting thread was
  *          supposed to signal, or a `tie` cycle -- would keep `exit()` from ever returning.
  *          glibc's `_IO_cleanup` uses `_IO_flush_all_lockp(0)`, which takes no FILE lock, for
- *          the same reason. To be sure a particular batch of output reaches the device,
- *          `flush()` it yourself before exiting, while there is still a call stack to report
- *          a failure on.
+ *          the same reason. A stream in a failed state (`eofbit` aside) is not flushed at exit
+ *          either: the hook goes through the stream-level `flush()`, which does nothing on a
+ *          failed stream (as with `std::cout`); to still get the buffered bytes out after a
+ *          failure, `clear()` first and then `flush()`. To be sure a particular batch of
+ *          output reaches the device, `flush()` it yourself before exiting, while there is
+ *          still a call stack to report a failure on.
  *
  * @note "At exit" above means `exit()` (including returning from `main`) only: the hooks are
  *       static destructors registered through `__cxa_atexit`. `std::quick_exit`, `_exit`, an
@@ -165,7 +170,9 @@ public:
      * 输出哨兵读取，只影响之后的插入，若不在这里搬一次，那批字节会排到下一次 `printf`
      * 之后，甚至留到进程退出。因此切到 `true` 时本函数取本流的 `io_mutex()`，在锁内翻标志，
      * 若此前为 `false` 则把本流缓冲搬进 stdio 缓冲一次——与哨兵是同一个操作，**不** `fflush`：
-     * stdio 缓冲里可能还有 `printf` 的字节，何时落盘由 stdio 决定。锁内翻标志保证任何从本函数
+     * stdio 缓冲里可能还有 `printf` 的字节，何时落盘由 stdio 决定（宽流转换器已 tainted 时
+     * 例外：搬运前的自动恢复经 `root_cvt::attach` 对旧设备 `dflush()` 一次，stdio 里别人的字节
+     * 随之落盘或一并丢失，见 `cvt/code_cvt_stdio.h`）。锁内翻标志保证任何从本函数
      * 返回的调用者都能依赖「此前缓冲的字节已在 stdio 手里」，无论搬运是自己做的还是先到的
      * 那次做的。切到 `false` 只是一次原子交换，不取锁、不做 I/O。
      *
@@ -184,8 +191,9 @@ public:
      * @param sync `true` 为同步（默认），`false` 为自行缓冲。
      * @return 调用前的同步状态。
      * @note 切回同步只保证**此刻**已缓冲的字节到达 stdio。若在一次插入进行中（用户的
-     *       `io_traits::swrite` 里）切回，该次插入尚未写出的部分仍按哨兵构造时的取值处理，
-     *       到下一次插入结束才进入 stdio。
+     *       `io_traits::swrite` 里）切回，该次插入已写出的前半段随本次搬运立刻进入 stdio，
+     *       尚未写出的部分仍按哨兵构造时的取值处理，到下一次插入结束才进入 stdio——一次插入
+     *       因此可能被拆成两段，中间可夹进 stdio 上别的字节。
      * @endif
      *
      * @lang{EN}
@@ -200,7 +208,11 @@ public:
      * after the next `printf`, or not until the process exits. So switching to `true` takes
      * this stream's `io_mutex()`, flips the flag under it, and if it was `false` moves this
      * stream's buffer into stdio's buffer once -- the sentry's operation, with **no** `fflush`:
-     * stdio's buffer may hold `printf`'s bytes as well, and when they land is stdio's call.
+     * stdio's buffer may hold `printf`'s bytes as well, and when they land is stdio's call
+     * (the exception is a wide stream whose converter is tainted: the automatic recovery
+     * before the hand-over goes through `root_cvt::attach`, which `dflush()`es the old device
+     * once, so bytes that are not this stream's land -- or are lost -- with it; see
+     * `cvt/code_cvt_stdio.h`).
      * Flipping under the lock lets every caller that returns from here rely on the bytes
      * buffered before the call being in stdio's hands, whether this call moved them or the
      * one it waited for did. Switching to `false` is a single atomic exchange: no lock, no I/O.
@@ -226,8 +238,10 @@ public:
      * @return The synchronization state before the call.
      * @note Switching back only guarantees that the bytes buffered **at that moment** reach
      *       stdio. Switching back from inside an insertion (a user's `io_traits::swrite`)
-     *       leaves the rest of that insertion governed by the value its sentry read on
-     *       construction, so it reaches stdio at the end of the next insertion.
+     *       moves the part of that insertion already written into stdio right away, and
+     *       leaves the rest governed by the value its sentry read on construction, so it
+     *       reaches stdio at the end of the next insertion -- one insertion may thus be split
+     *       in two, with other bytes on stdio landing in between.
      * @endif
      */
     bool sync_with_stdio(bool sync = true)

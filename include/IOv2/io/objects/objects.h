@@ -190,7 +190,8 @@ private:
  *
  * 应在任何 `stdin` 读取之前调用：输入流会换掉整个 streambuf，已缓冲但未消费的输入随之
  * 丢弃（见 `stdin_api::sync_with_stdio`）。输出侧没有这个限制，随时可切，与并发的插入操作
- * 安全竞争；切回同步时它会取该流的锁把本流缓冲搬进 stdio 缓冲，因此可能等待正在进行的插入结束
+ * 安全竞争；切到同步时（已同步再调也一样）它会取该流的锁，若此前自行缓冲则把本流缓冲搬进
+ * stdio 缓冲，因此可能等待正在进行的插入结束
  * （见 `stdout_api::sync_with_stdio`）。
  *
  * @param sync `true` 为同步（默认），`false` 为各流自行缓冲。
@@ -212,9 +213,9 @@ private:
  * Call it before any `stdin` read: the input streams replace their whole streambuf, which
  * discards input that was buffered but not yet consumed (see `stdin_api::sync_with_stdio`).
  * The output side carries no such restriction and is switchable at any time, safe against
- * concurrent insertions; switching back to synchronized takes that stream's lock to move its
- * buffer into stdio's, so it may wait for an insertion already under way (see
- * `stdout_api::sync_with_stdio`).
+ * concurrent insertions; switching to synchronized -- even when it already is -- takes that
+ * stream's lock, and moves its buffer into stdio's if it was buffering on its own, so it may
+ * wait for an insertion already under way (see `stdout_api::sync_with_stdio`).
  *
  * @param sync `true` for synchronized (the default), `false` for per-stream buffering.
  * @throws sync_error At least one stream failed and its `exceptions()` mask included the
