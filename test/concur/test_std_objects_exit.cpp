@@ -136,6 +136,11 @@ TEST(StdObjectsExit, ExitIsNotBlockedByAStreamLock)
 
         EXPECT_EQ(run_exit_hook_child("worker"), 0)
             << "exit with a detached thread still inserting did not return cleanly";
+
+        EXPECT_EQ(run_exit_hook_child("failed"), 0)
+            << "exit() did not return with a stream left in a failed state";
+        EXPECT_FALSE(child_wrote_pending())
+            << "the exit hook flushed a failed stream, which stream-level flush() never does";
         return;
     }
 
@@ -155,6 +160,16 @@ TEST(StdObjectsExit, ExitIsNotBlockedByAStreamLock)
         holder.detach();
         while (!g_lock_held.load())
             std::this_thread::yield();
+    }
+    else if (std::string_view(mode) == "failed")
+    {
+        // A failed state is not flushed at exit: the hook goes through the
+        // stream-level flush(), which throws stream_error on a failed stream
+        // before it reaches the buffer, so these bytes are dropped. std::cout
+        // does the same (LWG 581 builds a sentry there too); getting them out
+        // after a failure means clear() then flush(), while there is still a
+        // call stack to report on.
+        IOv2::cout.setstate(IOv2::ios_defs::devfailbit);
     }
     else if (std::string_view(mode) == "worker")
     {
