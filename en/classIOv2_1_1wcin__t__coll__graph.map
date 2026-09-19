@@ -1,0 +1,33 @@
+<map id="IOv2::wcin_t" name="IOv2::wcin_t">
+<area shape="rect" id="Node000001" title="wcin" alt="" coords="1177,327,1280,353"/>
+<area shape="rect" id="Node000002" href="$classIOv2_1_1stdin__api.html" title=" " alt="" coords="945,265,1111,319"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="1125,313,1178,325,1177,330,1124,318"/>
+<area shape="rect" id="Node000003" href="$structIOv2_1_1ios__state.html" title="Component that adds the stream state bits and their associated exceptions on top of the formatting st..." alt="" coords="563,141,749,166"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="721,167,751,176,829,200,905,230,975,262,973,267,903,234,827,205,750,181,719,172"/>
+<area shape="rect" id="Node000004" href="$classIOv2_1_1ios__base.html" title="Base class holding the formatting state of every stream." alt="" coords="328,141,512,166"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="526,151,562,151,562,156,526,156"/>
+<area shape="rect" id="Node000005" href="$classIOv2_1_1copyable__atomic.html" title=" " alt="" coords="15,5,185,45"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="182,47,305,92,397,138,395,143,303,97,180,52"/>
+<area shape="rect" id="Node000006" href="$classIOv2_1_1copyable__atomic.html" title=" " alt="" coords="15,69,185,109"/>
+<area shape="poly" id="edge5_Node000004_Node000006" title=" " alt="" coords="199,106,356,138,355,143,198,112"/>
+<area shape="rect" id="Node000007" href="$classIOv2_1_1copyable__atomic.html" title=" " alt="" coords="15,133,185,173"/>
+<area shape="poly" id="edge6_Node000004_Node000007" title=" " alt="" coords="199,151,328,151,328,156,199,156"/>
+<area shape="rect" id="Node000008" href="$classIOv2_1_1copyable__atomic.html" title=" " alt="" coords="15,197,185,237"/>
+<area shape="poly" id="edge7_Node000004_Node000008" title=" " alt="" coords="198,195,355,163,356,169,199,200"/>
+<area shape="rect" id="Node000009" href="$classIOv2_1_1copyable__mutex.html" title=" " alt="" coords="5,261,195,301"/>
+<area shape="poly" id="edge8_Node000004_Node000009" title=" " alt="" coords="182,255,303,211,396,164,398,169,305,216,184,260"/>
+<area shape="rect" id="Node000010" href="$structIOv2_1_1istream__operators.html" title="Mix&#45;in base that provides the various extraction operations for input streams." alt="" coords="567,191,745,231"/>
+<area shape="poly" id="edge9_Node000002_Node000010" title=" " alt="" coords="760,230,945,271,944,277,759,236"/>
+<area shape="rect" id="Node000011" href="$structIOv2_1_1stream__common__operators.html" title="Mix&#45;in base that provides operations common to input and output streams." alt="" coords="571,255,741,295"/>
+<area shape="poly" id="edge10_Node000002_Node000011" title=" " alt="" coords="755,277,945,285,945,291,755,282"/>
+<area shape="rect" id="Node000012" href="$structIOv2_1_1istreambuf.html" title=" " alt="" coords="561,319,751,359"/>
+<area shape="poly" id="edge11_Node000002_Node000012" title=" " alt="" coords="764,322,944,300,945,305,765,328"/>
+<area shape="rect" id="Node000013" href="$classIOv2_1_1base__streambuf.html" title="Common implementation base class for stream buffers." alt="" coords="335,311,505,366"/>
+<area shape="poly" id="edge12_Node000012_Node000013" title=" " alt="" coords="519,336,561,336,561,341,519,341"/>
+<area shape="rect" id="Node000014" href="$classIOv2_1_1locale.html" title=" " alt="" coords="585,383,727,423"/>
+<area shape="poly" id="edge13_Node000002_Node000014" title=" " alt="" coords="740,384,820,365,903,340,927,330,957,317,959,322,929,334,905,345,821,370,741,389"/>
+<area shape="rect" id="Node000015" href="$classIOv2_1_1copyable__atomic.html" title=" " alt="" coords="571,447,741,487"/>
+<area shape="poly" id="edge14_Node000002_Node000015" title=" " alt="" coords="754,458,793,450,832,437,869,419,902,396,912,380,914,365,916,348,926,330,943,317,946,321,930,334,921,349,919,365,917,382,906,399,872,424,834,442,794,455,755,463"/>
+<area shape="rect" id="Node000016" href="$classIOv2_1_1sing__temp.html" title=" " alt="" coords="928,343,1128,369"/>
+<area shape="poly" id="edge15_Node000001_Node000016" title=" " alt="" coords="1141,344,1177,341,1177,347,1142,350"/>
+</map>
