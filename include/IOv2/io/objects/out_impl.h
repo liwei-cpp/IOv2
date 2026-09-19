@@ -172,7 +172,11 @@ public:
      * 那次搬运的失败按本库统一的方式报告：置状态位（`devfailbit` / `cvtfailbit`），
      * `exceptions()` 掩码含该位时才抛出。注意此时**模式已经切换成功**，失败的只是把先前缓冲的
      * 字节交给 stdio 这一步；与同步模式的插入一样，stdout 全缓冲时设备写失败要到 stdio 自己
-     * 冲刷才暴露，这里看不到。已处于失败态的流不搬，也就不会因此多一个位。
+     * 冲刷才暴露，这里看不到。已处于失败态的流**也搬**：上一次失败保留在本流缓冲里的字节
+     * 正是要按顺序交出去的东西，不搬它们就会排到调用方下一次 `printf` 之后。搬成功则顺序
+     * 正确、位不变；再失败只是把已置的那一位再报一次（掩码武装时再抛一次）。宽流的转换器
+     * 已 tainted 时，搬运前的自动恢复（`code_cvt_stdio::recover`）会在这里而不是下一次插入时
+     * 把它保留的字节写出，设备失败也就在这里报。
      *
      * 查询当前状态请用 `synced_with_stdio()`：本函数的无参形式等于 `sync_with_stdio(true)`，
      * 会真的切换。
@@ -206,8 +210,14 @@ public:
      * `exceptions()` mask includes that bit. Note that the mode **has** switched by then; what
      * failed is only handing the previously buffered bytes to stdio -- and, as with a
      * synchronized insertion, on a fully buffered stdout a device failure shows up only when
-     * stdio itself flushes, not here. A stream already in a failed state is left alone, so
-     * this cannot add a bit of its own.
+     * stdio itself flushes, not here. A stream already in a failed state is handed over **as
+     * well**: the bytes the earlier failure left in this stream's buffer are exactly what has
+     * to go out in order, and leaving them behind would put them after the caller's next
+     * `printf`. When the hand-over succeeds the order is right and the bits are unchanged;
+     * when it fails again it only re-reports the bit already set (and throws once more under
+     * an armed mask). On a wide stream whose converter is tainted, the automatic recovery
+     * before the hand-over (`code_cvt_stdio::recover`) writes out the bytes it kept here
+     * rather than at the next insertion, so a device failure is reported here too.
      *
      * To ask for the current state use `synced_with_stdio()`: with no argument this one means
      * `sync_with_stdio(true)` and does switch.
@@ -234,8 +244,11 @@ public:
         try
         {
             // The sentry's operation, not the stream-level flush(): no fflush of bytes
-            // that are not this stream's.
-            if (static_cast<bool>(*this)) m_streambuf.flush();
+            // that are not this stream's. No good() gate: a stream in a failed state may
+            // still hold bytes (root_cvt::flush keeps them for a retry), and leaving
+            // them behind would put them after the caller's next printf. A retry that
+            // fails again only re-reports the bit that is already set.
+            m_streambuf.flush();
         }
         catch (...)
         {

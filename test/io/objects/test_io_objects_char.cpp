@@ -26,9 +26,12 @@
 
 #include <gtest/gtest.h>
 
+#include <atomic>
+#include <chrono>
 #include <cstddef>
 #include <cstdio>
 #include <string>
+#include <thread>
 
 #include <fcntl.h>
 #include <unistd.h>
@@ -156,6 +159,47 @@ TEST(IoObjectsChar, CinReadsAndPutsBack)
         IOv2::cin.reset();
         EXPECT_TRUE(static_cast<bool>(IOv2::cin.ignore(1)));
     }
+}
+
+// ignore() probes for EOF before each byte it discards, and in unsynchronized
+// mode the buffered read that follows the probe used to top the probed byte up
+// from the device -- which on a pipe or a terminal means waiting for input the
+// caller never asked for: "press Enter to continue" would not return on an
+// empty line until the next line arrived. The byte the probe found must be
+// enough on its own.
+TEST(IoObjectsChar, UnsyncedIgnoreReturnsOnTheByteItFoundWithoutWaitingForMore)
+{
+    int pipefds[2];
+    ASSERT_NE(::pipe(pipefds), -1);
+    const int saved_stdin = ::dup(STDIN_FILENO);
+    ::dup2(pipefds[0], STDIN_FILENO);
+
+    IOv2::cin.reset();
+    const bool sync = IOv2::cin.sync_with_stdio(false);
+
+    ASSERT_EQ(::write(pipefds[1], "\n", 1), 1);   // the empty line, and nothing else yet
+
+    std::atomic<bool> more_arrived{false};
+    std::thread late_writer([&, write_fd = pipefds[1]]
+    {
+        std::this_thread::sleep_for(std::chrono::milliseconds(500));
+        more_arrived.store(true);
+        (void)::write(write_fd, "x\n", 2);
+    });
+
+    IOv2::cin.ignore();
+    EXPECT_FALSE(more_arrived.load());            // it came back on the "\n" alone
+    EXPECT_TRUE(IOv2::cin.good());
+    late_writer.join();
+
+    EXPECT_EQ(IOv2::cin.get(), 'x');              // and nothing was lost in between
+
+    IOv2::cin.sync_with_stdio(sync);
+    ::dup2(saved_stdin, STDIN_FILENO);
+    ::close(saved_stdin);
+    ::close(pipefds[0]);
+    ::close(pipefds[1]);
+    IOv2::cin.reset();
 }
 
 // reset() offers the bytes it is about to drop to the old device once. When
@@ -309,10 +353,11 @@ TEST(IoObjectsChar, SwitchingBackToSyncPushesWhatWasAlreadyBuffered)
     IOv2::cout.sync_with_stdio(sync);
 }
 
-// The flush that switching back performs must not invent a failure: a stream
-// that is already in a failed state has nothing to flush, and stream-level
-// flush() would throw stream_error there, which would show up as a strfailbit
-// this switch did not cause.
+// The hand-over that switching back performs must not invent a failure on a
+// stream that is already in a failed state: it is the sentry's operation, not
+// stream-level flush() (which would throw stream_error there and show up as a
+// strfailbit this switch did not cause), and when the device is fine it simply
+// succeeds and leaves the bits as they were.
 TEST(IoObjectsChar, SwitchingBackToSyncOnAFailedStreamAddsNoState)
 {
     oguard<true> out;
@@ -330,6 +375,36 @@ TEST(IoObjectsChar, SwitchingBackToSyncOnAFailedStreamAddsNoState)
     EXPECT_TRUE(IOv2::cout.good());
     EXPECT_EQ(out.contents(), "AFTER");
 
+    IOv2::cout.sync_with_stdio(sync);
+}
+
+// A failed state does not exempt the stream from the hand-over: what the
+// earlier failure left in its buffer is exactly what has to reach stdio before
+// the caller's next printf. With a good() gate in front of the hand-over "A"
+// would stay behind until the next insertion and come out as "PAB".
+TEST(IoObjectsChar, SwitchingBackToSyncOnAFailedStreamStillHandsOverItsBytes)
+{
+    oguard<true> out;
+    IOv2::cout.reset();
+    ASSERT_TRUE(out.contents().empty());
+    const bool sync = IOv2::cout.sync_with_stdio(false);
+
+    {
+        stdout_full_buffer buffered;               // so the order inside stdio's buffer is what counts
+
+        IOv2::cout << "A";                         // cout's own buffer
+        IOv2::cout.setstate(IOv2::ios_defs::devfailbit);
+
+        EXPECT_FALSE(IOv2::cout.sync_with_stdio(true));
+        EXPECT_EQ(IOv2::cout.rdstate(), IOv2::ios_defs::devfailbit);   // the hand-over succeeded: no new bit
+
+        IOv2::cout.clear();
+        std::printf("P");
+        IOv2::cout << "B";
+        std::fflush(stdout);
+    }
+
+    EXPECT_EQ(out.contents(), "APB");
     IOv2::cout.sync_with_stdio(sync);
 }
 

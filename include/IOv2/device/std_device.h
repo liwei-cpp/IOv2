@@ -182,8 +182,8 @@ public:
      *
      * 采用**探测式**判断：若尚未确定 EOF、且内部没有已缓存的预读字节，会尝试从设备
      * 读取 1 个字节来确定末尾状态：
-     * - 读到字节：说明尚未到 EOF；该字节被缓存在内部，并由**下一次 `dget()` 首先返回**，
-     *   不会丢失、不会打乱顺序；本函数返回 `false`。
+     * - 读到字节：说明尚未到 EOF；该字节被缓存在内部，并由**下一次 `dget()` 首先返回**
+     *   （连同此刻已就绪的数据，但不为凑数等待），不会丢失、不会打乱顺序；本函数返回 `false`。
      * - 读到 0（EOF 或挂断）：置位 EOF 标志并返回 `true`。
      *
      * @warning 本函数**可能阻塞**：当流上暂时无数据、也尚未到达 EOF 时，它会一直等待，
@@ -200,8 +200,8 @@ public:
      * currently cached, it attempts to read 1 byte from the device to determine the
      * end state:
      * - A byte is read: not at EOF yet; the byte is cached internally and will be
-     *   **returned first by the next `dget()`**, so it is neither lost nor reordered;
-     *   returns `false`.
+     *   **returned first by the next `dget()`** (along with whatever is ready by then, but
+     *   without waiting to fill up), so it is neither lost nor reordered; returns `false`.
      * - 0 is read (EOF or hang-up): sets the EOF flag and returns `true`.
      *
      * @warning This function **may block**: when no data is currently available and
@@ -234,11 +234,13 @@ public:
      * @brief 从标准输入读取数据。
      *
      * 这是一个阻塞式读取操作，使用 `poll` 来等待数据可用，并能正确处理 `EINTR` 中断。
-     * 若此前 `deof()` 探测时预读并缓存了 1 个字节，本函数会**首先返回该缓存字节**，
-     * 再从设备读取其余数据，从而保证字节顺序不被打乱。
+     * 若此前 `deof()` 探测时预读并缓存了 1 个字节，本函数会**首先返回该缓存字节**，并把
+     * 设备上**此刻已就绪**的数据一并读出（零超时 `poll` 判定），从而保证字节顺序不被打乱、
+     * 探针之后的整块读取仍是整块；但**不会**为了凑够 `n` 个字节而在设备暂时无数据时等待
+     * ——那种情形下只返回这一个字节（短读），它正是调用方要的东西。
      * @param s 存储数据的缓冲区。
      * @param n 要读取的字节数。
-     * @return 实际读取的字节数。如果到达 EOF，则返回 0。
+     * @return 实际读取的字节数，可能少于 `n`。如果到达 EOF，则返回 0。
      * @throw device_error 如果发生读取或轮询错误。
      * @note 遇到 EOF 时立即返回 0，符合 POSIX read() 语义。
      *       EOF 是粘性的，后续调用也会继续返回 0。
@@ -250,11 +252,15 @@ public:
      * This is a blocking read operation that uses `poll` to wait for data to become available
      * and correctly handles `EINTR` interrupts.
      * If a previous `deof()` probe read and cached one look-ahead byte, this function
-     * **returns that cached byte first** and then reads the remainder from the device,
-     * so byte ordering is preserved.
+     * **returns that cached byte first** and reads along with it whatever the device has
+     * **ready at that moment** (decided by a zero-timeout `poll`), so byte ordering is
+     * preserved and a bulk read after a probe is still a bulk read; but it does **not** wait
+     * to fill up `n` bytes while the device has nothing more yet -- in that case it returns
+     * that one byte alone (a short read), which is exactly what the caller asked for.
      * @param s The buffer to store the data.
      * @param n The number of bytes to read.
-     * @return The number of bytes actually read. Returns 0 if EOF is reached.
+     * @return The number of bytes actually read, possibly fewer than `n`. Returns 0 if EOF is
+     *         reached.
      * @throw device_error If a read or poll error occurs.
      * @note Returns 0 immediately upon EOF, conforming to POSIX read() semantics.
      *       EOF is sticky, so subsequent calls also continue to return 0.
@@ -269,17 +275,31 @@ public:
 
         if (m_c.has_value())
         {
-            *s = m_c.value();
-            if (n == 1)
+            // Whether a read() would return at once: data is ready, or the peer hung
+            // up (read() then returns 0 without waiting). On a poll error the answer
+            // is "no"; the next blocking read() reports it.
+            const auto readable_now = []() noexcept
             {
+                struct pollfd pfd{ .fd = ID, .events = POLLIN, .revents = 0 };
+                int r = 0;
+                do { r = poll(&pfd, 1, 0); } while (r == -1 && errno == EINTR);
+                return r > 0 && (pfd.revents & (POLLIN | POLLHUP)) != 0;
+            };
+
+            *s = m_c.value();
+            if (n > 1 && readable_now())
+            {
+                // Top up with what is already there, so a probe followed by a bulk
+                // read still reads in bulk. Only when data is ready: waiting here
+                // would block on a pipe whose peer sent that one byte, or on a
+                // terminal where the user typed an empty line. If do_get throws,
+                // m_c must still hold the byte so the next dget() redelivers it.
+                const std::size_t got = do_get(s + 1, n - 1);
                 m_c.reset();
-                return 1;
+                return 1 + got;
             }
-            // Read the remainder first; if do_get throws, m_c must still hold
-            // the look-ahead byte so the next dget() redelivers it (no loss).
-            const std::size_t got = do_get(s + 1, n - 1);
             m_c.reset();
-            return 1 + got;
+            return 1;
         }
         return do_get(s, n);
     }

@@ -106,6 +106,9 @@ TEST(StdDevice, EofIsProbedAndSticky)
     EXPECT_TRUE(d.deof());
 }
 
+// The byte deof() probed comes back first, and the data the device already has
+// comes with it: a regular file is always ready, so one dget() still delivers
+// the whole thing. Order is preserved, nothing is lost.
 TEST(StdDevice, AProbedByteStaysFirstInALongerRead)
 {
     iguard g("abc");
@@ -115,6 +118,72 @@ TEST(StdDevice, AProbedByteStaysFirstInALongerRead)
     EXPECT_FALSE(d.deof());
     EXPECT_EQ(d.dget(buf, sizeof(buf)), sizeof(buf));
     EXPECT_EQ(std::string(buf, sizeof(buf)), "abc");
+}
+
+// What the top-up must not do is wait: on a pipe (or a terminal) whose peer has
+// sent just that one byte, reading "the rest" would sit in read() for input the
+// caller never asked for. Here the writer sends "a", the probe caches it, and
+// dget(buf, 3) has to return that "a" right away -- an unconditional top-up
+// would block until "bc" arrives and hand over all three.
+TEST(StdDevice, AProbedByteDoesNotWaitForMoreInput)
+{
+    int pipefds[2];
+    ASSERT_NE(::pipe(pipefds), -1);
+
+    const int saved_stdin = ::dup(STDIN_FILENO);
+    ::dup2(pipefds[0], STDIN_FILENO);
+
+    std_input_device d;
+    char buf[3] = {};
+
+    ASSERT_EQ(::write(pipefds[1], "a", 1), 1);
+    EXPECT_FALSE(d.deof());                        // "a" is now the look-ahead byte
+
+    std::thread late_writer([write_fd = pipefds[1]]
+    {
+        std::this_thread::sleep_for(std::chrono::milliseconds(300));
+        (void)::write(write_fd, "bc", 2);
+    });
+
+    EXPECT_EQ(d.dget(buf, sizeof(buf)), 1u);       // not 3: it must not wait for "bc"
+    EXPECT_EQ(buf[0], 'a');
+    late_writer.join();
+
+    EXPECT_EQ(d.dget(buf, sizeof(buf)), 2u);
+    EXPECT_EQ(std::string(buf, 2), "bc");
+
+    ::dup2(saved_stdin, STDIN_FILENO);
+    ::close(saved_stdin);
+    ::close(pipefds[0]);
+    ::close(pipefds[1]);
+}
+
+// The other shape the top-up sees: the peer sent one byte and hung up. That is
+// "ready" too (read() returns 0 at once), so the probed byte comes back and EOF
+// latches right behind it rather than one call later.
+TEST(StdDevice, AProbedByteBeforeAHangupComesBackAndEofFollows)
+{
+    int pipefds[2];
+    ASSERT_NE(::pipe(pipefds), -1);
+
+    const int saved_stdin = ::dup(STDIN_FILENO);
+    ::dup2(pipefds[0], STDIN_FILENO);
+
+    std_input_device d;
+    char buf[3] = {};
+
+    ASSERT_EQ(::write(pipefds[1], "a", 1), 1);
+    ::close(pipefds[1]);
+    EXPECT_FALSE(d.deof());                        // "a" is the look-ahead byte
+
+    EXPECT_EQ(d.dget(buf, sizeof(buf)), 1u);
+    EXPECT_EQ(buf[0], 'a');
+    EXPECT_TRUE(d.deof());                         // the hang-up was seen during the top-up
+    EXPECT_EQ(d.dget(buf, sizeof(buf)), 0u);
+
+    ::dup2(saved_stdin, STDIN_FILENO);
+    ::close(saved_stdin);
+    ::close(pipefds[0]);
 }
 
 TEST(StdDevice, PutAcceptsANullBufferOnlyForZeroLength)
