@@ -12,11 +12,13 @@
 
 #include <algorithm>
 #include <cstddef>
+#include <cstdio>
 #include <iterator>
 #include <string>
 #include <type_traits>
 #include <utility>
 
+#include <stdio_ext.h>
 #include <unistd.h>
 
 using namespace IOv2;
@@ -207,6 +209,40 @@ TEST(RootCvtStd, MoveAssignmentKeepsTheOutputStreamThroughARuntimeCvt)
             return dst;
         },
         [](auto& dst) { dst.attach(std_device<STDOUT_FILENO>{}); });
+}
+
+// The other half of a move: the source must go quiet. Over a fixed fd two duties
+// travel with the converter -- its own buffer, and the device's duty to flush
+// the FILE on destruction -- and after a move both belong to the target alone.
+// A source that still flushed would push bytes out early, and would take the one
+// fflush that can fail into a destructor that must swallow the error, leaving
+// the real holder with nothing to report.
+//
+// Full buffering is what makes the second duty observable: the bytes handed to
+// stdio stay pending until somebody flushes, so __fpending() says whether the
+// dying source did.
+TEST(RootCvtStd, AMovedFromOutputRootFlushesNothingWhenItDies)
+{
+    oguard<true>       g;
+    stdout_full_buffer buffered;
+
+    auto moved = [&]
+    {
+        auto src = rb_root_cvt{std_device<STDOUT_FILENO>{}};
+        EXPECT_EQ(src.bos(), io_status::output);
+        src.main_cont_beg();
+        src.put("hello", 5);
+        src.flush();                                 // into stdio's buffer, not to the fd
+        EXPECT_EQ(__fpending(stdout), 5u);
+        return rb_root_cvt<std_device<STDOUT_FILENO>>{std::move(src)};
+    }();                                             // src dies here
+
+    EXPECT_EQ(__fpending(stdout), 5u);               // it neither flushed nor wrote
+
+    moved.put(" world", 6);
+    moved.detach();                                  // the target still owns both duties
+    std::fflush(stdout);
+    EXPECT_EQ(g.contents(), "hello world");
 }
 
 TEST(RootCvtStd, MoveConstructionKeepsTheInputStream)

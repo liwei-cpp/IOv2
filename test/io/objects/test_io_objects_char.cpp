@@ -32,6 +32,7 @@
 #include <cstdio>
 #include <string>
 #include <thread>
+#include <type_traits>
 
 #include <fcntl.h>
 #include <unistd.h>
@@ -55,6 +56,28 @@ namespace
     static_assert(stdout_api_accepts<IOv2::std_device<STDOUT_FILENO>>);
     static_assert(stdout_api_accepts<IOv2::std_device<STDERR_FILENO>>);
     static_assert(!stdout_api_accepts<IOv2::std_device<STDIN_FILENO>>);
+
+    // Writes '1', switches cout back to synchronized, printf()s, then writes '2'
+    // -- all from inside one insertion, with that insertion's sentry alive.
+    struct flipper {};
+}
+
+namespace IOv2
+{
+    template <>
+    struct io_traits<char, flipper>
+    {
+        template <typename TIter>
+            requires (std::is_same_v<char, typename TIter::value_type>)
+        static TIter swrite(TIter iter, ios_base<char>&, const locale<char>&, flipper)
+        {
+            *iter++ = '1';
+            IOv2::cout.sync_with_stdio(true);   // recursive lock: allowed, and it hands over
+            std::printf("P");
+            *iter++ = '2';
+            return iter;
+        }
+    };
 }
 
 TEST(IoObjectsChar, EachStreamWritesToItsOwnDestination)
@@ -200,6 +223,70 @@ TEST(IoObjectsChar, UnsyncedIgnoreReturnsOnTheByteItFoundWithoutWaitingForMore)
     ::close(pipefds[0]);
     ::close(pipefds[1]);
     IOv2::cin.reset();
+}
+
+// What "synchronized" buys is that nothing is read ahead of what the operation
+// needs, so bytes this stream did not consume stay on the fd for C stdio (or
+// anyone else) to read. read(buf, 5) is one read(0, buf, 5), leaving the sixth
+// byte where it was; unsynchronized the same call pulls a whole block into this
+// stream's buffer, and the fd is empty afterwards. Neither loses a byte -- the
+// difference is only where the rest is waiting.
+TEST(IoObjectsChar, SynchronizedReadsNoFurtherThanTheOperationNeeds)
+{
+    auto sixth_byte_left_on_the_fd = [](bool sync)
+    {
+        int pipefds[2];
+        EXPECT_NE(::pipe(pipefds), -1);
+        const int saved_stdin = ::dup(STDIN_FILENO);
+        ::dup2(pipefds[0], STDIN_FILENO);
+
+        EXPECT_EQ(::write(pipefds[1], "12345X", 6), 6);
+        ::close(pipefds[1]);                      // no more input: read() cannot block
+
+        IOv2::cin.reset();
+        const bool old = IOv2::cin.sync_with_stdio(sync);
+
+        char buf[5] = {};
+        IOv2::cin.read(buf, 5);
+        EXPECT_EQ(std::string(buf, 5), "12345");
+
+        char rest = 0;
+        const ssize_t got = ::read(STDIN_FILENO, &rest, 1);
+
+        IOv2::cin.sync_with_stdio(old);
+        ::dup2(saved_stdin, STDIN_FILENO);
+        ::close(saved_stdin);
+        ::close(pipefds[0]);
+        IOv2::cin.reset();
+        return got == 1 && rest == 'X';
+    };
+
+    EXPECT_TRUE(sixth_byte_left_on_the_fd(true));
+    EXPECT_FALSE(sixth_byte_left_on_the_fd(false));   // buffered into this stream instead
+}
+
+// Switching back from inside an insertion cuts that insertion in two: what it
+// has already written is handed to stdio by the switch itself, while the rest
+// stays governed by the value the sentry read on construction and goes out at
+// the end of the next insertion. Anything printf()ed in between lands between
+// the halves. Nothing is lost or duplicated -- the order is the point.
+TEST(IoObjectsChar, SwitchingBackInsideAnInsertionSplitsIt)
+{
+    oguard<true> out;
+    IOv2::cout.reset();
+    ASSERT_TRUE(out.contents().empty());
+    const bool sync = IOv2::cout.sync_with_stdio(false);
+
+    {
+        stdout_full_buffer buffered;              // so stdio's own order is what shows
+
+        IOv2::cout << "X" << flipper{};           // writes X1, switches, printf(P), writes 2
+        IOv2::cout << "Y";                        // synchronized now: carries 2 out with it
+        std::fflush(stdout);
+    }
+
+    EXPECT_EQ(out.contents(), "X1P2Y");
+    IOv2::cout.sync_with_stdio(sync);
 }
 
 // reset() offers the bytes it is about to drop to the old device once. When

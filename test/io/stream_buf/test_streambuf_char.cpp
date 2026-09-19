@@ -19,14 +19,20 @@
 #include <IOv2/cvt/crypt/hash_cvt.h>
 #include <IOv2/cvt/crypt/vigenere_cvt.h>
 #include <IOv2/device/mem_device.h>
+#include <IOv2/device/std_device.h>
 #include <IOv2/io/iostream.h>
 #include <IOv2/io/istream.h>
 #include <IOv2/io/ostream.h>
 #include <IOv2/io/streambuf.h>
 
+#include <support/stdio_guard.h>
+
 #include <gtest/gtest.h>
 
+#include <stdio_ext.h>
+
 #include <cstddef>
+#include <cstdio>
 #include <string>
 #include <type_traits>
 #include <utility>
@@ -839,4 +845,36 @@ TEST(Streambuf, DetachAfterAFailureStillHandsBackTheDevice)
         auto [dev, err] = isb.detach();
         EXPECT_FALSE(err);
     }
+}
+
+// Moving an ostreambuf hands the whole converter pipeline over as one
+// unique_ptr, so the source is left holding nothing at all -- no buffer, no
+// converter, no device, and therefore no second destructor that could write.
+// That is a different mechanism from the one a move of the converter itself
+// goes through (where the moved-from device has to be told to stay quiet; see
+// RootCvtStd.AMovedFromOutputRootFlushesNothingWhenItDies), and this pins that
+// the stream-buffer layer really does hand over as a whole. Full buffering is
+// what makes a stray write visible: __fpending() would move if the dying source
+// flushed what had been handed to stdio.
+TEST(StreamBufChar, AMovedFromOstreambufOverAStdDeviceWritesNothingWhenItDies)
+{
+    oguard<true>       g;
+    stdout_full_buffer buffered;
+
+    auto moved = []
+    {
+        using Buf = IOv2::ostreambuf<IOv2::std_device<STDOUT_FILENO>, char>;
+        Buf src{IOv2::std_device<STDOUT_FILENO>{}};
+        src.sputn("hello", 5);
+        src.flush();                                // into stdio's buffer, not to the fd
+        EXPECT_EQ(__fpending(stdout), 5u);
+        return Buf{std::move(src)};
+    }();                                            // src dies here
+
+    EXPECT_EQ(__fpending(stdout), 5u);              // nothing followed it out
+
+    moved.sputn(" world", 6);
+    moved.flush();
+    std::fflush(stdout);
+    EXPECT_EQ(g.contents(), "hello world");         // the target owns all of it, once
 }
