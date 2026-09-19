@@ -121,7 +121,9 @@ public:
      * 一次提取进行中（例如用户 `io_traits::sread` 里）重入调用：`io_mutex()` 是递归锁不会拦，
      * 但正在使用的 streambuf 会被整个换掉。
      *
-     * @warning 这里的「同步」只表示**逐字节 `read(0)`**，不是与 C stdio 共享缓冲：本流的设备
+     * @warning 这里的「同步」只表示**不带读缓冲、每次 `read(0)` 只要本次操作所需的字节**
+     *          （格式化提取与 `get` / `getline` 因逐字符探分隔符而逐字节，`read(buf, n)` 则是
+     *          一次 `read(0, buf, n)`），不是与 C stdio 共享缓冲：本流的设备
      *          直接用 POSIX `read()`，绕过 `stdin` 的 `FILE` 缓冲（见 `device/std_device.h`
      *          的类级 `@warning`）。因此与 `std::cin` 不同：(1) 格式化提取探到的分隔符留在本流
      *          的读缓冲里，`getchar()` / `fgets()` 看不到它、拿到的是它之后的字节，而
@@ -139,7 +141,7 @@ public:
      * 环境已坏的情形，实际不可达。
      *
      * @param sync `true` 为同步（默认），`false` 为自带缓冲。
-     * @return 调用前的同步状态；失败时同步状态未改变，返回的就是当前状态。
+     * @return 调用前的同步状态；重建失败时同步状态未改变，返回的就是当前状态。
      * @note 重建失败时旧 streambuf 已经 detach、新的没建起来，流停在**未附接**状态：此后每次
      *       操作都按状态位失败（`clear()` 之后是 `cvtfailbit`），`clear()` 不够，须 `reset()`
      *       在同一 fd 上重新附接。同步标志保持原值，因此「流报告的模式」与「它实际怎么读」始终一致。
@@ -156,8 +158,11 @@ public:
      * re-enter it from inside an extraction (a user `io_traits::sread`, say): `io_mutex()`
      * is recursive and will not stop it, but the streambuf in use is replaced wholesale.
      *
-     * @warning "Synchronized" here means **reading `stdin` byte by byte with `read(0)`**, not
-     *          sharing a buffer with C stdio: this stream's device calls POSIX `read()`
+     * @warning "Synchronized" here means **no read buffer: each `read(0)` asks for just what
+     *          the current operation needs** (formatted extraction and `get` / `getline` go
+     *          byte by byte because they probe for the delimiter one character at a time;
+     *          `read(buf, n)` is a single `read(0, buf, n)`), not sharing a buffer with C
+     *          stdio: this stream's device calls POSIX `read()`
      *          directly and bypasses the `FILE` buffer of `stdin` (see the class-level
      *          `@warning` in `device/std_device.h`). Unlike `std::cin`, therefore: (1) the
      *          delimiter a formatted extraction peeks at stays in this stream's read buffer,
@@ -181,8 +186,8 @@ public:
      * unreachable in practice.
      *
      * @param sync `true` for synchronized (the default), `false` for own buffering.
-     * @return The synchronization state before the call; on failure the state is unchanged, so
-     *         that is also the current one.
+     * @return The synchronization state before the call; when the rebuild fails the state is
+     *         unchanged, so that is also the current one.
      * @note When the rebuild fails the old streambuf has been detached and the new one was
      *       never built, leaving the stream **unattached**: every operation then fails through
      *       the state bits (`cvtfailbit` once `clear()`ed), `clear()` is not enough, and
@@ -276,7 +281,9 @@ public:
      *
      * 供需要放弃残余输入的场合使用——例如交互程序在出错后丢掉这一行剩下的内容重新提示。
      * 它**不是**出错后的必经之路：解码失败后 `clear()` 即可继续，解码器已复位到初始状态、
-     * 从坏字节之后对齐读取，`switch_code()` 也随之可用。
+     * 从坏字节之后对齐读取，`switch_code()` 也随之可用。与 `sync_with_stdio()` 一样，不要在
+     * 一次提取进行中（用户 `io_traits::sread` 里）重入调用：不会崩，但本次提取之后已缓冲的
+     * 输入随之丢弃。
      *
      * 复位的范围只有状态位、异常掩码，以及缓冲与转换器的内部状态。格式状态（含 `skipws`）、
      * `width()`、`precision()`、`fill()`、locale、`sync_with_stdio()`、`tie()` 与
@@ -301,7 +308,10 @@ public:
      * discarding the rest of a line after an error before prompting again. It is **not**
      * the required step after a failure: after a decode failure `clear()` is enough to
      * carry on -- the decoder has reset to its initial state and reads on, aligned, from
-     * the byte after the bad one, and `switch_code()` is available again as well.
+     * the byte after the bad one, and `switch_code()` is available again as well. As with
+     * `sync_with_stdio()`, do not re-enter it from inside an extraction (a user
+     * `io_traits::sread`): nothing crashes, but the input buffered beyond that extraction
+     * is discarded with it.
      *
      * What is reset is the state bits, the exception mask, and the internal state of the
      * buffer and the converter -- nothing else. The format flags (`skipws` among them),
