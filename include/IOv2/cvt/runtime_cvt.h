@@ -523,7 +523,7 @@ public:
      *          `clone()` 内部按具体内核判定（见 `runtime_cvt_imp::clone`）。这是有意的取舍：
      *          `io_converter`（见 `IOv2/cvt/cvt_concepts.h`）只要求可移动，而每个转换器最终都要
      *          包进本类，若在包装点强制要求可拷贝，move-only 的转换器将完全无从使用。
-     *          持有本类的 `base_streambuf` 及各流类同样继承这一性质——
+     *          持有本类的 `base_channel` 及各流类同样继承这一性质——
      *          `std::is_copy_constructible_v<ostream<...>>` 同样恒为 `true`。
      * @endif
      *
@@ -538,7 +538,7 @@ public:
      *          (see `runtime_cvt_imp::clone`). This is a deliberate trade-off: `io_converter`
      *          (see `IOv2/cvt/cvt_concepts.h`) requires only movability, and since every converter
      *          ends up wrapped in this class, demanding copyability at the wrapping point would
-     *          leave move-only converters with no use at all. `base_streambuf` and the stream
+     *          leave move-only converters with no use at all. `base_channel` and the stream
      *          classes that hold this type inherit the property --
      *          `std::is_copy_constructible_v<ostream<...>>` is likewise unconditionally `true`.
      * @endif

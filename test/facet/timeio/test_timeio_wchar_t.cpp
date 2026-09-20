@@ -17,8 +17,8 @@
 #include <IOv2/common/defs.h>
 #include <IOv2/device/mem_device.h>
 #include <IOv2/io/io_base.h>
-#include <IOv2/io/streambuf.h>
-#include <IOv2/io/streambuf_iterator.h>
+#include <IOv2/io/iochannel.h>
+#include <IOv2/io/iochannel_iterator.h>
 
 #include <gtest/gtest.h>
 
@@ -148,7 +148,7 @@ namespace
 
     // Runs one parse three ways and requires the three to agree: over a string's
     // iterators, over a std::list's -- bidirectional, and not a pointer -- and over
-    // an istreambuf_iterator against a sentinel, which is the shape get() is written
+    // an ichannel_iterator against a sentinel, which is the shape get() is written
     // for and the only one that cannot be backed up or measured in advance.
     //
     // `err_exp` says which of the three outcomes to expect: goodbit for a parse that
@@ -161,8 +161,8 @@ namespace
     {
         time_parse_context<wchar_t, HaveDate, HaveTime, TzLevel> ctx1, ctx2, ctx3;
         std::list<wchar_t> lst(input.begin(), input.end());
-        streambuf       sb(mem_device{input});
-        auto            beg = istreambuf_iterator(sb);
+        iochannel       chan(mem_device{input});
+        auto            beg = ichannel_iterator(chan);
 
         if ((err_exp & ios_defs::strfailbit) != 0)
         {

@@ -8,7 +8,7 @@
  * input read to the end, a parse that failed, a device that could not be
  * initialized.  Replacing that device makes all of it history, so attach()
  * clears the state before installing the new one.  The order matters and is not
- * observable from the outside except on the failure path: streambuf::attach()
+ * observable from the outside except on the failure path: iochannel::attach()
  * installs the device first and initializes the converter second, and it is the
  * second step that can throw, so a clear placed after the replacement would not
  * run at all on the path that most needs it.
@@ -31,7 +31,7 @@ using namespace IOv2;
 
 TEST(IstreamAttachChar, AttachClearsEndOfFile)
 {
-    // Both stream shapes share one streambuf, so both are asked.
+    // Both stream shapes share one iochannel, so both are asked.
     auto expect_cleared = []<template <typename, typename> class T>()
     {
         T is{mem_device{std::string("ab")}};

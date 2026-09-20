@@ -6,7 +6,7 @@
  * @lang{ZH}
  * 定义了双向字符流 `iostream`。
  *
- * `iostream` 把一条 `streambuf`（其下依次是转换器管线与设备）与一个 `locale` 组合成带格式化的
+ * `iostream` 把一条 `iochannel`（其下依次是转换器管线与设备）与一个 `locale` 组合成带格式化的
  * 输入输出接口；对外接口大多来自 `ios_state`（状态位与异常掩码）、`istream_operators` 与
  * `ostream_operators`（输入与输出操作）、`out_flusher`（tie 刷新用的多态 `try_flush()`）
  * 与 `stream_common_operators`（`tell()` / `attach()` / `detach()` / `locale()` 等）几个基类。
@@ -30,7 +30,7 @@
  * @lang{EN}
  * Defines the bidirectional character stream `iostream`.
  *
- * `iostream` combines a `streambuf` (below which sit the converter pipeline and the device) with a
+ * `iostream` combines an `iochannel` (below which sit the converter pipeline and the device) with a
  * `locale` into a formatted input/output interface; most of its interface comes from its bases --
  * `ios_state` (the state bits and the exception mask), `istream_operators` and `ostream_operators`
  * (the input and output operations), `out_flusher` (the polymorphic `try_flush()` used by tie) and
@@ -64,8 +64,8 @@
 #include <IOv2/cvt/cvt_concepts.h>
 #include <IOv2/device/device_concepts.h>
 #include <IOv2/io/io_base.h>
-#include <IOv2/io/streambuf.h>
-#include <IOv2/io/streambuf_iterator.h>
+#include <IOv2/io/iochannel.h>
+#include <IOv2/io/iochannel_iterator.h>
 #include <IOv2/io/utilities/istream_operators.h>
 #include <IOv2/io/utilities/ostream_operators.h>
 #include <IOv2/io/utilities/stream_common_operators.h>
@@ -80,18 +80,18 @@ namespace IOv2
 {
 /**
  * @lang{ZH}
- * @brief 双向字符流：把一条 `streambuf` 与一个 locale 组合成带格式化的输入输出接口。
+ * @brief 双向字符流：把一条 `iochannel` 与一个 locale 组合成带格式化的输入输出接口。
  *
  * 对外接口大多来自基类——`ios_state` 提供状态位与异常掩码，`istream_operators` 与
  * `ostream_operators` 分别提供输入与输出操作，`out_flusher` 携带 tie 刷新用的多态 `try_flush()`，
  * `stream_common_operators` 提供 `tell()`/`attach()`/`detach()`/`locale()` 等。本类自身只持有两个
- * 成员，且按**分层顺序**声明：`m_streambuf` 在前、`m_locale` 在后。
+ * 成员，且按**分层顺序**声明：`m_channel` 在前、`m_locale` 在后。
  *
- * IOv2 的读写路径是设备 ↔ 转换器管线 ↔ 流缓冲区 ↔ 流；locale 位于最上层，只参与格式化与解析，
+ * IOv2 的读写路径是设备 ↔ 转换器管线 ↔ 通道 ↔ 流；locale 位于最上层，只参与格式化与解析，
  * 不参与字符搬运。声明顺序与这条分层一致，于是析构自上而下，`~root_cvt` 把残留缓冲冲刷进设备
  * 这一步始终作用在一个仍然完整的下层上。
  *
- * @note 这条顺序同时规定了依赖方向：**下层不得访问上层**。流缓冲区及其以下不得引用 locale——
+ * @note 这条顺序同时规定了依赖方向：**下层不得访问上层**。通道及其以下不得引用 locale——
  *       析构期的那次冲刷跑在 `m_locale` 之后，那时 locale 已经不存在。反向依赖（流读取
  *       locale）则始终成立。
  *
@@ -112,23 +112,23 @@ namespace IOv2
  * @endif
  *
  * @lang{EN}
- * @brief Bidirectional character stream: combines a `streambuf` and a locale into a formatted
+ * @brief Bidirectional character stream: combines an `iochannel` and a locale into a formatted
  *        input/output interface.
  *
  * Most of the interface comes from the bases -- `ios_state` supplies the state bits and the
  * exception mask, `istream_operators` and `ostream_operators` the input and output operations,
  * `out_flusher` the polymorphic `try_flush()` used by tie, and `stream_common_operators`
  * `tell()`/`attach()`/`detach()`/`locale()` and friends. This class itself holds only two members,
- * declared in **layer order**: `m_streambuf` first, `m_locale` second.
+ * declared in **layer order**: `m_channel` first, `m_locale` second.
  *
- * The IOv2 read/write path is device <-> converter pipeline <-> stream buffer <-> stream; the
+ * The IOv2 read/write path is device <-> converter pipeline <-> channel <-> stream; the
  * locale sits at the top and takes part only in formatting and parsing, never in moving
  * characters. The declaration order follows that layering, so destruction runs top-down and the
  * step where `~root_cvt` flushes what is left in the buffer to the device always runs against a
  * lower stack that is still intact.
  *
  * @note The same order fixes the direction of dependency: **a lower layer must not reach up**. The
- *       stream buffer and everything below it must not refer to the locale -- that
+ *       channel and everything below it must not refer to the locale -- that
  *       destructor-time flush runs after `m_locale`, by which point it no longer exists. The
  *       reverse dependency -- the stream reading the locale -- always holds.
  *
@@ -199,11 +199,11 @@ public:
     /// @lang{ZH} 读取本流所用的输入迭代器类型，扩展点的迭代器形式 `sread` 即以它取字符。 @endif
     /// @lang{EN} The input iterator type used to read this stream; it is what the iterator form of
     ///           an extension point's `sread` takes its characters from. @endif
-    using in_iter_type = istreambuf_iterator<streambuf<TDevice, TChar>>;
+    using in_iter_type = ichannel_iterator<iochannel<TDevice, TChar>>;
     /// @lang{ZH} 写入本流所用的输出迭代器类型，扩展点的迭代器形式 `swrite` 即以它写出字符。 @endif
     /// @lang{EN} The output iterator type used to write to this stream; it is what the iterator
     ///           form of an extension point's `swrite` writes its characters through. @endif
-    using out_iter_type = ostreambuf_iterator<streambuf<TDevice, TChar>>;
+    using out_iter_type = ochannel_iterator<iochannel<TDevice, TChar>>;
 
     friend in_sentry_type;
     friend out_sentry_type;
@@ -258,7 +258,7 @@ public:
     iostream()
         requires (std::is_same_v<typename TDevice::char_type, TChar>
                   && std::is_default_constructible_v<TDevice>)
-        : m_streambuf(TDevice()) {}
+        : m_channel(TDevice()) {}
 
     /**
      * @lang{ZH}
@@ -278,7 +278,7 @@ public:
      */
     iostream(TDevice dev)
         requires (std::is_same_v<typename TDevice::char_type, TChar>)
-        : m_streambuf(std::move(dev)) {}
+        : m_channel(std::move(dev)) {}
 
     /**
      * @lang{ZH}
@@ -305,10 +305,10 @@ public:
     template <cvt_creator TCreator>
     iostream(TDevice dev, const TCreator& creator)
         requires (std::is_same_v<
-                      typename decltype(streambuf{std::declval<TDevice>(),
+                      typename decltype(iochannel{std::declval<TDevice>(),
                                               std::declval<const TCreator&>()})::char_type,
                       TChar>)
-        : m_streambuf(std::move(dev), creator) {}
+        : m_channel(std::move(dev), creator) {}
 
     /**
      * @lang{ZH}
@@ -338,7 +338,7 @@ public:
      */
     iostream(TDevice dev, IOv2::locale<char_type> loc)
         requires (std::is_same_v<typename TDevice::char_type, TChar>)
-        : m_streambuf(std::move(dev))
+        : m_channel(std::move(dev))
         , m_locale(std::move(loc)) {}
 
     /**
@@ -372,10 +372,10 @@ public:
     template <cvt_creator TCreator>
     iostream(TDevice dev, const TCreator& creator, IOv2::locale<char_type> loc)
         requires (std::is_same_v<
-                      typename decltype(streambuf{std::declval<TDevice>(),
+                      typename decltype(iochannel{std::declval<TDevice>(),
                                               std::declval<const TCreator&>()})::char_type,
                       TChar>)
-        : m_streambuf(std::move(dev), creator)
+        : m_channel(std::move(dev), creator)
         , m_locale(std::move(loc)) {}
 
 private:
@@ -386,7 +386,7 @@ private:
         , out_flusher<iostream<TDevice, TChar>>(other)
         , ostream_operators<TChar>(other)
         , stream_common_operators(other)
-        , m_streambuf(other.m_streambuf)
+        , m_channel(other.m_channel)
         , m_locale(other.m_locale) {}
 
 public:
@@ -422,14 +422,14 @@ public:
         std::lock_guard guard(this->io_mutex());
         // NOLINTBEGIN(bugprone-use-after-move): each `std::move(other)` below binds to a
         // *different* base subobject, and every one of those base assignments touches only its
-        // own members; `m_streambuf` and `m_locale` belong to no base at all. Nothing is read
+        // own members; `m_channel` and `m_locale` belong to no base at all. Nothing is read
         // after being moved from -- clang-tidy just cannot see that the operands are disjoint.
         ios_state<TChar>::operator=(std::move(other));
         istream_operators<TChar>::operator=(std::move(other));
         out_flusher<iostream<TDevice, TChar>>::operator=(std::move(other));
         ostream_operators<TChar>::operator=(std::move(other));
         stream_common_operators::operator=(std::move(other));
-        m_streambuf = std::move(other.m_streambuf);
+        m_channel = std::move(other.m_channel);
         m_locale    = std::move(other.m_locale);
         // NOLINTEND(bugprone-use-after-move)
         return *this;
@@ -438,14 +438,14 @@ public:
     /**
      * @lang{ZH}
      * @brief 析构函数。
-     * @note 与 `ostream` 相同：本身无事可做，但销毁 `m_streambuf` 会经 `~root_cvt` 把转换器
+     * @note 与 `ostream` 相同：本身无事可做，但销毁 `m_channel` 会经 `~root_cvt` 把转换器
      *       缓冲里的待刷字节 `dput` 给设备，且**不看状态位**、失败时静默。详见 `~ostream()`
      *       与 `ostream_operators::flush` 上的 `@warning`。
      * @endif
      *
      * @lang{EN}
      * @brief Destructor.
-     * @note Same as `ostream`'s: nothing to do itself, but destroying `m_streambuf` runs
+     * @note Same as `ostream`'s: nothing to do itself, but destroying `m_channel` runs
      *       `~root_cvt`, which `dput`s whatever is pending in the converter buffer to the
      *       device, **ignoring the state bits** and failing silently. See `~ostream()` and the
      *       `@warning` on `ostream_operators::flush`.
@@ -461,7 +461,7 @@ public:
      *        再以全程 noexcept 的移动赋值提交。move-only 内核（如 `file_device`）上的拷贝必然
      *        抛出，故自赋值也要先挡掉。
      *
-     * @warning 赋值整体替换 `m_streambuf`（内含转换器管线——方向状态即在其中——与一个读缓冲区）
+     * @warning 赋值整体替换 `m_channel`（内含转换器管线——方向状态即在其中——与一个读缓冲区）
      *          与 `m_locale`（内含两张哈希表），与 `detach()`/`attach()` 同属生命周期操作，区
      *          别在于它涉及**两个**操作数。两个操作数都受 `io_mutex()` 保护：拷贝构造持有源流
      *          的锁读出副本，随后的移动赋值持有目标流的锁完成替换。两把锁**先后获取、互不重
@@ -477,7 +477,7 @@ public:
      *        commit is a move assignment, noexcept throughout. A copy always throws on a
      *        move-only kernel (`file_device`), which is why self-assignment is short-circuited.
      *
-     * @warning Assignment replaces `m_streambuf` (which holds the converter pipeline, the
+     * @warning Assignment replaces `m_channel` (which holds the converter pipeline, the
      *          direction state included, and a read buffer) and `m_locale` (which holds two hash
      *          tables) wholesale, and is a lifecycle operation just like `detach()`/`attach()`,
      *          except that it involves **two** operands. Both are covered by `io_mutex()`: the
@@ -524,7 +524,7 @@ public:
      *          - 两件都做到：切向成功，读缓冲区被清空，压回内容丢失，**不置任何状态位**。
      *          - 重定位被拒：抛在清空**之前**，压回内容**完整保留**。
      *          - 重定位做到、离开读方向被拒：读缓冲区**已被清空**（清空必须紧跟成功的重定位，
-     *            理由见 `base_streambuf::switch_to_put()`），压回内容丢失。流本身仍自洽——
+     *            理由见 `base_channel::switch_to_put()`），压回内容丢失。流本身仍自洽——
      *            位置正确、方向仍是读、可继续使用。
      *          后两种都置 `cvtfailbit`。**不要用 `cvtfailbit` 反推压回内容是否还在**；
      *          需要保留就在切向之前消费掉。
@@ -562,7 +562,7 @@ public:
      *            is **kept intact**.
      *          - Repositioning granted, leaving the get direction refused: the read buffer has
      *            **already been cleared** (the clear must immediately follow a successful
-     *            reposition -- see `base_streambuf::switch_to_put()`), so the pushed-back content
+     *            reposition -- see `base_channel::switch_to_put()`), so the pushed-back content
      *            is lost. The stream itself stays coherent: correctly positioned, still in the get
      *            direction, still usable.
      *          The last two both set `cvtfailbit`. **Do not use `cvtfailbit` to infer whether the
@@ -582,7 +582,7 @@ public:
         if (!static_cast<bool>(*this)) return *this;
         try
         {
-            m_streambuf.switch_to_put();
+            m_channel.switch_to_put();
         }
         catch(...)
         {
@@ -612,7 +612,7 @@ public:
         if (!static_cast<bool>(*this)) return *this;
         try
         {
-            m_streambuf.switch_to_get();
+            m_channel.switch_to_get();
         }
         catch(...)
         {
@@ -622,7 +622,7 @@ public:
     }
 
 private:
-    streambuf<TDevice, TChar> m_streambuf;
+    iochannel<TDevice, TChar> m_channel;
     IOv2::locale<char_type> m_locale;
 };
 
@@ -671,7 +671,7 @@ iostream(TDevice) -> iostream<TDevice, typename TDevice::char_type>;
 template <io_device TDevice, cvt_creator TCreator>
 iostream(TDevice, const TCreator&)
     -> iostream<TDevice,
-                typename decltype(streambuf{std::declval<TDevice>(),
+                typename decltype(iochannel{std::declval<TDevice>(),
                                             std::declval<const TCreator&>()})::char_type>;
 
 }

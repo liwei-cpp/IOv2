@@ -18,8 +18,8 @@
 #include <IOv2/io/io_base.h>
 #include <IOv2/io/iostream.h>
 #include <IOv2/io/ostream.h>
-#include <IOv2/io/streambuf.h>
-#include <IOv2/io/streambuf_iterator.h>
+#include <IOv2/io/iochannel.h>
+#include <IOv2/io/iochannel_iterator.h>
 #include <IOv2/io/traits/char_and_str.h>
 #include <IOv2/io/utilities/ostream_operators.h>
 #include <IOv2/io/utilities/stream_common_operators.h>
@@ -166,8 +166,8 @@ struct StatelessOs : IOv2::ios_base<char>
     using out_sentry_type = IOv2::out_sentry<StatelessOs, false>;
     // ostream_type also demands the iterator type: o_iter() is private, so the insertion
     // concepts have only this alias to probe with. Nothing here can actually do I/O, so any
-    // well-formed ostreambuf_iterator will do.
-    using out_iter_type = IOv2::ostreambuf_iterator<IOv2::ostreambuf<IOv2::mem_device<char>, char>>;
+    // well-formed ochannel_iterator will do.
+    using out_iter_type = IOv2::ochannel_iterator<IOv2::ochannel<IOv2::mem_device<char>, char>>;
     IOv2::locale<char> m_locale;
 };
 
@@ -180,7 +180,7 @@ struct StatefulOs : IOv2::ios_state<char>
 {
     using char_type = char;
     using out_sentry_type = IOv2::out_sentry<StatefulOs, false>;
-    using out_iter_type = IOv2::ostreambuf_iterator<IOv2::ostreambuf<IOv2::mem_device<char>, char>>;
+    using out_iter_type = IOv2::ochannel_iterator<IOv2::ochannel<IOv2::mem_device<char>, char>>;
     IOv2::locale<char> m_locale;
 };
 

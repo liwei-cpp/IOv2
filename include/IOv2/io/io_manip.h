@@ -110,7 +110,7 @@
 
 #include <IOv2/common/defs.h>
 #include <IOv2/common/metafunctions.h>
-#include <IOv2/common/streambuf_defs.h>
+#include <IOv2/common/iochannel_defs.h>
 #include <IOv2/facet/monetary.h>
 #include <IOv2/facet/timeio.h>
 #include <IOv2/io/io_base.h>
@@ -1588,7 +1588,7 @@ struct io_traits<TChar, get_time_t<TChar>>
      */
     template <typename TIter, std::sentinel_for<TIter> TSent>
         requires (std::is_same_v<TChar, typename TIter::value_type>
-                  && (steppable_back<TIter> || is_istreambuf_iterator<TIter>))
+                  && (steppable_back<TIter> || is_ichannel_iterator<TIter>))
     static TIter sread(TIter s, TSent s_end, ios_base<TChar>&, const locale<TChar>& loc,
                        const get_time_t<TChar>& f)
     {

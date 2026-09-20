@@ -4,8 +4,8 @@
 #include <IOv2/common/metafunctions.h>
 #include <IOv2/common/stamp_input_iterator.h>
 #include <IOv2/device/mem_device.h>
-#include <IOv2/io/streambuf.h>
-#include <IOv2/io/streambuf_iterator.h>
+#include <IOv2/io/iochannel.h>
+#include <IOv2/io/iochannel_iterator.h>
 
 #include <gtest/gtest.h>
 
@@ -43,17 +43,17 @@ TEST(StampInputIterator, Basic)
     EXPECT_EQ(it->x, 1);
 }
 
-TEST(StampInputIterator, IstreambufArrowOperator)
+TEST(StampInputIterator, IchannelArrowOperator)
 {
     IOv2::mem_device dev("abc");
-    IOv2::istreambuf buf(dev);
-    IOv2::istreambuf_iterator is_it(buf);
+    IOv2::ichannel buf(dev);
+    IOv2::ichannel_iterator is_it(buf);
     IOv2::stamp_input_iterator s_it(is_it);
 
     char c = *s_it;
     EXPECT_EQ(c, 'a');
 
-    // Testing operator-> if possible (istreambuf_iterator usually points to char)
+    // Testing operator-> if possible (ichannel_iterator usually points to char)
     // Here we just ensure it compiles and behaves correctly
     EXPECT_EQ(*(s_it.operator->()), 'a');
 }
@@ -120,11 +120,11 @@ TEST(StampInputIterator, SelfMoveAssignment)
     EXPECT_EQ(*it1, 1);
 }
 
-TEST(StampInputIterator, IstreambufMoveConstruction)
+TEST(StampInputIterator, IchannelMoveConstruction)
 {
     IOv2::mem_device dev("abc");
-    IOv2::istreambuf buf(dev);
-    IOv2::istreambuf_iterator is_it(buf);
+    IOv2::ichannel buf(dev);
+    IOv2::ichannel_iterator is_it(buf);
     IOv2::stamp_input_iterator s_it1(is_it);
 
     ++s_it1;
@@ -182,11 +182,11 @@ TEST(StampInputIterator, ArithmeticAndComparisons)
     EXPECT_EQ(it1.internal(), vec.begin());
 }
 
-TEST(StampInputIterator, IstreambufSteppingBack)
+TEST(StampInputIterator, IchannelSteppingBack)
 {
     IOv2::mem_device dev("abc");
-    IOv2::istreambuf buf(dev);
-    IOv2::istreambuf_iterator is_it(buf);
+    IOv2::ichannel buf(dev);
+    IOv2::ichannel_iterator is_it(buf);
     IOv2::stamp_input_iterator s_it(is_it);
 
     (void)s_it++;
@@ -228,11 +228,11 @@ TEST(StampInputIterator, Constructors)
     EXPECT_FALSE(is_stamp_input_iterator_v<int>);
 }
 
-TEST(StampInputIterator, IstreambufRollbackAndInternal)
+TEST(StampInputIterator, IchannelRollbackAndInternal)
 {
     IOv2::mem_device dev("abc");
-    IOv2::istreambuf buf(dev);
-    IOv2::istreambuf_iterator is_it(buf);
+    IOv2::ichannel buf(dev);
+    IOv2::ichannel_iterator is_it(buf);
     IOv2::stamp_input_iterator s_it(is_it);
 
     // rollback when empty
@@ -249,8 +249,8 @@ TEST(StampInputIterator, IstreambufRollbackAndInternal)
 TEST(StampInputIterator, CategoryConsistency)
 {
     IOv2::mem_device dev("abc");
-    IOv2::istreambuf buf(dev);
-    IOv2::istreambuf_iterator raw(buf);
+    IOv2::ichannel buf(dev);
+    IOv2::ichannel_iterator raw(buf);
     IOv2::stamp_input_iterator s_it(raw);
 
     using raw_t   = decltype(raw);
@@ -269,7 +269,7 @@ TEST(StampInputIterator, CategoryConsistency)
 
     // It steps back all the same, which is what steppable_back names.
     static_assert(IOv2::steppable_back<stamp_t>);
-    static_assert(!IOv2::steppable_back<raw_t>);              // istreambuf_iterator has no --
+    static_assert(!IOv2::steppable_back<raw_t>);              // ichannel_iterator has no --
     static_assert(IOv2::steppable_back<std::string::iterator>); // bidirectional is subsumed
 
     ++s_it;

@@ -35,7 +35,7 @@
 #include <IOv2/common/metafunctions.h>
 #include <IOv2/common/prefix_tree.h>
 #include <IOv2/common/stamp_input_iterator.h>
-#include <IOv2/common/streambuf_defs.h>
+#include <IOv2/common/iochannel_defs.h>
 #include <IOv2/facet/ctype.h>
 #include <IOv2/facet/facet_common.h>
 #include <IOv2/facet/timeio_details.h>
@@ -2735,7 +2735,7 @@ public:
      *
      * 将 `format` 与可选的 `modifier` 组合为 `%[modifier]format` 格式串后
      * 委托给 `get(beg, end, ctx, fmt)`。
-     * @tparam TIter      双向迭代器或 `istreambuf_iterator` 类型。
+     * @tparam TIter      双向迭代器或 `ichannel_iterator` 类型。
      * @tparam TSent      哨兵类型。
      * @tparam HaveDate   是否解析日期字段。
      * @tparam HaveTime   是否解析时间字段。
@@ -2757,7 +2757,7 @@ public:
      *
      * Combines `format` and the optional `modifier` into a `%[modifier]format`
      * string, then delegates to `get(beg, end, ctx, fmt)`.
-     * @tparam TIter      Bidirectional iterator or `istreambuf_iterator` type.
+     * @tparam TIter      Bidirectional iterator or `ichannel_iterator` type.
      * @tparam TSent      Sentinel type.
      * @tparam HaveDate   Whether date fields are parsed.
      * @tparam HaveTime   Whether time fields are parsed.
@@ -2775,7 +2775,7 @@ public:
      * @endif
      */
     template <typename TIter, std::sentinel_for<TIter> TSent, bool HaveDate, bool HaveTime, tz_level TzLevel>
-        requires (steppable_back<TIter> || is_istreambuf_iterator<TIter>)
+        requires (steppable_back<TIter> || is_ichannel_iterator<TIter>)
     TIter get(TIter beg, TSent end, time_parse_context<char_type, HaveDate, HaveTime, TzLevel>& ctx,
               char format, char modifier = 0) const // NOLINT(bugprone-easily-swappable-parameters)
     {
@@ -2803,7 +2803,7 @@ public:
      * 各格式说明符与 POSIX `strptime` / `std::chrono::from_stream` 的语义一致。
      * 复合说明符（`%c`、`%x`、`%X`、`%r`、`%EY`）会将 locale 提供的格式串
      * 展开后递归处理，详见 `do_get` 中关于递归的说明。
-     * @tparam TIter      双向迭代器或 `istreambuf_iterator` 类型。
+     * @tparam TIter      双向迭代器或 `ichannel_iterator` 类型。
      * @tparam TSent      哨兵类型。
      * @tparam HaveDate   是否解析日期字段。
      * @tparam HaveTime   是否解析时间字段。
@@ -2828,7 +2828,7 @@ public:
      * `std::chrono::from_stream`. Compound specifiers (`%c`, `%x`, `%X`, `%r`,
      * `%EY`) expand locale-provided format strings and re-enter recursively;
      * see the recursion note in `do_get`.
-     * @tparam TIter      Bidirectional iterator or `istreambuf_iterator` type.
+     * @tparam TIter      Bidirectional iterator or `ichannel_iterator` type.
      * @tparam TSent      Sentinel type.
      * @tparam HaveDate   Whether date fields are parsed.
      * @tparam HaveTime   Whether time fields are parsed.
@@ -2848,7 +2848,7 @@ public:
      * @endif
      */
     template <typename TIter, std::sentinel_for<TIter> TSent, bool HaveDate, bool HaveTime, tz_level TzLevel>
-        requires (steppable_back<TIter> || is_istreambuf_iterator<TIter>)
+        requires (steppable_back<TIter> || is_ichannel_iterator<TIter>)
     TIter get(TIter rp, TSent rp_end, time_parse_context<char_type, HaveDate, HaveTime, TzLevel>& ctx,
               std::basic_string_view<CharT> _fmt) const
     {
@@ -2955,7 +2955,7 @@ private:
      *   只能通过这些表进入递归，因此深度上界就是节点数，与输入长度无关。手工构造或被
      *   篡改的 locale 在构造 facet 时即被拒绝，而不是在这里溢出栈。
      *
-     * @tparam TIter      双向迭代器或 `istreambuf_iterator` 类型。
+     * @tparam TIter      双向迭代器或 `ichannel_iterator` 类型。
      * @tparam TSent      哨兵类型。
      * @param rp     当前输入位置。
      * @param rp_end 输入范围结束哨兵。
@@ -2988,7 +2988,7 @@ private:
      *   locale is rejected when the facet is constructed, not by overflowing the
      *   stack here.
      *
-     * @tparam TIter      Bidirectional iterator or `istreambuf_iterator` type.
+     * @tparam TIter      Bidirectional iterator or `ichannel_iterator` type.
      * @tparam TSent      Sentinel type.
      * @param rp     Current input position.
      * @param rp_end End sentinel of the input range.
@@ -3000,7 +3000,7 @@ private:
      */
     // NOLINTBEGIN(cppcoreguidelines-avoid-goto)
     template <typename TIter, std::sentinel_for<TIter> TSent, bool HaveDate, bool HaveTime, tz_level TzLevel>
-        requires (steppable_back<TIter> || is_istreambuf_iterator<TIter>)
+        requires (steppable_back<TIter> || is_ichannel_iterator<TIter>)
     TIter do_get(TIter rp, TSent rp_end, time_parse_context<char_type, HaveDate, HaveTime, TzLevel>& ctx,
                  bool& succ, std::basic_string_view<CharT> _fmt) const
     {
@@ -3696,7 +3696,7 @@ private:
                                              || *rp > static_cast<CharT>('9'))
                             {
                                 if constexpr (steppable_back<TIter>) --rp;
-                                else rp.sputbackc(static_cast<CharT>(':'));
+                                else rp.putbackc(static_cast<CharT>(':'));
                                 break;
                             }
                         }

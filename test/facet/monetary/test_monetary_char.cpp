@@ -19,7 +19,7 @@
  *
  * get() is written against a sentinel so it can read a stream it cannot back up
  * in.  Every parse here is therefore run twice, once over a string's iterators
- * and once over an istreambuf_iterator, and the two are required to agree on
+ * and once over an ichannel_iterator, and the two are required to agree on
  * both the digits and where they stopped.
  */
 #include <IOv2/facet/monetary.h>
@@ -28,8 +28,8 @@
 #include <IOv2/common/defs.h>
 #include <IOv2/device/mem_device.h>
 #include <IOv2/io/io_base.h>
-#include <IOv2/io/streambuf.h>
-#include <IOv2/io/streambuf_iterator.h>
+#include <IOv2/io/iochannel.h>
+#include <IOv2/io/iochannel_iterator.h>
 
 #include <gtest/gtest.h>
 
@@ -184,8 +184,8 @@ namespace
                                      const std::string& input, const std::string& seed)
     {
         parse_result res{true, seed, {}};
-        streambuf    sb(mem_device{input});
-        auto         beg = istreambuf_iterator(sb);
+        iochannel    chan(mem_device{input});
+        auto         beg = ichannel_iterator(chan);
         try
         {
             auto it = obj.get(beg, std::default_sentinel, intl, io, res.digits);
@@ -207,7 +207,7 @@ namespace
         SCOPED_TRACE(::testing::PrintToString(input));
         for (bool streamed : {false, true})
         {
-            SCOPED_TRACE(streamed ? "streambuf iterator" : "string iterator");
+            SCOPED_TRACE(streamed ? "iochannel iterator" : "string iterator");
             const parse_result r = streamed ? parse_over_a_stream(obj, intl, io, input, "")
                                             : parse_over_pointers(obj, intl, io, input, "");
             EXPECT_TRUE(r.ok);
@@ -225,7 +225,7 @@ namespace
         const std::string seed = "untouched";
         for (bool streamed : {false, true})
         {
-            SCOPED_TRACE(streamed ? "streambuf iterator" : "string iterator");
+            SCOPED_TRACE(streamed ? "iochannel iterator" : "string iterator");
             const parse_result r = streamed ? parse_over_a_stream(obj, intl, io, input, seed)
                                             : parse_over_pointers(obj, intl, io, input, seed);
             EXPECT_FALSE(r.ok);
@@ -937,11 +937,11 @@ TEST(MonetaryChar, PutWritesThroughAnOutputIteratorOntoAStream)
     const monetary<char> obj(tuned()->fraction(2).groups({3}).separator(',')
                                     .both(kSymbolSignValue).ptr());
 
-    streambuf sb{mem_device<char>{""}};
-    obj.put(ostreambuf_iterator(sb), false, ios, std::string("123456"));
-    obj.put(ostreambuf_iterator(sb), true, ios, std::string("123456"));
-    sb.flush();
-    EXPECT_EQ(sb.device().str(), "1,234.56123,456");
+    iochannel chan{mem_device<char>{""}};
+    obj.put(ochannel_iterator(chan), false, ios, std::string("123456"));
+    obj.put(ochannel_iterator(chan), true, ios, std::string("123456"));
+    chan.flush();
+    EXPECT_EQ(chan.device().str(), "1,234.56123,456");
 }
 
 // The same fill vetting as on the writing side, but from the reader's end: a run

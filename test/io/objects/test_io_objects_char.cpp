@@ -378,7 +378,7 @@ TEST(IoObjectsChar, SyncWithStdioDoesNotReplaceTheObjects)
 // synced_with_stdio() reports the state; sync_with_stdio() sets it. Reading the
 // state through the setter is what the standard's one-function interface forces,
 // and on an input stream it costs the buffered input: each call rebuilds the
-// streambuf. The getter exists so that query and switch are separate operations.
+// iochannel. The getter exists so that query and switch are separate operations.
 TEST(IoObjectsChar, SyncWithStdioCanBeQueriedWithoutSwitching)
 {
     iguard g("one two three\n");

@@ -25,7 +25,7 @@
 #include <string>
 #include <type_traits>
 
-#include <IOv2/common/streambuf_defs.h>
+#include <IOv2/common/iochannel_defs.h>
 #include <IOv2/device/mem_device.h>
 #include <IOv2/io/io_base.h>
 #include <IOv2/io/io_manip.h>
@@ -427,10 +427,10 @@ static_assert(  std::is_same_v<
 // a compile error at their definition. This only pins the shape, so that a stream cannot satisfy
 // ostream_type / istream_type with an alias that is not a buffer iterator at all.
 // ---------------------------------------------------------------------------------------------
-static_assert( IOv2::is_ostreambuf_iterator<typename os_c::out_iter_type> );
-static_assert( IOv2::is_istreambuf_iterator<typename is_c::in_iter_type>  );
-static_assert( IOv2::is_ostreambuf_iterator<typename ios_c::out_iter_type> );
-static_assert( IOv2::is_istreambuf_iterator<typename ios_c::in_iter_type>  );
+static_assert( IOv2::is_ochannel_iterator<typename os_c::out_iter_type> );
+static_assert( IOv2::is_ichannel_iterator<typename is_c::in_iter_type>  );
+static_assert( IOv2::is_ochannel_iterator<typename ios_c::out_iter_type> );
+static_assert( IOv2::is_ichannel_iterator<typename ios_c::in_iter_type>  );
 static_assert( std::is_same_v<typename os_c::out_iter_type::value_type, char> );
 static_assert( std::is_same_v<typename is_c::in_iter_type::value_type, char>  );
 

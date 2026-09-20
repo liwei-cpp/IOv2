@@ -2,32 +2,32 @@
 // SPDX-License-Identifier: MIT
 
 /**
- * @file streambuf.h
+ * @file iochannel.h
  * @lang{ZH}
- * 定义了流缓冲区（stream buffer）体系，是设备、转换器与上层流之间的桥梁。
+ * 定义了通道（channel）体系，是设备、转换器与上层流之间的桥梁。
  *
- * 核心是类模板 `base_streambuf`，它在一条转换器管线（`runtime_cvt`）之上再叠加一个
+ * 核心是类模板 `base_channel`，它在一条转换器管线（`runtime_cvt`）之上再叠加一个
  * 读缓冲区，向上层提供面向字符的读、写、回退、定位以及读/写方向切换等操作。基于它，
  * 本文件还提供三个便捷别名类：
- * - `streambuf`：同时支持输入与输出。
- * - `istreambuf`：仅支持输入。
- * - `ostreambuf`：仅支持输出。
+ * - `iochannel`：同时支持输入与输出。
+ * - `ichannel`：仅支持输入。
+ * - `ochannel`：仅支持输出。
  *
  * 文件末尾提供了一组类模板实参推导指引（CTAD），使得可以直接由「设备」或「设备 + 转换器
  * 工厂」推导出对应的字符类型（后者借助 io/io_concepts.h 中的 `ext_to_int`）。
  * @endif
  *
  * @lang{EN}
- * Defines the stream-buffer hierarchy, the bridge between devices, converters, and the
+ * Defines the channel hierarchy, the bridge between devices, converters, and the
  * higher-level streams.
  *
- * At its core is the class template `base_streambuf`, which layers a read buffer on top
+ * At its core is the class template `base_channel`, which layers a read buffer on top
  * of a converter pipeline (`runtime_cvt`) and offers the upper layers character-oriented
  * read, write, put-back, positioning, and read/write direction-switching operations.
  * Building on it, this file also provides three convenience alias classes:
- * - `streambuf`: supports both input and output.
- * - `istreambuf`: input only.
- * - `ostreambuf`: output only.
+ * - `iochannel`: supports both input and output.
+ * - `ichannel`: input only.
+ * - `ochannel`: output only.
  *
  * At the end of the file, a set of class-template argument deduction guides (CTAD) lets
  * the character type be deduced directly from a "device" or a "device + converter
@@ -55,18 +55,18 @@ namespace IOv2
 {
 /**
  * @lang{ZH}
- * @brief 流缓冲区的通用实现基类。
+ * @brief 通道的通用实现基类。
  *
- * `base_streambuf` 在一条转换器管线（`runtime_cvt<TDevice, TChar>`）之上封装出面向字符
- * 的缓冲接口。它按需持有一个读缓冲区 `m_read_buf`（仅在 `IsIn` 为真时存在），用于保存被
- * `sgetc()` 预读（peek）以及被 `sputbackc()` 压回的字符。
+ * `base_channel` 在一条转换器管线（`runtime_cvt<TDevice, TChar>`）之上封装出面向字符
+ * 的读写接口。它按需持有一个读缓冲区 `m_read_buf`（仅在 `IsIn` 为真时存在），用于保存被
+ * `getc()` 预读（peek）以及被 `putbackc()` 压回的字符。
  *
  * 是否具备输入/输出能力由模板参数 `IsIn`/`IsOut` 在编译期决定，相应的成员函数通过
  * `requires` 约束仅在对应能力开启时可用。当二者同时为真时，对象是双向的，输入与输出
  * 操作会按需自动调用 `switch_to_get()`/`switch_to_put()` 切换底层转换器的方向。
  *
  * @note 关于读缓冲区与逻辑位置的语义细节（尤其是过度回退时位置在起点处饱和为 0），
- *       见 sputbackc()、tell() 与 switch_to_put() 的说明。
+ *       见 putbackc()、tell() 与 switch_to_put() 的说明。
  *
  * @note 方向约束落在四个构造函数上：不带工厂的两个查设备的能力，带工厂的两个改查整条管线
  *       （`cvt_fits_direction`），因为管线可以比设备更弱。
@@ -79,12 +79,12 @@ namespace IOv2
  * @endif
  *
  * @lang{EN}
- * @brief Common implementation base class for stream buffers.
+ * @brief Common implementation base class for channels.
  *
- * `base_streambuf` wraps a converter pipeline (`runtime_cvt<TDevice, TChar>`) into a
- * character-oriented buffered interface. It optionally holds a read buffer `m_read_buf`
- * (present only when `IsIn` is true) that stores characters peeked by `sgetc()` and
- * pushed back by `sputbackc()`.
+ * `base_channel` wraps a converter pipeline (`runtime_cvt<TDevice, TChar>`) into a
+ * character-oriented read/write interface. It optionally holds a read buffer `m_read_buf`
+ * (present only when `IsIn` is true) that stores characters peeked by `getc()` and
+ * pushed back by `putbackc()`.
  *
  * Whether input/output is available is decided at compile time by the template
  * parameters `IsIn`/`IsOut`; the corresponding member functions are constrained via
@@ -94,7 +94,7 @@ namespace IOv2
  * needed.
  *
  * @note For the detailed semantics of the read buffer and the logical position (in
- *       particular, the position saturating at 0 on over-putback), see sputbackc(),
+ *       particular, the position saturating at 0 on over-putback), see putbackc(),
  *       tell(), and switch_to_put().
  *
  * @note The direction constraint sits on the four constructors: the creator-less ones check the
@@ -111,7 +111,7 @@ namespace IOv2
  */
 template <io_device TDevice, typename TChar, bool IsIn, bool IsOut>
     requires (IsIn || IsOut)
-class base_streambuf
+class base_channel
 {
 public:
     using device_type = TDevice;
@@ -120,17 +120,17 @@ public:
 public:
     /**
      * @lang{ZH}
-     * @brief 从设备构造一个仅输出的流缓冲区（无转换，直连根转换器）。
+     * @brief 从设备构造一个仅输出的通道（无转换，直连根转换器）。
      * @param dev 底层设备（按值取走所有权）。
      * @endif
      *
      * @lang{EN}
-     * @brief Constructs an output-only stream buffer from a device (no conversion, wired
+     * @brief Constructs an output-only channel from a device (no conversion, wired
      * directly to the root converter).
      * @param dev The underlying device (ownership taken by value).
      * @endif
      */
-    explicit base_streambuf(TDevice dev)
+    explicit base_channel(TDevice dev)
         requires (IsOut && dev_cpt::support_put<TDevice>
                   && (!IsIn || dev_cpt::support_get<TDevice>))
         : m_cvt(no_rb_root_cvt{std::move(dev)})
@@ -140,14 +140,14 @@ public:
 
     /**
      * @lang{ZH}
-     * @brief 用转换器工厂在设备之上构建转换管线，构造一个输出流缓冲区。
+     * @brief 用转换器工厂在设备之上构建转换管线，构造一个输出通道。
      * @tparam TCreator 转换器工厂类型，须满足 `cvt_creator`。
      * @param dev 底层设备（按值取走所有权）。
      * @param creator 用于在根转换器之上创建转换管线的工厂。
      * @endif
      *
      * @lang{EN}
-     * @brief Constructs an output stream buffer, building a converter pipeline on top of
+     * @brief Constructs an output channel, building a converter pipeline on top of
      * the device via a converter creator.
      * @tparam TCreator The converter creator type; must satisfy `cvt_creator`.
      * @param dev The underlying device (ownership taken by value).
@@ -156,7 +156,7 @@ public:
      * @endif
      */
     template <cvt_creator TCreator>
-    base_streambuf(TDevice dev, const TCreator& creator)
+    base_channel(TDevice dev, const TCreator& creator)
         requires (IsOut && cvt_fits_direction<no_rb_root_cvt<TDevice>, TCreator, IsIn, IsOut>)
         : m_cvt(creator.create(no_rb_root_cvt{std::move(dev)}))
     {
@@ -165,64 +165,64 @@ public:
 
     /**
      * @lang{ZH}
-     * @brief 从设备构造一个仅输入的流缓冲区（无转换）。
+     * @brief 从设备构造一个仅输入的通道（无转换）。
      * @param dev 底层设备（按值取走所有权）。
-     * @param has_in_buf 是否为根转换器启用回读缓冲（`rb_root_cvt`）；为 false 时使用
+     * @param buffered_read 是否为根转换器启用回读缓冲（`rb_root_cvt`）；为 false 时使用
      *        不带回读缓冲的根转换器（`no_rb_root_cvt`）。默认 true。
      * @endif
      *
      * @lang{EN}
-     * @brief Constructs an input-only stream buffer from a device (no conversion).
+     * @brief Constructs an input-only channel from a device (no conversion).
      * @param dev The underlying device (ownership taken by value).
-     * @param has_in_buf Whether to enable the read-back buffer on the root converter
+     * @param buffered_read Whether to enable the read-back buffer on the root converter
      *        (`rb_root_cvt`); when false, the root converter without a read-back buffer
      *        (`no_rb_root_cvt`) is used. Defaults to true.
      * @endif
      */
-    explicit base_streambuf(TDevice dev, bool has_in_buf = true)
+    explicit base_channel(TDevice dev, bool buffered_read = true)
         requires (IsIn && !IsOut && dev_cpt::support_get<TDevice>)
-        : m_cvt(has_in_buf ? runtime_cvt<TDevice, TChar>(rb_root_cvt{std::move(dev)})
-                           : runtime_cvt<TDevice, TChar>(no_rb_root_cvt{std::move(dev)}))
+        : m_cvt(buffered_read ? runtime_cvt<TDevice, TChar>(rb_root_cvt{std::move(dev)})
+                              : runtime_cvt<TDevice, TChar>(no_rb_root_cvt{std::move(dev)}))
     {
         init_cvt();
     }
 
     /**
      * @lang{ZH}
-     * @brief 用转换器工厂在设备之上构建转换管线，构造一个输入流缓冲区。
+     * @brief 用转换器工厂在设备之上构建转换管线，构造一个输入通道。
      * @tparam TCreator 转换器工厂类型，须满足 `cvt_creator`。
      * @param dev 底层设备（按值取走所有权）。
      * @param creator 用于在根转换器之上创建转换管线的工厂。
-     * @param has_in_buf 是否为根转换器启用回读缓冲，语义同上。默认 true。
+     * @param buffered_read 是否为根转换器启用回读缓冲，语义同上。默认 true。
      * @endif
      *
      * @lang{EN}
-     * @brief Constructs an input stream buffer, building a converter pipeline on top of
+     * @brief Constructs an input channel, building a converter pipeline on top of
      * the device via a converter creator.
      * @tparam TCreator The converter creator type; must satisfy `cvt_creator`.
      * @param dev The underlying device (ownership taken by value).
      * @param creator The creator used to build the converter pipeline over the root
      * converter.
-     * @param has_in_buf Whether to enable the read-back buffer on the root converter,
+     * @param buffered_read Whether to enable the read-back buffer on the root converter,
      *        with the same meaning as above. Defaults to true.
      * @endif
      */
     template <cvt_creator TCreator>
-    base_streambuf(TDevice dev, const TCreator& creator, bool has_in_buf = true)
+    base_channel(TDevice dev, const TCreator& creator, bool buffered_read = true)
         requires (IsIn && !IsOut
                   && cvt_fits_direction<rb_root_cvt<TDevice>,    TCreator, IsIn, IsOut>
                   && cvt_fits_direction<no_rb_root_cvt<TDevice>, TCreator, IsIn, IsOut>)
-        : m_cvt(has_in_buf ? runtime_cvt<TDevice, TChar>(creator.create(rb_root_cvt{std::move(dev)}))
-                           : runtime_cvt<TDevice, TChar>(creator.create(no_rb_root_cvt{std::move(dev)})))
+        : m_cvt(buffered_read ? runtime_cvt<TDevice, TChar>(creator.create(rb_root_cvt{std::move(dev)}))
+                              : runtime_cvt<TDevice, TChar>(creator.create(no_rb_root_cvt{std::move(dev)})))
     {
         init_cvt();
     }
 
-    base_streambuf(const base_streambuf& val) = default;
-    base_streambuf(base_streambuf&&) = default;
-    base_streambuf& operator=(const base_streambuf&) = default;
-    base_streambuf& operator=(base_streambuf&&) = default;
-    ~base_streambuf() = default;
+    base_channel(const base_channel& val) = default;
+    base_channel(base_channel&&) = default;
+    base_channel& operator=(const base_channel&) = default;
+    base_channel& operator=(base_channel&&) = default;
+    ~base_channel() = default;
 
 public:
     /**
@@ -241,7 +241,7 @@ public:
      * @brief 预读（peek）当前字符但不消费它。
      *
      * 若读缓冲区非空，返回其栈顶字符；否则从底层转换器读取一个字符，压入读缓冲区栈顶后
-     * 返回。因此该字符**下一次**仍会被 sgetc()/sbumpc() 读到。
+     * 返回。因此该字符**下一次**仍会被 getc()/bumpc() 读到。
      * @return 当前字符；若已到达末尾则为空的 optional。
      * @note 在双向模式下会先切换到输入方向。
      * @endif
@@ -251,12 +251,12 @@ public:
      *
      * If the read buffer is non-empty, returns its top character; otherwise reads one
      * character from the underlying converter, pushes it onto the read buffer, and returns
-     * it. The character therefore remains available to the **next** sgetc()/sbumpc().
+     * it. The character therefore remains available to the **next** getc()/bumpc().
      * @return The current character; an empty optional if the end has been reached.
      * @note In bidirectional mode it first switches to the input direction.
      * @endif
      */
-    std::optional<char_type> sgetc() requires (IsIn)
+    std::optional<char_type> getc() requires (IsIn)
     {
         if constexpr (IsOut)
             switch_to_get();
@@ -287,7 +287,7 @@ public:
      * @note In bidirectional mode it first switches to the input direction.
      * @endif
      */
-    std::optional<char_type> sbumpc() requires (IsIn)
+    std::optional<char_type> bumpc() requires (IsIn)
     {
         if constexpr (IsOut)
             switch_to_get();
@@ -308,22 +308,22 @@ public:
      * @lang{ZH}
      * @brief 先消费当前字符，再预读下一个字符。
      *
-     * 等价于先调用 sbumpc() 前进一个字符，再调用 sgetc() 预读。
+     * 等价于先调用 bumpc() 前进一个字符，再调用 getc() 预读。
      * @return 下一个字符；若前进或预读遇到末尾则为空的 optional。
      * @endif
      *
      * @lang{EN}
      * @brief Consumes the current character, then peeks the next one.
      *
-     * Equivalent to calling sbumpc() to advance by one character, then sgetc() to peek.
+     * Equivalent to calling bumpc() to advance by one character, then getc() to peek.
      * @return The next character; an empty optional if advancing or peeking hits the end.
      * @endif
      */
-    std::optional<char_type> snextc() requires (IsIn)
+    std::optional<char_type> nextc() requires (IsIn)
     {
-        if (!sbumpc().has_value())
+        if (!bumpc().has_value())
             return std::optional<char_type>{};
-        return sgetc();
+        return getc();
     }
 
     /**
@@ -357,7 +357,7 @@ public:
      * @note In bidirectional mode it first switches to the input direction.
      * @endif
      */
-    std::size_t sgetn(char_type* s, std::size_t n, std::size_t* got = nullptr) requires (IsIn)
+    std::size_t getn(char_type* s, std::size_t n, std::size_t* got = nullptr) requires (IsIn)
     {
         if (got) *got = 0;
         if ((s == nullptr) || (n == 0)) return 0;
@@ -419,7 +419,7 @@ public:
      *
      * 将字符压回读缓冲区，使其成为下一次读取操作返回的字符。
      * 回退按调用次数计数，不校验压回的字符是否与原始读取内容一致——调用方可以用任意
-     * 字符替换原始内容（例如 `sgetc()` 读到 'b' 之后压回 '?'，之后仍按回退了 1 个字符计数）。
+     * 字符替换原始内容（例如 `getc()` 读到 'b' 之后压回 '?'，之后仍按回退了 1 个字符计数）。
      * 压回次数没有上限，包括超过实际已读取字符数的情形；此时 tell() 报告的逻辑位置会在
      * 流起点处饱和（钳位为 0），不会产生 size_t 下溢的错误巨大值，见 tell()。
      * @endif
@@ -431,7 +431,7 @@ public:
      * Pushes a character back into the read buffer so it becomes the next character
      * returned by a subsequent read. Put-back is counted by call count only; the
      * pushed-back character is not required to match what was actually read, so the
-     * caller may substitute arbitrary content (e.g. push back '?' after `sgetc()`
+     * caller may substitute arbitrary content (e.g. push back '?' after `getc()`
      * returned 'b' — this still counts as one character rewound). There is no upper
      * bound on how many times this may be called, including beyond the number of
      * characters actually read; in that case the logical position reported by tell()
@@ -439,7 +439,7 @@ public:
      * huge size_t value — see tell().
      * @endif
      */
-    void sputbackc(char_type ch) requires (IsIn)
+    void putbackc(char_type ch) requires (IsIn)
     {
         if constexpr (IsOut)
             switch_to_get();
@@ -474,7 +474,7 @@ public:
      * @note In bidirectional mode it first switches to the output direction.
      * @endif
      */
-    void sputc(char_type ch) requires (IsOut)
+    void putc(char_type ch) requires (IsOut)
     {
         if constexpr (IsIn)
             switch_to_put();
@@ -497,7 +497,7 @@ public:
      * switches to the output direction.
      * @endif
      */
-    void sputn(const char_type* s, std::size_t n) requires (IsOut)
+    void putn(const char_type* s, std::size_t n) requires (IsOut)
     {
         if ((s == nullptr) || (n == 0)) return;
 
@@ -543,7 +543,7 @@ public:
      * @brief 返回当前逻辑读取位置。
      *
      * 返回当前逻辑读取位置。
-     * 若通过 sputbackc() 压回的字符数超过了实际从底层转换器读取的字符数（见 sputbackc()
+     * 若通过 putbackc() 压回的字符数超过了实际从底层转换器读取的字符数（见 putbackc()
      * 的按次数计数、不校验内容的语义），本函数返回的位置在流起点处饱和为 0，而不是让
      * 减法在 size_t 上下溢产生一个巨大的错误值。
      * @endif
@@ -552,8 +552,8 @@ public:
      * @brief Returns the current logical read position.
      *
      * Returns the current logical read position.
-     * If more characters have been pushed back via sputbackc() than have actually
-     * been read from the underlying converter (see sputbackc()'s count-based,
+     * If more characters have been pushed back via putbackc() than have actually
+     * been read from the underlying converter (see putbackc()'s count-based,
      * content-agnostic semantics), the position returned here saturates at the
      * stream origin (0) rather than letting the subtraction wrap around to a huge
      * size_t value.
@@ -648,24 +648,24 @@ public:
      * @lang{ZH}
      * @brief 切换到输出模式。
      *
-     * 若读缓冲区中还留有已被 `sgetc()`/`sputbackc()` 取出但尚未消费的字符，则必须先把底层
+     * 若读缓冲区中还留有已被 `getc()`/`putbackc()` 取出但尚未消费的字符，则必须先把底层
      * 转换器的物理位置回退到这些字符对应的逻辑位置，才能保证之后再切回输入模式时仍从**同一
      * 逻辑位置**继续读——这一步依赖底层转换器支持定位（`cvt_cpt::support_positioning`）。
      * 因此，只支持读写与方向切换而不支持定位的转换器，在读缓冲区非空时无法调用本函数；
      * 读缓冲区为空时切换方向则不需要定位支持。
      *
-     * 回退恢复的是**位置**而不是**内容**：读缓冲区随即被清空，因此 `sputbackc()` 压回的
+     * 回退恢复的是**位置**而不是**内容**：读缓冲区随即被清空，因此 `putbackc()` 压回的
      * **替换**字符与**过量**压回都会在这里静默丢失，切回输入后读到的是底层的原始数据；
-     * 未经替换的 `sgetc()`/peek 不受影响。需要保留压回内容的调用方应在切向输出之前把它消费掉。
+     * 未经替换的 `getc()`/peek 不受影响。需要保留压回内容的调用方应在切向输出之前把它消费掉。
      *
-     * 过量回退时，回退目标位置（即 `tell()`）在起点处钳位为 0（见 `tell()`/`sputbackc()`），
+     * 过量回退时，回退目标位置（即 `tell()`）在起点处钳位为 0（见 `tell()`/`putbackc()`），
      * 因此切换后写入将从位置 0 开始。这是既定语义，非错误。
      * @endif
      *
      * @lang{EN}
      * @brief Switches to output mode.
      *
-     * If the read buffer still holds characters fetched by `sgetc()`/`sputbackc()` but not yet
+     * If the read buffer still holds characters fetched by `getc()`/`putbackc()` but not yet
      * consumed, the underlying converter's physical position must first be rewound to the logical
      * position those characters represent, so that a later switch back to input resumes from that
      * same logical position -- which requires the converter to support positioning
@@ -675,12 +675,12 @@ public:
      *
      * The rewind restores the position, not the contents: the read buffer is then cleared, so a
      * **substituted** put-back character and any **over-putback** are silently lost here, and
-     * switching back to input reads the underlying data instead; an unsubstituted `sgetc()`/peek
+     * switching back to input reads the underlying data instead; an unsubstituted `getc()`/peek
      * is unaffected. A caller that needs the pushed-back content preserved should consume it
      * before switching to output.
      *
      * On over-putback the rewind target (i.e. `tell()`) saturates at the stream origin 0 (see
-     * `tell()`/`sputbackc()`), so writing after the switch begins at position 0. This is
+     * `tell()`/`putbackc()`), so writing after the switch begins at position 0. This is
      * by-design behavior, not a bug.
      * @endif
      *
@@ -704,7 +704,7 @@ public:
             }
             catch (const cvt_error& e)
             {
-                throw cvt_error("base_streambuf::switch_to_put fails: cannot reposition "
+                throw cvt_error("base_channel::switch_to_put fails: cannot reposition "
                                  + std::to_string(m_read_buf.size())
                                  + " buffered/put-back character(s) before switching to output mode: "
                                  + e.what());
@@ -794,7 +794,7 @@ public:
                     // On over-putback (more put-back than actually read), tell()
                     // saturates at 0, so the device is handed back positioned at the
                     // stream origin. That is consistent with the logical read cursor
-                    // being at 0; see tell()/sputbackc() and switch_to_put().
+                    // being at 0; see tell()/putbackc() and switch_to_put().
                     const std::size_t pos = tell();
                     m_cvt.seek(pos);
                 }
@@ -881,7 +881,7 @@ private:
      * @brief 初始化转换器：建立初始 I/O 状态并进入主内容阶段。
      *
      * 调用底层转换器的 bos()（建立初始状态并返回初始方向）与 main_cont_beg()。对于
-     * 单向的流缓冲区，若初始方向与所需方向不一致，则相应切换到输入或输出方向。
+     * 单向的通道，若初始方向与所需方向不一致，则相应切换到输入或输出方向。
      * @endif
      *
      * @lang{EN}
@@ -937,17 +937,17 @@ private:
 
 /**
  * @lang{ZH}
- * @brief 双向流缓冲区：同时支持输入与输出。
+ * @brief 双向通道：同时支持输入与输出。
  *
- * `base_streambuf<TDevice, TChar, true, true>` 的便捷别名，并继承其全部构造函数。
+ * `base_channel<TDevice, TChar, true, true>` 的便捷别名，并继承其全部构造函数。
  * @tparam TDevice 底层设备类型；构造时须同时支持读取与写入。
  * @tparam TChar 字符类型。
  * @endif
  *
  * @lang{EN}
- * @brief Bidirectional stream buffer: supports both input and output.
+ * @brief Bidirectional channel: supports both input and output.
  *
- * A convenience alias for `base_streambuf<TDevice, TChar, true, true>` that inherits all
+ * A convenience alias for `base_channel<TDevice, TChar, true, true>` that inherits all
  * of its constructors.
  * @tparam TDevice The underlying device type; to construct one it must support both reading
  *         and writing.
@@ -955,63 +955,63 @@ private:
  * @endif
  */
 template <io_device TDevice, typename TChar>
-struct streambuf : public base_streambuf<TDevice, TChar, true, true>
+struct iochannel : public base_channel<TDevice, TChar, true, true>
 {
-    using base_streambuf<TDevice, TChar, true, true>::base_streambuf;
+    using base_channel<TDevice, TChar, true, true>::base_channel;
 };
 
 /**
  * @lang{ZH}
- * @brief 只读流缓冲区：仅支持输入。
+ * @brief 只读通道：仅支持输入。
  *
- * `base_streambuf<TDevice, TChar, true, false>` 的便捷别名，并继承其全部构造函数。
+ * `base_channel<TDevice, TChar, true, false>` 的便捷别名，并继承其全部构造函数。
  * @tparam TDevice 底层设备类型；构造时须支持读取。
  * @tparam TChar 字符类型。
  * @endif
  *
  * @lang{EN}
- * @brief Input-only stream buffer: supports input only.
+ * @brief Input-only channel: supports input only.
  *
- * A convenience alias for `base_streambuf<TDevice, TChar, true, false>` that inherits all
+ * A convenience alias for `base_channel<TDevice, TChar, true, false>` that inherits all
  * of its constructors.
  * @tparam TDevice The underlying device type; to construct one it must support reading.
  * @tparam TChar The character type.
  * @endif
  */
 template <io_device TDevice, typename TChar>
-struct istreambuf : public base_streambuf<TDevice, TChar, true, false>
+struct ichannel : public base_channel<TDevice, TChar, true, false>
 {
-    using base_streambuf<TDevice, TChar, true, false>::base_streambuf;
+    using base_channel<TDevice, TChar, true, false>::base_channel;
 };
 
 /**
  * @lang{ZH}
- * @brief 只写流缓冲区：仅支持输出。
+ * @brief 只写通道：仅支持输出。
  *
- * `base_streambuf<TDevice, TChar, false, true>` 的便捷别名，并继承其全部构造函数。
+ * `base_channel<TDevice, TChar, false, true>` 的便捷别名，并继承其全部构造函数。
  * @tparam TDevice 底层设备类型；构造时须支持写入。
  * @tparam TChar 字符类型。
  * @endif
  *
  * @lang{EN}
- * @brief Output-only stream buffer: supports output only.
+ * @brief Output-only channel: supports output only.
  *
- * A convenience alias for `base_streambuf<TDevice, TChar, false, true>` that inherits all
+ * A convenience alias for `base_channel<TDevice, TChar, false, true>` that inherits all
  * of its constructors.
  * @tparam TDevice The underlying device type; to construct one it must support writing.
  * @tparam TChar The character type.
  * @endif
  */
 template <io_device TDevice, typename TChar>
-struct ostreambuf : public base_streambuf<TDevice, TChar, false, true>
+struct ochannel : public base_channel<TDevice, TChar, false, true>
 {
-    using base_streambuf<TDevice, TChar, false, true>::base_streambuf;
+    using base_channel<TDevice, TChar, false, true>::base_channel;
 };
 
 /**
  * @lang{ZH}
  * @name 类模板实参推导指引（CTAD）
- * @brief 由设备（及可选的转换器工厂）推导 streambuf/istreambuf/ostreambuf 的字符类型。
+ * @brief 由设备（及可选的转换器工厂）推导 iochannel/ichannel/ochannel 的字符类型。
  *
  * 无转换器工厂时，字符类型直接取设备的 `char_type`；提供转换器工厂时，则通过
  * `ext_to_int`（见 io/io_concepts.h）从转换管线推导出内部字符类型。
@@ -1020,7 +1020,7 @@ struct ostreambuf : public base_streambuf<TDevice, TChar, false, true>
  *
  * @lang{EN}
  * @name Class-template argument deduction guides (CTAD)
- * @brief Deduce the character type of streambuf/istreambuf/ostreambuf from a device (and
+ * @brief Deduce the character type of iochannel/ichannel/ochannel from a device (and
  * an optional converter creator).
  *
  * Without a converter creator, the character type is taken directly from the device's
@@ -1030,28 +1030,28 @@ struct ostreambuf : public base_streambuf<TDevice, TChar, false, true>
  * @endif
  */
 template <io_device TDevice>
-streambuf(TDevice) -> streambuf<TDevice, typename TDevice::char_type>;
+iochannel(TDevice) -> iochannel<TDevice, typename TDevice::char_type>;
 
 template <io_device TDevice, cvt_creator TCreator>
-streambuf(TDevice, const TCreator&) -> streambuf<TDevice, ext_to_int<no_rb_root_cvt<TDevice>, TCreator>>;
+iochannel(TDevice, const TCreator&) -> iochannel<TDevice, ext_to_int<no_rb_root_cvt<TDevice>, TCreator>>;
 
 template <io_device TDevice>
-istreambuf(TDevice) -> istreambuf<TDevice, typename TDevice::char_type>;
+ichannel(TDevice) -> ichannel<TDevice, typename TDevice::char_type>;
 
 template <io_device TDevice, cvt_creator TCreator>
-istreambuf(TDevice, const TCreator&) -> istreambuf<TDevice, ext_to_int<rb_root_cvt<TDevice>, TCreator>>;
+ichannel(TDevice, const TCreator&) -> ichannel<TDevice, ext_to_int<rb_root_cvt<TDevice>, TCreator>>;
 
 template <io_device TDevice>
-istreambuf(TDevice, bool) -> istreambuf<TDevice, typename TDevice::char_type>;
+ichannel(TDevice, bool) -> ichannel<TDevice, typename TDevice::char_type>;
 
 template <io_device TDevice, cvt_creator TCreator>
-istreambuf(TDevice, const TCreator&, bool) -> istreambuf<TDevice, ext_to_int<rb_root_cvt<TDevice>, TCreator>>;
+ichannel(TDevice, const TCreator&, bool) -> ichannel<TDevice, ext_to_int<rb_root_cvt<TDevice>, TCreator>>;
 
 template <io_device TDevice>
-ostreambuf(TDevice) -> ostreambuf<TDevice, typename TDevice::char_type>;
+ochannel(TDevice) -> ochannel<TDevice, typename TDevice::char_type>;
 
 template <io_device TDevice, cvt_creator TCreator>
-ostreambuf(TDevice, const TCreator&) -> ostreambuf<TDevice, ext_to_int<no_rb_root_cvt<TDevice>, TCreator>>;
+ochannel(TDevice, const TCreator&) -> ochannel<TDevice, ext_to_int<no_rb_root_cvt<TDevice>, TCreator>>;
 /**
  * @lang{ZH} @} @endif
  * @lang{EN} @} @endif

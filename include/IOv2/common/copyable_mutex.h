@@ -26,7 +26,7 @@ namespace IOv2
  * 合成的拷贝/移动构造函数。本包装把这一层挡掉：它自身可拷贝、可移动，但**不搬运
  * 锁状态**——拷贝或移动只是持有一把全新的、未加锁的底层互斥量。
  *
- * 于是含有它的流类型，其可拷贝/可移动性重新由**其余成员**（如底层 streambuf、
+ * 于是含有它的流类型，其可拷贝/可移动性重新由**其余成员**（如底层 iochannel、
  * cvt、device）决定，无需手写任何拷贝/移动逻辑。
  *
  * 语义上这也是正确的：互斥量保护的是“对象自身的临界区”，而非需要被复制的值；
@@ -51,7 +51,7 @@ namespace IOv2
  * or move simply holds a fresh, unlocked underlying mutex.
  *
  * As a result, an enclosing stream type's copyability/movability is decided again by
- * its **other** members (e.g. the underlying streambuf / cvt / device), with no
+ * its **other** members (e.g. the underlying iochannel / cvt / device), with no
  * hand-written copy/move logic required.
  *
  * This is also semantically correct: the mutex protects "the object's own critical

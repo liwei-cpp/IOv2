@@ -4,8 +4,8 @@
 #include <IOv2/common/prefix_tree.h>
 #include <IOv2/common/stamp_input_iterator.h>
 #include <IOv2/device/mem_device.h>
-#include <IOv2/io/streambuf.h>
-#include <IOv2/io/streambuf_iterator.h>
+#include <IOv2/io/iochannel.h>
+#include <IOv2/io/iochannel_iterator.h>
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -145,9 +145,9 @@ TEST(PrefixTree, GreedyMatch)
 
 namespace
 {
-    // The three-key tree the two istreambuf cases below share: a root value, plus
+    // The three-key tree the two ichannel cases below share: a root value, plus
     // "ab" nested inside "abc" so a walk can overshoot and have to come back.
-    prefix_tree<char, int> istreambuf_tree()
+    prefix_tree<char, int> ichannel_tree()
     {
         prefix_tree<char, int> tree;
         tree.add("", 100);
@@ -157,13 +157,13 @@ namespace
     }
 }
 
-TEST(PrefixTree, StreambufPartialMatch)
+TEST(PrefixTree, ChannelPartialMatch)
 {
-    auto tree = istreambuf_tree();
+    auto tree = ichannel_tree();
 
     mem_device dev("abxe");
-    istreambuf sb(dev);
-    istreambuf_iterator beg(sb);
+    ichannel chan(dev);
+    ichannel_iterator beg(chan);
     decltype(beg) end;
 
     decltype(tree)::match_out_type out{};
@@ -174,13 +174,13 @@ TEST(PrefixTree, StreambufPartialMatch)
     EXPECT_EQ(*it, 'x');
 }
 
-TEST(PrefixTree, StreambufBacktrackToRoot)
+TEST(PrefixTree, ChannelBacktrackToRoot)
 {
-    auto tree = istreambuf_tree();
+    auto tree = ichannel_tree();
 
     mem_device dev("axe");
-    istreambuf sb(dev);
-    istreambuf_iterator beg(sb);
+    ichannel chan(dev);
+    ichannel_iterator beg(chan);
     decltype(beg) end;
 
     decltype(tree)::match_out_type out{};
@@ -191,8 +191,8 @@ TEST(PrefixTree, StreambufBacktrackToRoot)
     EXPECT_EQ(*it, 'a');
 }
 
-// A stamp_input_iterator wrapping an istreambuf_iterator is what timeio's era path hands
-// to max_match. It is single-pass yet steps back through sputbackc, so it satisfies
+// A stamp_input_iterator wrapping an ichannel_iterator is what timeio's era path hands
+// to max_match. It is single-pass yet steps back through putbackc, so it satisfies
 // steppable_back but not std::bidirectional_iterator -- backing up must go through
 // operator--, never std::advance, which would take its input_iterator_tag branch and
 // walk forward with a negative count.
@@ -205,8 +205,8 @@ TEST(PrefixTree, StampIteratorBacktracksTwoLevels)
     // The input is a proper prefix of a stored key, so the walk descends two levels,
     // finds no value on the way and has to back up both of them.
     mem_device dev("abq");
-    istreambuf sb(dev);
-    istreambuf_iterator raw(sb);
+    ichannel chan(dev);
+    ichannel_iterator raw(chan);
     stamp_input_iterator beg(raw);
     decltype(beg) end;
 
@@ -226,8 +226,8 @@ TEST(PrefixTree, StampIteratorBacktracksToShallowerValue)
     tree.add("abc", 1);
 
     mem_device dev("abq");
-    istreambuf sb(dev);
-    istreambuf_iterator raw(sb);
+    ichannel chan(dev);
+    ichannel_iterator raw(chan);
     stamp_input_iterator beg(raw);
     decltype(beg) end;
 
@@ -245,8 +245,8 @@ TEST(PrefixTree, StampIteratorFullMatchDoesNotBacktrack)
     tree.add("abc", 1);
 
     mem_device dev("abcz");
-    istreambuf sb(dev);
-    istreambuf_iterator raw(sb);
+    ichannel chan(dev);
+    ichannel_iterator raw(chan);
     stamp_input_iterator beg(raw);
     decltype(beg) end;
 
@@ -369,15 +369,15 @@ TEST(PrefixTree, BacktrackLargeValueBidirectional)
     EXPECT_EQ(it, s.begin());
 }
 
-TEST(PrefixTree, BacktrackLargeValueStreambuf)
+TEST(PrefixTree, BacktrackLargeValueChannel)
 {
     // Neither "a" nor "ab" carries a value, so the walk backs up two steps.
     prefix_tree<char, std::string> tree;
     tree.add("abc", "val");
 
     mem_device dev("abx");
-    istreambuf sb(dev);
-    istreambuf_iterator beg(sb);
+    ichannel chan(dev);
+    ichannel_iterator beg(chan);
     decltype(beg) end;
 
     decltype(tree)::match_out_type out{};
@@ -387,14 +387,14 @@ TEST(PrefixTree, BacktrackLargeValueStreambuf)
     EXPECT_EQ(*it, 'a');
 }
 
-TEST(PrefixTree, RootValueLargeValueStreambuf)
+TEST(PrefixTree, RootValueLargeValueChannel)
 {
     prefix_tree<char, std::string> tree;
     tree.add("", "root");
 
     mem_device dev("x");
-    istreambuf sb(dev);
-    istreambuf_iterator beg(sb);
+    ichannel chan(dev);
+    ichannel_iterator beg(chan);
     decltype(beg) end;
 
     decltype(tree)::match_out_type out{};
@@ -405,7 +405,7 @@ TEST(PrefixTree, RootValueLargeValueStreambuf)
     EXPECT_EQ(*it, 'x');
 }
 
-TEST(PrefixTree, FullMatchLargeValueStreambufAtEnd)
+TEST(PrefixTree, FullMatchLargeValueChannelAtEnd)
 {
     prefix_tree<char, std::string> tree;
     tree.add("abc", "value");
@@ -413,8 +413,8 @@ TEST(PrefixTree, FullMatchLargeValueStreambufAtEnd)
     // Ending exactly at the key exercises the loop's sentinel exit, while the
     // large value takes the pointer-returning match path.
     mem_device dev("abc");
-    istreambuf sb(dev);
-    istreambuf_iterator beg(sb);
+    ichannel chan(dev);
+    ichannel_iterator beg(chan);
     decltype(beg) end;
 
     decltype(tree)::match_out_type out{};

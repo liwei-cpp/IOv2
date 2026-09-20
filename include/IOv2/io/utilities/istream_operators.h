@@ -27,7 +27,7 @@
 #include <IOv2/facet/ctype.h>
 #include <IOv2/io/traits/traits_base.h>
 #include <IOv2/io/io_base.h>
-#include <IOv2/io/streambuf_iterator.h>
+#include <IOv2/io/iochannel_iterator.h>
 #include <IOv2/locale/locale.h>
 
 #include <concepts>
@@ -120,7 +120,7 @@ struct in_sentry
             tied->try_flush();
 
         if constexpr (involve_output)
-            is.m_streambuf.switch_to_get();
+            is.m_channel.switch_to_get();
 
         if (!noskip)
         {
@@ -129,11 +129,11 @@ struct in_sentry
                 auto ct = is.m_locale.template get<IOv2::ctype<typename TStream::char_type>>();
                 if (!ct)
                     throw stream_error{"istream ignore_ws fail: no ctype facet"};
-                auto c = is.m_streambuf.sgetc();
+                auto c = is.m_channel.getc();
                 while (c.has_value() &&
                         ct->is_any(base_ft<ctype>::space, c.value()))
                 {
-                    c = is.m_streambuf.snextc();
+                    c = is.m_channel.nextc();
                 }
 
                 if (!c.has_value())
@@ -572,7 +572,7 @@ struct istream_operators
         {
             using sentry_type = typename TSelf::in_sentry_type;
             sentry_type cerb(self, true);
-            c = self.m_streambuf.sbumpc();
+            c = self.m_channel.bumpc();
             if (!c.has_value())
             {
                 at_eof = true;
@@ -617,7 +617,7 @@ struct istream_operators
         {
             using sentry_type = typename TSelf::in_sentry_type;
             sentry_type cerb(self, true);
-            auto tmp = self.m_streambuf.sbumpc();
+            auto tmp = self.m_channel.bumpc();
             if (tmp.has_value()) c = tmp.value();
             else
             {
@@ -718,14 +718,14 @@ struct istream_operators
             if (n == 0)
                 throw stream_error("istream get fail: zero buffer size");
             const auto cap = static_cast<std::size_t>(n);
-            auto c = self.m_streambuf.sgetc();
+            auto c = self.m_channel.getc();
             while ((gcount + is_cstr < cap) &&
                    (c.has_value()) &&
                    (c.value() != delim))
             {
                 *s++ = c.value();
                 ++gcount;
-                c = self.m_streambuf.snextc();
+                c = self.m_channel.nextc();
             }
 
             at_eof = (gcount + is_cstr < cap) && (!c.has_value());
@@ -736,7 +736,7 @@ struct istream_operators
                 {
                     if (c.value() == delim)
                     {
-                        self.m_streambuf.sbumpc();
+                        self.m_channel.bumpc();
                         ++gcount;
                     }
                     else
@@ -869,7 +869,7 @@ struct istream_operators
         {
             using sentry_type = typename TSelf::in_sentry_type;
             sentry_type cerb(self, true);
-            c = self.m_streambuf.sgetc();
+            c = self.m_channel.getc();
             if (!c.has_value()) throw eof_error{};
         }
         catch(...)
@@ -931,7 +931,7 @@ struct istream_operators
             if (s == nullptr && n != 0)
                 throw stream_error{"istream read fail: null character sequence"};
             const auto count = static_cast<std::size_t>(n);
-            self.m_streambuf.sgetn(s, count, &gcount);
+            self.m_channel.getn(s, count, &gcount);
             if (gcount != count)
             {
                 at_eof = true;
@@ -974,12 +974,12 @@ struct istream_operators
 
             for (std::size_t gcount = 0; gcount < n; ++gcount)
             {
-                if (self.m_streambuf.is_eof())
+                if (self.m_channel.is_eof())
                 {
                     at_eof = true;
                     break;
                 }
-                self.m_streambuf.sbumpc();
+                self.m_channel.bumpc();
             }
 
             if (at_eof)
@@ -1030,13 +1030,13 @@ struct istream_operators
             sentry_type cerb(self, true);
             if (n == 0) return self;
 
-            auto c = self.m_streambuf.sgetc();
+            auto c = self.m_channel.getc();
             while (gcount < n
                     && c.has_value()
                     && (c.value() != delim))
             {
                 ++gcount;
-                c = self.m_streambuf.snextc();
+                c = self.m_channel.nextc();
             }
 
             at_eof = (gcount < n) && (!c.has_value());
@@ -1046,7 +1046,7 @@ struct istream_operators
                 if (c.has_value())
                 {
                     ++gcount;
-                    self.m_streambuf.sbumpc();
+                    self.m_channel.bumpc();
                 }
             }
 
@@ -1093,7 +1093,7 @@ struct istream_operators
             using sentry_type = typename TSelf::in_sentry_type;
             sentry_type cerb(self, true);
             self.unset_state(IOv2::ios_defs::eofbit);
-            self.m_streambuf.sputbackc(c);
+            self.m_channel.putbackc(c);
         }
         catch(...)
         {
@@ -1108,8 +1108,8 @@ struct istream_operators
      * @brief 取输入迭代器；可选地附加一个“已观察到输入结束”的报告位。
      * @tparam TSelf 派生的具体流类型（由 deducing-this 推导）。
      * @param saw_eof 可选的报告位；生存期必须覆盖迭代器及其所有副本，`nullptr` 表示不
-     *                上报。详见 istreambuf_iterator。
-     * @return 绑定到本流缓冲区的 `istreambuf_iterator`。
+     *                上报。详见 ichannel_iterator。
+     * @return 绑定到本通道的 `ichannel_iterator`。
      * @note 返回类型写成 `TSelf::in_iter_type` 而不是 `auto`，使探测那一侧
      *       （`detail::extractable_with_iter`）看到的别名与实现不可能漂移。
      * @endif
@@ -1117,8 +1117,8 @@ struct istream_operators
      * @brief Gets an input iterator; optionally attaches an "observed end of input" flag.
      * @tparam TSelf The concrete derived stream type (deduced via deducing-this).
      * @param saw_eof Optional report flag; its lifetime must cover the iterator and all
-     *                copies, `nullptr` means do not report. See istreambuf_iterator.
-     * @return An `istreambuf_iterator` bound to this stream's buffer.
+     *                copies, `nullptr` means do not report. See ichannel_iterator.
+     * @return An `ichannel_iterator` bound to this stream's buffer.
      * @note The return type is spelled `TSelf::in_iter_type` rather than `auto`, so the alias the
      *       probing side (`detail::extractable_with_iter`) sees and the implementation cannot
      *       drift apart.
@@ -1128,7 +1128,7 @@ private:
     template <typename TSelf>
     typename TSelf::in_iter_type i_iter(this TSelf& self, bool* saw_eof = nullptr)
     {
-        return istreambuf_iterator(self.m_streambuf, saw_eof);
+        return ichannel_iterator(self.m_channel, saw_eof);
     }
 
     /**

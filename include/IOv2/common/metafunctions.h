@@ -185,9 +185,9 @@ namespace IOv2
      *
      * 标准的迭代器分类里没有"单趟但可后退"这一档：`std::bidirectional_iterator` 蕴含
      * `forward_iterator`，因而要求 multi-pass 保证与真正的引用语义。这两条对
-     * `stamp_input_iterator<istreambuf_iterator<...>>` 都不成立——它的流位置在共享的
-     * streambuf 里（递增一个副本会改变原件看到的内容），`operator*` 也只返回纯右值；
-     * 但它靠内部记录的回退日志确实提供了 `operator--`（经 `sputbackc` 把字符放回）。
+     * `stamp_input_iterator<ichannel_iterator<...>>` 都不成立——它的流位置在共享的
+     * iochannel 里（递增一个副本会改变原件看到的内容），`operator*` 也只返回纯右值；
+     * 但它靠内部记录的回退日志确实提供了 `operator--`（经 `putbackc` 把字符放回）。
      *
      * 于是"需要回退"的算法不能拿 `std::bidirectional_iterator` 当代理：这样写会漏掉上面
      * 那种迭代器，而给它贴双向标签又是谎报。本概念直接命名"能后退"这一能力本身，让约束
@@ -209,8 +209,8 @@ namespace IOv2
      * The standard iterator taxonomy has no category for "single-pass yet able to step
      * back": `std::bidirectional_iterator` implies `forward_iterator`, and so demands the
      * multi-pass guarantee and true reference semantics. Neither holds for
-     * `stamp_input_iterator<istreambuf_iterator<...>>`, whose stream position lives in the
-     * shared streambuf (incrementing a copy changes what the original observes) and whose
+     * `stamp_input_iterator<ichannel_iterator<...>>`, whose stream position lives in the
+     * shared iochannel (incrementing a copy changes what the original observes) and whose
      * `operator*` yields a prvalue -- yet it does provide `operator--`, putting characters
      * back from an internal log.
      *

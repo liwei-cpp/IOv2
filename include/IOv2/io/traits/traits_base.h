@@ -52,7 +52,7 @@
  * 效果：插入侧是本文件里的 `char_sink_for<TIter, TChar>`，提取侧是
  * `std::is_same_v<TChar, typename TIter::value_type>`。两侧不对称是有意的——输出迭代器连
  * `value_type` 这个 typedef 都不要求存在，所以插入侧只能查可写性；而提取侧实际传进来的只有
- * `istreambuf_iterator` 一族，成员 `value_type` 查得到，直接查它最省事。
+ * `ichannel_iterator` 一族，成员 `value_type` 查得到，直接查它最省事。
  *
  * 两种形式靠**参数个数**区分，一个特化**只能提供其中一种**：两种都提供是编译错误，运算符会就地
  * `static_assert`。插入端还会把 `TValue` 衰退一次再试一遍（这样数组名能衰退成指针、函数名能衰退
@@ -176,7 +176,7 @@
  * `std::is_same_v<TChar, typename TIter::value_type>` on the extraction side. The asymmetry is
  * deliberate: an output iterator is not required to have a `value_type` typedef at all, so the
  * insertion side can only test writability, while the extraction side, whose only real argument
- * is an `istreambuf_iterator`, does have the member and simply tests it.
+ * is an `ichannel_iterator`, does have the member and simply tests it.
  *
  * The two forms are told apart by **arity**, and a specialization may provide **only one of
  * them**: providing both is a compile error, diagnosed by a `static_assert` in the operator. The
@@ -296,7 +296,7 @@ namespace IOv2
  *
  * @note 三个析取项里的前两个都需要，但它们各自覆盖的形状与直觉相反。标准的输出适配器
  *       （`back_insert_iterator` / `front_insert_iterator` / `insert_iterator` /
- *       `ostream_iterator` / `ostreambuf_iterator`）虽然都声明了**成员** `value_type = void`，
+ *       `ostream_iterator` / `ochannel_iterator`）虽然都声明了**成员** `value_type = void`，
  *       它们的 `std::iter_value_t` 却是 **ill-formed** 而不是 `void`，因此**全部**由
  *       `!requires` 那一项兜住——这也正是本合取项查 `iter_value_t` 而不查成员的用处所在。
  *       `is_void_v` 那一项**够不到任何标准适配器**，它覆盖的是显式特化了
@@ -342,7 +342,7 @@ namespace IOv2
  * @note The first two of the three disjuncts are both needed, but what each one covers is the
  *       opposite of what one would guess. The standard output adaptors
  *       (`back_insert_iterator`, `front_insert_iterator`, `insert_iterator`, `ostream_iterator`,
- *       `ostreambuf_iterator`) all declare a **member** `value_type` of `void`, yet their
+ *       `ochannel_iterator`) all declare a **member** `value_type` of `void`, yet their
  *       `std::iter_value_t` is **ill-formed** rather than `void`, so the leading `!requires`
  *       absorbs **all** of them -- which is precisely what testing `iter_value_t` instead of the
  *       member buys. The `is_void_v` disjunct reaches **no standard adaptor at all**; it covers

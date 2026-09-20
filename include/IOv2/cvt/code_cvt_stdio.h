@@ -275,7 +275,7 @@ private:
      * @lang{ZH}
      * @brief 把 tainted 的转换器重新附接到同一 fd 并重新初始化。
      *
-     * 等价于 `streambuf::attach()` 对本层做的事：`attach()` 装入缺省构造的同 fd 设备
+     * 等价于 `iochannel::attach()` 对本层做的事：`attach()` 装入缺省构造的同 fd 设备
      * （其内部先 `detach()` 旧设备、刷出根转换器里已提交的数据、清除 taint），再
      * `bos()` + `main_cont_beg()` 回到主内容阶段。旧设备的刷新若再次失败（fd 仍不可写），
      * `attach()` 原样抛出、taint 保持——下一次入口会再试，届时未刷出的数据已被 `detach()`
@@ -285,7 +285,7 @@ private:
      * @lang{EN}
      * @brief Reattaches a tainted converter to the same fd and re-initializes it.
      *
-     * Equivalent to what `streambuf::attach()` does for this layer: `attach()` installs a
+     * Equivalent to what `iochannel::attach()` does for this layer: `attach()` installs a
      * default-constructed device on the same fd (internally detaching the old one, which
      * flushes what the root converter had committed and clears the taint), then `bos()` +
      * `main_cont_beg()` return to the main-content phase. If flushing the old device fails

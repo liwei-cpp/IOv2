@@ -19,8 +19,8 @@
 #include <IOv2/common/defs.h>
 #include <IOv2/device/mem_device.h>
 #include <IOv2/io/io_base.h>
-#include <IOv2/io/streambuf.h>
-#include <IOv2/io/streambuf_iterator.h>
+#include <IOv2/io/iochannel.h>
+#include <IOv2/io/iochannel_iterator.h>
 
 #include <gtest/gtest.h>
 
@@ -168,8 +168,8 @@ namespace
                                      const std::u32string& input, const std::u32string& seed)
     {
         parse_result res{true, seed, {}};
-        streambuf    sb(mem_device{input});
-        auto         beg = istreambuf_iterator(sb);
+        iochannel    chan(mem_device{input});
+        auto         beg = ichannel_iterator(chan);
         try
         {
             auto it = obj.get(beg, std::default_sentinel, intl, io, res.digits);
@@ -191,7 +191,7 @@ namespace
         SCOPED_TRACE(::testing::PrintToString(input));
         for (bool streamed : {false, true})
         {
-            SCOPED_TRACE(streamed ? "streambuf iterator" : "string iterator");
+            SCOPED_TRACE(streamed ? "iochannel iterator" : "string iterator");
             const parse_result r = streamed ? parse_over_a_stream(obj, intl, io, input, U"")
                                             : parse_over_pointers(obj, intl, io, input, U"");
             EXPECT_TRUE(r.ok);
@@ -209,7 +209,7 @@ namespace
         const std::u32string seed = U"untouched";
         for (bool streamed : {false, true})
         {
-            SCOPED_TRACE(streamed ? "streambuf iterator" : "string iterator");
+            SCOPED_TRACE(streamed ? "iochannel iterator" : "string iterator");
             const parse_result r = streamed ? parse_over_a_stream(obj, intl, io, input, seed)
                                             : parse_over_pointers(obj, intl, io, input, seed);
             EXPECT_FALSE(r.ok);
@@ -736,11 +736,11 @@ TEST(MonetaryChar32, PutWritesThroughAnOutputIteratorOntoAStream)
     const monetary<char32_t> obj(tuned()->fraction(2).groups({3}).separator(U',')
                                     .both(kSymbolSignValue).ptr());
 
-    streambuf sb{mem_device<char32_t>{U""}};
-    obj.put(ostreambuf_iterator(sb), false, ios, std::u32string(U"123456"));
-    obj.put(ostreambuf_iterator(sb), true, ios, std::u32string(U"123456"));
-    sb.flush();
-    EXPECT_EQ(sb.device().str(), U"1,234.56123,456");
+    iochannel chan{mem_device<char32_t>{U""}};
+    obj.put(ochannel_iterator(chan), false, ios, std::u32string(U"123456"));
+    obj.put(ochannel_iterator(chan), true, ios, std::u32string(U"123456"));
+    chan.flush();
+    EXPECT_EQ(chan.device().str(), U"1,234.56123,456");
 }
 
 // The same fill vetting as on the writing side, but from the reader's end: a run

@@ -20,7 +20,7 @@
  *
  * get() is written against a sentinel so it can read a stream it cannot back up
  * in, so every parse here is run twice: once over a string's iterators and once
- * over an istreambuf_iterator.
+ * over an ichannel_iterator.
  */
 #include <IOv2/facet/ctype_details.h>
 #include <IOv2/facet/numeric.h>
@@ -30,8 +30,8 @@
 #include <IOv2/device/mem_device.h>
 #include <IOv2/facet/ctype.h>
 #include <IOv2/io/io_base.h>
-#include <IOv2/io/streambuf.h>
-#include <IOv2/io/streambuf_iterator.h>
+#include <IOv2/io/iochannel.h>
+#include <IOv2/io/iochannel_iterator.h>
 
 #include <gtest/gtest.h>
 
@@ -151,8 +151,8 @@ namespace
                                            const std::string& input, TVal seed)
     {
         parse_result<TVal> res{true, seed, {}};
-        streambuf          sb(mem_device{input});
-        auto               beg = istreambuf_iterator(sb);
+        iochannel          chan(mem_device{input});
+        auto               beg = ichannel_iterator(chan);
         try
         {
             auto it  = obj.get(beg, std::default_sentinel, io, res.value);
@@ -174,7 +174,7 @@ namespace
         SCOPED_TRACE(::testing::PrintToString(input));
         for (bool streamed : {false, true})
         {
-            SCOPED_TRACE(streamed ? "streambuf iterator" : "string iterator");
+            SCOPED_TRACE(streamed ? "iochannel iterator" : "string iterator");
             const auto r = streamed ? parse_over_a_stream(obj, io, input, TVal{})
                                     : parse_over_pointers(obj, io, input, TVal{});
             EXPECT_TRUE(r.ok);
@@ -192,7 +192,7 @@ namespace
         SCOPED_TRACE(::testing::PrintToString(input));
         for (bool streamed : {false, true})
         {
-            SCOPED_TRACE(streamed ? "streambuf iterator" : "string iterator");
+            SCOPED_TRACE(streamed ? "iochannel iterator" : "string iterator");
             const auto r = streamed ? parse_over_a_stream(obj, io, input, TVal{})
                                     : parse_over_pointers(obj, io, input, TVal{});
             EXPECT_FALSE(r.ok);
@@ -206,7 +206,7 @@ namespace
         SCOPED_TRACE(::testing::PrintToString(input));
         for (bool streamed : {false, true})
         {
-            SCOPED_TRACE(streamed ? "streambuf iterator" : "string iterator");
+            SCOPED_TRACE(streamed ? "iochannel iterator" : "string iterator");
             const auto r = streamed ? parse_over_a_stream(obj, io, input, TVal{})
                                     : parse_over_pointers(obj, io, input, TVal{});
             EXPECT_FALSE(r.ok);
