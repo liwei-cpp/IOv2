@@ -7,7 +7,7 @@
  * 定义标准输入流的实现模板 `stdin_api`，以及两个标准输入流对象 `cin`（`char`）与 `wcin`
  * （`wchar_t`）。
  *
- * `stdin_api` 不由 `istream` 派生，而是同样把一条 `istreambuf`（其下依次是转换器管线与固定 fd
+ * `stdin_api` 不由 `istream` 派生，而是同样把一条 `ichannel`（其下依次是转换器管线与固定 fd
  * 的设备 `std_device<STDIN_FILENO>`）与一个 `locale` 组合起来，对外接口来自 `ios_state`（状态位
  * 与异常掩码）、`istream_operators`（输入操作）与 `stream_common_operators`（`tell()` /
  * `locale()` 等）三个基类。与 `istream` 的差别都来自「设备是固定 fd 的进程级单例」：多了
@@ -31,7 +31,7 @@
  * Defines `stdin_api`, the implementation template behind the standard input streams, along
  * with the two standard input stream objects `cin` (`char`) and `wcin` (`wchar_t`).
  *
- * `stdin_api` does not derive from `istream`; it combines, in the same way, an `istreambuf`
+ * `stdin_api` does not derive from `istream`; it combines, in the same way, an `ichannel`
  * (below which sit the converter pipeline and the fixed-fd device `std_device<STDIN_FILENO>`)
  * with a `locale`, and takes its interface from three bases -- `ios_state` (the state bits and
  * the exception mask), `istream_operators` (the input operations) and
@@ -68,8 +68,8 @@
 #include <IOv2/device/std_device.h>
 #include <IOv2/io/io_base.h>
 #include <IOv2/io/objects/out_impl.h>
-#include <IOv2/io/streambuf.h>
-#include <IOv2/io/streambuf_iterator.h>
+#include <IOv2/io/iochannel.h>
+#include <IOv2/io/iochannel_iterator.h>
 #include <IOv2/io/utilities/istream_operators.h>
 #include <IOv2/io/utilities/stream_common_operators.h>
 #include <IOv2/locale/locale.h>
@@ -98,17 +98,17 @@ public:
     using device_type = TDevice;
     using char_type = TChar;
     using in_sentry_type = in_sentry<T, false>;
-    using in_iter_type = istreambuf_iterator<istreambuf<device_type, char_type>>;
+    using in_iter_type = ichannel_iterator<ichannel<device_type, char_type>>;
     friend in_sentry_type;
 
 public:
     stdin_api()
-        : m_streambuf(device_type{}, false)
+        : m_channel(device_type{}, false)
     {}
 
     template <cvt_creator TCreator>
     stdin_api(const TCreator& creator)
-        : m_streambuf(device_type{}, creator, false)
+        : m_channel(device_type{}, creator, false)
     {}
 
 public:
@@ -116,10 +116,10 @@ public:
      * @lang{ZH}
      * @brief 切换本流是否与 C stdio 同步：同步时逐字节读 `stdin`，不同步时自带读缓冲。
      *
-     * 切换意味着换掉整个 streambuf（先 `detach()` 旧的，再以同一设备重建）。已缓冲但未消费的
-     * 输入按 `io/streambuf.h` 的 `detach()` 契约丢弃；因此应在任何 stdin 读取之前调用，也**不得**在
+     * 切换意味着换掉整个 iochannel（先 `detach()` 旧的，再以同一设备重建）。已缓冲但未消费的
+     * 输入按 `io/iochannel.h` 的 `detach()` 契约丢弃；因此应在任何 stdin 读取之前调用，也**不得**在
      * 一次提取进行中（例如用户 `io_traits::sread` 里）重入调用：`io_mutex()` 是递归锁不会拦，
-     * 但正在使用的 streambuf 会被整个换掉。
+     * 但正在使用的 iochannel 会被整个换掉。
      *
      * @warning 这里的「同步」只表示**不带读缓冲、每次 `read(0)` 只要本次操作所需的字节**
      *          （格式化提取与 `get` / `getline` 因逐字符探分隔符而逐字节，`read(buf, n)` 则是
@@ -133,16 +133,16 @@ public:
      *          本流与 C stdio 函数或另一条标准输入流。
      *
      * 查询当前状态请用 `synced_with_stdio()`：本函数的无参形式等于 `sync_with_stdio(true)`，
-     * 会真的切换——在输入流上「调一次查、再调一次设回去」等于重建两次 streambuf，已缓冲的
+     * 会真的切换——在输入流上「调一次查、再调一次设回去」等于重建两次 iochannel，已缓冲的
      * 输入随之丢失。
      *
-     * 失败按本库统一的方式报告：置状态位，`exceptions()` 掩码含该位时才抛出。重建 streambuf
+     * 失败按本库统一的方式报告：置状态位，`exceptions()` 掩码含该位时才抛出。重建 iochannel
      * 只可能因内存耗尽或（`wchar_t`）当前编码的 locale 数据库在运行期间消失而失败——都是运行
      * 环境已坏的情形，实际不可达。
      *
      * @param sync `true` 为同步（默认），`false` 为自带缓冲。
      * @return 调用前的同步状态；重建失败时同步状态未改变，返回的就是当前状态。
-     * @note 重建失败时旧 streambuf 已经 detach、新的没建起来，流停在**未附接**状态：此后每次
+     * @note 重建失败时旧 iochannel 已经 detach、新的没建起来，流停在**未附接**状态：此后每次
      *       操作都按状态位失败（`clear()` 之后是 `cvtfailbit`），`clear()` 不够，须 `reset()`
      *       在同一 fd 上重新附接。同步标志保持原值，因此「流报告的模式」与「它实际怎么读」始终一致。
      *       本函数不像别的失败那样只是「这一次没做成」，而是会让流暂时不可用，故值得单独提醒。
@@ -152,11 +152,11 @@ public:
      * @brief Switches whether this stream is synchronized with C stdio: synchronized
      * reads `stdin` byte by byte, unsynchronized reads through its own buffer.
      *
-     * Switching replaces the whole streambuf (`detach()` the old one, rebuild on the
+     * Switching replaces the whole iochannel (`detach()` the old one, rebuild on the
      * same device). Input that was buffered but not yet consumed is discarded per the
-     * `detach()` contract in `io/streambuf.h`; call this before any stdin read, and **never**
+     * `detach()` contract in `io/iochannel.h`; call this before any stdin read, and **never**
      * re-enter it from inside an extraction (a user `io_traits::sread`, say): `io_mutex()`
-     * is recursive and will not stop it, but the streambuf in use is replaced wholesale.
+     * is recursive and will not stop it, but the iochannel in use is replaced wholesale.
      *
      * @warning "Synchronized" here means **no read buffer: each `read(0)` asks for just what
      *          the current operation needs** (formatted extraction and `get` / `getline` go
@@ -176,19 +176,19 @@ public:
      *
      * To ask for the current state use `synced_with_stdio()`: with no argument this one means
      * `sync_with_stdio(true)` and does switch -- on an input stream, "call once to read it,
-     * call again to put it back" rebuilds the streambuf twice and loses whatever it had
+     * call again to put it back" rebuilds the iochannel twice and loses whatever it had
      * buffered.
      *
      * A failure is reported the way this library reports every other one: a state bit is
      * set, and it throws only when the `exceptions()` mask includes that bit. Rebuilding the
-     * streambuf can only fail on memory exhaustion or, on `wchar_t`, when the locale database
+     * iochannel can only fail on memory exhaustion or, on `wchar_t`, when the locale database
      * of the current code vanished while the process runs -- a broken runtime environment,
      * unreachable in practice.
      *
      * @param sync `true` for synchronized (the default), `false` for own buffering.
      * @return The synchronization state before the call; when the rebuild fails the state is
      *         unchanged, so that is also the current one.
-     * @note When the rebuild fails the old streambuf has been detached and the new one was
+     * @note When the rebuild fails the old iochannel has been detached and the new one was
      *       never built, leaving the stream **unattached**: every operation then fails through
      *       the state bits (`cvtfailbit` once `clear()`ed), `clear()` is not enough, and
      *       `reset()` is what attaches a fresh device on the same fd. The flag keeps its old
@@ -204,23 +204,23 @@ public:
         if (old_sync_state == sync)
             return old_sync_state;
 
-        auto [dev, err] = m_streambuf.detach();
+        auto [dev, err] = m_channel.detach();
         try {
             if constexpr (std::is_same_v<char_type, char>)
-                m_streambuf = istreambuf<device_type, char_type>(std::move(dev), !sync);
+                m_channel = ichannel<device_type, char_type>(std::move(dev), !sync);
             else if constexpr (std::is_same_v<char_type, wchar_t>)
             {
-                // Straight from the streambuf, not through code(): that wrapper reports a
+                // Straight from the iochannel, not through code(): that wrapper reports a
                 // failure as a state bit and an empty name, which would rebuild on the
                 // environment's encoding instead of the current one.
                 code_cvt_access acc;
-                m_streambuf.retrieve(acc);
-                m_streambuf = istreambuf<device_type, wchar_t>(std::move(dev), code_cvt_stdio_creator(acc.code), !sync);
+                m_channel.retrieve(acc);
+                m_channel = ichannel<device_type, wchar_t>(std::move(dev), code_cvt_stdio_creator(acc.code), !sync);
             }
             else
                 static_assert(dependent_false_v<char_type>, "invalid character type");
         } catch (...) {
-            // The streambuf was detached and the new one was never built: every
+            // The iochannel was detached and the new one was never built: every
             // operation now fails through the state bits until reset() attaches a
             // fresh device. The flag stays where it was, so what the stream reports
             // and how it actually reads still agree.
@@ -260,7 +260,7 @@ public:
      * @lang{ZH}
      * `stream_common_operators` 的换设备接口在标准流上删除：本流的设备是固定的 fd 0，取出去
      * 就再也装不回来，换进去等于给一个进程级单例改写底层来源。需要「在同一 fd 上从头开始」
-     * 请用 `reset()`（它走的是 streambuf 那一层的 `attach()`，装一个同 fd 的缺省设备）。
+     * 请用 `reset()`（它走的是 iochannel 那一层的 `attach()`，装一个同 fd 的缺省设备）。
      * @endif
      *
      * @lang{EN}
@@ -268,7 +268,7 @@ public:
      * streams: this stream's device is the fixed fd 0, taking it out leaves no way to put it
      * back, and putting another one in rewrites the source of a process-wide singleton. To
      * start over on the same fd use `reset()`, which goes through the `attach()` one layer
-     * down, in the streambuf, with a default device on the same fd.
+     * down, in the iochannel, with a default device on the same fd.
      * @endif
      */
     std::pair<device_type, std::exception_ptr> detach() = delete;
@@ -295,7 +295,7 @@ public:
      *       全部分配失败且 fd 指向 `/dev/full` 时 `reset()` 均 0 次分配、状态位全 0。围住它的
      *       `handle_exception` 只是兜底：若将来这里真抛了什么，转换器会停在未初始化状态，流不可用，
      *       须再次 `reset()`，`clear()` 不够。丢弃缓冲这一步在 fd 0 上同样不会失败（stdin 不可定位，
-     *       重定位那步的异常在 `streambuf::detach` 里就被有意吞掉了），置 `devfailbit` 的那条路在这里
+     *       重定位那步的异常在 `iochannel::detach` 里就被有意吞掉了），置 `devfailbit` 的那条路在这里
      *       走不到；除输出侧多一步旧设备 `dflush()` 外，形状与 `stdout_api::reset()` 一致。
      * @endif
      *
@@ -330,7 +330,7 @@ public:
      *       uninitialized, the stream is unusable, and another `reset()` is required --
      *       `clear()` is not enough. Dropping the buffer cannot fail on fd 0 either (stdin is
      *       not positionable, and the exception from that reposition is swallowed on purpose
-     *       in `streambuf::detach`), so the `devfailbit` path is unreachable here; apart from
+     *       in `iochannel::detach`), so the `devfailbit` path is unreachable here; apart from
      *       the output side's extra `dflush()` of the old device, the shape is the same as
      *       `stdout_api::reset()`.
      * @endif
@@ -341,9 +341,9 @@ public:
         this->clear();
         this->exceptions(ios_defs::goodbit);
 
-        auto detached = m_streambuf.detach();
+        auto detached = m_channel.detach();
 
-        try { m_streambuf.attach(); }
+        try { m_channel.attach(); }
         catch (...) { this->handle_exception(std::current_exception()); }
 
         if (detached.second) this->handle_exception(detached.second);
@@ -459,9 +459,9 @@ public:
     }
 
 protected:
-    istreambuf<device_type, char_type>      m_streambuf;
+    ichannel<device_type, char_type>      m_channel;
     IOv2::locale<char_type>                 m_locale;
-    copyable_atomic<bool> m_sync_with_stdio{true};   ///< @lang{ZH} 为 true 时逐字节读 `stdin`，为 false 时自带读缓冲；该语义在构造 streambuf 时就固化进 kernel 类型，故除本标志的读写外无人查询它。写入在 `io_mutex()` 之下，原子量只为让 `synced_with_stdio()` 与全库其它查询函数一样无锁读取。 @endif @lang{EN} When true this stream reads `stdin` byte by byte, when false through its own buffer; that semantics is baked into the kernel type when the streambuf is built, so nothing but this flag's own reads and writes consults it. Writes happen under `io_mutex()`; the atomic is only so that `synced_with_stdio()` reads lock-free like the library's other query functions. @endif
+    copyable_atomic<bool> m_sync_with_stdio{true};   ///< @lang{ZH} 为 true 时逐字节读 `stdin`，为 false 时自带读缓冲；该语义在构造 iochannel 时就固化进 kernel 类型，故除本标志的读写外无人查询它。写入在 `io_mutex()` 之下，原子量只为让 `synced_with_stdio()` 与全库其它查询函数一样无锁读取。 @endif @lang{EN} When true this stream reads `stdin` byte by byte, when false through its own buffer; that semantics is baked into the kernel type when the iochannel is built, so nothing but this flag's own reads and writes consults it. Writes happen under `io_mutex()`; the atomic is only so that `synced_with_stdio()` reads lock-free like the library's other query functions. @endif
 };
 
 /// cin

@@ -21,8 +21,8 @@
 #include <IOv2/io/io_base.h>
 #include <IOv2/io/iostream.h>
 #include <IOv2/io/istream.h>
-#include <IOv2/io/streambuf.h>
-#include <IOv2/io/streambuf_iterator.h>
+#include <IOv2/io/iochannel.h>
+#include <IOv2/io/iochannel_iterator.h>
 #include <IOv2/io/traits/char_and_str.h>
 #include <IOv2/io/utilities/istream_operators.h>
 #include <IOv2/io/utilities/stream_common_operators.h>
@@ -50,7 +50,7 @@ namespace
         int mark = 50;
     };
 
-    using probe_iter = istreambuf_iterator<istreambuf<mem_device<char>, char>>;
+    using probe_iter = ichannel_iterator<ichannel<mem_device<char>, char>>;
 
     // Everything istream_type asks for except the state: ios_base alone.
     struct stateless_is : ios_base<char>

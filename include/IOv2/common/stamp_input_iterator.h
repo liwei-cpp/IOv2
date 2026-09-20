@@ -12,7 +12,7 @@
  */
 
 #pragma once
-#include <IOv2/common/streambuf_defs.h>
+#include <IOv2/common/iochannel_defs.h>
 
 #include <compare>
 #include <forward_list>
@@ -227,33 +227,33 @@ private:
 
 /**
  * @lang{ZH}
- * IOv2 istreambuf_iterator 的 stamp_input_iterator 特化。
+ * IOv2 ichannel_iterator 的 stamp_input_iterator 特化。
  *
- * 此特化专为 IOv2::istreambuf_iterator 设计，不兼容 std::istreambuf_iterator。
+ * 此特化专为 IOv2::ichannel_iterator 设计，不兼容 std::istreambuf_iterator。
  * 主要区别：
- *   1. IOv2 的 sputbackc() 返回 void 且永不失败（回退区域不设上限）
+ *   1. IOv2 的 putbackc() 返回 void 且永不失败（回退区域不设上限）
  *   2. std::streambuf 的 sputbackc() 返回 int_type 且可能失败（有限的回退区域）
  *
- * istreambuf_iterator 概念约束确保此特化仅匹配 IOv2::istreambuf_iterator 类型。
+ * ichannel_iterator 概念约束确保此特化仅匹配 IOv2::ichannel_iterator 类型。
  *
- * @tparam TIter 必须满足 is_istreambuf_iterator（仅限 IOv2::istreambuf_iterator）
+ * @tparam TIter 必须满足 is_ichannel_iterator（仅限 IOv2::ichannel_iterator）
  * @endif
  *
  * @lang{EN}
- * stamp_input_iterator specialization for IOv2 istreambuf_iterator.
+ * stamp_input_iterator specialization for IOv2 ichannel_iterator.
  *
- * This specialization is designed specifically for IOv2::istreambuf_iterator
+ * This specialization is designed specifically for IOv2::ichannel_iterator
  * and is NOT compatible with std::istreambuf_iterator. Key differences:
- *   1. IOv2's sputbackc() returns void and never fails (unbounded putback area)
+ *   1. IOv2's putbackc() returns void and never fails (unbounded putback area)
  *   2. std::streambuf's sputbackc() returns int_type and may fail (limited putback area)
  *
- * The istreambuf_iterator concept constraint ensures this specialization
- * only matches IOv2::istreambuf_iterator types.
+ * The ichannel_iterator concept constraint ensures this specialization
+ * only matches IOv2::ichannel_iterator types.
  *
- * @tparam TIter Must satisfy is_istreambuf_iterator (IOv2::istreambuf_iterator only)
+ * @tparam TIter Must satisfy is_ichannel_iterator (IOv2::ichannel_iterator only)
  * @endif
  */
-template <is_istreambuf_iterator TIter>
+template <is_ichannel_iterator TIter>
 struct stamp_input_iterator<TIter>
 {
     stamp_input_iterator()
@@ -295,7 +295,7 @@ struct stamp_input_iterator<TIter>
         if (m_rec.empty())
             throw std::runtime_error("stamp_input_iterator fail, cannot move backward");
 
-        m_internal.sputbackc(m_rec.front());
+        m_internal.putbackc(m_rec.front());
         m_rec.pop_front();
         return *this;
     }
@@ -307,20 +307,20 @@ struct stamp_input_iterator<TIter>
      * @lang{ZH}
      * 回滚到初始位置。
      *
-     * 将所有记录的字符放回流缓冲区。
+     * 将所有记录的字符放回通道。
      * @endif
      *
      * @lang{EN}
      * Rollback to the initial position.
      *
-     * Puts back all recorded characters to the stream buffer.
+     * Puts back all recorded characters to the channel.
      * @endif
      */
     void rollback()
     {
         while (!m_rec.empty())
         {
-            m_internal.sputbackc(m_rec.front());
+            m_internal.putbackc(m_rec.front());
             m_rec.pop_front();
         }
     }

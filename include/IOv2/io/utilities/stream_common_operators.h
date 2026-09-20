@@ -119,7 +119,7 @@ struct stream_common_operators
      *       且全程没有任何一次 `tie()` 调用；此后任意一次 `tie()` 都会在持有进程级全局锁的
      *       情况下永久自旋。
      * @note **移动为何还要清空源。** tie 边是驱动 flush 的功能性状态，与移动同样掏空的
-     *       `m_streambuf`、`m_locale` 同类。若不清空，一个被移走的流仍会继续静默地刷新一个
+     *       `m_channel`、`m_locale` 同类。若不清空，一个被移走的流仍会继续静默地刷新一个
      *       调用方以为早已解除的目标。
      * @note **移后窗口内不得调用 `device()` 与 `detach()`。** 被移走的流**只能由赋值**复活；
      *       `attach()` 复活不了它（其转换器已被掏空，详见 `attach()`）。在复活之前它不持有设备，
@@ -152,7 +152,7 @@ struct stream_common_operators
  *       `b.tie(&c); c.tie(&a); a = b;` closes the cycle `a→c→a` without a single `tie()`
  *       call, after which any `tie()` spins forever while holding a process-wide lock.
  * @note **Why a move also clears the source.** The tie edge is functional state that drives
- *       flushing, like `m_streambuf` and `m_locale`, which a move also empties. Without
+ *       flushing, like `m_channel` and `m_locale`, which a move also empties. Without
  *       clearing, a moved-from stream would keep silently flushing a target the caller believed
  *       it had long since given up.
  * @note **`device()` and `detach()` must not be called inside the moved-from window.** A
@@ -217,7 +217,7 @@ struct stream_common_operators
             return std::nullopt;
         try
         {
-            return self.m_streambuf.tell();
+            return self.m_channel.tell();
         }
         catch(...)
         {
@@ -253,7 +253,7 @@ struct stream_common_operators
         try
         {
             self.unset_state(ios_defs::eofbit);
-            self.m_streambuf.seek(pos);
+            self.m_channel.seek(pos);
         }
         catch(...)
         {
@@ -289,7 +289,7 @@ struct stream_common_operators
         try
         {
             self.unset_state(ios_defs::eofbit);
-            self.m_streambuf.rseek(pos);
+            self.m_channel.rseek(pos);
         }
         catch(...)
         {
@@ -337,7 +337,7 @@ struct stream_common_operators
     template <typename TSelf>
     auto& device(this TSelf& self)
     {
-        return self.m_streambuf.device();
+        return self.m_channel.device();
     }
 
     /**
@@ -411,7 +411,7 @@ struct stream_common_operators
     auto detach(this TSelf& self) noexcept
     {
         std::lock_guard guard(self.io_mutex());
-        return self.m_streambuf.detach();
+        return self.m_channel.detach();
     }
 
     /**
@@ -425,7 +425,7 @@ struct stream_common_operators
      * 必须自己记得 `clear()`，"换个设备重试"这条本该走通的恢复路径就断了。
      *
      * @note 清状态必须排在换设备**之前**，否则失败路径上留下的是新旧混合的状态：底层的
-     *       `streambuf::attach()` 先装入新设备、再初始化转换器，且没有回滚。清在前面，失败后的
+     *       `iochannel::attach()` 先装入新设备、再初始化转换器，且没有回滚。清在前面，失败后的
      *       状态就只描述这一次 `attach()`。
      * @warning 抛异常的是**前一步**：`root_cvt::attach()` 内部先 `detach()` 旧设备，在输出方向上
      *          那一步会 `flush()`，写失败的异常被它留到最后重抛（`root_cvt.h:476-486`）。异常因此
@@ -461,7 +461,7 @@ struct stream_common_operators
      * and retry" recovery path.
      *
  * @note Clearing has to come **before** the replacement, or the failure path is left holding a
- *       mixture of old and new: the underlying `streambuf::attach()` installs the new device
+ *       mixture of old and new: the underlying `iochannel::attach()` installs the new device
  *       first and initializes the converter second, with no rollback. Clearing first leaves a
  *       state that describes only this `attach()`.
  * @warning It is the **first** step that throws: `root_cvt::attach()` starts by detaching the old
@@ -501,7 +501,7 @@ struct stream_common_operators
         try
         {
             self.clear();
-            self.m_streambuf.attach(std::move(dev));
+            self.m_channel.attach(std::move(dev));
         }
         catch (...)
         {
@@ -526,7 +526,7 @@ struct stream_common_operators
     void adjust(this TSelf& self, const cvt_behavior& acc)
     {
         std::lock_guard guard(self.io_mutex());
-        try { self.m_streambuf.adjust(acc); }
+        try { self.m_channel.adjust(acc); }
         catch (...) { self.handle_exception(std::current_exception()); }
     }
 
@@ -547,7 +547,7 @@ struct stream_common_operators
     void retrieve(this TSelf& self, cvt_status& acc)
     {
         std::lock_guard guard(self.io_mutex());
-        try { self.m_streambuf.retrieve(acc); }
+        try { self.m_channel.retrieve(acc); }
         catch (...) { self.handle_exception(std::current_exception()); }
     }
 
@@ -717,7 +717,7 @@ struct stream_common_operators
      *          可能沿垃圾指针继续走，或误报"链上已有环"，**整个进程的 `tie()` 都受影响**。
      *          实参为 `nullptr` 时不触发遍历，不受此影响。
      * @warning **销毁之外，"被移动"同样会让一个 tie 目标失效。** 移动一个流会掏空它的
-     *          `m_streambuf` 与 `m_locale`，但指向它的那些流并不会被更新——它们仍指向这个
+     *          `m_channel` 与 `m_locale`，但指向它的那些流并不会被更新——它们仍指向这个
      *          已被移空的对象。这不会导致未定义行为（`tie()->try_flush()` 会在该目标上置一个失败
      *          位，随后被 sentry 吞掉），但 tie 关系从此**静默失效**：绑定方仍报告 `good()`，
      *          而刷新实际上什么也没做。因此上面那条规则应读作：让 tie 目标既不被销毁、也不被
@@ -824,7 +824,7 @@ struct stream_common_operators
      *          `tie()` in the process is affected**. A `nullptr` argument starts no walk and is
      *          not exposed to this.
      * @warning **Beyond destruction, *being moved from* also invalidates a tie target.**
-     *          Moving a stream empties its `m_streambuf` and `m_locale`, but the streams
+     *          Moving a stream empties its `m_channel` and `m_locale`, but the streams
      *          pointing at it are not updated -- they still point at the emptied object. This
      *          is not undefined behavior (`tie()->try_flush()` sets a failure bit on that target,
      *          which the sentry then swallows), but the tie relationship **fails silently**:

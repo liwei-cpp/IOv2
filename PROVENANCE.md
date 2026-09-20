@@ -145,8 +145,8 @@ Four generic string literals remain in the test tree (`"abcdef"` and
 similar). They are not distinctive.
 
 Five directories — `common/`, `cvt/`, `device/`, `io/`, `locale/` — were found
-clean on their own terms: `locale.h`, `streambuf.h`, `io_base.h` and
-`streambuf_iterator.h` are independent designs with no relation to libstdc++'s
+clean on their own terms: `locale.h`, `iochannel.h`, `io_base.h` and
+`iochannel_iterator.h` are independent designs with no relation to libstdc++'s
 `_Impl` / `_M_word` / `_M_sbuf`, and the `.mo` reader in `messages_details.h`
 is original.
 

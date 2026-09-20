@@ -7,7 +7,7 @@
  * 定义标准输出流的实现模板 `stdout_api`，以及六个标准输出流对象：`cout` / `cerr` / `clog`
  * （`char`）与 `wcout` / `wcerr` / `wclog`（`wchar_t`）。
  *
- * `stdout_api` 不由 `ostream` 派生，而是同样把一条 `ostreambuf`（其下依次是转换器管线与固定 fd
+ * `stdout_api` 不由 `ostream` 派生，而是同样把一条 `ochannel`（其下依次是转换器管线与固定 fd
  * 的设备 `std_device<STDOUT_FILENO>` 或 `std_device<STDERR_FILENO>`）与一个 `locale` 组合起来，
  * 对外接口来自 `ios_state`（状态位与异常掩码）、`out_flusher`（tie 刷新用的多态 `try_flush()`）、
  * `ostream_operators`（输出操作）与 `stream_common_operators`（`tell()` / `locale()` 等）四个
@@ -52,7 +52,7 @@
  * with the six standard output stream objects: `cout` / `cerr` / `clog` (`char`) and
  * `wcout` / `wcerr` / `wclog` (`wchar_t`).
  *
- * `stdout_api` does not derive from `ostream`; it combines, in the same way, an `ostreambuf`
+ * `stdout_api` does not derive from `ostream`; it combines, in the same way, an `ochannel`
  * (below which sit the converter pipeline and the fixed-fd device `std_device<STDOUT_FILENO>`
  * or `std_device<STDERR_FILENO>`) with a `locale`, and takes its interface from four bases --
  * `ios_state` (the state bits and the exception mask), `out_flusher` (the polymorphic
@@ -116,8 +116,8 @@
 #include <IOv2/device/device_concepts.h>
 #include <IOv2/device/std_device.h>
 #include <IOv2/io/io_base.h>
-#include <IOv2/io/streambuf.h>
-#include <IOv2/io/streambuf_iterator.h>
+#include <IOv2/io/iochannel.h>
+#include <IOv2/io/iochannel_iterator.h>
 #include <IOv2/io/utilities/ostream_operators.h>
 #include <IOv2/io/utilities/stream_common_operators.h>
 #include <IOv2/locale/locale.h>
@@ -145,7 +145,7 @@ public:
     using device_type = TDevice;
     using char_type = TChar;
     using out_sentry_type = out_sentry<T, false, true>;
-    using out_iter_type = ostreambuf_iterator<ostreambuf<device_type, char_type>>;
+    using out_iter_type = ochannel_iterator<ochannel<device_type, char_type>>;
 
     friend out_sentry_type;
     friend out_flusher<T>;
@@ -154,11 +154,11 @@ public:
 
 public:
     stdout_api()
-        : m_streambuf(device_type{}) {}
+        : m_channel(device_type{}) {}
 
     template <cvt_creator TCreator>
     stdout_api(const TCreator& creator)
-        : m_streambuf(device_type{}, creator) {}
+        : m_channel(device_type{}, creator) {}
 
 public:
     /**
@@ -262,7 +262,7 @@ public:
             // still hold bytes (root_cvt::flush keeps them for a retry), and leaving
             // them behind would put them after the caller's next printf. A retry that
             // fails again only re-reports the bit that is already set.
-            m_streambuf.flush();
+            m_channel.flush();
         }
         catch (...)
         {
@@ -412,7 +412,7 @@ public:
      * @lang{ZH}
      * `stream_common_operators` 的换设备接口在标准流上删除：本流的设备是固定的 fd 1 / fd 2，
      * 取出去就再也装不回来，换进去等于给一个进程级单例改写底层目标。需要「在同一 fd 上重新
-     * 开始」请用 `reset()`（它走的是 streambuf 那一层的 `attach()`，装一个同 fd 的缺省设备）。
+     * 开始」请用 `reset()`（它走的是 iochannel 那一层的 `attach()`，装一个同 fd 的缺省设备）。
      * @endif
      *
      * @lang{EN}
@@ -420,7 +420,7 @@ public:
      * streams: this stream's device is the fixed fd 1 / fd 2, taking it out leaves no way to
      * put it back, and putting another one in rewrites the target of a process-wide singleton.
      * To start over on the same fd use `reset()`, which goes through the `attach()` one layer
-     * down, in the streambuf, with a default device on the same fd.
+     * down, in the iochannel, with a default device on the same fd.
      * @endif
      */
     std::pair<device_type, std::exception_ptr> detach() = delete;
@@ -457,7 +457,7 @@ public:
      *       `reset()` 均 0 次分配、状态位全 0。围住它的 `handle_exception` 只是兜底：若将来这里
      *       真抛了什么（`cvtfailbit` / `otherfailbit`），转换器会停在未初始化状态，流不可用，
      *       须再次 `reset()`，`clear()` 不够。
-     * @note 实现上是 `detach()` 加 `attach()` 两步，而不是一次 `attach()`：`streambuf::attach()`
+     * @note 实现上是 `detach()` 加 `attach()` 两步，而不是一次 `attach()`：`iochannel::attach()`
      *       会在第一步把旧设备的冲刷失败重抛出来，第二步（初始化转换器）因此不执行，转换器停在
      *       `io_status::neutral`，`clear()` 也救不回——详见 `stream_common_operators::attach()`
      *       上的 `@warning`。`detach()` 是 `noexcept` 的，把那个错误作为返回值交出来，之后的
@@ -507,7 +507,7 @@ public:
      *       `otherfailbit`), the converter is left uninitialized, the stream is unusable, and
      *       another `reset()` is required -- `clear()` is not enough.
      * @note This is implemented as `detach()` plus `attach()`, not as one `attach()`:
-     *       `streambuf::attach()` rethrows the old device's flush failure in its first step, so
+     *       `iochannel::attach()` rethrows the old device's flush failure in its first step, so
      *       its second step (initializing the converter) does not run and the converter is left
      *       in `io_status::neutral`, which `clear()` cannot recover -- see the `@warning` on
      *       `stream_common_operators::attach()`. `detach()` is `noexcept` and hands that error
@@ -521,7 +521,7 @@ public:
         this->clear();
         this->exceptions(ios_defs::goodbit);
 
-        auto detached = m_streambuf.detach();
+        auto detached = m_channel.detach();
 
         try { detached.first.dflush(); }
         catch (...)
@@ -530,14 +530,14 @@ public:
                 detached.second = std::current_exception();
         }
 
-        try { m_streambuf.attach(); }
+        try { m_channel.attach(); }
         catch (...) { this->handle_exception(std::current_exception()); }
 
         if (detached.second) this->handle_exception(detached.second);
     }
 
 protected:
-    ostreambuf<device_type, char_type> m_streambuf;
+    ochannel<device_type, char_type> m_channel;
     IOv2::locale<char_type> m_locale;
     copyable_atomic<bool> m_sync_with_stdio{true};   ///< @lang{ZH} 为 true 时每次插入结束（输出哨兵析构）都把本流缓冲推进 stdio 缓冲；与进程退出时的刷新无关。哨兵在构造时读它一次并沿用到析构，故本标志只影响之后**开始**的插入——切回同步时那批已缓冲的字节由 `sync_with_stdio` 自己持锁搬进 stdio 缓冲。原子量，使标志的翻转与 `synced_with_stdio()` 的查询可与并发输出操作安全竞争。 @endif @lang{EN} When true, every insertion (the output sentry's destructor) pushes this stream's buffer into the stdio buffer; unrelated to the flush at process exit. A sentry reads it once on construction and uses that value through its destructor, so the flag governs the insertions that **start** afterwards -- what was already buffered when switching back to synchronized is moved into stdio's buffer by `sync_with_stdio` itself, under the lock. Atomic so that flipping the flag and querying it through `synced_with_stdio()` are safe against concurrent output operations. @endif
 };

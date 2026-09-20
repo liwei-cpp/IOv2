@@ -18,7 +18,7 @@
  * Reading is the same set of rules backwards, with one addition of its own: get()
  * is written against a sentinel so it can read a stream it cannot back up in.
  * Every parse here therefore runs three times -- over a string's iterators, over
- * a std::list's, and over an istreambuf_iterator -- and the three are required to
+ * a std::list's, and over an ichannel_iterator -- and the three are required to
  * produce the same parse context.
  */
 #include <IOv2/facet/timeio.h>
@@ -27,8 +27,8 @@
 #include <IOv2/common/defs.h>
 #include <IOv2/device/mem_device.h>
 #include <IOv2/io/io_base.h>
-#include <IOv2/io/streambuf.h>
-#include <IOv2/io/streambuf_iterator.h>
+#include <IOv2/io/iochannel.h>
+#include <IOv2/io/iochannel_iterator.h>
 
 #include <gtest/gtest.h>
 
@@ -161,7 +161,7 @@ namespace
 
     // Runs one parse three ways and requires the three to agree: over a string's
     // iterators, over a std::list's -- bidirectional, and not a pointer -- and over
-    // an istreambuf_iterator against a sentinel, which is the shape get() is written
+    // an ichannel_iterator against a sentinel, which is the shape get() is written
     // for and the only one that cannot be backed up or measured in advance.
     //
     // `err_exp` says which of the three outcomes to expect: goodbit for a parse that
@@ -174,8 +174,8 @@ namespace
     {
         time_parse_context<char, HaveDate, HaveTime, TzLevel> ctx1, ctx2, ctx3;
         std::list<char> lst(input.begin(), input.end());
-        streambuf       sb(mem_device{input});
-        auto            beg = istreambuf_iterator(sb);
+        iochannel       chan(mem_device{input});
+        auto            beg = ichannel_iterator(chan);
 
         if ((err_exp & ios_defs::strfailbit) != 0)
         {
@@ -2435,8 +2435,8 @@ TEST(TimeioChar, AWeekdayOrMonthNameIsMatchedTheSameWayFromAStream)
     timeio obj(std::make_shared<timeio_conf<char>>("C"));
     using namespace IOv2;
     {
-        streambuf sb(mem_device{"Mon"});
-        auto beg = istreambuf_iterator(sb);
+        iochannel chan(mem_device{"Mon"});
+        auto beg = ichannel_iterator(chan);
         std::string format = "%a";
 
         time_parse_context<char> ctx;
@@ -2447,8 +2447,8 @@ TEST(TimeioChar, AWeekdayOrMonthNameIsMatchedTheSameWayFromAStream)
     }
 
     {
-        streambuf sb(mem_device{"Tue "});
-        auto beg = istreambuf_iterator(sb);
+        iochannel chan(mem_device{"Tue "});
+        auto beg = ichannel_iterator(chan);
         std::string format = "%a";
 
         time_parse_context<char> ctx;
@@ -2459,8 +2459,8 @@ TEST(TimeioChar, AWeekdayOrMonthNameIsMatchedTheSameWayFromAStream)
     }
 
     {
-        streambuf sb(mem_device{"Wednesday"});
-        auto beg = istreambuf_iterator(sb);
+        iochannel chan(mem_device{"Wednesday"});
+        auto beg = ichannel_iterator(chan);
         std::string format = "%a";
 
         time_parse_context<char> ctx;
@@ -2471,8 +2471,8 @@ TEST(TimeioChar, AWeekdayOrMonthNameIsMatchedTheSameWayFromAStream)
     }
 
     {
-        streambuf sb(mem_device{"Thu"});
-        auto beg = istreambuf_iterator(sb);
+        iochannel chan(mem_device{"Thu"});
+        auto beg = ichannel_iterator(chan);
         std::string format = "%A";
 
         time_parse_context<char> ctx;
@@ -2483,8 +2483,8 @@ TEST(TimeioChar, AWeekdayOrMonthNameIsMatchedTheSameWayFromAStream)
     }
 
     {
-        streambuf sb(mem_device{"Fri "});
-        auto beg = istreambuf_iterator(sb);
+        iochannel chan(mem_device{"Fri "});
+        auto beg = ichannel_iterator(chan);
         std::string format = "%A";
 
         time_parse_context<char> ctx;
@@ -2495,8 +2495,8 @@ TEST(TimeioChar, AWeekdayOrMonthNameIsMatchedTheSameWayFromAStream)
     }
 
     {
-        streambuf sb(mem_device{"Saturday"});
-        auto beg = istreambuf_iterator(sb);
+        iochannel chan(mem_device{"Saturday"});
+        auto beg = ichannel_iterator(chan);
         std::string format = "%A";
 
         time_parse_context<char> ctx;
@@ -2507,8 +2507,8 @@ TEST(TimeioChar, AWeekdayOrMonthNameIsMatchedTheSameWayFromAStream)
     }
 
     {
-        streambuf sb(mem_device{"Feb"});
-        auto beg = istreambuf_iterator(sb);
+        iochannel chan(mem_device{"Feb"});
+        auto beg = ichannel_iterator(chan);
         std::string format = "%b";
 
         time_parse_context<char> ctx;
@@ -2519,8 +2519,8 @@ TEST(TimeioChar, AWeekdayOrMonthNameIsMatchedTheSameWayFromAStream)
     }
 
     {
-        streambuf sb(mem_device{"Mar "});
-        auto beg = istreambuf_iterator(sb);
+        iochannel chan(mem_device{"Mar "});
+        auto beg = ichannel_iterator(chan);
         std::string format = "%b";
 
         time_parse_context<char> ctx;
@@ -2531,8 +2531,8 @@ TEST(TimeioChar, AWeekdayOrMonthNameIsMatchedTheSameWayFromAStream)
     }
 
     {
-        streambuf sb(mem_device{"April"});
-        auto beg = istreambuf_iterator(sb);
+        iochannel chan(mem_device{"April"});
+        auto beg = ichannel_iterator(chan);
         std::string format = "%b";
 
         time_parse_context<char> ctx;
@@ -2543,8 +2543,8 @@ TEST(TimeioChar, AWeekdayOrMonthNameIsMatchedTheSameWayFromAStream)
     }
 
     {
-        streambuf sb(mem_device{"May"});
-        auto beg = istreambuf_iterator(sb);
+        iochannel chan(mem_device{"May"});
+        auto beg = ichannel_iterator(chan);
         std::string format = "%B";
 
         time_parse_context<char> ctx;
@@ -2555,8 +2555,8 @@ TEST(TimeioChar, AWeekdayOrMonthNameIsMatchedTheSameWayFromAStream)
     }
 
     {
-        streambuf sb(mem_device{"Jun "});
-        auto beg = istreambuf_iterator(sb);
+        iochannel chan(mem_device{"Jun "});
+        auto beg = ichannel_iterator(chan);
         std::string format = "%B";
 
         time_parse_context<char> ctx;
@@ -2567,8 +2567,8 @@ TEST(TimeioChar, AWeekdayOrMonthNameIsMatchedTheSameWayFromAStream)
     }
 
     {
-        streambuf sb(mem_device{"July"});
-        auto beg = istreambuf_iterator(sb);
+        iochannel chan(mem_device{"July"});
+        auto beg = ichannel_iterator(chan);
         std::string format = "%B";
 
         time_parse_context<char> ctx;
@@ -2579,8 +2579,8 @@ TEST(TimeioChar, AWeekdayOrMonthNameIsMatchedTheSameWayFromAStream)
     }
 
     {
-        streambuf sb(mem_device{"Aug"});
-        auto beg = istreambuf_iterator(sb);
+        iochannel chan(mem_device{"Aug"});
+        auto beg = ichannel_iterator(chan);
         std::string format = "%h";
 
         time_parse_context<char> ctx;
@@ -2591,8 +2591,8 @@ TEST(TimeioChar, AWeekdayOrMonthNameIsMatchedTheSameWayFromAStream)
     }
 
     {
-        streambuf sb(mem_device{"May "});
-        auto beg = istreambuf_iterator(sb);
+        iochannel chan(mem_device{"May "});
+        auto beg = ichannel_iterator(chan);
         std::string format = "%h";
 
         time_parse_context<char> ctx;
@@ -2603,8 +2603,8 @@ TEST(TimeioChar, AWeekdayOrMonthNameIsMatchedTheSameWayFromAStream)
     }
 
     {
-        streambuf sb(mem_device{"October"});
-        auto beg = istreambuf_iterator(sb);
+        iochannel chan(mem_device{"October"});
+        auto beg = ichannel_iterator(chan);
         std::string format = "%h";
 
         time_parse_context<char> ctx;
@@ -2616,8 +2616,8 @@ TEST(TimeioChar, AWeekdayOrMonthNameIsMatchedTheSameWayFromAStream)
 
     // Other tests.
     {
-        streambuf sb(mem_device{"2."});
-        auto beg = istreambuf_iterator(sb);
+        iochannel chan(mem_device{"2."});
+        auto beg = ichannel_iterator(chan);
         std::string format = "%d.";
 
         time_parse_context<char> ctx;
@@ -2628,8 +2628,8 @@ TEST(TimeioChar, AWeekdayOrMonthNameIsMatchedTheSameWayFromAStream)
     }
 
     {
-        streambuf sb(mem_device{"0."});
-        auto beg = istreambuf_iterator(sb);
+        iochannel chan(mem_device{"0."});
+        auto beg = ichannel_iterator(chan);
         std::string format = "%d.";
 
         time_parse_context<char> ctx;
@@ -2637,8 +2637,8 @@ TEST(TimeioChar, AWeekdayOrMonthNameIsMatchedTheSameWayFromAStream)
     }
 
     {
-        streambuf sb(mem_device{"32."});
-        auto beg = istreambuf_iterator(sb);
+        iochannel chan(mem_device{"32."});
+        auto beg = ichannel_iterator(chan);
         std::string format = "%d.";
 
         time_parse_context<char> ctx;
@@ -2646,8 +2646,8 @@ TEST(TimeioChar, AWeekdayOrMonthNameIsMatchedTheSameWayFromAStream)
     }
 
     {
-        streambuf sb(mem_device{"5."});
-        auto beg = istreambuf_iterator(sb);
+        iochannel chan(mem_device{"5."});
+        auto beg = ichannel_iterator(chan);
         std::string format = "%e.";
 
         time_parse_context<char> ctx;
@@ -2658,8 +2658,8 @@ TEST(TimeioChar, AWeekdayOrMonthNameIsMatchedTheSameWayFromAStream)
     }
 
     {
-        streambuf sb(mem_device{"06."});
-        auto beg = istreambuf_iterator(sb);
+        iochannel chan(mem_device{"06."});
+        auto beg = ichannel_iterator(chan);
         std::string format = "%e.";
 
         time_parse_context<char> ctx;
@@ -2670,8 +2670,8 @@ TEST(TimeioChar, AWeekdayOrMonthNameIsMatchedTheSameWayFromAStream)
     }
 
     {
-        streambuf sb(mem_device{"0"});
-        auto beg = istreambuf_iterator(sb);
+        iochannel chan(mem_device{"0"});
+        auto beg = ichannel_iterator(chan);
         std::string format = "%e";
 
         time_parse_context<char> ctx;
@@ -2679,8 +2679,8 @@ TEST(TimeioChar, AWeekdayOrMonthNameIsMatchedTheSameWayFromAStream)
     }
 
     {
-        streambuf sb(mem_device{"35"});
-        auto beg = istreambuf_iterator(sb);
+        iochannel chan(mem_device{"35"});
+        auto beg = ichannel_iterator(chan);
         std::string format = "%e";
 
         time_parse_context<char> ctx;
@@ -2698,8 +2698,8 @@ TEST(TimeioChar, AWeekdayOrMonthNameIsMatchedTheSameWayFromAStream)
          })
     {
         SCOPED_TRACE(tc.input);
-        streambuf sb(mem_device{tc.input});
-        auto beg = istreambuf_iterator(sb);
+        iochannel chan(mem_device{tc.input});
+        auto beg = ichannel_iterator(chan);
         time_parse_context<char> ctx;
         const auto ret = obj.get(beg, std::default_sentinel, ctx,
                                  std::string_view{"%I:%M%p"});
@@ -2710,8 +2710,8 @@ TEST(TimeioChar, AWeekdayOrMonthNameIsMatchedTheSameWayFromAStream)
     }
 
     {
-        streambuf sb(mem_device{"08%46"});
-        auto beg = istreambuf_iterator(sb);
+        iochannel chan(mem_device{"08%46"});
+        auto beg = ichannel_iterator(chan);
         std::string format = "%H%%%S";
 
         time_parse_context<char> ctx;
@@ -2723,8 +2723,8 @@ TEST(TimeioChar, AWeekdayOrMonthNameIsMatchedTheSameWayFromAStream)
     }
 
     {
-        streambuf sb(mem_device{"29:14"});
-        auto beg = istreambuf_iterator(sb);
+        iochannel chan(mem_device{"29:14"});
+        auto beg = ichannel_iterator(chan);
         std::string format = "%H:%M";
 
         time_parse_context<char> ctx;
@@ -2734,8 +2734,8 @@ TEST(TimeioChar, AWeekdayOrMonthNameIsMatchedTheSameWayFromAStream)
     }
 
     {
-        streambuf sb(mem_device{"Oct+tail"});
-        auto beg = istreambuf_iterator(sb);
+        iochannel chan(mem_device{"Oct+tail"});
+        auto beg = ichannel_iterator(chan);
         std::string format = "%b+tail";
 
         time_parse_context<char> ctx;

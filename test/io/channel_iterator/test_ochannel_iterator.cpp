@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: MIT
 
 /**
- * ostreambuf_iterator: an output iterator that forwards to streambuf::sputc().
+ * ochannel_iterator: an output iterator that forwards to iochannel::putc().
  *
  * Only assignment does anything. operator*, operator++ and operator++(int) all
  * return the iterator unchanged, which is what lets the usual `*it++ = c`
@@ -14,8 +14,8 @@
  * buffer's put position happens to be.
  */
 #include <IOv2/device/mem_device.h>
-#include <IOv2/io/streambuf.h>
-#include <IOv2/io/streambuf_iterator.h>
+#include <IOv2/io/iochannel.h>
+#include <IOv2/io/iochannel_iterator.h>
 
 #include <gtest/gtest.h>
 
@@ -26,20 +26,20 @@
 
 using namespace IOv2;
 
-TEST(OstreambufIterator, ItSatisfiesOutputIteratorForItsCharacterType)
+TEST(OchannelIterator, ItSatisfiesOutputIteratorForItsCharacterType)
 {
     {
-        using It = ostreambuf_iterator<streambuf<mem_device<char>, char>>;
+        using It = ochannel_iterator<iochannel<mem_device<char>, char>>;
         static_assert(std::output_iterator<It, char>);
         static_assert(std::is_same_v<It::value_type, char>);
     }
     {
-        using It = ostreambuf_iterator<ostreambuf<mem_device<char>, char>>;
+        using It = ochannel_iterator<ochannel<mem_device<char>, char>>;
         static_assert(std::output_iterator<It, char>);
         static_assert(std::is_same_v<It::value_type, char>);
     }
     {
-        using It = ostreambuf_iterator<streambuf<mem_device<char>, char32_t>>;
+        using It = ochannel_iterator<iochannel<mem_device<char>, char32_t>>;
         static_assert(std::output_iterator<It, char32_t>);
         static_assert(std::is_same_v<It::value_type, char32_t>);
     }
@@ -47,12 +47,12 @@ TEST(OstreambufIterator, ItSatisfiesOutputIteratorForItsCharacterType)
 }
 
 // Assignment is the only operation that emits anything.
-TEST(OstreambufIterator, OnlyAssignmentWrites)
+TEST(OchannelIterator, OnlyAssignmentWrites)
 {
     auto helper = []<typename T>(const T& fresh)
     {
         T  buf = fresh;
-        auto it = ostreambuf_iterator(buf);
+        auto it = ochannel_iterator(buf);
 
         // Dereferencing and incrementing, in every spelling, before anything is
         // written: none of them may put a character.
@@ -65,15 +65,15 @@ TEST(OstreambufIterator, OnlyAssignmentWrites)
         EXPECT_TRUE(dev.str().empty());
     };
 
-    streambuf sb{mem_device{""}};
-    helper(sb);
-    ostreambuf osb{mem_device{""}};
-    helper(osb);
+    iochannel chan{mem_device{""}};
+    helper(chan);
+    ochannel ochan{mem_device{""}};
+    helper(ochan);
 }
 
 // The `*it++ = c` spelling writes exactly one character per assignment, which is
 // what makes the iterator usable with the standard algorithms.
-TEST(OstreambufIterator, TheUsualSpellingWritesOneCharacterPerAssignment)
+TEST(OchannelIterator, TheUsualSpellingWritesOneCharacterPerAssignment)
 {
     const std::string text = "one two three";
 
@@ -81,7 +81,7 @@ TEST(OstreambufIterator, TheUsualSpellingWritesOneCharacterPerAssignment)
     {
         {
             T    buf = fresh;
-            auto it  = ostreambuf_iterator(buf);
+            auto it  = ochannel_iterator(buf);
             for (char c : text)
                 *it++ = c;
 
@@ -91,27 +91,27 @@ TEST(OstreambufIterator, TheUsualSpellingWritesOneCharacterPerAssignment)
         {
             // The same thing through an algorithm that only knows the concept.
             T    buf = fresh;
-            std::copy(text.begin(), text.end(), ostreambuf_iterator(buf));
+            std::copy(text.begin(), text.end(), ochannel_iterator(buf));
 
             auto [dev, err] = buf.detach();
             EXPECT_EQ(dev.str(), text);
         }
     };
 
-    streambuf sb{mem_device{""}};
-    helper(sb);
-    ostreambuf osb{mem_device{""}};
-    helper(osb);
+    iochannel chan{mem_device{""}};
+    helper(chan);
+    ochannel ochan{mem_device{""}};
+    helper(ochan);
 }
 
 // Two iterators over the same buffer share its put position, because neither of
 // them holds one.
-TEST(OstreambufIterator, TwoIteratorsOverOneBufferWriteInSequence)
+TEST(OchannelIterator, TwoIteratorsOverOneBufferWriteInSequence)
 {
-    streambuf buf{mem_device{""}};
+    iochannel buf{mem_device{""}};
 
-    auto first  = ostreambuf_iterator(buf);
-    auto second = ostreambuf_iterator(buf);
+    auto first  = ochannel_iterator(buf);
+    auto second = ochannel_iterator(buf);
 
     *first++  = 'a';
     *second++ = 'b';

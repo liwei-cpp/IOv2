@@ -68,7 +68,7 @@ TEST(IostreamSwitchToPutChar, APipelineThatCannotSwitchIsRejectedAtTheDeclaratio
     EXPECT_TRUE(compress_res.size() < s_e_lit.size());
 
     // A zlib pipeline cannot change direction (support_io_switch is false), so an iostream over
-    // one is rejected at the declaration level by base_streambuf's creator constructor
+    // one is rejected at the declaration level by base_channel's creator constructor
     // (io_concepts.h: cvt_fits_direction). What this case used to do -- build such an iostream
     // and drive switch_to_put() into a run-time cvtfailbit -- is no longer expressible, so the
     // rejection itself is what gets pinned down here.

@@ -26,7 +26,7 @@
 #include <IOv2/common/metafunctions.h>
 #include <IOv2/device/device_concepts.h>
 #include <IOv2/io/io_base.h>
-#include <IOv2/io/streambuf_iterator.h>
+#include <IOv2/io/iochannel_iterator.h>
 #include <IOv2/io/traits/traits_base.h>
 #include <IOv2/locale/locale.h>
 
@@ -135,7 +135,7 @@ struct out_sentry
             m_sync_with_stdio = os.m_sync_with_stdio.load();
 
         if constexpr (involve_input)
-            os.m_streambuf.switch_to_put();
+            os.m_channel.switch_to_put();
 
         if constexpr (!is_std)
         {
@@ -143,7 +143,7 @@ struct out_sentry
             {
                 try
                 {
-                    m_os.m_streambuf.rseek(0);
+                    m_os.m_channel.rseek(0);
                 }
                 catch (const cvt_error& e)
                 {
@@ -195,10 +195,10 @@ struct out_sentry
             if (m_os)
             {
                 if (m_is_unit_buf || m_sync_with_stdio)
-                    m_os.m_streambuf.flush();
+                    m_os.m_channel.flush();
 
                 if (m_is_unit_buf)
-                    m_os.m_streambuf.device().dflush();
+                    m_os.m_channel.device().dflush();
             }
         }
         catch (...)
@@ -303,7 +303,7 @@ public:
      *          位于哨兵构造函数中，而哨兵构造在**发起方**流的 `try` 块内（见
      *          `ostream_operators.h` 的插入运算符）；异常一旦逸出，就会被那里的 `catch` 交给
      *          **发起方**的 `handle_exception`，于是本流（tie 目标）的失败被记成发起方的失败：
-     *          发起方会拿到一个描述**别人的** streambuf 的 `cvt_error`，并按异常类型置上自己
+     *          发起方会拿到一个描述**别人的** iochannel 的 `cvt_error`，并按异常类型置上自己
      *          从未发生过的 `cvtfailbit`。`noexcept` 把"失败只记在 tie 目标身上"这条归属规则
      *          变成编译期约束，而不再依赖每个调用点自觉包一层 `catch (...)`。
      * @endif
@@ -323,7 +323,7 @@ public:
      *          operators in `ostream_operators.h`). An escaping exception would be caught there
      *          and handed to the *initiator's* `handle_exception`, recording this stream's (the
      *          tie target's) failure against the initiator: it would receive a `cvt_error`
-     *          describing *someone else's* streambuf and, dispatched on exception type, have a
+     *          describing *someone else's* iochannel and, dispatched on exception type, have a
      *          `cvtfailbit` set that its own pipeline never earned. The `noexcept` turns
      *          "a failure is recorded only on the tie target" into a compile-time constraint
      *          instead of a convention every call site must remember to honor.
@@ -443,7 +443,7 @@ struct ostream_operators;
  *       拒掉，不必拖到后面某个 `io_mutex()` 调用才报二义。
  * @note `out_iter_type` 必须是 `o_iter()` 的返回类型（`o_iter()` 的返回类型就写成它，因此两者
  *       不会漂移）。之所以要把这个**类型**公开出来，是因为 `o_iter()` 本身是私有的，而命名概念
- *       无法调用它；公开类型不等于公开对象——`ostreambuf_iterator` 只能由 `TStreamBuf&` 构造。
+ *       无法调用它；公开类型不等于公开对象——`ochannel_iterator` 只能由 `TChannel&` 构造。
  * @tparam T 待检测的类型。
  * @endif
  *
@@ -461,7 +461,7 @@ struct ostream_operators;
  * @note `out_iter_type` must be the return type of `o_iter()` -- which is spelled as exactly
  *       that type, so the two cannot drift apart. The type is public because `o_iter()` itself
  *       is private and a named concept cannot call it; exposing the type is not exposing the
- *       object, since an `ostreambuf_iterator` can only be built from a `TStreamBuf&`.
+ *       object, since an `ochannel_iterator` can only be built from a `TChannel&`.
  * @tparam T The type under inspection.
  * @endif
  */
@@ -604,7 +604,7 @@ struct ostream_operators
             using sentry_type = typename TSelf::out_sentry_type;
             sentry_type cerb(self, force_flush || bool(self.flags() & ios_defs::unitbuf),
                              bool(self.flags() & ios_defs::appmode));
-            self.m_streambuf.sputc(c);
+            self.m_channel.putc(c);
         }
         catch(...)
         {
@@ -646,7 +646,7 @@ struct ostream_operators
             sentry_type cerb(self, bool(self.flags() & ios_defs::unitbuf), bool(self.flags() & ios_defs::appmode));
             if (s == nullptr && n != 0)
                 throw stream_error("ostream write fail: null character sequence");
-            self.m_streambuf.sputn(s, n);
+            self.m_channel.putn(s, n);
         }
         catch(...)
         {
@@ -670,7 +670,7 @@ struct ostream_operators
      * 关联流的刷新仅由输出操作的哨兵在其入口触发。因刷新不再沿 tie 链传播，也就不存在递归回
      * 到本流的可能，无需任何"正在刷新"自旋/跳过标志。
      *
-     * 输出前的读写模式切换由 `streambuf::flush()` 自行完成（其内部会 `switch_to_put()`），
+     * 输出前的读写模式切换由 `iochannel::flush()` 自行完成（其内部会 `switch_to_put()`），
      * 故此处无需哨兵代劳。
      * @warning **本函数在失败态下拒绝写出，但生命周期收尾的冲刷不受状态位约束。**
      *          流的 `operator bool` 为假时（任一失败位；单独的 `eofbit` 不算），本函数在触碰
@@ -704,7 +704,7 @@ struct ostream_operators
      * down the tie chain, it can never recurse back into this stream, so no "already flushing"
      * spin/skip flag is needed.
      *
-     * Switching the buffer from get to put mode is done by `streambuf::flush()` itself (it
+     * Switching the buffer from get to put mode is done by `iochannel::flush()` itself (it
      * calls `switch_to_put()` internally), so no sentry is needed for that either.
      * @warning **This function refuses to write on a failed stream, but the flushes that wind
      *          the stream down are not bound by the state bits.** When the stream's
@@ -737,8 +737,8 @@ struct ostream_operators
 
             if constexpr (dev_cpt::support_put<typename TSelf::device_type>)
             {
-                self.m_streambuf.flush();
-                self.m_streambuf.device().dflush();
+                self.m_channel.flush();
+                self.m_channel.device().dflush();
             }
             else
                 throw stream_error("ostream flush fail: device does not support output");
@@ -751,9 +751,9 @@ struct ostream_operators
 
     /**
      * @lang{ZH}
-     * @brief 取绑定到本流缓冲区的输出迭代器。
+     * @brief 取绑定到本通道的输出迭代器。
      * @tparam TSelf 派生的具体流类型（由 deducing-this 推导）。
-     * @return 绑定到本流缓冲区的 `ostreambuf_iterator`。
+     * @return 绑定到本通道的 `ochannel_iterator`。
      * @note 返回类型写成 `TSelf::out_iter_type` 而不是 `auto`，使探测那一侧
      *       （`detail::insertable_with_iter`）看到的别名与实现不可能漂移。
      * @endif
@@ -761,7 +761,7 @@ struct ostream_operators
      * @lang{EN}
      * @brief Gets an output iterator bound to this stream's buffer.
      * @tparam TSelf The concrete derived stream type (deduced via deducing-this).
-     * @return An `ostreambuf_iterator` bound to this stream's buffer.
+     * @return An `ochannel_iterator` bound to this stream's buffer.
      * @note The return type is spelled `TSelf::out_iter_type` rather than `auto`, so the alias the
      *       probing side (`detail::insertable_with_iter`) sees and the implementation cannot drift
      *       apart.
@@ -771,7 +771,7 @@ private:
     template <typename TSelf>
     typename TSelf::out_iter_type o_iter(this TSelf& self)
     {
-        return ostreambuf_iterator(self.m_streambuf);
+        return ochannel_iterator(self.m_channel);
     }
 
     /**
@@ -924,7 +924,7 @@ T& operator<<(T& obj, const TValue& value)
  * 是一个模板名而不是某个具体函数，只有形参类型事先确定，编译器才能反推出模板实参、取到函数
  * 地址。用户自己写的操纵符函数模板同样依赖这一条。
  *
- * 只取 `ios_base<char_type>&` 的操纵符碰不到 streambuf 与设备，做不了 I/O，因此**无所谓方向**：
+ * 只取 `ios_base<char_type>&` 的操纵符碰不到 iochannel 与设备，做不了 I/O，因此**无所谓方向**：
  * 提取侧有形状相同的重载，`os << pf` 与 `is >> pf` 等价。两条都不加锁、不建哨兵——操纵符
  * 改的只是格式化状态，而那些访问器自己就是线程安全的。
  * @note 只有函数指针这一种形状：`std::function`、`std::move_only_function`、仿函数、裸 lambda
@@ -947,7 +947,7 @@ T& operator<<(T& obj, const TValue& value)
  * work backwards to the template arguments and take the function's address. User-written
  * manipulator function templates depend on this too.
  *
- * A manipulator taking only `ios_base<char_type>&` cannot reach the streambuf or the device and
+ * A manipulator taking only `ios_base<char_type>&` cannot reach the iochannel or the device and
  * so cannot do I/O; it therefore has **no direction**. The extraction side carries an overload of
  * the same shape and `os << pf` is equivalent to `is >> pf`. Neither overload locks nor builds a
  * sentry -- a manipulator only changes formatting state, and those accessors are thread-safe

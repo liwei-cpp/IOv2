@@ -151,7 +151,7 @@ TEST(IstreamWsChar, WsSkipsWhereExtractionWillNotWhenSkipwsIsOff)
 // The callable takes ios_base<char>& rather than the concrete stream: the overloads taking a
 // stream are gone, because a callable taking a stream can do I/O while its type carries no
 // direction, so on a bidirectional stream it could be applied through either operator. The
-// ios_base<char>& form is direction-free by construction -- ios_base exposes no streambuf and
+// ios_base<char>& form is direction-free by construction -- ios_base exposes no iochannel and
 // no device, so such a manipulator cannot do I/O at all. Anything that does need I/O declares
 // its direction through io_traits instead.
 TEST(IstreamWsChar, AFunctionPointerManipulatorBeatsTheGenericExtraction)

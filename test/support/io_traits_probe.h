@@ -7,8 +7,8 @@
 
 #include <IOv2/device/mem_device.h>
 #include <IOv2/io/io_base.h>
-#include <IOv2/io/streambuf.h>
-#include <IOv2/io/streambuf_iterator.h>
+#include <IOv2/io/iochannel.h>
+#include <IOv2/io/iochannel_iterator.h>
 #include <IOv2/io/traits/traits_base.h>
 #include <IOv2/locale/locale.h>
 
@@ -28,10 +28,10 @@
 // Manipulators go through the stream form instead and are not covered here.
 
 template <typename TChar>
-using probe_out_iter = IOv2::ostreambuf_iterator<IOv2::ostreambuf<IOv2::mem_device<TChar>, TChar>>;
+using probe_out_iter = IOv2::ochannel_iterator<IOv2::ochannel<IOv2::mem_device<TChar>, TChar>>;
 
 template <typename TChar>
-using probe_in_iter = IOv2::istreambuf_iterator<IOv2::istreambuf<IOv2::mem_device<TChar>, TChar>>;
+using probe_in_iter = IOv2::ichannel_iterator<IOv2::ichannel<IOv2::mem_device<TChar>, TChar>>;
 
 template <typename TChar, typename TValue>
 concept insertable = requires (probe_out_iter<TChar> it, IOv2::ios_base<TChar>& io,

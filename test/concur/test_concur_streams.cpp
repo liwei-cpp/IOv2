@@ -168,7 +168,7 @@ TEST(Concur, ConcurrentDirectionSwitching)
     using namespace IOv2;
 
     // iostream::switch_to_get/switch_to_put are ordinary operations that mutate shared
-    // buffer state: base_streambuf::switch_to_*() repositions the converter, clears
+    // buffer state: base_channel::switch_to_*() repositions the converter, clears
     // m_read_buf (a std::deque) and flips the converter's direction flag. The sentries
     // call those very same functions -- but from inside io_mutex() -- so the explicit
     // entry points must hold it too, or the two paths race on that deque.
@@ -346,7 +346,7 @@ TEST(Concur, AssignmentToATieTarget)
 {
     using namespace IOv2;
 
-    // Assignment replaces m_streambuf wholesale, destroying the converter a concurrent tie
+    // Assignment replaces m_channel wholesale, destroying the converter a concurrent tie
     // flush is about to walk into -- runtime_cvt checks its impl pointer for null and then
     // dereferences it, so the window between the two is a use-after-free. The written contract
     // ("no other thread may operate on this stream") cannot be honored here even in principle:
@@ -504,7 +504,7 @@ TEST(Concur, AttachDetachOnATieTarget)
 {
     using namespace IOv2;
 
-    // The same window entered through a different door: detach() guts m_streambuf and attach()
+    // The same window entered through a different door: detach() guts m_channel and attach()
     // rebuilds it, both while a tie flush may be walking it. With both sides under io_mutex()
     // the undefined behavior becomes the silent failure that is already documented -- the flush
     // finds a stream with no device and sets a bit the writer's sentry swallows. attach()
@@ -541,7 +541,7 @@ TEST(Concur, CrossedConcurrencyOnOneIostream)
     using namespace IOv2;
 
     // The three mutators that each already have a case of their own, now aimed at ONE iostream
-    // at the same time: assignment (replaces m_streambuf wholesale), direction switching
+    // at the same time: assignment (replaces m_channel wholesale), direction switching
     // (repositions the converter and clears the read buffer), and a library-initiated tie flush
     // (walks that same converter from a sentry on another stream). Each pair is already covered
     // -- assign x tie flush by AssignmentToATieTarget, direction thrash alone by

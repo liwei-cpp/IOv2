@@ -13,7 +13,7 @@
 
 #pragma once
 #include <IOv2/common/metafunctions.h>
-#include <IOv2/common/streambuf_defs.h>
+#include <IOv2/common/iochannel_defs.h>
 
 #include <cassert>
 #include <concepts>
@@ -365,9 +365,9 @@ public:
      * @lang{ZH}
      * 在输入范围中查找最长匹配的前缀。
      *
-     * 此重载适用于 IOv2::istreambuf_iterator，使用 sputbackc 进行回退。
+     * 此重载适用于 IOv2::ichannel_iterator，使用 putbackc 进行回退。
      *
-     * @tparam TIter istreambuf_iterator 类型；值类型可以不是 `CharT`，见类说明中关于
+     * @tparam TIter ichannel_iterator 类型；值类型可以不是 `CharT`，见类说明中关于
      *               字符类型转换的注记
      * @tparam TSent 哨兵类型
      * @param b 范围起始迭代器
@@ -379,9 +379,9 @@ public:
      * @lang{EN}
      * Finds the longest matching prefix in the input range.
      *
-     * This overload is for IOv2::istreambuf_iterator, using sputbackc for backtracking.
+     * This overload is for IOv2::ichannel_iterator, using putbackc for backtracking.
      *
-     * @tparam TIter istreambuf_iterator type; its value type need not be `CharT`, see the
+     * @tparam TIter ichannel_iterator type; its value type need not be `CharT`, see the
      *               note on character conversion in the class documentation
      * @tparam TSent Sentinel type
      * @param b Begin iterator of the range
@@ -390,7 +390,7 @@ public:
      * @return Iterator pointing to the position after the longest match
      * @endif
      */
-    template <is_istreambuf_iterator TIter, std::sentinel_for<TIter> TSent>
+    template <is_ichannel_iterator TIter, std::sentinel_for<TIter> TSent>
     [[nodiscard]] TIter max_match(TIter b, TSent e, match_out_type& out) const
     {
         if constexpr (is_small_type_v<TValue>)
@@ -441,7 +441,7 @@ public:
             std::size_t count = node_ptr->depth - found_depth;
             for (std::size_t i = 0; i < count; ++i)
             {
-                b.sputbackc(checking_chars.front());
+                b.putbackc(checking_chars.front());
                 checking_chars.pop_front();
             }
         }

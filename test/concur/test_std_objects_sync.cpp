@@ -3,14 +3,14 @@
 
 /**
  * The standard stream objects' own entry points -- sync_with_stdio(), reset(),
- * code() and switch_code() -- replace or reconfigure the streambuf underneath a
+ * code() and switch_code() -- replace or reconfigure the iochannel underneath a
  * stream that another thread may be using. Every one of them must take io_mutex()
  * like the rest of the stream API, so that the reader / writer on the other thread
  * sees either the old configuration or the new one, never a half-replaced kernel.
  *
  * Without the lock, switch_code() frees the codecvt kernel's locale_t while the
  * writer is inside wcrtomb() on it (a SEGV, not just a torn value), and
- * sync_with_stdio() move-assigns the whole istreambuf under a running extraction.
+ * sync_with_stdio() move-assigns the whole ichannel under a running extraction.
  * These tests give ThreadSanitizer (the gcc-tsan preset) those interleavings and
  * assert, in every mode, that the streams come out consistent.
  *
@@ -22,7 +22,7 @@
  * would make the next switch_code() fail for a reason that has nothing to do
  * with locking. sync_with_stdio() may discard
  * input it had buffered when switching back to the unbuffered mode (documented in
- * streambuf.h), so the reader's total is not asserted, only that it reaches EOF
+ * iochannel.h), so the reader's total is not asserted, only that it reaches EOF
  * and that nothing else went wrong.
  *
  * An extraction holds io_mutex() while it waits in read(), so a reader parked on an

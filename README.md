@@ -49,8 +49,8 @@ IOv2 的系统架构分为以下几个正交的维度：
    重构了传统 C++ 中的 `facet` 与 `locale` 体系，为结构化数据提供文化规则支持：
    - 支持 `collate`, `ctype`, `messages`, `monetary`, `numeric`, `timeio` 等多维度的格式化和本地化处理。
 
-4. **流对象与缓冲区 (Stream & Buffer)**
-   提供最上层符合直觉的 `>>` 与 `<<` 操作符以及高效的流缓冲区 (Stream Buffer) 管理：
+4. **流对象与通道 (Stream & Channel)**
+   提供最上层符合直觉的 `>>` 与 `<<` 操作符以及高效的通道 (Channel) 管理：
    - `istream`, `ostream`, `iostream` 提供了与标准库相似的块式 I/O 与格式化接口。
    - 预定义的标准流对象：`cin`, `cout`, `cerr`, `clog` 及其宽字符版本 (`wcin`, `wcout` 等)。
 
@@ -281,8 +281,8 @@ The architecture is divided into the following orthogonal dimensions:
    A reconstructed `facet` and `locale` system that makes cultural rule handling flexible:
    - Supports `collate`, `ctype`, `messages`, `monetary`, `numeric`, and `timeio` formatting and localization.
 
-4. **Stream Objects & Buffers**
-   High-level interfaces providing intuitive `>>` and `<<` operators and efficient stream buffer management:
+4. **Stream Objects & Channels**
+   High-level interfaces providing intuitive `>>` and `<<` operators and efficient channel management:
    - `istream`, `ostream`, and `iostream` for block I/O and formatted interactions.
    - Pre-defined standard stream objects like `cin`, `cout`, `cerr`, `clog` and their wide-character counterparts.
 
