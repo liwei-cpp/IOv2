@@ -33,6 +33,7 @@
 
 #include <support/file_guard.h>
 
+#include <cstddef>
 #include <ios>
 #include <limits>
 #include <string>
@@ -86,6 +87,50 @@ TEST(IstreamIgnoreChar, ACountOfZeroDiscardsNothing)
 
     expect_nothing.operator()<istream>();
     expect_nothing.operator()<iostream>();
+}
+
+// The count is a signed ptrdiff_t so that a negative value is rejected here
+// rather than arriving as a count near SIZE_MAX and draining the stream --
+// ignore(count - 1) at count == 0 is the way that happens without a typo. The
+// input being untouched afterwards is the point of the test, for both
+// overloads.
+TEST(IstreamIgnoreChar, ACountThatIsNegativeIsRejected)
+{
+    auto expect_rejected = []<template <typename, typename> class T>()
+    {
+        for (const std::ptrdiff_t n : {std::ptrdiff_t{-1},
+                                       std::numeric_limits<std::ptrdiff_t>::min()})
+        {
+            SCOPED_TRACE(n);
+            T is(mem_device{kDigits});
+
+            EXPECT_NO_THROW(is.ignore(n));
+            EXPECT_EQ(is.rdstate(), ios_defs::strfailbit);   // not eofbit: nothing was consumed
+            is.clear();
+            EXPECT_EQ(is.peek(), '0');
+
+            EXPECT_NO_THROW(is.ignore(n, '4'));
+            EXPECT_EQ(is.rdstate(), ios_defs::strfailbit);
+            is.clear();
+            EXPECT_EQ(is.peek(), '0');
+        }
+
+        // Masking strfailbit turns the same refusal into an exception, and the
+        // input is still left alone.
+        {
+            T is(mem_device{kDigits});
+            is.exceptions(ios_defs::strfailbit);
+
+            EXPECT_ANY_THROW(is.ignore(-1));
+            EXPECT_TRUE(is.rdstate() & ios_defs::strfailbit);
+            is.clear();
+            is.exceptions(ios_defs::goodbit);
+            EXPECT_EQ(is.peek(), '0');
+        }
+    };
+
+    expect_rejected.operator()<istream>();
+    expect_rejected.operator()<iostream>();
 }
 
 // The delimiter is discarded along with everything before it: ignore stops
