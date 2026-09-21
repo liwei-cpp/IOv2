@@ -103,7 +103,7 @@ struct out_sentry
      *          flush in the destructor relies on that still-held lock as well. Leaving the
      *          exception to an outer `catch` -- the operator's, say -- is **not** enough:
      *          unwinding destroys the local lock guard first, so the state bits land after the
-     *          the sentry. The lock therefore has to be a local of the caller rather than a member of
+     *          unlock. The lock therefore has to be a local of the caller rather than a member of
      *          the sentry.
      *
      * The tied stream is flushed through `abs_flusher::try_flush()`, which skips the flush rather
@@ -620,9 +620,12 @@ struct ostream_operators
      * 这是非格式化插入。
      * @tparam TSelf 派生的具体流类型（由 deducing-this 推导）。
      * @param s 源缓冲区。当 `n != 0` 时不得为空指针。
-     * @param n 要写入的字符数。
+     * @param n 要写入的字符数，必须非负。
      * @return 流自身的引用。
-     * @throw stream_error 若 `s` 为空指针而 `n != 0`。
+     * @throw stream_error 若 @p n 为负，或 `s` 为空指针而 `n != 0`。
+     * @note 形参取有符号的 ptrdiff_t，与 `istream` 的 `read()` 同一条理由（见那里的说明）。
+     *       这里挡住的只是负数回绕成的巨值：一个为正却超过 `s` 所指缓冲区的计数，任何签名都
+     *       挡不住，会一路读到越界处。
      * @endif
      *
      * @lang{EN}
@@ -631,22 +634,28 @@ struct ostream_operators
      * This is an unformatted insertion.
      * @tparam TSelf The concrete derived stream type (deduced via deducing-this).
      * @param s The source buffer. Must not be a null pointer when `n != 0`.
-     * @param n The number of characters to write.
+     * @param n The number of characters to write; must be non-negative.
      * @return A reference to the stream itself.
-     * @throw stream_error If `s` is a null pointer while `n != 0`.
+     * @throw stream_error If @p n is negative, or if `s` is a null pointer while `n != 0`.
+     * @note The parameter is a signed ptrdiff_t for the same reason as `istream`'s `read()`
+     *       (see the note there). What it stops is only the huge value a negative count wraps
+     *       to: a positive count larger than the buffer `s` points at is beyond any signature
+     *       and reads past the end.
      * @endif
      */
     template<typename TSelf>
-    TSelf& write(this TSelf& self, const TChar* s, std::size_t n)
+    TSelf& write(this TSelf& self, const TChar* s, std::ptrdiff_t n)
     {
         std::lock_guard guard(self.io_mutex());
         try
         {
             using sentry_type = typename TSelf::out_sentry_type;
             sentry_type cerb(self, bool(self.flags() & ios_defs::unitbuf), bool(self.flags() & ios_defs::appmode));
+            if (n < 0)
+                throw stream_error("ostream write fail: negative character count");
             if (s == nullptr && n != 0)
                 throw stream_error("ostream write fail: null character sequence");
-            self.m_channel.putn(s, n);
+            self.m_channel.putn(s, static_cast<std::size_t>(n));
         }
         catch(...)
         {

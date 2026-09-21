@@ -31,6 +31,7 @@
 #include <gtest/gtest.h>
 
 #include <cstddef>
+#include <limits>
 #include <memory>
 #include <string>
 
@@ -214,6 +215,48 @@ TEST(OstreamInsertCharacterChar, WriteWithANullSourceIsRejectedUnlessTheCountIsZ
         EXPECT_FALSE(empty.rdstate() & ios_defs::strfailbit);
         auto [dev, err] = empty.detach();
         EXPECT_TRUE(dev.str().empty());
+    };
+
+    helper.template operator()<ostream>();
+    helper.template operator()<iostream>();
+}
+
+// The count is a signed ptrdiff_t so that a negative value is rejected here
+// rather than arriving as a length near SIZE_MAX and reading far past the
+// source. Nothing reaches the device, and the refusal happens before the null
+// check would -- a negative count with a null source is the same refusal.
+TEST(OstreamInsertCharacterChar, WriteWithANegativeCountIsRejectedWithoutReadingTheSource)
+{
+    auto helper = []<template <typename, typename> class T>()
+    {
+        for (const std::ptrdiff_t n : {std::ptrdiff_t{-1},
+                                       std::numeric_limits<std::ptrdiff_t>::min()})
+        {
+            SCOPED_TRACE(n);
+            T os{mem_device{std::string("")}};
+
+            const char src[4] = {'a', 'b', 'c', 'd'};
+            EXPECT_NO_THROW(os.write(src, n));
+            EXPECT_EQ(os.rdstate(), ios_defs::strfailbit);
+
+            EXPECT_NO_THROW(os.write(nullptr, n));
+            EXPECT_EQ(os.rdstate(), ios_defs::strfailbit);
+
+            os.clear();
+            os << "ok";
+            auto [dev, err] = os.detach();
+            EXPECT_EQ(dev.str(), "ok");
+        }
+
+        // Masking strfailbit turns the same refusal into an exception.
+        {
+            T os{mem_device{std::string("")}};
+            os.exceptions(ios_defs::strfailbit);
+
+            const char src[4] = {'a', 'b', 'c', 'd'};
+            EXPECT_ANY_THROW(os.write(src, -1));
+            EXPECT_TRUE(os.rdstate() & ios_defs::strfailbit);
+        }
     };
 
     helper.template operator()<ostream>();

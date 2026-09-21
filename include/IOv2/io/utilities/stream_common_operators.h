@@ -235,6 +235,9 @@ struct stream_common_operators
      * @tparam TSelf 派生的具体流类型（由 deducing-this 推导）。
      * @param pos 相对起始处的目标位置。
      * @return 流自身的引用。
+     * @note 越界（`pos` 大于流长度；等于流长度是合法的末尾位置）报的是 `devfailbit`：转换层不知道
+     *       流有多长，把位置原样交给设备，由设备以 `device_error` 拒绝。同一个越界目标经 `rseek()`
+     *       报的是 `cvtfailbit`，因为那一侧的边界是转换层自己查的——见 `rseek()`。
      * @endif
      *
      * @lang{EN}
@@ -244,6 +247,12 @@ struct stream_common_operators
      * @tparam TSelf The concrete derived stream type (deduced via deducing-this).
      * @param pos The target position relative to the beginning.
      * @return A reference to the stream itself.
+     * @note Out of range (`pos` greater than the stream's length; equal to it is the legitimate
+     *       end position) is reported as `devfailbit`: the conversion layer does not know how long
+     *       the stream is, hands the position to the device as is, and the device refuses it with a
+     *       `device_error`. The same out-of-range target through `rseek()` is reported as
+     *       `cvtfailbit`, because on that side the bound is checked by the conversion layer itself
+     *       -- see `rseek()`.
      * @endif
      */
     template <typename TSelf>
@@ -271,6 +280,10 @@ struct stream_common_operators
      * @tparam TSelf 派生的具体流类型（由 deducing-this 推导）。
      * @param pos 相对末尾处的目标位置。
      * @return 流自身的引用。
+     * @note 越界（`pos` 大于流长度；等于流长度是合法的起始位置）报的是 `cvtfailbit`，不是
+     *       `seek()` 的 `devfailbit`：反向定位要先知道流有多长，转换层为此向设备取尺寸，顺手就在
+     *       到达设备之前自己查了边界，以 `cvt_error` 拒绝。同一个用户错误因此按方向落在两个不同的
+     *       位上，这是分层的结果，不是承诺；调用方若要统一处理，应看 `fail()` 而不是具体的位。
      * @endif
      *
      * @lang{EN}
@@ -280,6 +293,13 @@ struct stream_common_operators
      * @tparam TSelf The concrete derived stream type (deduced via deducing-this).
      * @param pos The target position relative to the end.
      * @return A reference to the stream itself.
+     * @note Out of range (`pos` greater than the stream's length; equal to it is the legitimate
+     *       start position) is reported as `cvtfailbit`, not `seek()`'s `devfailbit`: a reverse seek
+     *       has to know the stream's length first, so the conversion layer asks the device for its
+     *       size and, having it, checks the bound itself before reaching the device, refusing with a
+     *       `cvt_error`. The same user error therefore lands on two different bits depending on the
+     *       direction; that is a consequence of the layering, not a promise, and a caller that wants
+     *       to treat both alike should test `fail()` rather than a specific bit.
      * @endif
      */
     template <typename TSelf>

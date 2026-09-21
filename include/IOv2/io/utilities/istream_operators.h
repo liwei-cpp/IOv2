@@ -75,6 +75,7 @@ struct in_sentry
      *          之后。** 哨兵自己不加锁：它在 `try` 块末尾就析构了，而 `catch` 里的
      *          `handle_exception` 需要在锁内更新流状态，才能让成功路径与失败路径对同一把
      *          `io_mutex()` 的可见性保持一致。把异常留给外层的 `catch`（例如运算符那层）**不够**：
+     *          栈展开会先析构本地的锁守卫，置位就落到解锁之后了。锁因此必须是调用方的局部变量，而
      *          不是哨兵的成员。
      *
      * 关联流的刷新走 `abs_flusher::try_flush()`，取不到对方的锁就跳过，绝不阻塞。本线程因此可以
@@ -96,6 +97,7 @@ struct in_sentry
      *          `catch` needs the lock to update the stream state, so that the success and failure
      *          paths stay consistent with respect to the same `io_mutex()`. Leaving the exception
      *          to an outer `catch` -- the operator's, say -- is **not** enough: unwinding destroys
+     *          the local lock guard first, so the state bits land after the unlock. The lock
      *          therefore has to be a local of the caller rather than a member of the sentry.
      *
      * The tied stream is flushed through `abs_flusher::try_flush()`, which skips the flush rather
@@ -463,11 +465,24 @@ concept extractable_with_iter = istream_type<T> &&
 /**
  * @lang{ZH}
  * @brief `T` 能否用**迭代器形式经解析上下文**提取到 `TValue`：先解析进 `in_ctx_t`，再转回来。
+ * @note 第一项 `is_same_v` 是短路闸门：主模板 `parse_context_type` 是恒等映射，没有特化时后面的
+ *       各项一概不求，所以 `in_ctx_t` 不完整只可能发生在用户特化上。届时对它求
+ *       `std::default_initializable` 是 IFNDR——libstdc++ 静默答假，libc++ 硬报错——且答案在本
+ *       TU 内粘住，补全类型也不重求。本库探测不到这一格，只能靠 `traits_base.h`「解析上下文」
+ *       一节的要求：`::type` 在特化可见之处就得完整。
  * @endif
  *
  * @lang{EN}
  * @brief Whether a `TValue` can be extracted from `T` through the **iterator form via a parse
  *        context**: parse into `in_ctx_t` first, then convert back.
+ * @note The leading `is_same_v` is a short-circuit gate: the primary `parse_context_type` is the
+ *       identity, so with no specialization the remaining terms are never evaluated and an
+ *       incomplete `in_ctx_t` can only arise from a user specialization. Evaluating
+ *       `std::default_initializable` on it then is IFNDR -- libstdc++ silently answers false,
+ *       libc++ hard-errors -- and the answer sticks for the TU, never re-evaluated once the type is
+ *       completed. This library cannot detect that case and relies on the requirement under "Parse
+ *       contexts" in `traits_base.h`: `::type` must be complete wherever the specialization is
+ *       visible.
  * @endif
  */
 template <typename T, typename TValue>
@@ -949,21 +964,28 @@ struct istream_operators
      * @lang{ZH}
      * @brief 丢弃流中最多 `n` 个字符。
      * @tparam TSelf 派生的具体流类型（由 deducing-this 推导）。
-     * @param n 要丢弃的字符数，默认为 1。
+     * @param n 要丢弃的字符数，默认为 1，必须非负。
      * @return 流自身的引用。
+     * @throw stream_error 若 @p n 为负。
      * @note 若在丢弃 `n` 个字符前到达 EOF，则置位 `eofbit`。
+     * @note 形参取有符号的 ptrdiff_t，与 `read()` 同一条理由（见那里的说明）：`ignore(count - 1)`
+     *       在 `count == 0` 时无符号形参会把流静默抽干，有符号形参在此拒掉。
      * @endif
      *
      * @lang{EN}
      * @brief Discards up to `n` characters from the stream.
      * @tparam TSelf The concrete derived stream type (deduced via deducing-this).
-     * @param n The number of characters to discard; defaults to 1.
+     * @param n The number of characters to discard; defaults to 1; must be non-negative.
      * @return A reference to the stream itself.
+     * @throw stream_error If @p n is negative.
      * @note Sets `eofbit` if EOF is reached before `n` characters are discarded.
+     * @note The parameter is a signed ptrdiff_t for the same reason as `read()` (see the note
+     *       there): with an unsigned parameter `ignore(count - 1)` at `count == 0` silently
+     *       drains the stream; with a signed one it is rejected here.
      * @endif
      */
     template <typename TSelf>
-    TSelf& ignore(this TSelf& self, std::size_t n = 1)
+    TSelf& ignore(this TSelf& self, std::ptrdiff_t n = 1)
     {
         bool at_eof = false;
         std::lock_guard guard(self.io_mutex());
@@ -971,8 +993,10 @@ struct istream_operators
         {
             using sentry_type = typename TSelf::in_sentry_type;
             sentry_type cerb(self, true);
+            if (n < 0)
+                throw stream_error{"istream ignore fail: negative character count"};
 
-            for (std::size_t gcount = 0; gcount < n; ++gcount)
+            for (std::ptrdiff_t gcount = 0; gcount < n; ++gcount)
             {
                 if (self.m_channel.is_eof())
                 {
@@ -999,10 +1023,12 @@ struct istream_operators
      *
      * 若在丢弃 `n` 个字符之内遇到 `delim`，则该分隔符也会被丢弃（计入丢弃计数）。
      * @tparam TSelf 派生的具体流类型（由 deducing-this 推导）。
-     * @param n 最多丢弃的字符数。为 0 时直接返回。
+     * @param n 最多丢弃的字符数，必须非负。为 0 时直接返回。
      * @param delim 分隔符。
      * @return 流自身的引用。
+     * @throw stream_error 若 @p n 为负。
      * @note 若在遇到分隔符或丢弃满 `n` 个字符前到达 EOF，则置位 `eofbit`。
+     * @note 形参取有符号的 ptrdiff_t，理由见单参数重载。
      * @endif
      *
      * @lang{EN}
@@ -1011,23 +1037,28 @@ struct istream_operators
      * If `delim` is encountered within `n` characters, that delimiter is discarded as well
      * (counted toward the discard count).
      * @tparam TSelf The concrete derived stream type (deduced via deducing-this).
-     * @param n The maximum number of characters to discard. Returns immediately if 0.
+     * @param n The maximum number of characters to discard; must be non-negative. Returns
+     *          immediately if 0.
      * @param delim The delimiter.
      * @return A reference to the stream itself.
+     * @throw stream_error If @p n is negative.
      * @note Sets `eofbit` if EOF is reached before the delimiter is found or `n` characters
      *       are discarded.
+     * @note The parameter is a signed ptrdiff_t; see the single-argument overload for why.
      * @endif
      */
     template <typename TSelf>
-    TSelf& ignore(this TSelf& self, std::size_t n, TChar delim)
+    TSelf& ignore(this TSelf& self, std::ptrdiff_t n, TChar delim)
     {
-        std::size_t gcount = 0;
+        std::ptrdiff_t gcount = 0;
         bool at_eof = false;
         std::lock_guard guard(self.io_mutex());
         try
         {
             using sentry_type = typename TSelf::in_sentry_type;
             sentry_type cerb(self, true);
+            if (n < 0)
+                throw stream_error{"istream ignore fail: negative character count"};
             if (n == 0) return self;
 
             auto c = self.m_channel.getc();

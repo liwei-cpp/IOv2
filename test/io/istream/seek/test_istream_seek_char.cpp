@@ -33,6 +33,7 @@
 
 #include <cstddef>
 #include <string>
+#include <utility>
 
 using namespace IOv2;
 
@@ -181,4 +182,65 @@ TEST(IstreamSeekChar, SeekWorksOverAFileDevice)
 
     expect_moved.operator()<istream, ifile_device<char>>();
     expect_moved.operator()<iostream, file_device<char>>();
+}
+
+// The two directions report the same user error -- a target outside the stream
+// -- on different bits, because a different layer is the first to notice: seek
+// hands the position straight to the device, which refuses it (devfailbit),
+// while rseek must ask the device for its size first and, having it, refuses
+// the target itself before the device sees it (cvtfailbit). Neither bit is a
+// promise of the interface, but a caller reading one of them should not find
+// it moved, and the bound on both sides is the stream's length exactly: the
+// position one past the last character is a legitimate target, the next one is
+// not.
+TEST(IstreamSeekChar, ForwardOverrunIsTheDevicesFailureAndReverseOverrunIsTheConverters)
+{
+    auto expect_bits = []<template <typename, typename> class T, typename TDevice>(TDevice&& device)
+    {
+        T is{std::forward<TDevice>(device)};
+        ASSERT_TRUE(is.good());
+
+        const std::size_t size = kDigits.size();
+
+        // Both bounds are inclusive of the length itself...
+        is.seek(size);
+        EXPECT_TRUE(is.good());
+        EXPECT_EQ(is.tell(), size);
+
+        is.rseek(size);
+        EXPECT_TRUE(is.good());
+        EXPECT_EQ(is.tell(), 0u);
+
+        // ...and exclusive of the next position, each on its own bit, with
+        // nothing else set beside it.
+        is.seek(size + 1);
+        EXPECT_EQ(is.rdstate(), ios_defs::devfailbit);
+        is.clear();
+
+        is.rseek(size + 1);
+        EXPECT_EQ(is.rdstate(), ios_defs::cvtfailbit);
+        is.clear();
+
+        // Far out of range is the same failure as one past the end.
+        is.seek(1000);
+        EXPECT_EQ(is.rdstate(), ios_defs::devfailbit);
+        is.clear();
+
+        is.rseek(1000);
+        EXPECT_EQ(is.rdstate(), ios_defs::cvtfailbit);
+        is.clear();
+
+        // The refusals moved nothing: the stream still reads from where the
+        // last successful seek left it.
+        EXPECT_EQ(is.tell(), 0u);
+        EXPECT_EQ(is.get(), '0');
+    };
+
+    expect_bits.template operator()<istream>(mem_device{kDigits});
+    expect_bits.template operator()<iostream>(mem_device{kDigits});
+
+    const std::string path = "test_istream_seek_overrun_bits.txt";
+    file_guard        guard(path, kDigits);
+    expect_bits.template operator()<istream>(ifile_device<char>{path});
+    expect_bits.template operator()<iostream>(file_device<char>{path});
 }

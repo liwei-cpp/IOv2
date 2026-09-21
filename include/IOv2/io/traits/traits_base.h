@@ -119,6 +119,16 @@
  * 目的是让写坏的特化响亮地失败，而不是被泛型代码静默绕开。
  * @warning 唯一的例外是把特化写成 `final`：那样本库探测不到形状不符的成员，`make_parse_context`
  *          会被当作不存在而默认构造上下文，种子被静默丢弃。特化不要写 `final`。
+ *
+ * `parse_context_type<TChar, T>::type` 必须在该特化**可见之处就已完整**——把上下文类型前向声明、
+ * 特化写在前、定义补在后，是不行的。运算符的约束要在上下文类型上求 `std::default_initializable`
+ * （没有 `make_parse_context` 时）与 `sread` / `convert_to` 的可调用性，这些对不完整类型的求值是
+ * IFNDR：libstdc++（gcc、clang）静默答假，libc++ 硬报错。更要紧的是**答案会粘住**：概念满足性与
+ * 类型特征在一个 TU 里只求一次，之后补全类型也不会重求，于是只要有任何一处在它完整之前问过
+ * `requires { is >> x; }`，`is >> x` 在这个 TU 里就永久不成立，诊断是一面通用的
+ * "no match for `operator>>`"，不提原因；跨 TU 则是「方向」一节 @warning 说的 ODR 分歧，且不需要
+ * 不同的头文件集合，求值顺序不同就够。与 `make_parse_context` 写坏不同，这一格本库**探测不到**，
+ * 无法给出具名断言。
  * @endif
  *
  * @lang{EN}
@@ -268,6 +278,20 @@
  * @warning The one exception is writing the specialization `final`: a member of the wrong shape is
  *          then undetectable, `make_parse_context` is taken to be absent, the context is default
  *          constructed and the seed is silently dropped. Do not mark the specialization `final`.
+ *
+ * `parse_context_type<TChar, T>::type` must be **complete wherever the specialization is visible**
+ * -- forward-declaring the context type, writing the specialization, and defining the type later
+ * does not work. The operator's constraint evaluates `std::default_initializable` on the context
+ * type (when there is no `make_parse_context`) and the callability of `sread` / `convert_to`, and
+ * doing so on an incomplete type is IFNDR: libstdc++ (gcc, clang) silently answers false, libc++
+ * hard-errors. What matters more is that **the answer sticks**: concept satisfaction and type
+ * traits are evaluated once per TU and never re-evaluated after the type is completed, so as soon
+ * as anything has asked `requires { is >> x; }` before the type was complete, `is >> x` is
+ * permanently ill-formed in that TU, and the diagnostic is a generic wall of "no match for
+ * `operator>>`" that never names the cause. Across TUs this is the ODR divergence the @warning under
+ * "Direction" describes, and it needs no difference in the included headers -- a different order of
+ * evaluation is enough. Unlike a mis-written `make_parse_context`, this library **cannot detect**
+ * this case and cannot offer a named assertion for it.
  * @endif
  */
 #pragma once
