@@ -5508,3 +5508,84 @@ TEST(TimeioChar, AnOffsetOutsideItsRangeIsRejected)
     EXPECT_EQ(put_z_local(seconds{-2147483648LL}), "-2359");
     EXPECT_EQ(put_z_local(seconds{4294967296LL}), "+2359");
 }
+
+namespace
+{
+// A zone whose offset is whatever the test says. tzdb offsets never leave
+// (-24h, +24h), so the clamp on the zoned_time path is unreachable through a
+// real time_zone; zoned_time's TimeZonePtr parameter admits a pointer of our
+// own, though, and the facet's put is templated on it. The pointer converts to
+// a null time_zone* for the facet, which then takes the abbreviation from the
+// sys_info, as it does for any zone it cannot name.
+struct fixed_offset_zone
+{
+    std::chrono::seconds offset;
+
+    template <typename D>
+    std::chrono::sys_info get_info(const std::chrono::sys_time<D>&) const
+    {
+        return {std::chrono::sys_seconds::min(), std::chrono::sys_seconds::max(),
+                offset, std::chrono::minutes{0}, "FAKE"};
+    }
+
+    template <typename D>
+    auto to_local(const std::chrono::sys_time<D>& tp) const
+    {
+        using CD = std::common_type_t<D, std::chrono::seconds>;
+        return std::chrono::local_time<CD>{(tp + offset).time_since_epoch()};
+    }
+};
+
+struct fixed_offset_zone_ptr
+{
+    const fixed_offset_zone* zone;
+    const fixed_offset_zone* operator->() const { return zone; }
+    operator const std::chrono::time_zone*() const { return nullptr; }   // NOLINT(google-explicit-constructor)
+};
+}
+
+// The clamp above is one branch in do_put, shared by every value type; what the
+// other two overloads contribute is the offset they hand it. zoned_time takes it
+// from the zone's sys_info, so a zone that reports one out of range reaches the
+// clamp like a raw tm_gmtoff does. sys_time has no offset to clamp: it is UTC by
+// construction.
+TEST(TimeioChar, AZonedTimeWhoseZoneReportsAnOutOfRangeOffsetIsClampedToo)
+{
+    using namespace std::chrono;
+
+    timeio obj(std::make_shared<timeio_conf<char>>("C"));
+    const sys_time<seconds> st{sys_days{year{2024}/month{9}/day{4}} + hours{13} + minutes{33} + seconds{18}};
+
+    auto put_z = [&](seconds off)
+    {
+        const fixed_offset_zone zone{off};
+        zoned_time<seconds, fixed_offset_zone_ptr> zt{fixed_offset_zone_ptr{&zone}, st};
+        std::string res;
+        obj.put(std::back_inserter(res), zt, std::string_view("%z %Z"));
+        return res;
+    };
+
+    EXPECT_EQ(put_z(seconds{0}), "+0000 FAKE");
+    EXPECT_EQ(put_z(seconds{-19800}), "-0530 FAKE");
+    EXPECT_EQ(put_z(seconds{86399}), "+2359 FAKE");
+    EXPECT_EQ(put_z(seconds{86400}), "+2359 FAKE");
+    EXPECT_EQ(put_z(seconds{-86400}), "-2359 FAKE");
+    EXPECT_EQ(put_z(seconds{2147483648LL}), "+2359 FAKE");    // the sign-flip case
+    EXPECT_EQ(put_z(seconds{-2147483648LL}), "-2359 FAKE");
+
+    // The local fields still come from the zone's own arithmetic, clamped or not.
+    {
+        const fixed_offset_zone zone{seconds{86400}};
+        zoned_time<seconds, fixed_offset_zone_ptr> zt{fixed_offset_zone_ptr{&zone}, st};
+        std::string res;
+        obj.put(std::back_inserter(res), zt, std::string_view("%F %T"));
+        EXPECT_EQ(res, "2024-09-05 13:33:18");
+    }
+
+    // sys_time is UTC: nothing to clamp, and the abbreviation is fixed too.
+    {
+        std::string res;
+        obj.put(std::back_inserter(res), st, std::string_view("%z %Z"));
+        EXPECT_EQ(res, "+0000 UTC");
+    }
+}
