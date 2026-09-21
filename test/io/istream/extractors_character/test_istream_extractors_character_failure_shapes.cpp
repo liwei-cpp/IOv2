@@ -315,3 +315,54 @@ TEST(IstreamExtractCharacterFailureShapes, AFailedSentryLeavesTheStringAtItsPrev
     EXPECT_TRUE(is.str_fail());
     EXPECT_EQ(value, "PREVIOUS");
 }
+
+// The string's max_size() is the bound the loop runs to when no width is set,
+// and the length every append is checked against either way. When the string
+// cannot hold the whole token the two roles come apart: without a width the
+// loop stops at max_size() and reports nothing wrong, exactly as setw would;
+// with a width past it the loop runs on and the append is what fails.
+//
+// The cap is not made as small as it could be. libstdc++ assumes
+// capacity() <= max_size() -- size() and _M_is_local() carry
+// __builtin_unreachable() on it -- and a max_size() below the 15 characters of
+// the small-string buffer breaks that: at -O1 append("", 0) throws
+// length_error, at -O2 the string crashes before IOv2 is reached. So the cap
+// stays above the SSO buffer under either formula libstdc++ builds derive
+// max_size() from (see the case above), and the bound is read back rather
+// than assumed.
+TEST(IstreamExtractCharacterFailureShapes, AMaxSizeBelowTheTokenIsABoundWithoutAWidthAndAFailingAppendWithOne)
+{
+    constexpr std::size_t k_staging = 128;
+    const std::size_t bound = capped_string<40>{}.max_size();
+    SCOPED_TRACE(testing::Message() << "max_size " << bound);
+    ASSERT_GE(bound, std::size_t{16});
+    ASSERT_LE(bound + 1, k_staging);
+
+    const std::string token = patterned(60);
+    ASSERT_GT(token.size(), bound + 1);
+
+    {
+        // No width: the bound is max_size(), the token is cut there, the rest
+        // of it stays in the stream, and nothing failed.
+        is_c is{IOv2::mem_device<char>{token + " tail"}, IOv2::locale<char>("C")};
+        capped_string<40> value;
+        is >> value;
+        EXPECT_TRUE(is.good());
+        EXPECT_EQ(std::string(value.data(), value.size()), token.substr(0, bound));
+        EXPECT_EQ(is.peek(), token[bound]);
+    }
+    {
+        // A width past the bound: the loop consumes that many, the final
+        // append fails with length_error (otherfailbit), the rescuing append
+        // fails the same way, and the characters are gone with the string empty.
+        is_c is{IOv2::mem_device<char>{token + " tail"}, IOv2::locale<char>("C")};
+        capped_string<40> value;
+        is >> IOv2::setw(static_cast<std::ptrdiff_t>(bound + 1)) >> value;
+        EXPECT_TRUE(is.other_fail());
+        EXPECT_FALSE(is.str_fail());
+        EXPECT_TRUE(value.empty());
+        EXPECT_EQ(is.width(), 0);
+        is.clear();
+        EXPECT_EQ(is.peek(), token[bound + 1]);
+    }
+}

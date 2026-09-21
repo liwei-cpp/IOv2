@@ -23,6 +23,7 @@
 #include <IOv2/io/ostream.h>
 #include <IOv2/io/traits/char_and_str.h>
 
+#include <cstddef>
 #include <string>
 #include <type_traits>
 
@@ -100,4 +101,73 @@ TEST(OstreamInsertCharacterWideningEdges, ANarrowStreamTakesTheByteWiseRouteInst
 
     EXPECT_FALSE(os.str_fail());
     EXPECT_EQ(os.device().str(), "   ");
+}
+
+// The other end of the length axis, on every wide character type the library
+// can build a stream for (there is no ctype facet for char16_t, so no char16_t
+// stream). A long input exercises the widened vector as a real buffer rather
+// than a one-element one; a field width wider than the input puts the copy
+// between two runs of fill, on whichever side adjustfield says; and a width
+// narrower than the input is consumed without padding anything.
+TEST(OstreamInsertCharacterWideningEdges, LongAndPaddedNarrowStringsWidenOnEveryWideCharacterType)
+{
+    auto expect_widened = []<typename C>()
+    {
+        SCOPED_TRACE(sizeof(C));
+        using S = std::basic_string<C>;
+
+        // Long: 70000 characters, past any internal chunk size, and enough to
+        // notice a dropped or doubled character in the middle.
+        std::string narrow(70000, '\0');
+        for (std::size_t i = 0; i < narrow.size(); ++i)
+            narrow[i] = static_cast<char>('a' + i % 26);
+        S wide(narrow.size(), C{});
+        for (std::size_t i = 0; i < narrow.size(); ++i)
+            wide[i] = static_cast<C>(narrow[i]);
+
+        {
+            auto os = make_stream<C>();
+            os << narrow.c_str();
+            EXPECT_FALSE(os.str_fail());
+            EXPECT_EQ(os.device().str(), wide);
+        }
+
+        // Padded on the right-adjusted (default) and left-adjusted sides.
+        const S ok{static_cast<C>('o'), static_cast<C>('k')};
+        {
+            auto os = make_stream<C>();
+            os << IOv2::setw(6) << "ok";
+            EXPECT_FALSE(os.str_fail());
+            EXPECT_EQ(os.device().str(), S(4, static_cast<C>(' ')) + ok);
+            EXPECT_EQ(os.width(), 0u);
+        }
+        {
+            auto os = make_stream<C>();
+            os << IOv2::left << IOv2::setfill(static_cast<C>('*')) << IOv2::setw(6) << "ok";
+            EXPECT_FALSE(os.str_fail());
+            EXPECT_EQ(os.device().str(), ok + S(4, static_cast<C>('*')));
+            EXPECT_EQ(os.width(), 0u);
+        }
+
+        // A width narrower than the input pads nothing and is still consumed.
+        {
+            auto os = make_stream<C>();
+            os << IOv2::setw(3) << narrow.c_str();
+            EXPECT_FALSE(os.str_fail());
+            EXPECT_EQ(os.device().str(), wide);
+            EXPECT_EQ(os.width(), 0u);
+        }
+
+        // Long and padded at once: the fill goes before the whole 70000.
+        {
+            auto os = make_stream<C>();
+            os << IOv2::setw(70003) << narrow.c_str();
+            EXPECT_FALSE(os.str_fail());
+            EXPECT_EQ(os.device().str(), S(3, static_cast<C>(' ')) + wide);
+        }
+    };
+
+    expect_widened.template operator()<wchar_t>();
+    expect_widened.template operator()<char8_t>();
+    expect_widened.template operator()<char32_t>();
 }
