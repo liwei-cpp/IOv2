@@ -370,7 +370,7 @@ public:
      * @lang{ZH} 底层 DeviceType 的可变引用。 @endif
      * @lang{EN} Mutable reference to the underlying DeviceType. @endif
      */
-    device_type& device() { return m_device; }
+    device_type& device() noexcept { return m_device; }
 
     /**
      * @lang{ZH}
@@ -1281,7 +1281,7 @@ public:
      * @lang{ZH} 底层 device_type 的可变引用。 @endif
      * @lang{EN} Mutable reference to the underlying device_type. @endif
      */
-    device_type& device() { return m_device; }
+    device_type& device() noexcept { return m_device; }
 
     /**
      * @lang{ZH}
