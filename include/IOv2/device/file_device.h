@@ -232,6 +232,27 @@ public:
         }
         return *this;
     }
+    /**
+     * @lang{ZH}
+     * @brief 析构函数：默认实现，冲刷由 `m_file` 的删除器完成。
+     *
+     * `FILE*` 由 `std::unique_ptr<FILE, file_deleter>` 持有，删除器调用的 `std::fclose()`
+     * 在关闭前会冲刷 stdio 缓冲，因此输出设备无需在此另行 `dflush()`。代价是失败无从得知：
+     * `fclose()` 的返回值被丢弃，析构函数也无法报告。要拿到冲刷失败，请在销毁前显式调用
+     * `dflush()` 或 `close()`——后者先 `dflush()` 再关闭，失败会以 `device_error` 抛出。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Destructor: defaulted; the flush is done by `m_file`'s deleter.
+     *
+     * The `FILE*` is held in a `std::unique_ptr<FILE, file_deleter>`, and the deleter's
+     * `std::fclose()` flushes the stdio buffer before closing, so an output device needs no
+     * separate `dflush()` here. The price is that a failure goes unseen: `fclose()`'s return
+     * value is discarded, and a destructor could not report it anyway. To see a flush failure,
+     * call `dflush()` or `close()` explicitly before destruction -- the latter does the
+     * `dflush()` first and throws `device_error` on failure.
+     * @endif
+     */
     ~basic_file_device() = default;
 
 public:
