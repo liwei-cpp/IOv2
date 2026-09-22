@@ -631,7 +631,7 @@ public:
      * @return A reference to this stream's `m_io_mutex`.
      * @endif
      */
-    copyable_mutex<std::recursive_mutex>& io_mutex() const { return m_io_mutex; }
+    copyable_mutex<std::recursive_mutex>& io_mutex() const noexcept { return m_io_mutex; }
 
     /**
      * @lang{ZH}

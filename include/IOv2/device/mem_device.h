@@ -158,7 +158,7 @@ public:
      * @return `true` if the current position is at or beyond the end of the buffer.
      * @endif
      */
-    [[nodiscard]] bool deof() const
+    [[nodiscard]] bool deof() const noexcept
     {
         return (m_next_pos >= m_str.size());
     }
@@ -202,7 +202,7 @@ public:
      * @return The current position within the buffer.
      * @endif
      */
-    [[nodiscard]] std::size_t dtell() const
+    [[nodiscard]] std::size_t dtell() const noexcept
     {
         return m_next_pos;
     }
@@ -218,7 +218,7 @@ public:
      * @return The size of the string.
      * @endif
      */
-    [[nodiscard]] std::size_t dsize() const
+    [[nodiscard]] std::size_t dsize() const noexcept
     {
         return m_str.size();
     }
@@ -306,7 +306,7 @@ public:
      * @brief Flushes the device. This is a no-op for a memory device.
      * @endif
      */
-    void dflush() {}
+    void dflush() noexcept {}
 
     /**
      * @lang{ZH}

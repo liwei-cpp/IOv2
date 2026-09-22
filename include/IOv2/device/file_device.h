@@ -253,7 +253,8 @@ public:
      * @throw device_error If getting the file position fails.
      * @endif
      */
-    [[nodiscard]] bool deof() const requires (IsIn)
+    [[nodiscard]] bool deof() const
+        requires (IsIn)
     {
         if (!is_open())
             return true;
@@ -271,7 +272,7 @@ public:
      * @return `true` if the file is open, otherwise `false`.
      * @endif
      */
-    [[nodiscard]] bool is_open() const
+    [[nodiscard]] bool is_open() const noexcept
     {
         return m_file != nullptr;
     }
