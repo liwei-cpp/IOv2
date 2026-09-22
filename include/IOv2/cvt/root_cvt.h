@@ -332,12 +332,14 @@ public:
 
     /**
      * @lang{ZH}
-     * 析构函数：若设备支持写入，则尝试将缓冲区数据刷入设备；异常被静默忽略以防止 std::terminate。
+     * 析构函数：若设备支持写入，则尝试将缓冲区数据经 `dput()` 推给设备——**不**调用设备自身的
+     * `dflush()`；异常被静默忽略以防止 std::terminate。
      * @endif
      *
      * @lang{EN}
-     * Destructor: attempts to flush buffered data to the device if the device supports
-     * writing; exceptions are silently ignored to prevent std::terminate.
+     * Destructor: if the device supports writing, attempts to push buffered data down to the
+     * device via `dput()` -- the device's own `dflush()` is **not** called; exceptions are
+     * silently ignored to prevent std::terminate.
      * @endif
      */
     ~root_cvt()
