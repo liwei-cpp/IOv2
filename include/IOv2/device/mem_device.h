@@ -144,7 +144,7 @@ public:
      * @return A constant reference to the internal `std::basic_string`.
      * @endif
      */
-    [[nodiscard]] const std::basic_string<CharT, Traits, Allocator>& str() const { return m_str; }
+    [[nodiscard]] const std::basic_string<CharT, Traits, Allocator>& str() const noexcept { return m_str; }
 
 public:
     /**
