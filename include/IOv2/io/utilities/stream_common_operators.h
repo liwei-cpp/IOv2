@@ -85,7 +85,7 @@ inline std::mutex& tie_graph_mutex()
  * @brief 为输入流与输出流提供公共操作的混入（mix-in）基类。
  *
  * 本结构集中承载定位、底层设备管理、转换行为调整、locale 存取与流绑定
- * 等成员，供具体流类型派生使用；这些成员通过 deducing-this（`this TSelf& self`）以派生类
+ * 等成员，供具体流类型派生使用；这些成员通过 deducing-this（`this auto& self`）以派生类
  * 的具体类型执行操作。除显式标注为**不做线程同步**者（`device`/`detach`/`attach`）外，
  * 其余操作均持有本流的 `io_mutex()`，并将异常统一交由 `handle_exception` 处理。
  * 本结构还持有本流所绑定（tie）的目标指针。
@@ -96,7 +96,7 @@ inline std::mutex& tie_graph_mutex()
  *
  * This struct centralizes members for positioning, underlying device management,
  * conversion-behavior adjustment, locale access, and stream tying, for
- * concrete stream types to derive from; these members use deducing-this (`this TSelf& self`)
+ * concrete stream types to derive from; these members use deducing-this (`this auto& self`)
  * to operate on the concrete derived type. Except for those explicitly documented as **not
  * synchronized** (`device`/`detach`/`attach`), all operations hold the stream's `io_mutex()`
  * and route exceptions through `handle_exception`. This struct also holds the pointer to the
@@ -198,19 +198,16 @@ struct stream_common_operators
     /**
      * @lang{ZH}
      * @brief 返回底层流的当前位置。
-     * @tparam TSelf 派生的具体流类型（由 deducing-this 推导）。
      * @return 当前位置；若流处于失败状态或发生异常，则返回空的 optional。
      * @endif
      *
      * @lang{EN}
      * @brief Returns the current position of the underlying stream.
-     * @tparam TSelf The concrete derived stream type (deduced via deducing-this).
      * @return The current position; an empty optional if the stream is in a failed
      *         state or an exception occurs.
      * @endif
      */
-    template <typename TSelf>
-    std::optional<std::size_t> tell(this TSelf& self)
+    std::optional<std::size_t> tell(this auto& self)
     {
         std::lock_guard guard(self.io_mutex());
         if (!static_cast<bool>(self))
@@ -232,7 +229,6 @@ struct stream_common_operators
      * @brief 从头（起始处）定位到绝对位置 `pos`。
      *
      * 定位前会清除 `eofbit`。
-     * @tparam TSelf 派生的具体流类型（由 deducing-this 推导）。
      * @param pos 相对起始处的目标位置。
      * @return 流自身的引用。
      * @note 越界（`pos` 大于流长度；等于流长度是合法的末尾位置）报的是 `devfailbit`：转换层不知道
@@ -244,7 +240,6 @@ struct stream_common_operators
      * @brief Seeks to the absolute position `pos` measured from the beginning.
      *
      * `eofbit` is cleared before seeking.
-     * @tparam TSelf The concrete derived stream type (deduced via deducing-this).
      * @param pos The target position relative to the beginning.
      * @return A reference to the stream itself.
      * @note Out of range (`pos` greater than the stream's length; equal to it is the legitimate
@@ -255,8 +250,7 @@ struct stream_common_operators
      *       -- see `rseek()`.
      * @endif
      */
-    template <typename TSelf>
-    TSelf& seek(this TSelf& self, std::size_t pos)
+    auto& seek(this auto& self, std::size_t pos)
     {
         std::lock_guard guard(self.io_mutex());
         try
@@ -277,7 +271,6 @@ struct stream_common_operators
      * @brief 从尾（末尾处）定位到位置 `pos`。
      *
      * 定位前会清除 `eofbit`。
-     * @tparam TSelf 派生的具体流类型（由 deducing-this 推导）。
      * @param pos 相对末尾处的目标位置。
      * @return 流自身的引用。
      * @note 越界（`pos` 大于流长度；等于流长度是合法的起始位置）报的是 `cvtfailbit`，不是
@@ -290,7 +283,6 @@ struct stream_common_operators
      * @brief Seeks to the position `pos` measured from the end.
      *
      * `eofbit` is cleared before seeking.
-     * @tparam TSelf The concrete derived stream type (deduced via deducing-this).
      * @param pos The target position relative to the end.
      * @return A reference to the stream itself.
      * @note Out of range (`pos` greater than the stream's length; equal to it is the legitimate
@@ -302,8 +294,7 @@ struct stream_common_operators
      *       to treat both alike should test `fail()` rather than a specific bit.
      * @endif
      */
-    template <typename TSelf>
-    TSelf& rseek(this TSelf& self, std::size_t pos)
+    auto& rseek(this auto& self, std::size_t pos)
     {
         std::lock_guard guard(self.io_mutex());
         try
@@ -331,7 +322,6 @@ struct stream_common_operators
      *          以抛不抛异常来判断流是否持有设备。恢复路径在两种情形下**并不相同**：`detach()`
      *          之后可用 `attach()` 重新装上设备，也可以用赋值；而移后的流**只能由赋值**复活，
      *          `attach()` 对它无效（详见 `attach()`）。
-     * @tparam TSelf 派生的具体流类型（由 deducing-this 推导）。
      * @return 底层设备的引用。
      * @endif
      *
@@ -350,12 +340,10 @@ struct stream_common_operators
      *          between the two: after `detach()` a device can be installed again with `attach()`
      *          or by assignment; a moved-from stream can be revived **only by assignment**, as
      *          `attach()` does not work on one (see `attach()`).
-     * @tparam TSelf The concrete derived stream type (deduced via deducing-this).
      * @return A reference to the underlying device.
      * @endif
      */
-    template <typename TSelf>
-    auto& device(this TSelf& self)
+    auto& device(this auto& self)
     {
         return self.m_channel.device();
     }
@@ -384,7 +372,6 @@ struct stream_common_operators
      *          实现细节，不构成契约。移后的流**只能由赋值**复活：`attach()` 复活不了它
      *          （详见 `attach()`）。本函数自身分离出设备之后的流则不同，那种流可用 `attach()`
      *          重新装上设备。
-     * @tparam TSelf 派生的具体流类型（由 deducing-this 推导）。
      * @return 取回的设备，以及一个 `exception_ptr`（分离时若发生 flush 等错误则非空）。
      * @endif
      *
@@ -422,13 +409,11 @@ struct stream_common_operators
      *          revived **only by assignment**: `attach()` cannot revive it (see `attach()`). A
      *          stream this function has detached is a different matter -- there `attach()` does
      *          install a device again.
-     * @tparam TSelf The concrete derived stream type (deduced via deducing-this).
      * @return The retrieved device and an `exception_ptr` (non-null if e.g. a flush error
      *         occurred during detach).
      * @endif
      */
-    template <typename TSelf>
-    auto detach(this TSelf& self) noexcept
+    auto detach(this auto& self) noexcept
     {
         std::lock_guard guard(self.io_mutex());
         return self.m_channel.detach();
@@ -532,18 +517,15 @@ struct stream_common_operators
     /**
      * @lang{ZH}
      * @brief 调整底层编码转换的行为。
-     * @tparam TSelf 派生的具体流类型（由 deducing-this 推导）。
      * @param acc 要应用的转换行为设置。
      * @endif
      *
      * @lang{EN}
      * @brief Adjusts the behavior of the underlying encoding conversion.
-     * @tparam TSelf The concrete derived stream type (deduced via deducing-this).
      * @param acc The conversion-behavior settings to apply.
      * @endif
      */
-    template <typename TSelf>
-    void adjust(this TSelf& self, const cvt_behavior& acc)
+    void adjust(this auto& self, const cvt_behavior& acc)
     {
         std::lock_guard guard(self.io_mutex());
         try { self.m_channel.adjust(acc); }
@@ -553,18 +535,15 @@ struct stream_common_operators
     /**
      * @lang{ZH}
      * @brief 取回底层编码转换的当前状态。
-     * @tparam TSelf 派生的具体流类型（由 deducing-this 推导）。
      * @param acc 用于接收转换状态的输出参数。
      * @endif
      *
      * @lang{EN}
      * @brief Retrieves the current state of the underlying encoding conversion.
-     * @tparam TSelf The concrete derived stream type (deduced via deducing-this).
      * @param acc Output parameter receiving the conversion status.
      * @endif
      */
-    template <typename TSelf>
-    void retrieve(this TSelf& self, cvt_status& acc)
+    void retrieve(this auto& self, cvt_status& acc)
     {
         std::lock_guard guard(self.io_mutex());
         try { self.m_channel.retrieve(acc); }
@@ -574,7 +553,6 @@ struct stream_common_operators
     /**
      * @lang{ZH}
      * @brief 返回本流当前使用的 locale（getter）。
-     * @tparam TSelf 派生的具体流类型（由 deducing-this 推导）。
      * @return 绑定到本流 `m_locale` 的常量引用。
      * @warning 返回的是引用，**不要把它保存到临界区之外**再使用：在并发调用 `locale(loc)`
      *          setter 时，离开锁的保护后读取该引用即为数据竞争与未定义行为。详见 locale setter。
@@ -582,15 +560,13 @@ struct stream_common_operators
      *
      * @lang{EN}
      * @brief Returns the locale currently used by this stream (getter).
-     * @tparam TSelf The concrete derived stream type (deduced via deducing-this).
      * @return A const reference bound to this stream's `m_locale`.
      * @warning This returns a reference; **do not keep it past the critical section**: while a
      *          `locale(loc)` setter runs concurrently, reading the reference outside the lock is
      *          a data race and undefined behavior. See the locale setter for details.
      * @endif
      */
-    template <typename TSelf>
-    const auto& locale(this const TSelf& self)
+    const auto& locale(this const auto& self)
     {
         return self.m_locale;
     }
@@ -602,7 +578,6 @@ struct stream_common_operators
      * 新 locale 生效后会立即以其调用 `access_callbacks`，使已注册的 facet 相关回调据以
      * 刷新缓存。
      *
-     * @tparam TSelf 派生的具体流类型（由 deducing-this 推导）。
      * @tparam TChar locale 的字符类型。
      * @param loc 要设置的新 locale（按值接收，内部移动入 `m_locale`）。
      * @return 先前的 locale（已被移出并通过返回值转交调用方）。
@@ -633,7 +608,6 @@ struct stream_common_operators
      * Once the new locale takes effect, `access_callbacks` is invoked with it immediately so
      * that registered facet-related callbacks refresh their caches accordingly.
      *
-     * @tparam TSelf The concrete derived stream type (deduced via deducing-this).
      * @tparam TChar The character type of the locale.
      * @param loc The new locale to install (taken by value, moved into `m_locale`).
      * @return The previous locale (moved out and handed back to the caller).
@@ -667,8 +641,8 @@ struct stream_common_operators
      *       state (e.g. `device()`) carries the same requirement under concurrent mutation.
      * @endif
      */
-    template <typename TSelf, typename TChar>
-    auto locale(this TSelf& self, IOv2::locale<TChar> loc)
+    template <typename TChar>
+    auto locale(this auto& self, IOv2::locale<TChar> loc)
     {
         std::lock_guard guard(self.io_mutex());
         auto res = std::move(self.m_locale);
@@ -921,7 +895,6 @@ struct stream_common_operators
      * @brief 返回本流当前所绑定（tie）的输出流（getter）。
      *
      * 通过一次无锁的原子读取完成，不获取任何锁。
-     * @tparam TSelf 派生的具体流类型（由 deducing-this 推导）。
      * @return 当前绑定的输出流；未绑定时为 `nullptr`。
      * @endif
      *
@@ -929,12 +902,10 @@ struct stream_common_operators
      * @brief Returns the output stream this stream is currently tied to (getter).
      *
      * Performed by a single lock-free atomic load; takes no lock.
-     * @tparam TSelf The concrete derived stream type (deduced via deducing-this).
      * @return The currently tied output stream; `nullptr` if none.
      * @endif
      */
-    template <typename TSelf>
-    abs_flusher* tie(this const TSelf& self)
+    abs_flusher* tie(this const auto& self)
     {
         return self.m_tie_stream.load();
     }

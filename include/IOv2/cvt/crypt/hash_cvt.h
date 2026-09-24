@@ -183,9 +183,9 @@ template <io_converter KernelType, typename TInt = typename KernelType::internal
               std::is_trivially_copyable_v<TInt> &&
               std::has_unique_object_representations_v<TInt> &&
               cvt_cpt::support_put<KernelType>)
-class hash_cvt : public abs_cvt<hash_cvt<KernelType, TInt>, KernelType, TInt, false, false>
+class hash_cvt : public abs_cvt<KernelType, TInt, false, false>
 {
-    using BT = abs_cvt<hash_cvt<KernelType, TInt>, KernelType, TInt, false, false>;
+    using BT = abs_cvt<KernelType, TInt, false, false>;
     friend BT;  // for put_main
 
 public:
@@ -307,7 +307,7 @@ public:
 private:
     /**
      * @lang{ZH}
-     * `abs_cvt::detach()` 的 CRTP 钩子，在 kernel 层 `detach()` 之前调用。
+     * `abs_cvt::detach()` 的钩子，在 kernel 层 `detach()` 之前调用。
      *
      * 若当前处于主内容阶段（`m_has_main_cont`），尝试调用 `dump_stream()` 将哈希结果写出；
      * 若 `dump_stream()` 抛出异常，则手动将 `m_has_main_cont` 置为 `false` 并尝试
@@ -322,7 +322,7 @@ private:
      * @endif
      *
      * @lang{EN}
-     * CRTP hook for `abs_cvt::detach()`, called before the kernel-level `detach()`.
+     * Hook for `abs_cvt::detach()`, called before the kernel-level `detach()`.
      *
      * If currently in the main-content phase (`m_has_main_cont`), attempts to call
      * `dump_stream()` to write out the hash result. If `dump_stream()` throws, resets
@@ -363,13 +363,13 @@ private:
 
     /**
      * @lang{ZH}
-     * `abs_cvt::attach()` 的 CRTP 钩子，在 kernel 层 `attach()` 之后调用。
+     * `abs_cvt::attach()` 的钩子，在 kernel 层 `attach()` 之后调用。
      *
      * 调用 `m_hash->clear()` 重置哈希状态，确保新会话从空消息状态开始。
      * @endif
      *
      * @lang{EN}
-     * CRTP hook for `abs_cvt::attach()`, called after the kernel-level `attach()`.
+     * Hook for `abs_cvt::attach()`, called after the kernel-level `attach()`.
      *
      * Calls `m_hash->clear()` to reset the hash state, ensuring a new session
      * starts from an empty-message state.
@@ -388,14 +388,14 @@ private:
 
     /**
      * @lang{ZH}
-     * `abs_cvt::bos()` 的 CRTP 钩子，处理流起始（BOS）。
+     * `abs_cvt::bos()` 的钩子，处理流起始（BOS）。
      *
      * `hash_cvt` 仅支持输出模式；若 `m_io_status` 不为 `output` 则抛出异常。
      * 调用 `m_hash->clear()` 为新流准备干净的哈希状态。
      * @endif
      *
      * @lang{EN}
-     * CRTP hook for `abs_cvt::bos()`, invoked at the beginning of stream (BOS).
+     * Hook for `abs_cvt::bos()`, invoked at the beginning of stream (BOS).
      *
      * `hash_cvt` supports output mode only; throws if `m_io_status` is not `output`.
      * Calls `m_hash->clear()` to prepare a clean hash state for the new stream.
@@ -468,7 +468,7 @@ private:
 
     /**
      * @lang{ZH}
-     * `abs_cvt::adjust()` 的 CRTP 钩子，处理 `hash_cvt` 专属行为对象。
+     * `abs_cvt::adjust()` 的钩子，处理 `hash_cvt` 专属行为对象。
      *
      * - `set_hash_fmt`：更新下次摘要输出时使用的格式（`m_out_fmt`）。
      * - `dump_hash`：若有未输出的主内容，立即调用 `dump_stream()` 输出摘要；
@@ -477,7 +477,7 @@ private:
      * @endif
      *
      * @lang{EN}
-     * CRTP hook for `abs_cvt::adjust()`, handling `hash_cvt`-specific behavior objects.
+     * Hook for `abs_cvt::adjust()`, handling `hash_cvt`-specific behavior objects.
      *
      * - `set_hash_fmt`: Updates the format used for the next digest output (`m_out_fmt`).
      * - `dump_hash`: If there is unwritten main content, immediately calls `dump_stream()`

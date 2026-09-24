@@ -9,7 +9,7 @@
  * 本文件提供三个核心组件：
  * - `cvt_reader`：带缓冲的读取辅助类，支持试探性读取与回退。
  * - `cvt_writer`：带缓冲的写入辅助类，支持延迟刷出与回退。
- * - `abs_cvt`：基于 CRTP 的抽象转换器基类，封装 BOS（流起始）处理逻辑
+ * - `abs_cvt`：基于显式对象形参（deducing this）的抽象转换器基类，封装 BOS（流起始）处理逻辑
  *   以及可选的 flush、定位、IO 方向切换能力。
  * @endif
  *
@@ -19,7 +19,8 @@
  * This file provides three core components:
  * - `cvt_reader`: A buffered read helper that supports speculative reads and rollback.
  * - `cvt_writer`: A buffered write helper that supports deferred flushing and rollback.
- * - `abs_cvt`: A CRTP-based abstract converter base class that encapsulates BOS
+ * - `abs_cvt`: An abstract converter base class built on explicit object parameters
+ *   (deducing this) that encapsulates BOS
  *   (Beginning-Of-Stream) handling and optional flush, positioning, and IO-direction
  *   switching capabilities.
  * @endif
@@ -567,7 +568,7 @@ namespace IOv2
 
     /**
      * @lang{ZH}
-     * 基于 CRTP 的抽象转换器基类。
+     * 基于显式对象形参（deducing this）的抽象转换器基类。
      *
      * `abs_cvt` 为所有具体转换器提供公共骨架，负责：
      * - **BOS（Beginning-Of-Stream）处理**：在 `bos()` 调用后、`main_cont_beg()`
@@ -608,7 +609,7 @@ namespace IOv2
      * @endif
      *
      * @lang{EN}
-     * CRTP-based abstract converter base class.
+     * Abstract converter base class built on explicit object parameters (deducing this).
      *
      * `abs_cvt` provides a common skeleton for all concrete converters and is
      * responsible for:
@@ -662,12 +663,16 @@ namespace IOv2
      *         lower layer before the lower layer is torn down — otherwise the
      *         drained data has nowhere to go.
      *
-     * @par CRTP 可选钩子 / CRTP Optional Hooks
+     * @par 可选钩子 / Optional Hooks
      * @lang{ZH}
-     * 派生类可实现以下零个或多个私有钩子函数。`abs_cvt` 通过
-     * `if constexpr (requires { ... })` 在编译期检测各钩子是否存在，并在对应的
-     * 生命周期节点调用。所有钩子须声明为 `private`，并在派生类中添加
-     * `friend BT` 授权 `abs_cvt` 访问。
+     * 派生类可实现以下零个或多个私有钩子函数。`abs_cvt` 的成员函数以显式对象形参
+     * `self` 接收调用对象，通过 `if constexpr (requires { self.xxx_impl(); })` 在编译期
+     * 检测各钩子是否存在，并在对应的生命周期节点调用。钩子按 `self` 的静态类型（即调用点
+     * 所用的类型）查找：经由中间层（如 `code_cvt`）继承的类，中间层的钩子同样可达；
+     * 下层若定义同名钩子，会遮蔽中间层的那个，须自行调用 `BT::xxx_impl()` 链接上去。
+     * 所有钩子须声明为 `private`，并向 `abs_cvt` 的那个特化授予 friend：直接派生类
+     * 写 `friend BT` 即可；经由中间层继承的类若有自己的钩子，须 friend 的是 `abs_cvt`
+     * 特化而不是它自己的 `BT`。
      *
      * - **`get_main(cvt_reader<KernelType>&, internal_type*, size_t) -> size_t`**
      *   由 `abs_cvt::get` 在主内容阶段调用，执行解码逻辑。
@@ -720,36 +725,37 @@ namespace IOv2
      *   由 `abs_cvt::adjust` 在调用 `m_kernel.adjust()` 之前调用，执行派生层特有的
      *   行为配置逻辑（如解析自定义 `cvt_behavior` 子类并更新内部状态）。
      *   允许抛出异常；调用方直接透传，不设置污染标志。
-     *   **仅适用于直接派生自 `abs_cvt` 的类**；若派生类经由中间层（如
-     *   `code_cvt`）继承，则 `CurrentType` 为中间层类型，`adjust_impl` 不可达，
-     *   应改为直接覆写公开的 `adjust()` 并链式调用 `BT::adjust()`。
      *
      * - **`retrieve_impl(cvt_status&)`**
      *   由 `abs_cvt::retrieve` 在调用 `m_kernel.retrieve()` 之前调用，用于将派生层
      *   特有的状态信息写入 `s`。允许抛出异常；调用方直接透传，不设置污染标志。
-     *   **仅适用于直接派生自 `abs_cvt` 的类**；若经由中间层继承，应覆写公开的
-     *   `retrieve()` 并链式调用 `BT::retrieve()`。
      *
      * - **`switch_to_get_impl()`**
      *   由 `abs_cvt::switch_to_get` 在调用 `m_kernel.switch_to_get()` 及更新
      *   `m_io_status` 之前调用，用于执行派生层的前置条件检查或状态调整。此时切换
      *   尚未发生，`m_io_status` 仍为切换前的值。允许抛出异常；调用方直接透传，
      *   不设置污染标志（状态未变，一致性可保证）。
-     *   **仅适用于直接派生自 `abs_cvt` 的类**。
      *
      * - **`switch_to_put_impl()`**
      *   由 `abs_cvt::switch_to_put` 在调用 `m_kernel.switch_to_put()` 及更新
      *   `m_io_status` 之前调用，用于执行派生层的前置条件检查或状态调整。此时切换
      *   尚未发生，`m_io_status` 仍为切换前的值。允许抛出异常；调用方直接透传，
      *   不设置污染标志（状态未变，一致性可保证）。
-     *   **仅适用于直接派生自 `abs_cvt` 的类**。
      * @endif
      *
      * @lang{EN}
      * Derived classes may implement zero or more of the following private hooks.
-     * `abs_cvt` detects each hook at compile time via `if constexpr (requires { ... })`
-     * and invokes it at the documented lifecycle point. All hooks must be declared
-     * `private`; the derived class must add `friend BT` to grant `abs_cvt` access.
+     * `abs_cvt`'s member functions receive the calling object as the explicit object
+     * parameter `self`, detect each hook at compile time via
+     * `if constexpr (requires { self.xxx_impl(); })`, and invoke it at the documented
+     * lifecycle point. Hooks are looked up on the static type of `self` -- the type the
+     * call is made through -- so for a class that inherits through an intermediate layer
+     * (e.g. `code_cvt`), the intermediate layer's hooks are reachable too; a same-named
+     * hook in the lower class hides the intermediate one and must chain to
+     * `BT::xxx_impl()` itself. All hooks must be declared `private` and the `abs_cvt`
+     * specialization must be befriended: a direct derived class writes `friend BT`; a class
+     * inheriting through an intermediate layer that has hooks of its own must befriend the
+     * `abs_cvt` specialization, not its own `BT`.
      *
      * - **`get_main(cvt_reader<KernelType>&, internal_type*, size_t) -> size_t`**
      *   Called by `abs_cvt::get` during the main-content phase to perform decoding.
@@ -816,19 +822,11 @@ namespace IOv2
      *   derived-layer behavior configuration (e.g., inspecting a custom
      *   `cvt_behavior` subclass and updating internal state). May throw; the caller
      *   propagates the exception directly without setting the taint flag.
-     *   **Only applicable to classes that directly inherit from `abs_cvt`.**
-     *   If a class inherits through an intermediate layer (e.g., `code_cvt`),
-     *   `CurrentType` is the intermediate type and `adjust_impl` on the leaf class
-     *   is unreachable; such classes must override the public `adjust()` directly
-     *   and forward to `BT::adjust()`.
      *
      * - **`retrieve_impl(cvt_status&)`**
      *   Called by `abs_cvt::retrieve` before `m_kernel.retrieve()`, to write any
      *   derived-layer status information into `s`. May throw; the caller propagates
      *   the exception directly without setting the taint flag.
-     *   **Only applicable to classes that directly inherit from `abs_cvt`.**
-     *   Classes inheriting through an intermediate layer must override the public
-     *   `retrieve()` and forward to `BT::retrieve()`.
      *
      * - **`switch_to_get_impl()`**
      *   Called by `abs_cvt::switch_to_get` before `m_kernel.switch_to_get()` and
@@ -837,7 +835,6 @@ namespace IOv2
      *   point of invocation the switch has not yet occurred and `m_io_status` still
      *   reflects the previous mode. May throw; the caller propagates the exception
      *   directly without setting the taint flag (state is still consistent).
-     *   **Only applicable to classes that directly inherit from `abs_cvt`.**
      *
      * - **`switch_to_put_impl()`**
      *   Called by `abs_cvt::switch_to_put` before `m_kernel.switch_to_put()` and
@@ -846,7 +843,6 @@ namespace IOv2
      *   point of invocation the switch has not yet occurred and `m_io_status` still
      *   reflects the previous mode. May throw; the caller propagates the exception
      *   directly without setting the taint flag (state is still consistent).
-     *   **Only applicable to classes that directly inherit from `abs_cvt`.**
      * @endif
      *
      * @par Exception Safety / Tainted State
@@ -881,10 +877,6 @@ namespace IOv2
      *     reset to a clean, empty state).
      * @endif
      *
-     * @tparam CurrentType
-     * @lang{ZH} CRTP 派生类自身的类型。 @endif
-     * @lang{EN} The CRTP derived class type itself. @endif
-     *
      * @tparam KernelType
      * @lang{ZH} 底层 IO 转换核心类型，须满足 `io_converter` concept。 @endif
      * @lang{EN} The underlying IO converter kernel type, which must satisfy the `io_converter` concept. @endif
@@ -909,8 +901,7 @@ namespace IOv2
      * When `true` (default) and the kernel supports IO-direction switching, the `switch_to_get()`/`switch_to_put()` methods are available.
      * @endif
      */
-    template <typename CurrentType,
-              io_converter KernelType,
+    template <io_converter KernelType,
               typename InternalType,
               bool enable_positioning = true,
               bool enable_io_switch = true>
@@ -1124,20 +1115,20 @@ namespace IOv2
          * @lang{ZH} pair：`first` 为已从 kernel 中分离的底层设备对象（右值），`second` 为清理过程中捕获的首个异常（`nullptr` 表示无异常）。 @endif
          * @lang{EN} A pair: `first` is the device detached from the kernel (rvalue); `second` is the first exception captured during cleanup (`nullptr` if none). @endif
          */
-        std::pair<device_type, std::exception_ptr> detach() noexcept
+        std::pair<device_type, std::exception_ptr> detach(this auto& self) noexcept
         {
             std::exception_ptr local_err = nullptr;
-            if constexpr (requires(CurrentType& t) { t.detach_impl(); })
+            if constexpr (requires { self.detach_impl(); })
             {
-                static_assert(noexcept(std::declval<CurrentType&>().detach_impl()),
+                static_assert(noexcept(self.detach_impl()),
                               "detach_impl() must be noexcept");
-                local_err = static_cast<CurrentType*>(this)->detach_impl();
+                local_err = self.detach_impl();
             }
 
-            auto [dev, inner_err] = m_kernel.detach();
-            m_io_status = io_status::neutral;
-            m_is_bos_done = false;
-            m_is_tainted = false;
+            auto [dev, inner_err] = self.m_kernel.detach();
+            self.m_io_status = io_status::neutral;
+            self.m_is_bos_done = false;
+            self.m_is_tainted = false;
             return { std::move(dev), local_err ? local_err : inner_err };
         }
 
@@ -1184,29 +1175,29 @@ namespace IOv2
          * @lang{ZH} 要附加的新设备（以移动方式转交所有权），默认为空设备。 @endif
          * @lang{EN} The new device to attach (ownership transferred via move); defaults to an empty device. @endif
          */
-        void attach(device_type&& dev = device_type{})
+        void attach(this auto& self, device_type&& dev = device_type{})
         {
             std::exception_ptr local_err = nullptr;
-            if constexpr (requires(CurrentType& t) { t.detach_impl(); })
+            if constexpr (requires { self.detach_impl(); })
             {
-                static_assert(noexcept(std::declval<CurrentType&>().detach_impl()),
+                static_assert(noexcept(self.detach_impl()),
                               "detach_impl() must be noexcept");
-                local_err = static_cast<CurrentType*>(this)->detach_impl();
+                local_err = self.detach_impl();
             }
 
             try
             {
-                m_kernel.attach(std::move(dev));
-                m_io_status = io_status::neutral;
-                m_is_bos_done = false;
-                m_is_tainted = false;
+                self.m_kernel.attach(std::move(dev));
+                self.m_io_status = io_status::neutral;
+                self.m_is_bos_done = false;
+                self.m_is_tainted = false;
 
-                if constexpr (requires(CurrentType& t) { t.attach_impl(); })
-                    static_cast<CurrentType*>(this)->attach_impl();
+                if constexpr (requires { self.attach_impl(); })
+                    self.attach_impl();
             }
             catch (...)
             {
-                m_is_tainted = true;
+                self.m_is_tainted = true;
                 throw;
             }
 
@@ -1234,12 +1225,12 @@ namespace IOv2
          * @lang{ZH} 描述期望行为的配置对象。 @endif
          * @lang{EN} A configuration object describing the desired behavior. @endif
          */
-        void adjust(const cvt_behavior& b)
+        void adjust(this auto& self, const cvt_behavior& b)
         {
-            assert_not_tainted();
-            if constexpr (requires(CurrentType& t, const cvt_behavior& behavior) { t.adjust_impl(behavior); })
-                static_cast<CurrentType*>(this)->adjust_impl(b);
-            m_kernel.adjust(b);
+            self.assert_not_tainted();
+            if constexpr (requires { self.adjust_impl(b); })
+                self.adjust_impl(b);
+            self.m_kernel.adjust(b);
         }
 
         /**
@@ -1262,11 +1253,11 @@ namespace IOv2
          * @lang{ZH} 用于接收状态信息的输出对象。 @endif
          * @lang{EN} Output object to receive the status information. @endif
          */
-        void retrieve(cvt_status& s) const
+        void retrieve(this const auto& self, cvt_status& s)
         {
-            if constexpr (requires(const CurrentType& t, cvt_status& status) { t.retrieve_impl(status); })
-                static_cast<const CurrentType*>(this)->retrieve_impl(s);
-            m_kernel.retrieve(s);
+            if constexpr (requires { self.retrieve_impl(s); })
+                self.retrieve_impl(s);
+            self.m_kernel.retrieve(s);
         }
 
         /**
@@ -1316,28 +1307,28 @@ namespace IOv2
          * @lang{ZH} 若当前 IO 状态不为 `neutral`，或 `bos()` 已被调用过。 @endif
          * @lang{EN} If the current IO status is not `neutral`, or if `bos()` has already been called. @endif
          */
-        io_status bos()
+        io_status bos(this auto& self)
         {
-            assert_not_tainted();
+            self.assert_not_tainted();
 
             try
             {
-                if (m_io_status != io_status::neutral)
+                if (self.m_io_status != io_status::neutral)
                     throw cvt_error("abs_cvt::bos fail: cannot call bos with un-neutral status");
-                if (m_is_bos_done)
+                if (self.m_is_bos_done)
                     throw cvt_error("abs_cvt::bos fail: cannot call bos multiple times");
 
-                m_io_status = m_kernel.bos();
+                self.m_io_status = self.m_kernel.bos();
 
-                if constexpr (requires(CurrentType& t) { t.bos_impl(); })
-                    static_cast<CurrentType*>(this)->bos_impl();
-                return m_io_status;
+                if constexpr (requires { self.bos_impl(); })
+                    self.bos_impl();
+                return self.m_io_status;
             }
             catch (...)
             {
-                release_derived_state();
-                m_io_status = io_status::neutral;
-                m_is_tainted = true;
+                self.release_derived_state();
+                self.m_io_status = io_status::neutral;
+                self.m_is_tainted = true;
                 throw;
             }
         }
@@ -1358,22 +1349,22 @@ namespace IOv2
          * actual encoding conversion logic.
          * @endif
          */
-        void main_cont_beg()
+        void main_cont_beg(this auto& self)
         {
-            assert_not_tainted();
+            self.assert_not_tainted();
 
             try
             {
-                m_kernel.main_cont_beg();
-                if constexpr (requires(CurrentType& t) { t.main_cont_beg_impl(); })
-                    static_cast<CurrentType*>(this)->main_cont_beg_impl();
-                m_is_bos_done = true;
+                self.m_kernel.main_cont_beg();
+                if constexpr (requires { self.main_cont_beg_impl(); })
+                    self.main_cont_beg_impl();
+                self.m_is_bos_done = true;
             }
             catch (...)
             {
-                release_derived_state();
-                m_io_status = io_status::neutral;
-                m_is_tainted = true;
+                self.release_derived_state();
+                self.m_io_status = io_status::neutral;
+                self.m_is_tainted = true;
                 throw;
             }
         }
@@ -1398,13 +1389,13 @@ namespace IOv2
          * @lang{ZH} 若已到达流末尾则返回 `true`，否则返回 `false`。 @endif
          * @lang{EN} `true` if the end of the stream has been reached; `false` otherwise. @endif
          */
-        [[nodiscard]] bool is_eof()
+        [[nodiscard]] bool is_eof(this auto& self)
             requires (cvt_cpt::support_get<KernelType>)
         {
-            if constexpr (requires(CurrentType& t) { { t.is_eof_impl() } -> std::same_as<bool>; })
-                return static_cast<CurrentType*>(this)->is_eof_impl();
+            if constexpr (requires { { self.is_eof_impl() } -> std::same_as<bool>; })
+                return self.is_eof_impl();
             else
-                return m_kernel.is_eof();
+                return self.m_kernel.is_eof();
         }
 
     // optional methods
@@ -1463,8 +1454,9 @@ namespace IOv2
          * the main phase cannot switch to input direction.
          * @endif
          */
-        std::size_t get(internal_type* to, std::size_t to_max)
-            requires requires(CurrentType& t, cvt_reader<KernelType>& r, internal_type* data, std::size_t len) {
+        template <typename Self>
+        std::size_t get(this Self& self, internal_type* to, std::size_t to_max)
+            requires requires(Self& t, cvt_reader<KernelType>& r, internal_type* data, std::size_t len) {
                 { t.get_main(r, data, len) } -> std::same_as<std::size_t>;
             }
         {
@@ -1473,11 +1465,11 @@ namespace IOv2
             // stream content is unchanged, and callers can reseek to recover.
             // We still honour any pre-existing taint so that a writer that
             // corrupted the stream cannot then read back a confused image.
-            assert_not_tainted();
+            self.assert_not_tainted();
 
-            cvt_reader<KernelType> reader(m_kernel, m_tmp_io_buffer);
+            cvt_reader<KernelType> reader(self.m_kernel, self.m_tmp_io_buffer);
 
-            if (!m_is_bos_done)
+            if (!self.m_is_bos_done)
             {
                 if (to_max == 0) return 0;
 
@@ -1516,14 +1508,14 @@ namespace IOv2
             }
             else
             {
-                if (m_io_status != io_status::input)
+                if (self.m_io_status != io_status::input)
                 {
-                    if constexpr (cvt_cpt::support_io_switch<CurrentType>)
-                        static_cast<CurrentType*>(this)->switch_to_get();
+                    if constexpr (cvt_cpt::support_io_switch<Self>)
+                        self.switch_to_get();
                     else
                         throw cvt_error("abs_cvt::get fail: cannot switch to input mode");
                 }
-                return static_cast<CurrentType*>(this)->get_main(reader, to, to_max);
+                return self.get_main(reader, to, to_max);
             }
         }
 
@@ -1572,30 +1564,31 @@ namespace IOv2
          * @lang{ZH} 若主阶段无法切换到 output 方向。 @endif
          * @lang{EN} If the main phase cannot switch to output direction. @endif
          */
-        void put(const internal_type* to, std::size_t to_size)
-            requires requires(CurrentType& t, cvt_writer<KernelType>& w, const internal_type* data, std::size_t len) {
+        template <typename Self>
+        void put(this Self& self, const internal_type* to, std::size_t to_size)
+            requires requires(Self& t, cvt_writer<KernelType>& w, const internal_type* data, std::size_t len) {
                 { t.put_main(w, data, len) } -> std::same_as<void>;
             }
         {
-            assert_not_tainted();
+            self.assert_not_tainted();
 
             // IO-direction switching does not write bytes to the output stream:
             // a failed switch_to_put() leaves the stream unchanged, so the
             // converter is not corrupted and must not be tainted.  Perform the
             // switch BEFORE entering the taint-on-exception region so that only
             // actual kernel writes can cause tainting.
-            if (m_is_bos_done && m_io_status != io_status::output)
+            if (self.m_is_bos_done && self.m_io_status != io_status::output)
             {
-                if constexpr (cvt_cpt::support_io_switch<CurrentType>)
-                    static_cast<CurrentType*>(this)->switch_to_put();
+                if constexpr (cvt_cpt::support_io_switch<Self>)
+                    self.switch_to_put();
                 else
                     throw cvt_error("abs_cvt::put fail: cannot switch to output mode");
             }
 
             try
             {
-                cvt_writer<KernelType> writer(m_kernel, m_tmp_io_buffer);
-                if (!m_is_bos_done)
+                cvt_writer<KernelType> writer(self.m_kernel, self.m_tmp_io_buffer);
+                if (!self.m_is_bos_done)
                 {
                     if (to_size == 0) return;
 
@@ -1638,7 +1631,7 @@ namespace IOv2
                 {
                     // switch_to_put() was already called above if needed;
                     // m_io_status is guaranteed to be output at this point.
-                    static_cast<CurrentType*>(this)->put_main(writer, to, to_size);
+                    self.put_main(writer, to, to_size);
                     // commit() is the sole responsibility of abs_cvt::put: derived
                     // put_main implementations must NOT call writer.commit() themselves.
                     // If put_main throws, this commit is skipped and any uncommitted
@@ -1649,7 +1642,7 @@ namespace IOv2
             }
             catch (...)
             {
-                m_is_tainted = true;
+                self.m_is_tainted = true;
                 throw;
             }
         }
@@ -1682,24 +1675,25 @@ namespace IOv2
          * state and further operations are unavailable.
          * @endif
          */
-        void flush()
-            requires requires(CurrentType& t, cvt_writer<KernelType>& w, const internal_type* data, std::size_t len) {
+        template <typename Self>
+        void flush(this Self& self)
+            requires requires(Self& t, cvt_writer<KernelType>& w, const internal_type* data, std::size_t len) {
                 { t.put_main(w, data, len) } -> std::same_as<void>;
             }
         {
-            if (m_io_status != io_status::output)
+            if (self.m_io_status != io_status::output)
                 return;
 
-            assert_not_tainted();
+            self.assert_not_tainted();
             try
             {
-                if constexpr (requires(CurrentType& t) { t.flush_impl(); })
-                    static_cast<CurrentType*>(this)->flush_impl();
-                m_kernel.flush();
+                if constexpr (requires { self.flush_impl(); })
+                    self.flush_impl();
+                self.m_kernel.flush();
             }
             catch (...)
             {
-                m_is_tainted = true;
+                self.m_is_tainted = true;
                 throw;
             }
         }
@@ -1725,13 +1719,13 @@ namespace IOv2
          * @lang{ZH} 当前流位置（从流起始处的 `external_type` 元素偏移量）。 @endif
          * @lang{EN} The current stream position as an offset in `external_type` elements from the start of the stream. @endif
          */
-        [[nodiscard]] std::size_t tell() const
+        [[nodiscard]] std::size_t tell(this const auto& self)
             requires (enable_positioning && cvt_cpt::support_positioning<KernelType>)
         {
-            if constexpr (requires(const CurrentType& t) { { t.tell_impl() } -> std::same_as<std::size_t>; })
-                return static_cast<const CurrentType*>(this)->tell_impl();
+            if constexpr (requires { { self.tell_impl() } -> std::same_as<std::size_t>; })
+                return self.tell_impl();
             else
-                return m_kernel.tell();
+                return self.m_kernel.tell();
         }
 
         /**
@@ -1758,7 +1752,7 @@ namespace IOv2
          * @lang{ZH} 目标绝对位置（从流起始处的 `external_type` 元素偏移量）。 @endif
          * @lang{EN} Target absolute position as an offset in `external_type` elements from the start of the stream. @endif
          */
-        void seek(std::size_t pos)
+        void seek(this auto& self, std::size_t pos)
             requires (enable_positioning && cvt_cpt::support_positioning<KernelType>)
         {
             // Fast path for no-op self-seek: skip validation and kernel work when
@@ -1766,13 +1760,13 @@ namespace IOv2
             // where the validation below would otherwise reject — callers using
             // seek(saved_pos) for position-restore must not be rejected when
             // saved_pos happens to equal tell().
-            if (this->tell() == pos) return;
+            if (self.tell() == pos) return;
 
-            assert_not_tainted();
+            self.assert_not_tainted();
 
-            if constexpr (requires(CurrentType& t, std::size_t p) { t.seek_impl(p); })
-                static_cast<CurrentType*>(this)->seek_impl(pos);
-            else m_kernel.seek(pos);
+            if constexpr (requires { self.seek_impl(pos); })
+                self.seek_impl(pos);
+            else self.m_kernel.seek(pos);
         }
 
         /**
@@ -1798,14 +1792,14 @@ namespace IOv2
          * @lang{ZH} 目标反向位置（从流末尾向前的 `external_type` 元素偏移量）。 @endif
          * @lang{EN} Target reverse position as an offset in `external_type` elements measured backwards from the end of the stream. @endif
          */
-        void rseek(std::size_t pos)
+        void rseek(this auto& self, std::size_t pos)
             requires (enable_positioning && cvt_cpt::support_positioning<KernelType>)
         {
-            assert_not_tainted();
+            self.assert_not_tainted();
 
-            if constexpr (requires(CurrentType& t, std::size_t p) { t.rseek_impl(p); })
-                static_cast<CurrentType*>(this)->rseek_impl(pos);
-            else m_kernel.rseek(pos);
+            if constexpr (requires { self.rseek_impl(pos); })
+                self.rseek_impl(pos);
+            else self.m_kernel.rseek(pos);
         }
 
         /**
@@ -1831,20 +1825,20 @@ namespace IOv2
          * IO-direction switching.
          * @endif
          */
-        void switch_to_get()
+        void switch_to_get(this auto& self)
             requires (enable_io_switch && cvt_cpt::support_io_switch<KernelType>)
         {
-            if (m_io_status == io_status::input)
+            if (self.m_io_status == io_status::input)
                 return;
 
-            assert_not_tainted();
+            self.assert_not_tainted();
 
             // Note: invoke the derived-layer hook first (e.g. precondition checks), then switch the lower level.
-            if constexpr (requires(CurrentType& t) { t.switch_to_get_impl(); })
-                static_cast<CurrentType*>(this)->switch_to_get_impl();
+            if constexpr (requires { self.switch_to_get_impl(); })
+                self.switch_to_get_impl();
 
-            m_kernel.switch_to_get();
-            m_io_status = io_status::input;
+            self.m_kernel.switch_to_get();
+            self.m_io_status = io_status::input;
         }
 
         /**
@@ -1879,20 +1873,20 @@ namespace IOv2
          *       `m_io_status` are touched, so a refusal leaves this object unchanged.
          * @endif
          */
-        void switch_to_put()
+        void switch_to_put(this auto& self)
             requires (enable_io_switch && cvt_cpt::support_io_switch<KernelType>)
         {
-            if (m_io_status == io_status::output)
+            if (self.m_io_status == io_status::output)
                 return;
 
-            assert_not_tainted();
+            self.assert_not_tainted();
 
             // Note: invoke the derived-layer hook first (e.g. precondition checks), then switch the lower level.
-            if constexpr (requires(CurrentType& t) { t.switch_to_put_impl(); })
-                static_cast<CurrentType*>(this)->switch_to_put_impl();
+            if constexpr (requires { self.switch_to_put_impl(); })
+                self.switch_to_put_impl();
 
-            m_kernel.switch_to_put();
-            m_io_status = io_status::output;
+            self.m_kernel.switch_to_put();
+            self.m_io_status = io_status::output;
         }
 
     protected:
@@ -2029,13 +2023,13 @@ namespace IOv2
          *       an exception closer to the cause.
          * @endif
          */
-        void release_derived_state() noexcept
+        void release_derived_state(this auto& self) noexcept
         {
-            if constexpr (requires(CurrentType& t) { t.detach_impl(); })
+            if constexpr (requires { self.detach_impl(); })
             {
-                static_assert(noexcept(std::declval<CurrentType&>().detach_impl()),
+                static_assert(noexcept(self.detach_impl()),
                               "detach_impl() must be noexcept");
-                (void)static_cast<CurrentType*>(this)->detach_impl();
+                (void)self.detach_impl();
             }
         }
 
