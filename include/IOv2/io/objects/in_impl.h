@@ -143,7 +143,8 @@ public:
      * @param sync `true` 为同步（默认），`false` 为自带缓冲。
      * @return 调用前的同步状态；重建失败时同步状态未改变，返回的就是当前状态。
      * @note 重建失败时旧 iochannel 已经 detach、新的没建起来，流停在**未附接**状态：此后每次
-     *       操作都按状态位失败（`clear()` 之后是 `cvtfailbit`），`clear()` 不够，须 `reset()`
+     *       要读设备的操作都按状态位失败（`clear()` 之后是 `cvtfailbit`；`putback()`、`code()`、
+     *       `switch_code()` 不碰设备，照常成功），`clear()` 不够，须 `reset()`
      *       在同一 fd 上重新附接。同步标志保持原值，因此「流报告的模式」与「它实际怎么读」始终一致。
      *       本函数不像别的失败那样只是「这一次没做成」，而是会让流暂时不可用，故值得单独提醒。
      * @endif
@@ -189,8 +190,10 @@ public:
      * @return The synchronization state before the call; when the rebuild fails the state is
      *         unchanged, so that is also the current one.
      * @note When the rebuild fails the old iochannel has been detached and the new one was
-     *       never built, leaving the stream **unattached**: every operation then fails through
-     *       the state bits (`cvtfailbit` once `clear()`ed), `clear()` is not enough, and
+     *       never built, leaving the stream **unattached**: every operation that reads the
+     *       device then fails through the state bits (`cvtfailbit` once `clear()`ed;
+     *       `putback()`, `code()` and `switch_code()` do not touch the device and succeed as
+     *       usual), `clear()` is not enough, and
      *       `reset()` is what attaches a fresh device on the same fd. The flag keeps its old
      *       value, so what the stream reports and how it actually reads never disagree.
      *       Unlike most failures this one leaves the stream unusable for a while, which is why
@@ -221,7 +224,7 @@ public:
                 static_assert(dependent_false_v<char_type>, "invalid character type");
         } catch (...) {
             // The iochannel was detached and the new one was never built: every
-            // operation now fails through the state bits until reset() attaches a
+            // operation that reads the device now fails until reset() attaches a
             // fresh device. The flag stays where it was, so what the stream reports
             // and how it actually reads still agree.
             this->handle_exception(std::current_exception());

@@ -185,8 +185,9 @@ private:
  * **八个流一律都会被尝试**：某个流失败不会妨碍其余的切换。每个流的失败先记在它自己的状态位上
  * （输出流是切回同步时把本流缓冲搬进 stdio 缓冲那一步失败，输入流是重建 iochannel 失败），
  * 若该流的 `exceptions()` 掩码含该位，它会抛出——本函数把这些异常收齐，最后抛一个
- * `sync_error`。默认掩码（`goodbit`）下本函数不抛任何异常，八个流全部切换完毕，失败只体现在
- * 状态位上。
+ * `sync_error`。默认掩码（`goodbit`）下本函数不抛任何异常，失败只体现在各流的状态位上：
+ * 六个输出流一定切换（失败的只是交出积压字节那一步），输入流重建失败时保持原模式并停在
+ * 未附接状态（见 `stdin_api::sync_with_stdio`）。
  *
  * 应在任何 `stdin` 读取之前调用：输入流会换掉整个 iochannel，已缓冲但未消费的输入随之
  * 丢弃（见 `stdin_api::sync_with_stdio`）。输出侧没有这个限制，随时可切，与并发的插入操作
@@ -207,8 +208,10 @@ private:
  * hand-over of its buffer to stdio when switching back to synchronized; on an input stream,
  * rebuilding the iochannel), and if that stream's `exceptions()` mask includes the bit it
  * throws -- this function collects those exceptions and finally throws one `sync_error`.
- * Under the default mask (`goodbit`) it throws nothing: all eight switch and the failures
- * show up only as state bits.
+ * Under the default mask (`goodbit`) it throws nothing and the failures show up only as
+ * each stream's state bits: the six output streams always switch (what can fail is only
+ * the hand-over of their pending bytes), while an input stream whose rebuild fails keeps
+ * its old mode and is left unattached (see `stdin_api::sync_with_stdio`).
  *
  * Call it before any `stdin` read: the input streams replace their whole iochannel, which
  * discards input that was buffered but not yet consumed (see `stdin_api::sync_with_stdio`).
