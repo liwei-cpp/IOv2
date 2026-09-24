@@ -29,11 +29,10 @@ namespace
     // block (m_is_tainted = true) and the assert_not_tainted() throw that follows.
     template <io_converter KernelType>
     struct failing_put_cvt
-        : public abs_cvt<failing_put_cvt<KernelType>, KernelType,
-                         typename KernelType::internal_type>
+        : public abs_cvt<KernelType, typename KernelType::internal_type>
     {
         using IT = typename KernelType::internal_type;
-        using BT = abs_cvt<failing_put_cvt<KernelType>, KernelType, IT>;
+        using BT = abs_cvt<KernelType, IT>;
         friend BT;
 
     public:
@@ -55,11 +54,10 @@ namespace
     // after main_cont_beg(), triggering the second guard in bos().
     template <io_converter KernelType>
     struct bos_guard_hack_cvt
-        : public abs_cvt<bos_guard_hack_cvt<KernelType>, KernelType,
-                         typename KernelType::internal_type>
+        : public abs_cvt<KernelType, typename KernelType::internal_type>
     {
         using IT = typename KernelType::internal_type;
-        using BT = abs_cvt<bos_guard_hack_cvt<KernelType>, KernelType, IT>;
+        using BT = abs_cvt<KernelType, IT>;
         friend BT;
 
     public:
@@ -73,17 +71,17 @@ namespace
         void        put_main(cvt_writer<KernelType>&, const IT*, std::size_t) {}
     };
 
-    // Minimal CRTP cvt: exposes `char` as internal_type while the kernel uses
+    // Minimal cvt: exposes `char` as internal_type while the kernel uses
     // `wchar_t` units. Lets us exercise the BOS partial-unit code path in
     // abs_cvt::get / abs_cvt::put (triggered when to_max * sizeof(char) is not a
     // multiple of sizeof(wchar_t)).
     template <io_converter KernelType>
         requires std::is_same_v<typename KernelType::internal_type, wchar_t>
     struct wext_char_cvt
-        : public abs_cvt<wext_char_cvt<KernelType>, KernelType, char,
+        : public abs_cvt<KernelType, char,
                          /*position=*/false, /*io_switch=*/false>
     {
-        using BT = abs_cvt<wext_char_cvt<KernelType>, KernelType, char, false, false>;
+        using BT = abs_cvt<KernelType, char, false, false>;
         friend BT;
 
     public:
@@ -96,17 +94,17 @@ namespace
         void        put_main(cvt_writer<KernelType>&, const char*, std::size_t) {}
     };
 
-    // Minimal CRTP cvt with io-direction switching disabled
+    // Minimal cvt with io-direction switching disabled
     // (default_io_switch=false). Used to exercise the "cannot switch to
     // input/output mode" error paths in abs_cvt::get / abs_cvt::put.
     template <io_converter KernelType>
     struct no_switch_cvt
-        : public abs_cvt<no_switch_cvt<KernelType>, KernelType,
+        : public abs_cvt<KernelType,
                          typename KernelType::internal_type,
                          /*position=*/false, /*io_switch=*/false>
     {
         using IT = typename KernelType::internal_type;
-        using BT = abs_cvt<no_switch_cvt<KernelType>, KernelType, IT, false, false>;
+        using BT = abs_cvt<KernelType, IT, false, false>;
         friend BT;
 
     public:

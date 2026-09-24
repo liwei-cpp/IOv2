@@ -161,10 +161,10 @@ struct zlib_sync_flush : cvt_behavior
 template <io_converter KernelType, typename TInt = typename KernelType::internal_type>
     requires (sizeof(typename KernelType::internal_type) == sizeof(unsigned char) &&
               std::is_trivially_copyable_v<TInt>)
-class zlib_cvt : public abs_cvt<zlib_cvt<KernelType, TInt>, KernelType, TInt, false, false>
+class zlib_cvt : public abs_cvt<KernelType, TInt, false, false>
 {
-    using BT = abs_cvt<zlib_cvt<KernelType, TInt>, KernelType, TInt, false, false>;
-    friend BT;  // for put_main, get_main, and private CRTP hooks
+    using BT = abs_cvt<KernelType, TInt, false, false>;
+    friend BT;  // for put_main, get_main, and private hooks
 
     /**
      * @lang{ZH}
@@ -546,7 +546,7 @@ public:
 private:
     /**
      * @lang{ZH}
-     * `abs_cvt::detach()` 的 CRTP 钩子，在 kernel 层 `detach()` 之前调用。
+     * `abs_cvt::detach()` 的钩子，在 kernel 层 `detach()` 之前调用。
      *
      * 负责执行 `zlib_cvt` 层的清理（`close_stream()`），并将捕获到的异常以
      * `exception_ptr` 形式返回；调用方（`abs_cvt::detach()`）负责按 first-failure-wins
@@ -556,7 +556,7 @@ private:
      * @endif
      *
      * @lang{EN}
-     * CRTP hook for `abs_cvt::detach()`, called before the kernel-level `detach()`.
+     * Hook for `abs_cvt::detach()`, called before the kernel-level `detach()`.
      *
      * Performs `zlib_cvt`-layer cleanup (`close_stream()`) and returns any captured
      * exception as an `exception_ptr`; the caller (`abs_cvt::detach()`) merges it
@@ -576,7 +576,7 @@ private:
 
     /**
      * @lang{ZH}
-     * `abs_cvt::bos()` 的 CRTP 钩子，在 kernel `bos()` 返回后调用。
+     * `abs_cvt::bos()` 的钩子，在 kernel `bos()` 返回后调用。
      *
      * 此时 `BT::m_io_status` 已被更新为 kernel 确定的初始方向，本函数根据该方向
      * 初始化 zlib 状态并处理 2 字节流头：
@@ -592,7 +592,7 @@ private:
      * @endif
      *
      * @lang{EN}
-     * CRTP hook for `abs_cvt::bos()`, called after the kernel's `bos()` returns.
+     * Hook for `abs_cvt::bos()`, called after the kernel's `bos()` returns.
      *
      * At this point `BT::m_io_status` has already been updated to the initial
      * direction determined by the kernel. This hook initializes zlib state and
@@ -719,7 +719,7 @@ private:
 
     /**
      * @lang{ZH}
-     * `abs_cvt::main_cont_beg()` 的 CRTP 钩子，在 kernel 层 `main_cont_beg()` 之后调用。
+     * `abs_cvt::main_cont_beg()` 的钩子，在 kernel 层 `main_cont_beg()` 之后调用。
      *
      * - 若当前为输出模式，调用 `BT::flush()` 将已在 BOS 阶段写入内核缓冲区的
      *   zlib 流头刷出到底层设备。此时 `m_strm` 必须为有效的 zlib 流（由 `bos()`
@@ -729,7 +729,7 @@ private:
      * @endif
      *
      * @lang{EN}
-     * CRTP hook for `abs_cvt::main_cont_beg()`, called after the kernel-level
+     * Hook for `abs_cvt::main_cont_beg()`, called after the kernel-level
      * `main_cont_beg()`.
      *
      * - If currently in output mode, calls `BT::flush()` to flush the zlib stream

@@ -795,7 +795,6 @@ struct istream_operators
      * @tparam DelimPolicy 分隔符处理策略：`cons_sep` 或 `keep_sep`。
      * @tparam CStrPolicy C 字符串处理策略：`app_zt` 或 `no_zt`。
      * @tparam TOut 输出目标类型：可为指针或输出迭代器。
-     * @tparam TSelf 派生的具体流类型（由 deducing-this 推导）。
      * @param s 输出目标（指针或输出迭代器）。
      * @param n 缓冲区容量，必须为正；当 `CStrPolicy` 为 `app_zt` 时，最多写入 `n-1` 个字符。
      * @return 指向最后一个写入位置之后的输出迭代器/指针。`app_zt` 下空字符结尾
@@ -813,7 +812,6 @@ struct istream_operators
      * @tparam DelimPolicy Delimiter policy: `cons_sep` or `keep_sep`.
      * @tparam CStrPolicy C-string policy: `app_zt` or `no_zt`.
      * @tparam TOut The output target type: either a pointer or an output iterator.
-     * @tparam TSelf The concrete derived stream type (deduced via deducing-this).
      * @param s The output target (pointer or output iterator).
      * @param n The buffer capacity; must be positive. When `CStrPolicy` is `app_zt`, at most
      *          `n-1` characters are written.
@@ -824,10 +822,10 @@ struct istream_operators
      *        exceptions match the three-argument overload.
      * @endif
      */
-    template <typename DelimPolicy, typename CStrPolicy, typename TOut, typename TSelf>
+    template <typename DelimPolicy, typename CStrPolicy, typename TOut>
         requires ((std::is_same_v<DelimPolicy, cons_sep> || std::is_same_v<DelimPolicy, keep_sep>) &&
                   (std::is_same_v<CStrPolicy, app_zt> || std::is_same_v<CStrPolicy, no_zt>))
-    TOut get(this TSelf& self, TOut s, std::ptrdiff_t n)
+    TOut get(this auto& self, TOut s, std::ptrdiff_t n)
     {
         TChar delim;
         {

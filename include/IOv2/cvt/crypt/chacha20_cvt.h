@@ -155,9 +155,9 @@ template <io_converter KernelType, typename TInt = typename KernelType::internal
               sizeof(typename KernelType::internal_type) == sizeof(uint8_t) &&
               std::is_trivially_copyable_v<TInt> &&
               std::has_unique_object_representations_v<TInt>)
-class chacha20_cvt : public abs_cvt<chacha20_cvt<KernelType, TInt>, KernelType, TInt, false, false>
+class chacha20_cvt : public abs_cvt<KernelType, TInt, false, false>
 {
-    using BT = abs_cvt<chacha20_cvt<KernelType, TInt>, KernelType, TInt, false, false>;
+    using BT = abs_cvt<KernelType, TInt, false, false>;
     friend BT; // for put_main and get_main
 public:
     using device_type = typename KernelType::device_type;
@@ -290,7 +290,7 @@ public:
 private:
     /**
      * @lang{ZH}
-     * `abs_cvt::detach()` 的 CRTP 钩子，在 kernel 层 `detach()` 之前调用。
+     * `abs_cvt::detach()` 的钩子，在 kernel 层 `detach()` 之前调用。
      *
      * 若 `m_cipher` 有效（非 moved-from 状态），调用 `m_cipher->clear()` 清除密钥和 IV 状态；
      * 同时清零跨调用残留的非对齐密文缓冲区（`m_leftover` / `m_leftover_len`），
@@ -302,7 +302,7 @@ private:
      * @endif
      *
      * @lang{EN}
-     * CRTP hook for `abs_cvt::detach()`, called before the kernel-level `detach()`.
+     * Hook for `abs_cvt::detach()`, called before the kernel-level `detach()`.
      *
      * If `m_cipher` is valid (not a moved-from object), calls `m_cipher->clear()` to
      * wipe the key and IV state. Also zeroes the carry-over ciphertext buffer
@@ -330,14 +330,14 @@ private:
 
     /**
      * @lang{ZH}
-     * `abs_cvt::attach()` 的 CRTP 钩子，在 kernel 层 `attach()` 之后调用。
+     * `abs_cvt::attach()` 的钩子，在 kernel 层 `attach()` 之后调用。
      *
      * 调用 `m_cipher->clear()` 重置密码器状态，并清零跨调用残留缓冲区，
      * 确保新会话从干净状态开始，不受前次会话的密钥流影响。
      * @endif
      *
      * @lang{EN}
-     * CRTP hook for `abs_cvt::attach()`, called after the kernel-level `attach()`.
+     * Hook for `abs_cvt::attach()`, called after the kernel-level `attach()`.
      *
      * Calls `m_cipher->clear()` to reset cipher state and zeroes the cross-call
      * leftover buffer. Ensures a new session starts from a clean state, independent
@@ -362,7 +362,7 @@ private:
 
     /**
      * @lang{ZH}
-     * `abs_cvt::bos()` 的 CRTP 钩子，处理流起始（BOS）的 IV 协商。
+     * `abs_cvt::bos()` 的钩子，处理流起始（BOS）的 IV 协商。
      *
      * - **输出模式**：随机生成 IV，设置密码器密钥与 IV，然后将 IV 明文写入 kernel。
      * - **输入模式**：从 kernel 读取 IV，设置密码器密钥与 IV。
@@ -371,7 +371,7 @@ private:
      * @endif
      *
      * @lang{EN}
-     * CRTP hook for `abs_cvt::bos()`, handling IV negotiation at the beginning
+     * Hook for `abs_cvt::bos()`, handling IV negotiation at the beginning
      * of stream (BOS).
      *
      * - **Output mode**: generates a random IV, initializes the cipher with the key

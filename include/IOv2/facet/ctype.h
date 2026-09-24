@@ -7,7 +7,7 @@
  * `ctype` facet：字符分类、大小写转换及宽窄字符映射。
  *
  * 本文件提供以下核心组件：
- * - `detail::ctype_ops<Derived>`：CRTP 混入类，基于派生类的五个单字符原语
+ * - `detail::ctype_ops`：混入类（使用 deducing this），基于派生类的五个单字符原语
  *   （`is`、`toupper`、`tolower`、`widen`、`narrow`）提供序列操作变体及
  *   带回退的 `narrow(c, def)` 重载。
  * - `ctype<CharT>`（`sizeof(CharT) == 1`，即 `char`、`char8_t`）：单字节特化；
@@ -23,10 +23,10 @@
  * `ctype` facet: character classification, case conversion, and widen/narrow mapping.
  *
  * This file provides the following core components:
- * - `detail::ctype_ops<Derived>`: CRTP mixin class that provides sequence-operation
- *   variants and a fallback-taking `narrow(c, def)` overload, derived from the five
- *   single-character primitives of the `Derived` class (`is`, `toupper`, `tolower`,
- *   `widen`, `narrow`).
+ * - `detail::ctype_ops`: mixin class built on explicit object parameters (deducing this)
+ *   that provides sequence-operation variants and a fallback-taking `narrow(c, def)`
+ *   overload, derived from the five single-character primitives of the derived class
+ *   (`is`, `toupper`, `tolower`, `widen`, `narrow`).
  * - `ctype<CharT>` (`sizeof(CharT) == 1`, i.e. `char`, `char8_t`): Single-byte
  *   specialization; at construction all five primitive tables are snapshotted for all
  *   256 values into plain arrays. Later lookups are O(1) array reads with no virtual
@@ -70,13 +70,13 @@ namespace detail
 {
 /**
  * @lang{ZH}
- * CRTP 混入类：基于派生类的五个单字符原语提供序列操作及带回退的 `narrow` 重载。
+ * 混入类：基于派生类的五个单字符原语提供序列操作及带回退的 `narrow` 重载。
  *
- * `ctype<CharT>` 的两个特化均从本类继承，以避免重复定义序列方法。
+ * `ctype<CharT>` 的两个特化均从本类继承，以避免重复定义序列方法。各成员以显式对象形参
+ * （deducing this）取得调用方的具体类型 `Self`，并在其上查找原语。
  *
- * 参数类型依赖 `Derived::char_type` 或 `Derived::mask` 的方法被声明为受约束的函数模板：
- * `requires` 子句将这些依赖名称的求值推迟到调用时（此时 `Derived` 已是完整类型），
- * 从而避免类作用域类型别名在 `Derived` 不完整时引发的错误。
+ * 参数类型依赖 `Self::char_type` 或 `Self::mask` 的方法以 `requires` 子句约束这些依赖名称，
+ * 因此须显式写出 `template <typename Self>`；其余方法使用 `this const auto& self`。
  *
  * @par 区间前置条件
  * 所有接受迭代器对的方法（`is_seq`、`scan_is_any`、`scan_not_any`、`toupper_seq`、
@@ -87,15 +87,16 @@ namespace detail
  * @endif
  *
  * @lang{EN}
- * CRTP mixin class supplying sequence operations and the `narrow(c, default)` overload
- * in terms of the `Derived` class's five single-character primitives: `is()`,
+ * Mixin class supplying sequence operations and the `narrow(c, default)` overload
+ * in terms of the derived class's five single-character primitives: `is()`,
  * `toupper()`, `tolower()`, `widen()`, and `narrow()`. Both `ctype<CharT>`
- * specializations inherit from this to avoid duplicating these definitions.
+ * specializations inherit from this to avoid duplicating these definitions. Each member
+ * takes an explicit object parameter (deducing this) to obtain the caller's concrete type
+ * `Self` and looks the primitives up on it.
  *
- * Methods whose parameter types depend on `Derived::char_type` or `Derived::mask`
- * are declared as constrained function templates: the `requires` clause defers
- * evaluation of those dependent names to call time (when `Derived` is complete),
- * avoiding the incomplete-type error that class-scope type aliases would cause.
+ * Methods whose parameter types depend on `Self::char_type` or `Self::mask` constrain
+ * those dependent names in a `requires` clause, so they spell out
+ * `template <typename Self>`; the others use `this const auto& self`.
  *
  * @par Range precondition
  * Every method taking iterator pairs (`is_seq`, `scan_is_any`, `scan_not_any`,
@@ -106,18 +107,12 @@ namespace detail
  * Matches the equivalent `std::ctype` contract; not asserted on the hot path.
  * @endif
  *
- * @tparam Derived
- * @lang{ZH} CRTP 派生类自身的类型，须提供 `is`、`toupper`、`tolower`、`widen`、`narrow` 五个原语。 @endif
- * @lang{EN} The CRTP derived class type, which must provide the five primitives: `is`,
- * `toupper`, `tolower`, `widen`, and `narrow`. @endif
+ * @lang{ZH} 派生类须提供 `is`、`toupper`、`tolower`、`widen`、`narrow` 五个原语。 @endif
+ * @lang{EN} The derived class must provide the five primitives: `is`, `toupper`,
+ * `tolower`, `widen`, and `narrow`. @endif
  */
-template <typename Derived>
 class ctype_ops
 {
-    /** @lang{ZH} 返回对 CRTP 派生类实例的常量引用。 @endif
-     *  @lang{EN} Returns a const reference to the CRTP derived class instance. @endif */
-    const Derived& self() const { return static_cast<const Derived&>(*this); }
-
 public:
     /**
      * @lang{ZH}
@@ -141,12 +136,12 @@ public:
      * @lang{EN} `true` if `c` has at least one of the classification properties in `m`;
      * `false` otherwise. @endif
      */
-    template <typename TM, typename TC>
-        requires std::convertible_to<TM, typename Derived::mask> &&
-                 std::convertible_to<TC, typename Derived::char_type>
-    bool is_any(TM m, TC c) const
+    template <typename Self, typename TM, typename TC>
+        requires std::convertible_to<TM, typename Self::mask> &&
+                 std::convertible_to<TC, typename Self::char_type>
+    bool is_any(this const Self& self, TM m, TC c)
     {
-        return self().is(c) & m;
+        return self.is(c) & m;
     }
 
     /**
@@ -175,10 +170,10 @@ public:
      * @lang{EN} Output iterator pointing one past the last element written. @endif
      */
     template <typename InIt, typename OutIt>
-    OutIt is_seq(InIt low, InIt high, OutIt vec) const
+    OutIt is_seq(this const auto& self, InIt low, InIt high, OutIt vec)
     {
         while (low != high)
-            *vec++ = self().is(*low++);
+            *vec++ = self.is(*low++);
         return vec;
     }
 
@@ -209,11 +204,11 @@ public:
      * @lang{ZH} 第一个具有 `m` 中任意属性的字符所在的迭代器；若不存在则返回 `end`。 @endif
      * @lang{EN} Iterator to the first character with any property in `m`; `end` if none. @endif
      */
-    template <typename TM, typename InIt>
-        requires std::convertible_to<TM, typename Derived::mask>
-    InIt scan_is_any(TM m, InIt beg, InIt end) const
+    template <typename Self, typename TM, typename InIt>
+        requires std::convertible_to<TM, typename Self::mask>
+    InIt scan_is_any(this const Self& self, TM m, InIt beg, InIt end)
     {
-        while ((beg != end) && (!(self().is(*beg) & m)))
+        while ((beg != end) && (!(self.is(*beg) & m)))
             ++beg;
         return beg;
     }
@@ -246,11 +241,11 @@ public:
      * @lang{ZH} 第一个不具有 `m` 中任意属性的字符所在的迭代器；若不存在则返回 `end`。 @endif
      * @lang{EN} Iterator to the first character with no property in `m`; `end` if none. @endif
      */
-    template <typename TM, typename InIt>
-        requires std::convertible_to<TM, typename Derived::mask>
-    InIt scan_not_any(TM m, InIt beg, InIt end) const
+    template <typename Self, typename TM, typename InIt>
+        requires std::convertible_to<TM, typename Self::mask>
+    InIt scan_not_any(this const Self& self, TM m, InIt beg, InIt end)
     {
-        while ((beg != end) && (self().is(*beg) & m))
+        while ((beg != end) && (self.is(*beg) & m))
             ++beg;
         return beg;
     }
@@ -281,10 +276,10 @@ public:
      * @lang{EN} Output iterator pointing one past the last element written. @endif
      */
     template <typename InIt, typename OutIt>
-    OutIt toupper_seq(InIt beg, InIt end, OutIt dst) const
+    OutIt toupper_seq(this const auto& self, InIt beg, InIt end, OutIt dst)
     {
         while (beg != end)
-            *dst++ = self().toupper(*beg++);
+            *dst++ = self.toupper(*beg++);
         return dst;
     }
 
@@ -314,10 +309,10 @@ public:
      * @lang{EN} Output iterator pointing one past the last element written. @endif
      */
     template <typename InIt, typename OutIt>
-    OutIt tolower_seq(InIt beg, InIt end, OutIt dst) const
+    OutIt tolower_seq(this const auto& self, InIt beg, InIt end, OutIt dst)
     {
         while (beg != end)
-            *dst++ = self().tolower(*beg++);
+            *dst++ = self.tolower(*beg++);
         return dst;
     }
 
@@ -348,10 +343,10 @@ public:
      * @lang{EN} Output iterator pointing one past the last element written. @endif
      */
     template <typename InIt, typename OutIt>
-    OutIt widen_seq(InIt beg, InIt end, OutIt dst) const
+    OutIt widen_seq(this const auto& self, InIt beg, InIt end, OutIt dst)
     {
         while (beg != end)
-            *dst++ = self().widen(*beg++);
+            *dst++ = self.widen(*beg++);
         return dst;
     }
 
@@ -360,7 +355,7 @@ public:
      * 将字符 `c` 窄化为 `char`，若无对应单字节表示则返回回退字符 `def`。
      *
      * @par `def` 前置条件
-     * 当 `self().narrow(c)` 不返回值时，`def` 原样返回；本函数**不**验证 `def` 在目标
+     * 当 `self.narrow(c)` 不返回值时，`def` 原样返回；本函数**不**验证 `def` 在目标
      * locale 中是否可表示。按照惯例（与 `std::ctype::narrow` 一致），调用方应传入基本源
      * 字符集中的成员——通常是可打印的 ASCII 字节，如 `'?'`——以确保回退字符在任何编码
      * 下均有意义。传入任意字节（如 `'\xFF'`）会被静默接受，但可能产生在 locale 编码中
@@ -372,7 +367,7 @@ public:
      * single-byte representation exists.
      *
      * @par `def` precondition
-     * `def` is returned verbatim when `self().narrow(c)` yields no value; this function
+     * `def` is returned verbatim when `self.narrow(c)` yields no value; this function
      * does NOT validate that `def` is itself representable in the target locale. By
      * convention (matching `std::ctype::narrow`) callers should pass a member of the
      * basic source character set — typically a printable ASCII byte such as `'?'` —
@@ -393,11 +388,11 @@ public:
      * @lang{ZH} `c` 的单字节窄化结果；若无对应表示则返回 `def`。 @endif
      * @lang{EN} The single-byte narrowed result for `c`; `def` if no representation exists. @endif
      */
-    template <typename TC>
-        requires std::convertible_to<TC, typename Derived::char_type>
-    char narrow(TC c, char def) const
+    template <typename Self, typename TC>
+        requires std::convertible_to<TC, typename Self::char_type>
+    char narrow(this const Self& self, TC c, char def)
     {
-        auto res = self().narrow(c);
+        auto res = self.narrow(c);
         return res ? *res : def;
     }
 
@@ -432,10 +427,10 @@ public:
      * @lang{EN} Output iterator pointing one past the last element written. @endif
      */
     template <typename InIt, typename OutIt>
-    OutIt narrow_seq(InIt beg, InIt end, char dflt, OutIt dst) const
+    OutIt narrow_seq(this const auto& self, InIt beg, InIt end, char dflt, OutIt dst)
     {
         while (beg != end)
-            *dst++ = self().narrow(*beg++, dflt);
+            *dst++ = self.narrow(*beg++, dflt);
         return dst;
     }
 };
@@ -483,7 +478,7 @@ public:
  */
 template <typename CharT>
     requires (sizeof(CharT) == 1)
-class ctype<CharT> : public detail::ctype_ops<ctype<CharT>>
+class ctype<CharT> : public detail::ctype_ops
 {
     // Note: we have to use unsigned char here to avoid negative value.
     // Sizing is in units of "values representable by unsigned char", not a
@@ -641,7 +636,7 @@ public:
         return m_narrow[static_cast<unsigned char>(c)];
     }
 
-    using detail::ctype_ops<ctype<CharT>>::narrow;
+    using detail::ctype_ops::narrow;
 
 private:
     /** @lang{ZH} 分类掩码快照表，索引为 `unsigned char` 值。 @endif
@@ -722,7 +717,7 @@ private:
  */
 template <typename CharT>
     requires (sizeof(CharT) > 1)
-class ctype<CharT> : public detail::ctype_ops<ctype<CharT>>
+class ctype<CharT> : public detail::ctype_ops
 {
     // See the matching s_len note in the sizeof(CharT)==1 specialization
     // above. Tables span [0, unsigned_char::max()+1) per-byte; CHAR_BIT == 8
@@ -917,7 +912,7 @@ public:
         return do_narrow(c);
     }
 
-    using detail::ctype_ops<ctype<CharT>>::narrow;
+    using detail::ctype_ops::narrow;
 
 private:
     /**

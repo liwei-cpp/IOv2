@@ -822,7 +822,7 @@ struct code_cvt_access : cvt_status
  * @lang{ZH}
  * 字符编码转换器，在底层内核的外部字符类型与本层的内部字符类型之间进行转换。
  *
- * `code_cvt` 通过 CRTP 继承自 `abs_cvt`，将编码转换任务委托给
+ * `code_cvt` 继承自 `abs_cvt`，将编码转换任务委托给
  * `codecvt_kernel<external_type, internal_type>` 实例。
  *
  * @tparam KernelType 底层 I/O 转换器类型，须满足 `io_converter` 概念；
@@ -836,7 +836,7 @@ struct code_cvt_access : cvt_status
  * Character encoding converter that transforms between the external character type
  * of an underlying kernel and the internal character type at this layer.
  *
- * `code_cvt` inherits from `abs_cvt` via CRTP and delegates encoding conversion
+ * `code_cvt` inherits from `abs_cvt` and delegates encoding conversion
  * to a `codecvt_kernel<external_type, internal_type>` instance.
  *
  * @tparam KernelType Underlying I/O converter type, must satisfy the `io_converter`
@@ -849,10 +849,10 @@ struct code_cvt_access : cvt_status
  * @endif
  */
 template <io_converter KernelType, typename CharType>
-class code_cvt : public abs_cvt<code_cvt<KernelType, CharType>, KernelType, CharType, true, true>
+class code_cvt : public abs_cvt<KernelType, CharType, true, true>
 {
-    using BT = abs_cvt<code_cvt<KernelType, CharType>, KernelType, CharType, true, true>;
-    friend BT; // for put_main, get_main, and private CRTP hooks
+    using BT = abs_cvt<KernelType, CharType, true, true>;
+    friend BT; // for put_main, get_main, and private hooks
 
 public:
     using device_type = typename KernelType::device_type;   ///< 底层设备类型 / Underlying device type.
@@ -983,7 +983,7 @@ public:
 private:
     /**
      * @lang{ZH}
-     * `abs_cvt::detach()` 的 CRTP 钩子，在 kernel 层 `detach()` 之前调用。
+     * `abs_cvt::detach()` 的钩子，在 kernel 层 `detach()` 之前调用。
      *
      * 负责执行 `code_cvt` 层面的清理（`close_stream()`），并将捕获到的异常以
      * `exception_ptr` 形式返回；调用方（`abs_cvt::detach()`）负责按 first-failure-wins
@@ -993,7 +993,7 @@ private:
      * @endif
      *
      * @lang{EN}
-     * CRTP hook for `abs_cvt::detach()`, called before the kernel-level `detach()`.
+     * Hook for `abs_cvt::detach()`, called before the kernel-level `detach()`.
      *
      * Performs `code_cvt`-layer cleanup (`close_stream()`) and returns any captured
      * exception as an `exception_ptr`; the caller (`abs_cvt::detach()`) merges it
@@ -1013,14 +1013,14 @@ private:
 
     /**
      * @lang{ZH}
-     * `abs_cvt::main_cont_beg()` 的 CRTP 钩子，在 kernel 层 `main_cont_beg()` 之后调用。
+     * `abs_cvt::main_cont_beg()` 的钩子，在 kernel 层 `main_cont_beg()` 之后调用。
      *
      * 负责重置编码转换状态并清零累计字符计数，使主内容阶段从干净状态开始。
      * 允许抛出异常；调用方会将 `m_io_status` 重置为 `neutral` 并设置污染标志后透传。
      * @endif
      *
      * @lang{EN}
-     * CRTP hook for `abs_cvt::main_cont_beg()`, called after the kernel-level
+     * Hook for `abs_cvt::main_cont_beg()`, called after the kernel-level
      * `main_cont_beg()`.
      *
      * Resets the codec conversion state and clears the accumulated character count
@@ -1037,13 +1037,13 @@ private:
 
     /**
      * @lang{ZH}
-     * `abs_cvt::retrieve()` 的 CRTP 钩子，在 kernel 层 `retrieve()` 之前调用。
+     * `abs_cvt::retrieve()` 的钩子，在 kernel 层 `retrieve()` 之前调用。
      *
      * 认识 `code_cvt_access`：填入本层内核的编码名（`m_cvt_kernel.code()`）。
      * @endif
      *
      * @lang{EN}
-     * CRTP hook for `abs_cvt::retrieve()`, called before the kernel-level `retrieve()`.
+     * Hook for `abs_cvt::retrieve()`, called before the kernel-level `retrieve()`.
      *
      * Recognizes `code_cvt_access`: fills in this layer's kernel's encoding name
      * (`m_cvt_kernel.code()`).
@@ -1057,13 +1057,13 @@ private:
 
     /**
      * @lang{ZH}
-     * 将内部字符序列编码为外部字节并写入底层缓冲区（由 `abs_cvt::put` 通过 CRTP 调用）。
+     * 将内部字符序列编码为外部字节并写入底层缓冲区（由 `abs_cvt::put` 调用）。
      * 依次对每个内部字符调用编码内核的 `out_helper()`，成功后更新累计字符计数。
      * @endif
      *
      * @lang{EN}
      * Encode the internal character sequence to external bytes and write them to
-     * the underlying buffer (called by `abs_cvt::put` via CRTP).
+     * the underlying buffer (called by `abs_cvt::put`).
      * Invokes the encoding kernel's `out_helper()` for each internal character
      * in sequence, updating the accumulated character count on success.
      * @endif
@@ -1095,14 +1095,14 @@ private:
 
     /**
      * @lang{ZH}
-     * 从底层缓冲区读取外部字节并解码为内部字符（由 `abs_cvt::get` 通过 CRTP 调用）。
+     * 从底层缓冲区读取外部字节并解码为内部字符（由 `abs_cvt::get` 调用）。
      *
      * @return 实际读取并解码的内部字符数量。
      * @endif
      *
      * @lang{EN}
      * Read external bytes from the underlying buffer and decode them into
-     * internal characters (called by `abs_cvt::get` via CRTP).
+     * internal characters (called by `abs_cvt::get`).
      *
      * @return Number of internal characters actually read and decoded.
      * @endif

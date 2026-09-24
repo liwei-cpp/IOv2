@@ -91,10 +91,10 @@ namespace IOv2::Crypt::Classic
  */
 template <io_converter KernelType>
     requires std::is_integral_v<typename KernelType::internal_type>
-class vigenere_cvt : public abs_cvt<vigenere_cvt<KernelType>, KernelType, typename KernelType::internal_type, true, true>
+class vigenere_cvt : public abs_cvt<KernelType, typename KernelType::internal_type, true, true>
 {
-    using BT = abs_cvt<vigenere_cvt<KernelType>, KernelType, typename KernelType::internal_type, true, true>;
-    friend BT;  // for put_main, get_main, and private CRTP hooks
+    using BT = abs_cvt<KernelType, typename KernelType::internal_type, true, true>;
+    friend BT;  // for put_main, get_main, and private hooks
     constexpr static std::size_t s_buf_len = 16;
 public:
     using device_type = typename KernelType::device_type;
@@ -137,7 +137,7 @@ public:
 private:
     /**
      * @lang{ZH}
-     * `abs_cvt::detach()` 的 CRTP 钩子，在 kernel 层 `detach()` 之前调用。
+     * `abs_cvt::detach()` 的钩子，在 kernel 层 `detach()` 之前调用。
      *
      * 将密钥偏移量 `m_pos` 归零，确保后续 `attach()` 后从密钥起始位置开始加解密。
      * 本操作不会抛出异常，始终返回 `nullptr`。
@@ -147,7 +147,7 @@ private:
      * @endif
      *
      * @lang{EN}
-     * CRTP hook for `abs_cvt::detach()`, called before the kernel-level `detach()`.
+     * Hook for `abs_cvt::detach()`, called before the kernel-level `detach()`.
      *
      * Resets the key-offset position `m_pos` to zero so that a subsequent `attach()`
      * starts encryption/decryption from the beginning of the key.
@@ -165,13 +165,13 @@ private:
 
     /**
      * @lang{ZH}
-     * `abs_cvt::attach()` 的 CRTP 钩子，在 kernel 层 `attach()` 之后调用。
+     * `abs_cvt::attach()` 的钩子，在 kernel 层 `attach()` 之后调用。
      *
      * 验证密钥非空，防止已移动走的对象被误用。
      * @endif
      *
      * @lang{EN}
-     * CRTP hook for `abs_cvt::attach()`, called after the kernel-level `attach()`.
+     * Hook for `abs_cvt::attach()`, called after the kernel-level `attach()`.
      *
      * Validates that the key is non-empty, guarding against misuse of a moved-from object.
      * @endif
@@ -188,13 +188,13 @@ private:
 
     /**
      * @lang{ZH}
-     * `abs_cvt::main_cont_beg()` 的 CRTP 钩子，在 kernel 层 `main_cont_beg()` 之后调用。
+     * `abs_cvt::main_cont_beg()` 的钩子，在 kernel 层 `main_cont_beg()` 之后调用。
      *
      * 将密钥偏移量 `m_pos` 归零，使主内容阶段的加解密从密钥起始位置开始。
      * @endif
      *
      * @lang{EN}
-     * CRTP hook for `abs_cvt::main_cont_beg()`, called after the kernel-level
+     * Hook for `abs_cvt::main_cont_beg()`, called after the kernel-level
      * `main_cont_beg()`.
      *
      * Resets the key-offset position `m_pos` to zero so that main-content
@@ -358,11 +358,11 @@ private:
 
     /**
      * @lang{ZH}
-     * `abs_cvt::tell()` 的 CRTP 钩子，返回当前密钥偏移量。
+     * `abs_cvt::tell()` 的钩子，返回当前密钥偏移量。
      * @endif
      *
      * @lang{EN}
-     * CRTP hook for `abs_cvt::tell()`. Returns the current key-offset.
+     * Hook for `abs_cvt::tell()`. Returns the current key-offset.
      * @endif
      *
      * @return
@@ -377,7 +377,7 @@ private:
 
     /**
      * @lang{ZH}
-     * `abs_cvt::seek()` 的 CRTP 钩子，将 kernel 定位到绝对位置 `pos`。
+     * `abs_cvt::seek()` 的钩子，将 kernel 定位到绝对位置 `pos`。
      *
      * 调用 `m_kernel.seek(pos)` 后通过 `m_kernel.tell()` 重新同步 `m_pos`，
      * 而非直接使用 `pos`。原因：kernel 可能因对齐、夹紧或内部缓冲而实际落在
@@ -387,7 +387,7 @@ private:
      * @endif
      *
      * @lang{EN}
-     * CRTP hook for `abs_cvt::seek()`, positioning the kernel to the absolute
+     * Hook for `abs_cvt::seek()`, positioning the kernel to the absolute
      * position `pos`.
      *
      * Calls `m_kernel.seek(pos)` and then re-syncs `m_pos` via `m_kernel.tell()`
@@ -434,14 +434,14 @@ private:
 
     /**
      * @lang{ZH}
-     * `abs_cvt::rseek()` 的 CRTP 钩子，将 kernel 相对当前位置移动 `pos` 字节。
+     * `abs_cvt::rseek()` 的钩子，将 kernel 相对当前位置移动 `pos` 字节。
      *
      * 逻辑与 `seek_impl()` 完全相同，但调用 `m_kernel.rseek(pos)` 执行相对定位。
      * 详见 `seek_impl()` 的文档。
      * @endif
      *
      * @lang{EN}
-     * CRTP hook for `abs_cvt::rseek()`, positioning the kernel relative to the
+     * Hook for `abs_cvt::rseek()`, positioning the kernel relative to the
      * current position by `pos` bytes.
      *
      * The logic is identical to `seek_impl()`, but calls `m_kernel.rseek(pos)` for
