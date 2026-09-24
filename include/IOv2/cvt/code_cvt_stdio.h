@@ -85,7 +85,11 @@ struct code_cvt_switch : cvt_behavior
  * 本类据此在 `put`/`get`/`flush`/`adjust` 入口自动恢复：发现 `is_tainted()` 即先重新附接
  * 同一 fd（`attach()` + `bos()` + `main_cont_beg()`），再执行本次操作。调用方（标准流对象）
  * 因此只需 `clear()` 状态位即可继续，与 `std::wcout`/`std::wcin` 的用法一致；出错那一批里
- * 尚未提交的数据随 taint 丢失，已提交到根转换器的数据在重新附接时刷出。对 `mem_device`
+ * 尚未提交的数据随 taint 丢失，已提交到根转换器的数据在重新附接时写给设备，随后对设备
+ * `dflush()` 一次。对 stdout / stderr 这就是 `fflush` 整个 `FILE`：stdio 里不属于本流的字节
+ * （例如 `printf` 的）随之落盘，fd 不可写时一并丢失（它们在下一次冲刷时本也会丢），失败记在
+ * 本流的状态位上。同步模式下输出哨兵在每次插入结束时都会 `flush()`，所以这次重新附接就发生在
+ * 出错的那次插入内部，而不是 `clear()` 之后的下一次操作。对 `mem_device`
  * 之类有内容的设备，这样的重新附接会换成一个空设备，因此不允许。
  *
  * @tparam KernelType 底层 I/O 转换器类型，须满足 `io_converter` 概念；
@@ -112,7 +116,14 @@ struct code_cvt_switch : cvt_behavior
  * operation. The caller (a standard stream object) therefore only has to `clear()` its
  * state bits to carry on, the same way `std::wcout`/`std::wcin` are used; what the
  * failing batch had not yet committed is lost with the taint, what had reached the root
- * converter is flushed by the reattach. A device with content of its own, such as
+ * converter is written to the device by the reattach, which then `dflush()`es the device
+ * once. On stdout / stderr that is an `fflush` of the whole `FILE`: bytes in stdio that
+ * are not this stream's (`printf`'s, say) land with it, or are lost with it when the fd
+ * cannot be written -- as they would be at the next flush anyway -- and the failure is
+ * recorded in this stream's state bits. In synchronized mode the output sentry calls
+ * `flush()` at the end of every insertion, so the reattach happens inside the failing
+ * insertion itself rather than at the next operation after `clear()`. A device with
+ * content of its own, such as
  * `mem_device`, would be swapped for an empty one by such a reattach, hence the
  * restriction.
  *
