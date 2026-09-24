@@ -343,10 +343,11 @@ struct codecvt_kernel<char, TInt>
         if (static_cast<std::size_t>(to_end - to) < m_epc) // NOLINT(modernize-use-integer-sign-comparison)
             return false;
 
+        const std::mbstate_t before = m_state;
         const std::size_t conv = std::wcrtomb(to, ch, &m_state);
         if (conv == static_cast<std::size_t>(-1)) // NOLINT(modernize-use-integer-sign-comparison)
         {
-            init_state();  // Reset to known state per C standard
+            m_state = before;
             return false;
         }
         to += conv;
