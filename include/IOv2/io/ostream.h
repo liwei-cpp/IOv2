@@ -349,11 +349,12 @@ public:
      *          `operator=(const ostream&)`。
      * @note 移动赋值的 `noexcept` 是有意为之：拷贝赋值的强异常保证依赖它（见其中的
      *       `static_assert`）。
-     * @note **赋值会先冲刷目标自己的待刷字节，且不看状态位。** `m_channel` 的赋值最终落到
-     *       `root_cvt::operator=`，它在覆盖前先 `flush()` 目标的缓冲（异常被吞），把那批字节
-     *       写进目标**原来**的设备。好处是"整体替换设备"不伴随目标待刷数据的静默丢弃；代价是
-     *       与析构、`detach()` 一样绕开了 `flush()` 的失败态守卫。详见
-     *       `ostream_operators::flush` 上的 `@warning`。
+     * @note **赋值会先冲刷目标自己的待刷字节，且不看状态位。** `m_channel` 的赋值是
+     *       `runtime_cvt` 内部 `unique_ptr` 的换手，目标**原来**的整条管线随之析构：
+     *       `~root_cvt` 把缓冲里的待刷字节 `dput()` 给原来的设备，设备自己的析构再做收尾冲刷
+     *       （`std_device` 即 `fflush`，见其析构函数），两处的异常都被吞掉。好处是"整体替换设备"
+     *       不伴随目标待刷数据的静默丢弃；代价是与析构、`detach()` 一样绕开了 `flush()` 的
+     *       失败态守卫。详见 `ostream_operators::flush` 上的 `@warning`。
      * @endif
      *
      * @lang{EN}
@@ -366,9 +367,11 @@ public:
      * @note The `noexcept` on move assignment is deliberate: copy assignment's strong guarantee
      *       depends on it (see the `static_assert` there).
      * @note **Assignment first flushes the destination's own pending bytes, ignoring the state
-     *       bits.** Assigning `m_channel` ends up in `root_cvt::operator=`, which `flush()`es
-     *       the destination's buffer before overwriting it (exceptions swallowed), sending those
-     *       bytes to the destination's **old** device. The upside is that replacing the device
+     *       bits.** Assigning `m_channel` hands over the `unique_ptr` inside `runtime_cvt`, and
+     *       the destination's **old** pipeline is destroyed with it: `~root_cvt` `dput()`s the
+     *       pending bytes in its buffer to the old device, then the device's own destructor
+     *       does its final flush (`fflush` for `std_device`; see its destructor), exceptions
+     *       swallowed at both steps. The upside is that replacing the device
      *       wholesale does not silently drop the destination's pending data; the cost is that,
      *       like the destructor and `detach()`, it bypasses `flush()`'s failed-state guard. See
      *       the `@warning` on `ostream_operators::flush`.
