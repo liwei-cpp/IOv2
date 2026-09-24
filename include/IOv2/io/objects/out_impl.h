@@ -42,6 +42,14 @@
  *       另一线程的一次插入、或更早构造的静态对象析构里的一次插入，仍会读到已销毁的对象——
  *       这一层本库无从保证，与 `std::cout` 相同。
  *
+ * @note **三个宽流在字节层与 stdio 同步**：它们自己把字符编码成字节，再以 `fwrite` 交给
+ *       `stdout` / `stderr`，所以 `FILE` 是字节定向的。因此 `cout`、`wcout` 与 `printf` /
+ *       `fputs` 等字节函数可以任意交错；但**不能**与 `wprintf` / `fputwc` 等宽字符函数混用于
+ *       同一个 `FILE`（C11 7.21.2 禁止混用两种定向）：先用宽字符函数，此后本库的窄流与宽流
+ *       插入都失败并置 `devfailbit`；先用本库的流，此后 `wprintf` 返回 -1、输出静默丢失。
+ *       这与 `std::wcout` 相反：libstdc++ 的 `std::wcout` 经 `putwc` 写，与 `wprintf` 相容，
+ *       却在先写之后让 `printf` 与 `std::cout` 失败（实测）。
+ *
  * @note 一般不直接包含本头文件，而是包含 `IOv2/io/objects/objects.h`：入口那里还有一次切换全部
  *       八个标准流的 `sync_with_stdio()` 与 `endl` / `ends` / `flush` 等操纵符，并说明了本系列
  *       头文件不带来哪些能力。
@@ -99,6 +107,17 @@
  *       destructor is outside that: an insertion from another thread after `main` returned, or
  *       from the destructor of a static object constructed earlier, still reads a destroyed
  *       object. This library cannot vouch for that layer, and neither can `std::cout`.
+ *
+ * @note **The three wide streams are synchronized with stdio at the byte level**: they encode
+ *       characters into bytes themselves and hand those to `stdout` / `stderr` with `fwrite`,
+ *       so the `FILE` is byte-oriented. `cout`, `wcout` and byte functions such as `printf` /
+ *       `fputs` can therefore interleave freely, but they **cannot** share a `FILE` with wide
+ *       functions such as `wprintf` / `fputwc` (C11 7.21.2 forbids mixing the two
+ *       orientations): if a wide function goes first, every later insertion through this
+ *       library's narrow and wide streams fails with `devfailbit`; if this library's streams
+ *       go first, `wprintf` returns -1 and its output is silently lost. That is the reverse
+ *       of `std::wcout`: libstdc++'s `std::wcout` writes through `putwc` and gets along with
+ *       `wprintf`, but once it has written, `printf` and `std::cout` fail (measured).
  *
  * @note Prefer including `IOv2/io/objects/objects.h` over this header: the entry point also
  *       brings the `sync_with_stdio()` that switches all eight standard streams at once and
