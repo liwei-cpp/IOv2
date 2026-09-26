@@ -1,0 +1,1152 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=11"/>
+<meta name="generator" content="Doxygen 1.9.8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>IOv2: IOv2::base_channel&lt; TDevice, TChar, IsIn, IsOut &gt; 模板类 参考</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="resize.js"></script>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr id="projectrow">
+  <td id="projectalign">
+   <div id="projectname">IOv2
+   </div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 制作者 Doxygen 1.9.8 -->
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+/* @license-end */
+</script>
+<script type="text/javascript" src="menudata.js"></script>
+<script type="text/javascript" src="menu.js"></script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(function() {
+  initMenu('',true,false,'search.php','搜索');
+  $(document).ready(function() { init_search(); });
+});
+/* @license-end */
+</script>
+<div id="main-nav"></div>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(document).ready(function(){initNavTree('classIOv2_1_1base__channel.html',''); initResizable(); });
+/* @license-end */
+</script>
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">载入中...</div>
+<div class="SRStatus" id="Searching">搜索中...</div>
+<div class="SRStatus" id="NoMatches">未找到</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="header">
+  <div class="summary">
+<a href="#pub-types">Public 类型</a> &#124;
+<a href="#pub-methods">Public 成员函数</a> &#124;
+<a href="classIOv2_1_1base__channel-members.html">所有成员列表</a>  </div>
+  <div class="headertitle"><div class="title">IOv2::base_channel&lt; TDevice, TChar, IsIn, IsOut &gt; 模板类 参考</div></div>
+</div><!--header-->
+<div class="contents">
+
+<p>通道的通用实现基类。  
+ <a href="classIOv2_1_1base__channel.html#details">更多...</a></p>
+
+<p><code>#include &lt;<a class="el" href="iochannel_8h_source.html">iochannel.h</a>&gt;</code></p>
+<div class="dynheader">
+类 IOv2::base_channel&lt; TDevice, TChar, IsIn, IsOut &gt; 继承关系图:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="classIOv2_1_1base__channel__inherit__graph.svg" width="387" height="154"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<center><span class="legend">[<a target="top" href="graph_legend.html">图例</a>]</span></center></div>
+<table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-types" name="pub-types"></a>
+Public 类型</h2></td></tr>
+<tr class="memitem:a0becff891180c1e8e8a7b5883a365f07" id="r_a0becff891180c1e8e8a7b5883a365f07"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1base__channel.html#a0becff891180c1e8e8a7b5883a365f07">device_type</a> = <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TDevice</a></td></tr>
+<tr class="separator:a0becff891180c1e8e8a7b5883a365f07"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7eb38046d9d0ab87a25175775956caa6" id="r_a7eb38046d9d0ab87a25175775956caa6"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1base__channel.html#a7eb38046d9d0ab87a25175775956caa6">char_type</a> = <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TChar</a></td></tr>
+<tr class="separator:a7eb38046d9d0ab87a25175775956caa6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
+Public 成员函数</h2></td></tr>
+<tr class="memitem:ab654f774c98c6afa696acfce3700dda1" id="r_ab654f774c98c6afa696acfce3700dda1"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1base__channel.html#ab654f774c98c6afa696acfce3700dda1">base_channel</a> (<a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TDevice</a> <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">dev</a>)</td></tr>
+<tr class="memdesc:ab654f774c98c6afa696acfce3700dda1"><td class="mdescLeft">&#160;</td><td class="mdescRight">从设备构造一个仅输出的通道（无转换，直连根转换器）。  <br /></td></tr>
+<tr class="separator:ab654f774c98c6afa696acfce3700dda1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acefeaf3830854820a2167a7dd942f7a8" id="r_acefeaf3830854820a2167a7dd942f7a8"><td class="memTemplParams" colspan="2">template&lt;cvt_creator TCreator&gt; <br />
+requires (<a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">IsOut</a> &amp;&amp; cvt_fits_direction&lt;<a class="el" href="classIOv2_1_1no__rb__root__cvt.html">no_rb_root_cvt</a>&lt;<a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TDevice</a>&gt;, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TCreator</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">IsIn</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">IsOut</a>&gt;)</td></tr>
+<tr class="memitem:acefeaf3830854820a2167a7dd942f7a8"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classIOv2_1_1base__channel.html#acefeaf3830854820a2167a7dd942f7a8">base_channel</a> (<a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TDevice</a> <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">dev</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">const</a> <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TCreator</a> &amp;<a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">creator</a>)</td></tr>
+<tr class="memdesc:acefeaf3830854820a2167a7dd942f7a8"><td class="mdescLeft">&#160;</td><td class="mdescRight">用转换器工厂在设备之上构建转换管线，构造一个输出通道。  <br /></td></tr>
+<tr class="separator:acefeaf3830854820a2167a7dd942f7a8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3be3c67fba6c9c31aad6fab103b478af" id="r_a3be3c67fba6c9c31aad6fab103b478af"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1base__channel.html#a3be3c67fba6c9c31aad6fab103b478af">base_channel</a> (<a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TDevice</a> <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">dev</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">buffered_read</a>=<a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">true</a>)</td></tr>
+<tr class="memdesc:a3be3c67fba6c9c31aad6fab103b478af"><td class="mdescLeft">&#160;</td><td class="mdescRight">从设备构造一个仅输入的通道（无转换）。  <br /></td></tr>
+<tr class="separator:a3be3c67fba6c9c31aad6fab103b478af"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a42bea630cbf87c5e04c22c4f79316fb4" id="r_a42bea630cbf87c5e04c22c4f79316fb4"><td class="memTemplParams" colspan="2">template&lt;cvt_creator TCreator&gt; <br />
+requires (<a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">IsIn</a> &amp;&amp; !<a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">IsOut</a> &amp;&amp; cvt_fits_direction&lt;<a class="el" href="classIOv2_1_1rb__root__cvt.html">rb_root_cvt</a>&lt;<a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TDevice</a>&gt;, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TCreator</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">IsIn</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">IsOut</a>&gt; &amp;&amp; cvt_fits_direction&lt;<a class="el" href="classIOv2_1_1no__rb__root__cvt.html">no_rb_root_cvt</a>&lt;<a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TDevice</a>&gt;, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TCreator</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">IsIn</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">IsOut</a>&gt;)</td></tr>
+<tr class="memitem:a42bea630cbf87c5e04c22c4f79316fb4"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classIOv2_1_1base__channel.html#a42bea630cbf87c5e04c22c4f79316fb4">base_channel</a> (<a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TDevice</a> <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">dev</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">const</a> <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TCreator</a> &amp;<a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">creator</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">buffered_read</a>=<a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">true</a>)</td></tr>
+<tr class="memdesc:a42bea630cbf87c5e04c22c4f79316fb4"><td class="mdescLeft">&#160;</td><td class="mdescRight">用转换器工厂在设备之上构建转换管线，构造一个输入通道。  <br /></td></tr>
+<tr class="separator:a42bea630cbf87c5e04c22c4f79316fb4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac804deed6a3780df7dec56e2c64325b0" id="r_ac804deed6a3780df7dec56e2c64325b0"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1base__channel.html#ac804deed6a3780df7dec56e2c64325b0">base_channel</a> (<a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">const</a> <a class="el" href="classIOv2_1_1base__channel.html">base_channel</a> &amp;<a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">val</a>)=<a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">default</a></td></tr>
+<tr class="separator:ac804deed6a3780df7dec56e2c64325b0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a850446c59347d3498f736b1ac8223d44" id="r_a850446c59347d3498f736b1ac8223d44"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1base__channel.html#a850446c59347d3498f736b1ac8223d44">base_channel</a> (<a class="el" href="classIOv2_1_1base__channel.html">base_channel</a> &amp;&amp;)=<a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">default</a></td></tr>
+<tr class="separator:a850446c59347d3498f736b1ac8223d44"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0cc004f6bfcb62365e0c4b728f796185" id="r_a0cc004f6bfcb62365e0c4b728f796185"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classIOv2_1_1base__channel.html">base_channel</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1base__channel.html#a0cc004f6bfcb62365e0c4b728f796185">operator=</a> (<a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">const</a> <a class="el" href="classIOv2_1_1base__channel.html">base_channel</a> &amp;)=<a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">default</a></td></tr>
+<tr class="separator:a0cc004f6bfcb62365e0c4b728f796185"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a97ffe456e01f13f857484f2e0c89391b" id="r_a97ffe456e01f13f857484f2e0c89391b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classIOv2_1_1base__channel.html">base_channel</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1base__channel.html#a97ffe456e01f13f857484f2e0c89391b">operator=</a> (<a class="el" href="classIOv2_1_1base__channel.html">base_channel</a> &amp;&amp;)=<a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">default</a></td></tr>
+<tr class="separator:a97ffe456e01f13f857484f2e0c89391b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa883f6e3af9fc11ef40e388945844738" id="r_aa883f6e3af9fc11ef40e388945844738"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1base__channel.html#aa883f6e3af9fc11ef40e388945844738">~base_channel</a> ()=<a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">default</a></td></tr>
+<tr class="separator:aa883f6e3af9fc11ef40e388945844738"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr><td colspan="2"><div class="groupHeader">读取操作（仅 IsIn）</div></td></tr>
+<tr><td colspan="2"><div class="groupText"></div></td></tr>
+<tr class="memitem:a8be19ea3ea64e116466be2402a8269bc" id="r_a8be19ea3ea64e116466be2402a8269bc"><td class="memItemLeft" align="right" valign="top">std::optional&lt; <a class="el" href="classIOv2_1_1base__channel.html#a7eb38046d9d0ab87a25175775956caa6">char_type</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1base__channel.html#a8be19ea3ea64e116466be2402a8269bc">getc</a> ()</td></tr>
+<tr class="memdesc:a8be19ea3ea64e116466be2402a8269bc"><td class="mdescLeft">&#160;</td><td class="mdescRight">预读（peek）当前字符但不消费它。  <br /></td></tr>
+<tr class="separator:a8be19ea3ea64e116466be2402a8269bc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0c1f3d89e7bce7c88d3bfe3f3c393132" id="r_a0c1f3d89e7bce7c88d3bfe3f3c393132"><td class="memItemLeft" align="right" valign="top">std::optional&lt; <a class="el" href="classIOv2_1_1base__channel.html#a7eb38046d9d0ab87a25175775956caa6">char_type</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1base__channel.html#a0c1f3d89e7bce7c88d3bfe3f3c393132">bumpc</a> ()</td></tr>
+<tr class="memdesc:a0c1f3d89e7bce7c88d3bfe3f3c393132"><td class="mdescLeft">&#160;</td><td class="mdescRight">读取并消费当前字符。  <br /></td></tr>
+<tr class="separator:a0c1f3d89e7bce7c88d3bfe3f3c393132"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afe6b570fb95d272d2b4e9597cce4c2bd" id="r_afe6b570fb95d272d2b4e9597cce4c2bd"><td class="memItemLeft" align="right" valign="top">std::optional&lt; <a class="el" href="classIOv2_1_1base__channel.html#a7eb38046d9d0ab87a25175775956caa6">char_type</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1base__channel.html#afe6b570fb95d272d2b4e9597cce4c2bd">nextc</a> ()</td></tr>
+<tr class="memdesc:afe6b570fb95d272d2b4e9597cce4c2bd"><td class="mdescLeft">&#160;</td><td class="mdescRight">先消费当前字符，再预读下一个字符。  <br /></td></tr>
+<tr class="separator:afe6b570fb95d272d2b4e9597cce4c2bd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a07c3c5815b82b04aff62903601d995ed" id="r_a07c3c5815b82b04aff62903601d995ed"><td class="memItemLeft" align="right" valign="top">std::size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1base__channel.html#a07c3c5815b82b04aff62903601d995ed">getn</a> (<a class="el" href="classIOv2_1_1base__channel.html#a7eb38046d9d0ab87a25175775956caa6">char_type</a> *<a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">s</a>, std::size_t <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">n</a>, std::size_t *<a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">got</a>=<a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">nullptr</a>)</td></tr>
+<tr class="memdesc:a07c3c5815b82b04aff62903601d995ed"><td class="mdescLeft">&#160;</td><td class="mdescRight">批量读取最多 <code>n</code> 个字符到缓冲区 <code>s</code>。  <br /></td></tr>
+<tr class="separator:a07c3c5815b82b04aff62903601d995ed"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aaff5c08737c7df2a91f55ffd713be723" id="r_aaff5c08737c7df2a91f55ffd713be723"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1base__channel.html#aaff5c08737c7df2a91f55ffd713be723">is_eof</a> ()</td></tr>
+<tr class="memdesc:aaff5c08737c7df2a91f55ffd713be723"><td class="mdescLeft">&#160;</td><td class="mdescRight">查询是否已到达输入末尾。  <br /></td></tr>
+<tr class="separator:aaff5c08737c7df2a91f55ffd713be723"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1e4a2771a8b19638d8a4d08c024c1458" id="r_a1e4a2771a8b19638d8a4d08c024c1458"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1base__channel.html#a1e4a2771a8b19638d8a4d08c024c1458">putbackc</a> (<a class="el" href="classIOv2_1_1base__channel.html#a7eb38046d9d0ab87a25175775956caa6">char_type</a> <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">ch</a>)</td></tr>
+<tr class="memdesc:a1e4a2771a8b19638d8a4d08c024c1458"><td class="mdescLeft">&#160;</td><td class="mdescRight">将字符压回读缓冲区，使其成为下一次读取操作返回的字符。  <br /></td></tr>
+<tr class="separator:a1e4a2771a8b19638d8a4d08c024c1458"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr><td colspan="2"><div class="groupHeader">写入操作（仅 IsOut）</div></td></tr>
+<tr><td colspan="2"><div class="groupText"></div></td></tr>
+<tr class="memitem:a62b37138d3502184a1fa3520fcfb8ae4" id="r_a62b37138d3502184a1fa3520fcfb8ae4"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1base__channel.html#a62b37138d3502184a1fa3520fcfb8ae4">putc</a> (<a class="el" href="classIOv2_1_1base__channel.html#a7eb38046d9d0ab87a25175775956caa6">char_type</a> <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">ch</a>)</td></tr>
+<tr class="memdesc:a62b37138d3502184a1fa3520fcfb8ae4"><td class="mdescLeft">&#160;</td><td class="mdescRight">写入单个字符。  <br /></td></tr>
+<tr class="separator:a62b37138d3502184a1fa3520fcfb8ae4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aed3a75e085aec376a41369344375f049" id="r_aed3a75e085aec376a41369344375f049"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1base__channel.html#aed3a75e085aec376a41369344375f049">putn</a> (<a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">const</a> <a class="el" href="classIOv2_1_1base__channel.html#a7eb38046d9d0ab87a25175775956caa6">char_type</a> *<a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">s</a>, std::size_t <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">n</a>)</td></tr>
+<tr class="memdesc:aed3a75e085aec376a41369344375f049"><td class="mdescLeft">&#160;</td><td class="mdescRight">批量写入 <code>n</code> 个字符。  <br /></td></tr>
+<tr class="separator:aed3a75e085aec376a41369344375f049"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0952417b9f81b463f9783d480cc2899f" id="r_a0952417b9f81b463f9783d480cc2899f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1base__channel.html#a0952417b9f81b463f9783d480cc2899f">flush</a> ()</td></tr>
+<tr class="memdesc:a0952417b9f81b463f9783d480cc2899f"><td class="mdescLeft">&#160;</td><td class="mdescRight">刷新输出，将缓冲数据推送到底层设备。  <br /></td></tr>
+<tr class="separator:a0952417b9f81b463f9783d480cc2899f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr><td colspan="2"><div class="groupHeader">定位操作</div></td></tr>
+<tr><td colspan="2"><div class="groupText"></div></td></tr>
+<tr class="memitem:aff954bf83fc8f4ab5b99230d2e5c7acb" id="r_aff954bf83fc8f4ab5b99230d2e5c7acb"><td class="memItemLeft" align="right" valign="top">std::size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1base__channel.html#aff954bf83fc8f4ab5b99230d2e5c7acb">tell</a> () <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">const</a></td></tr>
+<tr class="memdesc:aff954bf83fc8f4ab5b99230d2e5c7acb"><td class="mdescLeft">&#160;</td><td class="mdescRight">返回当前逻辑读取位置。  <br /></td></tr>
+<tr class="separator:aff954bf83fc8f4ab5b99230d2e5c7acb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1862398ea5ce5458faddcebfda7462ec" id="r_a1862398ea5ce5458faddcebfda7462ec"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1base__channel.html#a1862398ea5ce5458faddcebfda7462ec">seek</a> (std::size_t <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">pos</a>)</td></tr>
+<tr class="memdesc:a1862398ea5ce5458faddcebfda7462ec"><td class="mdescLeft">&#160;</td><td class="mdescRight">定位到绝对位置 <code>pos</code>。  <br /></td></tr>
+<tr class="separator:a1862398ea5ce5458faddcebfda7462ec"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3b6aa2dbecf505107879e3f1603bcbc9" id="r_a3b6aa2dbecf505107879e3f1603bcbc9"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1base__channel.html#a3b6aa2dbecf505107879e3f1603bcbc9">rseek</a> (std::size_t <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">pos</a>)</td></tr>
+<tr class="memdesc:a3b6aa2dbecf505107879e3f1603bcbc9"><td class="mdescLeft">&#160;</td><td class="mdescRight">从尾定位（相对末尾偏移 <code>pos</code>，<code>0</code> 表示末尾）。  <br /></td></tr>
+<tr class="separator:a3b6aa2dbecf505107879e3f1603bcbc9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr><td colspan="2"><div class="groupHeader">读/写方向切换（仅 IsIn &amp;&amp; IsOut）</div></td></tr>
+<tr><td colspan="2"><div class="groupText"></div></td></tr>
+<tr class="memitem:adcc72375d06a8f62c3f4d5f519bd691e" id="r_adcc72375d06a8f62c3f4d5f519bd691e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1base__channel.html#adcc72375d06a8f62c3f4d5f519bd691e">switch_to_get</a> ()</td></tr>
+<tr class="memdesc:adcc72375d06a8f62c3f4d5f519bd691e"><td class="mdescLeft">&#160;</td><td class="mdescRight">切换到输入模式。  <br /></td></tr>
+<tr class="separator:adcc72375d06a8f62c3f4d5f519bd691e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6b430126be06c056c61e76d3c0aa462d" id="r_a6b430126be06c056c61e76d3c0aa462d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1base__channel.html#a6b430126be06c056c61e76d3c0aa462d">switch_to_put</a> ()</td></tr>
+<tr class="memdesc:a6b430126be06c056c61e76d3c0aa462d"><td class="mdescLeft">&#160;</td><td class="mdescRight">切换到输出模式。  <br /></td></tr>
+<tr class="separator:a6b430126be06c056c61e76d3c0aa462d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr><td colspan="2"><div class="groupHeader">其他（设备/转换器接口透传）</div></td></tr>
+<tr><td colspan="2"><div class="groupText"></div></td></tr>
+<tr class="memitem:a27b3808292705f89734c61dd0a85e570" id="r_a27b3808292705f89734c61dd0a85e570"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classIOv2_1_1base__channel.html#a0becff891180c1e8e8a7b5883a365f07">device_type</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1base__channel.html#a27b3808292705f89734c61dd0a85e570">device</a> ()</td></tr>
+<tr class="memdesc:a27b3808292705f89734c61dd0a85e570"><td class="mdescLeft">&#160;</td><td class="mdescRight">返回对底层设备的引用。  <br /></td></tr>
+<tr class="separator:a27b3808292705f89734c61dd0a85e570"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a06cec8359ef15272e63684f3a63915a6" id="r_a06cec8359ef15272e63684f3a63915a6"><td class="memItemLeft" align="right" valign="top">std::pair&lt; <a class="el" href="classIOv2_1_1base__channel.html#a0becff891180c1e8e8a7b5883a365f07">device_type</a>, std::exception_ptr &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1base__channel.html#a06cec8359ef15272e63684f3a63915a6">detach</a> () <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">noexcept</a></td></tr>
+<tr class="memdesc:a06cec8359ef15272e63684f3a63915a6"><td class="mdescLeft">&#160;</td><td class="mdescRight">分离并取回底层设备。  <br /></td></tr>
+<tr class="separator:a06cec8359ef15272e63684f3a63915a6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5cb02b14f19ca8ba95ce1da44682058f" id="r_a5cb02b14f19ca8ba95ce1da44682058f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1base__channel.html#a5cb02b14f19ca8ba95ce1da44682058f">attach</a> (<a class="el" href="classIOv2_1_1base__channel.html#a0becff891180c1e8e8a7b5883a365f07">device_type</a> &amp;&amp;<a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">dev</a>=<a class="el" href="classIOv2_1_1base__channel.html#a0becff891180c1e8e8a7b5883a365f07">device_type</a>{})</td></tr>
+<tr class="memdesc:a5cb02b14f19ca8ba95ce1da44682058f"><td class="mdescLeft">&#160;</td><td class="mdescRight">附加一个新设备并重新初始化转换器。  <br /></td></tr>
+<tr class="separator:a5cb02b14f19ca8ba95ce1da44682058f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac2333f83b2947dc544c039cd4780ab3f" id="r_ac2333f83b2947dc544c039cd4780ab3f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1base__channel.html#ac2333f83b2947dc544c039cd4780ab3f">adjust</a> (<a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">const</a> <a class="el" href="structIOv2_1_1cvt__behavior.html">cvt_behavior</a> &amp;<a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">acc</a>)</td></tr>
+<tr class="memdesc:ac2333f83b2947dc544c039cd4780ab3f"><td class="mdescLeft">&#160;</td><td class="mdescRight">向底层转换器应用一个行为策略。  <br /></td></tr>
+<tr class="separator:ac2333f83b2947dc544c039cd4780ab3f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aefdbc3ec08e95130a4d4dc450e254820" id="r_aefdbc3ec08e95130a4d4dc450e254820"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1base__channel.html#aefdbc3ec08e95130a4d4dc450e254820">retrieve</a> (<a class="el" href="structIOv2_1_1cvt__status.html">cvt_status</a> &amp;<a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">acc</a>) <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">const</a></td></tr>
+<tr class="memdesc:aefdbc3ec08e95130a4d4dc450e254820"><td class="mdescLeft">&#160;</td><td class="mdescRight">从底层转换器提取内部状态。  <br /></td></tr>
+<tr class="separator:aefdbc3ec08e95130a4d4dc450e254820"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table>
+<a name="details" id="details"></a><h2 class="groupheader">详细描述</h2>
+<div class="textblock"><div class="compoundTemplParams">template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">typename</a> <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TChar</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> IsIn, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> IsOut&gt;<br />
+requires (<a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">IsIn</a> || <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">IsOut</a>)<br />
+class IOv2::base_channel&lt; TDevice, TChar, IsIn, IsOut &gt;</div><p>通道的通用实现基类。 </p>
+</div><h2 class="groupheader">成员类型定义说明</h2>
+<a id="a7eb38046d9d0ab87a25175775956caa6" name="a7eb38046d9d0ab87a25175775956caa6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7eb38046d9d0ab87a25175775956caa6">&#9670;&#160;</a></span>char_type</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">typename</a> <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TChar</a> , <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> IsIn, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> IsOut&gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">using</a> <a class="el" href="classIOv2_1_1base__channel.html">IOv2::base_channel</a>&lt; <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TDevice</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TChar</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">IsIn</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">IsOut</a> &gt;::char_type =  <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TChar</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a0becff891180c1e8e8a7b5883a365f07" name="a0becff891180c1e8e8a7b5883a365f07"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0becff891180c1e8e8a7b5883a365f07">&#9670;&#160;</a></span>device_type</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">typename</a> <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TChar</a> , <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> IsIn, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> IsOut&gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">using</a> <a class="el" href="classIOv2_1_1base__channel.html">IOv2::base_channel</a>&lt; <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TDevice</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TChar</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">IsIn</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">IsOut</a> &gt;::device_type =  <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TDevice</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<h2 class="groupheader">构造及析构函数说明</h2>
+<a id="ab654f774c98c6afa696acfce3700dda1" name="ab654f774c98c6afa696acfce3700dda1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab654f774c98c6afa696acfce3700dda1">&#9670;&#160;</a></span>base_channel() <span class="overload">[1/6]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">typename</a> <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TChar</a> , <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> IsIn, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> IsOut&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classIOv2_1_1base__channel.html">IOv2::base_channel</a>&lt; <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TDevice</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TChar</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">IsIn</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">IsOut</a> &gt;::base_channel </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TDevice</a>&#160;</td>
+          <td class="paramname"><em>dev</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">explicit</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>从设备构造一个仅输出的通道（无转换，直连根转换器）。 </p>
+
+</div>
+</div>
+<a id="acefeaf3830854820a2167a7dd942f7a8" name="acefeaf3830854820a2167a7dd942f7a8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#acefeaf3830854820a2167a7dd942f7a8">&#9670;&#160;</a></span>base_channel() <span class="overload">[2/6]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">typename</a> <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TChar</a> , <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> IsIn, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> IsOut&gt; </div>
+<div class="memtemplate">
+template&lt;cvt_creator TCreator&gt; <br />
+requires (<a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">IsOut</a> &amp;&amp; cvt_fits_direction&lt;<a class="el" href="classIOv2_1_1no__rb__root__cvt.html">no_rb_root_cvt</a>&lt;<a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TDevice</a>&gt;, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TCreator</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">IsIn</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">IsOut</a>&gt;)</div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classIOv2_1_1base__channel.html">IOv2::base_channel</a>&lt; <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TDevice</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TChar</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">IsIn</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">IsOut</a> &gt;::base_channel </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TDevice</a>&#160;</td>
+          <td class="paramname"><em>dev</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">const</a> <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TCreator</a> &amp;&#160;</td>
+          <td class="paramname"><em>creator</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>用转换器工厂在设备之上构建转换管线，构造一个输出通道。 </p>
+
+</div>
+</div>
+<a id="a3be3c67fba6c9c31aad6fab103b478af" name="a3be3c67fba6c9c31aad6fab103b478af"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3be3c67fba6c9c31aad6fab103b478af">&#9670;&#160;</a></span>base_channel() <span class="overload">[3/6]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">typename</a> <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TChar</a> , <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> IsIn, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> IsOut&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classIOv2_1_1base__channel.html">IOv2::base_channel</a>&lt; <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TDevice</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TChar</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">IsIn</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">IsOut</a> &gt;::base_channel </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TDevice</a>&#160;</td>
+          <td class="paramname"><em>dev</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a>&#160;</td>
+          <td class="paramname"><em>buffered_read</em> = <code><a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">true</a></code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">explicit</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>从设备构造一个仅输入的通道（无转换）。 </p>
+
+</div>
+</div>
+<a id="a42bea630cbf87c5e04c22c4f79316fb4" name="a42bea630cbf87c5e04c22c4f79316fb4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a42bea630cbf87c5e04c22c4f79316fb4">&#9670;&#160;</a></span>base_channel() <span class="overload">[4/6]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">typename</a> <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TChar</a> , <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> IsIn, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> IsOut&gt; </div>
+<div class="memtemplate">
+template&lt;cvt_creator TCreator&gt; <br />
+requires (<a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">IsIn</a> &amp;&amp; !<a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">IsOut</a> &amp;&amp; cvt_fits_direction&lt;<a class="el" href="classIOv2_1_1rb__root__cvt.html">rb_root_cvt</a>&lt;<a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TDevice</a>&gt;, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TCreator</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">IsIn</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">IsOut</a>&gt; &amp;&amp; cvt_fits_direction&lt;<a class="el" href="classIOv2_1_1no__rb__root__cvt.html">no_rb_root_cvt</a>&lt;<a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TDevice</a>&gt;, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TCreator</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">IsIn</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">IsOut</a>&gt;)</div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classIOv2_1_1base__channel.html">IOv2::base_channel</a>&lt; <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TDevice</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TChar</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">IsIn</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">IsOut</a> &gt;::base_channel </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TDevice</a>&#160;</td>
+          <td class="paramname"><em>dev</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">const</a> <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TCreator</a> &amp;&#160;</td>
+          <td class="paramname"><em>creator</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a>&#160;</td>
+          <td class="paramname"><em>buffered_read</em> = <code><a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">true</a></code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>用转换器工厂在设备之上构建转换管线，构造一个输入通道。 </p>
+
+</div>
+</div>
+<a id="ac804deed6a3780df7dec56e2c64325b0" name="ac804deed6a3780df7dec56e2c64325b0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac804deed6a3780df7dec56e2c64325b0">&#9670;&#160;</a></span>base_channel() <span class="overload">[5/6]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">typename</a> <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TChar</a> , <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> IsIn, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> IsOut&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classIOv2_1_1base__channel.html">IOv2::base_channel</a>&lt; <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TDevice</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TChar</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">IsIn</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">IsOut</a> &gt;::base_channel </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">const</a> <a class="el" href="classIOv2_1_1base__channel.html">base_channel</a>&lt; <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TDevice</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TChar</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">IsIn</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">IsOut</a> &gt; &amp;&#160;</td>
+          <td class="paramname"><em>val</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">default</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a850446c59347d3498f736b1ac8223d44" name="a850446c59347d3498f736b1ac8223d44"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a850446c59347d3498f736b1ac8223d44">&#9670;&#160;</a></span>base_channel() <span class="overload">[6/6]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">typename</a> <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TChar</a> , <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> IsIn, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> IsOut&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classIOv2_1_1base__channel.html">IOv2::base_channel</a>&lt; <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TDevice</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TChar</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">IsIn</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">IsOut</a> &gt;::base_channel </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classIOv2_1_1base__channel.html">base_channel</a>&lt; <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TDevice</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TChar</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">IsIn</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">IsOut</a> &gt; &amp;&amp;&#160;</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">default</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="aa883f6e3af9fc11ef40e388945844738" name="aa883f6e3af9fc11ef40e388945844738"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa883f6e3af9fc11ef40e388945844738">&#9670;&#160;</a></span>~base_channel()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">typename</a> <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TChar</a> , <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> IsIn, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> IsOut&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classIOv2_1_1base__channel.html">IOv2::base_channel</a>&lt; <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TDevice</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TChar</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">IsIn</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">IsOut</a> &gt;::~<a class="el" href="classIOv2_1_1base__channel.html">base_channel</a> </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">default</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<h2 class="groupheader">成员函数说明</h2>
+<a id="ac2333f83b2947dc544c039cd4780ab3f" name="ac2333f83b2947dc544c039cd4780ab3f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac2333f83b2947dc544c039cd4780ab3f">&#9670;&#160;</a></span>adjust()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">typename</a> <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TChar</a> , <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> IsIn, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> IsOut&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">void</a> <a class="el" href="classIOv2_1_1base__channel.html">IOv2::base_channel</a>&lt; <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TDevice</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TChar</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">IsIn</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">IsOut</a> &gt;::adjust </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">const</a> <a class="el" href="structIOv2_1_1cvt__behavior.html">cvt_behavior</a> &amp;&#160;</td>
+          <td class="paramname"><em>acc</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>向底层转换器应用一个行为策略。 </p>
+
+</div>
+</div>
+<a id="a5cb02b14f19ca8ba95ce1da44682058f" name="a5cb02b14f19ca8ba95ce1da44682058f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5cb02b14f19ca8ba95ce1da44682058f">&#9670;&#160;</a></span>attach()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">typename</a> <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TChar</a> , <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> IsIn, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> IsOut&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">void</a> <a class="el" href="classIOv2_1_1base__channel.html">IOv2::base_channel</a>&lt; <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TDevice</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TChar</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">IsIn</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">IsOut</a> &gt;::attach </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classIOv2_1_1base__channel.html#a0becff891180c1e8e8a7b5883a365f07">device_type</a> &amp;&amp;&#160;</td>
+          <td class="paramname"><em>dev</em> = <code><a class="el" href="classIOv2_1_1base__channel.html#a0becff891180c1e8e8a7b5883a365f07">device_type</a>{}</code></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>附加一个新设备并重新初始化转换器。 </p>
+
+</div>
+</div>
+<a id="a0c1f3d89e7bce7c88d3bfe3f3c393132" name="a0c1f3d89e7bce7c88d3bfe3f3c393132"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0c1f3d89e7bce7c88d3bfe3f3c393132">&#9670;&#160;</a></span>bumpc()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">typename</a> <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TChar</a> , <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> IsIn, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> IsOut&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::optional&lt; <a class="el" href="classIOv2_1_1base__channel.html#a7eb38046d9d0ab87a25175775956caa6">char_type</a> &gt; <a class="el" href="classIOv2_1_1base__channel.html">IOv2::base_channel</a>&lt; <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TDevice</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TChar</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">IsIn</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">IsOut</a> &gt;::bumpc </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>读取并消费当前字符。 </p>
+
+</div>
+</div>
+<a id="a06cec8359ef15272e63684f3a63915a6" name="a06cec8359ef15272e63684f3a63915a6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a06cec8359ef15272e63684f3a63915a6">&#9670;&#160;</a></span>detach()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">typename</a> <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TChar</a> , <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> IsIn, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> IsOut&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::pair&lt; <a class="el" href="classIOv2_1_1base__channel.html#a0becff891180c1e8e8a7b5883a365f07">device_type</a>, std::exception_ptr &gt; <a class="el" href="classIOv2_1_1base__channel.html">IOv2::base_channel</a>&lt; <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TDevice</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TChar</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">IsIn</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">IsOut</a> &gt;::detach </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>分离并取回底层设备。 </p>
+
+</div>
+</div>
+<a id="a27b3808292705f89734c61dd0a85e570" name="a27b3808292705f89734c61dd0a85e570"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a27b3808292705f89734c61dd0a85e570">&#9670;&#160;</a></span>device()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">typename</a> <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TChar</a> , <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> IsIn, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> IsOut&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classIOv2_1_1base__channel.html#a0becff891180c1e8e8a7b5883a365f07">device_type</a> &amp; <a class="el" href="classIOv2_1_1base__channel.html">IOv2::base_channel</a>&lt; <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TDevice</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TChar</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">IsIn</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">IsOut</a> &gt;::device </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>返回对底层设备的引用。 </p>
+
+</div>
+</div>
+<a id="a0952417b9f81b463f9783d480cc2899f" name="a0952417b9f81b463f9783d480cc2899f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0952417b9f81b463f9783d480cc2899f">&#9670;&#160;</a></span>flush()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">typename</a> <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TChar</a> , <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> IsIn, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> IsOut&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">void</a> <a class="el" href="classIOv2_1_1base__channel.html">IOv2::base_channel</a>&lt; <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TDevice</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TChar</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">IsIn</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">IsOut</a> &gt;::flush </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>刷新输出，将缓冲数据推送到底层设备。 </p>
+
+</div>
+</div>
+<a id="a8be19ea3ea64e116466be2402a8269bc" name="a8be19ea3ea64e116466be2402a8269bc"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8be19ea3ea64e116466be2402a8269bc">&#9670;&#160;</a></span>getc()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">typename</a> <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TChar</a> , <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> IsIn, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> IsOut&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::optional&lt; <a class="el" href="classIOv2_1_1base__channel.html#a7eb38046d9d0ab87a25175775956caa6">char_type</a> &gt; <a class="el" href="classIOv2_1_1base__channel.html">IOv2::base_channel</a>&lt; <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TDevice</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TChar</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">IsIn</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">IsOut</a> &gt;::getc </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>预读（peek）当前字符但不消费它。 </p>
+
+</div>
+</div>
+<a id="a07c3c5815b82b04aff62903601d995ed" name="a07c3c5815b82b04aff62903601d995ed"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a07c3c5815b82b04aff62903601d995ed">&#9670;&#160;</a></span>getn()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">typename</a> <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TChar</a> , <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> IsIn, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> IsOut&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::size_t <a class="el" href="classIOv2_1_1base__channel.html">IOv2::base_channel</a>&lt; <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TDevice</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TChar</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">IsIn</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">IsOut</a> &gt;::getn </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classIOv2_1_1base__channel.html#a7eb38046d9d0ab87a25175775956caa6">char_type</a> *&#160;</td>
+          <td class="paramname"><em>s</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::size_t&#160;</td>
+          <td class="paramname"><em>n</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::size_t *&#160;</td>
+          <td class="paramname"><em>got</em> = <code><a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">nullptr</a></code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>批量读取最多 <code>n</code> 个字符到缓冲区 <code>s</code>。 </p>
+
+</div>
+</div>
+<a id="aaff5c08737c7df2a91f55ffd713be723" name="aaff5c08737c7df2a91f55ffd713be723"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aaff5c08737c7df2a91f55ffd713be723">&#9670;&#160;</a></span>is_eof()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">typename</a> <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TChar</a> , <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> IsIn, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> IsOut&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> <a class="el" href="classIOv2_1_1base__channel.html">IOv2::base_channel</a>&lt; <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TDevice</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TChar</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">IsIn</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">IsOut</a> &gt;::is_eof </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>查询是否已到达输入末尾。 </p>
+
+</div>
+</div>
+<a id="afe6b570fb95d272d2b4e9597cce4c2bd" name="afe6b570fb95d272d2b4e9597cce4c2bd"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afe6b570fb95d272d2b4e9597cce4c2bd">&#9670;&#160;</a></span>nextc()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">typename</a> <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TChar</a> , <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> IsIn, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> IsOut&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::optional&lt; <a class="el" href="classIOv2_1_1base__channel.html#a7eb38046d9d0ab87a25175775956caa6">char_type</a> &gt; <a class="el" href="classIOv2_1_1base__channel.html">IOv2::base_channel</a>&lt; <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TDevice</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TChar</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">IsIn</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">IsOut</a> &gt;::nextc </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>先消费当前字符，再预读下一个字符。 </p>
+
+</div>
+</div>
+<a id="a97ffe456e01f13f857484f2e0c89391b" name="a97ffe456e01f13f857484f2e0c89391b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a97ffe456e01f13f857484f2e0c89391b">&#9670;&#160;</a></span>operator=() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">typename</a> <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TChar</a> , <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> IsIn, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> IsOut&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classIOv2_1_1base__channel.html">base_channel</a> &amp; <a class="el" href="classIOv2_1_1base__channel.html">IOv2::base_channel</a>&lt; <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TDevice</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TChar</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">IsIn</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">IsOut</a> &gt;<a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">::operator</a>= </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classIOv2_1_1base__channel.html">base_channel</a>&lt; <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TDevice</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TChar</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">IsIn</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">IsOut</a> &gt; &amp;&amp;&#160;</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">default</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a0cc004f6bfcb62365e0c4b728f796185" name="a0cc004f6bfcb62365e0c4b728f796185"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0cc004f6bfcb62365e0c4b728f796185">&#9670;&#160;</a></span>operator=() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">typename</a> <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TChar</a> , <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> IsIn, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> IsOut&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classIOv2_1_1base__channel.html">base_channel</a> &amp; <a class="el" href="classIOv2_1_1base__channel.html">IOv2::base_channel</a>&lt; <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TDevice</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TChar</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">IsIn</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">IsOut</a> &gt;<a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">::operator</a>= </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">const</a> <a class="el" href="classIOv2_1_1base__channel.html">base_channel</a>&lt; <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TDevice</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TChar</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">IsIn</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">IsOut</a> &gt; &amp;&#160;</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">default</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a1e4a2771a8b19638d8a4d08c024c1458" name="a1e4a2771a8b19638d8a4d08c024c1458"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1e4a2771a8b19638d8a4d08c024c1458">&#9670;&#160;</a></span>putbackc()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">typename</a> <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TChar</a> , <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> IsIn, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> IsOut&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">void</a> <a class="el" href="classIOv2_1_1base__channel.html">IOv2::base_channel</a>&lt; <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TDevice</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TChar</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">IsIn</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">IsOut</a> &gt;::putbackc </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classIOv2_1_1base__channel.html#a7eb38046d9d0ab87a25175775956caa6">char_type</a>&#160;</td>
+          <td class="paramname"><em>ch</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>将字符压回读缓冲区，使其成为下一次读取操作返回的字符。 </p>
+
+</div>
+</div>
+<a id="a62b37138d3502184a1fa3520fcfb8ae4" name="a62b37138d3502184a1fa3520fcfb8ae4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a62b37138d3502184a1fa3520fcfb8ae4">&#9670;&#160;</a></span>putc()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">typename</a> <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TChar</a> , <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> IsIn, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> IsOut&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">void</a> <a class="el" href="classIOv2_1_1base__channel.html">IOv2::base_channel</a>&lt; <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TDevice</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TChar</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">IsIn</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">IsOut</a> &gt;::putc </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classIOv2_1_1base__channel.html#a7eb38046d9d0ab87a25175775956caa6">char_type</a>&#160;</td>
+          <td class="paramname"><em>ch</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>写入单个字符。 </p>
+
+</div>
+</div>
+<a id="aed3a75e085aec376a41369344375f049" name="aed3a75e085aec376a41369344375f049"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aed3a75e085aec376a41369344375f049">&#9670;&#160;</a></span>putn()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">typename</a> <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TChar</a> , <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> IsIn, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> IsOut&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">void</a> <a class="el" href="classIOv2_1_1base__channel.html">IOv2::base_channel</a>&lt; <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TDevice</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TChar</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">IsIn</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">IsOut</a> &gt;::putn </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">const</a> <a class="el" href="classIOv2_1_1base__channel.html#a7eb38046d9d0ab87a25175775956caa6">char_type</a> *&#160;</td>
+          <td class="paramname"><em>s</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::size_t&#160;</td>
+          <td class="paramname"><em>n</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>批量写入 <code>n</code> 个字符。 </p>
+
+</div>
+</div>
+<a id="aefdbc3ec08e95130a4d4dc450e254820" name="aefdbc3ec08e95130a4d4dc450e254820"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aefdbc3ec08e95130a4d4dc450e254820">&#9670;&#160;</a></span>retrieve()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">typename</a> <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TChar</a> , <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> IsIn, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> IsOut&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">void</a> <a class="el" href="classIOv2_1_1base__channel.html">IOv2::base_channel</a>&lt; <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TDevice</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TChar</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">IsIn</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">IsOut</a> &gt;::retrieve </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structIOv2_1_1cvt__status.html">cvt_status</a> &amp;&#160;</td>
+          <td class="paramname"><em>acc</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>从底层转换器提取内部状态。 </p>
+
+</div>
+</div>
+<a id="a3b6aa2dbecf505107879e3f1603bcbc9" name="a3b6aa2dbecf505107879e3f1603bcbc9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3b6aa2dbecf505107879e3f1603bcbc9">&#9670;&#160;</a></span>rseek()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">typename</a> <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TChar</a> , <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> IsIn, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> IsOut&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">void</a> <a class="el" href="classIOv2_1_1base__channel.html">IOv2::base_channel</a>&lt; <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TDevice</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TChar</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">IsIn</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">IsOut</a> &gt;::rseek </td>
+          <td>(</td>
+          <td class="paramtype">std::size_t&#160;</td>
+          <td class="paramname"><em>pos</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>从尾定位（相对末尾偏移 <code>pos</code>，<code>0</code> 表示末尾）。 </p>
+
+</div>
+</div>
+<a id="a1862398ea5ce5458faddcebfda7462ec" name="a1862398ea5ce5458faddcebfda7462ec"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1862398ea5ce5458faddcebfda7462ec">&#9670;&#160;</a></span>seek()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">typename</a> <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TChar</a> , <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> IsIn, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> IsOut&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">void</a> <a class="el" href="classIOv2_1_1base__channel.html">IOv2::base_channel</a>&lt; <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TDevice</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TChar</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">IsIn</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">IsOut</a> &gt;::seek </td>
+          <td>(</td>
+          <td class="paramtype">std::size_t&#160;</td>
+          <td class="paramname"><em>pos</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>定位到绝对位置 <code>pos</code>。 </p>
+
+</div>
+</div>
+<a id="adcc72375d06a8f62c3f4d5f519bd691e" name="adcc72375d06a8f62c3f4d5f519bd691e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adcc72375d06a8f62c3f4d5f519bd691e">&#9670;&#160;</a></span>switch_to_get()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">typename</a> <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TChar</a> , <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> IsIn, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> IsOut&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">void</a> <a class="el" href="classIOv2_1_1base__channel.html">IOv2::base_channel</a>&lt; <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TDevice</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TChar</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">IsIn</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">IsOut</a> &gt;::switch_to_get </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>切换到输入模式。 </p>
+
+</div>
+</div>
+<a id="a6b430126be06c056c61e76d3c0aa462d" name="a6b430126be06c056c61e76d3c0aa462d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6b430126be06c056c61e76d3c0aa462d">&#9670;&#160;</a></span>switch_to_put()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">typename</a> <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TChar</a> , <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> IsIn, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> IsOut&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">void</a> <a class="el" href="classIOv2_1_1base__channel.html">IOv2::base_channel</a>&lt; <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TDevice</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TChar</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">IsIn</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">IsOut</a> &gt;::switch_to_put </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>切换到输出模式。 </p>
+
+</div>
+</div>
+<a id="aff954bf83fc8f4ab5b99230d2e5c7acb" name="aff954bf83fc8f4ab5b99230d2e5c7acb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aff954bf83fc8f4ab5b99230d2e5c7acb">&#9670;&#160;</a></span>tell()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">typename</a> <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TChar</a> , <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> IsIn, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> IsOut&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::size_t <a class="el" href="classIOv2_1_1base__channel.html">IOv2::base_channel</a>&lt; <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TDevice</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TChar</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">IsIn</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">IsOut</a> &gt;::tell </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>返回当前逻辑读取位置。 </p>
+
+</div>
+</div>
+<hr/>该类的文档由以下文件生成:<ul>
+<li>include/IOv2/io/<a class="el" href="iochannel_8h_source.html">iochannel.h</a></li>
+</ul>
+</div><!-- contents -->
+</div><!-- doc-content -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><a class="el" href="namespaceIOv2.html">IOv2</a></li><li class="navelem"><a class="el" href="classIOv2_1_1base__channel.html">base_channel</a></li>
+    <li class="footer">制作者 <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8 </li>
+  </ul>
+</div>
+</body>
+</html>

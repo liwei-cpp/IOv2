@@ -1,0 +1,15 @@
+<map id="类继承关系图" name="类继承关系图">
+<area shape="rect" id="Node000000" title=" " alt="" coords="5,104,144,129"/>
+<area shape="rect" id="Node000001" href="$structIOv2_1_1io__error.html" title=" " alt="" coords="192,104,303,129"/>
+<area shape="poly" id="edge133_Node000000_Node000001" title=" " alt="" coords="158,114,192,114,192,119,158,119"/>
+<area shape="rect" id="Node000002" href="$structIOv2_1_1cvt__error.html" title=" " alt="" coords="363,5,482,31"/>
+<area shape="poly" id="edge134_Node000001_Node000002" title=" " alt="" coords="273,92,308,65,349,40,376,28,378,33,352,44,311,70,276,97"/>
+<area shape="rect" id="Node000003" href="$structIOv2_1_1device__error.html" title=" " alt="" coords="352,55,493,80"/>
+<area shape="poly" id="edge135_Node000001_Node000003" title=" " alt="" coords="305,98,376,78,377,83,307,103"/>
+<area shape="rect" id="Node000004" href="$structIOv2_1_1eof__error.html" title=" " alt="" coords="363,104,482,129"/>
+<area shape="poly" id="edge136_Node000001_Node000004" title=" " alt="" coords="316,114,363,114,363,119,316,119"/>
+<area shape="rect" id="Node000005" href="$structIOv2_1_1stream__error.html" title=" " alt="" coords="351,153,495,179"/>
+<area shape="poly" id="edge137_Node000001_Node000005" title=" " alt="" coords="307,131,377,151,376,156,305,136"/>
+<area shape="rect" id="Node000006" href="$classIOv2_1_1sync__error.html" title="sync_with_stdio() 的失败报告：哪些标准流没能切换，以及各自的原因。" alt="" coords="359,203,487,228"/>
+<area shape="poly" id="edge138_Node000001_Node000006" title=" " alt="" coords="276,136,311,162,352,188,381,200,379,205,349,192,308,167,273,140"/>
+</map>

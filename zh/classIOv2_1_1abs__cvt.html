@@ -1,0 +1,1307 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=11"/>
+<meta name="generator" content="Doxygen 1.9.8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>IOv2: IOv2::abs_cvt&lt; KernelType, InternalType, enable_positioning, enable_io_switch &gt; 模板类 参考</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="resize.js"></script>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr id="projectrow">
+  <td id="projectalign">
+   <div id="projectname">IOv2
+   </div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 制作者 Doxygen 1.9.8 -->
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+/* @license-end */
+</script>
+<script type="text/javascript" src="menudata.js"></script>
+<script type="text/javascript" src="menu.js"></script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(function() {
+  initMenu('',true,false,'search.php','搜索');
+  $(document).ready(function() { init_search(); });
+});
+/* @license-end */
+</script>
+<div id="main-nav"></div>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(document).ready(function(){initNavTree('classIOv2_1_1abs__cvt.html',''); initResizable(); });
+/* @license-end */
+</script>
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">载入中...</div>
+<div class="SRStatus" id="Searching">搜索中...</div>
+<div class="SRStatus" id="NoMatches">未找到</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="header">
+  <div class="summary">
+<a href="#pub-types">Public 类型</a> &#124;
+<a href="#pub-methods">Public 成员函数</a> &#124;
+<a href="#pro-methods">Protected 成员函数</a> &#124;
+<a href="#pro-attribs">Protected 属性</a> &#124;
+<a href="classIOv2_1_1abs__cvt-members.html">所有成员列表</a>  </div>
+  <div class="headertitle"><div class="title">IOv2::abs_cvt&lt; KernelType, InternalType, enable_positioning, enable_io_switch &gt; 模板类 参考</div></div>
+</div><!--header-->
+<div class="contents">
+
+<p><code>#include &lt;<a class="el" href="abs__cvt_8h_source.html">abs_cvt.h</a>&gt;</code></p>
+<div class="dynheader">
+类 IOv2::abs_cvt&lt; KernelType, InternalType, enable_positioning, enable_io_switch &gt; 继承关系图:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="classIOv2_1_1abs__cvt__inherit__graph.svg" width="714" height="243"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<center><span class="legend">[<a target="top" href="graph_legend.html">图例</a>]</span></center></div>
+<div class="dynheader">
+IOv2::abs_cvt&lt; KernelType, InternalType, enable_positioning, enable_io_switch &gt; 的协作图:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="classIOv2_1_1abs__cvt__coll__graph.svg" width="252" height="154"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<center><span class="legend">[<a target="top" href="graph_legend.html">图例</a>]</span></center></div>
+<table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-types" name="pub-types"></a>
+Public 类型</h2></td></tr>
+<tr class="memitem:a862dfc0b13653c13e47bcb6e10a2092b" id="r_a862dfc0b13653c13e47bcb6e10a2092b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html#a862dfc0b13653c13e47bcb6e10a2092b">device_type</a> = <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">typename</a> KernelType::device_type</td></tr>
+<tr class="separator:a862dfc0b13653c13e47bcb6e10a2092b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a992170e16cac25188bbb51350ff607e1" id="r_a992170e16cac25188bbb51350ff607e1"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html#a992170e16cac25188bbb51350ff607e1">external_type</a> = <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">typename</a> KernelType::internal_type</td></tr>
+<tr class="separator:a992170e16cac25188bbb51350ff607e1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af7a1ce8789d2c408a00c7ec4fab1f8e6" id="r_af7a1ce8789d2c408a00c7ec4fab1f8e6"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html#af7a1ce8789d2c408a00c7ec4fab1f8e6">internal_type</a> = <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">InternalType</a></td></tr>
+<tr class="separator:af7a1ce8789d2c408a00c7ec4fab1f8e6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
+Public 成员函数</h2></td></tr>
+<tr class="memitem:a77db0a3eaa1dbaa6954cc0d9801ba2d5" id="r_a77db0a3eaa1dbaa6954cc0d9801ba2d5"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html#a77db0a3eaa1dbaa6954cc0d9801ba2d5">abs_cvt</a> (KernelType kernel)</td></tr>
+<tr class="separator:a77db0a3eaa1dbaa6954cc0d9801ba2d5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a55eb32a3affc1ed775cf21cfd2153811" id="r_a55eb32a3affc1ed775cf21cfd2153811"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html#a55eb32a3affc1ed775cf21cfd2153811">abs_cvt</a> (<a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">const</a> <a class="el" href="classIOv2_1_1abs__cvt.html">abs_cvt</a> &amp;<a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">val</a>)</td></tr>
+<tr class="separator:a55eb32a3affc1ed775cf21cfd2153811"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5d6ae7755267a947bbbcbe1534c6364f" id="r_a5d6ae7755267a947bbbcbe1534c6364f"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html#a5d6ae7755267a947bbbcbe1534c6364f">abs_cvt</a> (<a class="el" href="classIOv2_1_1abs__cvt.html">abs_cvt</a> &amp;&amp;<a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">val</a>) <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">noexcept</a></td></tr>
+<tr class="separator:a5d6ae7755267a947bbbcbe1534c6364f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a81793e4e59c3536e26b728d9e729d335" id="r_a81793e4e59c3536e26b728d9e729d335"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classIOv2_1_1abs__cvt.html">abs_cvt</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html#a81793e4e59c3536e26b728d9e729d335">operator=</a> (<a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">const</a> <a class="el" href="classIOv2_1_1abs__cvt.html">abs_cvt</a> &amp;<a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">val</a>)</td></tr>
+<tr class="separator:a81793e4e59c3536e26b728d9e729d335"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9432492f6ef3c7b96ea4b0fe67dc76dd" id="r_a9432492f6ef3c7b96ea4b0fe67dc76dd"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classIOv2_1_1abs__cvt.html">abs_cvt</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html#a9432492f6ef3c7b96ea4b0fe67dc76dd">operator=</a> (<a class="el" href="classIOv2_1_1abs__cvt.html">abs_cvt</a> &amp;&amp;<a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">val</a>) <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">noexcept</a></td></tr>
+<tr class="separator:a9432492f6ef3c7b96ea4b0fe67dc76dd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5ea0e0f6f6330c39aa5eff225b99cb5a" id="r_a5ea0e0f6f6330c39aa5eff225b99cb5a"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html#a5ea0e0f6f6330c39aa5eff225b99cb5a">~abs_cvt</a> ()=<a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">default</a></td></tr>
+<tr class="separator:a5ea0e0f6f6330c39aa5eff225b99cb5a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af3b541791960186b6d01e68460ff24a9" id="r_af3b541791960186b6d01e68460ff24a9"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classIOv2_1_1abs__cvt.html#a862dfc0b13653c13e47bcb6e10a2092b">device_type</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html#af3b541791960186b6d01e68460ff24a9">device</a> ()</td></tr>
+<tr class="separator:af3b541791960186b6d01e68460ff24a9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a63a8d7d57a7f4de26f323b83053e7baa" id="r_a63a8d7d57a7f4de26f323b83053e7baa"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html#a63a8d7d57a7f4de26f323b83053e7baa">is_tainted</a> () <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">const</a> <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">noexcept</a></td></tr>
+<tr class="memdesc:a63a8d7d57a7f4de26f323b83053e7baa"><td class="mdescLeft">&#160;</td><td class="mdescRight">转换器是否已被标记为 tainted（见类文档的 tainted 契约）。  <br /></td></tr>
+<tr class="separator:a63a8d7d57a7f4de26f323b83053e7baa"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a99b7fab13a26c5b7eb17c084d2419b85" id="r_a99b7fab13a26c5b7eb17c084d2419b85"><td class="memItemLeft" align="right" valign="top">std::pair&lt; <a class="el" href="classIOv2_1_1abs__cvt.html#a862dfc0b13653c13e47bcb6e10a2092b">device_type</a>, std::exception_ptr &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html#a99b7fab13a26c5b7eb17c084d2419b85">detach</a> (<a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">this</a> <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">auto</a> &amp;<a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>) <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">noexcept</a></td></tr>
+<tr class="separator:a99b7fab13a26c5b7eb17c084d2419b85"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afab139215d6440dec5359b73072a637e" id="r_afab139215d6440dec5359b73072a637e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html#afab139215d6440dec5359b73072a637e">attach</a> (<a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">this</a> <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">auto</a> &amp;<a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>, <a class="el" href="classIOv2_1_1abs__cvt.html#a862dfc0b13653c13e47bcb6e10a2092b">device_type</a> &amp;&amp;<a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">dev</a>=<a class="el" href="classIOv2_1_1abs__cvt.html#a862dfc0b13653c13e47bcb6e10a2092b">device_type</a>{})</td></tr>
+<tr class="separator:afab139215d6440dec5359b73072a637e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af553e57c053d4b4a625240111a880229" id="r_af553e57c053d4b4a625240111a880229"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html#af553e57c053d4b4a625240111a880229">adjust</a> (<a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">this</a> <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">auto</a> &amp;<a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">const</a> <a class="el" href="structIOv2_1_1cvt__behavior.html">cvt_behavior</a> &amp;<a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">b</a>)</td></tr>
+<tr class="separator:af553e57c053d4b4a625240111a880229"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a87a5ea6be0113ed359370030b67a5f1b" id="r_a87a5ea6be0113ed359370030b67a5f1b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html#a87a5ea6be0113ed359370030b67a5f1b">retrieve</a> (<a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">this</a> <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">const</a> <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">auto</a> &amp;<a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>, <a class="el" href="structIOv2_1_1cvt__status.html">cvt_status</a> &amp;<a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">s</a>)</td></tr>
+<tr class="separator:a87a5ea6be0113ed359370030b67a5f1b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa1f49b1314093341e1a716f07101af1b" id="r_aa1f49b1314093341e1a716f07101af1b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a36673c0e1d93ef095d232f0f726134d9">io_status</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html#aa1f49b1314093341e1a716f07101af1b">bos</a> (<a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">this</a> <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">auto</a> &amp;<a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>)</td></tr>
+<tr class="separator:aa1f49b1314093341e1a716f07101af1b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac247b7d007d6e16cbc90a1b478e125ee" id="r_ac247b7d007d6e16cbc90a1b478e125ee"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html#ac247b7d007d6e16cbc90a1b478e125ee">main_cont_beg</a> (<a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">this</a> <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">auto</a> &amp;<a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>)</td></tr>
+<tr class="separator:ac247b7d007d6e16cbc90a1b478e125ee"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3f9541834637ad027cbb38fff1b7ac05" id="r_a3f9541834637ad027cbb38fff1b7ac05"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html#a3f9541834637ad027cbb38fff1b7ac05">is_eof</a> (<a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">this</a> <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">auto</a> &amp;<a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>)</td></tr>
+<tr class="separator:a3f9541834637ad027cbb38fff1b7ac05"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a722ebc59d1ab432bfc570c0cb940236d" id="r_a722ebc59d1ab432bfc570c0cb940236d"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">typename</a> <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">Self</a> &gt; <br />
+requires <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">requires</a>(<a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">Self</a>&amp; <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">t</a>, <a class="el" href="classIOv2_1_1cvt__reader.html">cvt_reader</a>&lt;KernelType&gt;&amp; <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">r</a>, <a class="el" href="classIOv2_1_1abs__cvt.html#af7a1ce8789d2c408a00c7ec4fab1f8e6">internal_type</a>* <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">data</a>, std::size_t <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">len</a>) { { t.get_main(<a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">r</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">data</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">len</a>) } -&gt; std::same_as&lt;std::size_t&gt;; }</td></tr>
+<tr class="memitem:a722ebc59d1ab432bfc570c0cb940236d"><td class="memTemplItemLeft" align="right" valign="top">std::size_t&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html#a722ebc59d1ab432bfc570c0cb940236d">get</a> (<a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">this</a> <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">Self</a> &amp;<a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>, <a class="el" href="classIOv2_1_1abs__cvt.html#af7a1ce8789d2c408a00c7ec4fab1f8e6">internal_type</a> *<a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">to</a>, std::size_t <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">to_max</a>)</td></tr>
+<tr class="separator:a722ebc59d1ab432bfc570c0cb940236d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2677885501c4b13850b5883e54481faf" id="r_a2677885501c4b13850b5883e54481faf"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">typename</a> <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">Self</a> &gt; <br />
+requires <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">requires</a>(<a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">Self</a>&amp; <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">t</a>, <a class="el" href="classIOv2_1_1cvt__writer.html">cvt_writer</a>&lt;KernelType&gt;&amp; <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">w</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">const</a> <a class="el" href="classIOv2_1_1abs__cvt.html#af7a1ce8789d2c408a00c7ec4fab1f8e6">internal_type</a>* <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">data</a>, std::size_t <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">len</a>) { { t.put_main(<a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">w</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">data</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">len</a>) } -&gt; std::same_as&lt;<a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">void</a>&gt;; }</td></tr>
+<tr class="memitem:a2677885501c4b13850b5883e54481faf"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">void</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html#a2677885501c4b13850b5883e54481faf">put</a> (<a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">this</a> <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">Self</a> &amp;<a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">const</a> <a class="el" href="classIOv2_1_1abs__cvt.html#af7a1ce8789d2c408a00c7ec4fab1f8e6">internal_type</a> *<a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">to</a>, std::size_t <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">to_size</a>)</td></tr>
+<tr class="separator:a2677885501c4b13850b5883e54481faf"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aadf6f83eb7eb9a32041437fad8432981" id="r_aadf6f83eb7eb9a32041437fad8432981"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">typename</a> <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">Self</a> &gt; <br />
+requires <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">requires</a>(<a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">Self</a>&amp; <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">t</a>, <a class="el" href="classIOv2_1_1cvt__writer.html">cvt_writer</a>&lt;KernelType&gt;&amp; <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">w</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">const</a> <a class="el" href="classIOv2_1_1abs__cvt.html#af7a1ce8789d2c408a00c7ec4fab1f8e6">internal_type</a>* <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">data</a>, std::size_t <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">len</a>) { { t.put_main(<a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">w</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">data</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">len</a>) } -&gt; std::same_as&lt;<a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">void</a>&gt;; }</td></tr>
+<tr class="memitem:aadf6f83eb7eb9a32041437fad8432981"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">void</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html#aadf6f83eb7eb9a32041437fad8432981">flush</a> (<a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">this</a> <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">Self</a> &amp;<a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>)</td></tr>
+<tr class="separator:aadf6f83eb7eb9a32041437fad8432981"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3a70c20f058ed2894d21be275e91cb5c" id="r_a3a70c20f058ed2894d21be275e91cb5c"><td class="memItemLeft" align="right" valign="top">std::size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html#a3a70c20f058ed2894d21be275e91cb5c">tell</a> (<a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">this</a> <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">const</a> <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">auto</a> &amp;<a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>)</td></tr>
+<tr class="separator:a3a70c20f058ed2894d21be275e91cb5c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae93090de10c3569ca969187f6368eac3" id="r_ae93090de10c3569ca969187f6368eac3"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html#ae93090de10c3569ca969187f6368eac3">seek</a> (<a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">this</a> <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">auto</a> &amp;<a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>, std::size_t <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">pos</a>)</td></tr>
+<tr class="separator:ae93090de10c3569ca969187f6368eac3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a31e5fb1ee7ecc45e62edfd4b7dc5c06c" id="r_a31e5fb1ee7ecc45e62edfd4b7dc5c06c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html#a31e5fb1ee7ecc45e62edfd4b7dc5c06c">rseek</a> (<a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">this</a> <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">auto</a> &amp;<a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>, std::size_t <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">pos</a>)</td></tr>
+<tr class="separator:a31e5fb1ee7ecc45e62edfd4b7dc5c06c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a70559e3519fec3d98a945c38f4dedfa2" id="r_a70559e3519fec3d98a945c38f4dedfa2"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html#a70559e3519fec3d98a945c38f4dedfa2">switch_to_get</a> (<a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">this</a> <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">auto</a> &amp;<a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>)</td></tr>
+<tr class="separator:a70559e3519fec3d98a945c38f4dedfa2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6e7783b9b27c377f2f56de0e22c41933" id="r_a6e7783b9b27c377f2f56de0e22c41933"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html#a6e7783b9b27c377f2f56de0e22c41933">switch_to_put</a> (<a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">this</a> <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">auto</a> &amp;<a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>)</td></tr>
+<tr class="separator:a6e7783b9b27c377f2f56de0e22c41933"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pro-methods" name="pro-methods"></a>
+Protected 成员函数</h2></td></tr>
+<tr class="memitem:a619085adf9444c3f8bd0cc214c986ac2" id="r_a619085adf9444c3f8bd0cc214c986ac2"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html#a619085adf9444c3f8bd0cc214c986ac2">assert_not_tainted</a> () <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">const</a></td></tr>
+<tr class="separator:a619085adf9444c3f8bd0cc214c986ac2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a564fad1ceb3a99a789010012ef081395" id="r_a564fad1ceb3a99a789010012ef081395"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html#a564fad1ceb3a99a789010012ef081395">set_tainted</a> () <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">noexcept</a></td></tr>
+<tr class="separator:a564fad1ceb3a99a789010012ef081395"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pro-attribs" name="pro-attribs"></a>
+Protected 属性</h2></td></tr>
+<tr class="memitem:ab8caf927eb23cd152a242f09b063f499" id="r_ab8caf927eb23cd152a242f09b063f499"><td class="memItemLeft" align="right" valign="top">KernelType&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html#ab8caf927eb23cd152a242f09b063f499">m_kernel</a></td></tr>
+<tr class="separator:ab8caf927eb23cd152a242f09b063f499"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aff41c99f01bb736113ccf6d2374d8d5a" id="r_aff41c99f01bb736113ccf6d2374d8d5a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a36673c0e1d93ef095d232f0f726134d9">io_status</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html#aff41c99f01bb736113ccf6d2374d8d5a">m_io_status</a> = <a class="el" href="namespaceIOv2.html#a36673c0e1d93ef095d232f0f726134d9a5da248ea6840aca1ae2b417b17982a89">io_status::neutral</a></td></tr>
+<tr class="separator:aff41c99f01bb736113ccf6d2374d8d5a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a36b85b07a227cd90873f8872590f9572" id="r_a36b85b07a227cd90873f8872590f9572"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html#a36b85b07a227cd90873f8872590f9572">m_is_bos_done</a> = <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">false</a></td></tr>
+<tr class="separator:a36b85b07a227cd90873f8872590f9572"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table>
+<a name="details" id="details"></a><h2 class="groupheader">详细描述</h2>
+<div class="textblock"><div class="compoundTemplParams">template&lt;io_converter KernelType, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">typename</a> <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">InternalType</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> enable_positioning = true, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> enable_io_switch = true&gt;<br />
+class IOv2::abs_cvt&lt; KernelType, InternalType, enable_positioning, enable_io_switch &gt;</div><p>基于显式对象形参（deducing this）的抽象转换器基类。</p>
+<p><code><a class="el" href="classIOv2_1_1abs__cvt.html">abs_cvt</a></code> 为所有具体转换器提供公共骨架，负责：</p><ul>
+<li><b>BOS（Beginning-Of-Stream）处理**：在 <code><a class="el" href="classIOv2_1_1abs__cvt.html#aa1f49b1314093341e1a716f07101af1b">bos()</a></code> 调用后、<code><a class="el" href="classIOv2_1_1abs__cvt.html#ac247b7d007d6e16cbc90a1b478e125ee">main_cont_beg()</a></code> 调用前的阶段，<code>get</code>/<code>put</code> 直接以原始字节方式传递数据（不经过派生类的 <code>get_main</code>/<code>put_main</code>），用于读写文件头、魔数等流起始特殊数据。 BOS 阶段写入时，若输入数据字节数不是 <code><a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">sizeof(external_type)</a></code> 的整数倍， 末尾不足部分将以零填充。</b></li>
+<li><b>**设备管理**：通过 <code><a class="el" href="classIOv2_1_1abs__cvt.html#af3b541791960186b6d01e68460ff24a9">device()</a></code>、<code><a class="el" href="classIOv2_1_1abs__cvt.html#a99b7fab13a26c5b7eb17c084d2419b85">detach()</a></code>、<code><a class="el" href="classIOv2_1_1abs__cvt.html#afab139215d6440dec5359b73072a637e">attach()</a></code> 管理底层设备。</b></li>
+<li><b>**行为与状态**：通过 <code><a class="el" href="classIOv2_1_1abs__cvt.html#af553e57c053d4b4a625240111a880229">adjust()</a></code> 和 <code><a class="el" href="classIOv2_1_1abs__cvt.html#a87a5ea6be0113ed359370030b67a5f1b">retrieve()</a></code> 配置和查询转换参数。</b></li>
+<li><b>**可选能力**：通过模板参数和 <code>requires</code> 子句按需暴露 flush、定位 (<code>tell</code>/<code>seek</code>/<code>rseek</code>) 和 IO 方向切换能力。</b></li>
+</ul>
+<p><b>派生类须实现 <code>get_main(<a class="el" href="classIOv2_1_1cvt__reader.html">cvt_reader</a>&lt;KernelType&gt;&amp;, internal_type*, size_t)</code> 和/或 <code>put_main(<a class="el" href="classIOv2_1_1cvt__writer.html">cvt_writer</a>&lt;KernelType&gt;&amp;, const internal_type*, size_t)</code> 来处理主内容阶段的实际转换逻辑。</b></p>
+<p><b></p><dl class="section note"><dt>注解</dt><dd>调用顺序：成员函数必须按以下顺序调用：<ol type="1">
+<li>**bos()**：必须首先调用，以建立初始 IO 状态。</li>
+<li>**BOS 阶段**：可多次调用 <code><a class="el" href="classIOv2_1_1abs__cvt.html#a722ebc59d1ab432bfc570c0cb940236d">get()</a></code> 或多次调用 <code><a class="el" href="classIOv2_1_1abs__cvt.html#a2677885501c4b13850b5883e54481faf">put()</a></code>，但不可混合调用。 此阶段用于读写流起始数据（如文件头、魔数）。</li>
+<li>**main_cont_beg()**：标记 BOS 阶段结束，进入主内容阶段。</li>
+<li>**主内容阶段**：可调用所有其他成员函数（<code>get</code>、<code>put</code>、<code>flush</code>、 <code>tell</code>、<code>seek</code>、<code>rseek</code>、<code>switch_to_get</code>、<code>switch_to_put</code> 等）。 违反此调用顺序将导致未定义行为。</li>
+</ol>
+</dd>
+<dd>
+派生类生命周期方法的执行顺序：派生类重写 <code><a class="el" href="classIOv2_1_1abs__cvt.html#aa1f49b1314093341e1a716f07101af1b">bos()</a></code>、<code><a class="el" href="classIOv2_1_1abs__cvt.html#ac247b7d007d6e16cbc90a1b478e125ee">main_cont_beg()</a></code>、 <code><a class="el" href="classIOv2_1_1abs__cvt.html#afab139215d6440dec5359b73072a637e">attach()</a></code>、<code><a class="el" href="classIOv2_1_1abs__cvt.html#a99b7fab13a26c5b7eb17c084d2419b85">detach()</a></code>、<code>close_stream()</code> 等生命周期方法时，必须按 下列规则编排"修改本层成员"与"调用 `BT::xxx()`"的先后顺序，以保证 异常安全与层间状态一致：<ul>
+<li>**起始/初始化操作**（<code>bos</code>、<code>main_cont_beg</code>）：**先调用 <code>BT::xxx()</code>， 再修改本层成员**。语义类比 C++ 构造函数的"基类先于派生类构造"： 若下层抛出异常，本层状态保持不变（强异常安全）；若下层成功， 下层已就绪可供本层读取（例如读取 <code>BT::m_io_status</code> 决定本层行为）。</li>
+<li>**结束/清理操作**（<code>detach</code>、<code>close_stream</code>、用于终结的 <code>flush</code>）： **先冲刷/清理本层状态，再调用 <code>BT::xxx()</code>**。语义类比 C++ 析构函数 的"派生类先于基类析构"：本层须在下层关闭前把待写数据冲入下层， 否则冲入将无处可去。 </li>
+</ul>
+</dd></dl>
+<p></b></p>
+<p><b></p><dl class="tparams"><dt>模板参数</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">KernelType</td><td>底层 IO 转换核心类型，须满足 <code>io_converter</code> concept。  </td></tr>
+    <tr><td class="paramname">InternalType</td><td>派生类对外暴露的字符类型（即 <code>get</code>/<code>put</code> 接口所使用的元素类型）。  </td></tr>
+    <tr><td class="paramname">enable_positioning</td><td>若为 <code>true</code>（默认），且 kernel 支持定位，则 <code><a class="el" href="classIOv2_1_1abs__cvt.html#a3a70c20f058ed2894d21be275e91cb5c">tell()</a></code>/<code><a class="el" href="classIOv2_1_1abs__cvt.html#ae93090de10c3569ca969187f6368eac3">seek()</a></code>/<code><a class="el" href="classIOv2_1_1abs__cvt.html#a31e5fb1ee7ecc45e62edfd4b7dc5c06c">rseek()</a></code> 方法可用。  </td></tr>
+    <tr><td class="paramname">enable_io_switch</td><td>若为 <code>true</code>（默认），且 kernel 支持 IO 方向切换，则 <code><a class="el" href="classIOv2_1_1abs__cvt.html#a70559e3519fec3d98a945c38f4dedfa2">switch_to_get()</a></code>/<code><a class="el" href="classIOv2_1_1abs__cvt.html#a6e7783b9b27c377f2f56de0e22c41933">switch_to_put()</a></code> 方法可用。   </td></tr>
+  </table>
+  </dd>
+</dl>
+<p></b></p>
+</div><h2 class="groupheader">成员类型定义说明</h2>
+<a id="a862dfc0b13653c13e47bcb6e10a2092b" name="a862dfc0b13653c13e47bcb6e10a2092b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a862dfc0b13653c13e47bcb6e10a2092b">&#9670;&#160;</a></span>device_type</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;io_converter KernelType, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">typename</a> <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">InternalType</a> , <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> enable_positioning = true, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> enable_io_switch = true&gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">using</a> <a class="el" href="classIOv2_1_1abs__cvt.html">IOv2::abs_cvt</a>&lt; KernelType, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">InternalType</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">enable_positioning</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">enable_io_switch</a> &gt;::device_type =  <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">typename</a> KernelType::device_type</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>底层设备类型，由 KernelType 提供。   </p>
+
+</div>
+</div>
+<a id="a992170e16cac25188bbb51350ff607e1" name="a992170e16cac25188bbb51350ff607e1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a992170e16cac25188bbb51350ff607e1">&#9670;&#160;</a></span>external_type</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;io_converter KernelType, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">typename</a> <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">InternalType</a> , <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> enable_positioning = true, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> enable_io_switch = true&gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">using</a> <a class="el" href="classIOv2_1_1abs__cvt.html">IOv2::abs_cvt</a>&lt; KernelType, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">InternalType</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">enable_positioning</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">enable_io_switch</a> &gt;::external_type =  <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">typename</a> KernelType::internal_type</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>外部字符类型（即 kernel 的内部类型），用于 BOS 阶段的原始字节传递。   </p>
+
+</div>
+</div>
+<a id="af7a1ce8789d2c408a00c7ec4fab1f8e6" name="af7a1ce8789d2c408a00c7ec4fab1f8e6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af7a1ce8789d2c408a00c7ec4fab1f8e6">&#9670;&#160;</a></span>internal_type</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;io_converter KernelType, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">typename</a> <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">InternalType</a> , <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> enable_positioning = true, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> enable_io_switch = true&gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">using</a> <a class="el" href="classIOv2_1_1abs__cvt.html">IOv2::abs_cvt</a>&lt; KernelType, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">InternalType</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">enable_positioning</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">enable_io_switch</a> &gt;::internal_type =  <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">InternalType</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>派生类对外暴露的字符类型，即 <code>get</code>/<code>put</code> 接口的元素类型。   </p>
+
+</div>
+</div>
+<h2 class="groupheader">构造及析构函数说明</h2>
+<a id="a77db0a3eaa1dbaa6954cc0d9801ba2d5" name="a77db0a3eaa1dbaa6954cc0d9801ba2d5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a77db0a3eaa1dbaa6954cc0d9801ba2d5">&#9670;&#160;</a></span>abs_cvt() <span class="overload">[1/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;io_converter KernelType, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">typename</a> <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">InternalType</a> , <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> enable_positioning = true, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> enable_io_switch = true&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classIOv2_1_1abs__cvt.html">IOv2::abs_cvt</a>&lt; KernelType, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">InternalType</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">enable_positioning</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">enable_io_switch</a> &gt;::abs_cvt </td>
+          <td>(</td>
+          <td class="paramtype">KernelType&#160;</td>
+          <td class="paramname"><em>kernel</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>从 kernel 构造转换器，获取 kernel 的所有权。 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">kernel</td><td>底层转换核心，以移动方式转交所有权。   </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a55eb32a3affc1ed775cf21cfd2153811" name="a55eb32a3affc1ed775cf21cfd2153811"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a55eb32a3affc1ed775cf21cfd2153811">&#9670;&#160;</a></span>abs_cvt() <span class="overload">[2/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;io_converter KernelType, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">typename</a> <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">InternalType</a> , <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> enable_positioning = true, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> enable_io_switch = true&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classIOv2_1_1abs__cvt.html">IOv2::abs_cvt</a>&lt; KernelType, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">InternalType</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">enable_positioning</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">enable_io_switch</a> &gt;::abs_cvt </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">const</a> <a class="el" href="classIOv2_1_1abs__cvt.html">abs_cvt</a>&lt; KernelType, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">InternalType</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">enable_positioning</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">enable_io_switch</a> &gt; &amp;&#160;</td>
+          <td class="paramname"><em>val</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>拷贝构造函数。复制 kernel、IO 状态和 BOS 完成标志；临时 IO 缓冲区不复制。 </p>
+
+</div>
+</div>
+<a id="a5d6ae7755267a947bbbcbe1534c6364f" name="a5d6ae7755267a947bbbcbe1534c6364f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5d6ae7755267a947bbbcbe1534c6364f">&#9670;&#160;</a></span>abs_cvt() <span class="overload">[3/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;io_converter KernelType, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">typename</a> <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">InternalType</a> , <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> enable_positioning = true, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> enable_io_switch = true&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classIOv2_1_1abs__cvt.html">IOv2::abs_cvt</a>&lt; KernelType, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">InternalType</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">enable_positioning</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">enable_io_switch</a> &gt;::abs_cvt </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classIOv2_1_1abs__cvt.html">abs_cvt</a>&lt; KernelType, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">InternalType</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">enable_positioning</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">enable_io_switch</a> &gt; &amp;&amp;&#160;</td>
+          <td class="paramname"><em>val</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>移动构造函数。转移 kernel 所有权；源对象的 IO 状态被重置为 <code>neutral</code>， BOS 完成标志被重置为 <code>false</code>。 </p>
+
+</div>
+</div>
+<a id="a5ea0e0f6f6330c39aa5eff225b99cb5a" name="a5ea0e0f6f6330c39aa5eff225b99cb5a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5ea0e0f6f6330c39aa5eff225b99cb5a">&#9670;&#160;</a></span>~abs_cvt()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;io_converter KernelType, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">typename</a> <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">InternalType</a> , <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> enable_positioning = true, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> enable_io_switch = true&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classIOv2_1_1abs__cvt.html">IOv2::abs_cvt</a>&lt; KernelType, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">InternalType</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">enable_positioning</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">enable_io_switch</a> &gt;::~<a class="el" href="classIOv2_1_1abs__cvt.html">abs_cvt</a> </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">default</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<h2 class="groupheader">成员函数说明</h2>
+<a id="af553e57c053d4b4a625240111a880229" name="af553e57c053d4b4a625240111a880229"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af553e57c053d4b4a625240111a880229">&#9670;&#160;</a></span>adjust()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;io_converter KernelType, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">typename</a> <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">InternalType</a> , <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> enable_positioning = true, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> enable_io_switch = true&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">void</a> <a class="el" href="classIOv2_1_1abs__cvt.html">IOv2::abs_cvt</a>&lt; KernelType, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">InternalType</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">enable_positioning</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">enable_io_switch</a> &gt;::adjust </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">this</a> <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">auto</a> &amp;&#160;</td>
+          <td class="paramname"><em>self</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">const</a> <a class="el" href="structIOv2_1_1cvt__behavior.html">cvt_behavior</a> &amp;&#160;</td>
+          <td class="paramname"><em>b</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>调整转换器的行为参数。</p>
+<p>先调用 <code><a class="el" href="classIOv2_1_1abs__cvt.html#a619085adf9444c3f8bd0cc214c986ac2">assert_not_tainted()</a></code> 检查污染标志；若派生类实现了 <code>adjust_impl(const <a class="el" href="structIOv2_1_1cvt__behavior.html">cvt_behavior</a>&amp;)</code>，则先调用之执行派生层特有的配置逻辑； 最后将 <code>b</code> 转发给底层 kernel。 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">b</td><td>描述期望行为的配置对象。   </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a619085adf9444c3f8bd0cc214c986ac2" name="a619085adf9444c3f8bd0cc214c986ac2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a619085adf9444c3f8bd0cc214c986ac2">&#9670;&#160;</a></span>assert_not_tainted()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;io_converter KernelType, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">typename</a> <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">InternalType</a> , <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> enable_positioning = true, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> enable_io_switch = true&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">void</a> <a class="el" href="classIOv2_1_1abs__cvt.html">IOv2::abs_cvt</a>&lt; KernelType, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">InternalType</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">enable_positioning</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">enable_io_switch</a> &gt;::assert_not_tainted </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>若当前转换器已被标记为 tainted，则抛出 <code><a class="el" href="structIOv2_1_1cvt__error.html">cvt_error</a></code>；否则什么也不做。</p>
+<p>派生类应在依赖底层 kernel 状态完整性的操作（如定位、IO 方向切换等） 入口处调用此函数，以快速失败、阻止在已损坏的状态上继续操作。 </p>
+<dl class="exception"><dt>异常</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname"><a class="el" href="structIOv2_1_1cvt__error.html">cvt_error</a></td><td>若 <code>m_is_tainted</code> 为 <code>true</code>。   </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="afab139215d6440dec5359b73072a637e" name="afab139215d6440dec5359b73072a637e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afab139215d6440dec5359b73072a637e">&#9670;&#160;</a></span>attach()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;io_converter KernelType, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">typename</a> <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">InternalType</a> , <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> enable_positioning = true, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> enable_io_switch = true&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">void</a> <a class="el" href="classIOv2_1_1abs__cvt.html">IOv2::abs_cvt</a>&lt; KernelType, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">InternalType</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">enable_positioning</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">enable_io_switch</a> &gt;::attach </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">this</a> <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">auto</a> &amp;&#160;</td>
+          <td class="paramname"><em>self</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classIOv2_1_1abs__cvt.html#a862dfc0b13653c13e47bcb6e10a2092b">device_type</a> &amp;&amp;&#160;</td>
+          <td class="paramname"><em>dev</em> = <code><a class="el" href="classIOv2_1_1abs__cvt.html#a862dfc0b13653c13e47bcb6e10a2092b">device_type</a>{}</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>将新设备附加到转换器，并重置转换器状态。执行顺序如下：</p>
+<ol type="1">
+<li>若派生类实现了 <code>detach_impl() noexcept</code>，先调用之，捕获并暂存其异常 （first-failure-wins）。</li>
+<li>调用 <code>m_kernel.attach()</code> 安装新设备，并将 <code>m_io_status</code>、<code>m_is_bos_done</code>、 <code>m_is_tainted</code> 重置为初始值。若此步抛出，异常直接传播，<code>m_is_tainted</code> 被设置。</li>
+<li>若派生类实现了 <code>attach_impl()</code>，调用之执行派生层初始化。若此步抛出， <code>m_is_tainted</code> 被设置并传播。</li>
+<li>若步骤 1 捕获到异常，在步骤 2–3 均成功后重新抛出。</li>
+</ol>
+<p>原设备在 <code>m_kernel.attach()</code> 内部静默析构，不会归还调用方。若需要保留 原设备，应先单独调用 <code><a class="el" href="classIOv2_1_1abs__cvt.html#a99b7fab13a26c5b7eb17c084d2419b85">detach()</a></code> 取得设备，再调用本函数装入新设备。 若 <code>dev</code> 为默认构造值（空设备），则等效于清除当前设备。 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">dev</td><td>要附加的新设备（以移动方式转交所有权），默认为空设备。   </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="aa1f49b1314093341e1a716f07101af1b" name="aa1f49b1314093341e1a716f07101af1b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa1f49b1314093341e1a716f07101af1b">&#9670;&#160;</a></span>bos()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;io_converter KernelType, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">typename</a> <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">InternalType</a> , <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> enable_positioning = true, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> enable_io_switch = true&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a36673c0e1d93ef095d232f0f726134d9">io_status</a> <a class="el" href="classIOv2_1_1abs__cvt.html">IOv2::abs_cvt</a>&lt; KernelType, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">InternalType</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">enable_positioning</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">enable_io_switch</a> &gt;::bos </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">this</a> <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">auto</a> &amp;&#160;</td>
+          <td class="paramname"><em>self</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>启动流，进入 BOS（Beginning-Of-Stream）阶段。</p>
+<p>将 IO 状态设置为 kernel 返回的初始状态。此方法只能在 <code>m_io_status</code> 为 <code>neutral</code> 且尚未调用过 <code><a class="el" href="classIOv2_1_1abs__cvt.html#aa1f49b1314093341e1a716f07101af1b">bos()</a></code> 时调用，否则抛出异常。 在调用 <code><a class="el" href="classIOv2_1_1abs__cvt.html#ac247b7d007d6e16cbc90a1b478e125ee">main_cont_beg()</a></code> 之前，<code>get</code>/<code>put</code> 将以原始字节模式直接传递数据。</p>
+<dl class="section user"><dt>设计说明</dt><dd>初始 IO 方向由底层 kernel 基于流是否包含数据来确定，这是为了保护数据完整性：<ul>
+<li>**流有内容 → 输入模式**：避免意外覆盖现有数据。例如，覆盖 UTF-8 文件的 头部可能导致整个文件无法正确解析。</li>
+<li>**流无内容 → 输出模式**：空流没有可读内容，只能写入。</li>
+</ul>
+</dd></dl>
+<p>若需覆盖非空文件，应在打开前先清空（truncate）文件，而非强制进入输出模式。 </p>
+<dl class="section return"><dt>返回</dt><dd>kernel 报告的初始 <code>io_status</code> 值。  </dd></dl>
+<dl class="exception"><dt>异常</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname"><a class="el" href="structIOv2_1_1cvt__error.html">cvt_error</a></td><td>若当前 IO 状态不为 <code>neutral</code>，或 <code><a class="el" href="classIOv2_1_1abs__cvt.html#aa1f49b1314093341e1a716f07101af1b">bos()</a></code> 已被调用过。   </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a99b7fab13a26c5b7eb17c084d2419b85" name="a99b7fab13a26c5b7eb17c084d2419b85"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a99b7fab13a26c5b7eb17c084d2419b85">&#9670;&#160;</a></span>detach()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;io_converter KernelType, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">typename</a> <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">InternalType</a> , <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> enable_positioning = true, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> enable_io_switch = true&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::pair&lt; <a class="el" href="classIOv2_1_1abs__cvt.html#a862dfc0b13653c13e47bcb6e10a2092b">device_type</a>, std::exception_ptr &gt; <a class="el" href="classIOv2_1_1abs__cvt.html">IOv2::abs_cvt</a>&lt; KernelType, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">InternalType</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">enable_positioning</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">enable_io_switch</a> &gt;::detach </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">this</a> <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">auto</a> &amp;&#160;</td>
+          <td class="paramname"><em>self</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>分离并返回底层设备，同时将转换器状态重置为初始状态。</p>
+<p>调用后 <code>m_io_status</code> 恢复为 <code>neutral</code>，<code>m_is_bos_done</code> 与 <code>m_is_tainted</code> 恢复为 <code>false</code>。</p>
+<p>本函数为 <code>noexcept</code>，清理异常通过返回值的 <code>exception_ptr</code> 透传（first-failure-wins）：</p><ul>
+<li>若派生类实现了 <code>detach_impl() noexcept</code>，则先调用之；其异常优先于 kernel 的异常。 编译器会通过 <code>static_assert</code> 强制要求 <code>detach_impl()</code> 必须声明为 <code>noexcept</code>。</li>
+<li>随后调用 <code>m_kernel.detach()</code> 完成 kernel 层的分离与清理。</li>
+</ul>
+<p>设备始终通过返回值的 <code>first</code> 无条件交还给调用方。 </p>
+<dl class="section return"><dt>返回</dt><dd>pair：<code>first</code> 为已从 kernel 中分离的底层设备对象（右值），<code>second</code> 为清理过程中捕获的首个异常（<code>nullptr</code> 表示无异常）。   </dd></dl>
+
+</div>
+</div>
+<a id="af3b541791960186b6d01e68460ff24a9" name="af3b541791960186b6d01e68460ff24a9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af3b541791960186b6d01e68460ff24a9">&#9670;&#160;</a></span>device()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;io_converter KernelType, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">typename</a> <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">InternalType</a> , <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> enable_positioning = true, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> enable_io_switch = true&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classIOv2_1_1abs__cvt.html#a862dfc0b13653c13e47bcb6e10a2092b">device_type</a> &amp; <a class="el" href="classIOv2_1_1abs__cvt.html">IOv2::abs_cvt</a>&lt; KernelType, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">InternalType</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">enable_positioning</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">enable_io_switch</a> &gt;::device </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>返回对底层设备的引用。 </p>
+<dl class="section return"><dt>返回</dt><dd>对底层设备的左值引用。   </dd></dl>
+
+</div>
+</div>
+<a id="aadf6f83eb7eb9a32041437fad8432981" name="aadf6f83eb7eb9a32041437fad8432981"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aadf6f83eb7eb9a32041437fad8432981">&#9670;&#160;</a></span>flush()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;io_converter KernelType, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">typename</a> <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">InternalType</a> , <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> enable_positioning = true, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> enable_io_switch = true&gt; </div>
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">typename</a> <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">Self</a> &gt; <br />
+requires <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">requires</a>(<a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">Self</a>&amp; <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">t</a>, <a class="el" href="classIOv2_1_1cvt__writer.html">cvt_writer</a>&lt;KernelType&gt;&amp; <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">w</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">const</a> <a class="el" href="classIOv2_1_1abs__cvt.html#af7a1ce8789d2c408a00c7ec4fab1f8e6">internal_type</a>* <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">data</a>, std::size_t <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">len</a>) { { t.put_main(<a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">w</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">data</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">len</a>) } -&gt; std::same_as&lt;<a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">void</a>&gt;; }</div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">void</a> <a class="el" href="classIOv2_1_1abs__cvt.html">IOv2::abs_cvt</a>&lt; KernelType, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">InternalType</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">enable_positioning</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">enable_io_switch</a> &gt;::flush </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">this</a> <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">Self</a> &amp;&#160;</td>
+          <td class="paramname"><em>self</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>将所有缓冲数据强制刷出到底层设备。</p>
+<p>仅在派生类实现了 <code>put_main</code> 时可用。若当前不处于输出模式，则为空操作直接返回。</p>
+<p>若派生类实现了 <code>flush_impl()</code>，则先调用 <code>flush_impl()</code> 执行派生类特定的刷出逻辑 （例如 zlib 的 sync flush），再调用 <code>m_kernel.flush()</code> 将数据推送至底层设备。 若派生类未实现 <code>flush_impl()</code>，则直接调用 <code>m_kernel.flush()</code>。</p>
+<p>若刷出过程中抛出异常，转换器将进入污染状态，后续操作均不可用。 </p>
+
+</div>
+</div>
+<a id="a722ebc59d1ab432bfc570c0cb940236d" name="a722ebc59d1ab432bfc570c0cb940236d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a722ebc59d1ab432bfc570c0cb940236d">&#9670;&#160;</a></span>get()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;io_converter KernelType, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">typename</a> <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">InternalType</a> , <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> enable_positioning = true, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> enable_io_switch = true&gt; </div>
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">typename</a> <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">Self</a> &gt; <br />
+requires <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">requires</a>(<a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">Self</a>&amp; <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">t</a>, <a class="el" href="classIOv2_1_1cvt__reader.html">cvt_reader</a>&lt;KernelType&gt;&amp; <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">r</a>, <a class="el" href="classIOv2_1_1abs__cvt.html#af7a1ce8789d2c408a00c7ec4fab1f8e6">internal_type</a>* <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">data</a>, std::size_t <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">len</a>) { { t.get_main(<a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">r</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">data</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">len</a>) } -&gt; std::same_as&lt;std::size_t&gt;; }</div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::size_t <a class="el" href="classIOv2_1_1abs__cvt.html">IOv2::abs_cvt</a>&lt; KernelType, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">InternalType</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">enable_positioning</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">enable_io_switch</a> &gt;::get </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">this</a> <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">Self</a> &amp;&#160;</td>
+          <td class="paramname"><em>self</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classIOv2_1_1abs__cvt.html#af7a1ce8789d2c408a00c7ec4fab1f8e6">internal_type</a> *&#160;</td>
+          <td class="paramname"><em>to</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::size_t&#160;</td>
+          <td class="paramname"><em>to_max</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>从流中读取最多 <code>to_max</code> 个 <code>internal_type</code> 元素。</p>
+<p>在 BOS 阶段（<code>m_is_bos_done == false</code>），数据以原始字节方式直接读取， 不经过派生类的 <code>get_main</code>，以支持文件头等特殊起始数据的读取。 BOS 阶段要求数据完整：若在读取足够字节之前遭遇流末尾，视为格式错误 并抛出异常（与 <code>get_main</code> 可返回不足数据不同，BOS 阶段是全有或全无）。</p>
+<p>进入主阶段后，若当前 IO 方向不是 <code>input</code>，且派生类支持 IO 方向切换， 则自动调用 <code><a class="el" href="classIOv2_1_1abs__cvt.html#a70559e3519fec3d98a945c38f4dedfa2">switch_to_get()</a></code>；否则抛出异常。</p>
+<p>此方法仅在派生类提供符合签名的 <code>get_main</code> 时通过 requires 子句启用。 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">to</td><td>指向写入结果的目标缓冲区的指针，至少能容纳 <code>to_max</code> 个元素。  </td></tr>
+    <tr><td class="paramname">to_max</td><td>期望读取的最大元素数量。  </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd>实际读取的元素数量，可能少于 <code>to_max</code>（BOS 阶段除外，其返回值等于 <code>to_max</code>）。  </dd></dl>
+<dl class="exception"><dt>异常</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname"><a class="el" href="structIOv2_1_1cvt__error.html">cvt_error</a></td><td>若 BOS 阶段在读取足够数据之前遭遇流末尾；或主阶段无法切换到 input 方向。   </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a3f9541834637ad027cbb38fff1b7ac05" name="a3f9541834637ad027cbb38fff1b7ac05"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3f9541834637ad027cbb38fff1b7ac05">&#9670;&#160;</a></span>is_eof()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;io_converter KernelType, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">typename</a> <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">InternalType</a> , <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> enable_positioning = true, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> enable_io_switch = true&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> <a class="el" href="classIOv2_1_1abs__cvt.html">IOv2::abs_cvt</a>&lt; KernelType, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">InternalType</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">enable_positioning</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">enable_io_switch</a> &gt;::is_eof </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">this</a> <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">auto</a> &amp;&#160;</td>
+          <td class="paramname"><em>self</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>检查是否已到达流末尾（EOF）。</p>
+<p>仅在 <code>KernelType</code> 支持 get 操作时可用。 若派生类实现了 <code><a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">is_eof_impl()</a></code>，则调用它；否则直接调用 <code>m_kernel.is_eof()</code>。 </p>
+<dl class="section return"><dt>返回</dt><dd>若已到达流末尾则返回 <code>true</code>，否则返回 <code>false</code>。   </dd></dl>
+
+</div>
+</div>
+<a id="a63a8d7d57a7f4de26f323b83053e7baa" name="a63a8d7d57a7f4de26f323b83053e7baa"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a63a8d7d57a7f4de26f323b83053e7baa">&#9670;&#160;</a></span>is_tainted()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;io_converter KernelType, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">typename</a> <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">InternalType</a> , <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> enable_positioning = true, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> enable_io_switch = true&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> <a class="el" href="classIOv2_1_1abs__cvt.html">IOv2::abs_cvt</a>&lt; KernelType, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">InternalType</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">enable_positioning</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">enable_io_switch</a> &gt;::is_tainted </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>转换器是否已被标记为 tainted（见类文档的 tainted 契约）。 </p>
+
+</div>
+</div>
+<a id="ac247b7d007d6e16cbc90a1b478e125ee" name="ac247b7d007d6e16cbc90a1b478e125ee"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac247b7d007d6e16cbc90a1b478e125ee">&#9670;&#160;</a></span>main_cont_beg()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;io_converter KernelType, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">typename</a> <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">InternalType</a> , <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> enable_positioning = true, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> enable_io_switch = true&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">void</a> <a class="el" href="classIOv2_1_1abs__cvt.html">IOv2::abs_cvt</a>&lt; KernelType, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">InternalType</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">enable_positioning</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">enable_io_switch</a> &gt;::main_cont_beg </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">this</a> <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">auto</a> &amp;&#160;</td>
+          <td class="paramname"><em>self</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>标记 BOS 阶段结束，进入主内容处理阶段。</p>
+<p>调用后 <code>m_is_bos_done</code> 被置为 <code>true</code>，后续 <code>get</code>/<code>put</code> 将调用派生类的 <code>get_main</code>/<code>put_main</code> 执行实际的编码转换逻辑。 </p>
+
+</div>
+</div>
+<a id="a9432492f6ef3c7b96ea4b0fe67dc76dd" name="a9432492f6ef3c7b96ea4b0fe67dc76dd"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9432492f6ef3c7b96ea4b0fe67dc76dd">&#9670;&#160;</a></span>operator=() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;io_converter KernelType, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">typename</a> <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">InternalType</a> , <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> enable_positioning = true, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> enable_io_switch = true&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classIOv2_1_1abs__cvt.html">abs_cvt</a> &amp; <a class="el" href="classIOv2_1_1abs__cvt.html">IOv2::abs_cvt</a>&lt; KernelType, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">InternalType</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">enable_positioning</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">enable_io_switch</a> &gt;<a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">::operator</a>= </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classIOv2_1_1abs__cvt.html">abs_cvt</a>&lt; KernelType, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">InternalType</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">enable_positioning</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">enable_io_switch</a> &gt; &amp;&amp;&#160;</td>
+          <td class="paramname"><em>val</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>移动赋值运算符。转移 kernel 所有权；源对象的 IO 状态和 BOS 标志均被重置。 </p>
+
+</div>
+</div>
+<a id="a81793e4e59c3536e26b728d9e729d335" name="a81793e4e59c3536e26b728d9e729d335"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a81793e4e59c3536e26b728d9e729d335">&#9670;&#160;</a></span>operator=() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;io_converter KernelType, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">typename</a> <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">InternalType</a> , <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> enable_positioning = true, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> enable_io_switch = true&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classIOv2_1_1abs__cvt.html">abs_cvt</a> &amp; <a class="el" href="classIOv2_1_1abs__cvt.html">IOv2::abs_cvt</a>&lt; KernelType, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">InternalType</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">enable_positioning</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">enable_io_switch</a> &gt;<a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">::operator</a>= </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">const</a> <a class="el" href="classIOv2_1_1abs__cvt.html">abs_cvt</a>&lt; KernelType, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">InternalType</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">enable_positioning</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">enable_io_switch</a> &gt; &amp;&#160;</td>
+          <td class="paramname"><em>val</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>拷贝赋值运算符。复制 kernel、IO 状态和 BOS 完成标志。 <code><a class="el" href="classIOv2_1_1cvt__reader.html">cvt_reader</a></code>/<code><a class="el" href="classIOv2_1_1cvt__writer.html">cvt_writer</a></code> 始终引用 <code>&amp;m_kernel</code>，赋值后无需额外处理。 </p>
+
+</div>
+</div>
+<a id="a2677885501c4b13850b5883e54481faf" name="a2677885501c4b13850b5883e54481faf"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2677885501c4b13850b5883e54481faf">&#9670;&#160;</a></span>put()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;io_converter KernelType, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">typename</a> <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">InternalType</a> , <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> enable_positioning = true, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> enable_io_switch = true&gt; </div>
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">typename</a> <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">Self</a> &gt; <br />
+requires <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">requires</a>(<a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">Self</a>&amp; <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">t</a>, <a class="el" href="classIOv2_1_1cvt__writer.html">cvt_writer</a>&lt;KernelType&gt;&amp; <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">w</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">const</a> <a class="el" href="classIOv2_1_1abs__cvt.html#af7a1ce8789d2c408a00c7ec4fab1f8e6">internal_type</a>* <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">data</a>, std::size_t <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">len</a>) { { t.put_main(<a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">w</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">data</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">len</a>) } -&gt; std::same_as&lt;<a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">void</a>&gt;; }</div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">void</a> <a class="el" href="classIOv2_1_1abs__cvt.html">IOv2::abs_cvt</a>&lt; KernelType, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">InternalType</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">enable_positioning</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">enable_io_switch</a> &gt;::put </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">this</a> <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">Self</a> &amp;&#160;</td>
+          <td class="paramname"><em>self</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">const</a> <a class="el" href="classIOv2_1_1abs__cvt.html#af7a1ce8789d2c408a00c7ec4fab1f8e6">internal_type</a> *&#160;</td>
+          <td class="paramname"><em>to</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::size_t&#160;</td>
+          <td class="paramname"><em>to_size</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>向流中写入 <code>to_size</code> 个 <code>internal_type</code> 元素。</p>
+<p>在 BOS 阶段（<code>m_is_bos_done == false</code>），数据以原始字节方式直接写出， 不经过派生类的 <code>put_main</code>，以支持文件头等特殊起始数据的写入。 BOS 阶段以 <code><a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">sizeof(external_type)</a></code> 为单位分块写出完整的 <code>external_type</code> 元素；若最后一个单元不足 <code><a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">sizeof(external_type)</a></code> 字节，则以零填充。</p>
+<p>进入主阶段后，若当前 IO 方向不是 <code>output</code>，且派生类支持 IO 方向切换， 则自动调用 <code><a class="el" href="classIOv2_1_1abs__cvt.html#a6e7783b9b27c377f2f56de0e22c41933">switch_to_put()</a></code>；否则抛出异常。</p>
+<p>此方法仅在派生类提供符合签名的 <code>put_main</code> 时通过 requires 子句启用。 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">to</td><td>指向要写入数据的源缓冲区的指针，至少包含 <code>to_size</code> 个元素。  </td></tr>
+    <tr><td class="paramname">to_size</td><td>要写入的元素数量。  </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="exception"><dt>异常</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname"><a class="el" href="structIOv2_1_1cvt__error.html">cvt_error</a></td><td>若主阶段无法切换到 output 方向。   </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a87a5ea6be0113ed359370030b67a5f1b" name="a87a5ea6be0113ed359370030b67a5f1b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a87a5ea6be0113ed359370030b67a5f1b">&#9670;&#160;</a></span>retrieve()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;io_converter KernelType, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">typename</a> <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">InternalType</a> , <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> enable_positioning = true, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> enable_io_switch = true&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">void</a> <a class="el" href="classIOv2_1_1abs__cvt.html">IOv2::abs_cvt</a>&lt; KernelType, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">InternalType</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">enable_positioning</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">enable_io_switch</a> &gt;::retrieve </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">this</a> <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">const</a> <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">auto</a> &amp;&#160;</td>
+          <td class="paramname"><em>self</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structIOv2_1_1cvt__status.html">cvt_status</a> &amp;&#160;</td>
+          <td class="paramname"><em>s</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>获取当前转换器的状态信息。</p>
+<p>若派生类实现了 <code>retrieve_impl(<a class="el" href="structIOv2_1_1cvt__status.html">cvt_status</a>&amp;)</code>，则先调用之执行派生层特有的 状态收集逻辑；最后从底层 kernel 读取状态写入 <code>s</code>。 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">s</td><td>用于接收状态信息的输出对象。   </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a31e5fb1ee7ecc45e62edfd4b7dc5c06c" name="a31e5fb1ee7ecc45e62edfd4b7dc5c06c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a31e5fb1ee7ecc45e62edfd4b7dc5c06c">&#9670;&#160;</a></span>rseek()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;io_converter KernelType, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">typename</a> <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">InternalType</a> , <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> enable_positioning = true, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> enable_io_switch = true&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">void</a> <a class="el" href="classIOv2_1_1abs__cvt.html">IOv2::abs_cvt</a>&lt; KernelType, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">InternalType</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">enable_positioning</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">enable_io_switch</a> &gt;::rseek </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">this</a> <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">auto</a> &amp;&#160;</td>
+          <td class="paramname"><em>self</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::size_t&#160;</td>
+          <td class="paramname"><em>pos</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>将流位置移动到反向绝对位置 <code>pos</code>（从流末尾处向前计算，以 <code>external_type</code> 元素为单位）。</p>
+<p>仅在 <code>enable_positioning</code> 为 <code>true</code> 且 kernel 支持定位时可用。 调用 <code><a class="el" href="classIOv2_1_1abs__cvt.html#a619085adf9444c3f8bd0cc214c986ac2">assert_not_tainted()</a></code>，再分发到 <code>rseek_impl()</code>（若派生类实现了该 hook）， 或直接调用 <code>m_kernel.rseek()</code>。 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">pos</td><td>目标反向位置（从流末尾向前的 <code>external_type</code> 元素偏移量）。   </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="ae93090de10c3569ca969187f6368eac3" name="ae93090de10c3569ca969187f6368eac3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae93090de10c3569ca969187f6368eac3">&#9670;&#160;</a></span>seek()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;io_converter KernelType, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">typename</a> <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">InternalType</a> , <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> enable_positioning = true, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> enable_io_switch = true&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">void</a> <a class="el" href="classIOv2_1_1abs__cvt.html">IOv2::abs_cvt</a>&lt; KernelType, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">InternalType</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">enable_positioning</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">enable_io_switch</a> &gt;::seek </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">this</a> <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">auto</a> &amp;&#160;</td>
+          <td class="paramname"><em>self</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::size_t&#160;</td>
+          <td class="paramname"><em>pos</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>将流位置移动到绝对位置 <code>pos</code>（从流起始处计算，以 <code>external_type</code> 元素为单位）。</p>
+<p>仅在 <code>enable_positioning</code> 为 <code>true</code> 且 kernel 支持定位时可用。 若 <code>pos</code> 已等于当前位置则立即返回（快速路径）；否则调用 <code><a class="el" href="classIOv2_1_1abs__cvt.html#a619085adf9444c3f8bd0cc214c986ac2">assert_not_tainted()</a></code>， 再分发到 <code>seek_impl()</code>（若派生类实现了该 hook），或直接调用 <code>m_kernel.seek()</code>。 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">pos</td><td>目标绝对位置（从流起始处的 <code>external_type</code> 元素偏移量）。   </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a564fad1ceb3a99a789010012ef081395" name="a564fad1ceb3a99a789010012ef081395"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a564fad1ceb3a99a789010012ef081395">&#9670;&#160;</a></span>set_tainted()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;io_converter KernelType, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">typename</a> <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">InternalType</a> , <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> enable_positioning = true, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> enable_io_switch = true&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">void</a> <a class="el" href="classIOv2_1_1abs__cvt.html">IOv2::abs_cvt</a>&lt; KernelType, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">InternalType</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">enable_positioning</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">enable_io_switch</a> &gt;::set_tainted </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">protected</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>将当前转换器标记为 tainted。一旦置位，后续依赖完整内部状态的操作将 通过 <code><a class="el" href="classIOv2_1_1abs__cvt.html#a619085adf9444c3f8bd0cc214c986ac2">assert_not_tainted()</a></code> 立即抛出 <code><a class="el" href="structIOv2_1_1cvt__error.html">cvt_error</a></code>；唯一的恢复路径是 调用 <code><a class="el" href="classIOv2_1_1abs__cvt.html#afab139215d6440dec5359b73072a637e">attach()</a></code> 或 <code><a class="el" href="classIOv2_1_1abs__cvt.html#a99b7fab13a26c5b7eb17c084d2419b85">detach()</a></code>（二者均会重置该标志）。</p>
+<p>派生类应在某个变更操作中途失败、对象处于不一致状态时调用此函数， 从而把"已损坏但尚未销毁"的对象与正常对象区分开。</p>
+<p>注意：本函数仅置 <code>m_is_tainted = true</code>，不会触碰任何其他状态字段 （包括 <code>m_io_status</code> 和 <code>m_is_bos_done</code>）。这样做避免任何潜在的 副作用——错误路径上越少的状态写入越好。 </p>
+
+</div>
+</div>
+<a id="a70559e3519fec3d98a945c38f4dedfa2" name="a70559e3519fec3d98a945c38f4dedfa2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a70559e3519fec3d98a945c38f4dedfa2">&#9670;&#160;</a></span>switch_to_get()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;io_converter KernelType, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">typename</a> <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">InternalType</a> , <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> enable_positioning = true, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> enable_io_switch = true&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">void</a> <a class="el" href="classIOv2_1_1abs__cvt.html">IOv2::abs_cvt</a>&lt; KernelType, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">InternalType</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">enable_positioning</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">enable_io_switch</a> &gt;::switch_to_get </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">this</a> <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">auto</a> &amp;&#160;</td>
+          <td class="paramname"><em>self</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>将 IO 方向切换为输入（读取）模式，并将 <code>m_io_status</code> 更新为 <code>input</code>。</p>
+<p>若已处于输入模式则立即返回（空操作）；否则先调用 <code><a class="el" href="classIOv2_1_1abs__cvt.html#a619085adf9444c3f8bd0cc214c986ac2">assert_not_tainted()</a></code>， 再调用 <code>switch_to_get_impl()</code>（若派生类实现了该 hook），最后切换底层 kernel 并更新 <code>m_io_status</code>。</p>
+<p>仅在 <code>enable_io_switch</code> 为 <code>true</code> 且 kernel 支持 IO 方向切换时可用。 </p>
+
+</div>
+</div>
+<a id="a6e7783b9b27c377f2f56de0e22c41933" name="a6e7783b9b27c377f2f56de0e22c41933"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6e7783b9b27c377f2f56de0e22c41933">&#9670;&#160;</a></span>switch_to_put()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;io_converter KernelType, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">typename</a> <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">InternalType</a> , <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> enable_positioning = true, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> enable_io_switch = true&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">void</a> <a class="el" href="classIOv2_1_1abs__cvt.html">IOv2::abs_cvt</a>&lt; KernelType, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">InternalType</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">enable_positioning</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">enable_io_switch</a> &gt;::switch_to_put </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">this</a> <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">auto</a> &amp;&#160;</td>
+          <td class="paramname"><em>self</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>将 IO 方向切换为输出（写入）模式，并将 <code>m_io_status</code> 更新为 <code>output</code>。</p>
+<p>若已处于输出模式则立即返回（空操作）；否则先调用 <code><a class="el" href="classIOv2_1_1abs__cvt.html#a619085adf9444c3f8bd0cc214c986ac2">assert_not_tainted()</a></code>， 再调用 <code>switch_to_put_impl()</code>（若派生类实现了该 hook），最后切换底层 kernel 并更新 <code>m_io_status</code>。</p>
+<p>仅在 <code>enable_io_switch</code> 为 <code>true</code> 且 kernel 支持 IO 方向切换时可用。</p>
+<dl class="section note"><dt>注解</dt><dd>换向**可以被拒绝**：派生类的 <code>switch_to_put_impl()</code> 抛出即表示当前状态下 不允许换向，什么条件下拒绝由派生类自行规定。钩子在动 kernel 与 <code>m_io_status</code> 之前调用，因此被拒时本对象不变。 </dd></dl>
+
+</div>
+</div>
+<a id="a3a70c20f058ed2894d21be275e91cb5c" name="a3a70c20f058ed2894d21be275e91cb5c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3a70c20f058ed2894d21be275e91cb5c">&#9670;&#160;</a></span>tell()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;io_converter KernelType, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">typename</a> <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">InternalType</a> , <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> enable_positioning = true, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> enable_io_switch = true&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::size_t <a class="el" href="classIOv2_1_1abs__cvt.html">IOv2::abs_cvt</a>&lt; KernelType, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">InternalType</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">enable_positioning</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">enable_io_switch</a> &gt;::tell </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">this</a> <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">const</a> <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">auto</a> &amp;&#160;</td>
+          <td class="paramname"><em>self</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>返回当前流位置（以 <code>external_type</code> 元素为单位）。</p>
+<p>仅在 <code>enable_positioning</code> 为 <code>true</code> 且 kernel 支持定位时可用。 若派生类实现了 <code>tell_impl()</code>，则调用它；否则直接调用 <code>m_kernel.tell()</code>。 </p>
+<dl class="section return"><dt>返回</dt><dd>当前流位置（从流起始处的 <code>external_type</code> 元素偏移量）。   </dd></dl>
+
+</div>
+</div>
+<h2 class="groupheader">类成员变量说明</h2>
+<a id="aff41c99f01bb736113ccf6d2374d8d5a" name="aff41c99f01bb736113ccf6d2374d8d5a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aff41c99f01bb736113ccf6d2374d8d5a">&#9670;&#160;</a></span>m_io_status</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;io_converter KernelType, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">typename</a> <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">InternalType</a> , <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> enable_positioning = true, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> enable_io_switch = true&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a36673c0e1d93ef095d232f0f726134d9">io_status</a> <a class="el" href="classIOv2_1_1abs__cvt.html">IOv2::abs_cvt</a>&lt; KernelType, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">InternalType</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">enable_positioning</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">enable_io_switch</a> &gt;::m_io_status = <a class="el" href="namespaceIOv2.html#a36673c0e1d93ef095d232f0f726134d9a5da248ea6840aca1ae2b417b17982a89">io_status::neutral</a></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>当前 IO 方向状态：<code>neutral</code>（未激活）、<code>input</code>（读取模式）或 <code>output</code>（写入模式）。 由 <code><a class="el" href="classIOv2_1_1abs__cvt.html#aa1f49b1314093341e1a716f07101af1b">bos()</a></code>、<code><a class="el" href="classIOv2_1_1abs__cvt.html#a70559e3519fec3d98a945c38f4dedfa2">switch_to_get()</a></code>、<code><a class="el" href="classIOv2_1_1abs__cvt.html#a6e7783b9b27c377f2f56de0e22c41933">switch_to_put()</a></code>、<code><a class="el" href="classIOv2_1_1abs__cvt.html#a99b7fab13a26c5b7eb17c084d2419b85">detach()</a></code> 和 <code><a class="el" href="classIOv2_1_1abs__cvt.html#afab139215d6440dec5359b73072a637e">attach()</a></code> 更新。   </p>
+
+</div>
+</div>
+<a id="a36b85b07a227cd90873f8872590f9572" name="a36b85b07a227cd90873f8872590f9572"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a36b85b07a227cd90873f8872590f9572">&#9670;&#160;</a></span>m_is_bos_done</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;io_converter KernelType, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">typename</a> <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">InternalType</a> , <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> enable_positioning = true, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> enable_io_switch = true&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> <a class="el" href="classIOv2_1_1abs__cvt.html">IOv2::abs_cvt</a>&lt; KernelType, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">InternalType</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">enable_positioning</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">enable_io_switch</a> &gt;::m_is_bos_done = <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">false</a></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>标记 BOS 阶段是否已完成。<code>false</code> 表示仍处于 BOS 阶段（直接传递原始字节）； <code>true</code> 表示已进入主内容阶段（调用派生类的 <code>get_main</code>/<code>put_main</code>）。 由 <code><a class="el" href="classIOv2_1_1abs__cvt.html#ac247b7d007d6e16cbc90a1b478e125ee">main_cont_beg()</a></code> 置为 <code>true</code>，由 <code><a class="el" href="classIOv2_1_1abs__cvt.html#a99b7fab13a26c5b7eb17c084d2419b85">detach()</a></code> 和 <code><a class="el" href="classIOv2_1_1abs__cvt.html#afab139215d6440dec5359b73072a637e">attach()</a></code> 重置为 <code>false</code>。   </p>
+
+</div>
+</div>
+<a id="ab8caf927eb23cd152a242f09b063f499" name="ab8caf927eb23cd152a242f09b063f499"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab8caf927eb23cd152a242f09b063f499">&#9670;&#160;</a></span>m_kernel</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;io_converter KernelType, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">typename</a> <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">InternalType</a> , <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> enable_positioning = true, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">bool</a> enable_io_switch = true&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">KernelType <a class="el" href="classIOv2_1_1abs__cvt.html">IOv2::abs_cvt</a>&lt; KernelType, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">InternalType</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">enable_positioning</a>, <a class="el" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">enable_io_switch</a> &gt;::m_kernel</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>底层 IO 转换核心，持有对底层设备的所有权。   </p>
+
+</div>
+</div>
+<hr/>该类的文档由以下文件生成:<ul>
+<li>include/IOv2/cvt/<a class="el" href="abs__cvt_8h_source.html">abs_cvt.h</a></li>
+</ul>
+</div><!-- contents -->
+</div><!-- doc-content -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><a class="el" href="namespaceIOv2.html">IOv2</a></li><li class="navelem"><a class="el" href="classIOv2_1_1abs__cvt.html">abs_cvt</a></li>
+    <li class="footer">制作者 <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8 </li>
+  </ul>
+</div>
+</body>
+</html>

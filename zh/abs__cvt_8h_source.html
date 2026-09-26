@@ -1,0 +1,933 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=11"/>
+<meta name="generator" content="Doxygen 1.9.8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>IOv2: include/IOv2/cvt/abs_cvt.h 源文件</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="resize.js"></script>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr id="projectrow">
+  <td id="projectalign">
+   <div id="projectname">IOv2
+   </div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 制作者 Doxygen 1.9.8 -->
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+/* @license-end */
+</script>
+<script type="text/javascript" src="menudata.js"></script>
+<script type="text/javascript" src="menu.js"></script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(function() {
+  initMenu('',true,false,'search.php','搜索');
+  $(document).ready(function() { init_search(); });
+});
+/* @license-end */
+</script>
+<div id="main-nav"></div>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(document).ready(function() { init_codefold(0); });
+/* @license-end */
+</script>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(document).ready(function(){initNavTree('abs__cvt_8h_source.html',''); initResizable(); });
+/* @license-end */
+</script>
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">载入中...</div>
+<div class="SRStatus" id="Searching">搜索中...</div>
+<div class="SRStatus" id="NoMatches">未找到</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="header">
+  <div class="headertitle"><div class="title">abs_cvt.h</div></div>
+</div><!--header-->
+<div class="contents">
+<a href="abs__cvt_8h.html">浏览该文件的文档.</a><div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span><span class="comment">// SPDX-FileCopyrightText: 2026 liwei &lt;liwei.cpp@gmail.com&gt;</span></div>
+<div class="line"><a id="l00002" name="l00002"></a><span class="lineno">    2</span><span class="comment">// SPDX-License-Identifier: MIT</span></div>
+<div class="line"><a id="l00003" name="l00003"></a><span class="lineno">    3</span> </div>
+<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span><span class="preprocessor">#pragma once</span></div>
+<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span><span class="preprocessor">#include &lt;<a class="code" href="cvt__concepts_8h.html">IOv2/cvt/cvt_concepts.h</a>&gt;</span></div>
+<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span> </div>
+<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span><span class="preprocessor">#include &lt;cstddef&gt;</span></div>
+<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span><span class="preprocessor">#include &lt;cstring&gt;</span></div>
+<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span><span class="preprocessor">#include &lt;exception&gt;</span></div>
+<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span><span class="preprocessor">#include &lt;utility&gt;</span></div>
+<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span><span class="preprocessor">#include &lt;vector&gt;</span></div>
+<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span> </div>
+<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span><span class="keyword">namespace </span><a class="code hl_namespace" href="namespaceIOv2.html">IOv2</a></div>
+<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span>{</div>
+<div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span>    <span class="keyword">template</span> &lt;io_converter KernelType&gt;</div>
+<div class="foldopen" id="foldopen00072" data-start="{" data-end="};">
+<div class="line"><a id="l00072" name="l00072"></a><span class="lineno"><a class="line" href="classIOv2_1_1cvt__reader.html">   72</a></span>    <span class="keyword">class </span><a class="code hl_class" href="classIOv2_1_1cvt__reader.html">cvt_reader</a></div>
+<div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span>    {</div>
+<div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span>        <span class="keyword">using </span>char_type = <span class="keyword">typename</span> KernelType::internal_type;</div>
+<div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span>    <span class="keyword">public</span>:</div>
+<div class="foldopen" id="foldopen00099" data-start="{" data-end="}">
+<div class="line"><a id="l00099" name="l00099"></a><span class="lineno"><a class="line" href="classIOv2_1_1cvt__reader.html#a4147a4fd2a40f0fc92c560ceb791ad03">   99</a></span>        <span class="keyword">explicit</span> <a class="code hl_function" href="classIOv2_1_1cvt__reader.html#a4147a4fd2a40f0fc92c560ceb791ad03">cvt_reader</a>(KernelType&amp; kernel, std::vector&lt;char_type&gt;&amp; <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">buffer</a>)</div>
+<div class="line"><a id="l00100" name="l00100"></a><span class="lineno">  100</span>            : m_kernel(kernel)</div>
+<div class="line"><a id="l00101" name="l00101"></a><span class="lineno">  101</span>            , m_buffer(<a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">buffer</a>) {}</div>
+</div>
+<div class="line"><a id="l00102" name="l00102"></a><span class="lineno">  102</span> </div>
+<div class="line"><a id="l00103" name="l00103"></a><span class="lineno"><a class="line" href="classIOv2_1_1cvt__reader.html#af8385b66500db5d947af27e33c56500c">  103</a></span>        <a class="code hl_function" href="classIOv2_1_1cvt__reader.html#af8385b66500db5d947af27e33c56500c">cvt_reader</a>(<span class="keyword">const</span> <a class="code hl_class" href="classIOv2_1_1cvt__reader.html">cvt_reader</a>&amp;) = <span class="keyword">delete</span>;</div>
+<div class="line"><a id="l00104" name="l00104"></a><span class="lineno"><a class="line" href="classIOv2_1_1cvt__reader.html#aba4e924555594581164b3eeccecf0b5d">  104</a></span>        <a class="code hl_class" href="classIOv2_1_1cvt__reader.html">cvt_reader</a>&amp; <a class="code hl_function" href="classIOv2_1_1cvt__reader.html#aba4e924555594581164b3eeccecf0b5d">operator=</a>(<span class="keyword">const</span> <a class="code hl_class" href="classIOv2_1_1cvt__reader.html">cvt_reader</a>&amp;) = <span class="keyword">delete</span>;</div>
+<div class="line"><a id="l00105" name="l00105"></a><span class="lineno"><a class="line" href="classIOv2_1_1cvt__reader.html#af16e12021d5310738aec2f23cc96ebc4">  105</a></span>        <a class="code hl_function" href="classIOv2_1_1cvt__reader.html#af16e12021d5310738aec2f23cc96ebc4">cvt_reader</a>(<a class="code hl_class" href="classIOv2_1_1cvt__reader.html">cvt_reader</a>&amp;&amp;) = <span class="keyword">delete</span>;</div>
+<div class="line"><a id="l00106" name="l00106"></a><span class="lineno"><a class="line" href="classIOv2_1_1cvt__reader.html#afcd02e47c4bb82ca72a7aacbcf68df5e">  106</a></span>        <a class="code hl_class" href="classIOv2_1_1cvt__reader.html">cvt_reader</a>&amp; <a class="code hl_function" href="classIOv2_1_1cvt__reader.html#afcd02e47c4bb82ca72a7aacbcf68df5e">operator=</a>(<a class="code hl_class" href="classIOv2_1_1cvt__reader.html">cvt_reader</a>&amp;&amp;) = <span class="keyword">delete</span>;</div>
+<div class="line"><a id="l00107" name="l00107"></a><span class="lineno"><a class="line" href="classIOv2_1_1cvt__reader.html#a21e29926ac92c6c7f0ef3453338a3db5">  107</a></span>        <a class="code hl_function" href="classIOv2_1_1cvt__reader.html#a21e29926ac92c6c7f0ef3453338a3db5">~cvt_reader</a>() = <span class="keywordflow">default</span>;</div>
+<div class="line"><a id="l00108" name="l00108"></a><span class="lineno">  108</span> </div>
+<div class="foldopen" id="foldopen00129" data-start="{" data-end="}">
+<div class="line"><a id="l00129" name="l00129"></a><span class="lineno"><a class="line" href="classIOv2_1_1cvt__reader.html#aec9a0212f8efd25e9854609ee4999916">  129</a></span>        <span class="keywordtype">void</span> <a class="code hl_function" href="classIOv2_1_1cvt__reader.html#aec9a0212f8efd25e9854609ee4999916">reset</a>(std::size_t <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">buf_size</a>)</div>
+<div class="line"><a id="l00130" name="l00130"></a><span class="lineno">  130</span>        {</div>
+<div class="line"><a id="l00131" name="l00131"></a><span class="lineno">  131</span>            m_buffer.resize(<a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">buf_size</a>);</div>
+<div class="line"><a id="l00132" name="l00132"></a><span class="lineno">  132</span>            m_cur_pos = 0;</div>
+<div class="line"><a id="l00133" name="l00133"></a><span class="lineno">  133</span>            m_end_pos = 0;</div>
+<div class="line"><a id="l00134" name="l00134"></a><span class="lineno">  134</span>        }</div>
+</div>
+<div class="line"><a id="l00135" name="l00135"></a><span class="lineno">  135</span> </div>
+<div class="line"><a id="l00205" name="l00205"></a><span class="lineno">  205</span>        <span class="keyword">template</span> &lt;<span class="keywordtype">bool</span> Saturate = false&gt;</div>
+<div class="foldopen" id="foldopen00206" data-start="{" data-end="}">
+<div class="line"><a id="l00206" name="l00206"></a><span class="lineno"><a class="line" href="classIOv2_1_1cvt__reader.html#aa15cc0538988c30692a558c7f6977dba">  206</a></span>        <span class="keyword">auto</span> <a class="code hl_function" href="classIOv2_1_1cvt__reader.html#aa15cc0538988c30692a558c7f6977dba">get_buf</a>(std::size_t <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">to_max</a>)</div>
+<div class="line"><a id="l00207" name="l00207"></a><span class="lineno">  207</span>        {</div>
+<div class="line"><a id="l00208" name="l00208"></a><span class="lineno">  208</span>            <span class="keywordflow">if</span> (<a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">to_max</a> == 0)</div>
+<div class="line"><a id="l00209" name="l00209"></a><span class="lineno">  209</span>                <span class="keywordflow">throw</span> <a class="code hl_struct" href="structIOv2_1_1cvt__error.html">cvt_error</a>(<span class="stringliteral">&quot;cvt_reader::get_buf fail, read size cannot be zero&quot;</span>);</div>
+<div class="line"><a id="l00210" name="l00210"></a><span class="lineno">  210</span>            <span class="keywordflow">if</span> (<a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">to_max</a> &gt; m_buffer.size())</div>
+<div class="line"><a id="l00211" name="l00211"></a><span class="lineno">  211</span>                <span class="keywordflow">throw</span> <a class="code hl_struct" href="structIOv2_1_1cvt__error.html">cvt_error</a>(<span class="stringliteral">&quot;cvt_reader::get_buf fail, read size too large&quot;</span>);</div>
+<div class="line"><a id="l00212" name="l00212"></a><span class="lineno">  212</span> </div>
+<div class="line"><a id="l00213" name="l00213"></a><span class="lineno">  213</span>            <span class="keyword">const</span> <span class="keyword">auto</span> <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">rollback_size</a> = m_end_pos - m_cur_pos;</div>
+<div class="line"><a id="l00214" name="l00214"></a><span class="lineno">  214</span>            <span class="keywordflow">if</span> (<a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">to_max</a> &lt;= <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">rollback_size</a>)</div>
+<div class="line"><a id="l00215" name="l00215"></a><span class="lineno">  215</span>            {</div>
+<div class="line"><a id="l00216" name="l00216"></a><span class="lineno">  216</span>                std::pair&lt;const char_type*, std::size_t&gt; <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">res</a>{m_buffer.data() + m_cur_pos, <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">to_max</a>};</div>
+<div class="line"><a id="l00217" name="l00217"></a><span class="lineno">  217</span>                m_cur_pos += <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">to_max</a>;</div>
+<div class="line"><a id="l00218" name="l00218"></a><span class="lineno">  218</span>                <span class="keywordflow">if</span> <span class="keyword">constexpr</span> (!<a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">Saturate</a>)</div>
+<div class="line"><a id="l00219" name="l00219"></a><span class="lineno">  219</span>                    <span class="keywordflow">return</span> <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">res</a>;</div>
+<div class="line"><a id="l00220" name="l00220"></a><span class="lineno">  220</span>                <span class="keywordflow">else</span></div>
+<div class="line"><a id="l00221" name="l00221"></a><span class="lineno">  221</span>                    <span class="keywordflow">return</span> <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">res</a>.first;</div>
+<div class="line"><a id="l00222" name="l00222"></a><span class="lineno">  222</span>            }</div>
+<div class="line"><a id="l00223" name="l00223"></a><span class="lineno">  223</span> </div>
+<div class="line"><a id="l00224" name="l00224"></a><span class="lineno">  224</span>            <span class="keywordflow">if</span> (<a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">to_max</a> &gt; m_buffer.size() - m_cur_pos)</div>
+<div class="line"><a id="l00225" name="l00225"></a><span class="lineno">  225</span>            {</div>
+<div class="line"><a id="l00226" name="l00226"></a><span class="lineno">  226</span>                std::copy(m_buffer.data() + m_cur_pos, m_buffer.data() + m_end_pos, m_buffer.data());</div>
+<div class="line"><a id="l00227" name="l00227"></a><span class="lineno">  227</span>                m_cur_pos = 0;</div>
+<div class="line"><a id="l00228" name="l00228"></a><span class="lineno">  228</span>                m_end_pos = <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">rollback_size</a>;</div>
+<div class="line"><a id="l00229" name="l00229"></a><span class="lineno">  229</span>            }</div>
+<div class="line"><a id="l00230" name="l00230"></a><span class="lineno">  230</span>            <span class="keyword">const</span> std::size_t <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">aim_size</a> = <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">to_max</a> - <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">rollback_size</a>;</div>
+<div class="line"><a id="l00231" name="l00231"></a><span class="lineno">  231</span>            <span class="keyword">auto</span> <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">read_size</a> = m_kernel.get(m_buffer.data() + m_end_pos, <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">aim_size</a>);</div>
+<div class="line"><a id="l00232" name="l00232"></a><span class="lineno">  232</span>            m_end_pos += <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">read_size</a>;</div>
+<div class="line"><a id="l00233" name="l00233"></a><span class="lineno">  233</span> </div>
+<div class="line"><a id="l00234" name="l00234"></a><span class="lineno">  234</span>            <span class="keywordflow">if</span> <span class="keyword">constexpr</span> (<a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">Saturate</a>)</div>
+<div class="line"><a id="l00235" name="l00235"></a><span class="lineno">  235</span>            {</div>
+<div class="line"><a id="l00236" name="l00236"></a><span class="lineno">  236</span>                <span class="keywordflow">while</span> (<a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">read_size</a> &lt; <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">aim_size</a>)</div>
+<div class="line"><a id="l00237" name="l00237"></a><span class="lineno">  237</span>                {</div>
+<div class="line"><a id="l00238" name="l00238"></a><span class="lineno">  238</span>                    <span class="keyword">const</span> std::size_t <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">new_aim_size</a> = <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">aim_size</a> - <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">read_size</a>;</div>
+<div class="line"><a id="l00239" name="l00239"></a><span class="lineno">  239</span>                    <span class="keyword">const</span> <span class="keyword">auto</span> <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">new_read_size</a> = m_kernel.get(m_buffer.data() + m_end_pos, <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">new_aim_size</a>);</div>
+<div class="line"><a id="l00240" name="l00240"></a><span class="lineno">  240</span>                    <span class="keywordflow">if</span> (<a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">new_read_size</a> == 0)</div>
+<div class="line"><a id="l00241" name="l00241"></a><span class="lineno">  241</span>                        <span class="keywordflow">throw</span> <a class="code hl_struct" href="structIOv2_1_1cvt__error.html">cvt_error</a>(<span class="stringliteral">&quot;get_buf&lt;Saturate&gt; fail: meet eos&quot;</span>);</div>
+<div class="line"><a id="l00242" name="l00242"></a><span class="lineno">  242</span>                    m_end_pos += <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">new_read_size</a>;</div>
+<div class="line"><a id="l00243" name="l00243"></a><span class="lineno">  243</span>                    <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">read_size</a> += <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">new_read_size</a>;</div>
+<div class="line"><a id="l00244" name="l00244"></a><span class="lineno">  244</span>                }</div>
+<div class="line"><a id="l00245" name="l00245"></a><span class="lineno">  245</span>            }</div>
+<div class="line"><a id="l00246" name="l00246"></a><span class="lineno">  246</span> </div>
+<div class="line"><a id="l00247" name="l00247"></a><span class="lineno">  247</span>            <span class="keywordflow">if</span> <span class="keyword">constexpr</span> (!<a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">Saturate</a>)</div>
+<div class="line"><a id="l00248" name="l00248"></a><span class="lineno">  248</span>            {</div>
+<div class="line"><a id="l00249" name="l00249"></a><span class="lineno">  249</span>                std::pair&lt;const char_type*, std::size_t&gt; <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">res</a>{m_buffer.data() + m_cur_pos, <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">rollback_size</a> + <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">read_size</a>};</div>
+<div class="line"><a id="l00250" name="l00250"></a><span class="lineno">  250</span>                m_cur_pos = m_end_pos;</div>
+<div class="line"><a id="l00251" name="l00251"></a><span class="lineno">  251</span>                <span class="keywordflow">return</span> <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">res</a>;</div>
+<div class="line"><a id="l00252" name="l00252"></a><span class="lineno">  252</span>            }</div>
+<div class="line"><a id="l00253" name="l00253"></a><span class="lineno">  253</span>            <span class="keywordflow">else</span></div>
+<div class="line"><a id="l00254" name="l00254"></a><span class="lineno">  254</span>            {</div>
+<div class="line"><a id="l00255" name="l00255"></a><span class="lineno">  255</span>                <span class="keyword">const</span> char_type* <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">res</a> = m_buffer.data() + m_cur_pos;</div>
+<div class="line"><a id="l00256" name="l00256"></a><span class="lineno">  256</span>                m_cur_pos = m_end_pos;</div>
+<div class="line"><a id="l00257" name="l00257"></a><span class="lineno">  257</span>                <span class="keywordflow">return</span> <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">res</a>;</div>
+<div class="line"><a id="l00258" name="l00258"></a><span class="lineno">  258</span>            }</div>
+<div class="line"><a id="l00259" name="l00259"></a><span class="lineno">  259</span>        }</div>
+</div>
+<div class="line"><a id="l00260" name="l00260"></a><span class="lineno">  260</span> </div>
+<div class="foldopen" id="foldopen00287" data-start="{" data-end="}">
+<div class="line"><a id="l00287" name="l00287"></a><span class="lineno"><a class="line" href="classIOv2_1_1cvt__reader.html#a425f19b3310201900bb6ac468ec59d69">  287</a></span>        <span class="keywordtype">void</span> <a class="code hl_function" href="classIOv2_1_1cvt__reader.html#a425f19b3310201900bb6ac468ec59d69">rollback</a>(std::size_t <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">len</a>)</div>
+<div class="line"><a id="l00288" name="l00288"></a><span class="lineno">  288</span>        {</div>
+<div class="line"><a id="l00289" name="l00289"></a><span class="lineno">  289</span>            <span class="keywordflow">if</span> (<a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">len</a> == 0)</div>
+<div class="line"><a id="l00290" name="l00290"></a><span class="lineno">  290</span>                <span class="keywordflow">throw</span> <a class="code hl_struct" href="structIOv2_1_1cvt__error.html">cvt_error</a>(<span class="stringliteral">&quot;cvt_reader::rollback fail, length cannot be zero&quot;</span>);</div>
+<div class="line"><a id="l00291" name="l00291"></a><span class="lineno">  291</span>            <span class="keywordflow">if</span> (<a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">len</a> &gt; m_cur_pos)</div>
+<div class="line"><a id="l00292" name="l00292"></a><span class="lineno">  292</span>                <span class="keywordflow">throw</span> <a class="code hl_struct" href="structIOv2_1_1cvt__error.html">cvt_error</a>(<span class="stringliteral">&quot;cvt_reader::rollback fail, rollback length too large&quot;</span>);</div>
+<div class="line"><a id="l00293" name="l00293"></a><span class="lineno">  293</span>            m_cur_pos -= <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">len</a>;</div>
+<div class="line"><a id="l00294" name="l00294"></a><span class="lineno">  294</span>        }</div>
+</div>
+<div class="line"><a id="l00295" name="l00295"></a><span class="lineno">  295</span> </div>
+<div class="line"><a id="l00296" name="l00296"></a><span class="lineno">  296</span>    <span class="keyword">private</span>:</div>
+<div class="line"><a id="l00299" name="l00299"></a><span class="lineno">  299</span>        KernelType&amp; m_kernel;</div>
+<div class="line"><a id="l00300" name="l00300"></a><span class="lineno">  300</span> </div>
+<div class="line"><a id="l00303" name="l00303"></a><span class="lineno">  303</span>        std::vector&lt;char_type&gt;&amp; m_buffer;</div>
+<div class="line"><a id="l00304" name="l00304"></a><span class="lineno">  304</span> </div>
+<div class="line"><a id="l00307" name="l00307"></a><span class="lineno">  307</span>        std::size_t m_cur_pos = 0;</div>
+<div class="line"><a id="l00308" name="l00308"></a><span class="lineno">  308</span> </div>
+<div class="line"><a id="l00311" name="l00311"></a><span class="lineno">  311</span>        std::size_t m_end_pos = 0;</div>
+<div class="line"><a id="l00312" name="l00312"></a><span class="lineno">  312</span>    };</div>
+</div>
+<div class="line"><a id="l00313" name="l00313"></a><span class="lineno">  313</span> </div>
+<div class="line"><a id="l00350" name="l00350"></a><span class="lineno">  350</span>    <span class="keyword">template</span> &lt;io_converter KernelType&gt;</div>
+<div class="foldopen" id="foldopen00351" data-start="{" data-end="};">
+<div class="line"><a id="l00351" name="l00351"></a><span class="lineno"><a class="line" href="classIOv2_1_1cvt__writer.html">  351</a></span>    <span class="keyword">class </span><a class="code hl_class" href="classIOv2_1_1cvt__writer.html">cvt_writer</a></div>
+<div class="line"><a id="l00352" name="l00352"></a><span class="lineno">  352</span>    {</div>
+<div class="line"><a id="l00353" name="l00353"></a><span class="lineno">  353</span>        <span class="keyword">using </span>char_type = <span class="keyword">typename</span> KernelType::internal_type;</div>
+<div class="line"><a id="l00354" name="l00354"></a><span class="lineno">  354</span>    <span class="keyword">public</span>:</div>
+<div class="foldopen" id="foldopen00378" data-start="{" data-end="}">
+<div class="line"><a id="l00378" name="l00378"></a><span class="lineno"><a class="line" href="classIOv2_1_1cvt__writer.html#a724cd1f99dc42302afdcee038b434927">  378</a></span>        <span class="keyword">explicit</span> <a class="code hl_function" href="classIOv2_1_1cvt__writer.html#a724cd1f99dc42302afdcee038b434927">cvt_writer</a>(KernelType&amp; kernel, std::vector&lt;char_type&gt;&amp; <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">buffer</a>)</div>
+<div class="line"><a id="l00379" name="l00379"></a><span class="lineno">  379</span>            : m_kernel(kernel)</div>
+<div class="line"><a id="l00380" name="l00380"></a><span class="lineno">  380</span>            , m_buffer(<a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">buffer</a>) {}</div>
+</div>
+<div class="line"><a id="l00381" name="l00381"></a><span class="lineno">  381</span> </div>
+<div class="line"><a id="l00382" name="l00382"></a><span class="lineno"><a class="line" href="classIOv2_1_1cvt__writer.html#a8df6a06fe13b29eef38f3c28a735d6c5">  382</a></span>        <a class="code hl_function" href="classIOv2_1_1cvt__writer.html#a8df6a06fe13b29eef38f3c28a735d6c5">cvt_writer</a>(<span class="keyword">const</span> <a class="code hl_class" href="classIOv2_1_1cvt__writer.html">cvt_writer</a>&amp;) = <span class="keyword">delete</span>;</div>
+<div class="line"><a id="l00383" name="l00383"></a><span class="lineno"><a class="line" href="classIOv2_1_1cvt__writer.html#a6cdad46f8a702272d18d1ee17333944e">  383</a></span>        <a class="code hl_class" href="classIOv2_1_1cvt__writer.html">cvt_writer</a>&amp; <a class="code hl_function" href="classIOv2_1_1cvt__writer.html#a6cdad46f8a702272d18d1ee17333944e">operator=</a>(<span class="keyword">const</span> <a class="code hl_class" href="classIOv2_1_1cvt__writer.html">cvt_writer</a>&amp;) = <span class="keyword">delete</span>;</div>
+<div class="line"><a id="l00384" name="l00384"></a><span class="lineno"><a class="line" href="classIOv2_1_1cvt__writer.html#a49d396c8dd09cad5664de165b2f618bc">  384</a></span>        <a class="code hl_function" href="classIOv2_1_1cvt__writer.html#a49d396c8dd09cad5664de165b2f618bc">cvt_writer</a>(<a class="code hl_class" href="classIOv2_1_1cvt__writer.html">cvt_writer</a>&amp;&amp;) = <span class="keyword">delete</span>;</div>
+<div class="line"><a id="l00385" name="l00385"></a><span class="lineno"><a class="line" href="classIOv2_1_1cvt__writer.html#adceaf8d3025b15ebbeb8bc9fcecba4f9">  385</a></span>        <a class="code hl_class" href="classIOv2_1_1cvt__writer.html">cvt_writer</a>&amp; <a class="code hl_function" href="classIOv2_1_1cvt__writer.html#adceaf8d3025b15ebbeb8bc9fcecba4f9">operator=</a>(<a class="code hl_class" href="classIOv2_1_1cvt__writer.html">cvt_writer</a>&amp;&amp;) = <span class="keyword">delete</span>;</div>
+<div class="line"><a id="l00386" name="l00386"></a><span class="lineno"><a class="line" href="classIOv2_1_1cvt__writer.html#aec0566941e5752f0acb86a8895f6825c">  386</a></span>        <a class="code hl_function" href="classIOv2_1_1cvt__writer.html#aec0566941e5752f0acb86a8895f6825c">~cvt_writer</a>() = <span class="keywordflow">default</span>;</div>
+<div class="line"><a id="l00387" name="l00387"></a><span class="lineno">  387</span> </div>
+<div class="foldopen" id="foldopen00408" data-start="{" data-end="}">
+<div class="line"><a id="l00408" name="l00408"></a><span class="lineno"><a class="line" href="classIOv2_1_1cvt__writer.html#a3051e93a26d3f0fe1d60df3767acd2d8">  408</a></span>        <span class="keywordtype">void</span> <a class="code hl_function" href="classIOv2_1_1cvt__writer.html#a3051e93a26d3f0fe1d60df3767acd2d8">reset</a>(std::size_t <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">buf_size</a>)</div>
+<div class="line"><a id="l00409" name="l00409"></a><span class="lineno">  409</span>        {</div>
+<div class="line"><a id="l00410" name="l00410"></a><span class="lineno">  410</span>            m_buffer.resize(<a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">buf_size</a>);</div>
+<div class="line"><a id="l00411" name="l00411"></a><span class="lineno">  411</span>            m_prev_len = 0;</div>
+<div class="line"><a id="l00412" name="l00412"></a><span class="lineno">  412</span>        }</div>
+</div>
+<div class="line"><a id="l00413" name="l00413"></a><span class="lineno">  413</span> </div>
+<div class="foldopen" id="foldopen00448" data-start="{" data-end="}">
+<div class="line"><a id="l00448" name="l00448"></a><span class="lineno"><a class="line" href="classIOv2_1_1cvt__writer.html#a74bb8b37806c49d100fb4ddabb8fcf30">  448</a></span>        char_type* <a class="code hl_function" href="classIOv2_1_1cvt__writer.html#a74bb8b37806c49d100fb4ddabb8fcf30">put_buf</a>(std::size_t <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">len</a>)</div>
+<div class="line"><a id="l00449" name="l00449"></a><span class="lineno">  449</span>        {</div>
+<div class="line"><a id="l00450" name="l00450"></a><span class="lineno">  450</span>            <span class="keywordflow">if</span> (<a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">len</a> == 0)</div>
+<div class="line"><a id="l00451" name="l00451"></a><span class="lineno">  451</span>                <span class="keywordflow">throw</span> <a class="code hl_struct" href="structIOv2_1_1cvt__error.html">cvt_error</a>(<span class="stringliteral">&quot;cvt_writer::put_buf fail, write size cannot be zero&quot;</span>);</div>
+<div class="line"><a id="l00452" name="l00452"></a><span class="lineno">  452</span>            <span class="keywordflow">if</span> (<a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">len</a> &gt; m_buffer.size())</div>
+<div class="line"><a id="l00453" name="l00453"></a><span class="lineno">  453</span>                <span class="keywordflow">throw</span> <a class="code hl_struct" href="structIOv2_1_1cvt__error.html">cvt_error</a>(<span class="stringliteral">&quot;cvt_writer::put_buf fail, write size too large&quot;</span>);</div>
+<div class="line"><a id="l00454" name="l00454"></a><span class="lineno">  454</span> </div>
+<div class="line"><a id="l00455" name="l00455"></a><span class="lineno">  455</span>            std::size_t <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">remain</a> = m_buffer.size() - m_prev_len;</div>
+<div class="line"><a id="l00456" name="l00456"></a><span class="lineno">  456</span>            <span class="keywordflow">if</span> (<a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">remain</a> &lt; <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">len</a>)</div>
+<div class="line"><a id="l00457" name="l00457"></a><span class="lineno">  457</span>            {</div>
+<div class="line"><a id="l00458" name="l00458"></a><span class="lineno">  458</span>                m_kernel.put(m_buffer.data(), m_prev_len);</div>
+<div class="line"><a id="l00459" name="l00459"></a><span class="lineno">  459</span>                <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">remain</a> = m_buffer.size();</div>
+<div class="line"><a id="l00460" name="l00460"></a><span class="lineno">  460</span>                m_prev_len = 0;</div>
+<div class="line"><a id="l00461" name="l00461"></a><span class="lineno">  461</span>            }</div>
+<div class="line"><a id="l00462" name="l00462"></a><span class="lineno">  462</span> </div>
+<div class="line"><a id="l00463" name="l00463"></a><span class="lineno">  463</span>            <span class="keyword">auto</span> <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">res</a> = m_buffer.data() + m_prev_len;</div>
+<div class="line"><a id="l00464" name="l00464"></a><span class="lineno">  464</span>            m_prev_len += <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">len</a>;</div>
+<div class="line"><a id="l00465" name="l00465"></a><span class="lineno">  465</span>            <span class="keywordflow">return</span> <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">res</a>;</div>
+<div class="line"><a id="l00466" name="l00466"></a><span class="lineno">  466</span>        }</div>
+</div>
+<div class="line"><a id="l00467" name="l00467"></a><span class="lineno">  467</span> </div>
+<div class="foldopen" id="foldopen00493" data-start="{" data-end="}">
+<div class="line"><a id="l00493" name="l00493"></a><span class="lineno"><a class="line" href="classIOv2_1_1cvt__writer.html#a8bedaeb3a2670c7ff02372ec61d3e1b4">  493</a></span>        <span class="keywordtype">void</span> <a class="code hl_function" href="classIOv2_1_1cvt__writer.html#a8bedaeb3a2670c7ff02372ec61d3e1b4">rollback</a>(std::size_t <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">len</a>)</div>
+<div class="line"><a id="l00494" name="l00494"></a><span class="lineno">  494</span>        {</div>
+<div class="line"><a id="l00495" name="l00495"></a><span class="lineno">  495</span>            <span class="keywordflow">if</span> (<a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">len</a> == 0)</div>
+<div class="line"><a id="l00496" name="l00496"></a><span class="lineno">  496</span>                <span class="keywordflow">throw</span> <a class="code hl_struct" href="structIOv2_1_1cvt__error.html">cvt_error</a>(<span class="stringliteral">&quot;cvt_writer::rollback fail, length cannot be zero&quot;</span>);</div>
+<div class="line"><a id="l00497" name="l00497"></a><span class="lineno">  497</span>            <span class="keywordflow">if</span> (<a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">len</a> &gt; m_prev_len)</div>
+<div class="line"><a id="l00498" name="l00498"></a><span class="lineno">  498</span>                <span class="keywordflow">throw</span> <a class="code hl_struct" href="structIOv2_1_1cvt__error.html">cvt_error</a>(<span class="stringliteral">&quot;cvt_writer::rollback fail, rollback length too large&quot;</span>);</div>
+<div class="line"><a id="l00499" name="l00499"></a><span class="lineno">  499</span>            m_prev_len -= <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">len</a>;</div>
+<div class="line"><a id="l00500" name="l00500"></a><span class="lineno">  500</span>        }</div>
+</div>
+<div class="line"><a id="l00501" name="l00501"></a><span class="lineno">  501</span> </div>
+<div class="foldopen" id="foldopen00516" data-start="{" data-end="}">
+<div class="line"><a id="l00516" name="l00516"></a><span class="lineno"><a class="line" href="classIOv2_1_1cvt__writer.html#a42decc7a7d945d56a9bb9bdb5ab0fa17">  516</a></span>        <span class="keywordtype">void</span> <a class="code hl_function" href="classIOv2_1_1cvt__writer.html#a42decc7a7d945d56a9bb9bdb5ab0fa17">commit</a>()</div>
+<div class="line"><a id="l00517" name="l00517"></a><span class="lineno">  517</span>        {</div>
+<div class="line"><a id="l00518" name="l00518"></a><span class="lineno">  518</span>            <span class="keywordflow">if</span> (m_prev_len != 0)</div>
+<div class="line"><a id="l00519" name="l00519"></a><span class="lineno">  519</span>            {</div>
+<div class="line"><a id="l00520" name="l00520"></a><span class="lineno">  520</span>                m_kernel.put(m_buffer.data(), m_prev_len);</div>
+<div class="line"><a id="l00521" name="l00521"></a><span class="lineno">  521</span>                m_prev_len = 0;</div>
+<div class="line"><a id="l00522" name="l00522"></a><span class="lineno">  522</span>            }</div>
+<div class="line"><a id="l00523" name="l00523"></a><span class="lineno">  523</span>        }</div>
+</div>
+<div class="line"><a id="l00524" name="l00524"></a><span class="lineno">  524</span> </div>
+<div class="line"><a id="l00525" name="l00525"></a><span class="lineno">  525</span>    <span class="keyword">private</span>:</div>
+<div class="line"><a id="l00528" name="l00528"></a><span class="lineno">  528</span>        KernelType&amp; m_kernel;</div>
+<div class="line"><a id="l00529" name="l00529"></a><span class="lineno">  529</span> </div>
+<div class="line"><a id="l00532" name="l00532"></a><span class="lineno">  532</span>        std::vector&lt;char_type&gt;&amp; m_buffer;</div>
+<div class="line"><a id="l00533" name="l00533"></a><span class="lineno">  533</span> </div>
+<div class="line"><a id="l00536" name="l00536"></a><span class="lineno">  536</span>        std::size_t m_prev_len = 0;</div>
+<div class="line"><a id="l00537" name="l00537"></a><span class="lineno">  537</span>    };</div>
+</div>
+<div class="line"><a id="l00538" name="l00538"></a><span class="lineno">  538</span> </div>
+<div class="line"><a id="l00539" name="l00539"></a><span class="lineno">  539</span>    <span class="keyword">template</span> &lt;<span class="keyword">typename</span> TWriter&gt;</div>
+<div class="foldopen" id="foldopen00540" data-start="{" data-end="};">
+<div class="line"><a id="l00540" name="l00540"></a><span class="lineno"><a class="line" href="classIOv2_1_1put__buf__guard.html">  540</a></span>    <span class="keyword">class </span><a class="code hl_class" href="classIOv2_1_1put__buf__guard.html">put_buf_guard</a></div>
+<div class="line"><a id="l00541" name="l00541"></a><span class="lineno">  541</span>    {</div>
+<div class="line"><a id="l00542" name="l00542"></a><span class="lineno">  542</span>    <span class="keyword">public</span>:</div>
+<div class="foldopen" id="foldopen00543" data-start="{" data-end="}">
+<div class="line"><a id="l00543" name="l00543"></a><span class="lineno"><a class="line" href="classIOv2_1_1put__buf__guard.html#a0037ba327f11e4e884a681710f684909">  543</a></span>        <a class="code hl_function" href="classIOv2_1_1put__buf__guard.html#a0037ba327f11e4e884a681710f684909">put_buf_guard</a>(<a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TWriter</a>&amp; <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">writer</a>, std::size_t <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">len</a>)</div>
+<div class="line"><a id="l00544" name="l00544"></a><span class="lineno">  544</span>            : m_writer(<a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">writer</a>)</div>
+<div class="line"><a id="l00545" name="l00545"></a><span class="lineno">  545</span>            , m_len(<a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">len</a>) {}</div>
+</div>
+<div class="line"><a id="l00546" name="l00546"></a><span class="lineno">  546</span> </div>
+<div class="line"><a id="l00547" name="l00547"></a><span class="lineno"><a class="line" href="classIOv2_1_1put__buf__guard.html#a41917cf688665f631ed1dd3aad2becb2">  547</a></span>        <a class="code hl_function" href="classIOv2_1_1put__buf__guard.html#a41917cf688665f631ed1dd3aad2becb2">put_buf_guard</a>(<span class="keyword">const</span> <a class="code hl_class" href="classIOv2_1_1put__buf__guard.html">put_buf_guard</a>&amp;) = <span class="keyword">delete</span>;</div>
+<div class="line"><a id="l00548" name="l00548"></a><span class="lineno"><a class="line" href="classIOv2_1_1put__buf__guard.html#a669cdeff7212ca0edb8f00982da1b41f">  548</a></span>        <a class="code hl_class" href="classIOv2_1_1put__buf__guard.html">put_buf_guard</a>&amp; <a class="code hl_function" href="classIOv2_1_1put__buf__guard.html#a669cdeff7212ca0edb8f00982da1b41f">operator=</a>(<span class="keyword">const</span> <a class="code hl_class" href="classIOv2_1_1put__buf__guard.html">put_buf_guard</a>&amp;) = <span class="keyword">delete</span>;</div>
+<div class="line"><a id="l00549" name="l00549"></a><span class="lineno"><a class="line" href="classIOv2_1_1put__buf__guard.html#a5eaff462dd7115be8821ba4ab4f74355">  549</a></span>        <a class="code hl_function" href="classIOv2_1_1put__buf__guard.html#a5eaff462dd7115be8821ba4ab4f74355">put_buf_guard</a>(<a class="code hl_class" href="classIOv2_1_1put__buf__guard.html">put_buf_guard</a>&amp;&amp;) = <span class="keyword">delete</span>;</div>
+<div class="line"><a id="l00550" name="l00550"></a><span class="lineno"><a class="line" href="classIOv2_1_1put__buf__guard.html#a127448b6db413c1b2a4977eee629657c">  550</a></span>        <a class="code hl_class" href="classIOv2_1_1put__buf__guard.html">put_buf_guard</a>&amp; <a class="code hl_function" href="classIOv2_1_1put__buf__guard.html#a127448b6db413c1b2a4977eee629657c">operator=</a>(<a class="code hl_class" href="classIOv2_1_1put__buf__guard.html">put_buf_guard</a>&amp;&amp;) = <span class="keyword">delete</span>;</div>
+<div class="line"><a id="l00551" name="l00551"></a><span class="lineno">  551</span> </div>
+<div class="foldopen" id="foldopen00552" data-start="{" data-end="}">
+<div class="line"><a id="l00552" name="l00552"></a><span class="lineno"><a class="line" href="classIOv2_1_1put__buf__guard.html#aecdf0712ce5c4971db53a4315a366336">  552</a></span>        <a class="code hl_function" href="classIOv2_1_1put__buf__guard.html#aecdf0712ce5c4971db53a4315a366336">~put_buf_guard</a>()</div>
+<div class="line"><a id="l00553" name="l00553"></a><span class="lineno">  553</span>        {</div>
+<div class="line"><a id="l00554" name="l00554"></a><span class="lineno">  554</span>            <span class="keywordflow">if</span> (m_len == 0) <span class="keywordflow">return</span>;</div>
+<div class="line"><a id="l00555" name="l00555"></a><span class="lineno">  555</span>            <span class="keywordflow">try</span></div>
+<div class="line"><a id="l00556" name="l00556"></a><span class="lineno">  556</span>            {</div>
+<div class="line"><a id="l00557" name="l00557"></a><span class="lineno">  557</span>                m_writer.rollback(m_len);</div>
+<div class="line"><a id="l00558" name="l00558"></a><span class="lineno">  558</span>            }</div>
+<div class="line"><a id="l00559" name="l00559"></a><span class="lineno">  559</span>            <span class="keywordflow">catch</span> (...) {} <span class="comment">// NOLINT(bugprone-empty-catch)</span></div>
+<div class="line"><a id="l00560" name="l00560"></a><span class="lineno">  560</span>        }</div>
+</div>
+<div class="line"><a id="l00561" name="l00561"></a><span class="lineno">  561</span> </div>
+<div class="line"><a id="l00562" name="l00562"></a><span class="lineno"><a class="line" href="classIOv2_1_1put__buf__guard.html#a5689d61d001a4c6f1ea6d760c863cedd">  562</a></span>        <span class="keywordtype">void</span> <a class="code hl_function" href="classIOv2_1_1put__buf__guard.html#a5689d61d001a4c6f1ea6d760c863cedd">used</a>(std::size_t <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">len</a>) { m_len -= <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">len</a>; }</div>
+<div class="line"><a id="l00563" name="l00563"></a><span class="lineno">  563</span> </div>
+<div class="line"><a id="l00564" name="l00564"></a><span class="lineno">  564</span>    <span class="keyword">private</span>:</div>
+<div class="line"><a id="l00565" name="l00565"></a><span class="lineno">  565</span>        <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">TWriter</a>&amp; m_writer;</div>
+<div class="line"><a id="l00566" name="l00566"></a><span class="lineno">  566</span>        std::size_t m_len;</div>
+<div class="line"><a id="l00567" name="l00567"></a><span class="lineno">  567</span>    };</div>
+</div>
+<div class="line"><a id="l00568" name="l00568"></a><span class="lineno">  568</span> </div>
+<div class="line"><a id="l00904" name="l00904"></a><span class="lineno">  904</span>    <span class="keyword">template</span> &lt;io_converter KernelType,</div>
+<div class="line"><a id="l00905" name="l00905"></a><span class="lineno">  905</span>              <span class="keyword">typename</span> <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">InternalType</a>,</div>
+<div class="line"><a id="l00906" name="l00906"></a><span class="lineno">  906</span>              <span class="keywordtype">bool</span> <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">enable_positioning</a> = <span class="keyword">true</span>,</div>
+<div class="line"><a id="l00907" name="l00907"></a><span class="lineno">  907</span>              <span class="keywordtype">bool</span> <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">enable_io_switch</a> = <span class="keyword">true</span>&gt;</div>
+<div class="foldopen" id="foldopen00908" data-start="{" data-end="};">
+<div class="line"><a id="l00908" name="l00908"></a><span class="lineno"><a class="line" href="classIOv2_1_1abs__cvt.html">  908</a></span>    <span class="keyword">class </span><a class="code hl_class" href="classIOv2_1_1abs__cvt.html">abs_cvt</a></div>
+<div class="line"><a id="l00909" name="l00909"></a><span class="lineno">  909</span>    {</div>
+<div class="line"><a id="l00910" name="l00910"></a><span class="lineno">  910</span>    <span class="keyword">public</span>:</div>
+<div class="line"><a id="l00913" name="l00913"></a><span class="lineno"><a class="line" href="classIOv2_1_1abs__cvt.html#a862dfc0b13653c13e47bcb6e10a2092b">  913</a></span>        <span class="keyword">using </span><a class="code hl_typedef" href="classIOv2_1_1abs__cvt.html#a862dfc0b13653c13e47bcb6e10a2092b">device_type</a> = <span class="keyword">typename</span> KernelType::device_type;</div>
+<div class="line"><a id="l00914" name="l00914"></a><span class="lineno">  914</span> </div>
+<div class="line"><a id="l00917" name="l00917"></a><span class="lineno"><a class="line" href="classIOv2_1_1abs__cvt.html#a992170e16cac25188bbb51350ff607e1">  917</a></span>        <span class="keyword">using </span><a class="code hl_typedef" href="classIOv2_1_1abs__cvt.html#a992170e16cac25188bbb51350ff607e1">external_type</a> = <span class="keyword">typename</span> KernelType::internal_type;</div>
+<div class="line"><a id="l00918" name="l00918"></a><span class="lineno">  918</span> </div>
+<div class="line"><a id="l00921" name="l00921"></a><span class="lineno"><a class="line" href="classIOv2_1_1abs__cvt.html#af7a1ce8789d2c408a00c7ec4fab1f8e6">  921</a></span>        <span class="keyword">using </span><a class="code hl_typedef" href="classIOv2_1_1abs__cvt.html#af7a1ce8789d2c408a00c7ec4fab1f8e6">internal_type</a> = <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">InternalType</a>;</div>
+<div class="line"><a id="l00922" name="l00922"></a><span class="lineno">  922</span> </div>
+<div class="line"><a id="l00923" name="l00923"></a><span class="lineno">  923</span>    <span class="keyword">private</span>:</div>
+<div class="line"><a id="l00933" name="l00933"></a><span class="lineno">  933</span>        <span class="keyword">constexpr</span> <span class="keyword">static</span> std::size_t s_bos_chunk = 16;</div>
+<div class="line"><a id="l00934" name="l00934"></a><span class="lineno">  934</span> </div>
+<div class="line"><a id="l00935" name="l00935"></a><span class="lineno">  935</span>    <span class="keyword">public</span>:</div>
+<div class="foldopen" id="foldopen00949" data-start="{" data-end="}">
+<div class="line"><a id="l00949" name="l00949"></a><span class="lineno"><a class="line" href="classIOv2_1_1abs__cvt.html#a77db0a3eaa1dbaa6954cc0d9801ba2d5">  949</a></span>        <a class="code hl_function" href="classIOv2_1_1abs__cvt.html#a77db0a3eaa1dbaa6954cc0d9801ba2d5">abs_cvt</a>(KernelType kernel)</div>
+<div class="line"><a id="l00950" name="l00950"></a><span class="lineno">  950</span>            : <a class="code hl_variable" href="classIOv2_1_1abs__cvt.html#ab8caf927eb23cd152a242f09b063f499">m_kernel</a>(<a class="code hl_namespace" href="namespacestd.html">std</a>::<a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">move</a>(kernel)) {}</div>
+</div>
+<div class="line"><a id="l00951" name="l00951"></a><span class="lineno">  951</span> </div>
+<div class="foldopen" id="foldopen00962" data-start="{" data-end="}">
+<div class="line"><a id="l00962" name="l00962"></a><span class="lineno"><a class="line" href="classIOv2_1_1abs__cvt.html#a55eb32a3affc1ed775cf21cfd2153811">  962</a></span>        <a class="code hl_function" href="classIOv2_1_1abs__cvt.html#a55eb32a3affc1ed775cf21cfd2153811">abs_cvt</a>(<span class="keyword">const</span> <a class="code hl_class" href="classIOv2_1_1abs__cvt.html">abs_cvt</a>&amp; <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">val</a>)</div>
+<div class="line"><a id="l00963" name="l00963"></a><span class="lineno">  963</span>            : <a class="code hl_variable" href="classIOv2_1_1abs__cvt.html#ab8caf927eb23cd152a242f09b063f499">m_kernel</a>(<a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">val</a>.<a class="code hl_variable" href="classIOv2_1_1abs__cvt.html#ab8caf927eb23cd152a242f09b063f499">m_kernel</a>)</div>
+<div class="line"><a id="l00964" name="l00964"></a><span class="lineno">  964</span>            , <a class="code hl_variable" href="classIOv2_1_1abs__cvt.html#aff41c99f01bb736113ccf6d2374d8d5a">m_io_status</a>(<a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">val</a>.<a class="code hl_variable" href="classIOv2_1_1abs__cvt.html#aff41c99f01bb736113ccf6d2374d8d5a">m_io_status</a>)</div>
+<div class="line"><a id="l00965" name="l00965"></a><span class="lineno">  965</span>            , <a class="code hl_variable" href="classIOv2_1_1abs__cvt.html#a36b85b07a227cd90873f8872590f9572">m_is_bos_done</a>(<a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">val</a>.<a class="code hl_variable" href="classIOv2_1_1abs__cvt.html#a36b85b07a227cd90873f8872590f9572">m_is_bos_done</a>)</div>
+<div class="line"><a id="l00966" name="l00966"></a><span class="lineno">  966</span>            , m_is_tainted(<a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">val</a>.m_is_tainted) {}</div>
+</div>
+<div class="line"><a id="l00967" name="l00967"></a><span class="lineno">  967</span> </div>
+<div class="foldopen" id="foldopen00979" data-start="{" data-end="}">
+<div class="line"><a id="l00979" name="l00979"></a><span class="lineno"><a class="line" href="classIOv2_1_1abs__cvt.html#a5d6ae7755267a947bbbcbe1534c6364f">  979</a></span>        <a class="code hl_function" href="classIOv2_1_1abs__cvt.html#a5d6ae7755267a947bbbcbe1534c6364f">abs_cvt</a>(<a class="code hl_class" href="classIOv2_1_1abs__cvt.html">abs_cvt</a>&amp;&amp; <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">val</a>) <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">noexcept</a></div>
+<div class="line"><a id="l00980" name="l00980"></a><span class="lineno">  980</span>            : <a class="code hl_variable" href="classIOv2_1_1abs__cvt.html#ab8caf927eb23cd152a242f09b063f499">m_kernel</a>(std::move(<a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">val</a>.m_kernel))</div>
+<div class="line"><a id="l00981" name="l00981"></a><span class="lineno">  981</span>            , <a class="code hl_variable" href="classIOv2_1_1abs__cvt.html#aff41c99f01bb736113ccf6d2374d8d5a">m_io_status</a>(<a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">val</a>.m_io_status)</div>
+<div class="line"><a id="l00982" name="l00982"></a><span class="lineno">  982</span>            , <a class="code hl_variable" href="classIOv2_1_1abs__cvt.html#a36b85b07a227cd90873f8872590f9572">m_is_bos_done</a>(<a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">val</a>.m_is_bos_done)</div>
+<div class="line"><a id="l00983" name="l00983"></a><span class="lineno">  983</span>            , m_is_tainted(<a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">val</a>.m_is_tainted)</div>
+<div class="line"><a id="l00984" name="l00984"></a><span class="lineno">  984</span>        {</div>
+<div class="line"><a id="l00985" name="l00985"></a><span class="lineno">  985</span>            <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">val</a>.m_io_status = <a class="code hl_enumvalue" href="namespaceIOv2.html#a36673c0e1d93ef095d232f0f726134d9a5da248ea6840aca1ae2b417b17982a89">io_status::neutral</a>;</div>
+<div class="line"><a id="l00986" name="l00986"></a><span class="lineno">  986</span>            <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">val</a>.m_is_bos_done = <span class="keyword">false</span>;</div>
+<div class="line"><a id="l00987" name="l00987"></a><span class="lineno">  987</span>            <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">val</a>.m_is_tainted = <span class="keyword">false</span>;</div>
+<div class="line"><a id="l00988" name="l00988"></a><span class="lineno">  988</span>        }</div>
+</div>
+<div class="line"><a id="l00989" name="l00989"></a><span class="lineno">  989</span> </div>
+<div class="foldopen" id="foldopen01002" data-start="{" data-end="}">
+<div class="line"><a id="l01002" name="l01002"></a><span class="lineno"><a class="line" href="classIOv2_1_1abs__cvt.html#a81793e4e59c3536e26b728d9e729d335"> 1002</a></span>        <a class="code hl_class" href="classIOv2_1_1abs__cvt.html">abs_cvt</a>&amp; <a class="code hl_function" href="classIOv2_1_1abs__cvt.html#a81793e4e59c3536e26b728d9e729d335">operator=</a>(<span class="keyword">const</span> <a class="code hl_class" href="classIOv2_1_1abs__cvt.html">abs_cvt</a>&amp; <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">val</a>)</div>
+<div class="line"><a id="l01003" name="l01003"></a><span class="lineno"> 1003</span>        {</div>
+<div class="line"><a id="l01004" name="l01004"></a><span class="lineno"> 1004</span>            <span class="keywordflow">if</span> (<span class="keyword">this</span> != &amp;<a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">val</a>)</div>
+<div class="line"><a id="l01005" name="l01005"></a><span class="lineno"> 1005</span>            {</div>
+<div class="line"><a id="l01006" name="l01006"></a><span class="lineno"> 1006</span>                <a class="code hl_variable" href="classIOv2_1_1abs__cvt.html#ab8caf927eb23cd152a242f09b063f499">m_kernel</a> = <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">val</a>.<a class="code hl_variable" href="classIOv2_1_1abs__cvt.html#ab8caf927eb23cd152a242f09b063f499">m_kernel</a>;</div>
+<div class="line"><a id="l01007" name="l01007"></a><span class="lineno"> 1007</span>                <a class="code hl_variable" href="classIOv2_1_1abs__cvt.html#aff41c99f01bb736113ccf6d2374d8d5a">m_io_status</a> = <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">val</a>.m_io_status;</div>
+<div class="line"><a id="l01008" name="l01008"></a><span class="lineno"> 1008</span>                <a class="code hl_variable" href="classIOv2_1_1abs__cvt.html#a36b85b07a227cd90873f8872590f9572">m_is_bos_done</a> = <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">val</a>.m_is_bos_done;</div>
+<div class="line"><a id="l01009" name="l01009"></a><span class="lineno"> 1009</span>                m_is_tainted = <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">val</a>.m_is_tainted;</div>
+<div class="line"><a id="l01010" name="l01010"></a><span class="lineno"> 1010</span>                <span class="comment">// m_reader and m_writer keep pointing to &amp;m_kernel, no change needed</span></div>
+<div class="line"><a id="l01011" name="l01011"></a><span class="lineno"> 1011</span>            }</div>
+<div class="line"><a id="l01012" name="l01012"></a><span class="lineno"> 1012</span>            <span class="keywordflow">return</span> *<span class="keyword">this</span>;</div>
+<div class="line"><a id="l01013" name="l01013"></a><span class="lineno"> 1013</span>        }</div>
+</div>
+<div class="line"><a id="l01014" name="l01014"></a><span class="lineno"> 1014</span> </div>
+<div class="foldopen" id="foldopen01025" data-start="{" data-end="}">
+<div class="line"><a id="l01025" name="l01025"></a><span class="lineno"><a class="line" href="classIOv2_1_1abs__cvt.html#a9432492f6ef3c7b96ea4b0fe67dc76dd"> 1025</a></span>        <a class="code hl_class" href="classIOv2_1_1abs__cvt.html">abs_cvt</a>&amp; <a class="code hl_function" href="classIOv2_1_1abs__cvt.html#a9432492f6ef3c7b96ea4b0fe67dc76dd">operator=</a>(<a class="code hl_class" href="classIOv2_1_1abs__cvt.html">abs_cvt</a>&amp;&amp; <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">val</a>) <span class="keyword">noexcept</span></div>
+<div class="line"><a id="l01026" name="l01026"></a><span class="lineno"> 1026</span>        {</div>
+<div class="line"><a id="l01027" name="l01027"></a><span class="lineno"> 1027</span>            <span class="keywordflow">if</span> (<span class="keyword">this</span> != &amp;<a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">val</a>)</div>
+<div class="line"><a id="l01028" name="l01028"></a><span class="lineno"> 1028</span>            {</div>
+<div class="line"><a id="l01029" name="l01029"></a><span class="lineno"> 1029</span>                <a class="code hl_variable" href="classIOv2_1_1abs__cvt.html#ab8caf927eb23cd152a242f09b063f499">m_kernel</a> = std::move(<a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">val</a>.m_kernel);</div>
+<div class="line"><a id="l01030" name="l01030"></a><span class="lineno"> 1030</span>                <a class="code hl_variable" href="classIOv2_1_1abs__cvt.html#aff41c99f01bb736113ccf6d2374d8d5a">m_io_status</a> = <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">val</a>.m_io_status;</div>
+<div class="line"><a id="l01031" name="l01031"></a><span class="lineno"> 1031</span>                <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">val</a>.m_io_status = <a class="code hl_enumvalue" href="namespaceIOv2.html#a36673c0e1d93ef095d232f0f726134d9a5da248ea6840aca1ae2b417b17982a89">io_status::neutral</a>;</div>
+<div class="line"><a id="l01032" name="l01032"></a><span class="lineno"> 1032</span>                <a class="code hl_variable" href="classIOv2_1_1abs__cvt.html#a36b85b07a227cd90873f8872590f9572">m_is_bos_done</a> = <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">val</a>.m_is_bos_done;</div>
+<div class="line"><a id="l01033" name="l01033"></a><span class="lineno"> 1033</span>                <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">val</a>.m_is_bos_done = <span class="keyword">false</span>;</div>
+<div class="line"><a id="l01034" name="l01034"></a><span class="lineno"> 1034</span>                m_is_tainted = <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">val</a>.m_is_tainted;</div>
+<div class="line"><a id="l01035" name="l01035"></a><span class="lineno"> 1035</span>                <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">val</a>.m_is_tainted = <span class="keyword">false</span>;</div>
+<div class="line"><a id="l01036" name="l01036"></a><span class="lineno"> 1036</span>            }</div>
+<div class="line"><a id="l01037" name="l01037"></a><span class="lineno"> 1037</span>            <span class="keywordflow">return</span> *<span class="keyword">this</span>;</div>
+<div class="line"><a id="l01038" name="l01038"></a><span class="lineno"> 1038</span>        }</div>
+</div>
+<div class="line"><a id="l01039" name="l01039"></a><span class="lineno"> 1039</span> </div>
+<div class="line"><a id="l01040" name="l01040"></a><span class="lineno"><a class="line" href="classIOv2_1_1abs__cvt.html#a5ea0e0f6f6330c39aa5eff225b99cb5a"> 1040</a></span>        <a class="code hl_function" href="classIOv2_1_1abs__cvt.html#a5ea0e0f6f6330c39aa5eff225b99cb5a">~abs_cvt</a>() = <span class="keywordflow">default</span>;</div>
+<div class="line"><a id="l01041" name="l01041"></a><span class="lineno"> 1041</span> </div>
+<div class="line"><a id="l01042" name="l01042"></a><span class="lineno"> 1042</span>    <span class="comment">// mandatory methods</span></div>
+<div class="line"><a id="l01043" name="l01043"></a><span class="lineno"> 1043</span>    <span class="keyword">public</span>:</div>
+<div class="line"><a id="l01057" name="l01057"></a><span class="lineno"><a class="line" href="classIOv2_1_1abs__cvt.html#af3b541791960186b6d01e68460ff24a9"> 1057</a></span>        <a class="code hl_typedef" href="classIOv2_1_1abs__cvt.html#a862dfc0b13653c13e47bcb6e10a2092b">device_type</a>&amp; <a class="code hl_function" href="classIOv2_1_1abs__cvt.html#af3b541791960186b6d01e68460ff24a9">device</a>() { <span class="keywordflow">return</span> <a class="code hl_variable" href="classIOv2_1_1abs__cvt.html#ab8caf927eb23cd152a242f09b063f499">m_kernel</a>.device(); }</div>
+<div class="line"><a id="l01058" name="l01058"></a><span class="lineno"> 1058</span> </div>
+<div class="line"><a id="l01080" name="l01080"></a><span class="lineno"><a class="line" href="classIOv2_1_1abs__cvt.html#a63a8d7d57a7f4de26f323b83053e7baa"> 1080</a></span>        [[<a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">nodiscard</a>]] <span class="keywordtype">bool</span> <a class="code hl_function" href="classIOv2_1_1abs__cvt.html#a63a8d7d57a7f4de26f323b83053e7baa">is_tainted</a>() <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">const</a> <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">noexcept</a> { <span class="keywordflow">return</span> m_is_tainted; }</div>
+<div class="line"><a id="l01081" name="l01081"></a><span class="lineno"> 1081</span> </div>
+<div class="foldopen" id="foldopen01118" data-start="{" data-end="}">
+<div class="line"><a id="l01118" name="l01118"></a><span class="lineno"><a class="line" href="classIOv2_1_1abs__cvt.html#a99b7fab13a26c5b7eb17c084d2419b85"> 1118</a></span>        std::pair&lt;device_type, std::exception_ptr&gt; <a class="code hl_function" href="classIOv2_1_1abs__cvt.html#a99b7fab13a26c5b7eb17c084d2419b85">detach</a>(<span class="keyword">this</span> <span class="keyword">auto</span>&amp; <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>) <span class="keyword">noexcept</span></div>
+<div class="line"><a id="l01119" name="l01119"></a><span class="lineno"> 1119</span>        {</div>
+<div class="line"><a id="l01120" name="l01120"></a><span class="lineno"> 1120</span>            std::exception_ptr <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">local_err</a> = <span class="keyword">nullptr</span>;</div>
+<div class="line"><a id="l01121" name="l01121"></a><span class="lineno"> 1121</span>            <span class="keywordflow">if</span> <span class="keyword">constexpr</span> (<span class="keyword">requires</span> { <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>.detach_impl(); })</div>
+<div class="line"><a id="l01122" name="l01122"></a><span class="lineno"> 1122</span>            {</div>
+<div class="line"><a id="l01123" name="l01123"></a><span class="lineno"> 1123</span>                <span class="keyword">static_assert</span>(<span class="keyword">noexcept</span>(<a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>.detach_impl()),</div>
+<div class="line"><a id="l01124" name="l01124"></a><span class="lineno"> 1124</span>                              <span class="stringliteral">&quot;detach_impl() must be noexcept&quot;</span>);</div>
+<div class="line"><a id="l01125" name="l01125"></a><span class="lineno"> 1125</span>                <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">local_err</a> = <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>.detach_impl();</div>
+<div class="line"><a id="l01126" name="l01126"></a><span class="lineno"> 1126</span>            }</div>
+<div class="line"><a id="l01127" name="l01127"></a><span class="lineno"> 1127</span> </div>
+<div class="line"><a id="l01128" name="l01128"></a><span class="lineno"> 1128</span>            <span class="keyword">auto</span> [<a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">dev</a>, <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">inner_err</a>] = <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>.m_kernel.detach();</div>
+<div class="line"><a id="l01129" name="l01129"></a><span class="lineno"> 1129</span>            <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>.m_io_status = <a class="code hl_enumvalue" href="namespaceIOv2.html#a36673c0e1d93ef095d232f0f726134d9a5da248ea6840aca1ae2b417b17982a89">io_status::neutral</a>;</div>
+<div class="line"><a id="l01130" name="l01130"></a><span class="lineno"> 1130</span>            <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>.m_is_bos_done = <span class="keyword">false</span>;</div>
+<div class="line"><a id="l01131" name="l01131"></a><span class="lineno"> 1131</span>            <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>.m_is_tainted = <span class="keyword">false</span>;</div>
+<div class="line"><a id="l01132" name="l01132"></a><span class="lineno"> 1132</span>            <span class="keywordflow">return</span> { std::move(<a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">dev</a>), <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">local_err</a> ? <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">local_err</a> : <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">inner_err</a> };</div>
+<div class="line"><a id="l01133" name="l01133"></a><span class="lineno"> 1133</span>        }</div>
+</div>
+<div class="line"><a id="l01134" name="l01134"></a><span class="lineno"> 1134</span> </div>
+<div class="foldopen" id="foldopen01178" data-start="{" data-end="}">
+<div class="line"><a id="l01178" name="l01178"></a><span class="lineno"><a class="line" href="classIOv2_1_1abs__cvt.html#afab139215d6440dec5359b73072a637e"> 1178</a></span>        <span class="keywordtype">void</span> <a class="code hl_function" href="classIOv2_1_1abs__cvt.html#afab139215d6440dec5359b73072a637e">attach</a>(<span class="keyword">this</span> <span class="keyword">auto</span>&amp; <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>, <a class="code hl_typedef" href="classIOv2_1_1abs__cvt.html#a862dfc0b13653c13e47bcb6e10a2092b">device_type</a>&amp;&amp; <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">dev</a> = <a class="code hl_typedef" href="classIOv2_1_1abs__cvt.html#a862dfc0b13653c13e47bcb6e10a2092b">device_type</a>{})</div>
+<div class="line"><a id="l01179" name="l01179"></a><span class="lineno"> 1179</span>        {</div>
+<div class="line"><a id="l01180" name="l01180"></a><span class="lineno"> 1180</span>            std::exception_ptr <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">local_err</a> = <span class="keyword">nullptr</span>;</div>
+<div class="line"><a id="l01181" name="l01181"></a><span class="lineno"> 1181</span>            <span class="keywordflow">if</span> <span class="keyword">constexpr</span> (<span class="keyword">requires</span> { <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>.detach_impl(); })</div>
+<div class="line"><a id="l01182" name="l01182"></a><span class="lineno"> 1182</span>            {</div>
+<div class="line"><a id="l01183" name="l01183"></a><span class="lineno"> 1183</span>                <span class="keyword">static_assert</span>(<span class="keyword">noexcept</span>(<a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>.detach_impl()),</div>
+<div class="line"><a id="l01184" name="l01184"></a><span class="lineno"> 1184</span>                              <span class="stringliteral">&quot;detach_impl() must be noexcept&quot;</span>);</div>
+<div class="line"><a id="l01185" name="l01185"></a><span class="lineno"> 1185</span>                <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">local_err</a> = <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>.detach_impl();</div>
+<div class="line"><a id="l01186" name="l01186"></a><span class="lineno"> 1186</span>            }</div>
+<div class="line"><a id="l01187" name="l01187"></a><span class="lineno"> 1187</span> </div>
+<div class="line"><a id="l01188" name="l01188"></a><span class="lineno"> 1188</span>            <span class="keywordflow">try</span></div>
+<div class="line"><a id="l01189" name="l01189"></a><span class="lineno"> 1189</span>            {</div>
+<div class="line"><a id="l01190" name="l01190"></a><span class="lineno"> 1190</span>                <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>.m_kernel.attach(std::move(<a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">dev</a>));</div>
+<div class="line"><a id="l01191" name="l01191"></a><span class="lineno"> 1191</span>                <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>.m_io_status = <a class="code hl_enumvalue" href="namespaceIOv2.html#a36673c0e1d93ef095d232f0f726134d9a5da248ea6840aca1ae2b417b17982a89">io_status::neutral</a>;</div>
+<div class="line"><a id="l01192" name="l01192"></a><span class="lineno"> 1192</span>                <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>.m_is_bos_done = <span class="keyword">false</span>;</div>
+<div class="line"><a id="l01193" name="l01193"></a><span class="lineno"> 1193</span>                <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>.m_is_tainted = <span class="keyword">false</span>;</div>
+<div class="line"><a id="l01194" name="l01194"></a><span class="lineno"> 1194</span> </div>
+<div class="line"><a id="l01195" name="l01195"></a><span class="lineno"> 1195</span>                <span class="keywordflow">if</span> <span class="keyword">constexpr</span> (<span class="keyword">requires</span> { <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>.attach_impl(); })</div>
+<div class="line"><a id="l01196" name="l01196"></a><span class="lineno"> 1196</span>                    <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>.attach_impl();</div>
+<div class="line"><a id="l01197" name="l01197"></a><span class="lineno"> 1197</span>            }</div>
+<div class="line"><a id="l01198" name="l01198"></a><span class="lineno"> 1198</span>            <span class="keywordflow">catch</span> (...)</div>
+<div class="line"><a id="l01199" name="l01199"></a><span class="lineno"> 1199</span>            {</div>
+<div class="line"><a id="l01200" name="l01200"></a><span class="lineno"> 1200</span>                <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>.m_is_tainted = <span class="keyword">true</span>;</div>
+<div class="line"><a id="l01201" name="l01201"></a><span class="lineno"> 1201</span>                <span class="keywordflow">throw</span>;</div>
+<div class="line"><a id="l01202" name="l01202"></a><span class="lineno"> 1202</span>            }</div>
+<div class="line"><a id="l01203" name="l01203"></a><span class="lineno"> 1203</span> </div>
+<div class="line"><a id="l01204" name="l01204"></a><span class="lineno"> 1204</span>            <span class="keywordflow">if</span> (<a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">local_err</a>) std::rethrow_exception(<a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">local_err</a>);</div>
+<div class="line"><a id="l01205" name="l01205"></a><span class="lineno"> 1205</span>        }</div>
+</div>
+<div class="line"><a id="l01206" name="l01206"></a><span class="lineno"> 1206</span> </div>
+<div class="foldopen" id="foldopen01228" data-start="{" data-end="}">
+<div class="line"><a id="l01228" name="l01228"></a><span class="lineno"><a class="line" href="classIOv2_1_1abs__cvt.html#af553e57c053d4b4a625240111a880229"> 1228</a></span>        <span class="keywordtype">void</span> <a class="code hl_function" href="classIOv2_1_1abs__cvt.html#af553e57c053d4b4a625240111a880229">adjust</a>(<span class="keyword">this</span> <span class="keyword">auto</span>&amp; <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>, <span class="keyword">const</span> <a class="code hl_struct" href="structIOv2_1_1cvt__behavior.html">cvt_behavior</a>&amp; <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">b</a>)</div>
+<div class="line"><a id="l01229" name="l01229"></a><span class="lineno"> 1229</span>        {</div>
+<div class="line"><a id="l01230" name="l01230"></a><span class="lineno"> 1230</span>            <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>.assert_not_tainted();</div>
+<div class="line"><a id="l01231" name="l01231"></a><span class="lineno"> 1231</span>            <span class="keywordflow">if</span> <span class="keyword">constexpr</span> (<span class="keyword">requires</span> { <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>.adjust_impl(<a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">b</a>); })</div>
+<div class="line"><a id="l01232" name="l01232"></a><span class="lineno"> 1232</span>                <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>.adjust_impl(<a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">b</a>);</div>
+<div class="line"><a id="l01233" name="l01233"></a><span class="lineno"> 1233</span>            <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>.m_kernel.adjust(<a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">b</a>);</div>
+<div class="line"><a id="l01234" name="l01234"></a><span class="lineno"> 1234</span>        }</div>
+</div>
+<div class="line"><a id="l01235" name="l01235"></a><span class="lineno"> 1235</span> </div>
+<div class="foldopen" id="foldopen01256" data-start="{" data-end="}">
+<div class="line"><a id="l01256" name="l01256"></a><span class="lineno"><a class="line" href="classIOv2_1_1abs__cvt.html#a87a5ea6be0113ed359370030b67a5f1b"> 1256</a></span>        <span class="keywordtype">void</span> <a class="code hl_function" href="classIOv2_1_1abs__cvt.html#a87a5ea6be0113ed359370030b67a5f1b">retrieve</a>(<span class="keyword">this</span> <span class="keyword">const</span> <span class="keyword">auto</span>&amp; <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>, <a class="code hl_struct" href="structIOv2_1_1cvt__status.html">cvt_status</a>&amp; <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">s</a>)</div>
+<div class="line"><a id="l01257" name="l01257"></a><span class="lineno"> 1257</span>        {</div>
+<div class="line"><a id="l01258" name="l01258"></a><span class="lineno"> 1258</span>            <span class="keywordflow">if</span> <span class="keyword">constexpr</span> (<span class="keyword">requires</span> { <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>.retrieve_impl(<a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">s</a>); })</div>
+<div class="line"><a id="l01259" name="l01259"></a><span class="lineno"> 1259</span>                <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>.retrieve_impl(<a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">s</a>);</div>
+<div class="line"><a id="l01260" name="l01260"></a><span class="lineno"> 1260</span>            <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>.m_kernel.retrieve(<a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">s</a>);</div>
+<div class="line"><a id="l01261" name="l01261"></a><span class="lineno"> 1261</span>        }</div>
+</div>
+<div class="line"><a id="l01262" name="l01262"></a><span class="lineno"> 1262</span> </div>
+<div class="foldopen" id="foldopen01310" data-start="{" data-end="}">
+<div class="line"><a id="l01310" name="l01310"></a><span class="lineno"><a class="line" href="classIOv2_1_1abs__cvt.html#aa1f49b1314093341e1a716f07101af1b"> 1310</a></span>        <a class="code hl_enumeration" href="namespaceIOv2.html#a36673c0e1d93ef095d232f0f726134d9">io_status</a> <a class="code hl_function" href="classIOv2_1_1abs__cvt.html#aa1f49b1314093341e1a716f07101af1b">bos</a>(<span class="keyword">this</span> <span class="keyword">auto</span>&amp; <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>)</div>
+<div class="line"><a id="l01311" name="l01311"></a><span class="lineno"> 1311</span>        {</div>
+<div class="line"><a id="l01312" name="l01312"></a><span class="lineno"> 1312</span>            <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>.assert_not_tainted();</div>
+<div class="line"><a id="l01313" name="l01313"></a><span class="lineno"> 1313</span> </div>
+<div class="line"><a id="l01314" name="l01314"></a><span class="lineno"> 1314</span>            <span class="keywordflow">try</span></div>
+<div class="line"><a id="l01315" name="l01315"></a><span class="lineno"> 1315</span>            {</div>
+<div class="line"><a id="l01316" name="l01316"></a><span class="lineno"> 1316</span>                <span class="keywordflow">if</span> (<a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>.m_io_status != <a class="code hl_enumvalue" href="namespaceIOv2.html#a36673c0e1d93ef095d232f0f726134d9a5da248ea6840aca1ae2b417b17982a89">io_status::neutral</a>)</div>
+<div class="line"><a id="l01317" name="l01317"></a><span class="lineno"> 1317</span>                    <span class="keywordflow">throw</span> <a class="code hl_struct" href="structIOv2_1_1cvt__error.html">cvt_error</a>(<span class="stringliteral">&quot;abs_cvt::bos fail: cannot call bos with un-neutral status&quot;</span>);</div>
+<div class="line"><a id="l01318" name="l01318"></a><span class="lineno"> 1318</span>                <span class="keywordflow">if</span> (<a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>.m_is_bos_done)</div>
+<div class="line"><a id="l01319" name="l01319"></a><span class="lineno"> 1319</span>                    <span class="keywordflow">throw</span> <a class="code hl_struct" href="structIOv2_1_1cvt__error.html">cvt_error</a>(<span class="stringliteral">&quot;abs_cvt::bos fail: cannot call bos multiple times&quot;</span>);</div>
+<div class="line"><a id="l01320" name="l01320"></a><span class="lineno"> 1320</span> </div>
+<div class="line"><a id="l01321" name="l01321"></a><span class="lineno"> 1321</span>                <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>.m_io_status = <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>.m_kernel.bos();</div>
+<div class="line"><a id="l01322" name="l01322"></a><span class="lineno"> 1322</span> </div>
+<div class="line"><a id="l01323" name="l01323"></a><span class="lineno"> 1323</span>                <span class="keywordflow">if</span> <span class="keyword">constexpr</span> (<span class="keyword">requires</span> { <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>.bos_impl(); })</div>
+<div class="line"><a id="l01324" name="l01324"></a><span class="lineno"> 1324</span>                    <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>.bos_impl();</div>
+<div class="line"><a id="l01325" name="l01325"></a><span class="lineno"> 1325</span>                <span class="keywordflow">return</span> <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>.m_io_status;</div>
+<div class="line"><a id="l01326" name="l01326"></a><span class="lineno"> 1326</span>            }</div>
+<div class="line"><a id="l01327" name="l01327"></a><span class="lineno"> 1327</span>            <span class="keywordflow">catch</span> (...)</div>
+<div class="line"><a id="l01328" name="l01328"></a><span class="lineno"> 1328</span>            {</div>
+<div class="line"><a id="l01329" name="l01329"></a><span class="lineno"> 1329</span>                <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>.release_derived_state();</div>
+<div class="line"><a id="l01330" name="l01330"></a><span class="lineno"> 1330</span>                <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>.m_io_status = <a class="code hl_enumvalue" href="namespaceIOv2.html#a36673c0e1d93ef095d232f0f726134d9a5da248ea6840aca1ae2b417b17982a89">io_status::neutral</a>;</div>
+<div class="line"><a id="l01331" name="l01331"></a><span class="lineno"> 1331</span>                <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>.m_is_tainted = <span class="keyword">true</span>;</div>
+<div class="line"><a id="l01332" name="l01332"></a><span class="lineno"> 1332</span>                <span class="keywordflow">throw</span>;</div>
+<div class="line"><a id="l01333" name="l01333"></a><span class="lineno"> 1333</span>            }</div>
+<div class="line"><a id="l01334" name="l01334"></a><span class="lineno"> 1334</span>        }</div>
+</div>
+<div class="line"><a id="l01335" name="l01335"></a><span class="lineno"> 1335</span> </div>
+<div class="foldopen" id="foldopen01352" data-start="{" data-end="}">
+<div class="line"><a id="l01352" name="l01352"></a><span class="lineno"><a class="line" href="classIOv2_1_1abs__cvt.html#ac247b7d007d6e16cbc90a1b478e125ee"> 1352</a></span>        <span class="keywordtype">void</span> <a class="code hl_function" href="classIOv2_1_1abs__cvt.html#ac247b7d007d6e16cbc90a1b478e125ee">main_cont_beg</a>(<span class="keyword">this</span> <span class="keyword">auto</span>&amp; <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>)</div>
+<div class="line"><a id="l01353" name="l01353"></a><span class="lineno"> 1353</span>        {</div>
+<div class="line"><a id="l01354" name="l01354"></a><span class="lineno"> 1354</span>            <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>.assert_not_tainted();</div>
+<div class="line"><a id="l01355" name="l01355"></a><span class="lineno"> 1355</span> </div>
+<div class="line"><a id="l01356" name="l01356"></a><span class="lineno"> 1356</span>            <span class="keywordflow">try</span></div>
+<div class="line"><a id="l01357" name="l01357"></a><span class="lineno"> 1357</span>            {</div>
+<div class="line"><a id="l01358" name="l01358"></a><span class="lineno"> 1358</span>                <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>.m_kernel.main_cont_beg();</div>
+<div class="line"><a id="l01359" name="l01359"></a><span class="lineno"> 1359</span>                <span class="keywordflow">if</span> <span class="keyword">constexpr</span> (<span class="keyword">requires</span> { <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>.main_cont_beg_impl(); })</div>
+<div class="line"><a id="l01360" name="l01360"></a><span class="lineno"> 1360</span>                    <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>.main_cont_beg_impl();</div>
+<div class="line"><a id="l01361" name="l01361"></a><span class="lineno"> 1361</span>                <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>.m_is_bos_done = <span class="keyword">true</span>;</div>
+<div class="line"><a id="l01362" name="l01362"></a><span class="lineno"> 1362</span>            }</div>
+<div class="line"><a id="l01363" name="l01363"></a><span class="lineno"> 1363</span>            <span class="keywordflow">catch</span> (...)</div>
+<div class="line"><a id="l01364" name="l01364"></a><span class="lineno"> 1364</span>            {</div>
+<div class="line"><a id="l01365" name="l01365"></a><span class="lineno"> 1365</span>                <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>.release_derived_state();</div>
+<div class="line"><a id="l01366" name="l01366"></a><span class="lineno"> 1366</span>                <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>.m_io_status = <a class="code hl_enumvalue" href="namespaceIOv2.html#a36673c0e1d93ef095d232f0f726134d9a5da248ea6840aca1ae2b417b17982a89">io_status::neutral</a>;</div>
+<div class="line"><a id="l01367" name="l01367"></a><span class="lineno"> 1367</span>                <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>.m_is_tainted = <span class="keyword">true</span>;</div>
+<div class="line"><a id="l01368" name="l01368"></a><span class="lineno"> 1368</span>                <span class="keywordflow">throw</span>;</div>
+<div class="line"><a id="l01369" name="l01369"></a><span class="lineno"> 1369</span>            }</div>
+<div class="line"><a id="l01370" name="l01370"></a><span class="lineno"> 1370</span>        }</div>
+</div>
+<div class="line"><a id="l01371" name="l01371"></a><span class="lineno"> 1371</span> </div>
+<div class="foldopen" id="foldopen01392" data-start="{" data-end="}">
+<div class="line"><a id="l01392" name="l01392"></a><span class="lineno"><a class="line" href="classIOv2_1_1abs__cvt.html#a3f9541834637ad027cbb38fff1b7ac05"> 1392</a></span>        [[<a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">nodiscard</a>]] <span class="keywordtype">bool</span> <a class="code hl_function" href="classIOv2_1_1abs__cvt.html#a3f9541834637ad027cbb38fff1b7ac05">is_eof</a>(<span class="keyword">this</span> <span class="keyword">auto</span>&amp; <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>)</div>
+<div class="line"><a id="l01393" name="l01393"></a><span class="lineno"> 1393</span>            <span class="keyword">requires</span> (<a class="code hl_concept" href="conceptIOv2_1_1cvt__cpt_1_1support__get.html">cvt_cpt::support_get&lt;KernelType&gt;</a>)</div>
+<div class="line"><a id="l01394" name="l01394"></a><span class="lineno"> 1394</span>        {</div>
+<div class="line"><a id="l01395" name="l01395"></a><span class="lineno"> 1395</span>            <span class="keywordflow">if</span> <span class="keyword">constexpr</span> (<span class="keyword">requires</span> { { <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>.is_eof_impl() } -&gt; std::same_as&lt;bool&gt;; })</div>
+<div class="line"><a id="l01396" name="l01396"></a><span class="lineno"> 1396</span>                <span class="keywordflow">return</span> <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>.is_eof_impl();</div>
+<div class="line"><a id="l01397" name="l01397"></a><span class="lineno"> 1397</span>            <span class="keywordflow">else</span></div>
+<div class="line"><a id="l01398" name="l01398"></a><span class="lineno"> 1398</span>                <span class="keywordflow">return</span> <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>.m_kernel.is_eof();</div>
+<div class="line"><a id="l01399" name="l01399"></a><span class="lineno"> 1399</span>        }</div>
+</div>
+<div class="line"><a id="l01400" name="l01400"></a><span class="lineno"> 1400</span> </div>
+<div class="line"><a id="l01401" name="l01401"></a><span class="lineno"> 1401</span>    <span class="comment">// optional methods</span></div>
+<div class="line"><a id="l01402" name="l01402"></a><span class="lineno"> 1402</span>    <span class="keyword">public</span>:</div>
+<div class="line"><a id="l01457" name="l01457"></a><span class="lineno"> 1457</span>        <span class="keyword">template</span> &lt;<span class="keyword">typename</span> Self&gt;</div>
+<div class="foldopen" id="foldopen01458" data-start="{" data-end="}">
+<div class="line"><a id="l01458" name="l01458"></a><span class="lineno"><a class="line" href="classIOv2_1_1abs__cvt.html#a722ebc59d1ab432bfc570c0cb940236d"> 1458</a></span>        std::size_t <a class="code hl_function" href="classIOv2_1_1abs__cvt.html#a722ebc59d1ab432bfc570c0cb940236d">get</a>(<span class="keyword">this</span> <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">Self</a>&amp; <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>, <a class="code hl_typedef" href="classIOv2_1_1abs__cvt.html#af7a1ce8789d2c408a00c7ec4fab1f8e6">internal_type</a>* <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">to</a>, std::size_t <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">to_max</a>)</div>
+<div class="line"><a id="l01459" name="l01459"></a><span class="lineno"> 1459</span>            <span class="keyword">requires</span> <span class="keyword">requires</span>(<a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">Self</a>&amp; <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">t</a>, <a class="code hl_class" href="classIOv2_1_1cvt__reader.html">cvt_reader&lt;KernelType&gt;</a>&amp; <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">r</a>, <a class="code hl_typedef" href="classIOv2_1_1abs__cvt.html#af7a1ce8789d2c408a00c7ec4fab1f8e6">internal_type</a>* <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">data</a>, std::size_t <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">len</a>) {</div>
+<div class="line"><a id="l01460" name="l01460"></a><span class="lineno"> 1460</span>                { <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">t</a>.get_main(<a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">r</a>, <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">data</a>, <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">len</a>) } -&gt; std::same_as&lt;std::size_t&gt;;</div>
+<div class="line"><a id="l01461" name="l01461"></a><span class="lineno"> 1461</span>            }</div>
+<div class="line"><a id="l01462" name="l01462"></a><span class="lineno"> 1462</span>        {</div>
+<div class="line"><a id="l01463" name="l01463"></a><span class="lineno"> 1463</span>            <span class="comment">// Read failures do not taint: they only advance the kernel cursor</span></div>
+<div class="line"><a id="l01464" name="l01464"></a><span class="lineno"> 1464</span>            <span class="comment">// and possibly leave a per-call mbstate undefined; the underlying</span></div>
+<div class="line"><a id="l01465" name="l01465"></a><span class="lineno"> 1465</span>            <span class="comment">// stream content is unchanged, and callers can reseek to recover.</span></div>
+<div class="line"><a id="l01466" name="l01466"></a><span class="lineno"> 1466</span>            <span class="comment">// We still honour any pre-existing taint so that a writer that</span></div>
+<div class="line"><a id="l01467" name="l01467"></a><span class="lineno"> 1467</span>            <span class="comment">// corrupted the stream cannot then read back a confused image.</span></div>
+<div class="line"><a id="l01468" name="l01468"></a><span class="lineno"> 1468</span>            <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>.assert_not_tainted();</div>
+<div class="line"><a id="l01469" name="l01469"></a><span class="lineno"> 1469</span> </div>
+<div class="line"><a id="l01470" name="l01470"></a><span class="lineno"> 1470</span>            <a class="code hl_class" href="classIOv2_1_1cvt__reader.html">cvt_reader&lt;KernelType&gt;</a> <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">reader</a>(<a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>.m_kernel, <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>.m_tmp_io_buffer);</div>
+<div class="line"><a id="l01471" name="l01471"></a><span class="lineno"> 1471</span> </div>
+<div class="line"><a id="l01472" name="l01472"></a><span class="lineno"> 1472</span>            <span class="keywordflow">if</span> (!<a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>.m_is_bos_done)</div>
+<div class="line"><a id="l01473" name="l01473"></a><span class="lineno"> 1473</span>            {</div>
+<div class="line"><a id="l01474" name="l01474"></a><span class="lineno"> 1474</span>                <span class="keywordflow">if</span> (<a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">to_max</a> == 0) <span class="keywordflow">return</span> 0;</div>
+<div class="line"><a id="l01475" name="l01475"></a><span class="lineno"> 1475</span> </div>
+<div class="line"><a id="l01476" name="l01476"></a><span class="lineno"> 1476</span>                <span class="keyword">constexpr</span> std::size_t <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">ext_size</a> = <span class="keyword">sizeof</span>(<a class="code hl_typedef" href="classIOv2_1_1abs__cvt.html#a992170e16cac25188bbb51350ff607e1">external_type</a>);</div>
+<div class="line"><a id="l01477" name="l01477"></a><span class="lineno"> 1477</span> </div>
+<div class="line"><a id="l01478" name="l01478"></a><span class="lineno"> 1478</span>                <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">reader</a>.reset(s_bos_chunk);</div>
+<div class="line"><a id="l01479" name="l01479"></a><span class="lineno"> 1479</span>                <span class="comment">// NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)</span></div>
+<div class="line"><a id="l01480" name="l01480"></a><span class="lineno"> 1480</span>                <span class="keywordtype">char</span>* <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">dest_bytes</a> = <span class="keyword">reinterpret_cast&lt;</span><span class="keywordtype">char</span>*<span class="keyword">&gt;</span>(<a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">to</a>);</div>
+<div class="line"><a id="l01481" name="l01481"></a><span class="lineno"> 1481</span>                <span class="comment">// NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)</span></div>
+<div class="line"><a id="l01482" name="l01482"></a><span class="lineno"> 1482</span>                <span class="keyword">const</span> <span class="keywordtype">char</span>* <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">dest_bytes_end</a> = <span class="keyword">reinterpret_cast&lt;</span><span class="keyword">const </span><span class="keywordtype">char</span>*<span class="keyword">&gt;</span>(<a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">to</a> + <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">to_max</a>);</div>
+<div class="line"><a id="l01483" name="l01483"></a><span class="lineno"> 1483</span> </div>
+<div class="line"><a id="l01484" name="l01484"></a><span class="lineno"> 1484</span>                <span class="comment">// BOS phase requires complete data: if the stream ends unexpectedly</span></div>
+<div class="line"><a id="l01485" name="l01485"></a><span class="lineno"> 1485</span>                <span class="comment">// before providing enough bytes, this is a format error and we throw.</span></div>
+<div class="line"><a id="l01486" name="l01486"></a><span class="lineno"> 1486</span>                <span class="comment">// Unlike get_main() which may return partial data, BOS is all-or-nothing.</span></div>
+<div class="line"><a id="l01487" name="l01487"></a><span class="lineno"> 1487</span> </div>
+<div class="line"><a id="l01488" name="l01488"></a><span class="lineno"> 1488</span>                <span class="comment">// Read full external_type chunks</span></div>
+<div class="line"><a id="l01489" name="l01489"></a><span class="lineno"> 1489</span>                <span class="keywordflow">while</span> (<a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">dest_bytes</a> + <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">ext_size</a> &lt;= <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">dest_bytes_end</a>)</div>
+<div class="line"><a id="l01490" name="l01490"></a><span class="lineno"> 1490</span>                {</div>
+<div class="line"><a id="l01491" name="l01491"></a><span class="lineno"> 1491</span>                    <span class="keyword">const</span> std::size_t <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">units_to_read_now</a> = std::min((std::size_t)((<a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">dest_bytes_end</a> - <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">dest_bytes</a>) / <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">ext_size</a>), s_bos_chunk);</div>
+<div class="line"><a id="l01492" name="l01492"></a><span class="lineno"> 1492</span> </div>
+<div class="line"><a id="l01493" name="l01493"></a><span class="lineno"> 1493</span>                    <span class="keyword">const</span> <span class="keyword">auto</span>* <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">src_buf</a> = <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">reader</a>.template <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">get_buf&lt;true&gt;</a>(<a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">units_to_read_now</a>);</div>
+<div class="line"><a id="l01494" name="l01494"></a><span class="lineno"> 1494</span>                    std::memcpy(<a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">dest_bytes</a>, <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">src_buf</a>, <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">units_to_read_now</a> * <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">ext_size</a>);</div>
+<div class="line"><a id="l01495" name="l01495"></a><span class="lineno"> 1495</span>                    <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">dest_bytes</a> += <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">units_to_read_now</a> * <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">ext_size</a>;</div>
+<div class="line"><a id="l01496" name="l01496"></a><span class="lineno"> 1496</span>                }</div>
+<div class="line"><a id="l01497" name="l01497"></a><span class="lineno"> 1497</span> </div>
+<div class="line"><a id="l01498" name="l01498"></a><span class="lineno"> 1498</span>                <span class="comment">// Read the final partial internal_type if needed</span></div>
+<div class="line"><a id="l01499" name="l01499"></a><span class="lineno"> 1499</span>                <span class="keyword">const</span> std::size_t <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">final_remainder_bytes</a> = <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">dest_bytes_end</a> - <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">dest_bytes</a>;</div>
+<div class="line"><a id="l01500" name="l01500"></a><span class="lineno"> 1500</span>                <span class="keywordflow">if</span> (<a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">final_remainder_bytes</a> &gt; 0)</div>
+<div class="line"><a id="l01501" name="l01501"></a><span class="lineno"> 1501</span>                {</div>
+<div class="line"><a id="l01502" name="l01502"></a><span class="lineno"> 1502</span>                    <span class="keyword">const</span> <span class="keyword">auto</span>* <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">src_buf</a> = <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">reader</a>.template <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">get_buf&lt;true&gt;</a>(1);</div>
+<div class="line"><a id="l01503" name="l01503"></a><span class="lineno"> 1503</span>                    std::memcpy(<a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">dest_bytes</a>, <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">src_buf</a>, <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">final_remainder_bytes</a>);</div>
+<div class="line"><a id="l01504" name="l01504"></a><span class="lineno"> 1504</span>                    <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">dest_bytes</a> += <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">final_remainder_bytes</a>;</div>
+<div class="line"><a id="l01505" name="l01505"></a><span class="lineno"> 1505</span>                }</div>
+<div class="line"><a id="l01506" name="l01506"></a><span class="lineno"> 1506</span> </div>
+<div class="line"><a id="l01507" name="l01507"></a><span class="lineno"> 1507</span>                <span class="keywordflow">return</span> <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">to_max</a>;</div>
+<div class="line"><a id="l01508" name="l01508"></a><span class="lineno"> 1508</span>            }</div>
+<div class="line"><a id="l01509" name="l01509"></a><span class="lineno"> 1509</span>            <span class="keywordflow">else</span></div>
+<div class="line"><a id="l01510" name="l01510"></a><span class="lineno"> 1510</span>            {</div>
+<div class="line"><a id="l01511" name="l01511"></a><span class="lineno"> 1511</span>                <span class="keywordflow">if</span> (<a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>.m_io_status != <a class="code hl_enumvalue" href="namespaceIOv2.html#a36673c0e1d93ef095d232f0f726134d9aa43c1b0aa53a0c908810c06ab1ff3967">io_status::input</a>)</div>
+<div class="line"><a id="l01512" name="l01512"></a><span class="lineno"> 1512</span>                {</div>
+<div class="line"><a id="l01513" name="l01513"></a><span class="lineno"> 1513</span>                    <span class="keywordflow">if</span> <span class="keyword">constexpr</span> (cvt_cpt::support_io_switch&lt;Self&gt;)</div>
+<div class="line"><a id="l01514" name="l01514"></a><span class="lineno"> 1514</span>                        <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>.switch_to_get();</div>
+<div class="line"><a id="l01515" name="l01515"></a><span class="lineno"> 1515</span>                    <span class="keywordflow">else</span></div>
+<div class="line"><a id="l01516" name="l01516"></a><span class="lineno"> 1516</span>                        <span class="keywordflow">throw</span> cvt_error(<span class="stringliteral">&quot;abs_cvt::get fail: cannot switch to input mode&quot;</span>);</div>
+<div class="line"><a id="l01517" name="l01517"></a><span class="lineno"> 1517</span>                }</div>
+<div class="line"><a id="l01518" name="l01518"></a><span class="lineno"> 1518</span>                <span class="keywordflow">return</span> <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>.get_main(<a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">reader</a>, <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">to</a>, <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">to_max</a>);</div>
+<div class="line"><a id="l01519" name="l01519"></a><span class="lineno"> 1519</span>            }</div>
+<div class="line"><a id="l01520" name="l01520"></a><span class="lineno"> 1520</span>        }</div>
+</div>
+<div class="line"><a id="l01521" name="l01521"></a><span class="lineno"> 1521</span> </div>
+<div class="line"><a id="l01567" name="l01567"></a><span class="lineno"> 1567</span>        <span class="keyword">template</span> &lt;<span class="keyword">typename</span> Self&gt;</div>
+<div class="foldopen" id="foldopen01568" data-start="{" data-end="}">
+<div class="line"><a id="l01568" name="l01568"></a><span class="lineno"><a class="line" href="classIOv2_1_1abs__cvt.html#a2677885501c4b13850b5883e54481faf"> 1568</a></span>        <span class="keywordtype">void</span> <a class="code hl_function" href="classIOv2_1_1abs__cvt.html#a2677885501c4b13850b5883e54481faf">put</a>(<span class="keyword">this</span> <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">Self</a>&amp; <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>, <span class="keyword">const</span> <a class="code hl_typedef" href="classIOv2_1_1abs__cvt.html#af7a1ce8789d2c408a00c7ec4fab1f8e6">internal_type</a>* <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">to</a>, std::size_t <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">to_size</a>)</div>
+<div class="line"><a id="l01569" name="l01569"></a><span class="lineno"> 1569</span>            <span class="keyword">requires</span> <span class="keyword">requires</span>(<a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">Self</a>&amp; <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">t</a>, <a class="code hl_class" href="classIOv2_1_1cvt__writer.html">cvt_writer&lt;KernelType&gt;</a>&amp; <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">w</a>, <span class="keyword">const</span> <a class="code hl_typedef" href="classIOv2_1_1abs__cvt.html#af7a1ce8789d2c408a00c7ec4fab1f8e6">internal_type</a>* <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">data</a>, std::size_t <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">len</a>) {</div>
+<div class="line"><a id="l01570" name="l01570"></a><span class="lineno"> 1570</span>                { <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">t</a>.put_main(<a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">w</a>, <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">data</a>, <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">len</a>) } -&gt; std::same_as&lt;void&gt;;</div>
+<div class="line"><a id="l01571" name="l01571"></a><span class="lineno"> 1571</span>            }</div>
+<div class="line"><a id="l01572" name="l01572"></a><span class="lineno"> 1572</span>        {</div>
+<div class="line"><a id="l01573" name="l01573"></a><span class="lineno"> 1573</span>            <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>.assert_not_tainted();</div>
+<div class="line"><a id="l01574" name="l01574"></a><span class="lineno"> 1574</span> </div>
+<div class="line"><a id="l01575" name="l01575"></a><span class="lineno"> 1575</span>            <span class="comment">// IO-direction switching does not write bytes to the output stream:</span></div>
+<div class="line"><a id="l01576" name="l01576"></a><span class="lineno"> 1576</span>            <span class="comment">// a failed switch_to_put() leaves the stream unchanged, so the</span></div>
+<div class="line"><a id="l01577" name="l01577"></a><span class="lineno"> 1577</span>            <span class="comment">// converter is not corrupted and must not be tainted.  Perform the</span></div>
+<div class="line"><a id="l01578" name="l01578"></a><span class="lineno"> 1578</span>            <span class="comment">// switch BEFORE entering the taint-on-exception region so that only</span></div>
+<div class="line"><a id="l01579" name="l01579"></a><span class="lineno"> 1579</span>            <span class="comment">// actual kernel writes can cause tainting.</span></div>
+<div class="line"><a id="l01580" name="l01580"></a><span class="lineno"> 1580</span>            <span class="keywordflow">if</span> (<a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>.m_is_bos_done &amp;&amp; <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>.m_io_status != <a class="code hl_enumvalue" href="namespaceIOv2.html#a36673c0e1d93ef095d232f0f726134d9a78e6221f6393d1356681db398f14ce6d">io_status::output</a>)</div>
+<div class="line"><a id="l01581" name="l01581"></a><span class="lineno"> 1581</span>            {</div>
+<div class="line"><a id="l01582" name="l01582"></a><span class="lineno"> 1582</span>                <span class="keywordflow">if</span> <span class="keyword">constexpr</span> (<a class="code hl_concept" href="conceptIOv2_1_1cvt__cpt_1_1support__io__switch.html">cvt_cpt::support_io_switch&lt;Self&gt;</a>)</div>
+<div class="line"><a id="l01583" name="l01583"></a><span class="lineno"> 1583</span>                    <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>.switch_to_put();</div>
+<div class="line"><a id="l01584" name="l01584"></a><span class="lineno"> 1584</span>                <span class="keywordflow">else</span></div>
+<div class="line"><a id="l01585" name="l01585"></a><span class="lineno"> 1585</span>                    <span class="keywordflow">throw</span> <a class="code hl_struct" href="structIOv2_1_1cvt__error.html">cvt_error</a>(<span class="stringliteral">&quot;abs_cvt::put fail: cannot switch to output mode&quot;</span>);</div>
+<div class="line"><a id="l01586" name="l01586"></a><span class="lineno"> 1586</span>            }</div>
+<div class="line"><a id="l01587" name="l01587"></a><span class="lineno"> 1587</span> </div>
+<div class="line"><a id="l01588" name="l01588"></a><span class="lineno"> 1588</span>            <span class="keywordflow">try</span></div>
+<div class="line"><a id="l01589" name="l01589"></a><span class="lineno"> 1589</span>            {</div>
+<div class="line"><a id="l01590" name="l01590"></a><span class="lineno"> 1590</span>                cvt_writer&lt;KernelType&gt; <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">writer</a>(<a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>.m_kernel, <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>.m_tmp_io_buffer);</div>
+<div class="line"><a id="l01591" name="l01591"></a><span class="lineno"> 1591</span>                <span class="keywordflow">if</span> (!<a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>.m_is_bos_done)</div>
+<div class="line"><a id="l01592" name="l01592"></a><span class="lineno"> 1592</span>                {</div>
+<div class="line"><a id="l01593" name="l01593"></a><span class="lineno"> 1593</span>                    <span class="keywordflow">if</span> (<a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">to_size</a> == 0) <span class="keywordflow">return</span>;</div>
+<div class="line"><a id="l01594" name="l01594"></a><span class="lineno"> 1594</span> </div>
+<div class="line"><a id="l01595" name="l01595"></a><span class="lineno"> 1595</span>                    <span class="keyword">constexpr</span> std::size_t <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">ext_size</a> = <span class="keyword">sizeof</span>(<a class="code hl_typedef" href="classIOv2_1_1abs__cvt.html#a992170e16cac25188bbb51350ff607e1">external_type</a>);</div>
+<div class="line"><a id="l01596" name="l01596"></a><span class="lineno"> 1596</span> </div>
+<div class="line"><a id="l01597" name="l01597"></a><span class="lineno"> 1597</span>                    <span class="comment">// NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)</span></div>
+<div class="line"><a id="l01598" name="l01598"></a><span class="lineno"> 1598</span>                    <span class="keyword">auto</span> <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">to_bytes</a> = <span class="keyword">reinterpret_cast&lt;</span><span class="keyword">const </span><span class="keywordtype">char</span>*<span class="keyword">&gt;</span>(<a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">to</a>);</div>
+<div class="line"><a id="l01599" name="l01599"></a><span class="lineno"> 1599</span>                    <span class="comment">// NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)</span></div>
+<div class="line"><a id="l01600" name="l01600"></a><span class="lineno"> 1600</span>                    <span class="keyword">auto</span> <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">to_bytes_end</a> = <span class="keyword">reinterpret_cast&lt;</span><span class="keyword">const </span><span class="keywordtype">char</span>*<span class="keyword">&gt;</span>(<a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">to</a> + <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">to_size</a>);</div>
+<div class="line"><a id="l01601" name="l01601"></a><span class="lineno"> 1601</span> </div>
+<div class="line"><a id="l01602" name="l01602"></a><span class="lineno"> 1602</span>                    <span class="comment">// BOS phase writes complete external_type units. If the input data</span></div>
+<div class="line"><a id="l01603" name="l01603"></a><span class="lineno"> 1603</span>                    <span class="comment">// is not a multiple of ext_size, pad the final unit with zeros.</span></div>
+<div class="line"><a id="l01604" name="l01604"></a><span class="lineno"> 1604</span> </div>
+<div class="line"><a id="l01605" name="l01605"></a><span class="lineno"> 1605</span>                    <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">writer</a>.reset(s_bos_chunk);</div>
+<div class="line"><a id="l01606" name="l01606"></a><span class="lineno"> 1606</span>                    <span class="keywordflow">while</span> (<a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">to_bytes</a> + <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">ext_size</a> &lt;= <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">to_bytes_end</a>)</div>
+<div class="line"><a id="l01607" name="l01607"></a><span class="lineno"> 1607</span>                    {</div>
+<div class="line"><a id="l01608" name="l01608"></a><span class="lineno"> 1608</span>                        <span class="keyword">auto</span> <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">dest_count</a> = std::min&lt;std::size_t&gt;((<a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">to_bytes_end</a> - <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">to_bytes</a>) / <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">ext_size</a>, s_bos_chunk);</div>
+<div class="line"><a id="l01609" name="l01609"></a><span class="lineno"> 1609</span>                        <span class="keyword">auto</span> <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">ptr</a> = <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">writer</a>.put_buf(<a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">dest_count</a>);</div>
+<div class="line"><a id="l01610" name="l01610"></a><span class="lineno"> 1610</span>                        <span class="comment">// NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)</span></div>
+<div class="line"><a id="l01611" name="l01611"></a><span class="lineno"> 1611</span>                        std::memcpy(<span class="keyword">reinterpret_cast&lt;</span><span class="keywordtype">char</span>*<span class="keyword">&gt;</span>(<a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">ptr</a>), <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">to_bytes</a>, <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">dest_count</a> * <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">ext_size</a>);</div>
+<div class="line"><a id="l01612" name="l01612"></a><span class="lineno"> 1612</span>                        <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">to_bytes</a> += <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">dest_count</a> * <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">ext_size</a>;</div>
+<div class="line"><a id="l01613" name="l01613"></a><span class="lineno"> 1613</span>                    }</div>
+<div class="line"><a id="l01614" name="l01614"></a><span class="lineno"> 1614</span> </div>
+<div class="line"><a id="l01615" name="l01615"></a><span class="lineno"> 1615</span>                    <span class="keywordflow">if</span> (<a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">to_bytes</a> &lt; <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">to_bytes_end</a>)</div>
+<div class="line"><a id="l01616" name="l01616"></a><span class="lineno"> 1616</span>                    {</div>
+<div class="line"><a id="l01617" name="l01617"></a><span class="lineno"> 1617</span>                        <span class="comment">// The while loop above guarantees remaining &lt; ext_size.</span></div>
+<div class="line"><a id="l01618" name="l01618"></a><span class="lineno"> 1618</span>                        <span class="comment">// The modulo is logically redundant but helps the compiler&#39;s</span></div>
+<div class="line"><a id="l01619" name="l01619"></a><span class="lineno"> 1619</span>                        <span class="comment">// static analyzer prove the bound for memset size calculation.</span></div>
+<div class="line"><a id="l01620" name="l01620"></a><span class="lineno"> 1620</span>                        std::size_t <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">remaining</a> = <span class="keyword">static_cast&lt;</span>std::size_t<span class="keyword">&gt;</span>(<a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">to_bytes_end</a> - <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">to_bytes</a>) % <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">ext_size</a>;</div>
+<div class="line"><a id="l01621" name="l01621"></a><span class="lineno"> 1621</span>                        <span class="keyword">auto</span> <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">ptr</a> = <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">writer</a>.put_buf(1);</div>
+<div class="line"><a id="l01622" name="l01622"></a><span class="lineno"> 1622</span>                        <span class="comment">// NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)</span></div>
+<div class="line"><a id="l01623" name="l01623"></a><span class="lineno"> 1623</span>                        std::memcpy(<span class="keyword">reinterpret_cast&lt;</span><span class="keywordtype">char</span>*<span class="keyword">&gt;</span>(<a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">ptr</a>), <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">to_bytes</a>, <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">remaining</a>);</div>
+<div class="line"><a id="l01624" name="l01624"></a><span class="lineno"> 1624</span>                        <span class="comment">// NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)</span></div>
+<div class="line"><a id="l01625" name="l01625"></a><span class="lineno"> 1625</span>                        std::memset(<span class="keyword">reinterpret_cast&lt;</span><span class="keywordtype">char</span>*<span class="keyword">&gt;</span>(<a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">ptr</a>) + <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">remaining</a>, 0, <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">ext_size</a> - <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">remaining</a>);</div>
+<div class="line"><a id="l01626" name="l01626"></a><span class="lineno"> 1626</span>                    }</div>
+<div class="line"><a id="l01627" name="l01627"></a><span class="lineno"> 1627</span> </div>
+<div class="line"><a id="l01628" name="l01628"></a><span class="lineno"> 1628</span>                    <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">writer</a>.commit();</div>
+<div class="line"><a id="l01629" name="l01629"></a><span class="lineno"> 1629</span>                }</div>
+<div class="line"><a id="l01630" name="l01630"></a><span class="lineno"> 1630</span>                <span class="keywordflow">else</span></div>
+<div class="line"><a id="l01631" name="l01631"></a><span class="lineno"> 1631</span>                {</div>
+<div class="line"><a id="l01632" name="l01632"></a><span class="lineno"> 1632</span>                    <span class="comment">// switch_to_put() was already called above if needed;</span></div>
+<div class="line"><a id="l01633" name="l01633"></a><span class="lineno"> 1633</span>                    <span class="comment">// m_io_status is guaranteed to be output at this point.</span></div>
+<div class="line"><a id="l01634" name="l01634"></a><span class="lineno"> 1634</span>                    <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>.put_main(<a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">writer</a>, <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">to</a>, <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">to_size</a>);</div>
+<div class="line"><a id="l01635" name="l01635"></a><span class="lineno"> 1635</span>                    <span class="comment">// commit() is the sole responsibility of abs_cvt::put: derived</span></div>
+<div class="line"><a id="l01636" name="l01636"></a><span class="lineno"> 1636</span>                    <span class="comment">// put_main implementations must NOT call writer.commit() themselves.</span></div>
+<div class="line"><a id="l01637" name="l01637"></a><span class="lineno"> 1637</span>                    <span class="comment">// If put_main throws, this commit is skipped and any uncommitted</span></div>
+<div class="line"><a id="l01638" name="l01638"></a><span class="lineno"> 1638</span>                    <span class="comment">// buffer contents are dropped at writer destruction; the catch</span></div>
+<div class="line"><a id="l01639" name="l01639"></a><span class="lineno"> 1639</span>                    <span class="comment">// below taints the converter.</span></div>
+<div class="line"><a id="l01640" name="l01640"></a><span class="lineno"> 1640</span>                    <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">writer</a>.commit();</div>
+<div class="line"><a id="l01641" name="l01641"></a><span class="lineno"> 1641</span>                }</div>
+<div class="line"><a id="l01642" name="l01642"></a><span class="lineno"> 1642</span>            }</div>
+<div class="line"><a id="l01643" name="l01643"></a><span class="lineno"> 1643</span>            <span class="keywordflow">catch</span> (...)</div>
+<div class="line"><a id="l01644" name="l01644"></a><span class="lineno"> 1644</span>            {</div>
+<div class="line"><a id="l01645" name="l01645"></a><span class="lineno"> 1645</span>                <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>.m_is_tainted = <span class="keyword">true</span>;</div>
+<div class="line"><a id="l01646" name="l01646"></a><span class="lineno"> 1646</span>                <span class="keywordflow">throw</span>;</div>
+<div class="line"><a id="l01647" name="l01647"></a><span class="lineno"> 1647</span>            }</div>
+<div class="line"><a id="l01648" name="l01648"></a><span class="lineno"> 1648</span>        }</div>
+</div>
+<div class="line"><a id="l01649" name="l01649"></a><span class="lineno"> 1649</span> </div>
+<div class="line"><a id="l01678" name="l01678"></a><span class="lineno"> 1678</span>        <span class="keyword">template</span> &lt;<span class="keyword">typename</span> Self&gt;</div>
+<div class="foldopen" id="foldopen01679" data-start="{" data-end="}">
+<div class="line"><a id="l01679" name="l01679"></a><span class="lineno"><a class="line" href="classIOv2_1_1abs__cvt.html#aadf6f83eb7eb9a32041437fad8432981"> 1679</a></span>        <span class="keywordtype">void</span> <a class="code hl_function" href="classIOv2_1_1abs__cvt.html#aadf6f83eb7eb9a32041437fad8432981">flush</a>(<span class="keyword">this</span> <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">Self</a>&amp; <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>)</div>
+<div class="line"><a id="l01680" name="l01680"></a><span class="lineno"> 1680</span>            <span class="keyword">requires</span> <span class="keyword">requires</span>(<a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">Self</a>&amp; <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">t</a>, <a class="code hl_class" href="classIOv2_1_1cvt__writer.html">cvt_writer&lt;KernelType&gt;</a>&amp; <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">w</a>, <span class="keyword">const</span> <a class="code hl_typedef" href="classIOv2_1_1abs__cvt.html#af7a1ce8789d2c408a00c7ec4fab1f8e6">internal_type</a>* <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">data</a>, std::size_t <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">len</a>) {</div>
+<div class="line"><a id="l01681" name="l01681"></a><span class="lineno"> 1681</span>                { <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">t</a>.put_main(<a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">w</a>, <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">data</a>, <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">len</a>) } -&gt; std::same_as&lt;void&gt;;</div>
+<div class="line"><a id="l01682" name="l01682"></a><span class="lineno"> 1682</span>            }</div>
+<div class="line"><a id="l01683" name="l01683"></a><span class="lineno"> 1683</span>        {</div>
+<div class="line"><a id="l01684" name="l01684"></a><span class="lineno"> 1684</span>            <span class="keywordflow">if</span> (<a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>.m_io_status != <a class="code hl_enumvalue" href="namespaceIOv2.html#a36673c0e1d93ef095d232f0f726134d9a78e6221f6393d1356681db398f14ce6d">io_status::output</a>)</div>
+<div class="line"><a id="l01685" name="l01685"></a><span class="lineno"> 1685</span>                <span class="keywordflow">return</span>;</div>
+<div class="line"><a id="l01686" name="l01686"></a><span class="lineno"> 1686</span> </div>
+<div class="line"><a id="l01687" name="l01687"></a><span class="lineno"> 1687</span>            <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>.assert_not_tainted();</div>
+<div class="line"><a id="l01688" name="l01688"></a><span class="lineno"> 1688</span>            <span class="keywordflow">try</span></div>
+<div class="line"><a id="l01689" name="l01689"></a><span class="lineno"> 1689</span>            {</div>
+<div class="line"><a id="l01690" name="l01690"></a><span class="lineno"> 1690</span>                <span class="keywordflow">if</span> <span class="keyword">constexpr</span> (<span class="keyword">requires</span> { <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>.flush_impl(); })</div>
+<div class="line"><a id="l01691" name="l01691"></a><span class="lineno"> 1691</span>                    <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>.flush_impl();</div>
+<div class="line"><a id="l01692" name="l01692"></a><span class="lineno"> 1692</span>                <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>.m_kernel.flush();</div>
+<div class="line"><a id="l01693" name="l01693"></a><span class="lineno"> 1693</span>            }</div>
+<div class="line"><a id="l01694" name="l01694"></a><span class="lineno"> 1694</span>            <span class="keywordflow">catch</span> (...)</div>
+<div class="line"><a id="l01695" name="l01695"></a><span class="lineno"> 1695</span>            {</div>
+<div class="line"><a id="l01696" name="l01696"></a><span class="lineno"> 1696</span>                <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>.m_is_tainted = <span class="keyword">true</span>;</div>
+<div class="line"><a id="l01697" name="l01697"></a><span class="lineno"> 1697</span>                <span class="keywordflow">throw</span>;</div>
+<div class="line"><a id="l01698" name="l01698"></a><span class="lineno"> 1698</span>            }</div>
+<div class="line"><a id="l01699" name="l01699"></a><span class="lineno"> 1699</span>        }</div>
+</div>
+<div class="line"><a id="l01700" name="l01700"></a><span class="lineno"> 1700</span> </div>
+<div class="foldopen" id="foldopen01722" data-start="{" data-end="}">
+<div class="line"><a id="l01722" name="l01722"></a><span class="lineno"><a class="line" href="classIOv2_1_1abs__cvt.html#a3a70c20f058ed2894d21be275e91cb5c"> 1722</a></span>        [[<a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">nodiscard</a>]] std::size_t <a class="code hl_function" href="classIOv2_1_1abs__cvt.html#a3a70c20f058ed2894d21be275e91cb5c">tell</a>(<span class="keyword">this</span> <span class="keyword">const</span> <span class="keyword">auto</span>&amp; <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>)</div>
+<div class="line"><a id="l01723" name="l01723"></a><span class="lineno"> 1723</span>            <span class="keyword">requires</span> (<a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">enable_positioning</a> &amp;&amp; <a class="code hl_concept" href="conceptIOv2_1_1cvt__cpt_1_1support__positioning.html">cvt_cpt::support_positioning&lt;KernelType&gt;</a>)</div>
+<div class="line"><a id="l01724" name="l01724"></a><span class="lineno"> 1724</span>        {</div>
+<div class="line"><a id="l01725" name="l01725"></a><span class="lineno"> 1725</span>            <span class="keywordflow">if</span> <span class="keyword">constexpr</span> (<span class="keyword">requires</span> { { <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>.tell_impl() } -&gt; std::same_as&lt;std::size_t&gt;; })</div>
+<div class="line"><a id="l01726" name="l01726"></a><span class="lineno"> 1726</span>                <span class="keywordflow">return</span> <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>.tell_impl();</div>
+<div class="line"><a id="l01727" name="l01727"></a><span class="lineno"> 1727</span>            <span class="keywordflow">else</span></div>
+<div class="line"><a id="l01728" name="l01728"></a><span class="lineno"> 1728</span>                <span class="keywordflow">return</span> <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>.m_kernel.tell();</div>
+<div class="line"><a id="l01729" name="l01729"></a><span class="lineno"> 1729</span>        }</div>
+</div>
+<div class="line"><a id="l01730" name="l01730"></a><span class="lineno"> 1730</span> </div>
+<div class="foldopen" id="foldopen01755" data-start="{" data-end="}">
+<div class="line"><a id="l01755" name="l01755"></a><span class="lineno"><a class="line" href="classIOv2_1_1abs__cvt.html#ae93090de10c3569ca969187f6368eac3"> 1755</a></span>        <span class="keywordtype">void</span> <a class="code hl_function" href="classIOv2_1_1abs__cvt.html#ae93090de10c3569ca969187f6368eac3">seek</a>(<span class="keyword">this</span> <span class="keyword">auto</span>&amp; <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>, std::size_t <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">pos</a>)</div>
+<div class="line"><a id="l01756" name="l01756"></a><span class="lineno"> 1756</span>            <span class="keyword">requires</span> (<a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">enable_positioning</a> &amp;&amp; <a class="code hl_concept" href="conceptIOv2_1_1cvt__cpt_1_1support__positioning.html">cvt_cpt::support_positioning&lt;KernelType&gt;</a>)</div>
+<div class="line"><a id="l01757" name="l01757"></a><span class="lineno"> 1757</span>        {</div>
+<div class="line"><a id="l01758" name="l01758"></a><span class="lineno"> 1758</span>            <span class="comment">// Fast path for no-op self-seek: skip validation and kernel work when</span></div>
+<div class="line"><a id="l01759" name="l01759"></a><span class="lineno"> 1759</span>            <span class="comment">// pos already equals the current position. Intentional even in modes</span></div>
+<div class="line"><a id="l01760" name="l01760"></a><span class="lineno"> 1760</span>            <span class="comment">// where the validation below would otherwise reject — callers using</span></div>
+<div class="line"><a id="l01761" name="l01761"></a><span class="lineno"> 1761</span>            <span class="comment">// seek(saved_pos) for position-restore must not be rejected when</span></div>
+<div class="line"><a id="l01762" name="l01762"></a><span class="lineno"> 1762</span>            <span class="comment">// saved_pos happens to equal tell().</span></div>
+<div class="line"><a id="l01763" name="l01763"></a><span class="lineno"> 1763</span>            <span class="keywordflow">if</span> (<a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>.tell() == <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">pos</a>) <span class="keywordflow">return</span>;</div>
+<div class="line"><a id="l01764" name="l01764"></a><span class="lineno"> 1764</span> </div>
+<div class="line"><a id="l01765" name="l01765"></a><span class="lineno"> 1765</span>            <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>.assert_not_tainted();</div>
+<div class="line"><a id="l01766" name="l01766"></a><span class="lineno"> 1766</span> </div>
+<div class="line"><a id="l01767" name="l01767"></a><span class="lineno"> 1767</span>            <span class="keywordflow">if</span> <span class="keyword">constexpr</span> (<span class="keyword">requires</span> { <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>.seek_impl(<a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">pos</a>); })</div>
+<div class="line"><a id="l01768" name="l01768"></a><span class="lineno"> 1768</span>                <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>.seek_impl(<a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">pos</a>);</div>
+<div class="line"><a id="l01769" name="l01769"></a><span class="lineno"> 1769</span>            <span class="keywordflow">else</span> <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>.m_kernel.seek(<a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">pos</a>);</div>
+<div class="line"><a id="l01770" name="l01770"></a><span class="lineno"> 1770</span>        }</div>
+</div>
+<div class="line"><a id="l01771" name="l01771"></a><span class="lineno"> 1771</span> </div>
+<div class="foldopen" id="foldopen01795" data-start="{" data-end="}">
+<div class="line"><a id="l01795" name="l01795"></a><span class="lineno"><a class="line" href="classIOv2_1_1abs__cvt.html#a31e5fb1ee7ecc45e62edfd4b7dc5c06c"> 1795</a></span>        <span class="keywordtype">void</span> <a class="code hl_function" href="classIOv2_1_1abs__cvt.html#a31e5fb1ee7ecc45e62edfd4b7dc5c06c">rseek</a>(<span class="keyword">this</span> <span class="keyword">auto</span>&amp; <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>, std::size_t <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">pos</a>)</div>
+<div class="line"><a id="l01796" name="l01796"></a><span class="lineno"> 1796</span>            <span class="keyword">requires</span> (<a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">enable_positioning</a> &amp;&amp; <a class="code hl_concept" href="conceptIOv2_1_1cvt__cpt_1_1support__positioning.html">cvt_cpt::support_positioning&lt;KernelType&gt;</a>)</div>
+<div class="line"><a id="l01797" name="l01797"></a><span class="lineno"> 1797</span>        {</div>
+<div class="line"><a id="l01798" name="l01798"></a><span class="lineno"> 1798</span>            <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>.assert_not_tainted();</div>
+<div class="line"><a id="l01799" name="l01799"></a><span class="lineno"> 1799</span> </div>
+<div class="line"><a id="l01800" name="l01800"></a><span class="lineno"> 1800</span>            <span class="keywordflow">if</span> <span class="keyword">constexpr</span> (<span class="keyword">requires</span> { <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>.rseek_impl(<a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">pos</a>); })</div>
+<div class="line"><a id="l01801" name="l01801"></a><span class="lineno"> 1801</span>                <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>.rseek_impl(<a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">pos</a>);</div>
+<div class="line"><a id="l01802" name="l01802"></a><span class="lineno"> 1802</span>            <span class="keywordflow">else</span> <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>.m_kernel.rseek(<a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">pos</a>);</div>
+<div class="line"><a id="l01803" name="l01803"></a><span class="lineno"> 1803</span>        }</div>
+</div>
+<div class="line"><a id="l01804" name="l01804"></a><span class="lineno"> 1804</span> </div>
+<div class="foldopen" id="foldopen01828" data-start="{" data-end="}">
+<div class="line"><a id="l01828" name="l01828"></a><span class="lineno"><a class="line" href="classIOv2_1_1abs__cvt.html#a70559e3519fec3d98a945c38f4dedfa2"> 1828</a></span>        <span class="keywordtype">void</span> <a class="code hl_function" href="classIOv2_1_1abs__cvt.html#a70559e3519fec3d98a945c38f4dedfa2">switch_to_get</a>(<span class="keyword">this</span> <span class="keyword">auto</span>&amp; <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>)</div>
+<div class="line"><a id="l01829" name="l01829"></a><span class="lineno"> 1829</span>            <span class="keyword">requires</span> (<a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">enable_io_switch</a> &amp;&amp; <a class="code hl_concept" href="conceptIOv2_1_1cvt__cpt_1_1support__io__switch.html">cvt_cpt::support_io_switch&lt;KernelType&gt;</a>)</div>
+<div class="line"><a id="l01830" name="l01830"></a><span class="lineno"> 1830</span>        {</div>
+<div class="line"><a id="l01831" name="l01831"></a><span class="lineno"> 1831</span>            <span class="keywordflow">if</span> (<a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>.m_io_status == <a class="code hl_enumvalue" href="namespaceIOv2.html#a36673c0e1d93ef095d232f0f726134d9aa43c1b0aa53a0c908810c06ab1ff3967">io_status::input</a>)</div>
+<div class="line"><a id="l01832" name="l01832"></a><span class="lineno"> 1832</span>                <span class="keywordflow">return</span>;</div>
+<div class="line"><a id="l01833" name="l01833"></a><span class="lineno"> 1833</span> </div>
+<div class="line"><a id="l01834" name="l01834"></a><span class="lineno"> 1834</span>            <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>.assert_not_tainted();</div>
+<div class="line"><a id="l01835" name="l01835"></a><span class="lineno"> 1835</span> </div>
+<div class="line"><a id="l01836" name="l01836"></a><span class="lineno"> 1836</span>            <span class="comment">// Note: invoke the derived-layer hook first (e.g. precondition checks), then switch the lower level.</span></div>
+<div class="line"><a id="l01837" name="l01837"></a><span class="lineno"> 1837</span>            <span class="keywordflow">if</span> <span class="keyword">constexpr</span> (<span class="keyword">requires</span> { <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>.switch_to_get_impl(); })</div>
+<div class="line"><a id="l01838" name="l01838"></a><span class="lineno"> 1838</span>                <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>.switch_to_get_impl();</div>
+<div class="line"><a id="l01839" name="l01839"></a><span class="lineno"> 1839</span> </div>
+<div class="line"><a id="l01840" name="l01840"></a><span class="lineno"> 1840</span>            <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>.m_kernel.switch_to_get();</div>
+<div class="line"><a id="l01841" name="l01841"></a><span class="lineno"> 1841</span>            <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>.m_io_status = <a class="code hl_enumvalue" href="namespaceIOv2.html#a36673c0e1d93ef095d232f0f726134d9aa43c1b0aa53a0c908810c06ab1ff3967">io_status::input</a>;</div>
+<div class="line"><a id="l01842" name="l01842"></a><span class="lineno"> 1842</span>        }</div>
+</div>
+<div class="line"><a id="l01843" name="l01843"></a><span class="lineno"> 1843</span> </div>
+<div class="foldopen" id="foldopen01876" data-start="{" data-end="}">
+<div class="line"><a id="l01876" name="l01876"></a><span class="lineno"><a class="line" href="classIOv2_1_1abs__cvt.html#a6e7783b9b27c377f2f56de0e22c41933"> 1876</a></span>        <span class="keywordtype">void</span> <a class="code hl_function" href="classIOv2_1_1abs__cvt.html#a6e7783b9b27c377f2f56de0e22c41933">switch_to_put</a>(<span class="keyword">this</span> <span class="keyword">auto</span>&amp; <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>)</div>
+<div class="line"><a id="l01877" name="l01877"></a><span class="lineno"> 1877</span>            <span class="keyword">requires</span> (<a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">enable_io_switch</a> &amp;&amp; <a class="code hl_concept" href="conceptIOv2_1_1cvt__cpt_1_1support__io__switch.html">cvt_cpt::support_io_switch&lt;KernelType&gt;</a>)</div>
+<div class="line"><a id="l01878" name="l01878"></a><span class="lineno"> 1878</span>        {</div>
+<div class="line"><a id="l01879" name="l01879"></a><span class="lineno"> 1879</span>            <span class="keywordflow">if</span> (<a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>.m_io_status == <a class="code hl_enumvalue" href="namespaceIOv2.html#a36673c0e1d93ef095d232f0f726134d9a78e6221f6393d1356681db398f14ce6d">io_status::output</a>)</div>
+<div class="line"><a id="l01880" name="l01880"></a><span class="lineno"> 1880</span>                <span class="keywordflow">return</span>;</div>
+<div class="line"><a id="l01881" name="l01881"></a><span class="lineno"> 1881</span> </div>
+<div class="line"><a id="l01882" name="l01882"></a><span class="lineno"> 1882</span>            <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>.assert_not_tainted();</div>
+<div class="line"><a id="l01883" name="l01883"></a><span class="lineno"> 1883</span> </div>
+<div class="line"><a id="l01884" name="l01884"></a><span class="lineno"> 1884</span>            <span class="comment">// Note: invoke the derived-layer hook first (e.g. precondition checks), then switch the lower level.</span></div>
+<div class="line"><a id="l01885" name="l01885"></a><span class="lineno"> 1885</span>            <span class="keywordflow">if</span> <span class="keyword">constexpr</span> (<span class="keyword">requires</span> { <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>.switch_to_put_impl(); })</div>
+<div class="line"><a id="l01886" name="l01886"></a><span class="lineno"> 1886</span>                <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>.switch_to_put_impl();</div>
+<div class="line"><a id="l01887" name="l01887"></a><span class="lineno"> 1887</span> </div>
+<div class="line"><a id="l01888" name="l01888"></a><span class="lineno"> 1888</span>            <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>.m_kernel.switch_to_put();</div>
+<div class="line"><a id="l01889" name="l01889"></a><span class="lineno"> 1889</span>            <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>.m_io_status = <a class="code hl_enumvalue" href="namespaceIOv2.html#a36673c0e1d93ef095d232f0f726134d9a78e6221f6393d1356681db398f14ce6d">io_status::output</a>;</div>
+<div class="line"><a id="l01890" name="l01890"></a><span class="lineno"> 1890</span>        }</div>
+</div>
+<div class="line"><a id="l01891" name="l01891"></a><span class="lineno"> 1891</span> </div>
+<div class="line"><a id="l01892" name="l01892"></a><span class="lineno"> 1892</span>    <span class="keyword">protected</span>:</div>
+<div class="line"><a id="l01893" name="l01893"></a><span class="lineno"> 1893</span>        <span class="comment">// NOLINTBEGIN(cppcoreguidelines-non-private-member-variables-in-classes)</span></div>
+<div class="line"><a id="l01896" name="l01896"></a><span class="lineno"><a class="line" href="classIOv2_1_1abs__cvt.html#ab8caf927eb23cd152a242f09b063f499"> 1896</a></span>        KernelType  <a class="code hl_variable" href="classIOv2_1_1abs__cvt.html#ab8caf927eb23cd152a242f09b063f499">m_kernel</a>;</div>
+<div class="line"><a id="l01897" name="l01897"></a><span class="lineno"> 1897</span> </div>
+<div class="line"><a id="l01906" name="l01906"></a><span class="lineno"><a class="line" href="classIOv2_1_1abs__cvt.html#aff41c99f01bb736113ccf6d2374d8d5a"> 1906</a></span>        <a class="code hl_enumeration" href="namespaceIOv2.html#a36673c0e1d93ef095d232f0f726134d9">io_status</a>   <a class="code hl_variable" href="classIOv2_1_1abs__cvt.html#aff41c99f01bb736113ccf6d2374d8d5a">m_io_status</a> = <a class="code hl_enumvalue" href="namespaceIOv2.html#a36673c0e1d93ef095d232f0f726134d9a5da248ea6840aca1ae2b417b17982a89">io_status::neutral</a>;</div>
+<div class="line"><a id="l01907" name="l01907"></a><span class="lineno"> 1907</span> </div>
+<div class="line"><a id="l01919" name="l01919"></a><span class="lineno"><a class="line" href="classIOv2_1_1abs__cvt.html#a36b85b07a227cd90873f8872590f9572"> 1919</a></span>        <span class="keywordtype">bool</span>        <a class="code hl_variable" href="classIOv2_1_1abs__cvt.html#a36b85b07a227cd90873f8872590f9572">m_is_bos_done</a> = <span class="keyword">false</span>;</div>
+<div class="line"><a id="l01920" name="l01920"></a><span class="lineno"> 1920</span>        <span class="comment">// NOLINTEND(cppcoreguidelines-non-private-member-variables-in-classes)</span></div>
+<div class="line"><a id="l01921" name="l01921"></a><span class="lineno"> 1921</span> </div>
+<div class="foldopen" id="foldopen01944" data-start="{" data-end="}">
+<div class="line"><a id="l01944" name="l01944"></a><span class="lineno"><a class="line" href="classIOv2_1_1abs__cvt.html#a619085adf9444c3f8bd0cc214c986ac2"> 1944</a></span>        <span class="keywordtype">void</span> <a class="code hl_function" href="classIOv2_1_1abs__cvt.html#a619085adf9444c3f8bd0cc214c986ac2">assert_not_tainted</a>()<span class="keyword"> const</span></div>
+<div class="line"><a id="l01945" name="l01945"></a><span class="lineno"> 1945</span><span class="keyword">        </span>{</div>
+<div class="line"><a id="l01946" name="l01946"></a><span class="lineno"> 1946</span>            <span class="keywordflow">if</span> (m_is_tainted)</div>
+<div class="line"><a id="l01947" name="l01947"></a><span class="lineno"> 1947</span>                <span class="keywordflow">throw</span> <a class="code hl_struct" href="structIOv2_1_1cvt__error.html">cvt_error</a>(<span class="stringliteral">&quot;abs_cvt: converter is in a tainted state; reattach a device to recover&quot;</span>);</div>
+<div class="line"><a id="l01948" name="l01948"></a><span class="lineno"> 1948</span>        }</div>
+</div>
+<div class="line"><a id="l01949" name="l01949"></a><span class="lineno"> 1949</span> </div>
+<div class="foldopen" id="foldopen01981" data-start="{" data-end="}">
+<div class="line"><a id="l01981" name="l01981"></a><span class="lineno"><a class="line" href="classIOv2_1_1abs__cvt.html#a564fad1ceb3a99a789010012ef081395"> 1981</a></span>        <span class="keywordtype">void</span> <a class="code hl_function" href="classIOv2_1_1abs__cvt.html#a564fad1ceb3a99a789010012ef081395">set_tainted</a>() <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">noexcept</a></div>
+<div class="line"><a id="l01982" name="l01982"></a><span class="lineno"> 1982</span>        {</div>
+<div class="line"><a id="l01983" name="l01983"></a><span class="lineno"> 1983</span>            m_is_tainted = <span class="keyword">true</span>;</div>
+<div class="line"><a id="l01984" name="l01984"></a><span class="lineno"> 1984</span>        }</div>
+</div>
+<div class="line"><a id="l01985" name="l01985"></a><span class="lineno"> 1985</span> </div>
+<div class="line"><a id="l01986" name="l01986"></a><span class="lineno"> 1986</span>    <span class="keyword">private</span>:</div>
+<div class="line"><a id="l02026" name="l02026"></a><span class="lineno"> 2026</span>        <span class="keywordtype">void</span> release_derived_state(<span class="keyword">this</span> <span class="keyword">auto</span>&amp; <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>) <span class="keyword">noexcept</span></div>
+<div class="line"><a id="l02027" name="l02027"></a><span class="lineno"> 2027</span>        {</div>
+<div class="line"><a id="l02028" name="l02028"></a><span class="lineno"> 2028</span>            <span class="keywordflow">if</span> <span class="keyword">constexpr</span> (<span class="keyword">requires</span> { <a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>.detach_impl(); })</div>
+<div class="line"><a id="l02029" name="l02029"></a><span class="lineno"> 2029</span>            {</div>
+<div class="line"><a id="l02030" name="l02030"></a><span class="lineno"> 2030</span>                <span class="keyword">static_assert</span>(<span class="keyword">noexcept</span>(<a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>.detach_impl()),</div>
+<div class="line"><a id="l02031" name="l02031"></a><span class="lineno"> 2031</span>                              <span class="stringliteral">&quot;detach_impl() must be noexcept&quot;</span>);</div>
+<div class="line"><a id="l02032" name="l02032"></a><span class="lineno"> 2032</span>                (<a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">void</a>)<a class="code hl_variable" href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">self</a>.detach_impl();</div>
+<div class="line"><a id="l02033" name="l02033"></a><span class="lineno"> 2033</span>            }</div>
+<div class="line"><a id="l02034" name="l02034"></a><span class="lineno"> 2034</span>        }</div>
+<div class="line"><a id="l02035" name="l02035"></a><span class="lineno"> 2035</span> </div>
+<div class="line"><a id="l02044" name="l02044"></a><span class="lineno"> 2044</span>        std::vector&lt;external_type&gt; m_tmp_io_buffer;</div>
+<div class="line"><a id="l02045" name="l02045"></a><span class="lineno"> 2045</span> </div>
+<div class="line"><a id="l02062" name="l02062"></a><span class="lineno"> 2062</span>        <span class="keywordtype">bool</span> m_is_tainted = <span class="keyword">false</span>;</div>
+<div class="line"><a id="l02063" name="l02063"></a><span class="lineno"> 2063</span>    };</div>
+</div>
+<div class="line"><a id="l02064" name="l02064"></a><span class="lineno"> 2064</span>}</div>
+<div class="ttc" id="aclassIOv2_1_1abs__cvt_html"><div class="ttname"><a href="classIOv2_1_1abs__cvt.html">IOv2::abs_cvt</a></div><div class="ttdef"><b>Definition</b> abs_cvt.h:909</div></div>
+<div class="ttc" id="aclassIOv2_1_1abs__cvt_html_a2677885501c4b13850b5883e54481faf"><div class="ttname"><a href="classIOv2_1_1abs__cvt.html#a2677885501c4b13850b5883e54481faf">IOv2::abs_cvt::put</a></div><div class="ttdeci">void put(this Self &amp;self, const internal_type *to, std::size_t to_size)</div><div class="ttdef"><b>Definition</b> abs_cvt.h:1568</div></div>
+<div class="ttc" id="aclassIOv2_1_1abs__cvt_html_a31e5fb1ee7ecc45e62edfd4b7dc5c06c"><div class="ttname"><a href="classIOv2_1_1abs__cvt.html#a31e5fb1ee7ecc45e62edfd4b7dc5c06c">IOv2::abs_cvt::rseek</a></div><div class="ttdeci">void rseek(this auto &amp;self, std::size_t pos)</div><div class="ttdef"><b>Definition</b> abs_cvt.h:1795</div></div>
+<div class="ttc" id="aclassIOv2_1_1abs__cvt_html_a36b85b07a227cd90873f8872590f9572"><div class="ttname"><a href="classIOv2_1_1abs__cvt.html#a36b85b07a227cd90873f8872590f9572">IOv2::abs_cvt::m_is_bos_done</a></div><div class="ttdeci">bool m_is_bos_done</div><div class="ttdef"><b>Definition</b> abs_cvt.h:1919</div></div>
+<div class="ttc" id="aclassIOv2_1_1abs__cvt_html_a3a70c20f058ed2894d21be275e91cb5c"><div class="ttname"><a href="classIOv2_1_1abs__cvt.html#a3a70c20f058ed2894d21be275e91cb5c">IOv2::abs_cvt::tell</a></div><div class="ttdeci">std::size_t tell(this const auto &amp;self)</div><div class="ttdef"><b>Definition</b> abs_cvt.h:1722</div></div>
+<div class="ttc" id="aclassIOv2_1_1abs__cvt_html_a3f9541834637ad027cbb38fff1b7ac05"><div class="ttname"><a href="classIOv2_1_1abs__cvt.html#a3f9541834637ad027cbb38fff1b7ac05">IOv2::abs_cvt::is_eof</a></div><div class="ttdeci">bool is_eof(this auto &amp;self)</div><div class="ttdef"><b>Definition</b> abs_cvt.h:1392</div></div>
+<div class="ttc" id="aclassIOv2_1_1abs__cvt_html_a55eb32a3affc1ed775cf21cfd2153811"><div class="ttname"><a href="classIOv2_1_1abs__cvt.html#a55eb32a3affc1ed775cf21cfd2153811">IOv2::abs_cvt::abs_cvt</a></div><div class="ttdeci">abs_cvt(const abs_cvt &amp;val)</div><div class="ttdef"><b>Definition</b> abs_cvt.h:962</div></div>
+<div class="ttc" id="aclassIOv2_1_1abs__cvt_html_a564fad1ceb3a99a789010012ef081395"><div class="ttname"><a href="classIOv2_1_1abs__cvt.html#a564fad1ceb3a99a789010012ef081395">IOv2::abs_cvt::set_tainted</a></div><div class="ttdeci">void set_tainted() noexcept</div><div class="ttdef"><b>Definition</b> abs_cvt.h:1981</div></div>
+<div class="ttc" id="aclassIOv2_1_1abs__cvt_html_a5d6ae7755267a947bbbcbe1534c6364f"><div class="ttname"><a href="classIOv2_1_1abs__cvt.html#a5d6ae7755267a947bbbcbe1534c6364f">IOv2::abs_cvt::abs_cvt</a></div><div class="ttdeci">abs_cvt(abs_cvt &amp;&amp;val) noexcept</div><div class="ttdef"><b>Definition</b> abs_cvt.h:979</div></div>
+<div class="ttc" id="aclassIOv2_1_1abs__cvt_html_a5ea0e0f6f6330c39aa5eff225b99cb5a"><div class="ttname"><a href="classIOv2_1_1abs__cvt.html#a5ea0e0f6f6330c39aa5eff225b99cb5a">IOv2::abs_cvt::~abs_cvt</a></div><div class="ttdeci">~abs_cvt()=default</div></div>
+<div class="ttc" id="aclassIOv2_1_1abs__cvt_html_a619085adf9444c3f8bd0cc214c986ac2"><div class="ttname"><a href="classIOv2_1_1abs__cvt.html#a619085adf9444c3f8bd0cc214c986ac2">IOv2::abs_cvt::assert_not_tainted</a></div><div class="ttdeci">void assert_not_tainted() const</div><div class="ttdef"><b>Definition</b> abs_cvt.h:1944</div></div>
+<div class="ttc" id="aclassIOv2_1_1abs__cvt_html_a63a8d7d57a7f4de26f323b83053e7baa"><div class="ttname"><a href="classIOv2_1_1abs__cvt.html#a63a8d7d57a7f4de26f323b83053e7baa">IOv2::abs_cvt::is_tainted</a></div><div class="ttdeci">bool is_tainted() const noexcept</div><div class="ttdoc">转换器是否已被标记为 tainted（见类文档的 tainted 契约）。</div><div class="ttdef"><b>Definition</b> abs_cvt.h:1080</div></div>
+<div class="ttc" id="aclassIOv2_1_1abs__cvt_html_a6e7783b9b27c377f2f56de0e22c41933"><div class="ttname"><a href="classIOv2_1_1abs__cvt.html#a6e7783b9b27c377f2f56de0e22c41933">IOv2::abs_cvt::switch_to_put</a></div><div class="ttdeci">void switch_to_put(this auto &amp;self)</div><div class="ttdef"><b>Definition</b> abs_cvt.h:1876</div></div>
+<div class="ttc" id="aclassIOv2_1_1abs__cvt_html_a70559e3519fec3d98a945c38f4dedfa2"><div class="ttname"><a href="classIOv2_1_1abs__cvt.html#a70559e3519fec3d98a945c38f4dedfa2">IOv2::abs_cvt::switch_to_get</a></div><div class="ttdeci">void switch_to_get(this auto &amp;self)</div><div class="ttdef"><b>Definition</b> abs_cvt.h:1828</div></div>
+<div class="ttc" id="aclassIOv2_1_1abs__cvt_html_a722ebc59d1ab432bfc570c0cb940236d"><div class="ttname"><a href="classIOv2_1_1abs__cvt.html#a722ebc59d1ab432bfc570c0cb940236d">IOv2::abs_cvt::get</a></div><div class="ttdeci">std::size_t get(this Self &amp;self, internal_type *to, std::size_t to_max)</div><div class="ttdef"><b>Definition</b> abs_cvt.h:1458</div></div>
+<div class="ttc" id="aclassIOv2_1_1abs__cvt_html_a77db0a3eaa1dbaa6954cc0d9801ba2d5"><div class="ttname"><a href="classIOv2_1_1abs__cvt.html#a77db0a3eaa1dbaa6954cc0d9801ba2d5">IOv2::abs_cvt::abs_cvt</a></div><div class="ttdeci">abs_cvt(KernelType kernel)</div><div class="ttdef"><b>Definition</b> abs_cvt.h:949</div></div>
+<div class="ttc" id="aclassIOv2_1_1abs__cvt_html_a81793e4e59c3536e26b728d9e729d335"><div class="ttname"><a href="classIOv2_1_1abs__cvt.html#a81793e4e59c3536e26b728d9e729d335">IOv2::abs_cvt::operator=</a></div><div class="ttdeci">abs_cvt &amp; operator=(const abs_cvt &amp;val)</div><div class="ttdef"><b>Definition</b> abs_cvt.h:1002</div></div>
+<div class="ttc" id="aclassIOv2_1_1abs__cvt_html_a862dfc0b13653c13e47bcb6e10a2092b"><div class="ttname"><a href="classIOv2_1_1abs__cvt.html#a862dfc0b13653c13e47bcb6e10a2092b">IOv2::abs_cvt::device_type</a></div><div class="ttdeci">typename KernelType::device_type device_type</div><div class="ttdef"><b>Definition</b> abs_cvt.h:913</div></div>
+<div class="ttc" id="aclassIOv2_1_1abs__cvt_html_a87a5ea6be0113ed359370030b67a5f1b"><div class="ttname"><a href="classIOv2_1_1abs__cvt.html#a87a5ea6be0113ed359370030b67a5f1b">IOv2::abs_cvt::retrieve</a></div><div class="ttdeci">void retrieve(this const auto &amp;self, cvt_status &amp;s)</div><div class="ttdef"><b>Definition</b> abs_cvt.h:1256</div></div>
+<div class="ttc" id="aclassIOv2_1_1abs__cvt_html_a9432492f6ef3c7b96ea4b0fe67dc76dd"><div class="ttname"><a href="classIOv2_1_1abs__cvt.html#a9432492f6ef3c7b96ea4b0fe67dc76dd">IOv2::abs_cvt::operator=</a></div><div class="ttdeci">abs_cvt &amp; operator=(abs_cvt &amp;&amp;val) noexcept</div><div class="ttdef"><b>Definition</b> abs_cvt.h:1025</div></div>
+<div class="ttc" id="aclassIOv2_1_1abs__cvt_html_a992170e16cac25188bbb51350ff607e1"><div class="ttname"><a href="classIOv2_1_1abs__cvt.html#a992170e16cac25188bbb51350ff607e1">IOv2::abs_cvt::external_type</a></div><div class="ttdeci">typename KernelType::internal_type external_type</div><div class="ttdef"><b>Definition</b> abs_cvt.h:917</div></div>
+<div class="ttc" id="aclassIOv2_1_1abs__cvt_html_a99b7fab13a26c5b7eb17c084d2419b85"><div class="ttname"><a href="classIOv2_1_1abs__cvt.html#a99b7fab13a26c5b7eb17c084d2419b85">IOv2::abs_cvt::detach</a></div><div class="ttdeci">std::pair&lt; device_type, std::exception_ptr &gt; detach(this auto &amp;self) noexcept</div><div class="ttdef"><b>Definition</b> abs_cvt.h:1118</div></div>
+<div class="ttc" id="aclassIOv2_1_1abs__cvt_html_aa1f49b1314093341e1a716f07101af1b"><div class="ttname"><a href="classIOv2_1_1abs__cvt.html#aa1f49b1314093341e1a716f07101af1b">IOv2::abs_cvt::bos</a></div><div class="ttdeci">io_status bos(this auto &amp;self)</div><div class="ttdef"><b>Definition</b> abs_cvt.h:1310</div></div>
+<div class="ttc" id="aclassIOv2_1_1abs__cvt_html_aadf6f83eb7eb9a32041437fad8432981"><div class="ttname"><a href="classIOv2_1_1abs__cvt.html#aadf6f83eb7eb9a32041437fad8432981">IOv2::abs_cvt::flush</a></div><div class="ttdeci">void flush(this Self &amp;self)</div><div class="ttdef"><b>Definition</b> abs_cvt.h:1679</div></div>
+<div class="ttc" id="aclassIOv2_1_1abs__cvt_html_ab8caf927eb23cd152a242f09b063f499"><div class="ttname"><a href="classIOv2_1_1abs__cvt.html#ab8caf927eb23cd152a242f09b063f499">IOv2::abs_cvt::m_kernel</a></div><div class="ttdeci">KernelType m_kernel</div><div class="ttdef"><b>Definition</b> abs_cvt.h:1896</div></div>
+<div class="ttc" id="aclassIOv2_1_1abs__cvt_html_ac247b7d007d6e16cbc90a1b478e125ee"><div class="ttname"><a href="classIOv2_1_1abs__cvt.html#ac247b7d007d6e16cbc90a1b478e125ee">IOv2::abs_cvt::main_cont_beg</a></div><div class="ttdeci">void main_cont_beg(this auto &amp;self)</div><div class="ttdef"><b>Definition</b> abs_cvt.h:1352</div></div>
+<div class="ttc" id="aclassIOv2_1_1abs__cvt_html_ae93090de10c3569ca969187f6368eac3"><div class="ttname"><a href="classIOv2_1_1abs__cvt.html#ae93090de10c3569ca969187f6368eac3">IOv2::abs_cvt::seek</a></div><div class="ttdeci">void seek(this auto &amp;self, std::size_t pos)</div><div class="ttdef"><b>Definition</b> abs_cvt.h:1755</div></div>
+<div class="ttc" id="aclassIOv2_1_1abs__cvt_html_af3b541791960186b6d01e68460ff24a9"><div class="ttname"><a href="classIOv2_1_1abs__cvt.html#af3b541791960186b6d01e68460ff24a9">IOv2::abs_cvt::device</a></div><div class="ttdeci">device_type &amp; device()</div><div class="ttdef"><b>Definition</b> abs_cvt.h:1057</div></div>
+<div class="ttc" id="aclassIOv2_1_1abs__cvt_html_af553e57c053d4b4a625240111a880229"><div class="ttname"><a href="classIOv2_1_1abs__cvt.html#af553e57c053d4b4a625240111a880229">IOv2::abs_cvt::adjust</a></div><div class="ttdeci">void adjust(this auto &amp;self, const cvt_behavior &amp;b)</div><div class="ttdef"><b>Definition</b> abs_cvt.h:1228</div></div>
+<div class="ttc" id="aclassIOv2_1_1abs__cvt_html_af7a1ce8789d2c408a00c7ec4fab1f8e6"><div class="ttname"><a href="classIOv2_1_1abs__cvt.html#af7a1ce8789d2c408a00c7ec4fab1f8e6">IOv2::abs_cvt::internal_type</a></div><div class="ttdeci">InternalType internal_type</div><div class="ttdef"><b>Definition</b> abs_cvt.h:921</div></div>
+<div class="ttc" id="aclassIOv2_1_1abs__cvt_html_afab139215d6440dec5359b73072a637e"><div class="ttname"><a href="classIOv2_1_1abs__cvt.html#afab139215d6440dec5359b73072a637e">IOv2::abs_cvt::attach</a></div><div class="ttdeci">void attach(this auto &amp;self, device_type &amp;&amp;dev=device_type{})</div><div class="ttdef"><b>Definition</b> abs_cvt.h:1178</div></div>
+<div class="ttc" id="aclassIOv2_1_1abs__cvt_html_aff41c99f01bb736113ccf6d2374d8d5a"><div class="ttname"><a href="classIOv2_1_1abs__cvt.html#aff41c99f01bb736113ccf6d2374d8d5a">IOv2::abs_cvt::m_io_status</a></div><div class="ttdeci">io_status m_io_status</div><div class="ttdef"><b>Definition</b> abs_cvt.h:1906</div></div>
+<div class="ttc" id="aclassIOv2_1_1cvt__reader_html"><div class="ttname"><a href="classIOv2_1_1cvt__reader.html">IOv2::cvt_reader</a></div><div class="ttdef"><b>Definition</b> abs_cvt.h:73</div></div>
+<div class="ttc" id="aclassIOv2_1_1cvt__reader_html_a21e29926ac92c6c7f0ef3453338a3db5"><div class="ttname"><a href="classIOv2_1_1cvt__reader.html#a21e29926ac92c6c7f0ef3453338a3db5">IOv2::cvt_reader::~cvt_reader</a></div><div class="ttdeci">~cvt_reader()=default</div></div>
+<div class="ttc" id="aclassIOv2_1_1cvt__reader_html_a4147a4fd2a40f0fc92c560ceb791ad03"><div class="ttname"><a href="classIOv2_1_1cvt__reader.html#a4147a4fd2a40f0fc92c560ceb791ad03">IOv2::cvt_reader::cvt_reader</a></div><div class="ttdeci">cvt_reader(KernelType &amp;kernel, std::vector&lt; char_type &gt; &amp;buffer)</div><div class="ttdef"><b>Definition</b> abs_cvt.h:99</div></div>
+<div class="ttc" id="aclassIOv2_1_1cvt__reader_html_a425f19b3310201900bb6ac468ec59d69"><div class="ttname"><a href="classIOv2_1_1cvt__reader.html#a425f19b3310201900bb6ac468ec59d69">IOv2::cvt_reader::rollback</a></div><div class="ttdeci">void rollback(std::size_t len)</div><div class="ttdef"><b>Definition</b> abs_cvt.h:287</div></div>
+<div class="ttc" id="aclassIOv2_1_1cvt__reader_html_aa15cc0538988c30692a558c7f6977dba"><div class="ttname"><a href="classIOv2_1_1cvt__reader.html#aa15cc0538988c30692a558c7f6977dba">IOv2::cvt_reader::get_buf</a></div><div class="ttdeci">auto get_buf(std::size_t to_max)</div><div class="ttdef"><b>Definition</b> abs_cvt.h:206</div></div>
+<div class="ttc" id="aclassIOv2_1_1cvt__reader_html_aba4e924555594581164b3eeccecf0b5d"><div class="ttname"><a href="classIOv2_1_1cvt__reader.html#aba4e924555594581164b3eeccecf0b5d">IOv2::cvt_reader::operator=</a></div><div class="ttdeci">cvt_reader &amp; operator=(const cvt_reader &amp;)=delete</div></div>
+<div class="ttc" id="aclassIOv2_1_1cvt__reader_html_aec9a0212f8efd25e9854609ee4999916"><div class="ttname"><a href="classIOv2_1_1cvt__reader.html#aec9a0212f8efd25e9854609ee4999916">IOv2::cvt_reader::reset</a></div><div class="ttdeci">void reset(std::size_t buf_size)</div><div class="ttdef"><b>Definition</b> abs_cvt.h:129</div></div>
+<div class="ttc" id="aclassIOv2_1_1cvt__reader_html_af16e12021d5310738aec2f23cc96ebc4"><div class="ttname"><a href="classIOv2_1_1cvt__reader.html#af16e12021d5310738aec2f23cc96ebc4">IOv2::cvt_reader::cvt_reader</a></div><div class="ttdeci">cvt_reader(cvt_reader &amp;&amp;)=delete</div></div>
+<div class="ttc" id="aclassIOv2_1_1cvt__reader_html_af8385b66500db5d947af27e33c56500c"><div class="ttname"><a href="classIOv2_1_1cvt__reader.html#af8385b66500db5d947af27e33c56500c">IOv2::cvt_reader::cvt_reader</a></div><div class="ttdeci">cvt_reader(const cvt_reader &amp;)=delete</div></div>
+<div class="ttc" id="aclassIOv2_1_1cvt__reader_html_afcd02e47c4bb82ca72a7aacbcf68df5e"><div class="ttname"><a href="classIOv2_1_1cvt__reader.html#afcd02e47c4bb82ca72a7aacbcf68df5e">IOv2::cvt_reader::operator=</a></div><div class="ttdeci">cvt_reader &amp; operator=(cvt_reader &amp;&amp;)=delete</div></div>
+<div class="ttc" id="aclassIOv2_1_1cvt__writer_html"><div class="ttname"><a href="classIOv2_1_1cvt__writer.html">IOv2::cvt_writer</a></div><div class="ttdef"><b>Definition</b> abs_cvt.h:352</div></div>
+<div class="ttc" id="aclassIOv2_1_1cvt__writer_html_a3051e93a26d3f0fe1d60df3767acd2d8"><div class="ttname"><a href="classIOv2_1_1cvt__writer.html#a3051e93a26d3f0fe1d60df3767acd2d8">IOv2::cvt_writer::reset</a></div><div class="ttdeci">void reset(std::size_t buf_size)</div><div class="ttdef"><b>Definition</b> abs_cvt.h:408</div></div>
+<div class="ttc" id="aclassIOv2_1_1cvt__writer_html_a42decc7a7d945d56a9bb9bdb5ab0fa17"><div class="ttname"><a href="classIOv2_1_1cvt__writer.html#a42decc7a7d945d56a9bb9bdb5ab0fa17">IOv2::cvt_writer::commit</a></div><div class="ttdeci">void commit()</div><div class="ttdef"><b>Definition</b> abs_cvt.h:516</div></div>
+<div class="ttc" id="aclassIOv2_1_1cvt__writer_html_a49d396c8dd09cad5664de165b2f618bc"><div class="ttname"><a href="classIOv2_1_1cvt__writer.html#a49d396c8dd09cad5664de165b2f618bc">IOv2::cvt_writer::cvt_writer</a></div><div class="ttdeci">cvt_writer(cvt_writer &amp;&amp;)=delete</div></div>
+<div class="ttc" id="aclassIOv2_1_1cvt__writer_html_a6cdad46f8a702272d18d1ee17333944e"><div class="ttname"><a href="classIOv2_1_1cvt__writer.html#a6cdad46f8a702272d18d1ee17333944e">IOv2::cvt_writer::operator=</a></div><div class="ttdeci">cvt_writer &amp; operator=(const cvt_writer &amp;)=delete</div></div>
+<div class="ttc" id="aclassIOv2_1_1cvt__writer_html_a724cd1f99dc42302afdcee038b434927"><div class="ttname"><a href="classIOv2_1_1cvt__writer.html#a724cd1f99dc42302afdcee038b434927">IOv2::cvt_writer::cvt_writer</a></div><div class="ttdeci">cvt_writer(KernelType &amp;kernel, std::vector&lt; char_type &gt; &amp;buffer)</div><div class="ttdef"><b>Definition</b> abs_cvt.h:378</div></div>
+<div class="ttc" id="aclassIOv2_1_1cvt__writer_html_a74bb8b37806c49d100fb4ddabb8fcf30"><div class="ttname"><a href="classIOv2_1_1cvt__writer.html#a74bb8b37806c49d100fb4ddabb8fcf30">IOv2::cvt_writer::put_buf</a></div><div class="ttdeci">char_type * put_buf(std::size_t len)</div><div class="ttdef"><b>Definition</b> abs_cvt.h:448</div></div>
+<div class="ttc" id="aclassIOv2_1_1cvt__writer_html_a8bedaeb3a2670c7ff02372ec61d3e1b4"><div class="ttname"><a href="classIOv2_1_1cvt__writer.html#a8bedaeb3a2670c7ff02372ec61d3e1b4">IOv2::cvt_writer::rollback</a></div><div class="ttdeci">void rollback(std::size_t len)</div><div class="ttdef"><b>Definition</b> abs_cvt.h:493</div></div>
+<div class="ttc" id="aclassIOv2_1_1cvt__writer_html_a8df6a06fe13b29eef38f3c28a735d6c5"><div class="ttname"><a href="classIOv2_1_1cvt__writer.html#a8df6a06fe13b29eef38f3c28a735d6c5">IOv2::cvt_writer::cvt_writer</a></div><div class="ttdeci">cvt_writer(const cvt_writer &amp;)=delete</div></div>
+<div class="ttc" id="aclassIOv2_1_1cvt__writer_html_adceaf8d3025b15ebbeb8bc9fcecba4f9"><div class="ttname"><a href="classIOv2_1_1cvt__writer.html#adceaf8d3025b15ebbeb8bc9fcecba4f9">IOv2::cvt_writer::operator=</a></div><div class="ttdeci">cvt_writer &amp; operator=(cvt_writer &amp;&amp;)=delete</div></div>
+<div class="ttc" id="aclassIOv2_1_1cvt__writer_html_aec0566941e5752f0acb86a8895f6825c"><div class="ttname"><a href="classIOv2_1_1cvt__writer.html#aec0566941e5752f0acb86a8895f6825c">IOv2::cvt_writer::~cvt_writer</a></div><div class="ttdeci">~cvt_writer()=default</div></div>
+<div class="ttc" id="aclassIOv2_1_1put__buf__guard_html"><div class="ttname"><a href="classIOv2_1_1put__buf__guard.html">IOv2::put_buf_guard</a></div><div class="ttdef"><b>Definition</b> abs_cvt.h:541</div></div>
+<div class="ttc" id="aclassIOv2_1_1put__buf__guard_html_a0037ba327f11e4e884a681710f684909"><div class="ttname"><a href="classIOv2_1_1put__buf__guard.html#a0037ba327f11e4e884a681710f684909">IOv2::put_buf_guard::put_buf_guard</a></div><div class="ttdeci">put_buf_guard(TWriter &amp;writer, std::size_t len)</div><div class="ttdef"><b>Definition</b> abs_cvt.h:543</div></div>
+<div class="ttc" id="aclassIOv2_1_1put__buf__guard_html_a127448b6db413c1b2a4977eee629657c"><div class="ttname"><a href="classIOv2_1_1put__buf__guard.html#a127448b6db413c1b2a4977eee629657c">IOv2::put_buf_guard::operator=</a></div><div class="ttdeci">put_buf_guard &amp; operator=(put_buf_guard &amp;&amp;)=delete</div></div>
+<div class="ttc" id="aclassIOv2_1_1put__buf__guard_html_a41917cf688665f631ed1dd3aad2becb2"><div class="ttname"><a href="classIOv2_1_1put__buf__guard.html#a41917cf688665f631ed1dd3aad2becb2">IOv2::put_buf_guard::put_buf_guard</a></div><div class="ttdeci">put_buf_guard(const put_buf_guard &amp;)=delete</div></div>
+<div class="ttc" id="aclassIOv2_1_1put__buf__guard_html_a5689d61d001a4c6f1ea6d760c863cedd"><div class="ttname"><a href="classIOv2_1_1put__buf__guard.html#a5689d61d001a4c6f1ea6d760c863cedd">IOv2::put_buf_guard::used</a></div><div class="ttdeci">void used(std::size_t len)</div><div class="ttdef"><b>Definition</b> abs_cvt.h:562</div></div>
+<div class="ttc" id="aclassIOv2_1_1put__buf__guard_html_a5eaff462dd7115be8821ba4ab4f74355"><div class="ttname"><a href="classIOv2_1_1put__buf__guard.html#a5eaff462dd7115be8821ba4ab4f74355">IOv2::put_buf_guard::put_buf_guard</a></div><div class="ttdeci">put_buf_guard(put_buf_guard &amp;&amp;)=delete</div></div>
+<div class="ttc" id="aclassIOv2_1_1put__buf__guard_html_a669cdeff7212ca0edb8f00982da1b41f"><div class="ttname"><a href="classIOv2_1_1put__buf__guard.html#a669cdeff7212ca0edb8f00982da1b41f">IOv2::put_buf_guard::operator=</a></div><div class="ttdeci">put_buf_guard &amp; operator=(const put_buf_guard &amp;)=delete</div></div>
+<div class="ttc" id="aclassIOv2_1_1put__buf__guard_html_aecdf0712ce5c4971db53a4315a366336"><div class="ttname"><a href="classIOv2_1_1put__buf__guard.html#aecdf0712ce5c4971db53a4315a366336">IOv2::put_buf_guard::~put_buf_guard</a></div><div class="ttdeci">~put_buf_guard()</div><div class="ttdef"><b>Definition</b> abs_cvt.h:552</div></div>
+<div class="ttc" id="aconceptIOv2_1_1cvt__cpt_1_1support__get_html"><div class="ttname"><a href="conceptIOv2_1_1cvt__cpt_1_1support__get.html">IOv2::cvt_cpt::support_get</a></div><div class="ttdef"><b>Definition</b> cvt_concepts.h:153</div></div>
+<div class="ttc" id="aconceptIOv2_1_1cvt__cpt_1_1support__io__switch_html"><div class="ttname"><a href="conceptIOv2_1_1cvt__cpt_1_1support__io__switch.html">IOv2::cvt_cpt::support_io_switch</a></div><div class="ttdef"><b>Definition</b> cvt_concepts.h:201</div></div>
+<div class="ttc" id="aconceptIOv2_1_1cvt__cpt_1_1support__positioning_html"><div class="ttname"><a href="conceptIOv2_1_1cvt__cpt_1_1support__positioning.html">IOv2::cvt_cpt::support_positioning</a></div><div class="ttdef"><b>Definition</b> cvt_concepts.h:177</div></div>
+<div class="ttc" id="acvt__concepts_8h_html"><div class="ttname"><a href="cvt__concepts_8h.html">cvt_concepts.h</a></div></div>
+<div class="ttc" id="anamespaceIOv2_html"><div class="ttname"><a href="namespaceIOv2.html">IOv2</a></div><div class="ttdef"><b>Definition</b> clocale_wrapper.h:24</div></div>
+<div class="ttc" id="anamespaceIOv2_html_a36673c0e1d93ef095d232f0f726134d9"><div class="ttname"><a href="namespaceIOv2.html#a36673c0e1d93ef095d232f0f726134d9">IOv2::io_status</a></div><div class="ttdeci">io_status</div><div class="ttdef"><b>Definition</b> cvt_concepts.h:94</div></div>
+<div class="ttc" id="anamespaceIOv2_html_a36673c0e1d93ef095d232f0f726134d9a5da248ea6840aca1ae2b417b17982a89"><div class="ttname"><a href="namespaceIOv2.html#a36673c0e1d93ef095d232f0f726134d9a5da248ea6840aca1ae2b417b17982a89">IOv2::io_status::neutral</a></div><div class="ttdeci">@ neutral</div><div class="ttdoc">未指定方向 / Unspecified direction.</div></div>
+<div class="ttc" id="anamespaceIOv2_html_a36673c0e1d93ef095d232f0f726134d9a78e6221f6393d1356681db398f14ce6d"><div class="ttname"><a href="namespaceIOv2.html#a36673c0e1d93ef095d232f0f726134d9a78e6221f6393d1356681db398f14ce6d">IOv2::io_status::output</a></div><div class="ttdeci">@ output</div><div class="ttdoc">输出（写入）模式 / Output (writing) mode.</div></div>
+<div class="ttc" id="anamespaceIOv2_html_a36673c0e1d93ef095d232f0f726134d9aa43c1b0aa53a0c908810c06ab1ff3967"><div class="ttname"><a href="namespaceIOv2.html#a36673c0e1d93ef095d232f0f726134d9aa43c1b0aa53a0c908810c06ab1ff3967">IOv2::io_status::input</a></div><div class="ttdeci">@ input</div><div class="ttdoc">输入（读取）模式 / Input (reading) mode.</div></div>
+<div class="ttc" id="anamespaceIOv2_html_a392a972d7d3497809610360056d316c1"><div class="ttname"><a href="namespaceIOv2.html#a392a972d7d3497809610360056d316c1">IOv2::is_iochannel</a></div><div class="ttdeci">static constexpr bool is_iochannel</div><div class="ttdef"><b>Definition</b> iochannel_defs.h:101</div></div>
+<div class="ttc" id="anamespacestd_html"><div class="ttname"><a href="namespacestd.html">std</a></div><div class="ttdef"><b>Definition</b> ori_facet_buf.h:82</div></div>
+<div class="ttc" id="astructIOv2_1_1cvt__behavior_html"><div class="ttname"><a href="structIOv2_1_1cvt__behavior.html">IOv2::cvt_behavior</a></div><div class="ttdef"><b>Definition</b> cvt_concepts.h:45</div></div>
+<div class="ttc" id="astructIOv2_1_1cvt__error_html"><div class="ttname"><a href="structIOv2_1_1cvt__error.html">IOv2::cvt_error</a></div><div class="ttdef"><b>Definition</b> defs.h:76</div></div>
+<div class="ttc" id="astructIOv2_1_1cvt__status_html"><div class="ttname"><a href="structIOv2_1_1cvt__status.html">IOv2::cvt_status</a></div><div class="ttdef"><b>Definition</b> cvt_concepts.h:69</div></div>
+</div><!-- fragment --></div><!-- contents -->
+</div><!-- doc-content -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><a class="el" href="dir_d44c64559bbebec7f509842c48db8b23.html">include</a></li><li class="navelem"><a class="el" href="dir_1157f564aec2b3a7d6bde4eba89ab805.html">IOv2</a></li><li class="navelem"><a class="el" href="dir_cb47199aadcaf8cfcea269255baf147a.html">cvt</a></li><li class="navelem"><a class="el" href="abs__cvt_8h.html">abs_cvt.h</a></li>
+    <li class="footer">制作者 <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8 </li>
+  </ul>
+</div>
+</body>
+</html>

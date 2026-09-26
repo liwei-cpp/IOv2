@@ -1,0 +1,210 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=11"/>
+<meta name="generator" content="Doxygen 1.9.8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>IOv2: include/IOv2/io/objects/out_impl.h 文件参考</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="resize.js"></script>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr id="projectrow">
+  <td id="projectalign">
+   <div id="projectname">IOv2
+   </div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 制作者 Doxygen 1.9.8 -->
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+/* @license-end */
+</script>
+<script type="text/javascript" src="menudata.js"></script>
+<script type="text/javascript" src="menu.js"></script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(function() {
+  initMenu('',true,false,'search.php','搜索');
+  $(document).ready(function() { init_search(); });
+});
+/* @license-end */
+</script>
+<div id="main-nav"></div>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(document).ready(function(){initNavTree('out__impl_8h.html',''); initResizable(); });
+/* @license-end */
+</script>
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">载入中...</div>
+<div class="SRStatus" id="Searching">搜索中...</div>
+<div class="SRStatus" id="NoMatches">未找到</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="header">
+  <div class="summary">
+<a href="#nested-classes">类</a> &#124;
+<a href="#namespaces">命名空间</a> &#124;
+<a href="#var-members">变量</a>  </div>
+  <div class="headertitle"><div class="title">out_impl.h 文件参考</div></div>
+</div><!--header-->
+<div class="contents">
+<div class="textblock"><code>#include &lt;<a class="el" href="copyable__atomic_8h_source.html">IOv2/common/copyable_atomic.h</a>&gt;</code><br />
+<code>#include &lt;<a class="el" href="iov2__export_8h_source.html">IOv2/common/iov2_export.h</a>&gt;</code><br />
+<code>#include &lt;<a class="el" href="sing__temp_8h_source.html">IOv2/common/sing_temp.h</a>&gt;</code><br />
+<code>#include &lt;<a class="el" href="code__cvt_8h_source.html">IOv2/cvt/code_cvt.h</a>&gt;</code><br />
+<code>#include &lt;<a class="el" href="code__cvt__stdio_8h_source.html">IOv2/cvt/code_cvt_stdio.h</a>&gt;</code><br />
+<code>#include &lt;<a class="el" href="cvt__concepts_8h_source.html">IOv2/cvt/cvt_concepts.h</a>&gt;</code><br />
+<code>#include &lt;<a class="el" href="device__concepts_8h_source.html">IOv2/device/device_concepts.h</a>&gt;</code><br />
+<code>#include &lt;<a class="el" href="std__device_8h_source.html">IOv2/device/std_device.h</a>&gt;</code><br />
+<code>#include &lt;<a class="el" href="io__base_8h_source.html">IOv2/io/io_base.h</a>&gt;</code><br />
+<code>#include &lt;<a class="el" href="iochannel_8h_source.html">IOv2/io/iochannel.h</a>&gt;</code><br />
+<code>#include &lt;<a class="el" href="iochannel__iterator_8h_source.html">IOv2/io/iochannel_iterator.h</a>&gt;</code><br />
+<code>#include &lt;<a class="el" href="ostream__operators_8h_source.html">IOv2/io/utilities/ostream_operators.h</a>&gt;</code><br />
+<code>#include &lt;<a class="el" href="stream__common__operators_8h_source.html">IOv2/io/utilities/stream_common_operators.h</a>&gt;</code><br />
+<code>#include &lt;<a class="el" href="locale_8h_source.html">IOv2/locale/locale.h</a>&gt;</code><br />
+<code>#include &lt;clocale&gt;</code><br />
+<code>#include &lt;exception&gt;</code><br />
+<code>#include &lt;mutex&gt;</code><br />
+<code>#include &lt;string&gt;</code><br />
+<code>#include &lt;type_traits&gt;</code><br />
+<code>#include &lt;utility&gt;</code><br />
+<code>#include &lt;unistd.h&gt;</code><br />
+</div><div class="textblock"><div class="dynheader">
+out_impl.h 的引用(Include)关系图:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="out__impl_8h__incl.svg" width="6734" height="784"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+</div><div class="textblock"><div class="dynheader">
+此图展示该文件直接或间接的被哪些文件引用了:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="out__impl_8h__dep__incl.svg" width="243" height="227"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+</div>
+<p><a href="out__impl_8h_source.html">浏览源代码.</a></p>
+<table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
+类</h2></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1stdout__api.html">IOv2::stdout_api&lt; T, TDevice, TChar &gt;</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1cout__t.html">IOv2::cout_t</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">cout  <a href="classIOv2_1_1cout__t.html#details">更多...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1cerr__t.html">IOv2::cerr_t</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">cerr  <a href="classIOv2_1_1cerr__t.html#details">更多...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1clog__t.html">IOv2::clog_t</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">clog  <a href="classIOv2_1_1clog__t.html#details">更多...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1wcout__t.html">IOv2::wcout_t</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">wcout  <a href="classIOv2_1_1wcout__t.html#details">更多...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1wcerr__t.html">IOv2::wcerr_t</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">wcerr  <a href="classIOv2_1_1wcerr__t.html#details">更多...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1wclog__t.html">IOv2::wclog_t</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">wclog  <a href="classIOv2_1_1wclog__t.html#details">更多...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="namespaces" name="namespaces"></a>
+命名空间</h2></td></tr>
+<tr class="memitem:namespaceIOv2" id="r_namespaceIOv2"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html">IOv2</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="var-members" name="var-members"></a>
+变量</h2></td></tr>
+<tr class="memitem:a3679a550c44b681c648ef20380d34af9" id="r_a3679a550c44b681c648ef20380d34af9"><td class="memItemLeft" align="right" valign="top">cout_t::init&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a3679a550c44b681c648ef20380d34af9">IOv2::_cout_init</a></td></tr>
+<tr class="separator:a3679a550c44b681c648ef20380d34af9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a192db1b11b81d628e595c6541ee23a43" id="r_a192db1b11b81d628e595c6541ee23a43"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classIOv2_1_1cout__t.html">cout_t</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a192db1b11b81d628e595c6541ee23a43">IOv2::cout</a> = _cout_init.get()</td></tr>
+<tr class="separator:a192db1b11b81d628e595c6541ee23a43"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a001aeaa2d4ea088d1dec461d54d362e2" id="r_a001aeaa2d4ea088d1dec461d54d362e2"><td class="memItemLeft" align="right" valign="top">cerr_t::init&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a001aeaa2d4ea088d1dec461d54d362e2">IOv2::_cerr_init</a></td></tr>
+<tr class="separator:a001aeaa2d4ea088d1dec461d54d362e2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7d5991e896f831d9d1792b0a94e60693" id="r_a7d5991e896f831d9d1792b0a94e60693"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classIOv2_1_1cerr__t.html">cerr_t</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a7d5991e896f831d9d1792b0a94e60693">IOv2::cerr</a> = _cerr_init.get()</td></tr>
+<tr class="separator:a7d5991e896f831d9d1792b0a94e60693"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af3ed3d96fd1ee491b2ac9357f9a13ba0" id="r_af3ed3d96fd1ee491b2ac9357f9a13ba0"><td class="memItemLeft" align="right" valign="top">clog_t::init&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#af3ed3d96fd1ee491b2ac9357f9a13ba0">IOv2::_clog_init</a></td></tr>
+<tr class="separator:af3ed3d96fd1ee491b2ac9357f9a13ba0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4d6ecc231623bfd54edbcebab9c258a7" id="r_a4d6ecc231623bfd54edbcebab9c258a7"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classIOv2_1_1clog__t.html">clog_t</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a4d6ecc231623bfd54edbcebab9c258a7">IOv2::clog</a> = _clog_init.get()</td></tr>
+<tr class="separator:a4d6ecc231623bfd54edbcebab9c258a7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8abdb4bb36198978341017c787dd9a4f" id="r_a8abdb4bb36198978341017c787dd9a4f"><td class="memItemLeft" align="right" valign="top">wcout_t::init&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a8abdb4bb36198978341017c787dd9a4f">IOv2::_wcout_init</a></td></tr>
+<tr class="separator:a8abdb4bb36198978341017c787dd9a4f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a17b93b3e50cd1c907add59d2740a7d9e" id="r_a17b93b3e50cd1c907add59d2740a7d9e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classIOv2_1_1wcout__t.html">wcout_t</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a17b93b3e50cd1c907add59d2740a7d9e">IOv2::wcout</a> = _wcout_init.get()</td></tr>
+<tr class="separator:a17b93b3e50cd1c907add59d2740a7d9e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8e907a0932a841ab3d32bf2ad6f1a92c" id="r_a8e907a0932a841ab3d32bf2ad6f1a92c"><td class="memItemLeft" align="right" valign="top">wcerr_t::init&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a8e907a0932a841ab3d32bf2ad6f1a92c">IOv2::_wcerr_init</a></td></tr>
+<tr class="separator:a8e907a0932a841ab3d32bf2ad6f1a92c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a70e165d49a23fd66e12a3cf4b1b8027b" id="r_a70e165d49a23fd66e12a3cf4b1b8027b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classIOv2_1_1wcerr__t.html">wcerr_t</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a70e165d49a23fd66e12a3cf4b1b8027b">IOv2::wcerr</a> = _wcerr_init.get()</td></tr>
+<tr class="separator:a70e165d49a23fd66e12a3cf4b1b8027b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7b1e69c314d62533469b79cd49d8614a" id="r_a7b1e69c314d62533469b79cd49d8614a"><td class="memItemLeft" align="right" valign="top">wclog_t::init&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a7b1e69c314d62533469b79cd49d8614a">IOv2::_wclog_init</a></td></tr>
+<tr class="separator:a7b1e69c314d62533469b79cd49d8614a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac811744c491ec66dd971c98ce9a53f91" id="r_ac811744c491ec66dd971c98ce9a53f91"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classIOv2_1_1wclog__t.html">wclog_t</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#ac811744c491ec66dd971c98ce9a53f91">IOv2::wclog</a> = _wclog_init.get()</td></tr>
+<tr class="separator:ac811744c491ec66dd971c98ce9a53f91"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table>
+<a name="details" id="details"></a><h2 class="groupheader">详细描述</h2>
+<div class="textblock"><p>定义标准输出流的实现模板 <code>stdout_api</code>，以及六个标准输出流对象：<code>cout</code> / <code>cerr</code> / <code>clog</code> （<code>char</code>）与 <code>wcout</code> / <code>wcerr</code> / <code>wclog</code>（<code>wchar_t</code>）。</p>
+<p><code>stdout_api</code> 不由 <code>ostream</code> 派生，而是同样把一条 <code>ochannel</code>（其下依次是转换器管线与固定 fd 的设备 <code>std_device&lt;STDOUT_FILENO&gt;</code> 或 <code>std_device&lt;STDERR_FILENO&gt;</code>）与一个 <code>locale</code> 组合起来， 对外接口来自 <code>ios_state</code>（状态位与异常掩码）、<code>out_flusher</code>（tie 刷新用的多态 <code>try_flush()</code>）、 <code>ostream_operators</code>（输出操作）与 <code>stream_common_operators</code>（<code>tell()</code> / <code>locale()</code> 等）四个 基类。与 <code>ostream</code> 的差别都来自「设备是固定 fd 的进程级单例」：多了 <code>sync_with_stdio()</code> / <code>synced_with_stdio()</code>、<code>reset()</code> 与（宽流）<code>code()</code> / <code>switch_code()</code>，换设备的 <code>detach()</code> / <code>attach()</code> 则被 <code>= delete</code>。</p>
+<p>六个流对象经 <code>sing_temp</code> 成为进程级单例，退出钩子只 <code>try_flush()</code>、不析构——与 <code>std::cout</code> 一样，退出阶段既有引用仍然有效。<code>cerr</code> / <code>wcerr</code> 构造时另外 <code>tie()</code> 到 <code>cout</code> / <code>wcout</code> 并置 <code>ios_defs::unitbuf</code>，三个 <code>char</code> 流与三个宽流共用 fd 1 / fd 2。</p>
+<dl class="section warning"><dt>警告</dt><dd>**退出时的刷新是「尽力而为」的**：钩子走 <code>out_flusher::try_flush()</code>，以 <code>try_to_lock</code> 至多试三次取本流的 <code>io_mutex()</code>，取不到就放弃，那一批已缓冲的字节 丢掉。这是有意的取舍——若改成阻塞取锁，另一个线程持锁不放（在用户的 <code>io_traits::swrite</code> 里等网络、等一个本该由正在退出的线程唤醒的条件变量，或 <code>tie</code> 成环）就会让 <code>exit()</code> 永不返回；glibc 的 <code>_IO_cleanup</code> 用 <code>_IO_flush_all_lockp(0)</code> 不取 FILE 锁，正是同一个理由。处于失败态（<code>eofbit</code> 除外）的流退出时也不刷：钩子走的是流级 <code>flush()</code>，它对失败态什么也不做（<code>std::cout</code> 相同）；失败后仍想要缓冲里的字节，先 <code>clear()</code> 再 <code>flush()</code>。要确保某一批输出一定到达 设备，请在退出前自己 <code>flush()</code>，那时还有调用栈可以报告失败。</dd></dl>
+<dl class="section note"><dt>注解</dt><dd>上面说的「退出时」只指 <code>exit()</code>（含 <code>main</code> 返回）：钩子是经 <code>__cxa_atexit</code> 登记的静态 析构。<code>std::quick_exit</code>、<code>_exit</code>、未捕获的信号与 <code>std::abort</code> **一概不跑钩子**，本流 缓冲里的字节全部丢失；同步模式下已交给 stdio 的字节也一并丢失，因为这些路径同样不 冲刷 <code>FILE</code> 缓冲——与 <code>std::cout</code> 在这些路径上的行为逐字节相同（实测）。要在这类路径 之前保住输出，请自己 <code>flush()</code>，并在 stdout 不是 tty 时再 <code>fflush(stdout)</code>（或 <code>setvbuf(stdout, nullptr, _IONBF, 0)</code>）。</dd>
+<dd>
+**「退出阶段仍可用」只覆盖本库自己的东西**：流对象、它们的 locale 与 facet，以及 facet 触到的进程级数据（<code>timeio</code> 的时区树、<code>messages</code> 的文本域表）都不在退出时析构。 用户经 <code>locale(loc)</code> 装进来的自定义 facet 若持有会在退出时析构的全局量，<code>main</code> 返回后 另一线程的一次插入、或更早构造的静态对象析构里的一次插入，仍会读到已销毁的对象—— 这一层本库无从保证，与 <code>std::cout</code> 相同。</dd>
+<dd>
+**三个宽流在字节层与 stdio 同步**：它们自己把字符编码成字节，再以 <code>fwrite</code> 交给 <code>stdout</code> / <code>stderr</code>，所以 <code>FILE</code> 是字节定向的。因此 <code>cout</code>、<code>wcout</code> 与 <code>printf</code> / <code>fputs</code> 等字节函数可以任意交错；但**不能**与 <code>wprintf</code> / <code>fputwc</code> 等宽字符函数混用于 同一个 <code>FILE</code>（C11 7.21.2 禁止混用两种定向）：先用宽字符函数，此后本库的窄流与宽流 插入都失败并置 <code>devfailbit</code>；先用本库的流，此后 <code>wprintf</code> 返回 -1、输出静默丢失。 这与 <code>std::wcout</code> 相反：libstdc++ 的 <code>std::wcout</code> 经 <code>putwc</code> 写，与 <code>wprintf</code> 相容， 却在先写之后让 <code>printf</code> 与 <code>std::cout</code> 失败（实测）。</dd>
+<dd>
+一般不直接包含本头文件，而是包含 <code><a class="el" href="objects_8h.html">IOv2/io/objects/objects.h</a></code>：入口那里还有一次切换全部 八个标准流的 <code>sync_with_stdio()</code> 与 <code>endl</code> / <code>ends</code> / <code>flush</code> 等操纵符，并说明了本系列 头文件不带来哪些能力。 </dd></dl>
+</div></div><!-- contents -->
+</div><!-- doc-content -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><a class="el" href="dir_d44c64559bbebec7f509842c48db8b23.html">include</a></li><li class="navelem"><a class="el" href="dir_1157f564aec2b3a7d6bde4eba89ab805.html">IOv2</a></li><li class="navelem"><a class="el" href="dir_e6325c10be556c0ae106bae233ca0d0f.html">io</a></li><li class="navelem"><a class="el" href="dir_f21ae676d18879298caf471a64897373.html">objects</a></li><li class="navelem"><a class="el" href="out__impl_8h.html">out_impl.h</a></li>
+    <li class="footer">制作者 <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8 </li>
+  </ul>
+</div>
+</body>
+</html>

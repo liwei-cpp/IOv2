@@ -1,0 +1,5 @@
+<map id="IOv2::iochannel&lt; TDevice, TChar &gt;" name="IOv2::iochannel&lt; TDevice, TChar &gt;">
+<area shape="rect" id="Node000001" title="双向通道：同时支持输入与输出。" alt="" coords="5,108,200,148"/>
+<area shape="rect" id="Node000002" href="$classIOv2_1_1base__channel.html" title=" " alt="" coords="16,5,189,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="105,74,105,108,100,108,100,74"/>
+</map>
