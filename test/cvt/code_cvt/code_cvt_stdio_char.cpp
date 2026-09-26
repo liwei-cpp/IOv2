@@ -563,8 +563,9 @@ TEST(CodeCvtStdio, TheEncodingCanBeSwitchedAtRunTime)
 }
 
 // 0xE6 opens a three-byte UTF-8 sequence, so a stream that ends there leaves the
-// decoder mid-character. Switching encoding at that point would reinterpret the
-// bytes already consumed, so it is refused.
+// decoder mid-character: the read that reaches the end fails, and switching
+// encoding at that point would reinterpret the byte already consumed, so it is
+// refused.
 TEST(CodeCvtStdio, TheEncodingCannotBeSwitchedMidCharacter)
 {
     std::string partial;
@@ -576,7 +577,7 @@ TEST(CodeCvtStdio, TheEncodingCannotBeSwitchedMidCharacter)
     obj.main_cont_beg();
 
     wchar_t buf[4];
-    obj.get(buf, 4); // consumes 0xE6; the sequence is reported as incomplete
+    EXPECT_THROW(obj.get(buf, 4), cvt_error); // the kernel holds 0xE6; the input ends there
 
     EXPECT_THROW(obj.adjust(code_cvt_switch{"C"}), cvt_error);
 }

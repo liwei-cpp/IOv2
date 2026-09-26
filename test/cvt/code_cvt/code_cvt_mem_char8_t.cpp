@@ -16,6 +16,7 @@
 #include <cstddef>
 #include <iterator>
 #include <string>
+#include <tuple>
 #include <type_traits>
 #include <utility>
 #include <vector>
@@ -1029,6 +1030,53 @@ TEST(CodeCvtMemChar8, AStreamEndingMidSequenceIsRejected)
         char32_t buf[4];
         EXPECT_THROW((void)obj.get(buf, 1), cvt_error);
     }
+}
+
+// The characters before a cut-off still come out: the read that produces them
+// succeeds, and only the next one, with nothing left but the held bytes, fails.
+// The held bytes stay until init_state(), so failing again is what a retry gets.
+TEST(CodeCvtMemChar8, TheCharactersBeforeACutOffStillComeOut)
+{
+    std::u8string text = u8"ab";
+    text += char8_t(0xE6);
+
+    RbCvt obj{rb_root_cvt{mem_device(text)}};
+    EXPECT_EQ(obj.bos(), io_status::input);
+    obj.main_cont_beg();
+
+    char32_t buf[4]{};
+    ASSERT_EQ(obj.get(buf, 4), 2u);
+    EXPECT_EQ(buf[0], U'a');
+    EXPECT_EQ(buf[1], U'b');
+    EXPECT_EQ(obj.tell(), 2u);
+    EXPECT_THROW((void)obj.get(buf, 4), cvt_error);
+    EXPECT_THROW((void)obj.get(buf, 4), cvt_error);
+    EXPECT_EQ(obj.tell(), 2u);
+}
+
+// A character split across two reads is held in the kernel in between, so the
+// kernel reports itself mid-sequence without leaving its initial shift state.
+TEST(CodeCvtMemChar8, TheKernelHoldsASplitCharacterBetweenCalls)
+{
+    codecvt_kernel<char8_t, char32_t> kernel;
+    const char8_t bytes[] = {char8_t(0xE4), char8_t(0xB8), char8_t(0xAD)}; // 中
+    char32_t buf[2]{};
+
+    const char8_t* from = bytes;
+    char32_t* to = buf;
+    auto [ok, n] = kernel.in_helper(from, bytes + 1, to, buf + 2);
+    EXPECT_TRUE(ok);
+    EXPECT_EQ(n, 0u);
+    EXPECT_EQ(from, bytes + 1);
+    EXPECT_TRUE(kernel.is_mid_seq());
+    EXPECT_TRUE(kernel.is_init_state());
+
+    std::tie(ok, n) = kernel.in_helper(from, bytes + 3, to, buf + 2);
+    EXPECT_TRUE(ok);
+    ASSERT_EQ(n, 1u);
+    EXPECT_EQ(buf[0], U'中');
+    EXPECT_EQ(from, bytes + 3);
+    EXPECT_FALSE(kernel.is_mid_seq());
 }
 
 // switch_to_put on a converter that is already writing changes nothing; after an

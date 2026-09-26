@@ -13,38 +13,42 @@
  * Through wcout that was `中` + an unencodable `é` + `clear()` + `ab` decoding
  * as `中痰`.
  *
- * glibc ships no stateful LC_CTYPE, so the suite builds one: a hand-written
- * charmap that names the ISO-2022-JP codeset (glibc's gconv module does the
- * actual encoding, so ASCII entries are all the charmap needs), compiled by
- * localedef into this suite's working directory. A locale outside the system
- * paths can only be reached through LOCPATH, which changes how every
- * newlocale in the process resolves names, and glibc leaks a little memory
- * on each lookup made through it. So the checks run in a child process that
- * has LOCPATH set, no locale variables, and LeakSanitizer turned off.
+ * Reading has the mirror problem. Fed a shift sequence one byte at a time,
+ * glibc's mbrtowc returns 1 for the byte that completes it without storing a
+ * character, and loses the shift state on the way; a shift sequence that ends
+ * the input likewise comes back as a positive count with no character. get(&c, 1)
+ * feeds one byte at a time, so `a 中 中 b c` used to read as `a \0 C f C f \0 b c`,
+ * and a whole-buffer get repeated the last character. The kernel now holds a
+ * partial sequence as raw bytes and feeds it to mbrtowc whole.
+ *
+ * Replacing the whole converter must not cost it the shift state either: a
+ * fresh kernel starts in ASCII, so code_cvt_stdio_state carries the old one over.
+ *
+ * The checks run under a locale built for the purpose, in a child process; see
+ * support/stateful_locale.h.
  */
 #include <IOv2/cvt/code_cvt.h>
+#include <IOv2/cvt/code_cvt_stdio.h>
 #include <IOv2/cvt/root_cvt.h>
 #include <IOv2/device/mem_device.h>
+#include <IOv2/device/std_device.h>
 
-#include <support/exe_path.h>
+#include <support/stateful_locale.h>
+#include <support/stdio_guard.h>
 
 #include <gtest/gtest.h>
 
 #include <array>
-#include <cstdlib>
-#include <filesystem>
 #include <string>
+#include <tuple>
 
-#include <fcntl.h>
-#include <sys/wait.h>
 #include <unistd.h>
 
 using namespace IOv2;
 
 namespace
 {
-    const char* const kChildEnv = "IOV2_STATEFUL_ENCODING_CHILD";
-    const char* const kLocaleName = "xx_XX.ISO-2022-JP";
+    const char* const kLocaleName = stateful_locale_name;
 
     // U+4E2D in JIS X 0208 is 0x4366, entered from ASCII with ESC $ B.
     const std::string kShiftIn = "\x1b$B";
@@ -53,73 +57,6 @@ namespace
 
     // Not representable in ISO-2022-JP: neither ASCII nor JIS X 0208 has it.
     constexpr wchar_t kUnencodable = L'é';
-
-    std::filesystem::path resource(const char* leaf)
-    {
-        std::filesystem::path p = exe_path();
-        p = p.remove_filename() / ".." / "IOv2TestResources" / "iso2022jp" / leaf;
-        return std::filesystem::canonical(p);
-    }
-
-    // localedef exits 1 with -c when it only warned (the source leaves six
-    // categories undefined), so success is read from the output, not the status.
-    bool build_locale(const std::filesystem::path& locpath)
-    {
-        const std::filesystem::path out = locpath / kLocaleName;
-        std::filesystem::remove_all(out);
-        std::filesystem::create_directories(locpath);
-        const std::string charmap = resource("ISO-2022-JP.cm").string();
-        const std::string source = resource("mini.src").string();
-
-        const pid_t child = ::fork();
-        if (child == -1)
-            return false;
-        if (child == 0)
-        {
-            const int null_fd = ::open("/dev/null", O_WRONLY);
-            ::dup2(null_fd, STDOUT_FILENO);
-            ::dup2(null_fd, STDERR_FILENO);
-            ::setenv("LC_ALL", "C", 1);
-            ::execlp("localedef", "localedef", "-c", "-f", charmap.c_str(),
-                     "-i", source.c_str(), out.c_str(), static_cast<char*>(nullptr));
-            ::_exit(127);
-        }
-
-        int status = 0;
-        if (::waitpid(child, &status, 0) != child || !WIFEXITED(status) || WEXITSTATUS(status) > 1)
-            return false;
-        return std::filesystem::exists(out / "LC_CTYPE");
-    }
-
-    int run_child(const std::filesystem::path& locpath)
-    {
-        const std::string executable = exe_path();
-        const pid_t child = ::fork();
-        if (child == -1)
-            return -1;
-
-        if (child == 0)
-        {
-            for (const char* name : {"LC_ALL", "LC_CTYPE", "LC_COLLATE", "LC_MONETARY",
-                                     "LC_NUMERIC", "LC_TIME", "LC_MESSAGES", "LANG"})
-                ::unsetenv(name);
-            ::setenv("LOCPATH", locpath.c_str(), 1);
-            std::string asan = "detect_leaks=0";
-            if (const char* old = std::getenv("ASAN_OPTIONS"); old != nullptr && *old != '\0')
-                asan = std::string(old) + ":" + asan;
-            ::setenv("ASAN_OPTIONS", asan.c_str(), 1);
-            ::setenv(kChildEnv, "1", 1);
-            ::execl(executable.c_str(), executable.c_str(),
-                    "--gtest_filter=CodeCvtStatefulEncoding.AFailedEncodeKeepsTheShiftState",
-                    "--gtest_color=no", static_cast<char*>(nullptr));
-            ::_exit(127);
-        }
-
-        int status = 0;
-        if (::waitpid(child, &status, 0) != child || !WIFEXITED(status))
-            return -1;
-        return WEXITSTATUS(status);
-    }
 
     // Encodes one character, appending whatever the kernel wrote to `out`.
     bool encode(codecvt_kernel<char, wchar_t>& kernel, wchar_t ch, std::string& out)
@@ -179,17 +116,263 @@ namespace
         EXPECT_FALSE(err);
         EXPECT_EQ(dev.str(), kZhong + kShiftOut);
     }
+
+    // A partial sequence is held as raw bytes and completed by the next call; a
+    // shift sequence alone yields no character. Holding half a sequence
+    // (is_mid_seq) and being in a shift state (!is_init_state) are told apart.
+    void kernel_holds_a_partial_sequence_until_it_completes()
+    {
+        codecvt_kernel<char, wchar_t> kernel(kLocaleName);
+        std::array<wchar_t, 4> buf{};
+
+        const std::string half = kShiftIn.substr(0, 2);
+        const char* from = half.data();
+        wchar_t* to = buf.data();
+        auto [ok, n] = kernel.in_helper(from, half.data() + half.size(), to, buf.data() + buf.size());
+        EXPECT_TRUE(ok);
+        EXPECT_EQ(n, 0u);
+        EXPECT_EQ(from, half.data() + half.size());
+        EXPECT_TRUE(kernel.is_mid_seq()) << "half a shift sequence left no trace";
+        EXPECT_TRUE(kernel.is_init_state()) << "the held bytes leaked into the shift state";
+
+        // The rest of the shift sequence and 中: whole again, now in JIS X 0208.
+        const std::string rest = kShiftIn.substr(2) + "Cf";
+        from = rest.data();
+        to = buf.data();
+        std::tie(ok, n) = kernel.in_helper(from, rest.data() + rest.size(), to, buf.data() + buf.size());
+        EXPECT_TRUE(ok);
+        ASSERT_EQ(n, 1u) << "a shift sequence came back as a character";
+        EXPECT_EQ(buf[0], L'中');
+        EXPECT_EQ(from, rest.data() + rest.size());
+        EXPECT_FALSE(kernel.is_mid_seq());
+        EXPECT_FALSE(kernel.is_init_state());
+
+        // The way back to ASCII on its own: no character, back to the initial state.
+        from = kShiftOut.data();
+        to = buf.data();
+        std::tie(ok, n) = kernel.in_helper(from, kShiftOut.data() + kShiftOut.size(), to, buf.data() + buf.size());
+        EXPECT_TRUE(ok);
+        EXPECT_EQ(n, 0u);
+        EXPECT_EQ(from, kShiftOut.data() + kShiftOut.size());
+        EXPECT_TRUE(kernel.is_init_state());
+
+        // init_state() drops held bytes too.
+        from = half.data();
+        kernel.in_helper(from, half.data() + half.size(), to, buf.data() + buf.size());
+        ASSERT_TRUE(kernel.is_mid_seq());
+        kernel.init_state();
+        EXPECT_FALSE(kernel.is_mid_seq());
+    }
+
+    template <typename TRoot>
+    std::wstring get_one_at_a_time(const std::string& bytes)
+    {
+        code_cvt<TRoot, wchar_t> obj{TRoot{mem_device(bytes)}, kLocaleName};
+        EXPECT_EQ(obj.bos(), io_status::input);
+        obj.main_cont_beg();
+
+        std::wstring res;
+        wchar_t c = 0;
+        while (obj.get(&c, 1) == 1)
+            res += c;
+        return res;
+    }
+
+    template <typename TRoot>
+    std::wstring get_in_one_call(const std::string& bytes)
+    {
+        code_cvt<TRoot, wchar_t> obj{TRoot{mem_device(bytes)}, kLocaleName};
+        EXPECT_EQ(obj.bos(), io_status::input);
+        obj.main_cont_beg();
+
+        std::array<wchar_t, 16> buf{};
+        const std::size_t n = obj.get(buf.data(), buf.size());
+        return std::wstring(buf.data(), n);
+    }
+
+    template <typename TRoot>
+    void shift_sequences_decode_to_no_character()
+    {
+        const std::string text = "a" + kZhong + "Cf" + kShiftOut + "bc";
+        EXPECT_EQ(get_one_at_a_time<TRoot>(text), L"a中中bc");
+        EXPECT_EQ(get_in_one_call<TRoot>(text), L"a中中bc");
+
+        // The input ends with the shift sequence back to ASCII.
+        const std::string tail = "a" + kZhong + kShiftOut;
+        EXPECT_EQ(get_one_at_a_time<TRoot>(tail), L"a中");
+        EXPECT_EQ(get_in_one_call<TRoot>(tail), L"a中");
+    }
+
+    // Half a JIS X 0208 character before EOF: the input was cut off, and the read
+    // that reaches it fails; the character before it still comes out. The held
+    // byte stays, so the converter refuses to turn round to writing. It used to
+    // come back as `\0` and `C` with the state reported initial.
+    template <typename TRoot>
+    void a_truncated_character_fails_the_read()
+    {
+        code_cvt<TRoot, wchar_t> obj{TRoot{mem_device("a" + kShiftIn + "C")}, kLocaleName};
+        EXPECT_EQ(obj.bos(), io_status::input);
+        obj.main_cont_beg();
+
+        std::array<wchar_t, 4> buf{};
+        ASSERT_EQ(obj.get(buf.data(), buf.size()), 1u);
+        EXPECT_EQ(buf[0], L'a');
+        EXPECT_THROW(obj.get(buf.data(), buf.size()), cvt_error);
+        EXPECT_EQ(obj.tell(), 1u);
+        EXPECT_THROW(obj.switch_to_put(), cvt_error);
+    }
+
+    // Input that ends in JIS X 0208 without the way back to ASCII is not cut off:
+    // every character is whole, so the read just ends.
+    template <typename TRoot>
+    void input_ending_in_a_shift_state_just_ends()
+    {
+        code_cvt<TRoot, wchar_t> obj{TRoot{mem_device("a" + kZhong)}, kLocaleName};
+        EXPECT_EQ(obj.bos(), io_status::input);
+        obj.main_cont_beg();
+
+        std::array<wchar_t, 4> buf{};
+        ASSERT_EQ(obj.get(buf.data(), buf.size()), 2u);
+        EXPECT_EQ(std::wstring(buf.data(), 2), L"a中");
+        EXPECT_EQ(obj.get(buf.data(), buf.size()), 0u);
+    }
+
+    // An invalid byte in JIS X 0208 text: only the state mbrtowc was handed is
+    // unspecified after EILSEQ, so the kernel keeps the shift state it had before
+    // the byte and drops nothing but held bytes. Resetting to the initial state
+    // used to read the JIS X 0208 bytes after it as ASCII.
+    void kernel_keeps_the_shift_state_across_an_invalid_byte()
+    {
+        codecvt_kernel<char, wchar_t> kernel(kLocaleName);
+        std::array<wchar_t, 4> buf{};
+        const auto decode = [&](const std::string& bytes, std::size_t& n) {
+            const char* from = bytes.data();
+            wchar_t* to = buf.data();
+            auto [ok, count] = kernel.in_helper(from, bytes.data() + bytes.size(), to, buf.data() + buf.size());
+            n = count;
+            return ok;
+        };
+
+        std::size_t n = 0;
+        ASSERT_TRUE(decode(kZhong, n));
+        ASSERT_EQ(n, 1u);
+        EXPECT_FALSE(kernel.is_init_state());
+
+        EXPECT_FALSE(decode("\xff", n));
+        EXPECT_FALSE(kernel.is_init_state()) << "the error dropped the shift state";
+        EXPECT_FALSE(kernel.is_mid_seq());
+
+        // Held bytes are what an error does drop: half a JIS X 0208 character.
+        EXPECT_TRUE(decode("C", n));
+        EXPECT_TRUE(kernel.is_mid_seq());
+        EXPECT_FALSE(decode("\xff", n));
+        EXPECT_FALSE(kernel.is_mid_seq());
+        EXPECT_FALSE(kernel.is_init_state());
+
+        ASSERT_TRUE(decode("Cf", n));
+        ASSERT_EQ(n, 1u);
+        EXPECT_EQ(buf[0], L'中');
+    }
+
+    // What wcin.sync_with_stdio() does: read part of stdin through one converter,
+    // detach it, and read the rest through a new one on the same device. The first
+    // one has no read buffer, so the device stands right after what it decoded.
+    using SyncIn = code_cvt_stdio<no_rb_root_cvt<std_device<STDIN_FILENO>>>;
+    using BufferedIn = code_cvt_stdio<rb_root_cvt<std_device<STDIN_FILENO>>>;
+
+    std::wstring read_all(BufferedIn& obj)
+    {
+        std::wstring res;
+        wchar_t c = 0;
+        while (obj.get(&c, 1) == 1)
+            res += c;
+        return res;
+    }
+
+    // Returns what the new converter reads after `a 中`, handing it `state` first.
+    std::wstring read_on_after_a_switch(const std::string& bytes, bool carry)
+    {
+        iguard g(bytes);
+        SyncIn first{no_rb_root_cvt{std_device<STDIN_FILENO>{}}, kLocaleName};
+        EXPECT_EQ(first.bos(), io_status::input);
+        first.main_cont_beg();
+        wchar_t c = 0;
+        EXPECT_EQ(first.get(&c, 1), 1u);
+        EXPECT_EQ(c, L'a');
+        EXPECT_EQ(first.get(&c, 1), 1u);
+        EXPECT_EQ(c, L'中');
+
+        code_cvt_stdio_state state;
+        first.retrieve(state);
+        EXPECT_TRUE(state.kernel.has_value());
+        auto [dev, err] = first.detach();
+        EXPECT_FALSE(err);
+
+        BufferedIn second{rb_root_cvt{std::move(dev)}, kLocaleName};
+        EXPECT_EQ(second.bos(), io_status::input);
+        second.main_cont_beg();
+        if (carry)
+            second.adjust(state);
+        return read_all(second);
+    }
+
+    void the_shift_state_goes_over_to_a_new_converter()
+    {
+        const std::string text = "a" + kZhong + "Cf" + kShiftOut + "b";
+        EXPECT_EQ(read_on_after_a_switch(text, true), L"中b");
+        // What a fresh kernel makes of the same bytes: JIS X 0208 read as ASCII.
+        EXPECT_EQ(read_on_after_a_switch(text, false), L"Cfb");
+    }
+
+    // The query still answers code_cvt_access, and an empty state changes nothing.
+    void other_queries_and_an_empty_state_are_unaffected()
+    {
+        iguard g("ab");
+        BufferedIn obj{rb_root_cvt{std_device<STDIN_FILENO>{}}, kLocaleName};
+        EXPECT_EQ(obj.bos(), io_status::input);
+        obj.main_cont_beg();
+
+        code_cvt_access acc;
+        obj.retrieve(acc);
+        EXPECT_EQ(acc.code, kLocaleName);
+
+        const code_cvt_stdio_state empty;
+        obj.adjust(empty);
+        EXPECT_EQ(read_all(obj), L"ab");
+    }
+
+    // Half a character held at the end of the input goes over as well: the new
+    // converter still reports the input as cut off.
+    void a_held_half_character_goes_over_too()
+    {
+        iguard g("a" + kShiftIn + "C");
+        SyncIn first{no_rb_root_cvt{std_device<STDIN_FILENO>{}}, kLocaleName};
+        EXPECT_EQ(first.bos(), io_status::input);
+        first.main_cont_beg();
+        wchar_t c = 0;
+        EXPECT_EQ(first.get(&c, 1), 1u);
+        EXPECT_THROW(first.get(&c, 1), cvt_error);
+
+        code_cvt_stdio_state state;
+        first.retrieve(state);
+        ASSERT_TRUE(state.kernel.has_value());
+        EXPECT_TRUE(state.kernel->is_mid_seq());
+        auto [dev, err] = first.detach();
+
+        BufferedIn second{rb_root_cvt{std::move(dev)}, kLocaleName};
+        EXPECT_EQ(second.bos(), io_status::input);
+        second.main_cont_beg();
+        second.adjust(state);
+        EXPECT_THROW(second.get(&c, 1), cvt_error);
+        EXPECT_THROW(second.adjust(code_cvt_switch{"C"}), cvt_error);
+    }
 }
 
 TEST(CodeCvtStatefulEncoding, AFailedEncodeKeepsTheShiftState)
 {
-    if (std::getenv(kChildEnv) == nullptr)
+    if (!in_stateful_child())
     {
-        const std::filesystem::path locpath =
-            std::filesystem::current_path() / "stateful-locales";
-        ASSERT_TRUE(build_locale(locpath))
-            << "localedef could not build " << kLocaleName << " under " << locpath;
-        EXPECT_EQ(run_child(locpath), 0)
+        EXPECT_EQ(run_stateful_child("CodeCvtStatefulEncoding.AFailedEncodeKeepsTheShiftState"), 0)
             << "the checks under the ISO-2022-JP locale failed; see the child's output above";
         return;
     }
@@ -199,4 +382,51 @@ TEST(CodeCvtStatefulEncoding, AFailedEncodeKeepsTheShiftState)
     kernel_unshifts_after_a_failed_encode();
     detach_after_a_failed_put_returns_to_ascii<rb_root_cvt<mem_device<char>>>();
     detach_after_a_failed_put_returns_to_ascii<no_rb_root_cvt<mem_device<char>>>();
+}
+
+TEST(CodeCvtStatefulEncoding, AShiftSequenceDecodesToNoCharacter)
+{
+    if (!in_stateful_child())
+    {
+        EXPECT_EQ(run_stateful_child("CodeCvtStatefulEncoding.AShiftSequenceDecodesToNoCharacter"), 0)
+            << "the checks under the ISO-2022-JP locale failed; see the child's output above";
+        return;
+    }
+
+    // --- child ---
+    kernel_holds_a_partial_sequence_until_it_completes();
+    shift_sequences_decode_to_no_character<rb_root_cvt<mem_device<char>>>();
+    shift_sequences_decode_to_no_character<no_rb_root_cvt<mem_device<char>>>();
+    a_truncated_character_fails_the_read<rb_root_cvt<mem_device<char>>>();
+    a_truncated_character_fails_the_read<no_rb_root_cvt<mem_device<char>>>();
+    input_ending_in_a_shift_state_just_ends<rb_root_cvt<mem_device<char>>>();
+    input_ending_in_a_shift_state_just_ends<no_rb_root_cvt<mem_device<char>>>();
+}
+
+TEST(CodeCvtStatefulEncoding, TheDecoderStateGoesOverToANewConverter)
+{
+    if (!in_stateful_child())
+    {
+        EXPECT_EQ(run_stateful_child("CodeCvtStatefulEncoding.TheDecoderStateGoesOverToANewConverter"), 0)
+            << "the checks under the ISO-2022-JP locale failed; see the child's output above";
+        return;
+    }
+
+    // --- child ---
+    the_shift_state_goes_over_to_a_new_converter();
+    other_queries_and_an_empty_state_are_unaffected();
+    a_held_half_character_goes_over_too();
+}
+
+TEST(CodeCvtStatefulEncoding, AnInvalidByteKeepsTheShiftState)
+{
+    if (!in_stateful_child())
+    {
+        EXPECT_EQ(run_stateful_child("CodeCvtStatefulEncoding.AnInvalidByteKeepsTheShiftState"), 0)
+            << "the checks under the ISO-2022-JP locale failed; see the child's output above";
+        return;
+    }
+
+    // --- child ---
+    kernel_keeps_the_shift_state_across_an_invalid_byte();
 }

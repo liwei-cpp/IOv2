@@ -7,8 +7,9 @@
  * 支持运行时区域设置动态切换的字符编码转换器（code_cvt_stdio）及其配套类型定义文件。
  * 本文件在 `code_cvt` 的基础上增加了以下能力：
  * - `code_cvt_switch`：行为策略，用于在运行时切换字符编码（区域设置）。
+ * - `code_cvt_stdio_state`：取出并放回解码器状态，用于换掉转换器而不丢移位状态。
  * - `code_cvt_stdio`：继承自 `code_cvt<KernelType, wchar_t>`，通过 `adjust()` 支持编码的
- *   动态切换；查询走基类的 `retrieve()` + `code_cvt_access`（见 `code_cvt.h`）。
+ *   动态切换；查询走 `retrieve()` + `code_cvt_access`（见 `code_cvt.h`）。
  * - `code_cvt_stdio_creator`：`code_cvt_stdio` 的工厂类，满足 `cvt_creator` 概念。
  * @endif
  *
@@ -18,9 +19,11 @@
  * with the following capabilities:
  * - `code_cvt_switch`: Behavior policy for switching the character encoding (locale)
  *   at runtime.
+ * - `code_cvt_stdio_state`: Takes out and puts back the decoder's state, so that the
+ *   converter can be replaced without losing the shift state.
  * - `code_cvt_stdio`: Inherits from `code_cvt<KernelType, wchar_t>` and supports dynamic
- *   encoding switching via `adjust()`; querying goes through the base class's
- *   `retrieve()` with `code_cvt_access` (see `code_cvt.h`).
+ *   encoding switching via `adjust()`; querying goes through `retrieve()` with
+ *   `code_cvt_access` (see `code_cvt.h`).
  * - `code_cvt_stdio_creator`: Factory class for `code_cvt_stdio`, satisfying the
  *   `cvt_creator` concept.
  * @endif
@@ -29,6 +32,7 @@
 #include <IOv2/cvt/code_cvt.h>
 #include <IOv2/device/std_device.h>
 
+#include <optional>
 #include <string>
 #include <type_traits>
 #include <utility>
@@ -73,11 +77,46 @@ struct code_cvt_switch : cvt_behavior
 
 /**
  * @lang{ZH}
+ * 解码器状态的取出与放回：既是查询对象，也是行为策略。
+ * 传入 `code_cvt_stdio::retrieve()` 时，`kernel` 被填入当前编码转换内核的一份拷贝（移位状态、
+ * 尚未凑成字符的字节都在其中）；把同一个对象传入另一个 `code_cvt_stdio` 的 `adjust()` 时，
+ * 该转换器换上这份内核，从取出时的状态接着解码。
+ *
+ * 用于在同一输入上换掉整个转换器（如 `wcin.sync_with_stdio()` 重建 iochannel）而不丢掉解码
+ * 状态：新建的内核从初始状态起步，对有状态编码而言会把后续字节静默解错。
+ *
+ * @note `kernel` 为空（链上没有 `code_cvt_stdio`，没人填）时，`adjust()` 什么也不做。
+ * @endif
+ *
+ * @lang{EN}
+ * Taking out and putting back the decoder's state: a query object and a behavior
+ * policy at once. Passed to `code_cvt_stdio::retrieve()`, `kernel` receives a copy of
+ * the current conversion kernel (shift state and any bytes not yet making up a
+ * character included); passed to the `adjust()` of another `code_cvt_stdio`, that
+ * converter takes this kernel over and decodes on from where it was taken.
+ *
+ * This lets the whole converter be replaced on the same input (as
+ * `wcin.sync_with_stdio()` does when it rebuilds the iochannel) without losing the
+ * decoding state: a freshly built kernel starts from the initial state, which for a
+ * stateful encoding decodes the bytes that follow wrong without a word.
+ *
+ * @note With `kernel` empty (no `code_cvt_stdio` in the chain filled it), `adjust()`
+ *       does nothing.
+ * @endif
+ */
+struct code_cvt_stdio_state : cvt_status, cvt_behavior
+{
+    std::optional<codecvt_kernel<char, wchar_t>> kernel; ///< 取出的编码转换内核 / The conversion kernel taken out.
+};
+
+/**
+ * @lang{ZH}
  * 支持运行时区域设置动态切换的字符编码转换器（char <-> wchar_t）。
  *
  * 继承自 `code_cvt<KernelType, wchar_t>`，并通过覆写 `adjust()` 支持在任意时刻切换
  * 字符编码（区域设置）：向 `adjust()` 传入 `code_cvt_switch` 策略即可。查询当前编码用
- * 基类的 `retrieve()` + `code_cvt_access`，报的是内核实际持有的 locale 的名字。
+ * `retrieve()` + `code_cvt_access`，报的是内核实际持有的 locale 的名字；`retrieve()` 与
+ * `adjust()` 还认识 `code_cvt_stdio_state`，用于把解码器状态带到另一个转换器上。
  *
  * 本类专用于标准流：底层设备只能是 `std_device<STDIN_FILENO>` / `<STDOUT_FILENO>` /
  * `<STDERR_FILENO>`。这类设备是无状态的 fd 包装，缺省构造的对象与被替换的对象指向同一个
@@ -103,8 +142,10 @@ struct code_cvt_switch : cvt_behavior
  *
  * Inherits from `code_cvt<KernelType, wchar_t>` and overrides `adjust()` so the character
  * encoding (locale) can be switched at any time: pass it a `code_cvt_switch` policy. The
- * current encoding is queried through the base class's `retrieve()` with a
- * `code_cvt_access`, which reports the name of the locale the kernel actually holds.
+ * current encoding is queried through `retrieve()` with a `code_cvt_access`, which
+ * reports the name of the locale the kernel actually holds; `retrieve()` and `adjust()`
+ * also recognize `code_cvt_stdio_state`, which carries the decoder's state over to
+ * another converter.
  *
  * This class is for the standard streams only: the underlying device must be
  * `std_device<STDIN_FILENO>` / `<STDOUT_FILENO>` / `<STDERR_FILENO>`. Those devices are
@@ -231,14 +272,16 @@ public:
      * 若 `acc` 为 `code_cvt_switch` 类型，则执行区域设置切换：
      * 用 `acc.code` 构造新的 `codecvt_kernel` 并原子地替换当前内核。
      * 转换器 tainted 时先重新附接同一 fd（见类文档），之后要求编码转换状态（`m_cvt_kernel`）
-     * 处于初始状态，否则抛出异常。新内核在提交前构造完毕，替换本身是 `noexcept` 的移动赋值，
-     * 故提供强异常安全保证。
+     * 处于初始状态、且内核没有停在半个字符上，否则抛出异常。新内核在提交前构造完毕，
+     * 替换本身是 `noexcept` 的移动赋值，故提供强异常安全保证。
+     * 若 `acc` 为 `code_cvt_stdio_state` 且 `kernel` 非空，则换上其中的内核，从它的状态接着
+     * 解码；同样先拷贝、再 `noexcept` 地替换。
      * 无论 `acc` 类型如何，最终均链式调用基类 `BT::adjust(acc)`。
      *
      * @param acc 行为策略对象。`acc.code` 为 `""` 时按 POSIX 规则查环境，转换器此后持有
      *            的是查到的具体 locale，`retrieve()` 报的也是它，不是 `""`。
      *
-     * @throws cvt_error 若当前编码转换状态不处于初始状态；此时不切换。
+     * @throws cvt_error 若当前编码转换状态不处于初始状态，或内核停在半个字符上；此时不切换。
      * @endif
      *
      * @lang{EN}
@@ -248,17 +291,21 @@ public:
      * new `codecvt_kernel` from `acc.code` and atomically replaces the current kernel.
      * A tainted converter is first reattached to the same fd (see the class
      * documentation); after that the encoding conversion state (`m_cvt_kernel`) must be
-     * in its initial state at the time of switching, otherwise an exception is thrown.
+     * in its initial state, with no half character held, at the time of switching,
+     * otherwise an exception is thrown.
      * The new kernel is built before anything is committed and the replacement itself is
      * a `noexcept` move-assign, so the strong exception guarantee holds.
+     * If `acc` is a `code_cvt_stdio_state` whose `kernel` is set, the converter takes that
+     * kernel over and decodes on from its state; again copied first, then replaced by a
+     * `noexcept` move.
      * In all cases the call is forwarded to the base-class `BT::adjust(acc)`.
      *
      * @param acc Behavior policy object. An `acc.code` of `""` means "look at the
      *            environment" per POSIX; the converter then holds whatever concrete locale
      *            that resolved to, and `retrieve()` reports that name, not `""`.
      *
-     * @throws cvt_error If the encoding conversion state is not in its initial state;
-     *         nothing is switched then.
+     * @throws cvt_error If the encoding conversion state is not in its initial state, or
+     *         the kernel is holding half a character; nothing is switched then.
      * @endif
      */
     void adjust(const cvt_behavior& acc)
@@ -266,7 +313,7 @@ public:
         if (this->is_tainted()) recover();
         if (const auto* ptr = dynamic_cast<const code_cvt_switch*>(&acc); ptr)
         {
-            if (!this->m_cvt_kernel.is_init_state())
+            if (!this->m_cvt_kernel.is_init_state() || this->m_cvt_kernel.is_mid_seq())
                 throw cvt_error("code_cvt_stdio::adjust fail: invalid state");
             // Build the new kernel before committing: the commit move below MUST be
             // noexcept, otherwise a partial throw would leave the converter without a
@@ -278,7 +325,44 @@ public:
             codecvt_kernel<char, wchar_t> new_kernel(ptr->code);
             this->m_cvt_kernel = std::move(new_kernel);
         }
+        else if (const auto* st = dynamic_cast<const code_cvt_stdio_state*>(&acc); st && st->kernel)
+        {
+            codecvt_kernel<char, wchar_t> kernel(*st->kernel);
+            this->m_cvt_kernel = std::move(kernel);
+        }
         return BT::adjust(acc);
+    }
+
+    /**
+     * @lang{ZH}
+     * 响应状态查询。
+     *
+     * 若 `s` 为 `code_cvt_stdio_state`，则填入当前编码转换内核的一份拷贝（移位状态与尚未
+     * 凑成字符的字节随之取出）。其余查询（如 `code_cvt_access`）照常交给基类
+     * `BT::retrieve(s)`。
+     *
+     * @param s 状态查询对象。
+     * @throws 拷贝内核失败时（内存耗尽）的异常；`kernel` 原本为空时它仍为空。
+     * @endif
+     *
+     * @lang{EN}
+     * Respond to a status query.
+     *
+     * If `s` is a `code_cvt_stdio_state`, it receives a copy of the current conversion
+     * kernel (the shift state and any bytes not yet making up a character come with it).
+     * Every other query (`code_cvt_access`, say) goes to the base class's
+     * `BT::retrieve(s)` as usual.
+     *
+     * @param s Status query object.
+     * @throws Whatever copying the kernel throws (memory exhaustion); a `kernel` that was
+     *         empty stays empty.
+     * @endif
+     */
+    void retrieve(cvt_status& s) const
+    {
+        if (auto* ptr = dynamic_cast<code_cvt_stdio_state*>(&s); ptr)
+            ptr->kernel = this->m_cvt_kernel;
+        BT::retrieve(s);
     }
 
 private:
