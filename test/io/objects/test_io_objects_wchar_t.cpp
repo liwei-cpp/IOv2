@@ -18,6 +18,10 @@
  * it converts through, which switch_code() changes in place. The last two tests
  * change it mid-stream in both directions and check the bytes, since that is
  * the only place the encoding is observable.
+ *
+ * It also carries the decoder's state. Under a stateful encoding that state is
+ * what tells JIS X 0208 bytes from ASCII, so sync_with_stdio(), which rebuilds
+ * the iochannel, has to take the decoder along.
  */
 #include <IOv2/io/io_base.h>
 #include <IOv2/io/objects/in_impl.h>
@@ -27,6 +31,7 @@
 #include <IOv2/io/traits/arithmetic.h>
 #include <IOv2/io/traits/char_and_str.h>
 
+#include <support/stateful_locale.h>
 #include <support/stdio_guard.h>
 
 #include <gtest/gtest.h>
@@ -500,4 +505,79 @@ TEST(IoObjectsWchar, SwitchCodeResolvesTheEmptyNameAtTheCallAndKeepsTheConcreteO
     if (saved) ::setenv("LC_ALL", previous.c_str(), 1);
     else       ::unsetenv("LC_ALL");
     IOv2::wcin.switch_code("zh_CN.UTF-8");
+}
+
+// ISO-2022-JP: a | ESC $ B | 中 | 中 | ESC ( B | b. Synchronized reading stops
+// right after the first 中, still in JIS X 0208. The rebuilt iochannel used to
+// start from ASCII and read the second 中 as `C f`, with no state bit set.
+TEST(IoObjectsWchar, WcinKeepsTheShiftStateAcrossSyncWithStdio)
+{
+    if (!in_stateful_child())
+    {
+        EXPECT_EQ(run_stateful_child("IoObjectsWchar.WcinKeepsTheShiftStateAcrossSyncWithStdio"), 0)
+            << "the checks under the ISO-2022-JP locale failed; see the child's output above";
+        return;
+    }
+
+    // --- child ---
+    iguard g("a\x1b$BCfCf\x1b(Bb");
+    IOv2::wcin.reset();
+    IOv2::wcin.switch_code(stateful_locale_name);
+    ASSERT_TRUE(IOv2::wcin.synced_with_stdio());
+
+    EXPECT_EQ(IOv2::wcin.get(), L'a');
+    EXPECT_EQ(IOv2::wcin.get(), L'中');
+
+    EXPECT_TRUE(IOv2::wcin.sync_with_stdio(false));
+    EXPECT_TRUE(IOv2::wcin.good());
+    EXPECT_FALSE(IOv2::wcin.synced_with_stdio());
+    EXPECT_EQ(IOv2::wcin.code(), stateful_locale_name);
+
+    std::wstring rest;
+    while (auto c = IOv2::wcin.get())
+        rest += *c;
+    EXPECT_EQ(rest, L"中b");
+    EXPECT_FALSE(IOv2::wcin.cvt_fail());
+}
+
+// ISO-2022-JP: a | ESC $ B | 中 | 0xFF | 中 | 中 | ESC ( B | b. After the bad byte
+// clear() reads on in JIS X 0208 -- it used to read `C f C f`, with no state bit
+// set. The shift state survives the error, so switch_code() is refused until the
+// text is back in ASCII.
+TEST(IoObjectsWchar, WcinKeepsTheShiftStateAcrossAnInvalidByte)
+{
+    if (!in_stateful_child())
+    {
+        EXPECT_EQ(run_stateful_child("IoObjectsWchar.WcinKeepsTheShiftStateAcrossAnInvalidByte"), 0)
+            << "the checks under the ISO-2022-JP locale failed; see the child's output above";
+        return;
+    }
+
+    // --- child ---
+    iguard g("a\x1b$BCf\xff" "CfCf\x1b(Bb");
+    IOv2::wcin.reset();
+    IOv2::wcin.switch_code(stateful_locale_name);
+
+    EXPECT_EQ(IOv2::wcin.get(), L'a');
+    EXPECT_EQ(IOv2::wcin.get(), L'中');
+    EXPECT_FALSE(IOv2::wcin.get());
+    EXPECT_TRUE(IOv2::wcin.cvt_fail());
+    IOv2::wcin.clear();
+
+    EXPECT_EQ(IOv2::wcin.get(), L'中');
+
+    // Still in JIS X 0208: switching now is refused and changes nothing.
+    IOv2::wcin.switch_code("C");
+    EXPECT_TRUE(IOv2::wcin.cvt_fail());
+    EXPECT_EQ(IOv2::wcin.code(), stateful_locale_name);
+    IOv2::wcin.clear();
+
+    EXPECT_EQ(IOv2::wcin.get(), L'中');
+    EXPECT_EQ(IOv2::wcin.get(), L'b');
+    EXPECT_TRUE(IOv2::wcin.good());
+
+    // Back in ASCII: the switch goes through.
+    IOv2::wcin.switch_code("C");
+    EXPECT_TRUE(IOv2::wcin.good());
+    EXPECT_EQ(IOv2::wcin.code(), "C");
 }

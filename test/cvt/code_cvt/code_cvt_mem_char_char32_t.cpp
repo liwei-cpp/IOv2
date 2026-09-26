@@ -1472,8 +1472,9 @@ TEST(CodeCvtMemChar32, TheDecodeHelperRejectsAnInvertedRange)
 }
 
 // 0xE6 opens a three-byte UTF-8 sequence, so a stream that ends there leaves the
-// decoder mid-character. Turning the converter round to writing at that point
-// would strand those bytes, so it is refused.
+// decoder mid-character: the read that reaches the end fails, and turning the
+// converter round to writing at that point would strand the held byte, so it is
+// refused.
 TEST(CodeCvtMemChar32, SwitchingToWritingIsRefusedMidCharacter)
 {
     std::string partial;
@@ -1484,9 +1485,55 @@ TEST(CodeCvtMemChar32, SwitchingToWritingIsRefusedMidCharacter)
     obj.main_cont_beg();
 
     char32_t buf[4];
-    obj.get(buf, 4); // consumes 0xE6; mbrtowc reports the sequence as incomplete
+    EXPECT_THROW(obj.get(buf, 4), cvt_error); // the kernel holds 0xE6; the input ends there
 
     EXPECT_THROW(obj.switch_to_put(), cvt_error);
+}
+
+// The characters before a cut-off still come out: the read that produces them
+// succeeds, and only the next one, with nothing left but the held byte, fails.
+// A read of one character at a time sees the same.
+TEST(CodeCvtMemChar32, TheCharactersBeforeACutOffStillComeOut)
+{
+    const std::string text = "ab\xE6";
+
+    RbCvt bulk{rb_root_cvt{mem_device(text)}, "zh_CN.UTF-8"};
+    EXPECT_EQ(bulk.bos(), io_status::input);
+    bulk.main_cont_beg();
+    char32_t buf[4]{};
+    ASSERT_EQ(bulk.get(buf, 4), 2u);
+    EXPECT_EQ(buf[0], U'a');
+    EXPECT_EQ(buf[1], U'b');
+    EXPECT_THROW(bulk.get(buf, 4), cvt_error);
+    EXPECT_EQ(bulk.tell(), 2u);
+
+    NoRbCvt single{no_rb_root_cvt{mem_device(text)}, "zh_CN.UTF-8"};
+    EXPECT_EQ(single.bos(), io_status::input);
+    single.main_cont_beg();
+    char32_t c = 0;
+    EXPECT_EQ(single.get(&c, 1), 1u);
+    EXPECT_EQ(single.get(&c, 1), 1u);
+    EXPECT_EQ(c, U'b');
+    EXPECT_THROW(single.get(&c, 1), cvt_error);
+}
+
+// seek(0) goes back to the start and drops the held byte with the rest of the
+// decoder state; the same cut-off is met again on the way through.
+TEST(CodeCvtMemChar32, SeekingToTheStartDropsAHeldByte)
+{
+    RbCvt obj{rb_root_cvt{mem_device(std::string("ab\xE6"))}, "zh_CN.UTF-8"};
+    EXPECT_EQ(obj.bos(), io_status::input);
+    obj.main_cont_beg();
+
+    char32_t buf[4]{};
+    ASSERT_EQ(obj.get(buf, 4), 2u);
+    EXPECT_THROW(obj.get(buf, 4), cvt_error);
+
+    obj.seek(0);
+    EXPECT_EQ(obj.tell(), 0u);
+    ASSERT_EQ(obj.get(buf, 4), 2u);
+    EXPECT_EQ(buf[0], U'a');
+    EXPECT_THROW(obj.get(buf, 4), cvt_error);
 }
 
 namespace

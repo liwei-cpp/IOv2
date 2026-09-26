@@ -120,6 +120,9 @@ public:
      * 输入按 `io/iochannel.h` 的 `detach()` 契约丢弃；因此应在任何 stdin 读取之前调用，也**不得**在
      * 一次提取进行中（例如用户 `io_traits::sread` 里）重入调用：`io_mutex()` 是递归锁不会拦，
      * 但正在使用的 iochannel 会被整个换掉。
+     * （`wchar_t`）解码器随之带到新 iochannel（经 `code_cvt_stdio_state`），移位状态与停在
+     * 半个字符上的字节都不丢：同步模式下中途切换，有状态编码的后续字节照样解对；新建的
+     * 解码器则会从初始状态起步，把它们静默解错。
      *
      * @warning 这里的「同步」只表示**不带读缓冲、每次 `read(0)` 只要本次操作所需的字节**
      *          （格式化提取与 `get` / `getline` 因逐字符探分隔符而逐字节，`read(buf, n)` 则是
@@ -138,7 +141,8 @@ public:
      *
      * 失败按本库统一的方式报告：置状态位，`exceptions()` 掩码含该位时才抛出。重建 iochannel
      * 只可能因内存耗尽或（`wchar_t`）当前编码的 locale 数据库在运行期间消失而失败——都是运行
-     * 环境已坏的情形，实际不可达。
+     * 环境已坏的情形，实际不可达。（`wchar_t`）取出解码器在 `detach()` 之前，它若因内存耗尽
+     * 失败，流原样未动，只是本次没有切换。
      *
      * @param sync `true` 为同步（默认），`false` 为自带缓冲。
      * @return 调用前的同步状态；重建失败时同步状态未改变，返回的就是当前状态。
@@ -158,6 +162,11 @@ public:
      * `detach()` contract in `io/iochannel.h`; call this before any stdin read, and **never**
      * re-enter it from inside an extraction (a user `io_traits::sread`, say): `io_mutex()`
      * is recursive and will not stop it, but the iochannel in use is replaced wholesale.
+     * (`wchar_t`) The decoder goes over to the new iochannel (through
+     * `code_cvt_stdio_state`), shift state and any bytes of half a character included: a
+     * switch in the middle of synchronized reading still decodes the bytes of a stateful
+     * encoding that follow correctly, where a freshly built decoder would start from the
+     * initial state and decode them wrong without a word.
      *
      * @warning "Synchronized" here means **no read buffer: each `read(0)` asks for just what
      *          the current operation needs** (formatted extraction and `get` / `getline` go
@@ -184,7 +193,9 @@ public:
      * set, and it throws only when the `exceptions()` mask includes that bit. Rebuilding the
      * iochannel can only fail on memory exhaustion or, on `wchar_t`, when the locale database
      * of the current code vanished while the process runs -- a broken runtime environment,
-     * unreachable in practice.
+     * unreachable in practice. (`wchar_t`) Taking the decoder out comes before `detach()`;
+     * should it fail on memory exhaustion, the stream is left as it was and simply not
+     * switched.
      *
      * @param sync `true` for synchronized (the default), `false` for own buffering.
      * @return The synchronization state before the call; when the rebuild fails the state is
@@ -207,6 +218,19 @@ public:
         if (old_sync_state == sync)
             return old_sync_state;
 
+        // The decoder goes over to the new iochannel with its shift state and any
+        // half character; a fresh one would start from the initial state.
+        code_cvt_stdio_state state;
+        if constexpr (std::is_same_v<char_type, wchar_t>)
+        {
+            try {
+                m_channel.retrieve(state);
+            } catch (...) {
+                this->handle_exception(std::current_exception());
+                return old_sync_state;
+            }
+        }
+
         auto [dev, err] = m_channel.detach();
         try {
             if constexpr (std::is_same_v<char_type, char>)
@@ -219,6 +243,7 @@ public:
                 code_cvt_access acc;
                 m_channel.retrieve(acc);
                 m_channel = ichannel<device_type, wchar_t>(std::move(dev), code_cvt_stdio_creator(acc.code), !sync);
+                m_channel.adjust(state);
             }
             else
                 static_assert(dependent_false_v<char_type>, "invalid character type");
@@ -283,10 +308,11 @@ public:
      * 设备并重新初始化转换器。`stdin` 是普通文件时也不会回到开头。
      *
      * 供需要放弃残余输入的场合使用——例如交互程序在出错后丢掉这一行剩下的内容重新提示。
-     * 它**不是**出错后的必经之路：解码失败后 `clear()` 即可继续，解码器已复位到初始状态、
-     * 从坏字节之后对齐读取，`switch_code()` 也随之可用。与 `sync_with_stdio()` 一样，不要在
-     * 一次提取进行中（用户 `io_traits::sread` 里）重入调用：不会崩，但本次提取之后已缓冲的
-     * 输入随之丢弃。
+     * 它**不是**出错后的必经之路：解码失败后 `clear()` 即可继续，解码器丢掉了半个字符、
+     * 从坏字节之后对齐读取，有状态编码的移位状态照旧保留。无状态编码下 `switch_code()` 也
+     * 随之可用；有状态编码停在移位状态中时，须读到回到初始状态之后才能切换。
+     * 与 `sync_with_stdio()` 一样，不要在一次提取进行中（用户 `io_traits::sread` 里）重入
+     * 调用：不会崩，但本次提取之后已缓冲的输入随之丢弃。
      *
      * 复位的范围只有状态位、异常掩码，以及缓冲与转换器的内部状态。格式状态（含 `skipws`）、
      * `width()`、`precision()`、`fill()`、locale、`sync_with_stdio()`、`tie()` 与
@@ -310,8 +336,10 @@ public:
      * For the cases that want to abandon the pending input -- an interactive program
      * discarding the rest of a line after an error before prompting again. It is **not**
      * the required step after a failure: after a decode failure `clear()` is enough to
-     * carry on -- the decoder has reset to its initial state and reads on, aligned, from
-     * the byte after the bad one, and `switch_code()` is available again as well. As with
+     * carry on -- the decoder has dropped any half character and reads on, aligned, from
+     * the byte after the bad one, keeping the shift state of a stateful encoding. With a
+     * stateless encoding `switch_code()` is available again as well; a stateful one left in
+     * a shift state has to be read back to its initial state before it can switch. As with
      * `sync_with_stdio()`, do not re-enter it from inside an extraction (a user
      * `io_traits::sread`): nothing crashes, but the input buffered beyond that extraction
      * is discarded with it.
@@ -404,8 +432,8 @@ public:
      * `adjust(code_cvt_switch)` 的包装，走本流
      * 通用的加锁与错误处理：失败按状态位报告，`exceptions()` 掩码含该位时才抛出；失败时编码、
      * 已缓冲的字节都没有改变（`code_cvt_stdio::adjust` 把所有可能失败的步骤都放在提交之前）。
-     * 解码失败之后不必先 `reset()`：`clear()` 即可让解码器回到初始状态，`switch_code()` 也随之
-     * 可用。
+     * 解码失败之后不必先 `reset()`：`clear()` 后解码器已丢掉半个字符，无状态编码下
+     * `switch_code()` 随之可用；有状态编码的移位状态在出错后保留，停在移位状态中时仍会被拒。
      *
      * @param new_code 新的编码名，须为 `newlocale()` 接受的 locale 名。`""` 按 POSIX 规则
      *        查环境（`LC_ALL` > `LC_CTYPE` > `LANG` > `"C"`）：查在此刻发生，切换成功后
@@ -415,7 +443,8 @@ public:
      *         照常切换、位不变。
      * @note 置 `cvtfailbit`：该名字不被 `newlocale()` 接受（含内嵌 NUL 的名字按全长拒绝，不在
      *       第一个 NUL 处截断），或编码转换状态不处于初始状态
-     *       （例如输入在一个多字节字符中间到达 EOF，此时 `clear()` 不够、须 `reset()`）。
+     *       （例如输入在一个多字节字符中间到达 EOF，此时 `clear()` 不够、须 `reset()`；或
+     *       有状态编码正停在移位状态中，读到回到初始状态的移位序列之后即可切换）。
      *       详见 `cvt/code_cvt_stdio.h`。
      * @endif
      *
@@ -431,8 +460,9 @@ public:
      * failure is reported through the state bits and throws only when the `exceptions()` mask
      * includes the bit; on failure the encoding and the buffered bytes are unchanged
      * (`code_cvt_stdio::adjust` puts every step that can fail before the commit). A decode
-     * failure needs no `reset()` first: `clear()` already puts the decoder back in its initial
-     * state, and `switch_code()` is available again with it.
+     * failure needs no `reset()` first: after `clear()` the decoder has dropped any half
+     * character, and with a stateless encoding `switch_code()` is available again; a stateful
+     * encoding keeps its shift state across the error, and is still refused while in one.
      *
      * @param new_code The new encoding name; must be a locale name `newlocale()` accepts.
      *        `""` means "look at the environment" per POSIX (`LC_ALL` > `LC_CTYPE` > `LANG` >
@@ -445,7 +475,9 @@ public:
      * @note Sets `cvtfailbit`: the name is not accepted by `newlocale()` (a name with an
      *       embedded NUL is rejected at its full length, not cut at the first NUL), or the encoding
      *       conversion state is not in its initial state (input that hit EOF in the middle of
-     *       a multibyte character, say -- there `clear()` is not enough and `reset()` is).
+     *       a multibyte character, say -- there `clear()` is not enough and `reset()` is; or
+     *       a stateful encoding in a shift state, which can switch once a shift sequence has
+     *       taken it back to the initial state).
      *       See `cvt/code_cvt_stdio.h`.
      * @endif
      */
