@@ -37,11 +37,16 @@ namespace IOv2
  * @brief 封装标准 I/O 文件描述符的设备。
  *
  * 这个类模板通过文件描述符（`STDIN_FILENO`, `STDOUT_FILENO`, `STDERR_FILENO`）
- * 来创建一个 I/O 设备。它为标准输入提供了非阻塞读取和 EOF 处理，
- * 并为标准输出/错误提供了写入和刷新功能。
+ * 来创建一个 I/O 设备。它为标准输入提供了阻塞读取（fd 设了 `O_NONBLOCK` 时以 `poll` 等待，
+ * `EINTR` 自动重试）和 EOF 处理，并为标准输出/错误提供了写入和刷新功能。
  *
  * @note 目前仅支持 Linux 系统。
  * @note 此类不是线程安全的，多线程并发由更高层次的代码处理。
+ * @note 输出侧经 `fwrite` 写，**不处理 `EAGAIN`**：fd 设了 `O_NONBLOCK`（终端上它同时作用于
+ *       fd 0/1/2）时，写满内核缓冲的那部分返回失败、字节丢失，流置 `devfailbit`。`std::cout`
+ *       同样如此（实测）。
+ * @note 终端处于 raw 模式且 `VMIN == 0` 时，阻塞 fd 上 `read` 超时返回 0，被当成（粘性的）EOF；
+ *       设了 `O_NONBLOCK` 的 fd 则以 `poll(-1)` 等待，不受 `VTIME` 影响。两者行为不同。
  *
  * @warning 对于 stdin，此类使用底层的 POSIX `read()`，它会绕过 stdio 缓冲。
  * 请勿在 stdin 上将 `std_input_device` 与 C stdio 函数（`scanf`, `fgets`, `getchar` 等）
@@ -54,11 +59,19 @@ namespace IOv2
  * @brief A device that encapsulates standard I/O file descriptors.
  *
  * This class template uses a file descriptor (`STDIN_FILENO`, `STDOUT_FILENO`, `STDERR_FILENO`)
- * to create an I/O device. It provides non-blocking reads and EOF handling for standard input,
- * and write/flush capabilities for standard output/error.
+ * to create an I/O device. It provides blocking reads (waiting with `poll` when the fd has
+ * `O_NONBLOCK`, retrying on `EINTR`) and EOF handling for standard input, and write/flush
+ * capabilities for standard output/error.
  *
  * @note Currently, only Linux is supported.
  * @note This class is not thread-safe; multi-threading is handled at a higher level.
+ * @note The output side writes with `fwrite` and does **not handle `EAGAIN`**: with
+ *       `O_NONBLOCK` on the fd (on a terminal it applies to fds 0/1/2 alike), the part that
+ *       would overfill the kernel buffer fails, its bytes are lost and the stream gets
+ *       `devfailbit`. `std::cout` does the same (measured).
+ * @note With the terminal in raw mode and `VMIN == 0`, a `read` on a blocking fd that times
+ *       out returns 0 and is taken as (sticky) EOF, while an fd with `O_NONBLOCK` waits in
+ *       `poll(-1)` and ignores `VTIME`. The two behave differently.
  *
  * @warning For stdin, this class uses low-level POSIX read() which bypasses
  * stdio buffering. Do NOT mix usage of std_input_device with C stdio functions
@@ -184,7 +197,12 @@ public:
      * 读取 1 个字节来确定末尾状态：
      * - 读到字节：说明尚未到 EOF；该字节被缓存在内部，并由**下一次 `dget()` 首先返回**
      *   （连同此刻已就绪的数据，但不为凑数等待），不会丢失、不会打乱顺序；本函数返回 `false`。
-     * - 读到 0（EOF 或挂断）：置位 EOF 标志并返回 `true`。
+     * - 读到 0（EOF：文件读完、管道写端全部关闭、终端上一行开头的 `^D`）：置位 EOF 标志并
+     *   返回 `true`。
+     *
+     * 终端**挂断**（pty 主端关闭）不算 EOF：`read` 得 `EIO`、`poll` 报 `POLLERR`，按设备错误
+     * 抛 `device_error`，流上是 `devfailbit`（`std::cin` 此时报 eof|fail）；阻塞 fd 上偶尔也会
+     * 先读到 0 而得 EOF，取决于内核时序（实测）。
      *
      * @warning 本函数**可能阻塞**：当流上暂时无数据、也尚未到达 EOF 时，它会一直等待，
      *          直到有字节到达或确认 EOF 为止。因此在交互式终端上调用会等待用户输入。
@@ -202,7 +220,13 @@ public:
      * - A byte is read: not at EOF yet; the byte is cached internally and will be
      *   **returned first by the next `dget()`** (along with whatever is ready by then, but
      *   without waiting to fill up), so it is neither lost nor reordered; returns `false`.
-     * - 0 is read (EOF or hang-up): sets the EOF flag and returns `true`.
+     * - 0 is read (EOF: a file read to its end, every write end of a pipe closed, `^D` at the
+     *   start of a terminal line): sets the EOF flag and returns `true`.
+     *
+     * A terminal **hang-up** (the pty master closed) is not EOF: `read` gets `EIO` and `poll`
+     * reports `POLLERR`, which is thrown as `device_error` and shows as `devfailbit` on the
+     * stream (`std::cin` reports eof|fail there); on a blocking fd a 0 is occasionally read
+     * first and gives EOF, depending on kernel timing (measured).
      *
      * @warning This function **may block**: when no data is currently available and
      *          EOF has not yet been reached, it waits until a byte arrives or EOF is

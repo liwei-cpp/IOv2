@@ -21,6 +21,9 @@
  * @note 八个流对象是进程级单例，但「一份」的范围随构建模式而变：`IOV2_SHARED` 下它们是
  *       `libiov2.so` 里唯一的一份，头文件模式下是本程序内的 `inline` 变量。`IOV2_SHARED`
  *       必须在同一次链接的所有翻译单元里口径一致，见 `IOv2/common/iov2_export.h` 的 `@warning`。
+ *       以 `dlopen(RTLD_LOCAL)` 载入的头文件模式插件：gcc 把 `inline` 变量发成 STB_GNU_UNIQUE，
+ *       动态链接器跨模块合并成一份；clang 发成普通弱对象，**每个插件各有一套**八个流与
+ *       `tie_graph_mutex()`，跨插件互相 `tie` 的流各持各的锁（实测）。插件请用 `IOV2_SHARED`。
  * @note **哪些静态对象的构造 / 析构里可以用这八个流**：口径与 `std::cout`
  *       （[iostream.objects.overview]/3）相同——**同一个翻译单元里、定义在本头文件之后**的
  *       静态对象可以。它们的析构也一样安全：八个流退出时不析构（见 `out_impl.h` 的 `@note`）。
@@ -55,6 +58,11 @@
  *       and in header-only mode they are `inline` variables of the program itself.
  *       `IOV2_SHARED` must be defined consistently across every translation unit of a single
  *       link; see the `@warning` in `IOv2/common/iov2_export.h`.
+ *       Header-only plugins loaded with `dlopen(RTLD_LOCAL)`: gcc emits `inline` variables as
+ *       STB_GNU_UNIQUE, which the dynamic linker merges into one copy across modules; clang
+ *       emits plain weak objects, so **each plugin has its own** eight streams and
+ *       `tie_graph_mutex()`, and streams tied across plugins each hold a different lock
+ *       (measured). Plugins should use `IOV2_SHARED`.
  * @note **Which static objects may use the eight streams from their constructors and
  *       destructors**: the same scope `std::cout` gives ([iostream.objects.overview]/3) --
  *       a static object **defined after this header is included, in the same translation
