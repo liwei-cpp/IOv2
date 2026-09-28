@@ -581,3 +581,62 @@ TEST(IoObjectsWchar, WcinKeepsTheShiftStateAcrossAnInvalidByte)
     EXPECT_TRUE(IOv2::wcin.good());
     EXPECT_EQ(IOv2::wcin.code(), "C");
 }
+
+// ISO-2022-JP on stderr, which wcerr, wclog and cerr share. Each wide stream keeps
+// its own shift state, so a wide stream leaving JIS X 0208 open made the next
+// writer's ASCII decode as JIS X 0208: `中` then `ab` came out as `中痰`. Every flush
+// now ends in the initial state; in synchronized mode that is every insertion.
+TEST(IoObjectsWchar, StreamsSharingStderrEachLeaveItInTheInitialShiftState)
+{
+    if (!in_stateful_child())
+    {
+        EXPECT_EQ(run_stateful_child("IoObjectsWchar.StreamsSharingStderrEachLeaveItInTheInitialShiftState"), 0)
+            << "the checks under the ISO-2022-JP locale failed; see the child's output above";
+        return;
+    }
+
+    // --- child ---
+    const std::string zhong = "\x1b$BCf\x1b(B";
+    IOv2::wcerr.switch_code(stateful_locale_name);
+    IOv2::wclog.switch_code(stateful_locale_name);
+
+    {
+        oguard<false> err;
+        IOv2::wcerr << L"中";
+        IOv2::wclog << L"ab";
+        IOv2::wclog.flush();
+        EXPECT_EQ(err.contents(), zhong + "ab");
+    }
+    {
+        oguard<false> err;
+        IOv2::wcerr << L"中";
+        IOv2::cerr << "ab";
+        IOv2::cerr.flush();
+        EXPECT_EQ(err.contents(), zhong + "ab");
+    }
+    // One insertion long enough to fill the buffer on the way: its stretches reach
+    // the fd before the insertion ends, and nothing else can come in between.
+    {
+        oguard<false> err;
+        IOv2::wclog << std::wstring(3000, L'中');
+        IOv2::wcerr << L"X";
+        std::string expected = "\x1b$B";
+        for (int i = 0; i < 3000; ++i)
+            expected += "Cf";
+        expected += "\x1b(BX";
+        EXPECT_EQ(err.contents(), expected);
+    }
+    // Unsynchronized: wcerr is unit-buffered, and wclog's explicit flush ends in the
+    // initial state as well.
+    {
+        oguard<false> err;
+        IOv2::sync_with_stdio(false);
+        IOv2::wcerr << L"中";
+        IOv2::wclog << L"ab";
+        IOv2::wclog.flush();
+        IOv2::sync_with_stdio(true);
+        EXPECT_EQ(err.contents(), zhong + "ab");
+    }
+    EXPECT_TRUE(IOv2::wcerr.good());
+    EXPECT_TRUE(IOv2::wclog.good());
+}

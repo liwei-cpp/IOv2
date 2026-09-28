@@ -32,6 +32,8 @@
 #include <IOv2/cvt/code_cvt.h>
 #include <IOv2/device/std_device.h>
 
+#include <array>
+#include <climits>
 #include <optional>
 #include <string>
 #include <type_traits>
@@ -251,10 +253,17 @@ public:
     /**
      * @lang{ZH}
      * @brief 同 `code_cvt::flush`，但转换器 tainted 时先重新附接同一 fd（见类文档）。
+     *
+     * 有状态编码下，冲刷前若不在初始移位状态，先写出复位序列（见 `flush_impl()`），
+     * 于是每次冲刷交给设备的字节都以初始状态结尾。
      * @endif
      * @lang{EN}
      * @brief As `code_cvt::flush`, but reattaches the same fd first when the converter is
      * tainted (see the class documentation).
+     *
+     * Under a stateful encoding, if the conversion is not in its initial shift state the
+     * sequence returning it there is written first (see `flush_impl()`), so the bytes each
+     * flush hands to the device end in the initial state.
      * @endif
      */
     void flush()
@@ -366,6 +375,48 @@ public:
     }
 
 private:
+    friend abs_cvt<KernelType, wchar_t, true, true>; // for flush_impl
+
+    /**
+     * @lang{ZH}
+     * @brief `abs_cvt::flush` 在冲刷底层之前调用的钩子：有状态编码下回到初始移位状态。
+     *
+     * 若编码是状态依赖的且当前不在初始移位状态，写出复位序列（如 ISO-2022-JP 的 `ESC ( B`），
+     * 与 `code_cvt` 的 `close_stream()` 写复位序列的方式相同。标准流的若干对象共用同一 fd
+     * （`wcerr` 与 `wclog`，以及 `cerr`、`printf`），而移位状态只记在各自的内核里：不复位的话，
+     * 下一个写入者以为 fd 处于初始状态，它的字节会被解成错字。无状态编码下什么也不做。
+     *
+     * 抛出时 `abs_cvt::flush` 把转换器标为 tainted 并透传，与其余冲刷失败相同。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief The hook `abs_cvt::flush` calls before flushing the layer below: returns a
+     * stateful encoding to its initial shift state.
+     *
+     * If the encoding is state-dependent and the conversion is not in its initial shift
+     * state, writes the sequence that returns it there (`ESC ( B` for ISO-2022-JP), the way
+     * `code_cvt`'s `close_stream()` does. Several standard stream objects share one fd
+     * (`wcerr` and `wclog`, as well as `cerr` and `printf`) while the shift state lives in
+     * each one's own kernel: left as it is, the next writer takes the fd to be in the
+     * initial state and its bytes decode as the wrong characters. Does nothing under a
+     * stateless encoding.
+     *
+     * If it throws, `abs_cvt::flush` taints the converter and rethrows, as with any other
+     * flush failure.
+     * @endif
+     */
+    void flush_impl()
+    {
+        auto& kernel = this->m_cvt_kernel;
+        if (kernel.is_state_dep() && !kernel.is_init_state())
+        {
+            std::array<char, MB_LEN_MAX> buf{};
+            const std::size_t n = kernel.unshift(buf.data(), buf.size());
+            if (n != 0)
+                this->m_kernel.put(buf.data(), n);
+        }
+    }
+
     /**
      * @lang{ZH}
      * @brief 把 tainted 的转换器重新附接到同一 fd 并重新初始化。
