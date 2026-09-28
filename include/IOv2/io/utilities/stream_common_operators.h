@@ -49,6 +49,8 @@ namespace IOv2
  * 本锁是**普通**（非递归）互斥量即可：检测遍历调用的是 tie() 的 getter（一次原子读，
  * 不取本锁），持锁期间不会重入 setter。它与各流的 `io_mutex()` 互不嵌套——setter 只取
  * 本锁、sentry 只取 `io_mutex()`——故不引入新的加锁顺序约束。
+ * 「进程级」的范围与八个标准流对象相同，头文件模式的插件下未必只有一份，见
+ * `IOv2/io/objects/objects.h` 的 `@note`。
  * @return 保护整张 tie 图的进程级全局互斥量的引用。
  * @endif
  *
@@ -67,6 +69,8 @@ namespace IOv2
  * holding it. This lock never nests with a stream's `io_mutex()` -- the setter takes only
  * this lock, a sentry takes only `io_mutex()` -- so it adds no new lock-ordering
  * constraint.
+ * "Process-wide" spans what the eight standard stream objects span: with header-only
+ * plugins there may be more than one; see the `@note` in `IOv2/io/objects/objects.h`.
  * @return A reference to the process-wide mutex that guards the entire tie graph.
  * @endif
  */

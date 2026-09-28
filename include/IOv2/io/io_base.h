@@ -1171,8 +1171,11 @@ struct ios_state : public ios_base<TChar>
      *          （`__cxxabiv1::__forced_unwind`）的方式实现线程取消，该异常会落入本函数最后的
      *          `catch(...)` 并被归类为 `otherfailbit`；若 `otherfailbit` 不在异常掩码中就不会被
      *          重新抛出，取消因而被吞掉，导致 `FATAL: exception not rethrown` 并 abort。线程取消
-     *          不属于 C++ 标准，也没有可移植的手段在 `catch(...)` 中将其识别出来。若需中断阻塞中
-     *          的 I/O，请改为关闭底层设备（使阻塞调用带错误返回），或使用超时 / 非阻塞 I/O。
+     *          不属于 C++ 标准，也没有可移植的手段在 `catch(...)` 中将其识别出来。阻塞中的 I/O
+     *          须由数据一端结束：关闭对端（管道写端、pty 主端等）使读取以 EOF 或错误返回，或让
+     *          自定义设备带超时。本进程内另一线程 `close()` / `dup2()` 该 fd **打断不了**标准流：
+     *          `std_device` 阻塞在 `read()` 或 `poll(-1)` 里，`O_NONBLOCK` 被 `poll(-1)` 还原成
+     *          阻塞，信号造成的 `EINTR` 也会被重试（实测）。
      * @endif
      *
      * @lang{EN}
@@ -1235,8 +1238,13 @@ struct ios_state : public ios_base<TChar>
      *          cancellation is swallowed and the process aborts with
      *          `FATAL: exception not rethrown`. Thread cancellation is not part of the C++
      *          standard, and there is no portable way to recognize it inside a `catch(...)`.
-     *          To interrupt blocked I/O, close the underlying device instead (so the
-     *          blocking call returns with an error), or use timeouts / non-blocking I/O.
+     *          Blocked I/O has to be ended from the data's side: close the other end (the
+     *          write end of a pipe, the master of a pty, ...) so the read returns with EOF
+     *          or an error, or give a custom device a timeout. Another thread in this
+     *          process calling `close()` / `dup2()` on the fd does **not** get a standard
+     *          stream out: `std_device` waits in `read()` or `poll(-1)`, `poll(-1)` turns
+     *          `O_NONBLOCK` back into blocking, and an `EINTR` from a signal is retried
+     *          (measured).
      * @endif
      */
     template <bool ignore_exception_mask = false>

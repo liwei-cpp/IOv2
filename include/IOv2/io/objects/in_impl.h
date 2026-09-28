@@ -149,7 +149,9 @@ public:
      * @note 重建失败时旧 iochannel 已经 detach、新的没建起来，流停在**未附接**状态：此后每次
      *       要读设备的操作都按状态位失败（`clear()` 之后是 `cvtfailbit`；`putback()`、`code()`、
      *       `switch_code()` 不碰设备，照常成功），`clear()` 不够，须 `reset()`
-     *       在同一 fd 上重新附接。同步标志保持原值，因此「流报告的模式」与「它实际怎么读」始终一致。
+     *       在同一 fd 上重新附接。`deof()` 探测时预读下的那 1 个字节随旧 iochannel 一并丢失
+     *       （切换成功时它会随设备带到新 iochannel）。同步标志保持原值，因此「流报告的模式」与
+     *       「它实际怎么读」始终一致。
      *       本函数不像别的失败那样只是「这一次没做成」，而是会让流暂时不可用，故值得单独提醒。
      * @endif
      *
@@ -205,7 +207,9 @@ public:
      *       device then fails through the state bits (`cvtfailbit` once `clear()`ed;
      *       `putback()`, `code()` and `switch_code()` do not touch the device and succeed as
      *       usual), `clear()` is not enough, and
-     *       `reset()` is what attaches a fresh device on the same fd. The flag keeps its old
+     *       `reset()` is what attaches a fresh device on the same fd. The one byte a `deof()`
+     *       probe had read ahead is lost with the old iochannel (a successful switch carries
+     *       it over with the device). The flag keeps its old
      *       value, so what the stream reports and how it actually reads never disagree.
      *       Unlike most failures this one leaves the stream unusable for a while, which is why
      *       it is called out here.
@@ -305,7 +309,10 @@ public:
     /**
      * @lang{ZH}
      * @brief 在同一 fd 上继续：清状态位与异常掩码，丢弃已缓冲但未消费的输入，重新附接
-     * 设备并重新初始化转换器。`stdin` 是普通文件时也不会回到开头。
+     * 设备并重新初始化转换器。`stdin` 是普通文件时也不会回到开头。同步模式没有读缓冲，
+     * 「丢弃」的只是解码器里的状态，fd 上尚未读的字节（例如本行余下的部分）照旧在那里；
+     * 有状态编码下若在移位状态中途调用，这些字节会以初始状态解读而解错——应在读到回到
+     * 初始状态的移位序列之后再调用。
      *
      * 供需要放弃残余输入的场合使用——例如交互程序在出错后丢掉这一行剩下的内容重新提示。
      * 它**不是**出错后的必经之路：解码失败后 `clear()` 即可继续，解码器丢掉了半个字符、
@@ -332,6 +339,11 @@ public:
      * @brief Carries on on the same fd: clears the state bits and the exception mask,
      * drops input that was buffered but not yet consumed, reattaches the device and
      * re-initializes the converter. A `stdin` that is a regular file does not rewind.
+     * Synchronized mode has no read buffer, so what is dropped is only the decoder's state;
+     * bytes not yet read from the fd (the rest of the line, say) are still there. Under a
+     * stateful encoding, calling it in the middle of a shift state makes those bytes decode
+     * from the initial state, wrongly -- call it once a shift sequence has taken the
+     * decoder back to the initial state.
      *
      * For the cases that want to abandon the pending input -- an interactive program
      * discarding the rest of a line after an error before prompting again. It is **not**
