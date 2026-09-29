@@ -100,6 +100,24 @@ foreach(suite_dir IN LISTS IOV2_TEST_SUITE_DIRS)
   endif()
 endforeach()
 
+# Two suites inject failures at link time with the GNU/ELF linker's --wrap: a
+# failing operator new / newlocale inside wcin.sync_with_stdio(), and fd 0 closed
+# between read() and poll(). Wrapping keeps AddressSanitizer's own allocator,
+# which defining a global operator new would not. _Znwm is operator new(size_t)
+# only where size_t is unsigned long, hence the 64-bit condition; elsewhere the
+# macros stay undefined and the tests skip themselves.
+if(UNIX AND NOT APPLE AND CMAKE_SIZEOF_VOID_P EQUAL 8)
+  if(TARGET test_io_objects_sync_failure)
+    target_link_options(test_io_objects_sync_failure PRIVATE
+        "LINKER:--wrap=_Znwm" "LINKER:--wrap=newlocale")
+    target_compile_definitions(test_io_objects_sync_failure PRIVATE IOV2_TEST_WRAP_ALLOC=1)
+  endif()
+  if(TARGET test_device_std_device_poll_error)
+    target_link_options(test_device_std_device_poll_error PRIVATE "LINKER:--wrap=read")
+    target_compile_definitions(test_device_std_device_poll_error PRIVATE IOV2_TEST_WRAP_READ=1)
+  endif()
+endif()
+
 list(LENGTH IOV2_TEST_ALL_SOURCES IOV2_TEST_SOURCE_TOTAL)
 list(LENGTH IOV2_TEST_SUITE_DIRS IOV2_TEST_SUITE_COUNT)
 message(STATUS

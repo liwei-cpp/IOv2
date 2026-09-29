@@ -274,6 +274,38 @@ namespace
         EXPECT_EQ(buf[0], L'中');
     }
 
+    // The same kernel serves char32_t streams (TInt = char32_t): what it writes it
+    // reads back, one character at a time as well as in one call.
+    template <typename TRoot>
+    void char32_t_streams_round_trip()
+    {
+        const std::u32string text = U"a中中b";
+        code_cvt<TRoot, char32_t> writer{TRoot{mem_device(std::string())}, kLocaleName};
+        EXPECT_EQ(writer.bos(), io_status::output);
+        writer.main_cont_beg();
+        writer.put(text.data(), text.size());
+        auto [dev, err] = writer.detach();
+        EXPECT_FALSE(err);
+        const std::string bytes = dev.str();
+        EXPECT_EQ(bytes, "a" + kShiftIn + "CfCf" + kShiftOut + "b");
+
+        code_cvt<TRoot, char32_t> one{TRoot{mem_device(bytes)}, kLocaleName};
+        EXPECT_EQ(one.bos(), io_status::input);
+        one.main_cont_beg();
+        std::u32string got;
+        char32_t c = 0;
+        while (one.get(&c, 1) == 1)
+            got += c;
+        EXPECT_EQ(got, text);
+
+        code_cvt<TRoot, char32_t> whole{TRoot{mem_device(bytes)}, kLocaleName};
+        EXPECT_EQ(whole.bos(), io_status::input);
+        whole.main_cont_beg();
+        std::array<char32_t, 8> buf{};
+        const std::size_t n = whole.get(buf.data(), buf.size());
+        EXPECT_EQ(std::u32string(buf.data(), n), text);
+    }
+
     // What wcin.sync_with_stdio() does: read part of stdin through one converter,
     // detach it, and read the rest through a new one on the same device. The first
     // one has no read buffer, so the device stands right after what it decoded.
@@ -429,4 +461,18 @@ TEST(CodeCvtStatefulEncoding, AnInvalidByteKeepsTheShiftState)
 
     // --- child ---
     kernel_keeps_the_shift_state_across_an_invalid_byte();
+}
+
+TEST(CodeCvtStatefulEncoding, Char32StreamsRoundTrip)
+{
+    if (!in_stateful_child())
+    {
+        EXPECT_EQ(run_stateful_child("CodeCvtStatefulEncoding.Char32StreamsRoundTrip"), 0)
+            << "the checks under the ISO-2022-JP locale failed; see the child's output above";
+        return;
+    }
+
+    // --- child ---
+    char32_t_streams_round_trip<rb_root_cvt<mem_device<char>>>();
+    char32_t_streams_round_trip<no_rb_root_cvt<mem_device<char>>>();
 }
