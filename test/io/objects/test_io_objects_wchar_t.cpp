@@ -640,3 +640,54 @@ TEST(IoObjectsWchar, StreamsSharingStderrEachLeaveItInTheInitialShiftState)
     EXPECT_TRUE(IOv2::wcerr.good());
     EXPECT_TRUE(IOv2::wclog.good());
 }
+
+// Input cut off in the middle of a character is a decode failure, not a plain
+// end of input -- but what came before it is still handed out: read() returns
+// the two characters, then the stream reports cvtfailbit.
+TEST(IoObjectsWchar, WcinHandsOutWhatCameBeforeACutOffCharacter)
+{
+    iguard g("ab\xe6");
+    IOv2::wcin.reset();
+    IOv2::wcin.switch_code("zh_CN.UTF-8");
+
+    wchar_t buf[8] = {};
+    wchar_t* end = IOv2::wcin.read(buf, 8);
+    EXPECT_EQ(std::wstring(buf, end), L"ab");
+    EXPECT_TRUE(IOv2::wcin.cvt_fail());
+
+    IOv2::wcin.clear();
+    IOv2::wcin.reset();
+}
+
+// What wcout writes under ISO-2022-JP, wcin reads back.
+TEST(IoObjectsWchar, WcoutOutputReadsBackThroughWcinUnderAStatefulEncoding)
+{
+    if (!in_stateful_child())
+    {
+        EXPECT_EQ(run_stateful_child("IoObjectsWchar.WcoutOutputReadsBackThroughWcinUnderAStatefulEncoding"), 0)
+            << "the checks under the ISO-2022-JP locale failed; see the child's output above";
+        return;
+    }
+
+    // --- child ---
+    const std::wstring text = L"a中b中中c";
+    std::string bytes;
+    {
+        oguard<true> out;
+        IOv2::wcout.switch_code(stateful_locale_name);
+        IOv2::wcout << text;
+        IOv2::wcout << L"中";
+        IOv2::wcout.flush();
+        bytes = out.contents();
+    }
+    EXPECT_NE(bytes.find("\x1b$B"), std::string::npos) << "not written as ISO-2022-JP";
+
+    iguard g(bytes);
+    IOv2::wcin.reset();
+    IOv2::wcin.switch_code(stateful_locale_name);
+    std::wstring back;
+    while (auto c = IOv2::wcin.get())
+        back += *c;
+    EXPECT_EQ(back, text + L"中");
+    EXPECT_FALSE(IOv2::wcin.cvt_fail());
+}
