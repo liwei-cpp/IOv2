@@ -24,6 +24,36 @@ namespace
     static_assert(dev_cpt::support_positioning<dev>);
     static_assert(dev_cpt::support_put<dev>);
     static_assert(dev_cpt::support_get<dev>);
+
+    // Each type misses exactly one of basic_string's element requirements
+    // ([strings.general]); the constraint must reject it at the mem_device
+    // itself rather than deep inside <string>.
+    struct not_trivially_copyable
+    {
+        not_trivially_copyable(const not_trivially_copyable&) {}
+    };
+    struct not_trivially_default_constructible
+    {
+        int v;
+        not_trivially_default_constructible() : v(0) {}
+    };
+    // Data members in both a base and the derived class.
+    struct standard_layout_base
+    {
+        int a;
+    };
+    struct not_standard_layout : standard_layout_base
+    {
+        int b;
+    };
+
+    template <class C>
+    concept mem_device_accepts = requires { typename mem_device<C>; };
+
+    static_assert(mem_device_accepts<char>);
+    static_assert(!mem_device_accepts<not_trivially_copyable>);
+    static_assert(!mem_device_accepts<not_trivially_default_constructible>);
+    static_assert(!mem_device_accepts<not_standard_layout>);
 }
 
 TEST(MemDeviceChar, Traits)
