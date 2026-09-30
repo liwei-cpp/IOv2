@@ -40,7 +40,8 @@ namespace IOv2
  *
  * @note 此类不是线程安全的，多线程并发由更高层次的代码处理。
  *
- * @tparam CharT 字符类型。
+ * @tparam CharT 字符类型。必须是平凡的标准布局类型（可平凡复制、可平凡默认构造、
+ *         标准布局），这是标准对 `std::basic_string` 元素类型的要求（[strings.general]）。
  * @tparam Traits 字符类型的特性，默认为 `std::char_traits<CharT>`。
  * @tparam Allocator 内存分配器，默认为 `std::allocator<CharT>`。
  *         必须满足 `is_always_equal` 或 `propagate_on_container_move_assignment`，
@@ -56,7 +57,9 @@ namespace IOv2
  *
  * @note This class is not thread-safe; multi-threading is handled at a higher level.
  *
- * @tparam CharT The character type.
+ * @tparam CharT The character type. Must be a trivial, standard-layout type (trivially
+ *         copyable, trivially default constructible, standard-layout), as the standard
+ *         requires of `std::basic_string`'s element type ([strings.general]).
  * @tparam Traits The character traits, defaulting to `std::char_traits<CharT>`.
  * @tparam Allocator The memory allocator, defaulting to `std::allocator<CharT>`.
  *         Must satisfy `is_always_equal` or `propagate_on_container_move_assignment`
@@ -67,6 +70,8 @@ template <class CharT,
           class Traits = std::char_traits<CharT>,
           class Allocator = std::allocator<CharT>>
     requires std::is_trivially_copyable_v<CharT> &&
+             std::is_trivially_default_constructible_v<CharT> &&
+             std::is_standard_layout_v<CharT> &&
              (std::allocator_traits<Allocator>::is_always_equal::value ||
               std::allocator_traits<Allocator>::propagate_on_container_move_assignment::value)
 class mem_device
