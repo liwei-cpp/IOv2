@@ -60,11 +60,14 @@
  *          直接用仓库内的头文件时请自行核对：
  *          @code
  *            # 链接了 libiov2.so 的二进制里不应有自己定义的 IOv2 单例符号
- *            readelf -d prog | grep -q libiov2.so && nm -D prog | grep -E ' [uV] _ZN4IOv2'
+ *            readelf -d prog | grep -q libiov2.so && comm -23 \
+ *              <(nm -D --defined-only prog | awk '$3 ~ /^_ZN4IOv2/ && $2 ~ /^[BDuV]$/ {print $3}' | sort) \
+ *              <(readelf -rW prog | awk '$3 ~ /_COPY$/ {print $5}' | sort)
  *          @endcode
- *          有输出即漏了宏：正确的消费者把单例符号带成 COPY 重定位（`nm` 显示 `B`），
- *          漏宏的消费者自己定义它们（gcc 编出的显示 `u`，即 STB_GNU_UNIQUE；clang 编出的
- *          显示 `V`，即弱对象）。
+ *          有输出即漏了宏：正确的消费者不定义单例符号，或只把它带成 COPY 重定位；漏宏的
+ *          消费者自己定义它们，且没有 COPY 重定位。只看 `nm` 的字母不够：gcc 编出的显示
+ *          `u`（STB_GNU_UNIQUE），clang 编出的显示 `V`（弱对象），g++ `-flto` 编出的却显示
+ *          `B`，与 COPY 重定位那一份同字母。配方用到进程替换，需在 bash 下运行。
  *
  * @warning **header-only 可执行文件 + 共享库插件共存**（两次独立链接，各自口径一致）
  *          只在宿主**不导出** IOv2 符号时成立。宿主若加了 `-rdynamic` /
@@ -101,12 +104,16 @@
  *          the headers straight from the source tree, check it yourself:
  *          @code
  *            # a binary linking libiov2.so must not define IOv2 singletons of its own
- *            readelf -d prog | grep -q libiov2.so && nm -D prog | grep -E ' [uV] _ZN4IOv2'
+ *            readelf -d prog | grep -q libiov2.so && comm -23 \
+ *              <(nm -D --defined-only prog | awk '$3 ~ /^_ZN4IOv2/ && $2 ~ /^[BDuV]$/ {print $3}' | sort) \
+ *              <(readelf -rW prog | awk '$3 ~ /_COPY$/ {print $5}' | sort)
  *          @endcode
- *          Any output means the macro was missed: a correct consumer carries the
- *          singleton as a COPY relocation (`nm` shows `B`), while one that missed the
- *          macro defines it itself (`nm` shows `u`, STB_GNU_UNIQUE, when built with gcc,
- *          and `V`, a weak object, when built with clang).
+ *          Any output means the macro was missed: a correct consumer defines no singleton
+ *          symbol, or carries it only as a COPY relocation, while one that missed the macro
+ *          defines it itself with no COPY relocation. The `nm` letter alone is not enough:
+ *          gcc shows `u` (STB_GNU_UNIQUE), clang `V` (a weak object), but g++ with `-flto`
+ *          shows `B`, the same letter as a COPY relocation. The recipe uses process
+ *          substitution, so run it under bash.
  *
  * @warning **A header-only executable coexisting with a shared-library plugin** (two
  *          separate links, each internally consistent) works only while the host does
