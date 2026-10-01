@@ -19,7 +19,7 @@
 
 using namespace IOv2;
 
-// The same cases as code_cvt_mem_char8_t.cpp with wchar_t as the internal type
+// The same cases as test_code_cvt_mem_char8_t.cpp with wchar_t as the internal type
 // instead of char32_t. On this platform the two are the same width, so what this
 // file adds is that the UTF-8 kernel is selected from the internal type rather
 // than hard-wired to char32_t: everything below has to behave identically.
