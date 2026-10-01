@@ -417,7 +417,7 @@ private:
                 // requested byte count, or throw an exception if insufficient data is
                 // available. The check below is purely defensive, verifying this
                 // invariant at runtime.
-                const std::size_t n = BT::m_kernel.get(iv_buf.data(), iv_len);
+                const std::size_t n = BT::kernel_get(iv_buf.data(), iv_len);
                 if (n != iv_len)
                     throw cvt_error("chacha20_cvt::bos fail: incomplete IV read");
 
@@ -437,7 +437,7 @@ private:
                 m_cipher->set_key(m_key);
                 m_cipher->set_iv(reinterpret_cast<const uint8_t*>(iv_buf.data()), iv_len); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
 
-                BT::m_kernel.put(iv_buf.data(), iv_len);
+                BT::kernel_put(iv_buf.data(), iv_len);
             }
             else
                 throw cvt_error("chacha20_cvt::bos fail: output mode but kernel does not support put");

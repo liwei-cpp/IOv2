@@ -1565,8 +1565,8 @@ namespace
 // C11 7.29.6.3.2 leaves the conversion state unspecified after mbrtowc reports an
 // invalid sequence. The decoder must reset it: with the stale lead byte still
 // parked, the bytes after the error pair up wrongly (b7 d0 = 沸, bb d0 = 恍) and the
-// stream stays misaligned for good. After the reset the error costs exactly the
-// byte it was reported on, and decoding continues in step.
+// stream stays misaligned for good. After the reset the error costs only the held
+// lead byte, and decoding continues in step with the space that exposed it.
 TEST(CodeCvtMemChar32, AnInvalidSequenceDoesNotMisalignWhatFollows)
 {
     int errors = 0;
@@ -1577,7 +1577,7 @@ TEST(CodeCvtMemChar32, AnInvalidSequenceDoesNotMisalignWhatFollows)
     const auto got = read_one_at_a_time_skipping_errors(obj, errors);
 
     EXPECT_EQ(errors, 1);
-    EXPECT_EQ(got, (std::vector<char32_t>{U'璇', U'谢', U'谢', U'\n'}));
+    EXPECT_EQ(got, (std::vector<char32_t>{U'璇', U' ', U'谢', U'谢', U'\n'}));
 }
 
 TEST(CodeCvtMemChar32, AnInvalidSequenceDoesNotMisalignWhatFollowsWithoutAReadBuffer)
@@ -1590,7 +1590,7 @@ TEST(CodeCvtMemChar32, AnInvalidSequenceDoesNotMisalignWhatFollowsWithoutAReadBu
     const auto got = read_one_at_a_time_skipping_errors(obj, errors);
 
     EXPECT_EQ(errors, 1);
-    EXPECT_EQ(got, (std::vector<char32_t>{U'璇', U'谢', U'谢', U'\n'}));
+    EXPECT_EQ(got, (std::vector<char32_t>{U'璇', U' ', U'谢', U'谢', U'\n'}));
 }
 
 // The same reset is what lets the converter turn round after an error: with the
@@ -1603,6 +1603,23 @@ TEST(CodeCvtMemChar32, SwitchingToWritingIsAllowedAfterAnInvalidSequence)
 
     char32_t ch = 0;
     EXPECT_THROW(obj.get(&ch, 1), cvt_error);
+    EXPECT_EQ(obj.get(&ch, 1), 1u);
+    EXPECT_EQ(ch, U' ');
 
     EXPECT_NO_THROW(obj.switch_to_put());
+}
+
+TEST(CodeCvtMemChar32, ANullByteDecodesToANullCharacterInAMultibyteLocale)
+{
+    const std::string text("a\0\xE4\xB8\xAD\0b", 7);
+    const std::u32string expected(U"a\0中\0b", 5);
+
+    RbCvt obj{rb_root_cvt{mem_device(text)}, "zh_CN.UTF-8"};
+    EXPECT_EQ(obj.bos(), io_status::input);
+    obj.main_cont_beg();
+
+    std::u32string got(8, U'#');
+    EXPECT_EQ(obj.get(got.data(), got.size()), expected.size());
+    got.resize(expected.size());
+    EXPECT_EQ(got, expected);
 }

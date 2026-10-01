@@ -1716,7 +1716,7 @@ public:
      * @lang{ZH} 要绑定的 root_cvt 内核引用。 @endif
      * @lang{EN} Reference to the root_cvt kernel to bind to. @endif
      */
-    explicit cvt_reader(KernelType& kernel, std::vector<char_type>&)
+    explicit cvt_reader(KernelType& kernel, std::vector<char_type>&, std::size_t&, std::size_t&)
         : m_kernel(kernel) {}
 
     cvt_reader(const cvt_reader&) = delete;
@@ -2089,7 +2089,7 @@ public:
      * @lang{ZH} 要绑定的 root_cvt 内核引用。 @endif
      * @lang{EN} Reference to the root_cvt kernel to bind to. @endif
      */
-    explicit cvt_reader(KernelType& kernel, std::vector<char_type>&)
+    explicit cvt_reader(KernelType& kernel, std::vector<char_type>&, std::size_t&, std::size_t&)
         : m_kernel(kernel) {}
 
     cvt_reader(const cvt_reader&) = delete;

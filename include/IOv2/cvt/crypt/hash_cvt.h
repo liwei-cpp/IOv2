@@ -510,7 +510,7 @@ private:
                     // emitting corrupted output.
                     try
                     {
-                        BT::m_kernel.put(reinterpret_cast<const external_type*>(&delim), 1); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
+                        BT::kernel_put(reinterpret_cast<const external_type*>(&delim), 1); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
                     }
                     catch (...)
                     {
@@ -603,7 +603,7 @@ private:
         // This provides strong exception safety: if put() fails, state is unchanged
         // and the operation can be retried.
         //
-        // Intentional: a failure inside `BT::m_kernel.put(...)` is the kernel's
+        // Intentional: a failure inside `BT::kernel_put(...)` is the kernel's
         // own concern — the kernel layer must taint itself per the abs_cvt
         // contract. hash_cvt deliberately does NOT mirror that taint upward,
         // because (a) hash_cvt's own invariants remain intact on a kernel-side
@@ -621,18 +621,18 @@ private:
         switch (m_out_fmt)
         {
         case hash_fmt::binary:
-            BT::m_kernel.put(reinterpret_cast<const external_type*>(digest.data()), digest.size()); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
+            BT::kernel_put(reinterpret_cast<const external_type*>(digest.data()), digest.size()); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
             break;
         case hash_fmt::upper_hex:
             {
                 std::string hex_string = Botan::hex_encode(digest);
-                BT::m_kernel.put(reinterpret_cast<const external_type*>(hex_string.data()), hex_string.size()); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
+                BT::kernel_put(reinterpret_cast<const external_type*>(hex_string.data()), hex_string.size()); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
             }
             break;
         case hash_fmt::lower_hex:
             {
                 std::string hex_string = Botan::hex_encode(digest, false);
-                BT::m_kernel.put(reinterpret_cast<const external_type*>(hex_string.data()), hex_string.size()); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
+                BT::kernel_put(reinterpret_cast<const external_type*>(hex_string.data()), hex_string.size()); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
             }
             break;
         default:
