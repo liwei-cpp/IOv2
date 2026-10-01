@@ -379,7 +379,7 @@ private:
      * @lang{ZH}
      * `abs_cvt::seek()` 的钩子，将 kernel 定位到绝对位置 `pos`。
      *
-     * 调用 `m_kernel.seek(pos)` 后通过 `m_kernel.tell()` 重新同步 `m_pos`，
+     * 调用 `kernel_seek(pos)` 后通过 `kernel_tell()` 重新同步 `m_pos`，
      * 而非直接使用 `pos`。原因：kernel 可能因对齐、夹紧或内部缓冲而实际落在
      * 不同位置；`tell()` 返回 kernel 的真实位置，确保密钥流偏移与字节流偏移对齐。
      * 若 `seek()` 抛出，仍尝试 `tell()` 以保持同步；若 `tell()` 也抛出，
@@ -390,7 +390,7 @@ private:
      * Hook for `abs_cvt::seek()`, positioning the kernel to the absolute
      * position `pos`.
      *
-     * Calls `m_kernel.seek(pos)` and then re-syncs `m_pos` via `m_kernel.tell()`
+     * Calls `kernel_seek(pos)` and then re-syncs `m_pos` via `kernel_tell()`
      * rather than using `pos` directly. This is necessary because the kernel may
      * land on a different position due to alignment, clamping, or internal buffering;
      * `tell()` returns the kernel's actual position, keeping the keystream offset
@@ -418,10 +418,10 @@ private:
         requires (cvt_cpt::support_positioning<KernelType>)
     {
         std::exception_ptr seek_err;
-        try { BT::m_kernel.seek(pos); }
+        try { BT::kernel_seek(pos); }
         catch (...) { seek_err = std::current_exception(); }
 
-        try { m_pos = BT::m_kernel.tell(); }
+        try { m_pos = BT::kernel_tell(); }
         catch (...)
         {
             BT::set_tainted();
@@ -436,7 +436,7 @@ private:
      * @lang{ZH}
      * `abs_cvt::rseek()` 的钩子，将 kernel 相对当前位置移动 `pos` 字节。
      *
-     * 逻辑与 `seek_impl()` 完全相同，但调用 `m_kernel.rseek(pos)` 执行相对定位。
+     * 逻辑与 `seek_impl()` 完全相同，但调用 `kernel_rseek(pos)` 执行相对定位。
      * 详见 `seek_impl()` 的文档。
      * @endif
      *
@@ -444,7 +444,7 @@ private:
      * Hook for `abs_cvt::rseek()`, positioning the kernel relative to the
      * current position by `pos` bytes.
      *
-     * The logic is identical to `seek_impl()`, but calls `m_kernel.rseek(pos)` for
+     * The logic is identical to `seek_impl()`, but calls `kernel_rseek(pos)` for
      * relative positioning. See `seek_impl()` for the full rationale.
      * @endif
      *
@@ -457,10 +457,10 @@ private:
     {
         // See seek_impl() above for the same resync-via-tell rationale.
         std::exception_ptr rseek_err;
-        try { BT::m_kernel.rseek(pos); }
+        try { BT::kernel_rseek(pos); }
         catch (...) { rseek_err = std::current_exception(); }
 
-        try { m_pos = BT::m_kernel.tell(); }
+        try { m_pos = BT::kernel_tell(); }
         catch (...)
         {
             BT::set_tainted();

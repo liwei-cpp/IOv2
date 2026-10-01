@@ -638,7 +638,7 @@ private:
                 // invariant during development. It is intentionally compiled out in
                 // release builds.
                 std::array<external_type, zlib_header_size> header_buf{};
-                [[maybe_unused]] const std::size_t n = BT::m_kernel.get(header_buf.data(), zlib_header_size);
+                [[maybe_unused]] const std::size_t n = BT::kernel_get(header_buf.data(), zlib_header_size);
                 assert(n == zlib_header_size);
 
                 m_strm->avail_in = zlib_header_size;
@@ -703,7 +703,7 @@ private:
                     pending_bytes != 0 || pending_bits != 0)
                     throw cvt_error("zlib_cvt::bos fail: zlib has unflushed bytes after header");
 
-                BT::m_kernel.put(header_buf.data(), zlib_header_size);
+                BT::kernel_put(header_buf.data(), zlib_header_size);
 
                 m_strm->avail_out = 0;
                 m_strm->next_out = nullptr;
@@ -996,7 +996,7 @@ private:
                 zerr("zlib_cvt::flush_impl fail", deflate(m_strm.get(), Z_SYNC_FLUSH));
                 const std::size_t written = CHUNK - m_strm->avail_out;
                 if (written > 0)
-                    BT::m_kernel.put(local_buf.data(), written);
+                    BT::kernel_put(local_buf.data(), written);
                 if (m_strm->avail_out)
                     break;
             }
@@ -1153,7 +1153,7 @@ private:
                 zerr("zlib_cvt::close_stream fail", ret);
                 const std::size_t written = CHUNK - m_strm->avail_out;
                 if (written > 0)
-                    BT::m_kernel.put(local_buf.data(), written);
+                    BT::kernel_put(local_buf.data(), written);
                 if (ret == Z_STREAM_END)
                     break;
                 // Z_FINISH must reach Z_STREAM_END in finite iterations.

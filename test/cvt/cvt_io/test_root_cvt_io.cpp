@@ -155,7 +155,8 @@ namespace
         obj.main_cont_beg();
 
         std::vector<typename T::internal_type> buf;
-        cvt_reader<T>                          reader(obj, buf);
+        std::size_t rd_cur = 0, rd_end = 0;
+        cvt_reader<T>                          reader(obj, buf, rd_cur, rd_end);
         reader.reset(1024);
 
         auto [ptr, len] = reader.get_buf(3);
@@ -184,7 +185,8 @@ namespace
         obj.main_cont_beg();
 
         std::vector<typename T::internal_type> buf;
-        cvt_reader<T>                          reader(obj, buf);
+        std::size_t rd_cur = 0, rd_end = 0;
+        cvt_reader<T>                          reader(obj, buf, rd_cur, rd_end);
         reader.reset(5);
 
         auto [ptr, len] = reader.get_buf(5);
@@ -213,7 +215,8 @@ namespace
         std::string res;
         {
             std::vector<typename T::internal_type> buf;
-            cvt_reader<T>                          reader(obj, buf);
+            std::size_t rd_cur = 0, rd_end = 0;
+            cvt_reader<T>                          reader(obj, buf, rd_cur, rd_end);
             reader.reset(7);
 
             std::size_t cur     = 0;
@@ -241,7 +244,8 @@ namespace
         std::string res;
         {
             std::vector<typename T::internal_type> buf;
-            cvt_reader<T>                          reader(obj, buf);
+            std::size_t rd_cur = 0, rd_end = 0;
+            cvt_reader<T>                          reader(obj, buf, rd_cur, rd_end);
             reader.reset(7);
 
             std::size_t cur     = 0;
@@ -474,7 +478,8 @@ TEST(CvtIo, ReaderRejectsAZeroLengthRequest)
 {
     auto              obj = opened_reader("hello");
     std::vector<char> buf;
-    cvt_reader<SnatchyCvt> reader(obj, buf);
+    std::size_t rd_cur = 0, rd_end = 0;
+    cvt_reader<SnatchyCvt> reader(obj, buf, rd_cur, rd_end);
     reader.reset(10);
     EXPECT_THROW((void)reader.get_buf(0), cvt_error);
 }
@@ -483,7 +488,8 @@ TEST(CvtIo, ReaderRejectsARequestLargerThanTheRootBuffer)
 {
     auto              obj = opened_reader("hello");
     std::vector<char> buf;
-    cvt_reader<SnatchyCvt> reader(obj, buf);
+    std::size_t rd_cur = 0, rd_end = 0;
+    cvt_reader<SnatchyCvt> reader(obj, buf, rd_cur, rd_end);
     reader.reset(10);
     EXPECT_THROW((void)reader.get_buf(SnatchyCvt::s_buffer_length + 1), cvt_error);
 }
@@ -494,7 +500,8 @@ TEST(CvtIo, SaturatingReaderThrowsAtEndOfStream)
 {
     auto              obj = opened_reader("ab"); // only two bytes available
     std::vector<char> buf;
-    cvt_reader<SnatchyCvt> reader(obj, buf);
+    std::size_t rd_cur = 0, rd_end = 0;
+    cvt_reader<SnatchyCvt> reader(obj, buf, rd_cur, rd_end);
     reader.reset(10);
     EXPECT_THROW((void)reader.get_buf<true>(5), cvt_error);
 }
@@ -505,7 +512,8 @@ TEST(CvtIo, ReaderRollbackReExposesTheRolledBackCharacters)
 {
     auto              obj = opened_reader("hello");
     std::vector<char> buf;
-    cvt_reader<SnatchyCvt> reader(obj, buf);
+    std::size_t rd_cur = 0, rd_end = 0;
+    cvt_reader<SnatchyCvt> reader(obj, buf, rd_cur, rd_end);
     reader.reset(5);
 
     auto [ptr, len] = reader.get_buf(3);
@@ -521,7 +529,8 @@ TEST(CvtIo, ReaderRejectsAZeroLengthRollback)
 {
     auto              obj = opened_reader("hello");
     std::vector<char> buf;
-    cvt_reader<SnatchyCvt> reader(obj, buf);
+    std::size_t rd_cur = 0, rd_end = 0;
+    cvt_reader<SnatchyCvt> reader(obj, buf, rd_cur, rd_end);
     reader.reset(5);
     reader.get_buf(3);
     EXPECT_THROW(reader.rollback(0), cvt_error);
@@ -531,7 +540,8 @@ TEST(CvtIo, ReaderRejectsARollbackPastWhatWasServed)
 {
     auto              obj = opened_reader("hello");
     std::vector<char> buf;
-    cvt_reader<SnatchyCvt> reader(obj, buf);
+    std::size_t rd_cur = 0, rd_end = 0;
+    cvt_reader<SnatchyCvt> reader(obj, buf, rd_cur, rd_end);
     reader.reset(5);
     reader.get_buf(3);
     EXPECT_THROW(reader.rollback(100), cvt_error);
@@ -637,6 +647,35 @@ TEST(CvtIo, PutBufGuardRollsBackTheUnusedTailOnAMemDevice)
     EXPECT_EQ(dev.str(), "abcdefg");
 }
 
+// used() past the reservation is refused rather than wrapping m_len, and the
+// whole slot still goes back.
+TEST(CvtIo, PutBufGuardRejectsUsingMoreThanWasReserved)
+{
+    auto obj = no_rb_root_cvt{mem_device{""}};
+    obj.bos();
+    obj.main_cont_beg();
+    {
+        std::vector<char>         buf;
+        cvt_writer<decltype(obj)> writer(obj, buf);
+        writer.reset(1024);
+
+        auto ptr = writer.put_buf(3);
+        std::copy_n("abc", 3, ptr);
+
+        auto overrun = [&]
+        {
+            auto          p = writer.put_buf(2);
+            put_buf_guard guard{writer, static_cast<std::size_t>(2)};
+            std::copy_n("XX", 2, p);
+            guard.used(5);
+        };
+        EXPECT_THROW(overrun(), cvt_error);
+        writer.commit();
+    }
+    auto [dev, err] = obj.detach();
+    EXPECT_EQ(dev.str(), "abc");
+}
+
 // non-mem-device specialization: rollback moves root_cvt's internal buffer
 // cursor, so an un-rolled-back slot would reach the device on the next flush.
 TEST(CvtIo, PutBufGuardRollsBackTheUnusedTailOnAPlainDevice)
@@ -724,7 +763,8 @@ TEST(CvtIo, BaseReaderRejectsAZeroLengthRequest)
 {
     auto                 k = opened_vigenere_reader("hello world");
     std::vector<char>    buf;
-    cvt_reader<VigCvtT>  reader(k, buf);
+    std::size_t rd_cur = 0, rd_end = 0;
+    cvt_reader<VigCvtT>  reader(k, buf, rd_cur, rd_end);
     reader.reset(10);
     EXPECT_THROW((void)reader.get_buf(0), cvt_error);
 }
@@ -733,7 +773,8 @@ TEST(CvtIo, BaseReaderRejectsARequestLargerThanItsStagingBuffer)
 {
     auto                 k = opened_vigenere_reader("hello world");
     std::vector<char>    buf;
-    cvt_reader<VigCvtT>  reader(k, buf);
+    std::size_t rd_cur = 0, rd_end = 0;
+    cvt_reader<VigCvtT>  reader(k, buf, rd_cur, rd_end);
     reader.reset(5);
     EXPECT_THROW((void)reader.get_buf(6), cvt_error);
 }
@@ -744,7 +785,8 @@ TEST(CvtIo, BaseReaderServesASmallRequestOutOfWhatWasRolledBack)
 {
     auto                 k = opened_vigenere_reader("hello world");
     std::vector<char>    buf;
-    cvt_reader<VigCvtT>  reader(k, buf);
+    std::size_t rd_cur = 0, rd_end = 0;
+    cvt_reader<VigCvtT>  reader(k, buf, rd_cur, rd_end);
     reader.reset(10);
 
     auto [ptr, len] = reader.get_buf(5);
@@ -759,7 +801,8 @@ TEST(CvtIo, BaseSaturatingReaderServesASmallRequestOutOfWhatWasRolledBack)
 {
     auto                 k = opened_vigenere_reader("hello world");
     std::vector<char>    buf;
-    cvt_reader<VigCvtT>  reader(k, buf);
+    std::size_t rd_cur = 0, rd_end = 0;
+    cvt_reader<VigCvtT>  reader(k, buf, rd_cur, rd_end);
     reader.reset(10);
     reader.get_buf(5);
     reader.rollback(3);
@@ -771,7 +814,8 @@ TEST(CvtIo, BaseReaderRejectsAZeroLengthRollback)
 {
     auto                 k = opened_vigenere_reader("hello world");
     std::vector<char>    buf;
-    cvt_reader<VigCvtT>  reader(k, buf);
+    std::size_t rd_cur = 0, rd_end = 0;
+    cvt_reader<VigCvtT>  reader(k, buf, rd_cur, rd_end);
     reader.reset(10);
     reader.get_buf(5);
     EXPECT_THROW(reader.rollback(0), cvt_error);
@@ -781,7 +825,8 @@ TEST(CvtIo, BaseReaderRejectsARollbackPastWhatWasServed)
 {
     auto                 k = opened_vigenere_reader("hello world");
     std::vector<char>    buf;
-    cvt_reader<VigCvtT>  reader(k, buf);
+    std::size_t rd_cur = 0, rd_end = 0;
+    cvt_reader<VigCvtT>  reader(k, buf, rd_cur, rd_end);
     reader.reset(10);
     reader.get_buf(5);
     EXPECT_THROW(reader.rollback(100), cvt_error);
@@ -791,7 +836,8 @@ TEST(CvtIo, BaseSaturatingReaderThrowsAtEndOfStream)
 {
     auto                 k = opened_vigenere_reader("ab"); // only two bytes available
     std::vector<char>    buf;
-    cvt_reader<VigCvtT>  reader(k, buf);
+    std::size_t rd_cur = 0, rd_end = 0;
+    cvt_reader<VigCvtT>  reader(k, buf, rd_cur, rd_end);
     reader.reset(10);
     EXPECT_THROW((void)reader.get_buf<true>(5), cvt_error);
 }

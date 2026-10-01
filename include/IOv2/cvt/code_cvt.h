@@ -40,6 +40,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstdlib>
+#include <cstring>
 #include <cwchar>
 #include <exception>
 #include <functional>
@@ -213,7 +214,7 @@ struct codecvt_kernel<char, TInt>
 
         clocale_user guard(m_inter_locale);
         const std::size_t count = std::wcrtomb(to, L'\0', &m_state);
-        if (count == static_cast<std::size_t>(-1))
+        if (count == static_cast<std::size_t>(-1)) // NOLINT(modernize-use-integer-sign-comparison)
         {
             init_state();
             throw cvt_error("codecvt_kernel::unshift fail");
@@ -370,12 +371,19 @@ struct codecvt_kernel<char, TInt>
             return false;
 
         const std::mbstate_t before = m_state;
-        const std::size_t conv = std::wcrtomb(to, ch, &m_state);
+        std::array<char, MB_LEN_MAX> local{};
+        const std::size_t conv = std::wcrtomb(local.data(), ch, &m_state);
         if (conv == static_cast<std::size_t>(-1)) // NOLINT(modernize-use-integer-sign-comparison)
         {
             m_state = before;
             return false;
         }
+        if (conv > static_cast<std::size_t>(to_end - to)) // NOLINT(modernize-use-integer-sign-comparison)
+        {
+            m_state = before;
+            throw cvt_error("codecvt_kernel::out_helper fail: encoding exceeds MB_CUR_MAX");
+        }
+        std::copy_n(local.data(), conv, to);
         to += conv;
 
         return true;
@@ -445,11 +453,31 @@ struct codecvt_kernel<char, TInt>
         std::array<char, MB_LEN_MAX> joined{};
         std::size_t i_count = 0;
 
+        const auto find_nul = [&]
+        {
+            if (!m_is_state_dep || from >= from_end)
+                return from_end;
+            const void* p = std::memchr(from, 0, static_cast<std::size_t>(from_end - from));
+            return p != nullptr ? static_cast<const char*>(p) : from_end;
+        };
+        const char* nul = find_nul();
+
         const std::size_t to_max = to_end - to;
         while (i_count < to_max && (from < from_end || m_pending_len != 0))
         {
+            if (nul < from)
+                nul = find_nul();
+            if (m_pending_len == 0 && from < from_end && *from == '\0')
+            {
+                ++from;
+                m_state = std::mbstate_t{};
+                *to++ = TInt{};
+                ++i_count;
+                continue;
+            }
+
             // Held bytes go first, then as many new ones as fit behind them.
-            const auto remaining = static_cast<std::size_t>(from_end - from);
+            const auto remaining = static_cast<std::size_t>(nul - from);
             const char* src = from;
             std::size_t taken = remaining;
             if (m_pending_len != 0)
@@ -464,6 +492,25 @@ struct codecvt_kernel<char, TInt>
             auto tmp_state = m_state;
             wchar_t wch = no_char;
             std::size_t conv = mbrtowc(&wch, src, avail, &tmp_state);
+            if (m_is_state_dep && (conv == static_cast<std::size_t>(-1) || conv == static_cast<std::size_t>(-2))) // NOLINT(modernize-use-integer-sign-comparison)
+            {
+                // glibc judges a run that opens with a complete shift sequence as a
+                // whole; take that sequence off first, so the error or the held bytes
+                // start behind it.
+                for (std::size_t k = 1; k < avail; ++k)
+                {
+                    auto st = m_state;
+                    wchar_t w = no_char;
+                    const std::size_t r = mbrtowc(&w, src, k, &st);
+                    if (r == static_cast<std::size_t>(-2)) continue; // NOLINT(modernize-use-integer-sign-comparison)
+                    if (r != static_cast<std::size_t>(-1) && r != 0 && w == no_char) // NOLINT(modernize-use-integer-sign-comparison)
+                    {
+                        conv = r;
+                        tmp_state = st;
+                    }
+                    break;
+                }
+            }
             if (conv == static_cast<std::size_t>(-1)) // NOLINT(modernize-use-integer-sign-comparison)
             {
                 // Only tmp_state is unspecified after EILSEQ (C11 7.29.6.3.2); m_state
@@ -473,10 +520,15 @@ struct codecvt_kernel<char, TInt>
             }
             else if (conv == static_cast<std::size_t>(-2)) // NOLINT(modernize-use-integer-sign-comparison)
             {
+                if (nul != from_end)
+                {
+                    m_pending_len = 0;
+                    return std::pair{false, i_count};
+                }
                 // Hold every byte of the prefix; no character is longer than MB_LEN_MAX.
                 if (taken != remaining || avail > m_pending.size())
                 {
-                    init_state();
+                    m_pending_len = 0;
                     return std::pair{false, i_count};
                 }
                 std::copy_n(from, taken, m_pending.data() + m_pending_len);
@@ -485,23 +537,7 @@ struct codecvt_kernel<char, TInt>
                 break;
             }
             else if (conv == 0)
-            {
-                // A null character: find how many bytes encode it.
-                std::size_t n = 1;
-                for (; n <= avail; ++n)
-                {
-                    auto tmp_state2(m_state);
-                    if (mbrtowc(nullptr, src, n, &tmp_state2) == 0)
-                    {
-                        tmp_state = tmp_state2;
-                        break;
-                    }
-                }
-                if (n > avail)
-                    return std::pair{false, i_count};
-                conv = n;
-                wch = L'\0';
-            }
+                return std::pair{false, i_count};
 
             // conv bytes of src made up one complete sequence; the held bytes come first.
             m_state = tmp_state;
@@ -853,7 +889,7 @@ struct codecvt_kernel<char8_t, TInt>
     }
 
 private:
-    enum class run_status { done, short_input, bad };
+    enum class run_status : std::uint8_t { done, short_input, bad };
 
     // Decodes characters from [from, from_end) into [to, to_end) until either runs
     // out: done, short_input when the bytes left at from are the start of a
@@ -1055,6 +1091,7 @@ public:
         : BT(val)
         , m_cvt_kernel(val.m_cvt_kernel)
         , m_accu_len(val.m_accu_len)
+        , m_get_failed(val.m_get_failed)
     {}
 
     /**
@@ -1092,8 +1129,10 @@ public:
         : BT(std::move(val))
         , m_cvt_kernel(std::move(val.m_cvt_kernel))
         , m_accu_len(val.m_accu_len)
+        , m_get_failed(val.m_get_failed)
     {
         val.m_accu_len = 0;
+        val.m_get_failed = false;
     }
 
     /**
@@ -1118,6 +1157,8 @@ public:
         m_cvt_kernel = std::move(val.m_cvt_kernel);
         m_accu_len = val.m_accu_len;
         val.m_accu_len = 0;
+        m_get_failed = val.m_get_failed;
+        val.m_get_failed = false;
         return *this;
     }
 
@@ -1180,6 +1221,7 @@ private:
     {
         m_cvt_kernel.init_state();
         m_accu_len = 0;
+        m_get_failed = false;
     }
 
     /**
@@ -1258,6 +1300,11 @@ private:
         requires (cvt_cpt::support_get<KernelType>)
     {
         if (to_max == 0) return 0;
+        if (m_get_failed)
+        {
+            m_get_failed = false;
+            throw cvt_error("code_cvt::get fail: invalid external sequence");
+        }
         reader.reset(s_max_buf_size);
         std::size_t total_size = 0;
 
@@ -1279,6 +1326,7 @@ private:
             }
 
             auto ext_cur = ptr;
+            const bool held = m_cvt_kernel.is_mid_seq();
             auto [succ, int_len] = m_cvt_kernel.in_helper(ext_cur, ptr + cur_size, to, to + to_max - total_size);
 
             // Update accumulated length BEFORE the failure check: in_helper may
@@ -1289,7 +1337,16 @@ private:
             total_size += int_len;
 
             if (!succ)
-                throw cvt_error("code_cvt::get fail: invalid external sequence");
+            {
+                const auto* resume = (held && ext_cur == ptr && int_len == 0)
+                                   ? ext_cur : std::min(ext_cur + 1, ptr + cur_size);
+                if (resume != ptr + cur_size)
+                    reader.rollback(ptr + cur_size - resume);
+                if (total_size == 0)
+                    throw cvt_error("code_cvt::get fail: invalid external sequence");
+                m_get_failed = true;
+                return total_size;
+            }
 
             if (ext_cur == ptr + cur_size)
                 prev_rollback = 0;
@@ -1423,11 +1480,12 @@ private:
         // (strong exception guarantee). After this point the remaining
         // mutations are noexcept (mbstate_t reset / scalar assignment), so
         // we cannot end up half-updated.
-        BT::m_kernel.seek(pos * epc);
+        BT::kernel_seek(pos * epc);
 
         if (needs_state_reset)
             m_cvt_kernel.init_state();
         m_accu_len = pos;
+        m_get_failed = false;
     }
 
     /**
@@ -1464,9 +1522,9 @@ private:
         if (pos > std::numeric_limits<std::size_t>::max() / epc)
             throw cvt_error("code_cvt::rseek fail: position overflow");
 
-        const std::size_t saved_dev_pos = BT::m_kernel.tell();
-        BT::m_kernel.rseek(pos * epc);
-        const std::size_t new_dev_pos = BT::m_kernel.tell();
+        const std::size_t saved_dev_pos = BT::kernel_tell();
+        BT::kernel_rseek(pos * epc);
+        const std::size_t new_dev_pos = BT::kernel_tell();
 
         if (new_dev_pos % epc != 0)
         {
@@ -1475,12 +1533,13 @@ private:
             // cvt_error and is expected to re-seek before further use;
             // surfacing a different exception here would only obscure the
             // failure mode.
-            try { BT::m_kernel.seek(saved_dev_pos); } catch (...) {} // NOLINT(bugprone-empty-catch)
+            try { BT::kernel_seek(saved_dev_pos); } catch (...) {} // NOLINT(bugprone-empty-catch)
             throw cvt_error("code_cvt::rseek fail: partial sequence");
         }
 
         m_accu_len = new_dev_pos / epc;
         m_cvt_kernel.init_state();
+        m_get_failed = false;
     }
 
 private:
@@ -1507,6 +1566,8 @@ private:
             explicit state_guard(code_cvt& value) noexcept : self(value) {}
             state_guard(const state_guard&) = delete;
             state_guard& operator=(const state_guard&) = delete;
+            state_guard(state_guard&&) = delete;
+            state_guard& operator=(state_guard&&) = delete;
 
             ~state_guard() noexcept
             {
@@ -1514,6 +1575,7 @@ private:
                 self.BT::m_io_status = io_status::neutral;
                 self.BT::m_is_bos_done = false;
                 self.m_accu_len = 0;
+                self.m_get_failed = false;
             }
         } guard{*this};
 
@@ -1525,7 +1587,7 @@ private:
                 const std::size_t count = m_cvt_kernel.unshift(buffer.data(), buffer.size());
 
                 if (count != 0)
-                    BT::m_kernel.put(buffer.data(), count);
+                    BT::kernel_put(buffer.data(), count);
             }
         }
     }
@@ -1536,6 +1598,7 @@ protected:
 
 private:
     std::size_t m_accu_len = 0; ///< 已处理的内部字符总数（逻辑位置）/ Total internal characters processed (logical position).
+    bool m_get_failed = false; ///< 上次 get 在交出字符后遇到解码错误，下次 get 抛出 / The last get hit a decoding error after delivering characters; the next get throws.
 };
 
 /**

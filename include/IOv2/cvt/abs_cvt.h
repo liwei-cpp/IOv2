@@ -29,6 +29,7 @@
 #pragma once
 #include <IOv2/cvt/cvt_concepts.h>
 
+#include <cassert>
 #include <cstddef>
 #include <cstring>
 #include <exception>
@@ -77,15 +78,16 @@ namespace IOv2
          * @lang{ZH}
          * 构造函数。
          *
-         * `cvt_reader` 不拥有 kernel 和 buffer 的所有权，调用方须保证二者在
-         * `cvt_reader` 生命周期内有效。
+         * `cvt_reader` 不拥有 kernel、buffer 与两个游标的所有权，调用方须保证它们在
+         * `cvt_reader` 生命周期内有效。游标归调用方所有，未消费的数据因此跨 `cvt_reader` 保留。
          * @endif
          *
          * @lang{EN}
          * Constructor.
          *
-         * `cvt_reader` does not own the kernel or buffer; the caller must ensure
-         * both remain valid for the lifetime of this object.
+         * `cvt_reader` does not own the kernel, the buffer or the two cursors; the caller
+         * must ensure they remain valid for the lifetime of this object. The cursors belong
+         * to the caller, so unconsumed data outlives each `cvt_reader`.
          * @endif
          *
          * @param kernel
@@ -95,10 +97,21 @@ namespace IOv2
          * @param buffer
          * @lang{ZH} 对外部提供的缓冲区的引用，用于暂存从 kernel 读取的数据。 @endif
          * @lang{EN} Reference to an externally provided buffer used to stage data read from the kernel. @endif
+         *
+         * @param cur_pos
+         * @lang{ZH} 当前读取游标。 @endif
+         * @lang{EN} The current read cursor. @endif
+         *
+         * @param end_pos
+         * @lang{ZH} 有效数据的末尾（独占上界）。 @endif
+         * @lang{EN} The end of the valid data (exclusive upper bound). @endif
          */
-        explicit cvt_reader(KernelType& kernel, std::vector<char_type>& buffer)
+        explicit cvt_reader(KernelType& kernel, std::vector<char_type>& buffer,
+                            std::size_t& cur_pos, std::size_t& end_pos) // NOLINT(bugprone-easily-swappable-parameters)
             : m_kernel(kernel)
-            , m_buffer(buffer) {}
+            , m_buffer(buffer)
+            , m_cur_pos(cur_pos)
+            , m_end_pos(end_pos) {}
 
         cvt_reader(const cvt_reader&) = delete;
         cvt_reader& operator=(const cvt_reader&) = delete;
@@ -108,29 +121,27 @@ namespace IOv2
 
         /**
          * @lang{ZH}
-         * 重置缓冲区大小并清空所有位置游标。
+         * 保证缓冲区至少容纳 `buf_size` 个元素。
          *
-         * 调用后缓冲区大小被设置为 `buf_size`，`m_cur_pos` 和 `m_end_pos` 均归零，
-         * 先前缓冲的所有数据将被丢弃。
+         * 未消费的数据与两个游标保持不变：上一次调用留下（例如回退）的字节由下一次
+         * `get_buf` 先交出。
          * @endif
          *
          * @lang{EN}
-         * Resize the buffer and clear all position cursors.
+         * Make sure the buffer holds at least `buf_size` elements.
          *
-         * After the call the buffer capacity is set to `buf_size`, and both
-         * `m_cur_pos` and `m_end_pos` are reset to zero, discarding any previously
-         * buffered data.
+         * Unconsumed data and both cursors are left alone: bytes a previous call left
+         * behind (by a rollback, say) are handed out first by the next `get_buf`.
          * @endif
          *
          * @param buf_size
-         * @lang{ZH} 新的缓冲区元素个数。 @endif
-         * @lang{EN} New buffer capacity in number of elements. @endif
+         * @lang{ZH} 缓冲区至少应有的元素个数。 @endif
+         * @lang{EN} The least number of elements the buffer must hold. @endif
          */
         void reset(std::size_t buf_size)
         {
-            m_buffer.resize(buf_size);
-            m_cur_pos = 0;
-            m_end_pos = 0;
+            if (m_buffer.size() < buf_size)
+                m_buffer.resize(buf_size);
         }
 
         /**
@@ -304,11 +315,11 @@ namespace IOv2
 
         /** @lang{ZH} 下一次消费数据的起始位置（当前读取游标）。 @endif
          *  @lang{EN} Start position of the next data to be consumed (current read cursor). @endif */
-        std::size_t m_cur_pos = 0;
+        std::size_t& m_cur_pos;
 
         /** @lang{ZH} 缓冲区中有效数据的末尾位置（独占上界）。 @endif
          *  @lang{EN} End position of valid data in the buffer (exclusive upper bound). @endif */
-        std::size_t m_end_pos = 0;
+        std::size_t& m_end_pos;
     };
 
     /**
@@ -559,7 +570,12 @@ namespace IOv2
             catch (...) {} // NOLINT(bugprone-empty-catch)
         }
 
-        void used(std::size_t len) { m_len -= len; }
+        void used(std::size_t len)
+        {
+            if (len > m_len)
+                throw cvt_error("put_buf_guard::used fail: length exceeds reserved slot");
+            m_len -= len;
+        }
 
     private:
         TWriter& m_writer;
@@ -951,18 +967,21 @@ namespace IOv2
 
         /**
          * @lang{ZH}
-         * 拷贝构造函数。复制 kernel、IO 状态和 BOS 完成标志；临时 IO 缓冲区不复制。
+         * 拷贝构造函数。复制 kernel、IO 状态、BOS 完成标志，以及取数区中尚未消费的数据。
          * @endif
          *
          * @lang{EN}
-         * Copy constructor. Copies the kernel, IO status, and BOS-done flag;
-         * the temporary IO buffer is not copied.
+         * Copy constructor. Copies the kernel, IO status, BOS-done flag, and the data
+         * still unconsumed in the read area.
          * @endif
          */
         abs_cvt(const abs_cvt& val)
             : m_kernel(val.m_kernel)
             , m_io_status(val.m_io_status)
             , m_is_bos_done(val.m_is_bos_done)
+            , m_tmp_io_buffer(val.m_tmp_io_buffer.begin(), val.m_tmp_io_buffer.begin() + val.m_rd_end)
+            , m_rd_cur(val.m_rd_cur)
+            , m_rd_end(val.m_rd_end)
             , m_is_tainted(val.m_is_tainted) {}
 
         /**
@@ -980,10 +999,14 @@ namespace IOv2
             : m_kernel(std::move(val.m_kernel))
             , m_io_status(val.m_io_status)
             , m_is_bos_done(val.m_is_bos_done)
+            , m_tmp_io_buffer(std::move(val.m_tmp_io_buffer))
+            , m_rd_cur(val.m_rd_cur)
+            , m_rd_end(val.m_rd_end)
             , m_is_tainted(val.m_is_tainted)
         {
             val.m_io_status = io_status::neutral;
             val.m_is_bos_done = false;
+            val.m_rd_cur = val.m_rd_end = 0;
             val.m_is_tainted = false;
         }
 
@@ -1003,9 +1026,13 @@ namespace IOv2
         {
             if (this != &val)
             {
+                std::vector<external_type> buffer(val.m_tmp_io_buffer.begin(), val.m_tmp_io_buffer.begin() + val.m_rd_end);
                 m_kernel = val.m_kernel;
                 m_io_status = val.m_io_status;
                 m_is_bos_done = val.m_is_bos_done;
+                m_tmp_io_buffer = std::move(buffer);
+                m_rd_cur = val.m_rd_cur;
+                m_rd_end = val.m_rd_end;
                 m_is_tainted = val.m_is_tainted;
                 // m_reader and m_writer keep pointing to &m_kernel, no change needed
             }
@@ -1031,6 +1058,10 @@ namespace IOv2
                 val.m_io_status = io_status::neutral;
                 m_is_bos_done = val.m_is_bos_done;
                 val.m_is_bos_done = false;
+                m_tmp_io_buffer = std::move(val.m_tmp_io_buffer);
+                m_rd_cur = val.m_rd_cur;
+                m_rd_end = val.m_rd_end;
+                val.m_rd_cur = val.m_rd_end = 0;
                 m_is_tainted = val.m_is_tainted;
                 val.m_is_tainted = false;
             }
@@ -1126,6 +1157,7 @@ namespace IOv2
             }
 
             auto [dev, inner_err] = self.m_kernel.detach();
+            self.m_rd_cur = self.m_rd_end = 0;
             self.m_io_status = io_status::neutral;
             self.m_is_bos_done = false;
             self.m_is_tainted = false;
@@ -1188,6 +1220,7 @@ namespace IOv2
             try
             {
                 self.m_kernel.attach(std::move(dev));
+                self.m_rd_cur = self.m_rd_end = 0;
                 self.m_io_status = io_status::neutral;
                 self.m_is_bos_done = false;
                 self.m_is_tainted = false;
@@ -1395,7 +1428,7 @@ namespace IOv2
             if constexpr (requires { { self.is_eof_impl() } -> std::same_as<bool>; })
                 return self.is_eof_impl();
             else
-                return self.m_kernel.is_eof();
+                return self.m_rd_cur == self.m_rd_end && self.m_kernel.is_eof();
         }
 
     // optional methods
@@ -1467,7 +1500,7 @@ namespace IOv2
             // corrupted the stream cannot then read back a confused image.
             self.assert_not_tainted();
 
-            cvt_reader<KernelType> reader(self.m_kernel, self.m_tmp_io_buffer);
+            cvt_reader<KernelType> reader(self.m_kernel, self.m_tmp_io_buffer, self.m_rd_cur, self.m_rd_end);
 
             if (!self.m_is_bos_done)
             {
@@ -1725,7 +1758,7 @@ namespace IOv2
             if constexpr (requires { { self.tell_impl() } -> std::same_as<std::size_t>; })
                 return self.tell_impl();
             else
-                return self.m_kernel.tell();
+                return self.kernel_tell();
         }
 
         /**
@@ -1766,7 +1799,7 @@ namespace IOv2
 
             if constexpr (requires { self.seek_impl(pos); })
                 self.seek_impl(pos);
-            else self.m_kernel.seek(pos);
+            else self.kernel_seek(pos);
         }
 
         /**
@@ -1799,7 +1832,7 @@ namespace IOv2
 
             if constexpr (requires { self.rseek_impl(pos); })
                 self.rseek_impl(pos);
-            else self.m_kernel.rseek(pos);
+            else self.kernel_rseek(pos);
         }
 
         /**
@@ -1885,16 +1918,25 @@ namespace IOv2
             if constexpr (requires { self.switch_to_put_impl(); })
                 self.switch_to_put_impl();
 
+            if (self.m_rd_cur != self.m_rd_end)
+            {
+                if constexpr (cvt_cpt::support_positioning<KernelType>)
+                    self.kernel_seek(self.kernel_tell());
+                else
+                    throw cvt_error("abs_cvt::switch_to_put fail: unread input and kernel does not support positioning");
+            }
+
             self.m_kernel.switch_to_put();
             self.m_io_status = io_status::output;
         }
 
-    protected:
-        // NOLINTBEGIN(cppcoreguidelines-non-private-member-variables-in-classes)
+    private:
         /** @lang{ZH} 底层 IO 转换核心，持有对底层设备的所有权。 @endif
          *  @lang{EN} The underlying IO conversion kernel, which owns the underlying device. @endif */
         KernelType  m_kernel;
 
+    protected:
+        // NOLINTBEGIN(cppcoreguidelines-non-private-member-variables-in-classes)
         /** @lang{ZH}
          *  当前 IO 方向状态：`neutral`（未激活）、`input`（读取模式）或 `output`（写入模式）。
          *  由 `bos()`、`switch_to_get()`、`switch_to_put()`、`detach()` 和 `attach()` 更新。
@@ -1983,6 +2025,50 @@ namespace IOv2
             m_is_tainted = true;
         }
 
+        /**
+         * @lang{ZH}
+         * 派生层访问底层 kernel 的唯一入口：`m_kernel` 为 private，派生层的读写与定位都经由这些函数。
+         * @endif
+         *
+         * @lang{EN}
+         * The only way a derived layer reaches the kernel below: `m_kernel` is private, so the
+         * derived layer's reads, writes and positioning all go through these functions.
+         * @endif
+         */
+        std::size_t kernel_get(external_type* to, std::size_t to_max)
+            requires (cvt_cpt::support_get<KernelType>)
+        {
+            assert(m_rd_cur == m_rd_end);
+            return m_kernel.get(to, to_max);
+        }
+
+        void kernel_put(const external_type* from, std::size_t from_size)
+            requires (cvt_cpt::support_put<KernelType>)
+        {
+            assert(m_rd_cur == m_rd_end);
+            m_kernel.put(from, from_size);
+        }
+
+        [[nodiscard]] std::size_t kernel_tell() const
+            requires (cvt_cpt::support_positioning<KernelType>)
+        {
+            return m_kernel.tell() - (m_rd_end - m_rd_cur);
+        }
+
+        void kernel_seek(std::size_t pos)
+            requires (cvt_cpt::support_positioning<KernelType>)
+        {
+            m_kernel.seek(pos);
+            m_rd_cur = m_rd_end = 0;
+        }
+
+        void kernel_rseek(std::size_t pos)
+            requires (cvt_cpt::support_positioning<KernelType>)
+        {
+            m_kernel.rseek(pos);
+            m_rd_cur = m_rd_end = 0;
+        }
+
     private:
         /**
          * @lang{ZH}
@@ -2034,14 +2120,22 @@ namespace IOv2
         }
 
         /** @lang{ZH}
-         *  临时 IO 缓冲区，供 `cvt_reader` 和 `cvt_writer` 在每次 `get`/`put` 调用时共用。
-         *  缓冲区大小在首次使用时由 `reset()` 按需设置。
+         *  IO 缓冲区，供 `cvt_reader` 和 `cvt_writer` 共用。读方向上未消费的数据跨 `get` 调用保留
+         *  （见 `m_rd_cur`/`m_rd_end`）；切到写方向前由 `switch_to_put()` 清空。
+         *  缓冲区大小由 `reset()` 按需设置。
          *  @endif
          *  @lang{EN}
-         *  Temporary IO buffer shared by `cvt_reader` and `cvt_writer` across each `get`/`put` call.
-         *  The buffer is sized on demand by `reset()` at first use.
+         *  IO buffer shared by `cvt_reader` and `cvt_writer`. In the read direction, unconsumed
+         *  data survives across `get` calls (see `m_rd_cur`/`m_rd_end`); `switch_to_put()` empties
+         *  it before the write direction takes over.
+         *  The buffer is sized on demand by `reset()`.
          *  @endif */
         std::vector<external_type> m_tmp_io_buffer;
+
+        /** @lang{ZH} 取数区的读取游标：`m_tmp_io_buffer` 中 `[m_rd_cur, m_rd_end)` 是已从 kernel 取出、尚未消费的数据。 @endif
+         *  @lang{EN} Read-area cursors: `[m_rd_cur, m_rd_end)` of `m_tmp_io_buffer` is data taken from the kernel but not yet consumed. @endif */
+        std::size_t m_rd_cur = 0;
+        std::size_t m_rd_end = 0;
 
         /** @lang{ZH}
          *  Tainted 标志：当 `put` 抛出异常时被置为 `true`，表示底层流的字节

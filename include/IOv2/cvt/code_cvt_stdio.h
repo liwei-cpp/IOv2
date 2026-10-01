@@ -413,7 +413,7 @@ private:
             std::array<char, MB_LEN_MAX> buf{};
             const std::size_t n = kernel.unshift(buf.data(), buf.size());
             if (n != 0)
-                this->m_kernel.put(buf.data(), n);
+                this->kernel_put(buf.data(), n);
         }
     }
 

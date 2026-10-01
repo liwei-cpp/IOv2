@@ -41,6 +41,7 @@
 #include <array>
 #include <string>
 #include <tuple>
+#include <utility>
 
 #include <unistd.h>
 
@@ -398,6 +399,158 @@ namespace
         EXPECT_THROW(second.get(&c, 1), cvt_error);
         EXPECT_THROW(second.adjust(code_cvt_switch{"C"}), cvt_error);
     }
+
+    // A 0x00 byte is a null character whatever the shift state (C11 5.2.1.2), and
+    // decoding one leaves the initial state (C11 7.29.6.3.2). glibc's ISO-2022-JP
+    // module keeps the JIS X 0208 state instead, and mbrtowc then fails an
+    // assertion and aborts, so mbrtowc must never see a 0x00 byte here.
+    std::pair<bool, std::wstring> decode(codecvt_kernel<char, wchar_t>& kernel, const std::string& in)
+    {
+        std::array<wchar_t, 16> buf{};
+        const char* from = in.data();
+        wchar_t* to = buf.data();
+        auto [ok, n] = kernel.in_helper(from, in.data() + in.size(), to, buf.data() + buf.size());
+        return {ok, std::wstring(buf.data(), n)};
+    }
+
+    void kernel_decodes_a_null_byte_in_a_shifted_state()
+    {
+        const std::string nul(1, '\0');
+        {
+            codecvt_kernel<char, wchar_t> kernel(kLocaleName);
+            EXPECT_EQ(decode(kernel, kZhong + nul + "ab"), std::pair(true, std::wstring(L"中\0ab", 4)));
+            EXPECT_TRUE(kernel.is_init_state());
+        }
+        {
+            // The same split across calls, as get(&c, 1) feeds it: after the null
+            // character `ab` is ASCII, not the JIS X 0208 U+75F0.
+            codecvt_kernel<char, wchar_t> kernel(kLocaleName);
+            EXPECT_EQ(decode(kernel, kZhong), std::pair(true, std::wstring(L"中")));
+            EXPECT_FALSE(kernel.is_init_state());
+            EXPECT_EQ(decode(kernel, nul + "ab"), std::pair(true, std::wstring(L"\0ab", 3)));
+            EXPECT_TRUE(kernel.is_init_state());
+        }
+        {
+            // A shift sequence right before it produces no character of its own.
+            codecvt_kernel<char, wchar_t> kernel(kLocaleName);
+            EXPECT_EQ(decode(kernel, kShiftIn + nul + "a"), std::pair(true, std::wstring(L"\0a", 2)));
+        }
+        {
+            // Half a JIS X 0208 character cannot end at a 0x00 byte.
+            codecvt_kernel<char, wchar_t> kernel(kLocaleName);
+            EXPECT_EQ(decode(kernel, "a" + kShiftIn + "C" + nul + "a"), std::pair(false, std::wstring(L"a")));
+        }
+    }
+
+    template <typename TRoot>
+    void a_null_byte_in_a_shifted_state_reads_as_a_null_character()
+    {
+        const std::string text = "a" + kZhong + std::string(1, '\0') + "bc";
+        const std::wstring expected(L"a中\0bc", 5);
+        EXPECT_EQ(get_one_at_a_time<TRoot>(text), expected);
+        EXPECT_EQ(get_in_one_call<TRoot>(text), expected);
+    }
+
+    // The locale declares <mb_cur_max> 1, but U+4E2D takes 5 bytes (ESC $ B C f).
+    // wcrtomb does not stop at MB_CUR_MAX, so the kernel must not let it write
+    // into a slot sized by it.
+    void kernel_rejects_an_encoding_longer_than_mb_cur_max()
+    {
+        codecvt_kernel<char, wchar_t> kernel(undersized_locale_name);
+        ASSERT_EQ(kernel.epc(), 1u) << "the locale did not load with mb_cur_max 1";
+
+        std::array<char, 16> buf{};
+        buf.fill('#');
+        char* next = buf.data();
+        EXPECT_THROW(kernel.out_helper(L'中', next, buf.data() + kernel.epc()), cvt_error);
+        EXPECT_EQ(next, buf.data());
+        EXPECT_EQ(std::string(buf.data(), buf.size()), std::string(buf.size(), '#'))
+            << "the rejected character wrote bytes";
+        EXPECT_TRUE(kernel.is_init_state()) << "the rejected character moved the shift state";
+
+        std::string out;
+        ASSERT_TRUE(encode(kernel, L'a', out));
+        EXPECT_EQ(out, "a");
+    }
+
+    // The same through put_main: the slot is epc() bytes, the put fails and
+    // nothing reaches the device.
+    template <typename TRoot>
+    void put_rejects_an_encoding_longer_than_mb_cur_max()
+    {
+        code_cvt<TRoot, wchar_t> obj{TRoot{mem_device("")}, undersized_locale_name};
+        EXPECT_EQ(obj.bos(), io_status::output);
+        obj.main_cont_beg();
+
+        const wchar_t zhong = L'中';
+        EXPECT_THROW(obj.put(&zhong, 1), cvt_error);
+        EXPECT_TRUE(obj.is_tainted());
+
+        auto [dev, err] = obj.detach();
+        EXPECT_FALSE(err);
+        EXPECT_EQ(dev.str(), "");
+    }
+
+    // Reads to the end in calls of at most `n` characters, going on after each
+    // error the way a stream does after clear(); an error shows as '!'.
+    template <typename TRoot>
+    std::wstring read_through_errors(const std::string& bytes, std::size_t n)
+    {
+        code_cvt<TRoot, wchar_t> obj{TRoot{mem_device(bytes)}, kLocaleName};
+        EXPECT_EQ(obj.bos(), io_status::input);
+        obj.main_cont_beg();
+
+        std::wstring res;
+        std::array<wchar_t, 64> buf{};
+        for (int round = 0; round < 64; ++round)
+        {
+            try
+            {
+                const std::size_t got = obj.get(buf.data(), n);
+                if (got == 0)
+                    return res;
+                res.append(buf.data(), got);
+            }
+            catch (const cvt_error&)
+            {
+                res += L'!';
+            }
+        }
+        ADD_FAILURE() << "the read did not end";
+        return res;
+    }
+
+    // glibc judges a shift sequence and a bad byte behind it as one bad run, so a
+    // block read used to skip just the ESC and hand out `$ B` as ASCII, with the
+    // JIS X 0208 state lost. A block read now recovers as get(&c, 1) does.
+    template <typename TRoot>
+    void a_block_read_recovers_like_one_character_at_a_time()
+    {
+        const std::pair<std::string, std::wstring> cases[] = {
+            {"a" + kShiftIn + "C\xff" "Cf" + kShiftOut + "b", L"a!!中b"},
+            {kShiftIn + "C\xff" + kShiftOut + "b", L"!!b"},
+            {"a" + kShiftIn + "\xff" "Cf", L"a!中"},
+        };
+        for (const auto& [bytes, expected] : cases)
+            for (const std::size_t n : {1, 2, 3, 64})
+                EXPECT_EQ(read_through_errors<TRoot>(bytes, n), expected) << "n = " << n;
+    }
+
+    // Redundant shift sequences are valid ISO-2022-JP. They used to pile up in the
+    // held bytes until 16 of them failed the read, for some block sizes only.
+    template <typename TRoot>
+    void redundant_shift_sequences_read_at_any_block_size()
+    {
+        for (const int k : {5, 6, 8})
+        {
+            std::string bytes = "a";
+            for (int i = 0; i < k; ++i)
+                bytes += kShiftIn;
+            bytes += "Cf" + kShiftOut + "b";
+            for (std::size_t n = 1; n <= 40; ++n)
+                EXPECT_EQ(read_through_errors<TRoot>(bytes, n), L"a中b") << "k = " << k << ", n = " << n;
+        }
+    }
 }
 
 TEST(CodeCvtStatefulEncoding, AFailedEncodeKeepsTheShiftState)
@@ -414,6 +567,37 @@ TEST(CodeCvtStatefulEncoding, AFailedEncodeKeepsTheShiftState)
     kernel_unshifts_after_a_failed_encode();
     detach_after_a_failed_put_returns_to_ascii<rb_root_cvt<mem_device<char>>>();
     detach_after_a_failed_put_returns_to_ascii<no_rb_root_cvt<mem_device<char>>>();
+}
+
+TEST(CodeCvtStatefulEncoding, ANullByteInAShiftedStateIsANullCharacter)
+{
+    if (!in_stateful_child())
+    {
+        EXPECT_EQ(run_stateful_child("CodeCvtStatefulEncoding.ANullByteInAShiftedStateIsANullCharacter"), 0)
+            << "the checks under the ISO-2022-JP locale failed; see the child's output above";
+        return;
+    }
+
+    // --- child ---
+    kernel_decodes_a_null_byte_in_a_shifted_state();
+    a_null_byte_in_a_shifted_state_reads_as_a_null_character<rb_root_cvt<mem_device<char>>>();
+    a_null_byte_in_a_shifted_state_reads_as_a_null_character<no_rb_root_cvt<mem_device<char>>>();
+}
+
+TEST(CodeCvtStatefulEncoding, AnUndersizedMbCurMaxIsRejected)
+{
+    if (!in_stateful_child())
+    {
+        ASSERT_TRUE(build_undersized_locale(stateful_locpath()));
+        EXPECT_EQ(run_stateful_child("CodeCvtStatefulEncoding.AnUndersizedMbCurMaxIsRejected"), 0)
+            << "the checks under the ISO-2022-JP locale failed; see the child's output above";
+        return;
+    }
+
+    // --- child ---
+    kernel_rejects_an_encoding_longer_than_mb_cur_max();
+    put_rejects_an_encoding_longer_than_mb_cur_max<rb_root_cvt<mem_device<char>>>();
+    put_rejects_an_encoding_longer_than_mb_cur_max<no_rb_root_cvt<mem_device<char>>>();
 }
 
 TEST(CodeCvtStatefulEncoding, AShiftSequenceDecodesToNoCharacter)
@@ -475,4 +659,32 @@ TEST(CodeCvtStatefulEncoding, Char32StreamsRoundTrip)
     // --- child ---
     char32_t_streams_round_trip<rb_root_cvt<mem_device<char>>>();
     char32_t_streams_round_trip<no_rb_root_cvt<mem_device<char>>>();
+}
+
+TEST(CodeCvtStatefulEncoding, ABlockReadRecoversLikeOneCharacterAtATime)
+{
+    if (!in_stateful_child())
+    {
+        EXPECT_EQ(run_stateful_child("CodeCvtStatefulEncoding.ABlockReadRecoversLikeOneCharacterAtATime"), 0)
+            << "the checks under the ISO-2022-JP locale failed; see the child's output above";
+        return;
+    }
+
+    // --- child ---
+    a_block_read_recovers_like_one_character_at_a_time<rb_root_cvt<mem_device<char>>>();
+    a_block_read_recovers_like_one_character_at_a_time<no_rb_root_cvt<mem_device<char>>>();
+}
+
+TEST(CodeCvtStatefulEncoding, RedundantShiftSequencesReadAtAnyBlockSize)
+{
+    if (!in_stateful_child())
+    {
+        EXPECT_EQ(run_stateful_child("CodeCvtStatefulEncoding.RedundantShiftSequencesReadAtAnyBlockSize"), 0)
+            << "the checks under the ISO-2022-JP locale failed; see the child's output above";
+        return;
+    }
+
+    // --- child ---
+    redundant_shift_sequences_read_at_any_block_size<rb_root_cvt<mem_device<char>>>();
+    redundant_shift_sequences_read_at_any_block_size<no_rb_root_cvt<mem_device<char>>>();
 }

@@ -22,6 +22,8 @@
 
 #include <cstdlib>
 #include <filesystem>
+#include <fstream>
+#include <iterator>
 #include <string>
 
 #include <fcntl.h>
@@ -32,6 +34,12 @@ namespace
 {
     inline const char* const stateful_child_env = "IOV2_STATEFUL_ENCODING_CHILD";
     inline const char* const stateful_locale_name = "xx_XX.ISO-2022-JP";
+    inline const char* const undersized_locale_name = "xy_XY.ISO-2022-JP";
+
+    inline std::filesystem::path stateful_locpath()
+    {
+        return std::filesystem::current_path() / "stateful-locales";
+    }
 
     inline bool in_stateful_child() { return std::getenv(stateful_child_env) != nullptr; }
 
@@ -44,12 +52,10 @@ namespace
 
     // localedef exits 1 with -c when it only warned (the source leaves six
     // categories undefined), so success is read from the output, not the status.
-    inline bool build_stateful_locale(const std::filesystem::path& locpath)
+    inline bool compile_locale(const std::filesystem::path& charmap_path, const std::filesystem::path& out)
     {
-        const std::filesystem::path out = locpath / stateful_locale_name;
         std::filesystem::remove_all(out);
-        std::filesystem::create_directories(locpath);
-        const std::string charmap = stateful_resource("ISO-2022-JP.cm").string();
+        const std::string charmap = charmap_path.string();
         const std::string source = stateful_resource("mini.src").string();
 
         const pid_t child = ::fork();
@@ -72,11 +78,34 @@ namespace
         return std::filesystem::exists(out / "LC_CTYPE");
     }
 
+    inline bool build_stateful_locale(const std::filesystem::path& locpath)
+    {
+        std::filesystem::create_directories(locpath);
+        return compile_locale(stateful_resource("ISO-2022-JP.cm"), locpath / stateful_locale_name);
+    }
+
+    // The same codeset with <mb_cur_max> declared as 1, below the 5 bytes the
+    // gconv module writes for U+4E2D.
+    inline bool build_undersized_locale(const std::filesystem::path& locpath)
+    {
+        std::filesystem::create_directories(locpath);
+        std::ifstream in(stateful_resource("ISO-2022-JP.cm"));
+        std::string text{std::istreambuf_iterator<char>(in), {}};
+        const std::string declared = "<mb_cur_max> 8";
+        const auto at = text.find(declared);
+        if (at == std::string::npos)
+            return false;
+        text.replace(at, declared.size(), "<mb_cur_max> 1");
+        const std::filesystem::path charmap = locpath / "undersized.cm";
+        std::ofstream(charmap) << text;
+        return compile_locale(charmap, locpath / undersized_locale_name);
+    }
+
     // Builds the locale, then re-runs this executable on `test` (a full
     // "Suite.Name") under it. Returns the child's exit status, or -1.
     inline int run_stateful_child(const std::string& test)
     {
-        const std::filesystem::path locpath = std::filesystem::current_path() / "stateful-locales";
+        const std::filesystem::path locpath = stateful_locpath();
         if (!build_stateful_locale(locpath))
             return -1;
 

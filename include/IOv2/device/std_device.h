@@ -305,8 +305,9 @@ public:
             const auto readable_now = []() noexcept
             {
                 struct pollfd pfd{ .fd = ID, .events = POLLIN, .revents = 0 };
-                int r = 0;
-                do { r = poll(&pfd, 1, 0); } while (r == -1 && errno == EINTR);
+                int r = poll(&pfd, 1, 0);
+                while (r == -1 && errno == EINTR)
+                    r = poll(&pfd, 1, 0);
                 return r > 0 && (pfd.revents & (POLLIN | POLLHUP)) != 0;
             };
 
