@@ -768,3 +768,57 @@ TEST(CodeCvtStdio, ASelfMoveChangesNothing)
     std::fflush(stdout);
     EXPECT_EQ(g.contents(), "文!");
 }
+
+// What wcin.sync_with_stdio() does with the decoder: half a character held at the end of
+// the input goes over to the new converter, which still reports the input as cut off.
+TEST(CodeCvtStdio, AHeldHalfCharacterGoesOverToANewConverter)
+{
+    using SyncIn = code_cvt_stdio<no_rb_root_cvt<std_device<STDIN_FILENO>>>;
+
+    iguard g("a\xe4\xb8");
+    SyncIn first{no_rb_root_cvt{std_device<STDIN_FILENO>{}}, "zh_CN.UTF-8"};
+    EXPECT_EQ(first.bos(), io_status::input);
+    first.main_cont_beg();
+    wchar_t c = 0;
+    EXPECT_EQ(first.get(&c, 1), 1u);
+    EXPECT_EQ(c, L'a');
+    EXPECT_THROW(first.get(&c, 1), cvt_error);
+
+    code_cvt_stdio_state state;
+    first.retrieve(state);
+    ASSERT_TRUE(state.kernel.has_value());
+    EXPECT_TRUE(state.kernel->is_mid_seq());
+    auto [dev, err] = first.detach();
+    EXPECT_FALSE(err);
+
+    StdioIn second{rb_root_cvt{std::move(dev)}, "zh_CN.UTF-8"};
+    EXPECT_EQ(second.bos(), io_status::input);
+    second.main_cont_beg();
+    second.adjust(state);
+    EXPECT_FALSE(state.kernel.has_value());
+    EXPECT_THROW(second.adjust(state), cvt_error);
+    EXPECT_THROW(second.get(&c, 1), cvt_error);
+    EXPECT_THROW(second.adjust(code_cvt_switch{"C"}), cvt_error);
+}
+
+// The query still answers code_cvt_access, and an empty state is refused without
+// changing anything.
+TEST(CodeCvtStdio, AnEmptyStateIsRefusedAndChangesNothing)
+{
+    iguard g("ab");
+    StdioIn obj{rb_root_cvt{std_device<STDIN_FILENO>{}}, "zh_CN.UTF-8"};
+    EXPECT_EQ(obj.bos(), io_status::input);
+    obj.main_cont_beg();
+
+    const code_cvt_stdio_state empty;
+    EXPECT_THROW(obj.adjust(empty), cvt_error);
+
+    code_cvt_access acc;
+    obj.retrieve(acc);
+    EXPECT_EQ(acc.code, "zh_CN.UTF-8");
+    wchar_t c = 0;
+    std::wstring got;
+    while (obj.get(&c, 1) == 1)
+        got += c;
+    EXPECT_EQ(got, L"ab");
+}

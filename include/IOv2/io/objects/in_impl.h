@@ -22,6 +22,11 @@
  *       用户经 `locale(loc)` 装进来的自定义 facet 若持有会在退出时析构的全局量，不在此列。
  *       详见 `out_impl.h` 的同名说明。
  *
+ * @note **`wcin` 不接受状态依赖的编码**（如 ISO-2022-JP）：环境变量指向这样的 locale 时，
+ *       `wcin` 改用 `"C"`，不报错——此时 `ESC $ B` 之类的移位序列按 ASCII 字符读出，
+ *       `code()` 报 `"C"`；`switch_code()` 切换到这样的编码会失败。与宽输出流一致，见
+ *       `out_impl.h` 与 `cvt/code_cvt_stdio.h`。
+ *
  * @note 一般不直接包含本头文件，而是包含 `IOv2/io/objects/objects.h`：入口那里还有一次切换全部
  *       八个标准流的 `sync_with_stdio()` 与 `ws` / `endl` 等操纵符，并说明了本系列头文件不带来
  *       哪些能力。
@@ -49,6 +54,12 @@
  *       locales, facets and the process-wide data those facets reach; a user facet installed
  *       through `locale(loc)` that holds a global with a destructor is outside that. See the
  *       note of the same name in `out_impl.h`.
+ *
+ * @note **`wcin` takes no state-dependent encoding** (ISO-2022-JP, say): when the
+ *       environment names such a locale, `wcin` uses `"C"` instead, without an error --
+ *       shift sequences such as `ESC $ B` then read as ASCII characters, and `code()`
+ *       reports `"C"`; `switch_code()` to such an encoding fails. The same as the wide output
+ *       streams; see `out_impl.h` and `cvt/code_cvt_stdio.h`.
  *
  * @note Prefer including `IOv2/io/objects/objects.h` over this header: the entry point also
  *       brings the `sync_with_stdio()` that switches all eight standard streams at once and
@@ -120,9 +131,9 @@ public:
      * 输入按 `io/iochannel.h` 的 `detach()` 契约丢弃；因此应在任何 stdin 读取之前调用，也**不得**在
      * 一次提取进行中（例如用户 `io_traits::sread` 里）重入调用：`io_mutex()` 是递归锁不会拦，
      * 但正在使用的 iochannel 会被整个换掉。
-     * （`wchar_t`）解码器随之带到新 iochannel（经 `code_cvt_stdio_state`），移位状态与停在
-     * 半个字符上的字节都不丢：同步模式下中途切换，有状态编码的后续字节照样解对；新建的
-     * 解码器则会从初始状态起步，把它们静默解错。
+     * （`wchar_t`）解码器随之带到新 iochannel（经 `code_cvt_stdio_state`），停在半个字符上的
+     * 字节不丢：同步模式下中途切换，后续字节照样解对；新建的解码器则不知道这半个字符，
+     * 会把后续字节解错。
      *
      * @warning 这里的「同步」只表示**不带读缓冲、每次 `read(0)` 只要本次操作所需的字节**
      *          （格式化提取与 `get` / `getline` 因逐字符探分隔符而逐字节，`read(buf, n)` 则是
@@ -165,10 +176,9 @@ public:
      * re-enter it from inside an extraction (a user `io_traits::sread`, say): `io_mutex()`
      * is recursive and will not stop it, but the iochannel in use is replaced wholesale.
      * (`wchar_t`) The decoder goes over to the new iochannel (through
-     * `code_cvt_stdio_state`), shift state and any bytes of half a character included: a
-     * switch in the middle of synchronized reading still decodes the bytes of a stateful
-     * encoding that follow correctly, where a freshly built decoder would start from the
-     * initial state and decode them wrong without a word.
+     * `code_cvt_stdio_state`), any bytes of half a character included: a switch in the
+     * middle of synchronized reading still decodes the bytes that follow correctly, where a
+     * freshly built decoder would not know about the half character and decode them wrong.
      *
      * @warning "Synchronized" here means **no read buffer: each `read(0)` asks for just what
      *          the current operation needs** (formatted extraction and `get` / `getline` go
@@ -222,8 +232,8 @@ public:
         if (old_sync_state == sync)
             return old_sync_state;
 
-        // The decoder goes over to the new iochannel with its shift state and any
-        // half character; a fresh one would start from the initial state.
+        // The decoder goes over to the new iochannel with any half character; a fresh
+        // one would not know about it.
         code_cvt_stdio_state state;
         if constexpr (std::is_same_v<char_type, wchar_t>)
         {
@@ -310,14 +320,11 @@ public:
      * @lang{ZH}
      * @brief 在同一 fd 上继续：清状态位与异常掩码，丢弃已缓冲但未消费的输入，重新附接
      * 设备并重新初始化转换器。`stdin` 是普通文件时也不会回到开头。同步模式没有读缓冲，
-     * 「丢弃」的只是解码器里的状态，fd 上尚未读的字节（例如本行余下的部分）照旧在那里；
-     * 有状态编码下若在移位状态中途调用，这些字节会以初始状态解读而解错——应在读到回到
-     * 初始状态的移位序列之后再调用。
+     * 「丢弃」的只是解码器里的状态，fd 上尚未读的字节（例如本行余下的部分）照旧在那里。
      *
      * 供需要放弃残余输入的场合使用——例如交互程序在出错后丢掉这一行剩下的内容重新提示。
      * 它**不是**出错后的必经之路：解码失败后 `clear()` 即可继续，解码器丢掉了半个字符、
-     * 从坏字节之后对齐读取，有状态编码的移位状态照旧保留。无状态编码下 `switch_code()` 也
-     * 随之可用；有状态编码停在移位状态中时，须读到回到初始状态之后才能切换。
+     * 从坏字节之后对齐读取，`switch_code()` 也随之可用。
      * 与 `sync_with_stdio()` 一样，不要在一次提取进行中（用户 `io_traits::sread` 里）重入
      * 调用：不会崩，但本次提取之后已缓冲的输入随之丢弃。
      *
@@ -340,18 +347,13 @@ public:
      * drops input that was buffered but not yet consumed, reattaches the device and
      * re-initializes the converter. A `stdin` that is a regular file does not rewind.
      * Synchronized mode has no read buffer, so what is dropped is only the decoder's state;
-     * bytes not yet read from the fd (the rest of the line, say) are still there. Under a
-     * stateful encoding, calling it in the middle of a shift state makes those bytes decode
-     * from the initial state, wrongly -- call it once a shift sequence has taken the
-     * decoder back to the initial state.
+     * bytes not yet read from the fd (the rest of the line, say) are still there.
      *
      * For the cases that want to abandon the pending input -- an interactive program
      * discarding the rest of a line after an error before prompting again. It is **not**
      * the required step after a failure: after a decode failure `clear()` is enough to
      * carry on -- the decoder has dropped any half character and reads on, aligned, from
-     * the byte after the bad one, keeping the shift state of a stateful encoding. With a
-     * stateless encoding `switch_code()` is available again as well; a stateful one left in
-     * a shift state has to be read back to its initial state before it can switch. As with
+     * the byte after the bad one, and `switch_code()` is available again as well. As with
      * `sync_with_stdio()`, do not re-enter it from inside an extraction (a user
      * `io_traits::sread`): nothing crashes, but the input buffered beyond that extraction
      * is discarded with it.
@@ -444,8 +446,7 @@ public:
      * `adjust(code_cvt_switch)` 的包装，走本流
      * 通用的加锁与错误处理：失败按状态位报告，`exceptions()` 掩码含该位时才抛出；失败时编码、
      * 已缓冲的字节都没有改变（`code_cvt_stdio::adjust` 把所有可能失败的步骤都放在提交之前）。
-     * 解码失败之后不必先 `reset()`：`clear()` 后解码器已丢掉半个字符，无状态编码下
-     * `switch_code()` 随之可用；有状态编码的移位状态在出错后保留，停在移位状态中时仍会被拒。
+     * 解码失败之后不必先 `reset()`：`clear()` 后解码器已丢掉半个字符，`switch_code()` 随之可用。
      *
      * @param new_code 新的编码名，须为 `newlocale()` 接受的 locale 名。`""` 按 POSIX 规则
      *        查环境（`LC_ALL` > `LC_CTYPE` > `LANG` > `"C"`）：查在此刻发生，切换成功后
@@ -454,9 +455,8 @@ public:
      *         `cvt_fail()`；或者直接比较 `code()` 与目标——本函数不设 `good()` 门槛，状态位已置时
      *         照常切换、位不变。
      * @note 置 `cvtfailbit`：该名字不被 `newlocale()` 接受（含内嵌 NUL 的名字按全长拒绝，不在
-     *       第一个 NUL 处截断），或编码转换状态不处于初始状态
-     *       （例如输入在一个多字节字符中间到达 EOF，此时 `clear()` 不够、须 `reset()`；或
-     *       有状态编码正停在移位状态中，读到回到初始状态的移位序列之后即可切换）。
+     *       第一个 NUL 处截断），该编码是状态依赖的，或编码转换状态不处于初始状态
+     *       （例如输入在一个多字节字符中间到达 EOF，此时 `clear()` 不够、须 `reset()`）。
      *       详见 `cvt/code_cvt_stdio.h`。
      * @endif
      *
@@ -473,8 +473,7 @@ public:
      * includes the bit; on failure the encoding and the buffered bytes are unchanged
      * (`code_cvt_stdio::adjust` puts every step that can fail before the commit). A decode
      * failure needs no `reset()` first: after `clear()` the decoder has dropped any half
-     * character, and with a stateless encoding `switch_code()` is available again; a stateful
-     * encoding keeps its shift state across the error, and is still refused while in one.
+     * character, and `switch_code()` is available again.
      *
      * @param new_code The new encoding name; must be a locale name `newlocale()` accepts.
      *        `""` means "look at the environment" per POSIX (`LC_ALL` > `LC_CTYPE` > `LANG` >
@@ -485,11 +484,10 @@ public:
      *         compare `code()` with the target: this function has no `good()` gate, so with a
      *         state bit already set it switches as usual and leaves the bits alone.
      * @note Sets `cvtfailbit`: the name is not accepted by `newlocale()` (a name with an
-     *       embedded NUL is rejected at its full length, not cut at the first NUL), or the encoding
-     *       conversion state is not in its initial state (input that hit EOF in the middle of
-     *       a multibyte character, say -- there `clear()` is not enough and `reset()` is; or
-     *       a stateful encoding in a shift state, which can switch once a shift sequence has
-     *       taken it back to the initial state).
+     *       embedded NUL is rejected at its full length, not cut at the first NUL), the encoding
+     *       is state-dependent, or the encoding conversion state is not in its initial state
+     *       (input that hit EOF in the middle of a multibyte character, say -- there `clear()`
+     *       is not enough and `reset()` is).
      *       See `cvt/code_cvt_stdio.h`.
      * @endif
      */

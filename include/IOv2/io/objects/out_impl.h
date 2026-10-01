@@ -44,26 +44,17 @@
  *
  * @note **三个宽流在字节层与 stdio 同步**：它们自己把字符编码成字节，再以 `fwrite` 交给
  *       `stdout` / `stderr`，所以 `FILE` 是字节定向的。因此 `cout`、`wcout` 与 `printf` /
- *       `fputs` 等字节函数可以任意交错（有状态编码另有限制，见下一条）；但**不能**与
+ *       `fputs` 等字节函数可以任意交错；但**不能**与
  *       `wprintf` / `fputwc` 等宽字符函数混用于
  *       同一个 `FILE`（C11 7.21.2 禁止混用两种定向）：先用宽字符函数，此后本库的窄流与宽流
  *       插入都失败并置 `devfailbit`；先用本库的流，此后 `wprintf` 返回 -1、输出静默丢失。
  *       这与 `std::wcout` 相反：libstdc++ 的 `std::wcout` 经 `putwc` 写，与 `wprintf` 相容，
  *       却在先写之后让 `printf` 与 `std::cout` 失败（实测）。
  *
- * @note **有状态编码（如 ISO-2022-JP）下的交错**：移位状态记在每个宽流自己的转换器里，
- *       而 `wcerr` 与 `wclog`（连同 `cerr`、`printf`）共用 stderr 这一个 fd。为此宽流每次冲刷
- *       前若不在初始移位状态，先写出复位序列：**每次冲刷交给 fd 的字节都以初始状态结尾**。
- *       - 同步模式（默认）下输出哨兵在每次插入结束时冲刷，单线程时上述各流与 `printf`
- *         可以任意交错，一次写入很长、中途写满缓冲也不例外。
- *       - 非同步模式，或多线程同时写同一 fd 时，一个流缓冲写满后自动写出的那一段可能停在
- *         移位状态中；此时另一写入者插进来，它的字节会被解成错字。这类交错本来就不保证
- *         先后顺序（无状态编码下也会乱序），有状态编码下还会错字：请让一个 fd 只由一个流
- *         写，或在交给另一写入者之前先冲刷。
- *       代价是多一些移位序列（如同步模式下连续两次插入「中」得 `ESC $ B Cf ESC ( B` 两遍），
- *       解码结果不变。libstdc++ 让 `std::wcerr` 与 `std::wclog` 共用一个缓冲，这两者之间
- *       没有此问题；但 `std::wcerr` 之后接 `std::cerr`，同步模式下 `cerr` 直接失败，非同步
- *       模式下同样解出错字（实测）。
+ * @note **宽流不接受状态依赖的编码**（如 ISO-2022-JP）：环境变量指向这样的 locale 时，宽流改用
+ *       `"C"`；`switch_code()` 切换到这样的编码会失败。移位状态只记在每个宽流自己的转换器里，
+ *       而 `wcerr` 与 `wclog`（连同 `cerr`、`printf`）共用 stderr 这一个 fd，交错输出无法可靠地
+ *       解码。见 `cvt/code_cvt_stdio.h`。
  *
  * @note 一般不直接包含本头文件，而是包含 `IOv2/io/objects/objects.h`：入口那里还有一次切换全部
  *       八个标准流的 `sync_with_stdio()` 与 `endl` / `ends` / `flush` 等操纵符，并说明了本系列
@@ -126,8 +117,7 @@
  * @note **The three wide streams are synchronized with stdio at the byte level**: they encode
  *       characters into bytes themselves and hand those to `stdout` / `stderr` with `fwrite`,
  *       so the `FILE` is byte-oriented. `cout`, `wcout` and byte functions such as `printf` /
- *       `fputs` can therefore interleave freely (stateful encodings have a limit, see the
- *       next note), but they **cannot** share a `FILE` with wide
+ *       `fputs` can therefore interleave freely, but they **cannot** share a `FILE` with wide
  *       functions such as `wprintf` / `fputwc` (C11 7.21.2 forbids mixing the two
  *       orientations): if a wide function goes first, every later insertion through this
  *       library's narrow and wide streams fails with `devfailbit`; if this library's streams
@@ -135,25 +125,11 @@
  *       of `std::wcout`: libstdc++'s `std::wcout` writes through `putwc` and gets along with
  *       `wprintf`, but once it has written, `printf` and `std::cout` fail (measured).
  *
- * @note **Interleaving under a stateful encoding (ISO-2022-JP, say)**: the shift state
- *       lives in each wide stream's own converter, while `wcerr` and `wclog` (and `cerr`,
- *       and `printf`) share the one stderr fd. So before each flush a wide stream that is
- *       not in its initial shift state writes the sequence returning it there: **the bytes
- *       each flush hands to the fd end in the initial state**.
- *       - In synchronized mode (the default) the output sentry flushes at the end of every
- *         insertion, so in a single thread those streams and `printf` interleave freely --
- *         also when one insertion is long enough to fill the buffer on the way.
- *       - In unsynchronized mode, or with several threads writing to one fd, the stretch a
- *         stream writes out when its buffer fills may stop inside a shift state, and bytes
- *         another writer puts in there decode as the wrong characters. Such interleaving
- *         keeps no order to begin with (a stateless encoding gets its text shuffled too);
- *         a stateful one garbles it on top. Have one stream write to an fd, or flush before
- *         handing over to another writer.
- *       The cost is some extra shift sequences (in synchronized mode two insertions of
- *       `中` give `ESC $ B Cf ESC ( B` twice); what decodes is the same. libstdc++ has
- *       `std::wcerr` and `std::wclog` share one buffer, so these two do not have the
- *       problem; but `std::cerr` after `std::wcerr` fails outright in synchronized mode and
- *       decodes to the wrong characters in unsynchronized mode (measured).
+ * @note **The wide streams take no state-dependent encoding** (ISO-2022-JP, say): when the
+ *       environment names such a locale they use `"C"` instead, and `switch_code()` to such an
+ *       encoding fails. The shift state lives in each wide stream's own converter while `wcerr`
+ *       and `wclog` (and `cerr`, and `printf`) share the one stderr fd, so interleaved output
+ *       cannot be decoded reliably. See `cvt/code_cvt_stdio.h`.
  *
  * @note Prefer including `IOv2/io/objects/objects.h` over this header: the entry point also
  *       brings the `sync_with_stdio()` that switches all eight standard streams at once and
@@ -412,8 +388,7 @@ public:
      *         `cvt_fail()` / `dev_fail()`；或者直接比较 `code()` 与目标——本函数不设 `good()` 门槛，
      *         状态位已置时照常切换、位不变。
      * @note 置 `cvtfailbit`：该名字不被 `newlocale()` 接受（含内嵌 NUL 的名字按全长拒绝，不在
-     *       第一个 NUL 处截断）、编码转换状态不处于初始状态（有状态
-     *       编码写出非 ASCII 之后），或已 tainted 转换器的预先恢复无法完成终结。
+     *       第一个 NUL 处截断）、该编码是状态依赖的，或已 tainted 转换器的预先恢复无法完成终结。
      *       置 `devfailbit`：转换器已 tainted，且预先恢复时旧设备冲刷失败。详见
      *       `cvt/code_cvt_stdio.h`。
      * @endif
@@ -445,8 +420,7 @@ public:
      *         alone.
      * @note Sets `cvtfailbit`: the name is not accepted by `newlocale()` (a name with an
      *       embedded NUL is rejected at its full length, not cut at the first NUL), the encoding
-     *       conversion state is not in its initial state (after a stateful encoding has
-     *       written non-ASCII), or preliminary recovery cannot finalize a tainted converter.
+     *       is state-dependent, or preliminary recovery cannot finalize a tainted converter.
      *       Sets `devfailbit`: the converter was tainted and flushing the old device during
      *       the preliminary recovery failed. See `cvt/code_cvt_stdio.h`.
      * @endif

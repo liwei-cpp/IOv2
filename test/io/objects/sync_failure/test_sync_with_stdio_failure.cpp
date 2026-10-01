@@ -5,8 +5,9 @@
  * What cin / wcin.sync_with_stdio() does when rebuilding the iochannel fails.
  *
  * The rebuild allocates (the root buffer and the kernel) and, on wcin, builds a
- * locale with newlocale. Neither fails in a healthy process, so this suite links
- * with -Wl,--wrap=_Znwm and -Wl,--wrap=newlocale and makes them fail while one
+ * locale with newlocale and copies the decoder's with duplocale. None of them fails
+ * in a healthy process, so this suite links with -Wl,--wrap=_Znwm,
+ * -Wl,--wrap=newlocale and -Wl,--wrap=duplocale and makes them fail while one
  * sync_with_stdio() call runs. Wrapping, unlike defining a global operator new,
  * leaves AddressSanitizer's own allocator in place.
  *
@@ -39,20 +40,22 @@ using namespace IOv2;
 #if defined(IOV2_TEST_WRAP_ALLOC)
 namespace
 {
-    enum class inject { off, count, every_new, nth_new, every_newlocale };
+    enum class inject { off, count, every_new, nth_new, every_newlocale, nth_duplocale };
 
     inject g_mode = inject::off;
     long g_nth = 0;
     long g_new_calls = 0;
     long g_newlocale_calls = 0;
+    long g_duplocale_calls = 0;
 }
 
 extern "C" void* __real__Znwm(std::size_t);
 extern "C" locale_t __real_newlocale(int, const char*, locale_t);
+extern "C" locale_t __real_duplocale(locale_t);
 
 extern "C" void* __wrap__Znwm(std::size_t n)
 {
-    if (g_mode != inject::off && g_mode != inject::every_newlocale)
+    if (g_mode != inject::off && g_mode != inject::every_newlocale && g_mode != inject::nth_duplocale)
     {
         ++g_new_calls;
         if (g_mode == inject::every_new || (g_mode == inject::nth_new && g_new_calls == g_nth))
@@ -75,6 +78,20 @@ extern "C" locale_t __wrap_newlocale(int mask, const char* name, locale_t base)
     return __real_newlocale(mask, name, base);
 }
 
+extern "C" locale_t __wrap_duplocale(locale_t loc)
+{
+    if (g_mode == inject::count || g_mode == inject::nth_duplocale)
+    {
+        ++g_duplocale_calls;
+        if (g_mode == inject::nth_duplocale && g_duplocale_calls == g_nth)
+        {
+            errno = ENOMEM;
+            return nullptr;
+        }
+    }
+    return __real_duplocale(loc);
+}
+
 namespace
 {
     // Arms the wrappers for one call only, and counts what that call did.
@@ -82,7 +99,7 @@ namespace
     {
         explicit armed(inject mode, long nth = 0)
         {
-            g_new_calls = g_newlocale_calls = 0;
+            g_new_calls = g_newlocale_calls = g_duplocale_calls = 0;
             g_nth = nth;
             g_mode = mode;
         }
@@ -106,6 +123,27 @@ namespace
         }
     };
 
+    // The mode the flag reports is the mode it reads in: synchronized reading
+    // took only "12" and the delimiter it probed, a buffered one took it all.
+    template <typename S>
+    void expect_twelve_in_the_reported_mode(S& s)
+    {
+        int x = -1;
+        s >> x;
+        EXPECT_EQ(s.rdstate(), ios_defs::goodbit);
+        EXPECT_EQ(x, 12);
+
+        char next = 0;
+        const auto n = ::read(STDIN_FILENO, &next, 1);
+        if (s.synced_with_stdio())
+        {
+            EXPECT_EQ(n, 1);
+            EXPECT_EQ(next, '3');
+        }
+        else
+            EXPECT_EQ(n, 0);
+    }
+
     template <typename S>
     void expect_unattached_then_reset_reads_on(S& s)
     {
@@ -117,22 +155,7 @@ namespace
 
         s.reset();
         EXPECT_EQ(s.exceptions(), ios_defs::goodbit);
-        x = -1;
-        s >> x;
-        EXPECT_EQ(s.rdstate(), ios_defs::goodbit);
-        EXPECT_EQ(x, 12);
-
-        // The mode the flag reports is the mode it reads in: synchronized reading
-        // took only "12" and the delimiter it probed, a buffered one took it all.
-        char next = 0;
-        const auto n = ::read(STDIN_FILENO, &next, 1);
-        if (s.synced_with_stdio())
-        {
-            EXPECT_EQ(n, 1);
-            EXPECT_EQ(next, '3');
-        }
-        else
-            EXPECT_EQ(n, 0);
+        expect_twelve_in_the_reported_mode(s);
     }
 
     // Starts in `from`, then switches away from it with every allocation failing.
@@ -161,7 +184,7 @@ namespace
 #if defined(IOV2_TEST_WRAP_ALLOC)
 #define IOV2_REQUIRE_WRAP()
 #else
-#define IOV2_REQUIRE_WRAP() GTEST_SKIP() << "needs the linker's --wrap=_Znwm and --wrap=newlocale"
+#define IOV2_REQUIRE_WRAP() GTEST_SKIP() << "needs the linker's --wrap=_Znwm, --wrap=newlocale and --wrap=duplocale"
 #endif
 
 TEST(SyncWithStdioFailure, AFailedAllocationChangesNothingButTheStateBit)
@@ -327,5 +350,57 @@ TEST(SyncWithStdioFailure, ABytePeekedByDeofIsLostWithTheFailedRebuild)
     int x = -1;
     IOv2::cin >> x;
     EXPECT_EQ(x, 2);
+#endif
+}
+
+// wcin copies its decoder out before it detaches; putting the copy into the new
+// iochannel is a move and cannot fail. So a failed duplocale leaves the stream
+// as it was, attached, in the mode the flag reports, and none fails after the
+// new iochannel is in.
+TEST(SyncWithStdioFailure, AFailedDuplocaleLeavesWcinAsItWas)
+{
+    IOV2_REQUIRE_WRAP();
+#if defined(IOV2_TEST_WRAP_ALLOC)
+    for (const bool from : {true, false})
+    {
+        SCOPED_TRACE(from);
+        long total = 0;
+        {
+            iguard g("12 34 56\n");
+            restore_stream r(IOv2::wcin);
+            IOv2::wcin.reset();
+            IOv2::wcin.sync_with_stdio(from);
+            armed a(inject::count);
+            IOv2::wcin.sync_with_stdio(!from);
+            total = g_duplocale_calls;
+        }
+        ASSERT_GT(total, 0);
+        for (long k = 1; k <= total + 1; ++k)
+        {
+            SCOPED_TRACE(k);
+            iguard g("12 34 56\n");
+            restore_stream r(IOv2::wcin);
+            IOv2::wcin.reset();
+            IOv2::wcin.sync_with_stdio(from);
+            bool ret = !from;
+            {
+                armed a(inject::nth_duplocale, k);
+                ret = IOv2::wcin.sync_with_stdio(!from);
+            }
+            EXPECT_EQ(ret, from);
+            if (k <= total)
+            {
+                EXPECT_EQ(IOv2::wcin.synced_with_stdio(), from);
+                EXPECT_EQ(IOv2::wcin.rdstate(), ios_defs::cvtfailbit);
+                IOv2::wcin.clear();
+            }
+            else
+            {
+                EXPECT_EQ(IOv2::wcin.synced_with_stdio(), !from);
+                EXPECT_TRUE(IOv2::wcin.good());
+            }
+            expect_twelve_in_the_reported_mode(IOv2::wcin);
+        }
+    }
 #endif
 }

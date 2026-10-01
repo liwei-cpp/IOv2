@@ -21,8 +21,9 @@
  * and a whole-buffer get repeated the last character. The kernel now holds a
  * partial sequence as raw bytes and feeds it to mbrtowc whole.
  *
- * Replacing the whole converter must not cost it the shift state either: a
- * fresh kernel starts in ASCII, so code_cvt_stdio_state carries the old one over.
+ * code_cvt_stdio, behind the standard streams, takes no state-dependent encoding:
+ * one fd is shared by several writers while the shift state lives in each
+ * converter. Construction falls back to "C" and a switch is refused.
  *
  * The checks run under a locale built for the purpose, in a child process; see
  * support/stateful_locale.h.
@@ -307,97 +308,38 @@ namespace
         EXPECT_EQ(std::u32string(buf.data(), n), text);
     }
 
-    // What wcin.sync_with_stdio() does: read part of stdin through one converter,
-    // detach it, and read the rest through a new one on the same device. The first
-    // one has no read buffer, so the device stands right after what it decoded.
-    using SyncIn = code_cvt_stdio<no_rb_root_cvt<std_device<STDIN_FILENO>>>;
     using BufferedIn = code_cvt_stdio<rb_root_cvt<std_device<STDIN_FILENO>>>;
 
-    std::wstring read_all(BufferedIn& obj)
-    {
-        std::wstring res;
-        wchar_t c = 0;
-        while (obj.get(&c, 1) == 1)
-            res += c;
-        return res;
-    }
-
-    // Returns what the new converter reads after `a 中`, handing it `state` first.
-    std::wstring read_on_after_a_switch(const std::string& bytes, bool carry)
-    {
-        iguard g(bytes);
-        SyncIn first{no_rb_root_cvt{std_device<STDIN_FILENO>{}}, kLocaleName};
-        EXPECT_EQ(first.bos(), io_status::input);
-        first.main_cont_beg();
-        wchar_t c = 0;
-        EXPECT_EQ(first.get(&c, 1), 1u);
-        EXPECT_EQ(c, L'a');
-        EXPECT_EQ(first.get(&c, 1), 1u);
-        EXPECT_EQ(c, L'中');
-
-        code_cvt_stdio_state state;
-        first.retrieve(state);
-        EXPECT_TRUE(state.kernel.has_value());
-        auto [dev, err] = first.detach();
-        EXPECT_FALSE(err);
-
-        BufferedIn second{rb_root_cvt{std::move(dev)}, kLocaleName};
-        EXPECT_EQ(second.bos(), io_status::input);
-        second.main_cont_beg();
-        if (carry)
-            second.adjust(state);
-        return read_all(second);
-    }
-
-    void the_shift_state_goes_over_to_a_new_converter()
-    {
-        const std::string text = "a" + kZhong + "Cf" + kShiftOut + "b";
-        EXPECT_EQ(read_on_after_a_switch(text, true), L"中b");
-        // What a fresh kernel makes of the same bytes: JIS X 0208 read as ASCII.
-        EXPECT_EQ(read_on_after_a_switch(text, false), L"Cfb");
-    }
-
-    // The query still answers code_cvt_access, and an empty state changes nothing.
-    void other_queries_and_an_empty_state_are_unaffected()
+    void construction_falls_back_to_c()
     {
         iguard g("ab");
         BufferedIn obj{rb_root_cvt{std_device<STDIN_FILENO>{}}, kLocaleName};
+        code_cvt_access acc;
+        obj.retrieve(acc);
+        EXPECT_EQ(acc.code, "C");
+    }
+
+    void a_switch_is_refused_and_changes_nothing()
+    {
+        iguard g("ab");
+        BufferedIn obj{rb_root_cvt{std_device<STDIN_FILENO>{}}, "C"};
         EXPECT_EQ(obj.bos(), io_status::input);
         obj.main_cont_beg();
+        EXPECT_THROW(obj.adjust(code_cvt_switch{kLocaleName}), cvt_error);
+
+        // Nor through a hand-filled state: it is refused before the kernel moves.
+        code_cvt_stdio_state state;
+        state.kernel.emplace(kLocaleName);
+        ASSERT_TRUE(state.kernel->is_state_dep());
+        EXPECT_THROW(obj.adjust(state), cvt_error);
+        EXPECT_TRUE(state.kernel.has_value());
 
         code_cvt_access acc;
         obj.retrieve(acc);
-        EXPECT_EQ(acc.code, kLocaleName);
-
-        const code_cvt_stdio_state empty;
-        obj.adjust(empty);
-        EXPECT_EQ(read_all(obj), L"ab");
-    }
-
-    // Half a character held at the end of the input goes over as well: the new
-    // converter still reports the input as cut off.
-    void a_held_half_character_goes_over_too()
-    {
-        iguard g("a" + kShiftIn + "C");
-        SyncIn first{no_rb_root_cvt{std_device<STDIN_FILENO>{}}, kLocaleName};
-        EXPECT_EQ(first.bos(), io_status::input);
-        first.main_cont_beg();
+        EXPECT_EQ(acc.code, "C");
         wchar_t c = 0;
-        EXPECT_EQ(first.get(&c, 1), 1u);
-        EXPECT_THROW(first.get(&c, 1), cvt_error);
-
-        code_cvt_stdio_state state;
-        first.retrieve(state);
-        ASSERT_TRUE(state.kernel.has_value());
-        EXPECT_TRUE(state.kernel->is_mid_seq());
-        auto [dev, err] = first.detach();
-
-        BufferedIn second{rb_root_cvt{std::move(dev)}, kLocaleName};
-        EXPECT_EQ(second.bos(), io_status::input);
-        second.main_cont_beg();
-        second.adjust(state);
-        EXPECT_THROW(second.get(&c, 1), cvt_error);
-        EXPECT_THROW(second.adjust(code_cvt_switch{"C"}), cvt_error);
+        EXPECT_EQ(obj.get(&c, 1), 1u);
+        EXPECT_EQ(c, L'a');
     }
 
     // A 0x00 byte is a null character whatever the shift state (C11 5.2.1.2), and
@@ -619,19 +561,18 @@ TEST(CodeCvtStatefulEncoding, AShiftSequenceDecodesToNoCharacter)
     input_ending_in_a_shift_state_just_ends<no_rb_root_cvt<mem_device<char>>>();
 }
 
-TEST(CodeCvtStatefulEncoding, TheDecoderStateGoesOverToANewConverter)
+TEST(CodeCvtStatefulEncoding, TheStdioConverterTakesNoStateDependentEncoding)
 {
     if (!in_stateful_child())
     {
-        EXPECT_EQ(run_stateful_child("CodeCvtStatefulEncoding.TheDecoderStateGoesOverToANewConverter"), 0)
+        EXPECT_EQ(run_stateful_child("CodeCvtStatefulEncoding.TheStdioConverterTakesNoStateDependentEncoding"), 0)
             << "the checks under the ISO-2022-JP locale failed; see the child's output above";
         return;
     }
 
     // --- child ---
-    the_shift_state_goes_over_to_a_new_converter();
-    other_queries_and_an_empty_state_are_unaffected();
-    a_held_half_character_goes_over_too();
+    construction_falls_back_to_c();
+    a_switch_is_refused_and_changes_nothing();
 }
 
 TEST(CodeCvtStatefulEncoding, AnInvalidByteKeepsTheShiftState)
