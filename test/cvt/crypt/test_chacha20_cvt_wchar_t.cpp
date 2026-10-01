@@ -19,7 +19,7 @@
 
 using namespace IOv2;
 
-// The char counterpart of these cases lives in chacha20_cvt.cpp. Here the
+// The char counterpart of these cases lives in test_chacha20_cvt.cpp. Here the
 // converter's internal type is wchar_t while the device holds char, so each
 // element becomes four ciphertext bytes -- which is what the truncation case at
 // the bottom is about.

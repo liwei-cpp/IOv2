@@ -19,7 +19,7 @@
 
 using namespace IOv2;
 
-// The char counterpart of these cases lives in zlib_cvt_char.cpp. Here the
+// The char counterpart of these cases lives in test_zlib_cvt_char.cpp. Here the
 // converter's internal type is wchar_t while the device still holds char, so
 // every put() of n characters reaches zlib as 4n bytes and the round trips below
 // are also checking that the width change survives compression.

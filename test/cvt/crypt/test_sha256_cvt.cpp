@@ -15,7 +15,7 @@
 
 using namespace IOv2;
 
-// The MD5 counterpart of most of these cases lives in md5_cvt.cpp; what is only
+// The MD5 counterpart of most of these cases lives in test_md5_cvt.cpp; what is only
 // here is the adjust/assignment edge cases at the bottom, which are about
 // hash_cvt itself rather than about the algorithm.
 namespace

@@ -23,7 +23,7 @@
 
 using namespace IOv2;
 
-// The counterpart of code_cvt_mem_char_char32_t.cpp: there the external side is
+// The counterpart of test_code_cvt_mem_char_char32_t.cpp: there the external side is
 // char and the encoding comes from a named locale, here it is char8_t and the
 // library's own UTF-8 kernel does the work, so no locale name is given at all.
 namespace
