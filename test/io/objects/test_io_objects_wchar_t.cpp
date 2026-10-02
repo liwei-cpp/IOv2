@@ -508,6 +508,26 @@ TEST(IoObjectsWchar, SwitchCodeResolvesTheEmptyNameAtTheCallAndKeepsTheConcreteO
 
 // The wide streams take no state-dependent encoding: switch_code() to one sets
 // cvtfailbit and keeps the encoding the stream had.
+// The wide streams take no state-dependent encoding from the environment either:
+// started under an ISO-2022-JP LC_ALL, all four fall back to "C".
+TEST(IoObjectsWchar, WideStreamsFallBackToCUnderAStateDependentEnvironment)
+{
+    if (!in_stateful_child())
+    {
+        EXPECT_EQ(run_stateful_child("IoObjectsWchar.WideStreamsFallBackToCUnderAStateDependentEnvironment",
+                                     stateful_locale_name), 0)
+            << "the checks under the ISO-2022-JP locale failed; see the child's output above";
+        return;
+    }
+
+    // --- child ---
+    ASSERT_STREQ(std::getenv("LC_ALL"), stateful_locale_name);
+    EXPECT_EQ(IOv2::wcin.code(), "C");
+    EXPECT_EQ(IOv2::wcout.code(), "C");
+    EXPECT_EQ(IOv2::wcerr.code(), "C");
+    EXPECT_EQ(IOv2::wclog.code(), "C");
+}
+
 TEST(IoObjectsWchar, SwitchCodeRefusesAStateDependentEncoding)
 {
     if (!in_stateful_child())
@@ -540,7 +560,9 @@ TEST(IoObjectsWchar, SwitchCodeRefusesAStateDependentEncoding)
 
 // Input cut off in the middle of a character is a decode failure, not a plain
 // end of input -- but what came before it is still handed out: read() returns
-// the two characters, then the stream reports cvtfailbit.
+// the two characters, then the stream reports cvtfailbit. The converter still
+// holds the half character, so clear() does not get past it -- get() and ignore()
+// alike keep failing and never reach eof -- while reset() drops it.
 TEST(IoObjectsWchar, WcinHandsOutWhatCameBeforeACutOffCharacter)
 {
     iguard g("ab\xe6");
@@ -552,6 +574,25 @@ TEST(IoObjectsWchar, WcinHandsOutWhatCameBeforeACutOffCharacter)
     EXPECT_EQ(std::wstring(buf, end), L"ab");
     EXPECT_TRUE(IOv2::wcin.cvt_fail());
 
+    for (int i = 0; i < 2; ++i)
+    {
+        IOv2::wcin.clear();
+        wchar_t c = 0;
+        EXPECT_FALSE(IOv2::wcin.get(c));
+        EXPECT_TRUE(IOv2::wcin.cvt_fail());
+        EXPECT_FALSE(IOv2::wcin.eof());
+
+        IOv2::wcin.clear();
+        IOv2::wcin.ignore(10);
+        EXPECT_TRUE(IOv2::wcin.cvt_fail()) << "ignore() took the held half character for eof";
+        EXPECT_FALSE(IOv2::wcin.eof());
+    }
+
     IOv2::wcin.clear();
     IOv2::wcin.reset();
+    wchar_t c = 0;
+    EXPECT_FALSE(IOv2::wcin.get(c));
+    EXPECT_TRUE(IOv2::wcin.eof());
+    EXPECT_FALSE(IOv2::wcin.cvt_fail());
+    IOv2::wcin.clear();
 }
