@@ -68,12 +68,14 @@
  *          消费者自己定义它们，且没有 COPY 重定位。只看 `nm` 的字母不够：gcc 编出的显示
  *          `u`（STB_GNU_UNIQUE），clang 编出的显示 `V`（弱对象），g++ `-flto` 编出的却显示
  *          `B`，与 COPY 重定位那一份同字母。配方用到进程替换，需在 bash 下运行。
+ *          以 `-fvisibility=hidden` 编译的漏宏程序不导出单例符号，配方没有输出，但进程里
+ *          同样是两套单例（只是互不插桩），同属不支持的用法。
  *
- * @warning **header-only 可执行文件 + 共享库插件共存**（两次独立链接，各自口径一致）
- *          只在宿主**不导出** IOv2 符号时成立。宿主若加了 `-rdynamic` /
- *          `--export-dynamic`，`libiov2.so` 对单例的引用会被宿主那一份插桩，.so 的
- *          初始化写进宿主的槽位，实测在 .so 初始化期间即崩溃。宿主请勿导出这些符号，
- *          或以 `-fvisibility=hidden` 编译。
+ * @warning **不支持 header-only 与共享库模式混用**：进程里有多个模块用到 IOv2 时，每个模块
+ *          都必须使用共享库模式（见 README「使用方式」）。「header-only 可执行文件 + 链接
+ *          `libiov2.so` 的插件」也在此列：进程里会有两套单例，各管各的；宿主若再以
+ *          `-rdynamic` / `--export-dynamic` 导出 IOv2 符号，`libiov2.so` 对单例的引用会被
+ *          宿主那一份插桩，.so 的初始化写进宿主的槽位，实测在 .so 初始化期间即崩溃。
  * @endif
  *
  * @lang{EN}
@@ -113,15 +115,19 @@
  *          defines it itself with no COPY relocation. The `nm` letter alone is not enough:
  *          gcc shows `u` (STB_GNU_UNIQUE), clang `V` (a weak object), but g++ with `-flto`
  *          shows `B`, the same letter as a COPY relocation. The recipe uses process
- *          substitution, so run it under bash.
+ *          substitution, so run it under bash. A consumer built with `-fvisibility=hidden`
+ *          that missed the macro exports no singleton symbol, so the recipe prints nothing,
+ *          yet the process still has two sets of singletons (they just do not interpose
+ *          each other) -- equally unsupported.
  *
- * @warning **A header-only executable coexisting with a shared-library plugin** (two
- *          separate links, each internally consistent) works only while the host does
- *          **not** export IOv2 symbols. With `-rdynamic` / `--export-dynamic` on the
- *          host, `libiov2.so`'s references to the singletons are interposed by the
- *          host's copies, the .so's initialization writes into the host's slots, and it
- *          was measured to crash during that initialization. Do not export these symbols
- *          from the host, or compile it with `-fvisibility=hidden`.
+ * @warning **Header-only and shared-library mode cannot be mixed**: when more than one
+ *          module in the process uses IOv2, every module must use shared-library mode (see
+ *          the README's usage modes). A header-only executable with plugins that link
+ *          `libiov2.so` is no exception: the process has two sets of singletons, each
+ *          minding its own; and if the host also exports IOv2 symbols (`-rdynamic` /
+ *          `--export-dynamic`), `libiov2.so`'s references to the singletons are interposed
+ *          by the host's copies, the .so's initialization writes into the host's slots,
+ *          and it was measured to crash during that initialization.
  * @endif
  */
 #if defined(IOV2_SHARED)
