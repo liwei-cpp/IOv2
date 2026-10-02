@@ -136,9 +136,9 @@ struct io_traits<TChar, my_point>
 
 IOv2 提供两种发布模式，默认即开箱即用的 header-only：
 
-- **Header-Only（默认）**：像快速开始那样直接 `#include` 即可，无需任何宏或链接库。预定义的标准流对象（`cin/cout/cerr/clog` 及宽字符版本）与本地化缓存等进程级单例，以 C++17 `inline` 变量的形式直接定义在头文件中，效果类似 `std::cout`——包含头文件就能用。
+- **Header-Only（默认）**：像快速开始那样直接 `#include` 即可，无需任何宏或链接库。预定义的标准流对象（`cin/cout/cerr/clog` 及宽字符版本）与本地化缓存等进程级单例，以 C++17 `inline` 变量的形式直接定义在头文件中，效果类似 `std::cout`——包含头文件就能用。**只适用于单一模块**：用到 IOv2 的代码全部链接进同一个可执行文件（或同一个共享库），进程里没有别的模块也用 IOv2。
 
-- **共享库（可选）**：当你把 IOv2 编译成独立的共享库（`.so`/`.dylib`/`.dll`），并希望上述进程级单例在“主程序 + 多个共享库”之间**保持唯一一份实例**时使用。此模式把这些单例的唯一定义集中到 `src/iov2_objects.cpp`（等价于 `std::cout` 定义在 libstdc++ 中的做法）。
+- **共享库（多模块时必须使用）**：进程里不止一个模块用到 IOv2——主程序之外还有共享库或 `dlopen` 载入的插件——时，**所有模块都必须使用共享库模式**，链接同一个 `libiov2.so`。此模式把上述进程级单例的唯一定义集中到 `src/iov2_objects.cpp`（等价于 `std::cout` 定义在 libstdc++ 中的做法），保证全进程只有一份。
 
 **安装（根目录 `Makefile`）**
 
@@ -188,7 +188,7 @@ make IOV2_PKG=iov2-shared   # 共享 .so（无需 -DIOV2_SHARED）
 
 > **注意**：`IOV2_SHARED` 必须在同一次链接的所有翻译单元中保持一致——把开关焙进已安装头文件正是为此提供保证。
 >
-> 在 ELF/macOS 且默认可见性下，header-only 模式跨多个共享库通常也会被动态链接器合并为单实例；只有在 `-fvisibility=hidden` 的多 `.so`，或 **Windows 多 DLL** 场景下才会每个模块各一份——此时改用共享库模式即可获得严格的单实例保证。
+> **多模块不支持 header-only，也不支持混用**：header-only 模式下每个模块各自定义一份单例，它们会不会被合并取决于编译器与载入方式——例如 gcc 的 STB_GNU_UNIQUE 会被动态链接器跨模块合并，而 clang 编出的弱符号在 `dlopen(RTLD_LOCAL)` 下每个插件各一份（实测），`-fvisibility=hidden` 与 Windows 多 DLL 同样各一份。各一份时，标准流各有各的缓冲与 `sync_with_stdio()` 状态，保护 tie 图的全局锁也不止一把，库的诸多保证随之失效。「header-only 主程序 + 链接 `libiov2.so` 的插件」这类混用同样不支持。有多个模块时，请让每个模块都使用共享库模式。
 
 ### 线程安全
 
@@ -369,9 +369,9 @@ Two behavioural changes come with it:
 
 IOv2 ships in two modes; the default is header-only and works out of the box:
 
-- **Header-Only (default)**: just `#include` as shown in Quick Start — no macros, no library to link. The pre-defined standard streams (`cin/cout/cerr/clog` and their wide counterparts) and the localization cache — all process-wide singletons — are defined directly in the headers as C++17 `inline` variables, much like `std::cout`: include the header and use them.
+- **Header-Only (default)**: just `#include` as shown in Quick Start — no macros, no library to link. The pre-defined standard streams (`cin/cout/cerr/clog` and their wide counterparts) and the localization cache — all process-wide singletons — are defined directly in the headers as C++17 `inline` variables, much like `std::cout`: include the header and use them. **Single module only**: all code that uses IOv2 is linked into one executable (or one shared library), and no other module in the process uses IOv2.
 
-- **Shared Library (optional)**: use this when you compile IOv2 into a standalone shared library (`.so`/`.dylib`/`.dll`) and want those process-wide singletons to remain a **single instance** shared across the main program and multiple shared libraries. This mode concentrates the one definition of each singleton in `src/iov2_objects.cpp` (the same approach `std::cout` uses inside libstdc++).
+- **Shared Library (required with more than one module)**: when more than one module in the process uses IOv2 — shared libraries or `dlopen`ed plugins besides the main program — **every module must use shared-library mode** and link the same `libiov2.so`. This mode concentrates the one definition of each of those process-wide singletons in `src/iov2_objects.cpp` (the same approach `std::cout` uses inside libstdc++), so the process has exactly one.
 
 **Install (root `Makefile`)**
 
@@ -422,7 +422,7 @@ make IOV2_PKG=iov2-shared   # shared .so (no -DIOV2_SHARED needed)
 
 > **Note**: `IOV2_SHARED` must be consistent across every translation unit in a single link — baking the switch into the installed header is exactly what guarantees that.
 >
-> On ELF/macOS with default visibility, header-only mode is usually merged into a single instance across multiple shared libraries by the dynamic linker anyway; only under `-fvisibility=hidden` with multiple `.so`s, or **multiple Windows DLLs**, do you get one instance per module — switch to shared-library mode there for a strict single-instance guarantee.
+> **Header-only is not supported across modules, and neither is mixing modes**: in header-only mode each module defines its own singletons, and whether they get merged depends on the compiler and on how the module is loaded — gcc's STB_GNU_UNIQUE objects are merged across modules by the dynamic linker, while clang's weak objects stay one per plugin under `dlopen(RTLD_LOCAL)` (measured), as they do under `-fvisibility=hidden` and across Windows DLLs. With one per module, the standard streams each have their own buffer and `sync_with_stdio()` state, there is more than one lock guarding the tie graph, and many of the library's guarantees no longer hold. A header-only main program with plugins that link `libiov2.so` is not supported either. With more than one module, have every module use shared-library mode.
 
 ### Thread Safety
 
