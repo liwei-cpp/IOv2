@@ -1407,15 +1407,17 @@ namespace IOv2
          * 检查是否已到达流末尾（EOF）。
          *
          * 仅在 `KernelType` 支持 get 操作时可用。
-         * 若派生类实现了 `is_eof_impl()`，则调用它；否则直接调用 `m_kernel.is_eof()`。
+         * 若派生类实现了 `is_eof_impl()`，则调用它；否则为 `kernel_is_eof()`：取数区为空且
+         * `m_kernel.is_eof()`。派生层若还收着要交出的东西（如待报的错误），应提供 `is_eof_impl()`。
          * @endif
          *
          * @lang{EN}
          * Check whether the end of the stream (EOF) has been reached.
          *
          * Only available when `KernelType` supports the get operation.
-         * Dispatches to `is_eof_impl()` if the derived class implements it;
-         * otherwise calls `m_kernel.is_eof()` directly.
+         * Dispatches to `is_eof_impl()` if the derived class implements it; otherwise it is
+         * `kernel_is_eof()`: the read area is empty and `m_kernel.is_eof()`. A derived layer
+         * that still holds something to hand out (a pending error, say) provides `is_eof_impl()`.
          * @endif
          *
          * @return
@@ -1428,7 +1430,7 @@ namespace IOv2
             if constexpr (requires { { self.is_eof_impl() } -> std::same_as<bool>; })
                 return self.is_eof_impl();
             else
-                return self.m_rd_cur == self.m_rd_end && self.m_kernel.is_eof();
+                return self.kernel_is_eof();
         }
 
     // optional methods
@@ -2067,6 +2069,13 @@ namespace IOv2
         {
             m_kernel.rseek(pos);
             m_rd_cur = m_rd_end = 0;
+        }
+
+        // The layer below has nothing more: the read area is used up and the kernel is at EOF.
+        [[nodiscard]] bool kernel_is_eof()
+            requires (cvt_cpt::support_get<KernelType>)
+        {
+            return m_rd_cur == m_rd_end && m_kernel.is_eof();
         }
 
     private:
