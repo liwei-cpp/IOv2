@@ -334,6 +334,9 @@ jobs:
         fi
 
     - name: A consumer that forgot IOV2_SHARED is detectable in its symbol table
+      # bash for the recipe's process substitution; the image's sh is dash. Not
+      # plain `shell: bash`, whose pipefail would trip on `readelf | grep -q`.
+      shell: bash -e {0}
       run: |
         # Consuming libiov2.so with the switch off compiles, links and runs, but
         # leaves two sets of singletons: the headers define the inline ones in the
