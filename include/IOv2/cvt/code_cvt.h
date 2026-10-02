@@ -1404,7 +1404,13 @@ private:
      * @lang{ZH}
      * 切换至输出（写入）模式的派生层前置检查 hook。
      * 从输入模式切换时，要求编码转换状态为初始状态、且内核没有停在半个字符上；
-     * 对于变长或状态依赖编码，还要求内部缓冲区为空（已到达 EOF）。
+     * 对于变长或状态依赖编码，还要求已到达 EOF（`is_eof()`：没有待报的错误、取数区为空、
+     * 底层也到了末尾），否则再写入会影响写入内容之后的解析。
+     * 定长编码可以读到一半就切换：若底层的位置与调用方读到的逻辑位置不一致（取数区里多取了
+     * 字节），或有待报的解码错误，先重定位到逻辑位置（`seek_impl(m_accu_len)`），抵消这
+     * 「一半读」并清掉相关状态，再切换；写入从逻辑位置开始。底层不能定位而又有待报的错误时抛出。
+     * 重定位之后若下层切换失败，本层仍处于读模式、停在逻辑位置，再读会重新读到那些字节
+     * （坏字节则再次报错），与切换前看不出差别。
      *
      * @throws cvt_error 若不满足上述前置条件。
      * @endif
@@ -1413,8 +1419,18 @@ private:
      * Derived-layer precondition hook for switching to output (writing) mode.
      * When switching from input mode, the encoding conversion state must be in its
      * initial state and the kernel must not be holding half a character; for
-     * variable-length or state-dependent encodings, the internal buffer must also be
-     * empty (EOF reached).
+     * variable-length or state-dependent encodings, EOF must also have been reached
+     * (`is_eof()`: no pending error, the read area used up, the layer below at its end),
+     * since writing earlier would change how what follows the written text decodes.
+     * A fixed-length encoding may switch halfway through reading: if the layer below
+     * stands elsewhere than the logical position the caller has read to (bytes read ahead
+     * into the read area), or a decoding error is pending, it is first repositioned to the
+     * logical position (`seek_impl(m_accu_len)`), which undoes that half read and clears the
+     * state that goes with it; writing then starts at the logical position. With a pending
+     * error and a layer below that cannot be positioned, it throws. Should the layer below
+     * fail to switch after the repositioning, this layer is still reading, at the logical
+     * position, and reads those bytes again (a bad byte fails again): nothing to tell it
+     * from before the attempt.
      *
      * @throws cvt_error If the preconditions above are not met.
      * @endif
@@ -1432,7 +1448,34 @@ private:
                 if (!this->is_eof())
                     throw cvt_error("code_cvt::switch_to_put fail: internal buffer not empty");
             }
+            else if constexpr (cvt_cpt::support_positioning<KernelType>)
+            {
+                // Write where the caller stopped reading: drops the read-ahead and a
+                // pending error together.
+                if (m_get_failed || BT::kernel_tell() != m_accu_len * m_cvt_kernel.epc())
+                    seek_impl(m_accu_len);
+            }
+            else if (m_get_failed)
+                throw cvt_error("code_cvt::switch_to_put fail: pending error and kernel does not support positioning");
         }
+    }
+
+    /**
+     * @lang{ZH}
+     * `abs_cvt::is_eof()` 的钩子：有待报的解码错误，或内核还收着半个字符时，流没有读完——
+     * 下一次 `get` 会报出它，所以返回 `false`；否则取决于下层（`kernel_is_eof()`）。
+     * @endif
+     *
+     * @lang{EN}
+     * Hook for `abs_cvt::is_eof()`: with a decoding error pending, or half a character still
+     * held by the kernel, the stream is not read to its end -- the next `get` reports it --
+     * so this returns `false`; otherwise it is up to the layer below (`kernel_is_eof()`).
+     * @endif
+     */
+    [[nodiscard]] bool is_eof_impl()
+        requires (cvt_cpt::support_get<KernelType>)
+    {
+        return !m_get_failed && !m_cvt_kernel.is_mid_seq() && BT::kernel_is_eof();
     }
 
     /**
