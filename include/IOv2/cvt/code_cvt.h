@@ -1013,6 +1013,12 @@ struct code_cvt_access : cvt_status
  * @tparam CharType   本层的内部字符类型（如 `wchar_t`、`char32_t`）。
  *
  * @note 线程安全性：本类**不是**线程安全的。多线程并发访问同一实例须通过外部同步机制保护。
+ * @note **转换状态里存着半个字符的编码（如 UTF-7）**：解码出错后 `m_state` 照常保留（这对
+ *       ISO-2022-JP 之类只记移位状态的编码是对的），但其中残缺的比特会与出错之后的字节拼接，
+ *       续读可能交出输入里没有的字符（`a+Ti\x80b` 读成 `a`、出错、U+4E26）；截断在这样的
+ *       半个字符中间时，到 EOF 不报错（`a+T` 读成 `a` 后即 eof）。两者都源于 `mbstate_t` 不透明，
+ *       本类分不出编码属于哪一类、也看不到还剩几个比特；glibc `fgetwc` 在前者永远报错，
+ *       在后者同样静默得 eof。
  * @endif
  *
  * @lang{EN}
@@ -1029,6 +1035,15 @@ struct code_cvt_access : cvt_status
  *
  * @note Thread Safety: This class is NOT thread-safe. Concurrent access to the same
  *       instance from multiple threads requires external synchronization.
+ * @note **Encodings whose conversion state holds part of a character (UTF-7, say)**: after
+ *       a decoding error `m_state` is kept as usual (right for encodings such as ISO-2022-JP,
+ *       whose state records only the shift), but the leftover bits in it join the bytes after
+ *       the error, so reading on may hand out a character the input does not contain
+ *       (`a+Ti\x80b` reads as `a`, an error, U+4E26); input cut off inside such a partial
+ *       character reaches EOF without an error (`a+T` reads as `a`, then eof). Both come from
+ *       `mbstate_t` being opaque: this class can tell neither which kind an encoding is nor
+ *       how many bits are left. glibc's `fgetwc` fails for good on the first and also reaches
+ *       a silent eof on the second.
  * @endif
  */
 template <io_converter KernelType, typename CharType>
