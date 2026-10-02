@@ -325,6 +325,8 @@ public:
      * 供需要放弃残余输入的场合使用——例如交互程序在出错后丢掉这一行剩下的内容重新提示。
      * 它**不是**出错后的必经之路：解码失败后 `clear()` 即可继续，解码器丢掉了半个字符、
      * 从坏字节之后对齐读取，`switch_code()` 也随之可用。
+     * 例外是输入在一个字符中间到达 EOF：转换器仍收着这半个字符、无法完成转换，此后每次
+     * 读取都置 `cvtfailbit`，不会到达 eof——这时须 `reset()`，`clear()` 不够。
      * 与 `sync_with_stdio()` 一样，不要在一次提取进行中（用户 `io_traits::sread` 里）重入
      * 调用：不会崩，但本次提取之后已缓冲的输入随之丢弃。
      *
@@ -353,7 +355,11 @@ public:
      * discarding the rest of a line after an error before prompting again. It is **not**
      * the required step after a failure: after a decode failure `clear()` is enough to
      * carry on -- the decoder has dropped any half character and reads on, aligned, from
-     * the byte after the bad one, and `switch_code()` is available again as well. As with
+     * the byte after the bad one, and `switch_code()` is available again as well. The
+     * exception is input that reaches EOF in the middle of a character: the converter still
+     * holds that half character and cannot complete it, so every later read sets
+     * `cvtfailbit` and none reaches eof -- `reset()` is needed there, `clear()` is not
+     * enough. As with
      * `sync_with_stdio()`, do not re-enter it from inside an extraction (a user
      * `io_traits::sread`): nothing crashes, but the input buffered beyond that extraction
      * is discarded with it.
@@ -446,7 +452,8 @@ public:
      * `adjust(code_cvt_switch)` 的包装，走本流
      * 通用的加锁与错误处理：失败按状态位报告，`exceptions()` 掩码含该位时才抛出；失败时编码、
      * 已缓冲的字节都没有改变（`code_cvt_stdio::adjust` 把所有可能失败的步骤都放在提交之前）。
-     * 解码失败之后不必先 `reset()`：`clear()` 后解码器已丢掉半个字符，`switch_code()` 随之可用。
+     * 解码失败之后不必先 `reset()`：`clear()` 后解码器已丢掉半个字符，`switch_code()` 随之可用
+     * （输入在字符中间到达 EOF 除外，见下方 `@note`）。
      *
      * @param new_code 新的编码名，须为 `newlocale()` 接受的 locale 名。`""` 按 POSIX 规则
      *        查环境（`LC_ALL` > `LC_CTYPE` > `LANG` > `"C"`）：查在此刻发生，切换成功后
@@ -473,7 +480,8 @@ public:
      * includes the bit; on failure the encoding and the buffered bytes are unchanged
      * (`code_cvt_stdio::adjust` puts every step that can fail before the commit). A decode
      * failure needs no `reset()` first: after `clear()` the decoder has dropped any half
-     * character, and `switch_code()` is available again.
+     * character, and `switch_code()` is available again (except for input that reached EOF
+     * in the middle of a character; see the `@note` below).
      *
      * @param new_code The new encoding name; must be a locale name `newlocale()` accepts.
      *        `""` means "look at the environment" per POSIX (`LC_ALL` > `LC_CTYPE` > `LANG` >
