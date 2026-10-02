@@ -103,7 +103,9 @@ namespace
 
     // Builds the locale, then re-runs this executable on `test` (a full
     // "Suite.Name") under it. Returns the child's exit status, or -1.
-    inline int run_stateful_child(const std::string& test)
+    // With `lc_all`, the child starts with LC_ALL set to it, so objects built from
+    // the environment at startup (the standard streams) see that locale.
+    inline int run_stateful_child(const std::string& test, const char* lc_all = nullptr)
     {
         const std::filesystem::path locpath = stateful_locpath();
         if (!build_stateful_locale(locpath))
@@ -121,6 +123,8 @@ namespace
                                      "LC_NUMERIC", "LC_TIME", "LC_MESSAGES", "LANG"})
                 ::unsetenv(name);
             ::setenv("LOCPATH", locpath.c_str(), 1);
+            if (lc_all != nullptr)
+                ::setenv("LC_ALL", lc_all, 1);
             std::string asan = "detect_leaks=0";
             if (const char* old = std::getenv("ASAN_OPTIONS"); old != nullptr && *old != '\0')
                 asan = std::string(old) + ":" + asan;
