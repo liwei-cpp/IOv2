@@ -7,11 +7,13 @@
  * `0123456789` on fd 2 exactly once. The accepted prefix used to go out a second
  * time: `012340123456789`, with the stream good afterwards.
  *
- * Each case runs in a child process: the file size limit applies to the whole
- * process, and fd 2 is pointed at a file for the run.
+ * Each case runs in a child process (support/test_child.h): the file size limit
+ * applies to the whole process, and fd 2 is pointed at a file for the run.
  */
 #include <IOv2/io/objects/objects.h>
 #include <IOv2/io/traits/char_and_str.h>
+
+#include <support/test_child.h>
 
 #include <gtest/gtest.h>
 
@@ -22,18 +24,23 @@
 
 #include <fcntl.h>
 #include <sys/resource.h>
-#include <sys/wait.h>
 #include <unistd.h>
 
 namespace
 {
     const char* const kFile = "io_objects_partial_write";
 
-    // Writes `text` through `s` under a 5-byte limit, then lifts the limit and recovers.
-    // Returns 0 when the write failed and the recovery left the stream good.
+    // In the child: points fd 2 at kFile, then writes `text` through `s` (in the mode the
+    // parent asked for) under a 5-byte limit, lifts the limit and recovers.
     template <typename S, typename Text>
-    int write_through_a_limit(S& s, const Text& text)
+    void write_through_a_limit(S& s, const Text& text)
     {
+        const int fd = ::open(kFile, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+        ASSERT_GE(fd, 0);
+        ASSERT_GE(::dup2(fd, STDERR_FILENO), 0);
+        ::close(fd);
+        s.sync_with_stdio(test_child_arg() == "sync");
+
         std::signal(SIGXFSZ, SIG_IGN);
         rlimit old{};
         ::getrlimit(RLIMIT_FSIZE, &old);
@@ -43,83 +50,47 @@ namespace
         ::setrlimit(RLIMIT_FSIZE, &small);
         s << text;
         s.flush();
-        const bool failed = !s.good();
+        EXPECT_FALSE(s.good()) << "the write did not fail";
         ::setrlimit(RLIMIT_FSIZE, &old);
 
         s.clear();
         s.flush();
-        if (!failed)
-            return 1;
-        return s.good() ? 0 : 2;
+        EXPECT_TRUE(s.good()) << "the recovery did not leave the stream good";
     }
 
-    // Runs `body` in a child whose fd 2 is a fresh file, and returns what the file holds.
-    template <typename F>
-    std::string stderr_of_child(F body, int& exit_code)
+    // In the parent: runs `test` in a child once per mode and checks what fd 2 got.
+    void expect_exactly_once(const char* test)
     {
-        const pid_t child = ::fork();
-        if (child == 0)
+        for (const char* mode : {"sync", "nosync"})
         {
-            const int fd = ::open(kFile, O_WRONLY | O_CREAT | O_TRUNC, 0644);
-            if (fd < 0 || ::dup2(fd, STDERR_FILENO) < 0)
-                ::_exit(100);
-            ::close(fd);
-            ::_exit(body());
+            SCOPED_TRACE(mode);
+            EXPECT_EQ(run_test_child(test, mode), 0) << "the checks in the child failed; see its output above";
+            std::ifstream in(kFile, std::ios::binary);
+            const std::string got{std::istreambuf_iterator<char>(in), {}};
+            in.close();
+            ::unlink(kFile);
+            EXPECT_EQ(got, "0123456789");
         }
-        int status = 0;
-        exit_code = -1;
-        if (child > 0 && ::waitpid(child, &status, 0) == child && WIFEXITED(status))
-            exit_code = WEXITSTATUS(status);
-
-        std::ifstream in(kFile, std::ios::binary);
-        std::string got{std::istreambuf_iterator<char>(in), {}};
-        in.close();
-        ::unlink(kFile);
-        return got;
     }
 }
 
 TEST(IoObjectsPartialWrite, ClogResumesExactlyOnce)
 {
-    for (const bool sync : {true, false})
-    {
-        SCOPED_TRACE(sync);
-        int code = -1;
-        const std::string got = stderr_of_child([sync] {
-            IOv2::clog.sync_with_stdio(sync);
-            return write_through_a_limit(IOv2::clog, "0123456789");
-        }, code);
-        EXPECT_EQ(code, 0) << "1: the write did not fail, 2: the recovery did not leave the stream good";
-        EXPECT_EQ(got, "0123456789");
-    }
+    if (in_test_child())
+        return write_through_a_limit(IOv2::clog, "0123456789");
+    expect_exactly_once("IoObjectsPartialWrite.ClogResumesExactlyOnce");
 }
 
 TEST(IoObjectsPartialWrite, CerrResumesExactlyOnce)
 {
-    for (const bool sync : {true, false})
-    {
-        SCOPED_TRACE(sync);
-        int code = -1;
-        const std::string got = stderr_of_child([sync] {
-            IOv2::cerr.sync_with_stdio(sync);
-            return write_through_a_limit(IOv2::cerr, "0123456789");
-        }, code);
-        EXPECT_EQ(code, 0) << "1: the write did not fail, 2: the recovery did not leave the stream good";
-        EXPECT_EQ(got, "0123456789");
-    }
+    if (in_test_child())
+        return write_through_a_limit(IOv2::cerr, "0123456789");
+    expect_exactly_once("IoObjectsPartialWrite.CerrResumesExactlyOnce");
 }
 
 TEST(IoObjectsPartialWrite, WcerrResumesExactlyOnce)
 {
-    for (const bool sync : {true, false})
-    {
-        SCOPED_TRACE(sync);
-        int code = -1;
-        const std::string got = stderr_of_child([sync] {
-            IOv2::wcerr.sync_with_stdio(sync);
-            return write_through_a_limit(IOv2::wcerr, L"0123456789");
-        }, code);
-        EXPECT_EQ(code, 0) << "1: the write did not fail, 2: the recovery did not leave the stream good";
-        EXPECT_EQ(got, "0123456789");
-    }
+    if (in_test_child())
+        return write_through_a_limit(IOv2::wcerr, L"0123456789");
+    expect_exactly_once("IoObjectsPartialWrite.WcerrResumesExactlyOnce");
 }
