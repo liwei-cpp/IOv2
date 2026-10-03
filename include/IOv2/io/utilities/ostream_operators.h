@@ -299,6 +299,8 @@ public:
      * @warning **实现必须非阻塞。** 哨兵在持有自己流的锁时调用本函数，而这条加锁边对用户不可见，
      *          他无从把它纳入自己的锁序；实现若改用阻塞的 `lock()`，AB-BA 死锁立即回归。取锁
      *          失败时必须直接返回，不得等待，也不留任何补偿——tie 因此是尽力而为，不是保证。
+     *          这只管流锁：取到锁之后，标准流的刷新（`fflush`）仍可能等 stdio 的 `FILE` 锁，那条
+     *          加锁边按「先流锁、后 `FILE` 锁」处理，见 `IOv2::sync` 的第二条 `@warning`。
      * @warning **实现必须自行吞掉刷新过程中的一切异常，故声明为 `noexcept`。** 本函数的调用点
      *          位于哨兵构造函数中，而哨兵构造在**发起方**流的 `try` 块内（见
      *          `ostream_operators.h` 的插入运算符）；异常一旦逸出，就会被那里的 `catch` 交给
@@ -316,7 +318,10 @@ public:
      *          cannot fold it into a lock order of their own; an implementation that takes a
      *          blocking `lock()` brings the AB-BA deadlock straight back. On failure to acquire
      *          the lock it must return at once, without waiting and without leaving anything
-     *          pending -- which is why a tie is best-effort rather than a guarantee.
+     *          pending -- which is why a tie is best-effort rather than a guarantee. This covers
+     *          the stream lock only: once it is taken, a standard stream's flush (`fflush`) may
+     *          still wait for stdio's `FILE` lock; that edge follows "stream lock first, `FILE`
+     *          lock second", see the second `@warning` on `IOv2::sync`.
      * @warning **An implementation must swallow every exception raised by the flush, hence the
      *          `noexcept`.** This is called from a sentry constructor, and the sentry is itself
      *          constructed inside the *initiating* stream's `try` block (see the insertion
