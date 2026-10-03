@@ -338,18 +338,29 @@ public:
     /**
      * @lang{ZH}
      * @brief 从设备读取数据。
+     *
+     * 读之前若 `FILE` 的错误标志已置上（之前的写、冲刷或定位失败留下的），先清掉，使本次
+     * 只报本次读的错误；平常不清，读到文件尾的 EOF 标志照旧粘住。读出错时若已读到一部分，
+     * 先返回这一部分，下一次调用重新读，错误仍在就在那时报出。
      * @param s 指向存储读取数据的缓冲区的指针。
      * @param n 要读取的字符数。
      * @return 实际读取的字符数。
-     * @throw device_error 如果文件未打开、缓冲区为空或发生读取错误。
+     * @throw device_error 如果文件未打开、缓冲区为空，或读取出错且一个字符也没读到。
      * @endif
      *
      * @lang{EN}
      * @brief Reads data from the device.
+     *
+     * If the `FILE`'s error indicator is already set before the read (left by an earlier
+     * write, flush or seek that failed), it is cleared first, so that only this read's error
+     * is reported; otherwise nothing is cleared, and the EOF indicator stays set once the end
+     * of the file is reached. On a read error after part of the data was read, that part is
+     * returned, and the next call reads again and reports the error if it is still there.
      * @param s Pointer to the buffer where the read data will be stored.
      * @param n The number of characters to read.
      * @return The number of characters actually read.
-     * @throw device_error If the file is not open, the buffer is null, or a read error occurs.
+     * @throw device_error If the file is not open, the buffer is null, or reading fails before
+     *        any character is read.
      * @endif
      */
     std::size_t dget(CharType* s, std::size_t n)
@@ -361,10 +372,14 @@ public:
         if (!is_open())
             throw device_error("file_device::dget fail: file is closed");
 
+        if (std::ferror(m_file.get()))
+            std::clearerr(m_file.get());
+
         std::size_t count = std::fread(s, sizeof(CharType), n, m_file.get());
         if (count < n && std::ferror(m_file.get()))
         {
-            std::clearerr(m_file.get());
+            if (count != 0)
+                return count;
             throw device_error("file_device::dget fail: read error");
         }
         return count;
