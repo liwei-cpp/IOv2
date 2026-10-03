@@ -14,6 +14,7 @@
 #pragma once
 #include <cstddef>
 #include <stdexcept>
+#include <string>
 
 namespace IOv2
 {
@@ -61,6 +62,39 @@ namespace IOv2
     struct device_error : io_error
     {
         using io_error::io_error;
+    };
+
+    /**
+     * @lang{ZH}
+     * 设备的 `dput()` 写到一半失败时抛出的异常：带出失败前已被下层接收的字符个数。
+     *
+     * `dput()` 失败有两种报法。抛本类，表示前 `written()` 个字符已被下层接收，设备不再
+     * 对它们负责；抛普通的 `device_error`，表示一个字符也没有被接收。`root_cvt` 据此只
+     * 保留未被接收的部分，恢复后的冲刷恰好把它们写出一次。说不清接收了多少的设备只能二选一，
+     * 并承担相应后果：报多了，未写出的那部分会丢；报少了，已写出的那部分会重复。
+     * @endif
+     *
+     * @lang{EN}
+     * Thrown when a device's `dput()` fails partway: carries the number of characters the
+     * layer below had accepted before the failure.
+     *
+     * A failing `dput()` reports in one of two ways. Throwing this class says the first
+     * `written()` characters were accepted below and the device is no longer responsible
+     * for them; throwing a plain `device_error` says none was accepted. `root_cvt` keeps only
+     * what was not accepted, so the flush after recovery writes it out exactly once. A device
+     * that cannot tell how much was accepted has to pick one and live with the outcome:
+     * reporting too many loses what was not written, reporting too few repeats what was.
+     * @endif
+     */
+    struct dput_error : device_error
+    {
+        dput_error(const std::string& what, std::size_t written)
+            : device_error(what), m_written(written) {}
+
+        [[nodiscard]] std::size_t written() const noexcept { return m_written; }
+
+    private:
+        std::size_t m_written;
     };
 
     /**

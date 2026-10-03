@@ -334,14 +334,19 @@ public:
      * @brief 将数据写入标准输出或标准错误。
      * @param ch 要写入的数据。
      * @param n 要写入的字节数。
-     * @throw device_error 如果写入失败。
+     * @throw dput_error 写到一半失败：`written()` 是已被 stdio 接收的字节数（`fwrite` 的返回值），
+     *        这些字节由 stdio 负责，不必重写。
+     * @throw device_error 写之前就失败（`ch` 为空），一个字节也没有接收。
      * @endif
      *
      * @lang{EN}
      * @brief Writes data to standard output or standard error.
      * @param ch The data to write.
      * @param n The number of bytes to write.
-     * @throw device_error If the write fails.
+     * @throw dput_error If the write fails partway: `written()` is the number of bytes stdio
+     *        accepted (what `fwrite` returned); those are stdio's to deliver and need not be
+     *        written again.
+     * @throw device_error If it fails before writing (`ch` is null), with nothing accepted.
      * @endif
      */
     void dput(const char* ch, std::size_t n)
@@ -351,16 +356,16 @@ public:
         if (ch == nullptr)
             throw device_error("std_device::dput fail: null buffer");
 
-        bool put_res = false;
+        std::size_t written = 0;
         if constexpr (ID == STDOUT_FILENO)
-            put_res = (std::fwrite(ch, sizeof(char), n, stdout) == n);
+            written = std::fwrite(ch, sizeof(char), n, stdout);
         else
-            put_res = (std::fwrite(ch, sizeof(char), n, stderr) == n);
+            written = std::fwrite(ch, sizeof(char), n, stderr);
 
-        if (!put_res)
+        if (written != n)
         {
             std::clearerr(ID == STDOUT_FILENO ? stdout : stderr);
-            throw device_error("std_device::dput fail: partial write");
+            throw dput_error("std_device::dput fail: partial write", written);
         }
     }
 
