@@ -363,10 +363,7 @@ public:
             written = std::fwrite(ch, sizeof(char), n, stderr);
 
         if (written != n)
-        {
-            std::clearerr(ID == STDOUT_FILENO ? stdout : stderr);
             throw dput_error("std_device::dput fail: partial write", written);
-        }
     }
 
     /**
@@ -390,10 +387,7 @@ public:
             flush_res = (std::fflush(stderr) != EOF);
 
         if (!flush_res)
-        {
-            std::clearerr(ID == STDOUT_FILENO ? stdout : stderr);
             throw device_error("std_device::dflush fail: fflush error");
-        }
     }
 
 private:
