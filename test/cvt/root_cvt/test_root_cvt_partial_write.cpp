@@ -16,6 +16,7 @@
 #include <IOv2/device/file_device.h>
 
 #include <support/file_guard.h>
+#include <support/test_child.h>
 
 #include <gtest/gtest.h>
 
@@ -28,8 +29,6 @@
 #include <string>
 
 #include <sys/resource.h>
-#include <sys/wait.h>
-#include <unistd.h>
 
 using namespace IOv2;
 
@@ -173,15 +172,14 @@ TEST(RootCvtPartialWrite, ALayerAboveLosesNothingTheRootAccepted)
 
 // The real thing: file_device's fwrite stops at a 5-byte file size limit and reports how
 // much it took. The write is larger than stdio's own buffer, so fwrite goes to the file
-// at once instead of buffering. Run in a child, since the limit applies to the process.
+// at once instead of buffering. The limit applies to the whole process, so the write runs
+// in a child (support/test_child.h).
 TEST(RootCvtPartialWrite, AFileDeviceReportsWhatFwriteAccepted)
 {
     using WODev = basic_file_device<false, true, char>;
-    file_guard g("root_cvt_partial_write", "");
+    const char* const file = "root_cvt_partial_write";
 
-    const pid_t child = ::fork();
-    ASSERT_NE(child, -1);
-    if (child == 0)
+    if (in_test_child())
     {
         std::signal(SIGXFSZ, SIG_IGN);
         rlimit old{};
@@ -189,25 +187,27 @@ TEST(RootCvtPartialWrite, AFileDeviceReportsWhatFwriteAccepted)
         rlimit small = old;
         small.rlim_cur = 5;
 
-        int code = 0;
+        WODev dev(file);
+        const std::string big(10000, 'x');
+        ::setrlimit(RLIMIT_FSIZE, &small);
+        try
         {
-            WODev dev("root_cvt_partial_write");
-            const std::string big(10000, 'x');
-            ::setrlimit(RLIMIT_FSIZE, &small);
-            try { dev.dput(big.data(), big.size()); code = 1; }
-            catch (const dput_error& e) { if (e.written() != 5) code = 2; }
-            catch (...) { code = 3; }
-            ::setrlimit(RLIMIT_FSIZE, &old);
+            dev.dput(big.data(), big.size());
+            ADD_FAILURE() << "the write did not fail";
         }
-        ::_exit(code);
+        catch (const dput_error& e)
+        {
+            EXPECT_EQ(e.written(), 5u);
+        }
+        ::setrlimit(RLIMIT_FSIZE, &old);
+        return;
     }
 
-    int status = 0;
-    ASSERT_EQ(::waitpid(child, &status, 0), child);
-    ASSERT_TRUE(WIFEXITED(status));
-    EXPECT_EQ(WEXITSTATUS(status), 0) << "1: no throw, 2: wrong count, 3: wrong type";
+    file_guard g(file, "");
+    EXPECT_EQ(run_test_child("RootCvtPartialWrite.AFileDeviceReportsWhatFwriteAccepted"), 0)
+        << "the checks in the child failed; see its output above";
 
-    std::ifstream in("root_cvt_partial_write", std::ios::binary);
+    std::ifstream in(file, std::ios::binary);
     const std::string got{std::istreambuf_iterator<char>(in), {}};
     EXPECT_EQ(got, "xxxxx");
 }
