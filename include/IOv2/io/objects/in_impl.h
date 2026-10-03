@@ -78,9 +78,9 @@
 #include <IOv2/device/device_concepts.h>
 #include <IOv2/device/std_device.h>
 #include <IOv2/io/io_base.h>
-#include <IOv2/io/objects/out_impl.h>
 #include <IOv2/io/iochannel.h>
 #include <IOv2/io/iochannel_iterator.h>
+#include <IOv2/io/objects/out_impl.h>
 #include <IOv2/io/utilities/istream_operators.h>
 #include <IOv2/io/utilities/stream_common_operators.h>
 #include <IOv2/locale/locale.h>
