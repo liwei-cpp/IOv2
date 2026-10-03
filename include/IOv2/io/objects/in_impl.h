@@ -320,7 +320,9 @@ public:
      * @lang{ZH}
      * @brief 在同一 fd 上继续：清状态位与异常掩码，丢弃已缓冲但未消费的输入，重新附接
      * 设备并重新初始化转换器。`stdin` 是普通文件时也不会回到开头。同步模式没有读缓冲，
-     * 「丢弃」的只是解码器里的状态，fd 上尚未读的字节（例如本行余下的部分）照旧在那里。
+     * fd 上尚未读的字节（例如本行余下的部分）照旧在那里；但已从 fd 取出、还没交给调用方的
+     * 那几个字节同样丢弃：格式化提取探分隔符时偷看的那个字符（`cin >> n` 读 `12x34` 后，
+     * `reset()` 丢掉 `x`），以及 `wcin` 块读遇到解码错误后已取出、尚未交出的字节。
      *
      * 供需要放弃残余输入的场合使用——例如交互程序在出错后丢掉这一行剩下的内容重新提示。
      * 它**不是**出错后的必经之路：解码失败后 `clear()` 即可继续，解码器丢掉了半个字符、
@@ -348,8 +350,11 @@ public:
      * @brief Carries on on the same fd: clears the state bits and the exception mask,
      * drops input that was buffered but not yet consumed, reattaches the device and
      * re-initializes the converter. A `stdin` that is a regular file does not rewind.
-     * Synchronized mode has no read buffer, so what is dropped is only the decoder's state;
-     * bytes not yet read from the fd (the rest of the line, say) are still there.
+     * Synchronized mode has no read buffer, so bytes not yet read from the fd (the rest of the
+     * line, say) are still there; but the few bytes already taken off the fd and not yet
+     * handed to the caller are dropped too: the character a formatted extraction peeked at
+     * while looking for a delimiter (after `cin >> n` reads `12x34`, `reset()` drops the `x`),
+     * and the bytes a block read on `wcin` had taken past a decoding error.
      *
      * For the cases that want to abandon the pending input -- an interactive program
      * discarding the rest of a line after an error before prompting again. It is **not**
@@ -457,7 +462,9 @@ public:
      *
      * @param new_code 新的编码名，须为 `newlocale()` 接受的 locale 名。`""` 按 POSIX 规则
      *        查环境（`LC_ALL` > `LC_CTYPE` > `LANG` > `"C"`）：查在此刻发生，切换成功后
-     *        `code()` 报的是查到的具体名字，不是 `""`。
+     *        `code()` 报的是查到的具体名字，不是 `""`。环境变量指向不存在的 locale 时，`""`
+     *        会失败（置 `cvtfailbit`），而启动时的同一环境是宽松地回退到 `"C"`；要回到启动时
+     *        的编码，传 `IOv2::initial_locale_name(LC_CTYPE)`。
      * @return 调用前的编码名；失败时它仍是当前编码名。判断成败请在进入前保证 `good()`，之后查
      *         `cvt_fail()`；或者直接比较 `code()` 与目标——本函数不设 `good()` 门槛，状态位已置时
      *         照常切换、位不变。
@@ -486,7 +493,10 @@ public:
      * @param new_code The new encoding name; must be a locale name `newlocale()` accepts.
      *        `""` means "look at the environment" per POSIX (`LC_ALL` > `LC_CTYPE` > `LANG` >
      *        `"C"`); the lookup happens at this moment, and once the switch succeeds `code()`
-     *        reports the concrete name it resolved to, not `""`.
+     *        reports the concrete name it resolved to, not `""`. When the environment names a
+     *        locale that does not exist, `""` fails (setting `cvtfailbit`), whereas startup
+     *        falls back leniently to `"C"` in the same environment; to return to the startup
+     *        encoding, pass `IOv2::initial_locale_name(LC_CTYPE)`.
      * @return The encoding name before the call; on failure that is still the current one.
      *         To tell the two apart enter with `good()` and check `cvt_fail()` afterwards, or
      *         compare `code()` with the target: this function has no `good()` gate, so with a
@@ -552,7 +562,7 @@ class wcin_t : public stdin_api<wcin_t, std_device<STDIN_FILENO>, wchar_t>
 
 private:
     wcin_t()
-        : BT(code_cvt_stdio_creator(IOv2::locale<char>::initial_locale_name(LC_CTYPE)))
+        : BT(code_cvt_stdio_creator(IOv2::initial_locale_name(LC_CTYPE)))
         , sing_temp<wcin_t>([](wcin_t*) noexcept {})   // never destroyed at exit, like std::wcin
     {
         tie(&wcout);

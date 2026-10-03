@@ -45,6 +45,49 @@ namespace IOv2
 {
 /**
  * @lang{ZH}
+ * 返回某个 `LC_*` 类别在**程序启动时由环境变量解析得到**的初始 locale 名称。
+ *
+ * 这是对 `ori_facet_buf::locale_name` 的薄转发，使得仅依赖 `<IOv2/locale/locale.h>`
+ * 的代码（如 stdio 流对象）无需直接看到 `ori_facet_buf` 即可获取该初始名称。
+ * 结果与字符类型无关，所以是命名空间里的自由函数，而不是某个 `locale<CharT>` 的成员。
+ *
+ * 环境变量指向不存在的 locale 时，启动时的解析会宽松地回退到 `"C"`，本函数报的就是这个
+ * 结果；而 `newlocale("")` 在同样的环境下会失败。要回到启动时的编码，用本函数的返回值，
+ * 不要用 `""`。
+ *
+ * @throws stream_error 由底层 `ori_facet_buf::locale_name` 透出：当 `category`
+ *         不是已解析的五个类别之一（`LC_CTYPE` / `LC_COLLATE` / `LC_MONETARY` /
+ *         `LC_NUMERIC` / `LC_TIME`）时抛出，例如传入 `LC_ALL` 或 `LC_MESSAGES`。
+ * @endif
+ *
+ * @lang{EN}
+ * Return the *initial* locale name for an `LC_*` category, as resolved from the
+ * environment at program startup.
+ *
+ * A thin forwarder over `ori_facet_buf::locale_name` so that code depending
+ * only on `<IOv2/locale/locale.h>` (e.g. the stdio stream objects) can obtain this
+ * initial name without seeing `ori_facet_buf` directly. The result does not depend on
+ * the character type, so this is a free function in the namespace rather than a member
+ * of some `locale<CharT>`.
+ *
+ * When the environment names a locale that does not exist, the startup resolution falls
+ * back leniently to `"C"`, and this function reports that result, whereas
+ * `newlocale("")` fails in the same environment. To return to the startup encoding, use
+ * what this function returns, not `""`.
+ *
+ * @throws stream_error propagated from the underlying `ori_facet_buf::locale_name`
+ *         if `category` is not one of the five resolved categories (`LC_CTYPE` /
+ *         `LC_COLLATE` / `LC_MONETARY` / `LC_NUMERIC` / `LC_TIME`), e.g. when
+ *         passed `LC_ALL` or `LC_MESSAGES`.
+ * @endif
+ */
+inline const std::string& initial_locale_name(int category)
+{
+    return s_ori_facet_buf.locale_name(category);
+}
+
+/**
+ * @lang{ZH}
  * @brief 管理一组 facet 的本地化对象。
  *
  * `locale` 是值语义类型，遵循与标准库容器 / `std::shared_ptr` **实例**相同的
@@ -1031,41 +1074,6 @@ public:
                       "mutually exclusive by design -- confs derive from abs_ft, facets "
                       "carry create_rules -- so such a type is a definition error.");
         return nullptr;
-    }
-
-    /**
-     * @lang{ZH}
-     * 返回某个 `LC_*` 类别在**程序启动时由环境变量解析得到**的初始 locale 名称。
-     *
-     * 这是对 `ori_facet_buf::locale_name` 的薄转发，使得仅依赖 `<IOv2/locale/locale.h>`
-     * 的代码（如 stdio 流对象）无需直接看到 `ori_facet_buf` 即可获取该初始名称。
-     * 返回值与字符类型无关；之所以作为 `locale` 的静态成员暴露，是为了让调用方只
-     * 看见 `locale`。
-     *
-     * @throws stream_error 由底层 `ori_facet_buf::locale_name` 透出：当 `category`
-     *         不是已解析的五个类别之一（`LC_CTYPE` / `LC_COLLATE` / `LC_MONETARY` /
-     *         `LC_NUMERIC` / `LC_TIME`）时抛出，例如传入 `LC_ALL` 或 `LC_MESSAGES`。
-     * @endif
-     *
-     * @lang{EN}
-     * Return the *initial* locale name for an `LC_*` category, as resolved from the
-     * environment at program startup.
-     *
-     * A thin forwarder over `ori_facet_buf::locale_name` so that code depending
-     * only on `<IOv2/locale/locale.h>` (e.g. the stdio stream objects) can obtain this
-     * initial name without seeing `ori_facet_buf` directly. The result is
-     * independent of character type; it is exposed as a static member of `locale`
-     * so that callers only need to see `locale`.
-     *
-     * @throws stream_error propagated from the underlying `ori_facet_buf::locale_name`
-     *         if `category` is not one of the five resolved categories (`LC_CTYPE` /
-     *         `LC_COLLATE` / `LC_MONETARY` / `LC_NUMERIC` / `LC_TIME`), e.g. when
-     *         passed `LC_ALL` or `LC_MESSAGES`.
-     * @endif
-     */
-    static const std::string& initial_locale_name(int category)
-    {
-        return s_ori_facet_buf.locale_name(category);
     }
 
 private:

@@ -410,7 +410,7 @@ TEST(LocaleChar, InvolveRejectsAnEmptyFacetPointer)
 TEST(LocaleChar, InitialLocaleNameRejectsAnUnresolvedCategory)
 {
     // Only the five resolved LC categories are accepted; LC_ALL is not one of them.
-    EXPECT_THROW((void)IOv2::locale<char>::initial_locale_name(LC_ALL), IOv2::stream_error);
+    EXPECT_THROW((void)IOv2::initial_locale_name(LC_ALL), IOv2::stream_error);
 }
 
 TEST(LocaleChar, AnIdenticalInvolveMsgHandsBackTheInternedConf)
@@ -519,19 +519,19 @@ TEST(LocaleChar, InitialLocaleNamesFollowTheEnvironment)
     {
         const std::string_view mode(child_mode);
         const auto expect_all = [](const char* expected) {
-            EXPECT_EQ(IOv2::locale<char>::initial_locale_name(LC_CTYPE), expected);
-            EXPECT_EQ(IOv2::locale<char>::initial_locale_name(LC_COLLATE), expected);
-            EXPECT_EQ(IOv2::locale<char>::initial_locale_name(LC_MONETARY), expected);
-            EXPECT_EQ(IOv2::locale<char>::initial_locale_name(LC_NUMERIC), expected);
-            EXPECT_EQ(IOv2::locale<char>::initial_locale_name(LC_TIME), expected);
+            EXPECT_EQ(IOv2::initial_locale_name(LC_CTYPE), expected);
+            EXPECT_EQ(IOv2::initial_locale_name(LC_COLLATE), expected);
+            EXPECT_EQ(IOv2::initial_locale_name(LC_MONETARY), expected);
+            EXPECT_EQ(IOv2::initial_locale_name(LC_NUMERIC), expected);
+            EXPECT_EQ(IOv2::initial_locale_name(LC_TIME), expected);
         };
 
         if (mode == "all" || mode == "lang")
             expect_all("C.UTF-8");
         else if (mode == "category")
         {
-            EXPECT_EQ(IOv2::locale<char>::initial_locale_name(LC_CTYPE), "C.UTF-8");
-            EXPECT_EQ(IOv2::locale<char>::initial_locale_name(LC_COLLATE), "C");
+            EXPECT_EQ(IOv2::initial_locale_name(LC_CTYPE), "C.UTF-8");
+            EXPECT_EQ(IOv2::initial_locale_name(LC_COLLATE), "C");
         }
         else
             expect_all("C"); // empty variables and an invalid LC_ALL both fall back
