@@ -20,6 +20,7 @@
 #include <IOv2/device/device_concepts.h>
 #include <IOv2/device/mem_device.h>
 
+#include <algorithm>
 #include <cassert>
 #include <cstddef>
 #include <exception>
@@ -807,13 +808,12 @@ public:
         if (to_size == remain)
         {
             std::copy(to, to + to_size, m_buf_cur);
-            m_device.dput(m_buffer.data(), s_buffer_length);
-            m_buf_cur = m_buffer.data();
+            dput_buffer(s_buffer_length, buf_used);
             return;
         }
 
         if (buf_used > 0)
-            m_device.dput(m_buffer.data(), buf_used);
+            dput_buffer(buf_used, buf_used);
         if (to_size < s_buffer_length / 2)
             m_buf_cur = std::copy(to, to + to_size, m_buffer.data());
         else
@@ -827,12 +827,14 @@ public:
      * @lang{ZH}
      * 将内部写缓冲区中未提交的数据刷入设备。
      * 若当前不处于输出状态，或缓冲区为空（m_buf_cur 与缓冲区首地址相同），则为空操作。
+     * 设备失败时，缓冲区里只留下设备没有接收的那部分，等下一次冲刷（见 `dput_buffer()`）。
      * @endif
      *
      * @lang{EN}
      * Flushes any uncommitted data in the internal write buffer to the device.
      * This is a no-op when not in output mode or when the buffer is already empty
-     * (m_buf_cur equals the buffer start).
+     * (m_buf_cur equals the buffer start). If the device fails, the buffer keeps only what
+     * the device did not accept, for the next flush (see `dput_buffer()`).
      * @endif
      */
     void flush()
@@ -842,8 +844,8 @@ public:
 
         if ((m_buf_cur != nullptr) && (m_buf_cur != m_buffer.data()))
         {
-            m_device.dput(m_buffer.data(), m_buf_cur - m_buffer.data());
-            m_buf_cur = m_buffer.data();
+            const auto used = static_cast<std::size_t>(m_buf_cur - m_buffer.data());
+            dput_buffer(used, used);
         }
     }
 
@@ -1049,6 +1051,90 @@ public:
     }
 
 private:
+    /**
+     * @lang{ZH}
+     * 把缓冲区的前 `len` 个字符交给设备，成功后缓冲区为空。异常都原样重抛。
+     *
+     * 这 `len` 个字符分两段，归属不同：
+     * - `[0, old)`：之前各次 put 留下的。那些 put 已经成功返回，本对象有责任把它们送到设备，
+     *   所以失败后要保留，等下一次冲刷。
+     * - `[old, len)`：本次 put 刚拷进来的（只有 put 恰好填满缓冲的那个分支才有这一段，
+     *   其余调用方 `len == old`）。失败时本次 put 会抛异常，调用方据此认为「这次没写成」。
+     *
+     * 失败后的处理只遵循一条规则：之前收下的必须送达；本次的字符只要一个都还没落到设备上，
+     * 就算没收下。于是：
+     * - 设备抛 `dput_error`，前 `written()` 个已被接收：它们离开缓冲区，剩下的移到开头。
+     *   若 `written()` 没有越过 `old`，本次的字符一个也没落地，只保留 `[written(), old)`；
+     *   若越过了，本次的字符已有一部分落地、收不回来，`[written(), len)` 全部保留。
+     * - 设备抛其它异常，表示一个字符也没有被接收：只保留 `[0, old)`。
+     *
+     * 为什么不直接保留 `[written(), len)`：那样一次失败的 put 的字符写不写出，要看它碰巧走了
+     * 哪个分支。设缓冲容量 8、设备每次只收 2 个就抛 `dput_error(2)`，调用 `put("xyz")`：
+     * - 缓冲原有 `ABCDE`：xyz 恰好填满，先拷进缓冲再整块写，`[2, 8)` 若全保留，xyz 之后会被写出；
+     * - 缓冲原有 `ABCDEF`：装不下，先写旧的 `ABCDEF` 就失败了，xyz 从没进过缓冲，不会被写出。
+     *
+     * 两次调用方看到的都是「put 抛了异常、设备收了 2 个」，结果却取决于它看不见的缓冲余量。
+     * 按上面的规则，第一种情况只保留 `CDE`，两种情况都不写出 xyz。
+     * @endif
+     *
+     * @lang{EN}
+     * Hands the first `len` buffered characters to the device; on success the buffer is
+     * empty. Exceptions are rethrown unchanged.
+     *
+     * Those `len` characters come in two parts that belong to different callers:
+     * - `[0, old)` was left by earlier puts. Those puts have returned successfully, so this
+     *   object owes them delivery and keeps them for the next flush after a failure.
+     * - `[old, len)` was just copied in by the current put (only the branch where a put
+     *   exactly fills the buffer has this part; every other caller passes `len == old`). On a
+     *   failure the current put throws, and its caller takes it as "not written".
+     *
+     * After a failure one rule applies: what was taken earlier must be delivered, and the
+     * current put's characters count as not taken unless some of them already reached the
+     * device. Hence:
+     * - The device throws `dput_error` with the first `written()` accepted: those leave the
+     *   buffer and the rest moves to the front. If `written()` did not get past `old`, none of
+     *   the current put's characters landed and only `[written(), old)` is kept; if it did,
+     *   part of them landed and cannot be taken back, so all of `[written(), len)` is kept.
+     * - Any other exception means nothing was accepted: only `[0, old)` is kept.
+     *
+     * Why not simply keep `[written(), len)`: whether a failed put's characters go out would
+     * then depend on which branch it happened to take. With a buffer of 8, a device that takes
+     * 2 and throws `dput_error(2)`, and a call `put("xyz")`:
+     * - the buffer holds `ABCDE`: xyz fills it exactly and is copied in before the write; keeping
+     *   all of `[2, 8)` would send xyz out later;
+     * - the buffer holds `ABCDEF`: xyz does not fit, writing the old `ABCDEF` fails first, and
+     *   xyz never enters the buffer, so it is never sent.
+     *
+     * Both callers saw the same thing -- the put threw, the device took 2 -- yet the outcome
+     * would hang on spare room they cannot see. Under the rule above the first case keeps only
+     * `CDE`, and neither sends xyz.
+     * @endif
+     */
+    void dput_buffer(std::size_t len, std::size_t old)
+        requires (dev_cpt::support_put<device_type>)
+    {
+        try
+        {
+            m_device.dput(m_buffer.data(), len);
+        }
+        catch (const dput_error& e)
+        {
+            const std::size_t done = std::min(e.written(), len);
+            const std::size_t keep_end = (done > old) ? len : old;
+            if (done == 0)
+                m_buf_cur = m_buffer.data() + keep_end;
+            else
+                m_buf_cur = std::copy(m_buffer.data() + done, m_buffer.data() + keep_end, m_buffer.data());
+            throw;
+        }
+        catch (...)
+        {
+            m_buf_cur = m_buffer.data() + old;
+            throw;
+        }
+        m_buf_cur = m_buffer.data();
+    }
+
     /** @lang{ZH} 底层 I/O 设备实例。 @endif @lang{EN} The underlying I/O device instance. @endif */
     device_type                 m_device;
     /** @lang{ZH} 流起点的设备偏移量，由 main_cont_beg() 记录。tell()/seek() 用此值将逻辑偏移转换为设备偏移。 @endif
@@ -1993,7 +2079,7 @@ public:
             return res;
         }
 
-        m_kernel.m_device.dput(m_kernel.m_buffer.data(), buf_used);
+        m_kernel.dput_buffer(buf_used, buf_used);
         m_kernel.m_buf_cur = m_kernel.m_buffer.data() + len;
         return m_kernel.m_buffer.data();
     }

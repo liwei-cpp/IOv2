@@ -139,7 +139,7 @@ public:
     template <typename Self, typename TM, typename TC>
         requires std::convertible_to<TM, typename Self::mask> &&
                  std::convertible_to<TC, typename Self::char_type>
-    bool is_any(this const Self& self, TM m, TC c)
+    [[nodiscard]] bool is_any(this const Self& self, TM m, TC c)
     {
         return self.is(c) & m;
     }
@@ -206,7 +206,7 @@ public:
      */
     template <typename Self, typename TM, typename InIt>
         requires std::convertible_to<TM, typename Self::mask>
-    InIt scan_is_any(this const Self& self, TM m, InIt beg, InIt end)
+    [[nodiscard]] InIt scan_is_any(this const Self& self, TM m, InIt beg, InIt end)
     {
         while ((beg != end) && (!(self.is(*beg) & m)))
             ++beg;
@@ -243,7 +243,7 @@ public:
      */
     template <typename Self, typename TM, typename InIt>
         requires std::convertible_to<TM, typename Self::mask>
-    InIt scan_not_any(this const Self& self, TM m, InIt beg, InIt end)
+    [[nodiscard]] InIt scan_not_any(this const Self& self, TM m, InIt beg, InIt end)
     {
         while ((beg != end) && (self.is(*beg) & m))
             ++beg;
@@ -390,7 +390,7 @@ public:
      */
     template <typename Self, typename TC>
         requires std::convertible_to<TC, typename Self::char_type>
-    char narrow(this const Self& self, TC c, char def)
+    [[nodiscard]] char narrow(this const Self& self, TC c, char def)
     {
         auto res = self.narrow(c);
         return res ? *res : def;
@@ -558,7 +558,7 @@ public:
      * @param c @lang{ZH} 待分类的字符。 @endif @lang{EN} The character to classify. @endif
      * @return @lang{ZH} `c` 的分类掩码。 @endif @lang{EN} The classification mask for `c`. @endif
      */
-    mask is(CharT c) const
+    [[nodiscard]] mask is(CharT c) const noexcept
     {
         return m_table[static_cast<unsigned char>(c)];
     }
@@ -575,7 +575,7 @@ public:
      * @param c @lang{ZH} 待转换的字符。 @endif @lang{EN} The character to convert. @endif
      * @return @lang{ZH} `c` 的大写形式。 @endif @lang{EN} The uppercase form of `c`. @endif
      */
-    CharT toupper(CharT c) const
+    [[nodiscard]] CharT toupper(CharT c) const noexcept
     {
         return m_toupper[static_cast<unsigned char>(c)];
     }
@@ -592,7 +592,7 @@ public:
      * @param c @lang{ZH} 待转换的字符。 @endif @lang{EN} The character to convert. @endif
      * @return @lang{ZH} `c` 的小写形式。 @endif @lang{EN} The lowercase form of `c`. @endif
      */
-    CharT tolower(CharT c) const
+    [[nodiscard]] CharT tolower(CharT c) const noexcept
     {
         return m_tolower[static_cast<unsigned char>(c)];
     }
@@ -609,7 +609,7 @@ public:
      * @param c @lang{ZH} 待拓宽的窄字符。 @endif @lang{EN} The narrow character to widen. @endif
      * @return @lang{ZH} `c` 对应的 `CharT` 值。 @endif @lang{EN} The `CharT` value corresponding to `c`. @endif
      */
-    CharT widen(char c) const
+    [[nodiscard]] CharT widen(char c) const noexcept
     {
         return m_widen[static_cast<unsigned char>(c)];
     }
@@ -631,7 +631,7 @@ public:
      * @lang{EN} A `std::optional<char>` with the narrowed result; `nullopt` if no
      * single-byte representation exists. @endif
      */
-    std::optional<char> narrow(CharT c) const
+    [[nodiscard]] std::optional<char> narrow(CharT c) const noexcept
     {
         return m_narrow[static_cast<unsigned char>(c)];
     }
@@ -809,7 +809,7 @@ public:
      * @param c @lang{ZH} 待分类的字符。 @endif @lang{EN} The character to classify. @endif
      * @return @lang{ZH} `c` 的分类掩码。 @endif @lang{EN} The classification mask for `c`. @endif
      */
-    mask is(CharT c) const
+    [[nodiscard]] mask is(CharT c) const
     {
         return do_is(c);
     }
@@ -827,7 +827,7 @@ public:
      * @param c @lang{ZH} 待转换的字符。 @endif @lang{EN} The character to convert. @endif
      * @return @lang{ZH} `c` 的大写形式。 @endif @lang{EN} The uppercase form of `c`. @endif
      */
-    CharT toupper(CharT c) const
+    [[nodiscard]] CharT toupper(CharT c) const
     {
         return do_toupper(c);
     }
@@ -845,7 +845,7 @@ public:
      * @param c @lang{ZH} 待转换的字符。 @endif @lang{EN} The character to convert. @endif
      * @return @lang{ZH} `c` 的小写形式。 @endif @lang{EN} The lowercase form of `c`. @endif
      */
-    CharT tolower(CharT c) const
+    [[nodiscard]] CharT tolower(CharT c) const
     {
         return do_tolower(c);
     }
@@ -887,7 +887,7 @@ public:
      * @return @lang{ZH} `c` 对应的 `CharT` 值。 @endif
      * @lang{EN} The `CharT` value corresponding to `c`. @endif
      */
-    CharT widen(char c) const
+    [[nodiscard]] CharT widen(char c) const noexcept
     {
         return m_widen[static_cast<unsigned char>(c)];
     }
@@ -907,7 +907,7 @@ public:
      * @lang{EN} A `std::optional<char>` with the narrowed result; `nullopt` if no
      * single-byte representation exists. @endif
      */
-    std::optional<char> narrow(CharT c) const
+    [[nodiscard]] std::optional<char> narrow(CharT c) const
     {
         return do_narrow(c);
     }
@@ -939,7 +939,7 @@ private:
      * cache only for a tiny, highly repetitive working set — not the case here.)
      * @endif
      */
-    mask do_is(CharT c) const
+    [[nodiscard]] mask do_is(CharT c) const
     {
         if (static_cast<uchar_type>(c) < s_len)
             return m_table[static_cast<uchar_type>(c)];
@@ -956,7 +956,7 @@ private:
      * in-range values; forwards to the conf for out-of-range values.
      * @endif
      */
-    CharT do_toupper(CharT c) const
+    [[nodiscard]] CharT do_toupper(CharT c) const
     {
         if (static_cast<uchar_type>(c) < s_len)
             return m_toupper[static_cast<uchar_type>(c)];
@@ -973,7 +973,7 @@ private:
      * in-range values; forwards to the conf for out-of-range values.
      * @endif
      */
-    CharT do_tolower(CharT c) const
+    [[nodiscard]] CharT do_tolower(CharT c) const
     {
         if (static_cast<uchar_type>(c) < s_len)
             return m_tolower[static_cast<uchar_type>(c)];
@@ -990,7 +990,7 @@ private:
      * in-range values; forwards to the conf for out-of-range values.
      * @endif
      */
-    std::optional<char> do_narrow(CharT c) const
+    [[nodiscard]] std::optional<char> do_narrow(CharT c) const
     {
         if (static_cast<uchar_type>(c) < s_len)
             return m_narrow[static_cast<uchar_type>(c)];
