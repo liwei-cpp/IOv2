@@ -392,7 +392,9 @@ public:
      *
      * @param new_code 新的编码名，须为 `newlocale()` 接受的 locale 名。`""` 按 POSIX 规则
      *        查环境（`LC_ALL` > `LC_CTYPE` > `LANG` > `"C"`）：查在此刻发生，切换成功后
-     *        `code()` 报的是查到的具体名字，不是 `""`。
+     *        `code()` 报的是查到的具体名字，不是 `""`。环境变量指向不存在的 locale 时，`""`
+     *        会失败（置 `cvtfailbit`），而启动时的同一环境是宽松地回退到 `"C"`；要回到启动时
+     *        的编码，传 `IOv2::initial_locale_name(LC_CTYPE)`。
      * @return 调用前的编码名；失败时它仍是当前编码名。判断成败请在进入前保证 `good()`，之后查
      *         `cvt_fail()` / `dev_fail()`；或者直接比较 `code()` 与目标——本函数不设 `good()` 门槛，
      *         状态位已置时照常切换、位不变。
@@ -421,7 +423,10 @@ public:
      * @param new_code The new encoding name; must be a locale name `newlocale()` accepts.
      *        `""` means "look at the environment" per POSIX (`LC_ALL` > `LC_CTYPE` > `LANG` >
      *        `"C"`); the lookup happens at this moment, and once the switch succeeds `code()`
-     *        reports the concrete name it resolved to, not `""`.
+     *        reports the concrete name it resolved to, not `""`. When the environment names a
+     *        locale that does not exist, `""` fails (setting `cvtfailbit`), whereas startup
+     *        falls back leniently to `"C"` in the same environment; to return to the startup
+     *        encoding, pass `IOv2::initial_locale_name(LC_CTYPE)`.
      * @return The encoding name before the call; on failure that is still the current one.
      *         To tell the two apart enter with `good()` and check `cvt_fail()` / `dev_fail()`
      *         afterwards, or compare `code()` with the target: this function has no `good()`
@@ -662,7 +667,7 @@ class wcout_t : public stdout_api<wcout_t, std_device<STDOUT_FILENO>, wchar_t>
 
 private:
     wcout_t()
-        : BT(code_cvt_stdio_creator(IOv2::locale<char>::initial_locale_name(LC_CTYPE)))
+        : BT(code_cvt_stdio_creator(IOv2::initial_locale_name(LC_CTYPE)))
         , sing_temp<wcout_t>([](wcout_t* p) noexcept { p->try_flush(); })
     {}
 
@@ -686,7 +691,7 @@ class wcerr_t : public stdout_api<wcerr_t, std_device<STDERR_FILENO>, wchar_t>
 
 private:
     wcerr_t()
-        : BT(code_cvt_stdio_creator(IOv2::locale<char>::initial_locale_name(LC_CTYPE)))
+        : BT(code_cvt_stdio_creator(IOv2::initial_locale_name(LC_CTYPE)))
         , sing_temp<wcerr_t>([](wcerr_t* p) noexcept { p->try_flush(); })
     {
         tie(&wcout);
@@ -713,7 +718,7 @@ class wclog_t : public stdout_api<wclog_t, std_device<STDERR_FILENO>, wchar_t>
 
 private:
     wclog_t()
-        : BT(code_cvt_stdio_creator(IOv2::locale<char>::initial_locale_name(LC_CTYPE)))
+        : BT(code_cvt_stdio_creator(IOv2::initial_locale_name(LC_CTYPE)))
         , sing_temp<wclog_t>([](wclog_t* p) noexcept { p->try_flush(); })
     {}
 

@@ -29,12 +29,14 @@
 #include <IOv2/io/ostream.h>
 #include <IOv2/io/traits/arithmetic.h>
 #include <IOv2/io/traits/char_and_str.h>
+#include <IOv2/locale/locale.h>
 
 #include <support/stateful_locale.h>
 #include <support/stdio_guard.h>
 
 #include <gtest/gtest.h>
 
+#include <clocale>
 #include <cstddef>
 #include <cstdlib>
 #include <string>
@@ -526,6 +528,33 @@ TEST(IoObjectsWchar, WideStreamsFallBackToCUnderAStateDependentEnvironment)
     EXPECT_EQ(IOv2::wcout.code(), "C");
     EXPECT_EQ(IOv2::wcerr.code(), "C");
     EXPECT_EQ(IOv2::wclog.code(), "C");
+}
+
+// Started with an LC_ALL that names no locale, the wide streams fall back to "C"
+// leniently, but switch_code("") asks newlocale() and fails; initial_locale_name()
+// gives back what startup settled on.
+TEST(IoObjectsWchar, SwitchCodeReturnsToTheStartupEncodingThroughInitialLocaleName)
+{
+    if (!in_stateful_child())
+    {
+        EXPECT_EQ(run_stateful_child("IoObjectsWchar.SwitchCodeReturnsToTheStartupEncodingThroughInitialLocaleName",
+                                     "xx_YY.no-such-locale"), 0)
+            << "the checks under the bogus locale failed; see the child's output above";
+        return;
+    }
+
+    // --- child ---
+    EXPECT_EQ(IOv2::wcout.code(), "C");
+    EXPECT_EQ(IOv2::initial_locale_name(LC_CTYPE), "C");
+
+    IOv2::wcout.switch_code("");
+    EXPECT_TRUE(IOv2::wcout.cvt_fail());
+    EXPECT_EQ(IOv2::wcout.code(), "C");
+    IOv2::wcout.clear();
+
+    IOv2::wcout.switch_code(IOv2::initial_locale_name(LC_CTYPE));
+    EXPECT_TRUE(IOv2::wcout.good());
+    EXPECT_EQ(IOv2::wcout.code(), "C");
 }
 
 TEST(IoObjectsWchar, SwitchCodeRefusesAStateDependentEncoding)
