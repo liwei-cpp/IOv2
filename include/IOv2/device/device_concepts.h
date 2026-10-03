@@ -66,6 +66,10 @@ namespace IOv2
          * @note `dflush()` 冲刷的是**设备自身**的内部缓冲，上层不会代劳：流的正常销毁只把转换器
          *       的缓冲经 `dput()` 推给设备，`detach()` 也只把仍打开的设备交还调用方。因此自带
          *       内部缓冲的设备必须在自己的析构里完成这次冲刷。
+         * @note `dput()` 失败时用异常类型说明「已有多少字符被下层接收」：写到一半失败抛 `dput_error`
+         *       并带出已接收的个数；一个字符也没有接收（例如写之前的参数检查失败）抛普通的
+         *       `device_error`。`root_cvt` 依此只保留未被接收的部分，恢复后恰好写出一次；
+         *       详见 `dput_error`。
          * @tparam T 要检查的设备类型。
          * @endif
          *
@@ -79,6 +83,11 @@ namespace IOv2
          *       buffer down via `dput()`, and `detach()` merely returns the still-open device to
          *       its caller. A device that buffers internally must therefore perform that flush
          *       in its own destructor.
+         * @note A failing `dput()` tells through the exception type how many characters the
+         *       layer below has accepted: one that fails partway throws `dput_error` with that
+         *       count; one that accepted nothing (a check failing before the write, say)
+         *       throws a plain `device_error`. `root_cvt` keeps only what was not accepted, so
+         *       it goes out exactly once after recovery; see `dput_error`.
          * @tparam T The device type to check.
          * @endif
          */

@@ -480,14 +480,20 @@ public:
      * @brief 将数据写入设备。
      * @param ch 指向要写入数据的缓冲区的指针。
      * @param n 要写入的字符数。
-     * @throw device_error 如果文件未打开或写入失败。
+     * @throw dput_error `fwrite` 之后失败（写到一半，或之后取文件位置失败）：`written()` 是
+     *        已被 stdio 接收的字符数，这些字符不必重写。
+     * @throw device_error 写之前就失败（`ch` 为空或文件未打开），一个字符也没有接收。
      * @endif
      *
      * @lang{EN}
      * @brief Writes data to the device.
      * @param ch Pointer to the buffer containing the data to be written.
      * @param n The number of characters to write.
-     * @throw device_error If the file is not open or writing fails.
+     * @throw dput_error If it fails after the `fwrite` (partway through, or when taking the
+     *        file position afterwards): `written()` is the number of characters stdio
+     *        accepted, which need not be written again.
+     * @throw device_error If it fails before writing (`ch` is null or the file is not
+     *        open), with nothing accepted.
      * @endif
      */
     void dput(const CharType* ch, std::size_t n)
@@ -504,15 +510,15 @@ public:
         if (res >= 0)
         {
             if (!std::in_range<std::size_t>(res))
-                throw device_error("file_device::dput fail: file size overflow");
+                throw dput_error("file_device::dput fail: file size overflow", written);
             if (static_cast<std::size_t>(res) > m_file_len)
                 m_file_len = static_cast<std::size_t>(res);
         }
         else
-            throw device_error("file_device::dput fail: cannot determine file position");
+            throw dput_error("file_device::dput fail: cannot determine file position", written);
 
         if (written != n)
-            throw device_error("file_device::dput fail: partial write");
+            throw dput_error("file_device::dput fail: partial write", written);
     }
 
     /**
