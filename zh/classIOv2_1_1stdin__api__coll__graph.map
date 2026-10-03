@@ -1,0 +1,29 @@
+<map id="IOv2::stdin_api&lt; T, TDevice, TChar &gt;" name="IOv2::stdin_api&lt; T, TDevice, TChar &gt;">
+<area shape="rect" id="Node000001" title=" " alt="" coords="925,272,1072,312"/>
+<area shape="rect" id="Node000002" href="$structIOv2_1_1ios__state.html" title="在格式化状态之上，管理流状态位及其关联异常的组件。" alt="" coords="561,141,748,166"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="718,167,749,176,827,199,903,230,970,270,968,274,900,234,825,204,747,181,717,172"/>
+<area shape="rect" id="Node000003" href="$classIOv2_1_1ios__base.html" title="所有流的格式化状态基类。" alt="" coords="328,141,512,166"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="526,151,561,151,561,156,526,156"/>
+<area shape="rect" id="Node000004" href="$classIOv2_1_1copyable__atomic.html" title=" " alt="" coords="15,5,185,45"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="182,47,305,92,397,138,395,143,303,97,180,52"/>
+<area shape="rect" id="Node000005" href="$classIOv2_1_1copyable__atomic.html" title=" " alt="" coords="15,69,185,109"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="199,106,356,138,355,143,198,112"/>
+<area shape="rect" id="Node000006" href="$classIOv2_1_1copyable__atomic.html" title=" " alt="" coords="15,133,185,173"/>
+<area shape="poly" id="edge5_Node000003_Node000006" title=" " alt="" coords="199,151,328,151,328,156,199,156"/>
+<area shape="rect" id="Node000007" href="$classIOv2_1_1copyable__atomic.html" title=" " alt="" coords="15,197,185,237"/>
+<area shape="poly" id="edge6_Node000003_Node000007" title=" " alt="" coords="198,195,355,163,356,169,199,200"/>
+<area shape="rect" id="Node000008" href="$classIOv2_1_1copyable__mutex.html" title=" " alt="" coords="5,261,195,301"/>
+<area shape="poly" id="edge7_Node000003_Node000008" title=" " alt="" coords="182,255,303,211,396,164,398,169,305,216,184,260"/>
+<area shape="rect" id="Node000009" href="$structIOv2_1_1istream__operators.html" title="为输入流提供各类提取操作的混入（mix&#45;in）基类。" alt="" coords="565,191,744,231"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="758,229,902,263,927,269,926,275,901,268,757,235"/>
+<area shape="rect" id="Node000010" href="$structIOv2_1_1stream__common__operators.html" title="为输入流与输出流提供公共操作的混入（mix&#45;in）基类。" alt="" coords="569,255,740,295"/>
+<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="754,277,925,286,925,291,754,282"/>
+<area shape="rect" id="Node000011" href="$structIOv2_1_1ichannel.html" title=" " alt="" coords="568,319,741,359"/>
+<area shape="poly" id="edge10_Node000001_Node000011" title=" " alt="" coords="755,325,901,305,925,302,925,307,902,311,756,330"/>
+<area shape="rect" id="Node000012" href="$classIOv2_1_1base__channel.html" title="通道的通用实现基类。" alt="" coords="335,311,505,366"/>
+<area shape="poly" id="edge11_Node000011_Node000012" title=" " alt="" coords="519,336,568,336,568,341,519,341"/>
+<area shape="rect" id="Node000013" href="$classIOv2_1_1locale.html" title=" " alt="" coords="583,383,726,423"/>
+<area shape="poly" id="edge12_Node000001_Node000013" title=" " alt="" coords="739,387,818,369,900,343,965,310,968,314,902,348,820,374,740,392"/>
+<area shape="rect" id="Node000014" href="$classIOv2_1_1copyable__atomic.html" title=" " alt="" coords="569,447,740,487"/>
+<area shape="poly" id="edge13_Node000001_Node000014" title=" " alt="" coords="753,452,828,433,865,419,900,400,926,380,949,356,983,310,988,314,953,360,930,384,903,405,867,424,830,438,755,457"/>
+</map>
