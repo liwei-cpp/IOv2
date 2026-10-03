@@ -604,6 +604,11 @@ public:
      * @note 流状态位也归本锁保护：`ios_state` 派生自本类，其状态**写**同样在这把锁下
      *       完成。`rdstate()` / `good()` 仍免锁，因为状态位存在原子量里，读取不经过本锁。
      *       由此每个流只有一把锁，不存在流内部的加锁顺序。
+     * @note **标准流与 stdio 之间的锁序：先本锁，后 `FILE` 锁。** 八个标准流在持有本锁时把字节
+     *       交给 `stdout` / `stderr`，`fwrite` / `fflush` 会再取该 `FILE` 的锁。因此在
+     *       `flockfile(stdout)` 里写 `IOv2::cout`，会与另一个直接写 `IOv2::cout` 的线程互相等待而
+     *       死锁。要把 `printf` 与本库的输出圈成一段，先用 `IOv2::sync` 锁住要写的流，再
+     *       `flockfile`，写法见 `IOv2::sync`。
      * @return 本流 `m_io_mutex` 的引用。
      * @endif
      *
@@ -628,6 +633,13 @@ public:
      *       remain lock-free, because the state bits live in an atomic that is read without
      *       going through this lock. A stream therefore has exactly one lock, and no
      *       intra-stream lock order exists.
+     * @note **The lock order between a standard stream and stdio: this lock first, then the
+     *       `FILE` lock.** The eight standard streams hand their bytes to `stdout` / `stderr`
+     *       while holding this lock, and `fwrite` / `fflush` then take that `FILE`'s lock. So
+     *       writing `IOv2::cout` inside `flockfile(stdout)` deadlocks against another thread that
+     *       simply writes `IOv2::cout`, each waiting for the other's lock. To keep `printf` and
+     *       this library's output together, lock the streams to be written with `IOv2::sync`
+     *       first, then `flockfile`; see `IOv2::sync` for how.
      * @return A reference to this stream's `m_io_mutex`.
      * @endif
      */
@@ -1599,9 +1611,24 @@ inline void defaultfloat(ios_base<TChar>& base)
  *
  * @warning **持有本类期间对另一个流做 I/O，其锁序由调用方负责。** 每次 I/O 都会取该流的
  *          `io_mutex()`，于是 `sync(A); B << 1;` 就是同时持有两把流锁；两个线程以相反次序
- *          这么做即为经典的 AB-BA 死锁，与直接用两把 `std::mutex` 写错顺序无异。库这边保证
- *          自己不制造**用户看不见的**加锁边——tie 的刷新一律用非阻塞的 `try_flush()`
- *          （见 `stream_common_operators::tie`）——但用户自己写下的锁序，库无从代劳。
+ *          这么做即为经典的 AB-BA 死锁，与直接用两把 `std::mutex` 写错顺序无异。在流锁之间，
+ *          库这边保证自己不制造**用户看不见的**加锁边——tie 的刷新一律用不等锁的 `try_flush()`
+ *          （见 `stream_common_operators::tie`）；流锁与 stdio 的 `FILE` 锁之间的那条边见下一条。
+ *          用户自己写下的锁序，库无从代劳。
+ * @warning **与 stdio 混写时，`FILE` 锁要排在流锁之后。** 标准流写出时先持本流的 `io_mutex()`，
+ *          再取 `stdout` / `stderr` 的 `FILE` 锁（`fwrite` / `fflush`）。要用 `flockfile` 把
+ *          `printf` 与本库的输出圈成一段，必须先用本类锁住要写的每个流，再 `flockfile`：
+ *          @code
+ *            IOv2::sync guard(IOv2::cout);   // 先流锁
+ *            flockfile(stdout);               // 再 FILE 锁
+ *            std::printf("x = "); IOv2::cout << x;
+ *            funlockfile(stdout);
+ *          @endcode
+ *          两把锁都可重入，块内再写 `cout`、调 `printf` 不会卡住自己；所有写 `cout` 的线程都是
+ *          先流锁后 `FILE` 锁，不会成环。顺序反过来——先 `flockfile` 再写 `IOv2::cout`——就会与
+ *          另一个直接写 `cout` 的线程死锁；经 tie 也会：另一个线程只写 `cerr`，写前冲刷
+ *          `cout` 时拿到 `cout` 的锁，随即阻塞在 `FILE` 锁上。块内写了同用这个 `FILE`、却没有
+ *          锁住的流（如 `wcout`）同样可能死锁：要写哪几个流，就把它们都锁上，且所有线程顺序一致。
  * @warning **本类挡不住不取锁的操纵符流形式。** `io_manip.h` 的六个格式状态操纵符
  *          （`setw` / `setfill` / `setbase` / `setprecision` / `setiosflags` /
  *          `resetiosflags`）与本文件里 `hex` / `left` / `boolalpha` 那类函数指针操纵符，
@@ -1624,10 +1651,30 @@ inline void defaultfloat(ios_base<TChar>& base)
  * @warning **Doing I/O on another stream while holding one of these puts the lock order in the
  *          caller's hands.** Every I/O takes that stream's `io_mutex()`, so `sync(A); B << 1;`
  *          holds two stream locks at once; two threads doing that in opposite orders is the
- *          classic AB-BA deadlock, no different from misordering two plain `std::mutex`es. The
- *          library guarantees only that it creates no lock edge the user **cannot see** -- a tie
- *          flush always goes through the non-blocking `try_flush()`, see
- *          `stream_common_operators::tie` -- but it cannot order the locks the user writes.
+ *          classic AB-BA deadlock, no different from misordering two plain `std::mutex`es.
+ *          Between stream locks, the library guarantees only that it creates no lock edge the user
+ *          **cannot see** -- a tie flush always goes through `try_flush()`, which does not wait
+ *          for the lock, see `stream_common_operators::tie`; the edge between a stream lock and
+ *          stdio's `FILE` lock is the next warning. It cannot order the locks the user writes.
+ * @warning **When mixing with stdio, the `FILE` lock goes after the stream locks.** A standard
+ *          stream writes out holding its own `io_mutex()` and then takes the `FILE` lock of
+ *          `stdout` / `stderr` (`fwrite` / `fflush`). To keep `printf` and this library's
+ *          output together with `flockfile`, lock every stream to be written with this class
+ *          first, then `flockfile`:
+ *          @code
+ *            IOv2::sync guard(IOv2::cout);   // stream lock first
+ *            flockfile(stdout);               // then the FILE lock
+ *            std::printf("x = "); IOv2::cout << x;
+ *            funlockfile(stdout);
+ *          @endcode
+ *          Both locks are recursive, so writing `cout` or calling `printf` inside does not block
+ *          on itself, and every thread writing `cout` takes the stream lock before the `FILE`
+ *          lock, so no cycle forms. The other way round -- `flockfile` first, then writing
+ *          `IOv2::cout` -- deadlocks against another thread that simply writes `cout`; a tie does
+ *          it too: another thread writing only `cerr` takes `cout`'s lock to flush it first and
+ *          then blocks on the `FILE` lock. Writing, inside the block, a stream that shares this
+ *          `FILE` but is not locked (`wcout`, say) can deadlock as well: lock every stream to be
+ *          written, in the same order in every thread.
  * @warning **This class does not hold back the lock-free stream form of the manipulators.** The
  *          six formatting-state manipulators in `io_manip.h` (`setw`, `setfill`, `setbase`,
  *          `setprecision`, `setiosflags`, `resetiosflags`) and the function-pointer manipulators

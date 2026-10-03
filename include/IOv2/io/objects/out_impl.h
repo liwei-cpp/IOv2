@@ -56,6 +56,11 @@
  *       而 `wcerr` 与 `wclog`（连同 `cerr`、`printf`）共用 stderr 这一个 fd，交错输出无法可靠地
  *       解码。见 `cvt/code_cvt_stdio.h`。
  *
+ * @note **与 `printf` 混写时的锁序**：这些流写出时先持本流的 `io_mutex()`，再取 `stdout` /
+ *       `stderr` 的 `FILE` 锁。要用 `flockfile` 把 `printf` 与本库的输出圈成一段，须先用
+ *       `IOv2::sync` 锁住要写的流、再 `flockfile`；先 `flockfile` 再写本库的流会死锁。写法见
+ *       `io/io_base.h` 的 `IOv2::sync`。
+ *
  * @note 一般不直接包含本头文件，而是包含 `IOv2/io/objects/objects.h`：入口那里还有一次切换全部
  *       八个标准流的 `sync_with_stdio()` 与 `endl` / `ends` / `flush` 等操纵符，并说明了本系列
  *       头文件不带来哪些能力。
@@ -130,6 +135,12 @@
  *       encoding fails. The shift state lives in each wide stream's own converter while `wcerr`
  *       and `wclog` (and `cerr`, and `printf`) share the one stderr fd, so interleaved output
  *       cannot be decoded reliably. See `cvt/code_cvt_stdio.h`.
+ *
+ * @note **Lock order when mixing with `printf`**: these streams write out holding their own
+ *       `io_mutex()` and then take the `FILE` lock of `stdout` / `stderr`. To keep `printf` and
+ *       this library's output together with `flockfile`, lock the streams to be written with
+ *       `IOv2::sync` first, then `flockfile`; `flockfile` first and then writing one of these
+ *       streams deadlocks. See `IOv2::sync` in `io/io_base.h` for how.
  *
  * @note Prefer including `IOv2/io/objects/objects.h` over this header: the entry point also
  *       brings the `sync_with_stdio()` that switches all eight standard streams at once and
