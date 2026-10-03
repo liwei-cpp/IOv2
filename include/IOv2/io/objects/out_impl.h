@@ -23,8 +23,7 @@
  *          `try_to_lock` 至多试三次取本流的 `io_mutex()`，取不到就放弃，那一批已缓冲的字节
  *          丢掉。这是有意的取舍——若改成阻塞取锁，另一个线程持锁不放（在用户的
  *          `io_traits::swrite` 里等网络、等一个本该由正在退出的线程唤醒的条件变量，或
- *          `tie` 成环）就会让 `exit()` 永不返回；glibc 的 `_IO_cleanup` 用
- *          `_IO_flush_all_lockp(0)` 不取 FILE 锁，正是同一个理由。处于失败态（`eofbit`
+ *          `tie` 成环）就会让 `exit()` 永不返回。处于失败态（`eofbit`
  *          除外）的流退出时也不刷：钩子走的是流级 `flush()`，它对失败态什么也不做（`std::cout`
  *          相同）；失败后仍想要缓冲里的字节，先 `clear()` 再 `flush()`。要确保某一批输出一定到达
  *          设备，请在退出前自己 `flush()`，那时还有调用栈可以报告失败。
@@ -94,8 +93,7 @@
  *          thread holding it and not letting go -- parked inside a user's
  *          `io_traits::swrite` on a socket or on a condition variable the exiting thread was
  *          supposed to signal, or a `tie` cycle -- would keep `exit()` from ever returning.
- *          glibc's `_IO_cleanup` uses `_IO_flush_all_lockp(0)`, which takes no FILE lock, for
- *          the same reason. A stream in a failed state (`eofbit` aside) is not flushed at exit
+ *          A stream in a failed state (`eofbit` aside) is not flushed at exit
  *          either: the hook goes through the stream-level `flush()`, which does nothing on a
  *          failed stream (as with `std::cout`); to still get the buffered bytes out after a
  *          failure, `clear()` first and then `flush()`. To be sure a particular batch of
