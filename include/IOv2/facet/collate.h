@@ -128,7 +128,7 @@ public:
      * @return A `std::strong_ordering` value indicating the collation relationship.
      * @endif
      */
-    std::strong_ordering compare(const CharT* low1, const CharT* high1, const CharT* low2, const CharT* high2) const
+    [[nodiscard]] std::strong_ordering compare(const CharT* low1, const CharT* high1, const CharT* low2, const CharT* high2) const
     {
         return m_obj->compare(low1, high1, low2, high2);
     }
@@ -163,7 +163,7 @@ public:
      */
     template <typename TIter>
         requires (!std::is_convertible_v<TIter, const CharT*>)
-    std::strong_ordering compare(const CharT* low1, const CharT* high1, TIter low2, TIter high2) const
+    [[nodiscard]] std::strong_ordering compare(const CharT* low1, const CharT* high1, TIter low2, TIter high2) const
     {
         std::vector<CharT> buf2; buf2.reserve(64);
 
@@ -224,7 +224,7 @@ public:
      */
     template <typename TIter>
         requires (!std::is_convertible_v<TIter, const CharT*>)
-    std::strong_ordering compare(TIter low1, TIter high1, const CharT* low2, const CharT* high2) const
+    [[nodiscard]] std::strong_ordering compare(TIter low1, TIter high1, const CharT* low2, const CharT* high2) const
     {
         auto res = this->compare(low2, high2, low1, high1);
         if (res == std::strong_ordering::greater) return std::strong_ordering::less;
@@ -264,7 +264,7 @@ public:
      */
     template <typename TIter1, typename TIter2>
         requires (!(std::is_convertible_v<TIter1, const CharT*> || std::is_convertible_v<TIter2, const CharT*>))
-    std::strong_ordering compare(TIter1 low1, TIter1 high1, TIter2 low2, TIter2 high2) const
+    [[nodiscard]] std::strong_ordering compare(TIter1 low1, TIter1 high1, TIter2 low2, TIter2 high2) const
     {
         std::vector<CharT> buf1; buf1.reserve(64);
         std::vector<CharT> buf2; buf2.reserve(64);
@@ -306,7 +306,7 @@ public:
      * @return The number of characters required to store the complete collation key.
      * @endif
      */
-    std::size_t transform_length(const CharT* low, const CharT* high) const
+    [[nodiscard]] std::size_t transform_length(const CharT* low, const CharT* high) const
     {
         return m_obj->transform_length(low, high);
     }
@@ -337,7 +337,7 @@ public:
      */
     template <typename TIter>
         requires (!std::is_convertible_v<TIter, const CharT*>)
-    std::size_t transform_length(TIter low, TIter high) const
+    [[nodiscard]] std::size_t transform_length(TIter low, TIter high) const
     {
         std::size_t res = 0;
         std::vector<CharT> buf; buf.reserve(64);
