@@ -132,9 +132,11 @@ public:
      * 一次提取进行中（例如用户 `io_traits::sread` 里）重入调用：`io_mutex()` 是递归锁不会拦，
      * 但正在使用的 iochannel 会被整个换掉。与当前模式相同的调用什么也不做，也不取锁，
      * 不会等另一线程里阻塞着的读。
-     * （`wchar_t`）解码器随之带到新 iochannel（经 `code_cvt_stdio_state`），停在半个字符上的
-     * 字节不丢：同步模式下中途切换，后续字节照样解对；新建的解码器则不知道这半个字符，
-     * 会把后续字节解错。
+     * （`wchar_t`）解码器的状态随之带到新 iochannel（经 `code_cvt_stdio_state`）。流层调用
+     * 只有在输入于字符中间到达 EOF 时才会让解码器收着半个字符返回，所以带过去的唯一可见
+     * 效果是：此时切换不改变「`clear()` 之后仍置 `cvtfailbit`、到不了 eof」（见 `reset()`）。
+     * 非同步模式下已预读进缓冲、尚未解码的字节（半个字符也在其中）属于上面说的已缓冲输入，
+     * 照样丢弃。
      *
      * @warning 这里的「同步」只表示**不带读缓冲、每次 `read(0)` 只要本次操作所需的字节**
      *          （格式化提取与 `get` / `getline` 因逐字符探分隔符而逐字节，`read(buf, n)` 则是
@@ -178,10 +180,13 @@ public:
      * is recursive and will not stop it, but the iochannel in use is replaced wholesale.
      * A call asking for the current mode does nothing and takes no lock, so it does not wait
      * for a read blocked in another thread.
-     * (`wchar_t`) The decoder goes over to the new iochannel (through
-     * `code_cvt_stdio_state`), any bytes of half a character included: a switch in the
-     * middle of synchronized reading still decodes the bytes that follow correctly, where a
-     * freshly built decoder would not know about the half character and decode them wrong.
+     * (`wchar_t`) The decoder's state goes over to the new iochannel (through
+     * `code_cvt_stdio_state`). A stream-level call returns with the decoder holding half a
+     * character only when the input reached EOF in the middle of one, so the one visible
+     * effect is that a switch then leaves "`cvtfailbit` after every `clear()`, never eof"
+     * as it was (see `reset()`). Bytes an unsynchronized stream has read ahead into its
+     * buffer but not decoded yet, half a character among them, are buffered input as above
+     * and are discarded all the same.
      *
      * @warning "Synchronized" here means **no read buffer: each `read(0)` asks for just what
      *          the current operation needs** (formatted extraction and `get` / `getline` go
@@ -345,7 +350,7 @@ public:
      * 拿它在单元测试用例之间复位时要留意这一点：上个用例留下的 `noskipws` 不会被清掉。
      *
      * @note 重新附接这一步在标准流上**没有可失败的操作**：装的是同一 fd 的缺省设备，不分配、
-     *       不做 I/O、不重建 locale（转换状态的「重建」只是 `mbstate_t` 复位）——实测五个标准流在
+     *       不做 I/O、不重建 locale（转换状态的「重建」只是 `mbstate_t` 复位）——实测全部八个标准流在
      *       全部分配失败且 fd 指向 `/dev/full` 时 `reset()` 均 0 次分配、状态位全 0。围住它的
      *       `handle_exception` 只是兜底：若将来这里真抛了什么，转换器会停在未初始化状态，流不可用，
      *       须再次 `reset()`，`clear()` 不够。丢弃缓冲这一步在 fd 0 上同样不会失败（stdin 不可定位，
@@ -387,7 +392,7 @@ public:
      * @note Reattaching has **nothing that can fail** on a standard stream: it installs a
      *       default device on the same fd, allocates nothing, does no I/O and rebuilds no
      *       locale ("rebuilding" the conversion state is an `mbstate_t` reset) -- measured on
-     *       all five standard streams with every allocation failing and the fd on
+     *       all eight standard streams with every allocation failing and the fd on
      *       `/dev/full`: zero allocations, no state bit. The `handle_exception` around it is
      *       only a backstop: should something ever throw there, the converter is left
      *       uninitialized, the stream is unusable, and another `reset()` is required --
