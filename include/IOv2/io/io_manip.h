@@ -109,8 +109,8 @@
 #pragma once
 
 #include <IOv2/common/defs.h>
-#include <IOv2/common/metafunctions.h>
 #include <IOv2/common/iochannel_defs.h>
+#include <IOv2/common/metafunctions.h>
 #include <IOv2/facet/monetary.h>
 #include <IOv2/facet/timeio.h>
 #include <IOv2/io/io_base.h>
