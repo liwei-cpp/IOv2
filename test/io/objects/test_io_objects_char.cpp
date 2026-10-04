@@ -410,6 +410,35 @@ TEST(IoObjectsChar, SyncWithStdioCanBeQueriedWithoutSwitching)
     EXPECT_TRUE(IOv2::cin.synced_with_stdio());
 }
 
+// Asking an input stream for the mode it is already in has nothing to switch, so it
+// must not wait for the stream's lock -- which a read blocked in another thread holds
+// until input arrives. The free function asks cin and wcin the same.
+TEST(IoObjectsChar, SyncWithStdioToTheCurrentModeDoesNotWaitForABlockedRead)
+{
+    pipe_iguard g("");
+    IOv2::cin.reset();
+    ASSERT_TRUE(IOv2::cin.synced_with_stdio());
+
+    std::thread reader([] { EXPECT_EQ(IOv2::cin.get(), 'x'); });
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));   // let it block in read()
+
+    std::atomic<bool> fed{false};
+    std::thread late_writer([&]
+    {
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+        fed.store(true);
+        g.feed("x");
+    });
+
+    EXPECT_TRUE(IOv2::cin.sync_with_stdio(true));
+    IOv2::sync_with_stdio(true);
+    EXPECT_FALSE(fed.load()) << "it waited for the blocked read";
+
+    late_writer.join();
+    reader.join();
+    IOv2::cin.reset();
+}
+
 // Synchronized means this stream's bytes reach stdio in the order they were
 // written relative to printf. Switching back to it has to make that true of the
 // bytes already buffered, not only of the insertions that follow: the flag is

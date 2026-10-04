@@ -130,7 +130,8 @@ public:
      * 切换意味着换掉整个 iochannel（先 `detach()` 旧的，再以同一设备重建）。已缓冲但未消费的
      * 输入按 `io/iochannel.h` 的 `detach()` 契约丢弃；因此应在任何 stdin 读取之前调用，也**不得**在
      * 一次提取进行中（例如用户 `io_traits::sread` 里）重入调用：`io_mutex()` 是递归锁不会拦，
-     * 但正在使用的 iochannel 会被整个换掉。
+     * 但正在使用的 iochannel 会被整个换掉。与当前模式相同的调用什么也不做，也不取锁，
+     * 不会等另一线程里阻塞着的读。
      * （`wchar_t`）解码器随之带到新 iochannel（经 `code_cvt_stdio_state`），停在半个字符上的
      * 字节不丢：同步模式下中途切换，后续字节照样解对；新建的解码器则不知道这半个字符，
      * 会把后续字节解错。
@@ -175,6 +176,8 @@ public:
      * `detach()` contract in `io/iochannel.h`; call this before any stdin read, and **never**
      * re-enter it from inside an extraction (a user `io_traits::sread`, say): `io_mutex()`
      * is recursive and will not stop it, but the iochannel in use is replaced wholesale.
+     * A call asking for the current mode does nothing and takes no lock, so it does not wait
+     * for a read blocked in another thread.
      * (`wchar_t`) The decoder goes over to the new iochannel (through
      * `code_cvt_stdio_state`), any bytes of half a character included: a switch in the
      * middle of synchronized reading still decodes the bytes that follow correctly, where a
@@ -227,6 +230,10 @@ public:
      */
     bool sync_with_stdio(bool sync = true)
     {
+        // Nothing to switch: return before the lock, which a blocked read may hold for long.
+        if (m_sync_with_stdio.load() == sync)
+            return sync;
+
         std::lock_guard guard(this->io_mutex());
         auto old_sync_state = m_sync_with_stdio.load();
         if (old_sync_state == sync)
