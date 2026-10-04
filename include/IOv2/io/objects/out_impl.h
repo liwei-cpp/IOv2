@@ -511,7 +511,7 @@ public:
      *       `std::wcout` 上同样如此。
      *
      * @note 重新附接这一步在标准流上**没有可失败的操作**：装的是同一 fd 的缺省设备，不分配、
-     *       不做 I/O、不重建 locale——实测五个标准流在全部分配失败且 fd 指向 `/dev/full` 时
+     *       不做 I/O、不重建 locale——实测全部八个标准流在全部分配失败且 fd 指向 `/dev/full` 时
      *       `reset()` 均 0 次分配、状态位全 0。围住它的 `handle_exception` 只是兜底：若将来这里
      *       真抛了什么（`cvtfailbit` / `otherfailbit`），转换器会停在未初始化状态，流不可用，
      *       须再次 `reset()`，`clear()` 不够。
@@ -559,7 +559,7 @@ public:
      *
      * @note Reattaching has **nothing that can fail** on a standard stream: it installs a
      *       default device on the same fd, allocates nothing, does no I/O and rebuilds no
-     *       locale -- measured on all five standard streams with every allocation failing and
+     *       locale -- measured on all eight standard streams with every allocation failing and
      *       the fd on `/dev/full`: zero allocations, no state bit. The `handle_exception`
      *       around it is only a backstop: should something ever throw there (`cvtfailbit` /
      *       `otherfailbit`), the converter is left uninitialized, the stream is unusable, and
