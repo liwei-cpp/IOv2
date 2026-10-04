@@ -32,10 +32,10 @@
  */
 #pragma once
 #include <IOv2/common/defs.h>
+#include <IOv2/common/iochannel_defs.h>
 #include <IOv2/common/metafunctions.h>
 #include <IOv2/common/prefix_tree.h>
 #include <IOv2/common/stamp_input_iterator.h>
-#include <IOv2/common/iochannel_defs.h>
 #include <IOv2/facet/ctype.h>
 #include <IOv2/facet/facet_common.h>
 #include <IOv2/facet/timeio_details.h>

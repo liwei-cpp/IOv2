@@ -25,9 +25,9 @@
 #include <IOv2/common/defs.h>
 #include <IOv2/common/metafunctions.h>
 #include <IOv2/facet/ctype.h>
-#include <IOv2/io/traits/traits_base.h>
 #include <IOv2/io/io_base.h>
 #include <IOv2/io/iochannel_iterator.h>
+#include <IOv2/io/traits/traits_base.h>
 #include <IOv2/locale/locale.h>
 
 #include <concepts>

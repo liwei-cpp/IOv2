@@ -12,8 +12,8 @@
  */
 
 #pragma once
-#include <IOv2/common/metafunctions.h>
 #include <IOv2/common/iochannel_defs.h>
+#include <IOv2/common/metafunctions.h>
 
 #include <cassert>
 #include <concepts>
