@@ -15,8 +15,8 @@
  * `synced_with_stdio()`、`reset()` 与（宽流）`code()` / `switch_code()`，换设备的 `detach()` /
  * `attach()` 则被 `= delete`。
  *
- * 六个流对象经 `sing_temp` 成为进程级单例，退出钩子只 `try_flush()`、不析构——与 `std::cout`
- * 一样，退出阶段既有引用仍然有效。`cerr` / `wcerr` 构造时另外 `tie()` 到 `cout` / `wcout` 并置
+ * 六个流对象经 `sing_temp` 成为进程级单例，退出钩子先把本流切回同步、再 `try_flush()`，
+ * 不析构——与 `std::cout` 一样，退出阶段既有引用仍然有效。`cerr` / `wcerr` 构造时另外 `tie()` 到 `cout` / `wcout` 并置
  * `ios_defs::unitbuf`，三个 `char` 流与三个宽流共用 fd 1 / fd 2。
  *
  * @warning **退出时的刷新是「尽力而为」的**：钩子走 `out_flusher::try_flush()`，以
@@ -34,6 +34,12 @@
  *       冲刷 `FILE` 缓冲——与 `std::cout` 在这些路径上的行为逐字节相同（实测）。要在这类路径
  *       之前保住输出，请自己 `flush()`，并在 stdout 不是 tty 时再 `fflush(stdout)`（或
  *       `setvbuf(stdout, nullptr, _IONBF, 0)`）。
+ *
+ * @note **晚于退出钩子的插入**：头文件模式下，比本库更早登记的 `atexit` 函数与更早构造的
+ *       静态对象的析构在钩子之后才执行。钩子先把本流切回同步（此后 `synced_with_stdio()`
+ *       报 `true`），这些插入结束时就把字节交给 stdio，由 glibc 在退出的最后冲刷，不会因为
+ *       钩子已经跑过而留在本流缓冲里丢掉。它们按同步模式的规则报告失败：默认只置状态位，
+ *       `exceptions()` 掩码含该位时抛出。共享库模式下钩子本就最后执行。
  *
  * @note **「退出阶段仍可用」只覆盖本库自己的东西**：流对象、它们的 locale 与 facet，以及
  *       facet 触到的进程级数据（`timeio` 的时区树、`messages` 的文本域表）都不在退出时析构。
@@ -80,9 +86,9 @@
  * adds `sync_with_stdio()` / `synced_with_stdio()`, `reset()` and, on the wide streams, `code()` /
  * `switch_code()`, while `detach()` / `attach()`, which would replace the device, are `= delete`.
  *
- * All six stream objects are process-wide singletons through `sing_temp` whose exit hook only
- * calls `try_flush()` and never destroys them -- like `std::cout`, existing references stay
- * valid once exit begins. `cerr` / `wcerr` additionally tie themselves to `cout` / `wcout` at
+ * All six stream objects are process-wide singletons through `sing_temp` whose exit hook
+ * switches the stream back to synchronized, calls `try_flush()` and never destroys it -- like
+ * `std::cout`, existing references stay valid once exit begins. `cerr` / `wcerr` additionally tie themselves to `cout` / `wcout` at
  * construction and set `ios_defs::unitbuf`; the three `char` streams and the three wide
  * streams share fd 1 / fd 2 pairwise.
  *
@@ -108,6 +114,15 @@
  *       `std::cout` does on the same paths (measured). To keep output ahead of such a path,
  *       `flush()` yourself and, when stdout is not a tty, `fflush(stdout)` as well (or
  *       `setvbuf(stdout, nullptr, _IONBF, 0)`).
+ *
+ * @note **Insertions after the exit hook**: in header-only mode, `atexit` functions registered
+ *       before this library and the destructors of static objects constructed before it run
+ *       after the hook. The hook switches the stream back to synchronized first (so
+ *       `synced_with_stdio()` reports `true` from then on), so those insertions hand their
+ *       bytes to stdio as they finish and glibc flushes them last, instead of leaving them in
+ *       this stream's buffer after the hook has run. They report failure by the rules of
+ *       synchronized mode: a state bit by default, a throw when `exceptions()` includes it.
+ *       In shared-library mode the hook runs last anyway.
  *
  * @note **"Still usable while the process exits" covers this library's own parts only**: the
  *       stream objects, their locales and facets, and the process-wide data those facets reach
@@ -580,9 +595,17 @@ public:
     }
 
 protected:
+    // The exit hook. Synchronized first, so that an insertion after this hook (a destructor or
+    // atexit function registered earlier) hands its bytes to stdio, which glibc flushes last.
+    void flush_at_exit() noexcept
+    {
+        m_sync_with_stdio.store(true);
+        this->try_flush();
+    }
+
     ochannel<device_type, char_type> m_channel;
     IOv2::locale<char_type> m_locale;
-    copyable_atomic<bool> m_sync_with_stdio{true};   ///< @lang{ZH} 为 true 时每次插入结束（输出哨兵析构）都把本流缓冲推进 stdio 缓冲；与进程退出时的刷新无关。哨兵在构造时读它一次并沿用到析构，故本标志只影响之后**开始**的插入——切回同步时那批已缓冲的字节由 `sync_with_stdio` 自己持锁搬进 stdio 缓冲。原子量，使标志的翻转与 `synced_with_stdio()` 的查询可与并发输出操作安全竞争。 @endif @lang{EN} When true, every insertion (the output sentry's destructor) pushes this stream's buffer into the stdio buffer; unrelated to the flush at process exit. A sentry reads it once on construction and uses that value through its destructor, so the flag governs the insertions that **start** afterwards -- what was already buffered when switching back to synchronized is moved into stdio's buffer by `sync_with_stdio` itself, under the lock. Atomic so that flipping the flag and querying it through `synced_with_stdio()` are safe against concurrent output operations. @endif
+    copyable_atomic<bool> m_sync_with_stdio{true};   ///< @lang{ZH} 为 true 时每次插入结束（输出哨兵析构）都把本流缓冲推进 stdio 缓冲；退出钩子会把它置真（见文件头）。哨兵在构造时读它一次并沿用到析构，故本标志只影响之后**开始**的插入——切回同步时那批已缓冲的字节由 `sync_with_stdio` 自己持锁搬进 stdio 缓冲。原子量，使标志的翻转与 `synced_with_stdio()` 的查询可与并发输出操作安全竞争。 @endif @lang{EN} When true, every insertion (the output sentry's destructor) pushes this stream's buffer into the stdio buffer; the exit hook sets it (see the file header). A sentry reads it once on construction and uses that value through its destructor, so the flag governs the insertions that **start** afterwards -- what was already buffered when switching back to synchronized is moved into stdio's buffer by `sync_with_stdio` itself, under the lock. Atomic so that flipping the flag and querying it through `synced_with_stdio()` are safe against concurrent output operations. @endif
 };
 
 /// cout
@@ -594,7 +617,7 @@ class cout_t : public stdout_api<cout_t, std_device<STDOUT_FILENO>, char>
 
 private:
     cout_t()
-        : sing_temp<cout_t>([](cout_t* p) noexcept { p->try_flush(); })
+        : sing_temp<cout_t>([](cout_t* p) noexcept { p->flush_at_exit(); })
     {}
 
     cout_t(const cout_t&) = delete;
@@ -618,7 +641,7 @@ class cerr_t : public stdout_api<cerr_t, std_device<STDERR_FILENO>, char>
 private:
     cerr_t()
         : BT()
-        , sing_temp<cerr_t>([](cerr_t* p) noexcept { p->try_flush(); })
+        , sing_temp<cerr_t>([](cerr_t* p) noexcept { p->flush_at_exit(); })
     {
         tie(&cout);
         setf(ios_defs::unitbuf);
@@ -644,7 +667,7 @@ class clog_t : public stdout_api<clog_t, std_device<STDERR_FILENO>, char>
 
 private:
     clog_t()
-        : sing_temp<clog_t>([](clog_t* p) noexcept { p->try_flush(); })
+        : sing_temp<clog_t>([](clog_t* p) noexcept { p->flush_at_exit(); })
     {}
 
     clog_t(const clog_t&) = delete;
@@ -668,7 +691,7 @@ class wcout_t : public stdout_api<wcout_t, std_device<STDOUT_FILENO>, wchar_t>
 private:
     wcout_t()
         : BT(code_cvt_stdio_creator(IOv2::initial_locale_name(LC_CTYPE)))
-        , sing_temp<wcout_t>([](wcout_t* p) noexcept { p->try_flush(); })
+        , sing_temp<wcout_t>([](wcout_t* p) noexcept { p->flush_at_exit(); })
     {}
 
     wcout_t(const wcout_t&) = delete;
@@ -692,7 +715,7 @@ class wcerr_t : public stdout_api<wcerr_t, std_device<STDERR_FILENO>, wchar_t>
 private:
     wcerr_t()
         : BT(code_cvt_stdio_creator(IOv2::initial_locale_name(LC_CTYPE)))
-        , sing_temp<wcerr_t>([](wcerr_t* p) noexcept { p->try_flush(); })
+        , sing_temp<wcerr_t>([](wcerr_t* p) noexcept { p->flush_at_exit(); })
     {
         tie(&wcout);
         setf(ios_defs::unitbuf);
@@ -719,7 +742,7 @@ class wclog_t : public stdout_api<wclog_t, std_device<STDERR_FILENO>, wchar_t>
 private:
     wclog_t()
         : BT(code_cvt_stdio_creator(IOv2::initial_locale_name(LC_CTYPE)))
-        , sing_temp<wclog_t>([](wclog_t* p) noexcept { p->try_flush(); })
+        , sing_temp<wclog_t>([](wclog_t* p) noexcept { p->flush_at_exit(); })
     {}
 
     wclog_t(const wclog_t&) = delete;
