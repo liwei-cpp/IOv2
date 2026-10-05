@@ -20,10 +20,8 @@
 #include <IOv2/common/clocale_wrapper.h>
 #include <IOv2/common/defs.h>
 #include <IOv2/common/metafunctions.h>
-#include <IOv2/cvt/cvt_facilities.h>
 #include <IOv2/facet/facet_common.h>
 
-#include <algorithm>
 #include <array>
 #include <compare>
 #include <cstddef>
@@ -32,7 +30,6 @@
 #include <cwchar>
 #include <string>
 #include <type_traits>
-#include <vector>
 
 namespace IOv2
 {
@@ -45,7 +42,7 @@ template <typename CharT> class collate_conf;
  *
  * 通过 C 标准库的 `strcoll`/`strxfrm` 和宽字符 `wcscoll`/`wcsxfrm`
  * 实现基于 locale 的字符串比较与排序键变换。
- * 字符序列以空字符（`\0`）为段分隔符，各段依次独立处理。
+ * 所有输入均为以空字符结尾的字符串；按内嵌空字符分段由 `collate` facet 负责。
  *
  * @note 此类不是线程安全的，多线程并发由更高层次的代码处理。
  *
@@ -57,8 +54,8 @@ template <typename CharT> class collate_conf;
  *
  * Implements locale-aware string comparison and collation-key transformation
  * via the C standard library's `strcoll`/`strxfrm` and wide-character
- * `wcscoll`/`wcsxfrm`. Character sequences are processed segment by segment,
- * with null characters (`\0`) acting as segment delimiters.
+ * `wcscoll`/`wcsxfrm`. Every input is a null-terminated string; splitting a
+ * sequence at embedded null characters is the job of the `collate` facet.
  *
  * @note This class is not thread-safe; multi-threading is handled at a higher level.
  *
@@ -102,7 +99,7 @@ public:
      * COLLATE 编码集一致，故探测结果可代表两者的实际编码。
      *
      * @param name locale 名称字符串（例如 `"zh_CN.UTF-8"`）。
-     * @throw cvt_error 若 `CharT` 为 `char8_t` 且 inter locale 的编码集不是 UTF-8。
+     * @throw stream_error 若 `CharT` 为 `char8_t` 且 inter locale 的编码集不是 UTF-8。
      * @endif
      *
      * @lang{EN}
@@ -118,7 +115,7 @@ public:
      * so agreement here means `strcoll`/`strxfrm` agree.
      *
      * @param name The locale name string (e.g., `"zh_CN.UTF-8"`).
-     * @throw cvt_error If `CharT` is `char8_t` and the inter locale's codeset is not UTF-8.
+     * @throw stream_error If `CharT` is `char8_t` and the inter locale's codeset is not UTF-8.
      * @endif
      */
     collate_conf(const std::string& name)
@@ -140,7 +137,7 @@ public:
                 std::mbstate_t st{};
                 std::size_t n = std::mbrtoc32(&c32, p.mb, p.len, &st);
                 if ((n != p.len) || (c32 != p.cp))
-                    throw cvt_error("collate_conf<char8_t>: inter locale is not UTF-8");
+                    throw stream_error("collate_conf<char8_t>: inter locale is not UTF-8");
             }
         }
     }
@@ -148,301 +145,163 @@ public:
 public:
     /**
      * @lang{ZH}
-     * @brief 比较两个字符序列的排列顺序。
+     * @brief 比较两个以空字符结尾的字符串的排列顺序。
      *
-     * 使用当前 locale 的 `strcoll`/`wcscoll` 逐段比较两个字符序列。
-     * 序列以空字符（`\0`）为分隔符拆分为多个段，各段依次比较。
-     * 若所有段均相等，则根据序列末尾是否存在额外的空字符来决定最终顺序。
+     * 在 inter locale 下调用 `strcoll`/`wcscoll`。不处理内嵌的空字符：
+     * 按空字符分段由 `collate` facet 负责。
      *
-     * @param low1 第一个序列的起始指针。
-     * @param high1 第一个序列的结束指针（不包含）。
-     * @param low2 第二个序列的起始指针。
-     * @param high2 第二个序列的结束指针（不包含）。
-     * @return 表示两序列排列关系的 `std::strong_ordering` 值。
+     * 结果为 `std::weak_ordering`：`strcoll` 返回 0 只表示两串等价，
+     * 内容不同的串也可能等价（例如某些在所有层级上都被忽略的字符）。
+     *
+     * @param s1 第一个字符串，以空字符结尾。
+     * @param s2 第二个字符串，以空字符结尾。
+     * @return 表示两串排列关系的 `std::weak_ordering` 值。
      * @endif
      *
      * @lang{EN}
-     * @brief Compares the collation order of two character sequences.
+     * @brief Compares the collation order of two null-terminated strings.
      *
-     * Compares two character sequences segment by segment using the locale's
-     * `strcoll`/`wcscoll`. Each sequence is split into segments delimited by
-     * null characters (`\0`), and segments are compared in order. If all
-     * segments are equal, the final ordering is determined by whether an
-     * extra null character is present at the end of either sequence.
+     * Calls `strcoll`/`wcscoll` under the inter locale. Embedded null
+     * characters are not handled here: splitting into null-delimited segments
+     * is the job of the `collate` facet.
      *
-     * @param low1 Pointer to the start of the first sequence.
-     * @param high1 Pointer to one past the end of the first sequence.
-     * @param low2 Pointer to the start of the second sequence.
-     * @param high2 Pointer to one past the end of the second sequence.
-     * @return A `std::strong_ordering` value indicating the collation relationship.
+     * The result is a `std::weak_ordering`: `strcoll` returning 0 only means
+     * the two strings are equivalent, and strings with different contents may
+     * be equivalent (e.g. characters ignored at every collation level).
+     *
+     * @param s1 The first string, null-terminated.
+     * @param s2 The second string, null-terminated.
+     * @return A `std::weak_ordering` value indicating the collation relationship.
      * @endif
      */
-    virtual std::strong_ordering compare(const CharT* low1, const CharT* high1,
-                                         const CharT* low2, const CharT* high2) const
+    virtual std::weak_ordering compare(const CharT* s1, const CharT* s2) const
     {
-        std::vector<CharT> buf1; bool extra_eos1 = false;
-        std::vector<CharT> buf2; bool extra_eos2 = false;
-
         clocale_user guard(m_inter_locale);
 
-        while ((low1 != high1) && (low2 != high2))
-        {
-            const CharT* cl1 = low1;
-            if (auto ch1 = std::find(low1, high1, static_cast<CharT>(0)); ch1 == high1)
-            {
-                auto data_len = high1 - low1;
-                buf1.resize(data_len + 1 + SIMD_PADDING_BYTES / sizeof(CharT));
-                std::copy(low1, high1, buf1.data());
-                buf1[data_len] = static_cast<CharT>(0);
-                extra_eos1 = true;
-                cl1 = buf1.data();
-                low1 = high1;
-            }
-            else low1 = ch1 + 1;
+        int c_res = 0;
+        if constexpr (std::is_same_v<CharT, char>)
+            c_res = std::strcoll(s1, s2);
+        else if constexpr (std::is_same_v<CharT, wchar_t>)
+            c_res = std::wcscoll(s1, s2);
+        else if constexpr (std::is_same_v<CharT, char8_t>)
+            c_res = std::strcoll(reinterpret_cast<const char*>(s1),    // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
+                                 reinterpret_cast<const char*>(s2));   // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
+        else if constexpr ((std::is_same_v<CharT, char32_t> &&
+                           wchar_t_is_utf32))
+            c_res = std::wcscoll(reinterpret_cast<const wchar_t*>(s1),  // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
+                                 reinterpret_cast<const wchar_t*>(s2)); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
+        else
+            static_assert(dependent_false_v<CharT>, "collate_conf::compare is not implemented.");
 
-            const CharT* cl2 = low2;
-            if (auto ch2 = std::find(low2, high2, static_cast<CharT>(0)); ch2 == high2)
-            {
-                auto data_len = high2 - low2;
-                buf2.resize(data_len + 1 + SIMD_PADDING_BYTES / sizeof(CharT));
-                std::copy(low2, high2, buf2.data());
-                buf2[data_len] = static_cast<CharT>(0);
-                extra_eos2 = true;
-                cl2 = buf2.data();
-                low2 = high2;
-            }
-            else low2 = ch2 + 1;
-
-            int c_res = 0;
-            if constexpr (std::is_same_v<CharT, char>)
-                c_res = std::strcoll(cl1, cl2);
-            else if constexpr (std::is_same_v<CharT, wchar_t>)
-                c_res = std::wcscoll(cl1, cl2);
-            else if constexpr (std::is_same_v<CharT, char8_t>)
-                c_res = std::strcoll(reinterpret_cast<const char*>(cl1),    // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
-                                     reinterpret_cast<const char*>(cl2));   // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
-            else if constexpr (wchar_t_is_utf32)
-            {
-                if constexpr (std::is_same_v<CharT, char32_t>)
-                    c_res = std::wcscoll(reinterpret_cast<const wchar_t*>(cl1),  // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
-                                         reinterpret_cast<const wchar_t*>(cl2)); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
-                else
-                    static_assert(dependent_false_v<CharT>, "collate_conf::compare is not implemented.");
-            }
-            else
-                static_assert(dependent_false_v<CharT>, "collate_conf::compare is not implemented.");
-
-            if (c_res < 0) return std::strong_ordering::less;
-            if (c_res > 0) return std::strong_ordering::greater;
-        }
-
-        if (low1 != high1) return std::strong_ordering::greater;
-        if (low2 != high2) return std::strong_ordering::less;
-        if (extra_eos1 && !extra_eos2) return std::strong_ordering::less;
-        if (!extra_eos1 && extra_eos2) return std::strong_ordering::greater;
-        return std::strong_ordering::equal;
+        return c_res <=> 0;
     }
 
     /**
      * @lang{ZH}
-     * @brief 计算排序键变换后所需的存储长度。
+     * @brief 计算以空字符结尾的字符串的排序键长度。
      *
-     * 对字符序列中每个以空字符分隔的段，调用 `strxfrm`/`wcsxfrm`（传入空目标缓冲区）
-     * 以获取各段变换后的长度，并将各段长度及段间分隔符累加后返回总长度。
-     * 该返回值可用作 `transform()` 所需目标缓冲区的容量。
+     * 在 inter locale 下调用 `strxfrm`/`wcsxfrm`（目标缓冲区为空、容量为 0）。
+     * 返回值不含结尾空字符；调用 `transform()` 时目标容量须至少为返回值加 1。
      *
-     * @param low 字符序列的起始指针。
-     * @param high 字符序列的结束指针（不包含）。
-     * @return 存储完整排序键所需的字符数。
-     * @throw cvt_error 若 `strxfrm`/`wcsxfrm` 报告失败。
+     * @param src 待变换的字符串，以空字符结尾。
+     * @return 排序键的字符数，不含结尾空字符。
+     * @throw stream_error 若 `strxfrm`/`wcsxfrm` 报告失败。
      * @endif
      *
      * @lang{EN}
-     * @brief Computes the storage length required for the collation-key transformation.
+     * @brief Computes the collation-key length of a null-terminated string.
      *
-     * For each null-delimited segment in the character sequence, calls
-     * `strxfrm`/`wcsxfrm` with a null destination buffer to obtain the transformed
-     * length of that segment. The total length, including inter-segment separators,
-     * is accumulated and returned. The result can be used as the capacity for the
-     * destination buffer passed to `transform()`.
+     * Calls `strxfrm`/`wcsxfrm` under the inter locale with a null destination
+     * and zero capacity. The result excludes the terminating null character;
+     * the destination passed to `transform()` needs a capacity of at least the
+     * result plus 1.
      *
-     * @param low Pointer to the start of the character sequence.
-     * @param high Pointer to one past the end of the character sequence.
-     * @return The number of characters required to store the complete collation key.
-     * @throw cvt_error If `strxfrm`/`wcsxfrm` reports failure.
+     * @param src The string to transform, null-terminated.
+     * @return The number of characters in the collation key, excluding the terminating null.
+     * @throw stream_error If `strxfrm`/`wcsxfrm` reports failure.
      * @endif
      */
-    virtual std::size_t transform_length(const CharT* low, const CharT* high) const
+    virtual std::size_t transform_length(const CharT* src) const
     {
-        std::size_t res = 0;
-        std::vector<CharT> buf;
-
         clocale_user guard(m_inter_locale);
-        while (low != high)
-        {
-            const CharT* cur = low;
-            if (auto next = std::find(low, high, static_cast<CharT>(0)); next == high)
-            {
-                auto data_len = high - low;
-                buf.resize(data_len + 1 + SIMD_PADDING_BYTES / sizeof(CharT));
-                std::copy(low, high, buf.data());
-                buf[data_len] = static_cast<CharT>(0);
-                cur = buf.data();
-                low = high;
-            }
-            else
-            {
-                low = next + 1;
-                ++res;  // for the terminal character
-            }
 
-            std::size_t seg_len = 0;
-            if constexpr (std::is_same_v<CharT, char>)
-                seg_len = strxfrm(nullptr, cur, 0);
-            else if constexpr (std::is_same_v<CharT, wchar_t>)
-                seg_len = wcsxfrm(nullptr, cur, 0);
-            else if constexpr (std::is_same_v<CharT, char8_t>)
-                seg_len = strxfrm(nullptr, reinterpret_cast<const char*>(cur), 0);   // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
-            else if constexpr (wchar_t_is_utf32)
-            {
-                if constexpr (std::is_same_v<CharT, char32_t>)
-                    seg_len = wcsxfrm(nullptr, reinterpret_cast<const wchar_t*>(cur), 0); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
-                else
-                    static_assert(dependent_false_v<CharT>, "collate_conf::transform_length is not implemented.");
-            }
-            else
-                static_assert(dependent_false_v<CharT>, "collate_conf::transform_length is not implemented.");
+        std::size_t res = 0;
+        if constexpr (std::is_same_v<CharT, char>)
+            res = std::strxfrm(nullptr, src, 0);
+        else if constexpr (std::is_same_v<CharT, wchar_t>)
+            res = std::wcsxfrm(nullptr, src, 0);
+        else if constexpr (std::is_same_v<CharT, char8_t>)
+            res = std::strxfrm(nullptr, reinterpret_cast<const char*>(src), 0);   // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
+        else if constexpr ((std::is_same_v<CharT, char32_t> &&
+                           wchar_t_is_utf32))
+            res = std::wcsxfrm(nullptr, reinterpret_cast<const wchar_t*>(src), 0); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
+        else
+            static_assert(dependent_false_v<CharT>, "collate_conf::transform_length is not implemented.");
 
-            if (seg_len == xfrm_failed)
-                throw cvt_error("collate_conf::transform_length: strxfrm/wcsxfrm failed");
-            res += seg_len;
-        }
-
+        if (res == xfrm_failed)
+            throw stream_error("collate_conf::transform_length: strxfrm/wcsxfrm failed");
         return res;
     }
 
     /**
      * @lang{ZH}
-     * @brief 将字符序列变换为不透明的排序键。
+     * @brief 将以空字符结尾的字符串变换为不透明的排序键。
      *
-     * 对字符序列中每个以空字符分隔的段，调用 `strxfrm`/`wcsxfrm` 将其变换为排序权重，
-     * 并将结果写入 `dest`。输出的字节是保序的排序权重——对结果执行 `strcmp`/`wcscmp`
-     * 等价于对原始输入执行 `strcoll`/`wcscoll`——并非可读的字符序列，也不应被解码。
-     * 各段之间以空字符 `'\0'` 分隔以保持段间结构。
+     * 在 inter locale 下调用 `strxfrm`/`wcsxfrm`，将排序键及结尾空字符写入 `dest`。
+     * 输出是保序的排序权重——对结果执行 `strcmp`/`wcscmp` 等价于对原串执行
+     * `strcoll`/`wcscoll`——并非可读的字符序列，也不应被解码。
      *
-     * @param low 字符序列的起始指针。
-     * @param high 字符序列的结束指针（不包含）。
+     * @param src 待变换的字符串，以空字符结尾。
      * @param dest 写入排序键的目标缓冲区。
-     * @param mx_len 最多写入的字符数；传入 `0` 表示不限制。
-     * @return 实际写入 `dest` 的字符数。
-     * @throw cvt_error 若 `strxfrm`/`wcsxfrm` 报告失败。
+     * @param n `dest` 的容量（字符数），须大于 `transform_length(src)`。
+     * @return 排序键的字符数，不含结尾空字符。
+     * @throw stream_error 若 `strxfrm`/`wcsxfrm` 报告失败，或 `n` 不足以容纳排序键及结尾空字符。
      * @endif
      *
      * @lang{EN}
-     * @brief Transforms a character sequence into an opaque collation key.
+     * @brief Transforms a null-terminated string into an opaque collation key.
      *
-     * For each null-delimited segment in the character sequence, calls
-     * `strxfrm`/`wcsxfrm` to produce order-preserving sort weights, and writes
-     * the result into `dest`. The output bytes are collation weights — comparing
-     * the result with `strcmp`/`wcscmp` reproduces the `strcoll`/`wcscoll` order
-     * on the original input — and are not a readable or valid character sequence;
-     * they must never be decoded. Segments are separated by null characters `'\0'`
-     * to preserve inter-segment structure.
+     * Calls `strxfrm`/`wcsxfrm` under the inter locale, writing the collation
+     * key and a terminating null character into `dest`. The output is
+     * order-preserving sort weights — comparing results with `strcmp`/`wcscmp`
+     * reproduces the `strcoll`/`wcscoll` order on the original strings — and is
+     * not a readable or valid character sequence; it must never be decoded.
      *
-     * @param low Pointer to the start of the character sequence.
-     * @param high Pointer to one past the end of the character sequence.
+     * @param src The string to transform, null-terminated.
      * @param dest Destination buffer where the collation key is written.
-     * @param mx_len Maximum number of characters to write; pass `0` for unlimited.
-     * @return The number of characters actually written to `dest`.
-     * @throw cvt_error If `strxfrm`/`wcsxfrm` reports failure.
+     * @param n Capacity of `dest` in characters; must exceed `transform_length(src)`.
+     * @return The number of characters in the collation key, excluding the terminating null.
+     * @throw stream_error If `strxfrm`/`wcsxfrm` reports failure, or `n` cannot hold
+     *        the key plus its terminating null.
      * @endif
      */
-    virtual std::size_t transform(const CharT* low, const CharT* high, CharT* dest, std::size_t mx_len = 0) const
+    virtual std::size_t transform(const CharT* src, CharT* dest, std::size_t n) const
     {
-        std::size_t trans_count = 0;
-        // All buffers are hoisted out of the loop so resize() reuses their
-        // capacity instead of reallocating per segment.
-        // buf  : input staging — null-terminated copy of a segment that has
-        //        no embedded '\0' (so cur can point at a terminated string).
-        // buf2 : output staging for strxfrm/wcsxfrm.
-        std::vector<CharT> buf;
-        std::vector<CharT> buf2;
-        bool extra_eos = false;
-
         clocale_user guard(m_inter_locale);
-        while ((low != high) && ((mx_len == 0) || (trans_count < mx_len)))
-        {
-            const CharT* cur = low;
-            if (auto next = std::find(low, high, static_cast<CharT>(0)); next == high)
-            {
-                auto data_len = high - low;
-                buf.resize(data_len + 1 + SIMD_PADDING_BYTES / sizeof(CharT));
-                std::copy(low, high, buf.data());
-                buf[data_len] = static_cast<CharT>(0);
-                cur = buf.data();
-                low = high;
-                extra_eos = true;
-            }
-            else
-                low = next + 1;
 
-            {
-                // strxfrm/wcsxfrm always append a terminating '\0' (writing
-                // cur_trans + 1 elements). Transform into the reused buffer
-                // first, then copy exactly cur_trans elements to dest, so the
-                // appended '\0' is discarded. Writing it straight into dest
-                // would overflow the caller's buffer by one on the trailing
-                // segment, for which transform_length only accounts for
-                // cur_trans (no terminator).
-                std::size_t trans_len = 0;
-                if constexpr (std::is_same_v<CharT, char>)
-                    trans_len = strxfrm(nullptr, cur, 0);
-                else if constexpr (std::is_same_v<CharT, wchar_t>)
-                    trans_len = wcsxfrm(nullptr, cur, 0);
-                else if constexpr (std::is_same_v<CharT, char8_t>)
-                    trans_len = strxfrm(nullptr, reinterpret_cast<const char*>(cur), 0);   // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
-                else if constexpr ((std::is_same_v<CharT, char32_t> &&
-                                   wchar_t_is_utf32))
-                    trans_len = wcsxfrm(nullptr, reinterpret_cast<const wchar_t*>(cur), 0); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
-                else
-                    static_assert(dependent_false_v<CharT>, "collate_conf::transform is not implemented.");
+        std::size_t res = 0;
+        if constexpr (std::is_same_v<CharT, char>)
+            res = std::strxfrm(dest, src, n);
+        else if constexpr (std::is_same_v<CharT, wchar_t>)
+            res = std::wcsxfrm(dest, src, n);
+        else if constexpr (std::is_same_v<CharT, char8_t>)
+            res = std::strxfrm(reinterpret_cast<char*>(dest),         // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
+                               reinterpret_cast<const char*>(src),    // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
+                               n);
+        else if constexpr ((std::is_same_v<CharT, char32_t> &&
+                           wchar_t_is_utf32))
+            res = std::wcsxfrm(reinterpret_cast<wchar_t*>(dest),      // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
+                               reinterpret_cast<const wchar_t*>(src), // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
+                               n);
+        else
+            static_assert(dependent_false_v<CharT>, "collate_conf::transform is not implemented.");
 
-                if (trans_len == xfrm_failed)
-                    throw cvt_error("collate_conf::transform: strxfrm/wcsxfrm failed");
-                buf2.resize(trans_len + 1);
-
-                std::size_t cur_trans = 0;
-                if constexpr (std::is_same_v<CharT, char>)
-                    cur_trans = strxfrm(buf2.data(), cur, buf2.size());
-                else if constexpr (std::is_same_v<CharT, wchar_t>)
-                    cur_trans = wcsxfrm(buf2.data(), cur, buf2.size());
-                else if constexpr (std::is_same_v<CharT, char8_t>)
-                    cur_trans = strxfrm(reinterpret_cast<char*>(buf2.data()),         // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
-                                        reinterpret_cast<const char*>(cur),           // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
-                                        buf2.size());
-                else if constexpr ((std::is_same_v<CharT, char32_t> &&
-                                   wchar_t_is_utf32))
-                    cur_trans = wcsxfrm(reinterpret_cast<wchar_t*>(buf2.data()),      // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
-                                        reinterpret_cast<const wchar_t*>(cur),        // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
-                                        buf2.size());
-                else
-                    static_assert(dependent_false_v<CharT>, "collate_conf::transform is not implemented.");
-
-                if (cur_trans == xfrm_failed)
-                    throw cvt_error("collate_conf::transform: strxfrm/wcsxfrm failed");
-                if (mx_len != 0)
-                    cur_trans = std::min(cur_trans, mx_len - trans_count);
-                dest = std::copy(buf2.data(), buf2.data() + cur_trans, dest);
-                trans_count += cur_trans;
-            }
-
-            if ((!extra_eos) && ((mx_len == 0) || (trans_count < mx_len)))
-            {
-                *dest++ = '\0';
-                ++trans_count;
-            }
-        }
-        return trans_count;
+        if (res == xfrm_failed)
+            throw stream_error("collate_conf::transform: strxfrm/wcsxfrm failed");
+        // A short buffer leaves dest indeterminate; never hand that back as a key.
+        if (res >= n)
+            throw stream_error("collate_conf::transform: destination too small");
+        return res;
     }
 private:
     /**

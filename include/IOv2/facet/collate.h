@@ -5,18 +5,20 @@
  * @file collate.h
  * @lang{ZH}
  * 定义了 `collate<CharT>` facet 类，提供基于 locale 的字符串比较与排序键变换功能。
- * 该类封装了 `collate_conf<CharT>` 的共享实例，并通过多个重载接口同时支持
- * 原始指针范围和泛型迭代器范围两种输入输出形式。
+ * 该类封装了 `collate_conf<CharT>` 的共享实例，接口以迭代器范围为输入，
+ * 负责按空字符分段，底层 `collate_conf` 只处理以空字符结尾的单个字符串。
  * @endif
  *
  * @lang{EN}
  * Defines the `collate<CharT>` facet class, providing locale-aware string comparison
  * and collation-key transformation. The class wraps a shared instance of
- * `collate_conf<CharT>` and exposes multiple overloads that accept both raw-pointer
- * ranges and generic-iterator ranges as input and output.
+ * `collate_conf<CharT>` and takes iterator ranges as input. It splits the input
+ * at null characters; the underlying `collate_conf` only handles single
+ * null-terminated strings.
  * @endif
  */
 #pragma once
+#include <IOv2/common/defs.h>
 #include <IOv2/common/metafunctions.h>
 #include <IOv2/facet/collate_details.h>
 #include <IOv2/facet/facet_common.h>
@@ -24,6 +26,8 @@
 #include <algorithm>
 #include <compare>
 #include <cstddef>
+#include <iterator>
+#include <limits>
 #include <memory>
 #include <type_traits>
 #include <utility>
@@ -35,9 +39,10 @@ namespace IOv2
  * @lang{ZH}
  * @brief 基于 locale 的字符串排序 facet。
  *
- * 封装 `collate_conf<CharT>` 的共享实例，提供对原始指针范围和泛型迭代器范围
- * 均适用的 `compare()`、`transform_length()` 和 `transform()` 接口。
- * 字符序列以空字符（`\0`）为段分隔符，各段独立处理。
+ * 封装 `collate_conf<CharT>` 的共享实例，提供以迭代器范围为输入的
+ * `compare()`、`transform_length()` 和 `transform()` 接口。
+ * 字符序列以空字符（`\0`）为段分隔符，各段依次交给 `collate_conf` 处理。
+ * 指针或连续迭代器输入中以空字符结束的段不做拷贝。
  *
  * @tparam CharT 字符类型，支持 `char`、`wchar_t`、`char8_t` 和 `char32_t`（仅限 UTF-32 平台）。
  * @endif
@@ -46,9 +51,10 @@ namespace IOv2
  * @brief A locale-aware string collation facet.
  *
  * Wraps a shared instance of `collate_conf<CharT>` and exposes `compare()`,
- * `transform_length()`, and `transform()` interfaces that accept both raw-pointer
- * ranges and generic-iterator ranges. Character sequences are processed segment
- * by segment, with null characters (`\0`) acting as segment delimiters.
+ * `transform_length()`, and `transform()` interfaces that take iterator ranges.
+ * Character sequences are split at null characters (`\0`), and each segment is
+ * passed to `collate_conf` in turn. Segments of a pointer or contiguous-iterator
+ * input that end at a null character are not copied.
  *
  * @tparam CharT The character type. Supports `char`, `wchar_t`, `char8_t`, and
  *               `char32_t` (only on platforms where `wchar_t` is UTF-32).
@@ -86,7 +92,7 @@ public:
      *
      * @tparam TConfPtr 满足 `shared_ptr_to<collate_conf<CharT>>` 约束的共享指针类型。
      * @param p_obj 指向配置对象的共享指针，不得为空。
-     * @throw std::runtime_error 若 `p_obj` 为空。
+     * @throw stream_error 若 `p_obj` 为空。
      * @endif
      *
      * @lang{EN}
@@ -94,518 +100,325 @@ public:
      *
      * @tparam TConfPtr A shared pointer type satisfying the `shared_ptr_to<collate_conf<CharT>>` constraint.
      * @param p_obj A shared pointer to the configuration object; must not be null.
-     * @throw std::runtime_error If `p_obj` is null.
+     * @throw stream_error If `p_obj` is null.
      * @endif
      */
     template <shared_ptr_to<collate_conf<CharT>> TConfPtr>
     collate(TConfPtr p_obj)
         : m_obj(p_obj)
-    { if (!m_obj) throw std::runtime_error("shared_ptr is empty"); }
+    { if (!m_obj) throw stream_error("shared_ptr is empty"); }
 
 public:
     /**
      * @lang{ZH}
-     * @brief 比较两个原始指针范围所表示的字符序列的排列顺序。
+     * @brief 比较两个字符序列的排列顺序。
      *
-     * 直接委托给底层 `collate_conf` 实现。
+     * 两个序列各自按空字符分段，逐段交给底层 `collate_conf::compare()` 比较，
+     * 遇到不等价的段即返回。两段等价时：若一方在输入中以空字符结束而另一方没有，
+     * 没有的一方（即其输入的最后一段）较小，例如 `"abc"` < `"abc\0"`；
+     * 若两段都以空字符结束，则继续比较下一段。
+     * 全部比较完后，尚有剩余输入的一方较大。
      *
-     * @param low1 第一个序列的起始指针。
-     * @param high1 第一个序列的结束指针（不包含）。
-     * @param low2 第二个序列的起始指针。
-     * @param high2 第二个序列的结束指针（不包含）。
-     * @return 表示两序列排列关系的 `std::strong_ordering` 值。
-     * @endif
+     * 指针或连续迭代器输入中以空字符结束的段不做拷贝，其余段会拷贝到暂存区。
      *
-     * @lang{EN}
-     * @brief Compares the collation order of two character sequences represented as raw pointer ranges.
-     *
-     * Delegates directly to the underlying `collate_conf` implementation.
-     *
-     * @param low1 Pointer to the start of the first sequence.
-     * @param high1 Pointer to one past the end of the first sequence.
-     * @param low2 Pointer to the start of the second sequence.
-     * @param high2 Pointer to one past the end of the second sequence.
-     * @return A `std::strong_ordering` value indicating the collation relationship.
-     * @endif
-     */
-    [[nodiscard]] std::strong_ordering compare(const CharT* low1, const CharT* high1, const CharT* low2, const CharT* high2) const
-    {
-        return m_obj->compare(low1, high1, low2, high2);
-    }
-
-    /**
-     * @lang{ZH}
-     * @brief 比较一个原始指针范围与一个泛型迭代器范围的排列顺序。
-     *
-     * 将迭代器一侧逐段物化到缓冲区后，与指针一侧逐段进行比较。
-     *
-     * @tparam TIter 不可隐式转换为 `const CharT*` 的迭代器类型。
-     * @param low1 第一个序列（指针范围）的起始指针。
-     * @param high1 第一个序列（指针范围）的结束指针（不包含）。
-     * @param low2 第二个序列（迭代器范围）的起始迭代器。
-     * @param high2 第二个序列（迭代器范围）的结束迭代器。
-     * @return 表示两序列排列关系的 `std::strong_ordering` 值。
-     * @endif
-     *
-     * @lang{EN}
-     * @brief Compares the collation order of a raw-pointer range against a generic-iterator range.
-     *
-     * The iterator side is materialized segment by segment into a buffer before
-     * comparison against the pointer side.
-     *
-     * @tparam TIter An iterator type not implicitly convertible to `const CharT*`.
-     * @param low1 Start pointer of the first (pointer) range.
-     * @param high1 One-past-the-end pointer of the first (pointer) range.
-     * @param low2 Start iterator of the second (iterator) range.
-     * @param high2 End iterator of the second (iterator) range.
-     * @return A `std::strong_ordering` value indicating the collation relationship.
-     * @endif
-     */
-    template <typename TIter>
-        requires (!std::is_convertible_v<TIter, const CharT*>)
-    [[nodiscard]] std::strong_ordering compare(const CharT* low1, const CharT* high1, TIter low2, TIter high2) const
-    {
-        std::vector<CharT> buf2; buf2.reserve(64);
-
-        while ((low1 != high1) && (low2 != high2))
-        {
-            std::strong_ordering c_res = std::strong_ordering::equal;
-            low2 = data_to_vec(low2, high2, buf2);
-
-            const CharT* cl1 = low1;
-            auto ch1 = std::find(low1, high1, static_cast<CharT>(0));
-            if (ch1 == high1)
-            {
-                c_res = m_obj->compare(cl1, ch1, buf2.data(), buf2.data() + buf2.size());
-                low1 = high1;
-            }
-            else
-            {
-                low1 = ch1 + 1;
-                c_res = m_obj->compare(cl1, low1, buf2.data(), buf2.data() + buf2.size());
-            }
-
-            if (c_res != std::strong_ordering::equal)
-                return c_res;
-        }
-
-        if (low1 != high1) return std::strong_ordering::greater;
-        if (low2 != high2) return std::strong_ordering::less;
-        return std::strong_ordering::equal;
-    }
-
-    /**
-     * @lang{ZH}
-     * @brief 比较一个泛型迭代器范围与一个原始指针范围的排列顺序。
-     *
-     * 通过交换参数顺序委托给指针/迭代器重载，并将结果取反以还原正确的大小关系。
-     *
-     * @tparam TIter 不可隐式转换为 `const CharT*` 的迭代器类型。
-     * @param low1 第一个序列（迭代器范围）的起始迭代器。
-     * @param high1 第一个序列（迭代器范围）的结束迭代器。
-     * @param low2 第二个序列（指针范围）的起始指针。
-     * @param high2 第二个序列（指针范围）的结束指针（不包含）。
-     * @return 表示两序列排列关系的 `std::strong_ordering` 值。
-     * @endif
-     *
-     * @lang{EN}
-     * @brief Compares the collation order of a generic-iterator range against a raw-pointer range.
-     *
-     * Delegates to the pointer/iterator overload with swapped arguments and inverts
-     * the result to restore the correct ordering relationship.
-     *
-     * @tparam TIter An iterator type not implicitly convertible to `const CharT*`.
-     * @param low1 Start iterator of the first (iterator) range.
-     * @param high1 End iterator of the first (iterator) range.
-     * @param low2 Start pointer of the second (pointer) range.
-     * @param high2 One-past-the-end pointer of the second (pointer) range.
-     * @return A `std::strong_ordering` value indicating the collation relationship.
-     * @endif
-     */
-    template <typename TIter>
-        requires (!std::is_convertible_v<TIter, const CharT*>)
-    [[nodiscard]] std::strong_ordering compare(TIter low1, TIter high1, const CharT* low2, const CharT* high2) const
-    {
-        auto res = this->compare(low2, high2, low1, high1);
-        if (res == std::strong_ordering::greater) return std::strong_ordering::less;
-        if (res == std::strong_ordering::less) return std::strong_ordering::greater;
-        return res;
-    }
-
-    /**
-     * @lang{ZH}
-     * @brief 比较两个泛型迭代器范围的排列顺序。
-     *
-     * 两侧均逐段物化到各自的缓冲区后再进行比较。
-     *
-     * @tparam TIter1 第一个范围的迭代器类型，不可隐式转换为 `const CharT*`。
-     * @tparam TIter2 第二个范围的迭代器类型，不可隐式转换为 `const CharT*`。
+     * @tparam TIter1 第一个序列的输入迭代器类型。
+     * @tparam TIter2 第二个序列的输入迭代器类型。
      * @param low1 第一个序列的起始迭代器。
      * @param high1 第一个序列的结束迭代器。
      * @param low2 第二个序列的起始迭代器。
      * @param high2 第二个序列的结束迭代器。
-     * @return 表示两序列排列关系的 `std::strong_ordering` 值。
+     * @return 表示两序列排列关系的 `std::weak_ordering` 值。
+     * @throw stream_error 若底层比较失败。
      * @endif
      *
      * @lang{EN}
-     * @brief Compares the collation order of two generic-iterator ranges.
+     * @brief Compares the collation order of two character sequences.
      *
-     * Both sides are materialized segment by segment into their own buffers
-     * before comparison.
+     * Each sequence is split at null characters, and the segments are compared
+     * pairwise by the underlying `collate_conf::compare()`, returning at the
+     * first pair that is not equivalent. When two segments are equivalent and
+     * only one of them ended at a null character in its input, the other one
+     * (the last segment of its input) is less, e.g. `"abc"` < `"abc\0"`; when
+     * both ended at a null character, comparison moves on to the next segment.
+     * Once one input is exhausted, the side with input remaining is greater.
      *
-     * @tparam TIter1 The iterator type for the first range; not implicitly convertible to `const CharT*`.
-     * @tparam TIter2 The iterator type for the second range; not implicitly convertible to `const CharT*`.
+     * Segments of a pointer or contiguous-iterator input that end at a null
+     * character are not copied; all other segments are copied to a staging buffer.
+     *
+     * @tparam TIter1 The input iterator type of the first sequence.
+     * @tparam TIter2 The input iterator type of the second sequence.
      * @param low1 Start iterator of the first sequence.
      * @param high1 End iterator of the first sequence.
      * @param low2 Start iterator of the second sequence.
      * @param high2 End iterator of the second sequence.
-     * @return A `std::strong_ordering` value indicating the collation relationship.
+     * @return A `std::weak_ordering` value indicating the collation relationship.
+     * @throw stream_error If the underlying comparison fails.
      * @endif
      */
-    template <typename TIter1, typename TIter2>
-        requires (!(std::is_convertible_v<TIter1, const CharT*> || std::is_convertible_v<TIter2, const CharT*>))
-    [[nodiscard]] std::strong_ordering compare(TIter1 low1, TIter1 high1, TIter2 low2, TIter2 high2) const
+    template <std::input_iterator TIter1, std::input_iterator TIter2>
+    [[nodiscard]] std::weak_ordering compare(TIter1 low1, TIter1 high1, TIter2 low2, TIter2 high2) const
     {
-        std::vector<CharT> buf1; buf1.reserve(64);
-        std::vector<CharT> buf2; buf2.reserve(64);
+        std::vector<CharT> buf1;
+        std::vector<CharT> buf2;
 
         while ((low1 != high1) && (low2 != high2))
         {
-            low1 = data_to_vec(low1, high1, buf1);
-            low2 = data_to_vec(low2, high2, buf2);
+            auto [seg1, null1] = next_segment(low1, high1, buf1);
+            auto [seg2, null2] = next_segment(low2, high2, buf2);
 
-            auto c_res = m_obj->compare(buf1.data(), buf1.data() + buf1.size(), buf2.data(), buf2.data() + buf2.size());
-
-            if (c_res != std::strong_ordering::equal)
-                return c_res;
+            if (auto res = m_obj->compare(seg1, seg2); res != 0)
+                return res;
+            // The side whose segment did not end at a null is out of input, so it is less.
+            if (null1 != null2)
+                return null1 <=> null2;
         }
 
-        if (low1 != high1) return std::strong_ordering::greater;
-        if (low2 != high2) return std::strong_ordering::less;
-        return std::strong_ordering::equal;
+        if (low1 != high1) return std::weak_ordering::greater;
+        if (low2 != high2) return std::weak_ordering::less;
+        return std::weak_ordering::equivalent;
     }
 
     /**
      * @lang{ZH}
-     * @brief 计算原始指针范围的排序键变换所需的存储长度。
+     * @brief 计算字符序列的排序键长度。
      *
-     * 直接委托给底层 `collate_conf` 实现。
+     * 序列按空字符分段，对每段调用底层 `collate_conf::transform_length()` 并累加；
+     * 在输入中以空字符结束的段，其排序键后跟一个空字符分隔符，额外计 1。
+     * 返回值即 `transform()` 写出完整排序键所需的字符数（不含任何额外的结尾空字符）。
      *
-     * @param low 字符序列的起始指针。
-     * @param high 字符序列的结束指针（不包含）。
-     * @return 存储完整排序键所需的字符数。
-     * @endif
-     *
-     * @lang{EN}
-     * @brief Computes the storage length required to transform the raw-pointer range into a collation key.
-     *
-     * Delegates directly to the underlying `collate_conf` implementation.
-     *
-     * @param low Pointer to the start of the character sequence.
-     * @param high Pointer to one past the end of the character sequence.
-     * @return The number of characters required to store the complete collation key.
-     * @endif
-     */
-    [[nodiscard]] std::size_t transform_length(const CharT* low, const CharT* high) const
-    {
-        return m_obj->transform_length(low, high);
-    }
-
-    /**
-     * @lang{ZH}
-     * @brief 计算泛型迭代器范围的排序键变换所需的存储长度。
-     *
-     * 将输入逐段物化到缓冲区后，累加各段的变换长度并返回总和。
-     *
-     * @tparam TIter 不可隐式转换为 `const CharT*` 的迭代器类型。
+     * @tparam TIter 输入迭代器类型。
      * @param low 字符序列的起始迭代器。
      * @param high 字符序列的结束迭代器。
-     * @return 存储完整排序键所需的字符数。
+     * @return 完整排序键的字符数。
+     * @throw stream_error 若底层变换失败。
      * @endif
      *
      * @lang{EN}
-     * @brief Computes the storage length required to transform a generic-iterator range into a collation key.
+     * @brief Computes the collation-key length of a character sequence.
      *
-     * The input is materialized segment by segment into a buffer, and the
-     * transformed lengths of all segments are accumulated and returned.
+     * The sequence is split at null characters; the underlying
+     * `collate_conf::transform_length()` is called on each segment and the
+     * results are summed. A segment that ended at a null character in the input
+     * is followed in the key by a null separator, which counts 1 more.
+     * The result is the number of characters `transform()` writes for the
+     * complete key (with no extra terminating null).
      *
-     * @tparam TIter An iterator type not implicitly convertible to `const CharT*`.
+     * @tparam TIter The input iterator type.
      * @param low Start iterator of the character sequence.
      * @param high End iterator of the character sequence.
-     * @return The number of characters required to store the complete collation key.
+     * @return The number of characters in the complete collation key.
+     * @throw stream_error If the underlying transformation fails.
      * @endif
      */
-    template <typename TIter>
-        requires (!std::is_convertible_v<TIter, const CharT*>)
+    template <std::input_iterator TIter>
     [[nodiscard]] std::size_t transform_length(TIter low, TIter high) const
     {
         std::size_t res = 0;
-        std::vector<CharT> buf; buf.reserve(64);
+        std::vector<CharT> buf;
 
         while (low != high)
         {
-            low = data_to_vec(low, high, buf);
-            res += m_obj->transform_length(buf.data(), buf.data() + buf.size());
+            auto [seg, ended_by_null] = next_segment(low, high, buf);
+            res += m_obj->transform_length(seg);
+            if (ended_by_null)
+                ++res;
         }
         return res;
     }
 
     /**
      * @lang{ZH}
-     * @brief 将原始指针输入范围变换为排序键，写入原始指针目标缓冲区。
+     * @brief 将字符序列变换为排序键，写入 `dest`，不限长度。
      *
-     * 直接委托给底层 `collate_conf` 实现。
+     * 等价于以无限容量调用 `transform(low, high, dest, n)`，写出完整排序键。
      *
-     * @param low 字符序列的起始指针。
-     * @param high 字符序列的结束指针（不包含）。
-     * @param dest 写入排序键的目标缓冲区。
-     * @param mx_len 最多写入的字符数；传入 `0` 表示不限制。
-     * @return 包含写入终点指针与实际写入字符数的 `pair`。
-     * @endif
-     *
-     * @lang{EN}
-     * @brief Transforms a raw-pointer input range into a collation key, writing to a raw-pointer destination buffer.
-     *
-     * Delegates directly to the underlying `collate_conf` implementation.
-     *
-     * @param low Pointer to the start of the character sequence.
-     * @param high Pointer to one past the end of the character sequence.
-     * @param dest Destination buffer where the collation key is written.
-     * @param mx_len Maximum number of characters to write; pass `0` for unlimited.
-     * @return A pair of the past-the-end destination pointer and the number of characters written.
-     * @endif
-     */
-    std::pair<CharT*, std::size_t> transform(const CharT* low, const CharT* high, CharT* dest, std::size_t mx_len = 0) const
-    {
-        auto s = m_obj->transform(low, high, dest, mx_len);
-        return std::pair{dest + s, s};
-    }
-
-    /**
-     * @lang{ZH}
-     * @brief 将泛型迭代器输入范围变换为排序键，写入原始指针目标缓冲区。
-     *
-     * 将输入逐段物化到缓冲区后，依次调用底层变换并写入目标地址。
-     *
-     * @tparam TIter 不可隐式转换为 `const CharT*` 的迭代器类型。
+     * @tparam TIter 输入迭代器类型。
+     * @tparam TOut 接受 `CharT` 的输出迭代器类型。
      * @param low 字符序列的起始迭代器。
      * @param high 字符序列的结束迭代器。
-     * @param dest 写入排序键的目标缓冲区。
-     * @param mx_len 最多写入的字符数；传入 `0` 表示不限制。
-     * @return 包含写入终点指针与实际写入字符数的 `pair`。
+     * @param dest 写入排序键的目标。
+     * @return 写入后的目标位置，以及写入的字符数。
+     * @throw stream_error 若底层变换失败。
      * @endif
      *
      * @lang{EN}
-     * @brief Transforms a generic-iterator input range into a collation key, writing to a raw-pointer destination buffer.
+     * @brief Transforms a character sequence into a collation key written to `dest`, with no length limit.
      *
-     * The input is materialized segment by segment into a buffer, and the
-     * underlying transformation is invoked for each segment in turn.
+     * Equivalent to calling `transform(low, high, dest, n)` with unlimited
+     * capacity, writing the complete collation key.
      *
-     * @tparam TIter An iterator type not implicitly convertible to `const CharT*`.
+     * @tparam TIter The input iterator type.
+     * @tparam TOut An output iterator type accepting `CharT`.
      * @param low Start iterator of the character sequence.
      * @param high End iterator of the character sequence.
-     * @param dest Destination buffer where the collation key is written.
-     * @param mx_len Maximum number of characters to write; pass `0` for unlimited.
-     * @return A pair of the past-the-end destination pointer and the number of characters written.
+     * @param dest Destination for the collation key.
+     * @return The destination position after writing, and the number of characters written.
+     * @throw stream_error If the underlying transformation fails.
      * @endif
      */
-    template <typename TIter>
-        requires (!std::is_convertible_v<TIter, const CharT*>)
-    std::pair<CharT*, std::size_t> transform(TIter low, TIter high, CharT* dest, std::size_t mx_len = 0) const
+    template <std::input_iterator TIter, std::output_iterator<CharT> TOut>
+    std::pair<TOut, std::size_t> transform(TIter low, TIter high, TOut dest) const
     {
-        std::size_t trans_count = 0;
-        std::vector<CharT> buf; buf.reserve(64);
-
-        while ((low != high) && ((mx_len == 0) || (trans_count < mx_len)))
-        {
-            low = data_to_vec(low, high, buf);
-            std::size_t cur_trans = 0;
-
-            if (mx_len == 0)
-                cur_trans = m_obj->transform(buf.data(), buf.data() + buf.size(), dest);
-            else
-                cur_trans = m_obj->transform(buf.data(), buf.data() + buf.size(), dest, mx_len - trans_count);
-            trans_count += cur_trans;
-            dest += cur_trans;
-        }
-        return std::pair(dest, trans_count);
+        return transform(low, high, dest, std::numeric_limits<std::size_t>::max());
     }
 
     /**
      * @lang{ZH}
-     * @brief 将原始指针输入范围变换为排序键，通过泛型输出迭代器写出。
+     * @brief 将字符序列变换为排序键，最多向 `dest` 写入 `n` 个字符。
      *
-     * 各段先变换到暂存缓冲区，再通过 `std::copy` 写入目标迭代器，
-     * 避免在不支持随机访问的迭代器上直接写入。
+     * 序列按空字符分段，每段经底层 `collate_conf::transform()` 变换后写出；
+     * 在输入中以空字符结束的段，其排序键后跟一个空字符分隔符。完整排序键
+     * 不含额外的结尾空字符，其长度等于 `transform_length(low, high)`。
+     * 对完整排序键按字典序比较，结果与 `compare()` 一致。
      *
-     * @tparam TIter 不可隐式转换为 `CharT*` 的输出迭代器类型。
-     * @param low 字符序列的起始指针。
-     * @param high 字符序列的结束指针（不包含）。
-     * @param dest 写入排序键的目标输出迭代器。
-     * @param mx_len 最多写入的字符数；传入 `0` 表示不限制。
-     * @return 包含写入后目标迭代器位置与实际写入字符数的 `pair`。
-     * @endif
+     * 写满 `n` 个字符即停止，其余输入不再处理。写出的是完整排序键的前缀；
+     * 所需的完整长度由 `transform_length()` 给出。
      *
-     * @lang{EN}
-     * @brief Transforms a raw-pointer input range into a collation key, writing through a generic output iterator.
-     *
-     * Each segment is first transformed into a staging buffer, then copied to
-     * the destination iterator via `std::copy`, avoiding direct writes on
-     * iterators that do not support random access.
-     *
-     * @tparam TIter An output iterator type not implicitly convertible to `CharT*`.
-     * @param low Pointer to the start of the character sequence.
-     * @param high Pointer to one past the end of the character sequence.
-     * @param dest Output iterator to which the collation key is written.
-     * @param mx_len Maximum number of characters to write; pass `0` for unlimited.
-     * @return A pair of the updated destination iterator and the number of characters written.
-     * @endif
-     */
-    template <typename TIter>
-        requires (!std::is_convertible_v<TIter, CharT*>)
-    std::pair<TIter, std::size_t> transform(const CharT* low, const CharT* high, TIter dest, std::size_t mx_len = 0) const
-    {
-        std::size_t trans_count = 0;
-        std::vector<CharT> buf;
-        std::vector<CharT> buf2;
-
-        while ((low != high) && ((mx_len == 0) || (trans_count < mx_len)))
-        {
-            const CharT* cur = low;
-            if (const CharT* next = std::find(low, high, static_cast<CharT>(0)); next == high)
-            {
-                buf.resize(high - low);
-                std::copy(low, high, buf.data());
-                std::size_t cur_trans = transform_length(buf.data(), buf.data() + buf.size());
-                buf2.resize(cur_trans);
-                buf2.resize(m_obj->transform(buf.data(), buf.data() + buf.size(), buf2.data(), buf2.size()));
-                low = high;
-            }
-            else
-            {
-                low = next + 1;
-                std::size_t cur_trans = transform_length(cur, low);
-                buf2.resize(cur_trans);
-                buf2.resize(m_obj->transform(cur, low, buf2.data(), buf2.size()));
-            }
-
-            if (mx_len == 0)
-            {
-                dest = std::copy(buf2.begin(), buf2.end(), dest);
-                trans_count += buf2.size();
-            }
-            else
-            {
-                auto dest_size = std::min(buf2.size(), mx_len - trans_count);
-                dest = std::copy(buf2.begin(), buf2.begin() + dest_size, dest);
-                trans_count += dest_size;
-            }
-        }
-        return std::pair(dest, trans_count);
-    }
-
-    /**
-     * @lang{ZH}
-     * @brief 将泛型迭代器输入范围变换为排序键，通过泛型输出迭代器写出。
-     *
-     * 输入逐段物化到缓冲区，各段分别变换到暂存缓冲区后再写入目标迭代器。
-     *
-     * @tparam TIterIn 不可隐式转换为 `const CharT*` 的输入迭代器类型。
-     * @tparam TIterOut 不可隐式转换为 `CharT*` 的输出迭代器类型。
+     * @tparam TIter 输入迭代器类型。
+     * @tparam TOut 接受 `CharT` 的输出迭代器类型。
      * @param low 字符序列的起始迭代器。
      * @param high 字符序列的结束迭代器。
-     * @param dest 写入排序键的目标输出迭代器。
-     * @param mx_len 最多写入的字符数；传入 `0` 表示不限制。
-     * @return 包含写入后目标迭代器位置与实际写入字符数的 `pair`。
+     * @param dest 写入排序键的目标。
+     * @param n 最多写入的字符数，须大于 0。
+     * @return 写入后的目标位置，以及实际写入的字符数。
+     * @throw stream_error 若 `n` 为 0，或底层变换失败。
      * @endif
      *
      * @lang{EN}
-     * @brief Transforms a generic-iterator input range into a collation key, writing through a generic output iterator.
+     * @brief Transforms a character sequence into a collation key, writing at most `n` characters to `dest`.
      *
-     * The input is materialized segment by segment into a buffer. Each segment is
-     * transformed into a staging buffer before being copied to the destination iterator.
+     * The sequence is split at null characters and each segment is transformed by
+     * the underlying `collate_conf::transform()`. A segment that ended at a null
+     * character in the input is followed in the key by a null separator. The
+     * complete key has no extra terminating null, and its length equals
+     * `transform_length(low, high)`. Comparing complete keys lexicographically
+     * agrees with `compare()`.
      *
-     * @tparam TIterIn An input iterator type not implicitly convertible to `const CharT*`.
-     * @tparam TIterOut An output iterator type not implicitly convertible to `CharT*`.
+     * Writing stops once `n` characters are written, and the rest of the input
+     * is not processed. What is written is a prefix of the complete key; the
+     * length of the complete key is given by `transform_length()`.
+     *
+     * @tparam TIter The input iterator type.
+     * @tparam TOut An output iterator type accepting `CharT`.
      * @param low Start iterator of the character sequence.
      * @param high End iterator of the character sequence.
-     * @param dest Output iterator to which the collation key is written.
-     * @param mx_len Maximum number of characters to write; pass `0` for unlimited.
-     * @return A pair of the updated destination iterator and the number of characters written.
+     * @param dest Destination for the collation key.
+     * @param n Maximum number of characters to write; must be greater than 0.
+     * @return The destination position after writing, and the number of characters written.
+     * @throw stream_error If `n` is 0, or the underlying transformation fails.
      * @endif
      */
-    template <typename TIterIn, typename TIterOut>
-        requires (!(std::is_convertible_v<TIterIn, const CharT*> || std::is_convertible_v<TIterOut, CharT*>))
-    std::pair<TIterOut, std::size_t> transform(TIterIn low, TIterIn high, TIterOut dest, std::size_t mx_len = 0) const
+    template <std::input_iterator TIter, std::output_iterator<CharT> TOut>
+    std::pair<TOut, std::size_t> transform(TIter low, TIter high, TOut dest, std::size_t n) const
     {
-        std::size_t trans_count = 0;
-        std::vector<CharT> buf; buf.reserve(64);
-        std::vector<CharT> buf2;
+        // 0 used to mean "unlimited"; reject it so old-style calls fail loudly.
+        if (n == 0)
+            throw stream_error("collate::transform: n must be greater than 0");
 
-        while ((low != high) && ((mx_len == 0) || (trans_count < mx_len)))
+        std::size_t written = 0;
+        std::vector<CharT> buf;     // input staging for next_segment
+        std::vector<CharT> key;     // one segment's key, plus the '\0' strxfrm appends
+
+        while ((low != high) && (written < n))
         {
-            low = data_to_vec(low, high, buf);
+            auto [seg, ended_by_null] = next_segment(low, high, buf);
+            std::size_t len = m_obj->transform_length(seg);
+            key.resize(len + 1);
+            m_obj->transform(seg, key.data(), key.size());
 
-            std::size_t cur_trans = m_obj->transform_length(buf.data(), buf.data() + buf.size());
-            buf2.resize(cur_trans);
-            buf2.resize(m_obj->transform(buf.data(), buf.data() + buf.size(), buf2.data(), buf2.size()));
+            std::size_t cnt = std::min(len, n - written);
+            dest = std::copy_n(key.data(), cnt, dest);
+            written += cnt;
 
-            if (mx_len == 0)
+            if (ended_by_null && (written < n))
             {
-                dest = std::copy(buf2.begin(), buf2.end(), dest);
-                trans_count += buf2.size();
-            }
-            else
-            {
-                auto dest_size = std::min(buf2.size(), mx_len - trans_count);
-                dest = std::copy(buf2.begin(), buf2.begin() + dest_size, dest);
-                trans_count += dest_size;
+                *dest++ = static_cast<CharT>(0);
+                ++written;
             }
         }
-
-        return std::pair(dest, trans_count);
+        return {dest, written};
     }
+
 
 private:
     /**
      * @lang{ZH}
-     * @brief 从迭代器范围读取一个段到 `buf`，并返回下一段的起始迭代器。
+     * @brief 从输入范围取出下一段，返回以空字符结尾的段首指针。
      *
-     * 从 `low` 开始依次读取字符并追加到 `buf`，直到遇到空字符（包含该空字符）或到达 `high` 为止。
-     * 若未遇到空字符，则将剩余所有字符读入 `buf`。
+     * 段以输入中的空字符（被消耗）结束，或以 `high` 结束。
+     *
+     * 若 `TIter` 是元素类型为 `CharT` 的连续迭代器（如指针、`std::basic_string`
+     * 的迭代器），且段以空字符结束，返回的指针直接指向输入本身（该空字符即为结尾），
+     * 不做拷贝。其余情况将段拷贝到 `buf`，补上结尾空字符及 `SIMD_PADDING_BYTES`
+     * 的填充后返回 `buf.data()`。
      *
      * @tparam TIter 输入迭代器类型。
-     * @param low 当前段的起始迭代器。
-     * @param high 输入范围的结束迭代器。
-     * @param buf 用于接收本段数据的缓冲区；调用前会被清空。
-     * @return 下一段起始位置的迭代器，即本段结束后的位置。
+     * @param low 当前段的起始迭代器，返回时前移到下一段的起始位置。
+     * @param high 输入范围的结束迭代器，须满足 `low != high`。
+     * @param buf 暂存区；返回的指针可能指向其中，在下次调用前有效。
+     * @return 段首指针，以及该段在输入中是否以空字符结束。
      * @endif
      *
      * @lang{EN}
-     * @brief Reads one segment from an iterator range into `buf` and returns the iterator to the next segment.
+     * @brief Takes the next segment from an input range and returns it as a null-terminated string.
      *
-     * Characters are appended to `buf` starting from `low` until a null character is
-     * encountered (inclusive) or `high` is reached. If no null character is found,
-     * all remaining characters are consumed into `buf`.
+     * A segment ends at a null character in the input (which is consumed) or at `high`.
+     *
+     * If `TIter` is a contiguous iterator over `CharT` (e.g. a pointer or a
+     * `std::basic_string` iterator) and the segment ends at a null character, the
+     * returned pointer points into the input itself (that null is the terminator)
+     * and nothing is copied. Otherwise the segment is copied into `buf`, followed by
+     * a terminating null and `SIMD_PADDING_BYTES` of padding, and `buf.data()` is returned.
      *
      * @tparam TIter The input iterator type.
-     * @param low Start iterator of the current segment.
-     * @param high End iterator of the input range.
-     * @param buf Buffer that receives the segment data; cleared before use.
-     * @return Iterator to the start of the next segment, i.e., the position after this segment ends.
+     * @param low Start of the current segment; advanced to the start of the next segment on return.
+     * @param high End iterator of the input range; requires `low != high`.
+     * @param buf Staging buffer; the returned pointer may point into it and stays
+     *            valid until the next call.
+     * @return The segment pointer, and whether the segment ended at a null character in the input.
      * @endif
      */
     template <typename TIter>
-    static TIter data_to_vec(TIter low, TIter high, std::vector<CharT>& buf)
+    static std::pair<const CharT*, bool> next_segment(TIter& low, TIter high, std::vector<CharT>& buf)
     {
-        buf.clear();
-        while (low != high)
+        // Terminating null, then zero padding so glibc's 32-byte SIMD reads stay inside buf.
+        auto terminate_and_pad = [&buf]
         {
-            buf.push_back(*low++);
-            if (buf.back() == static_cast<CharT>(0))
-                break;
+            buf.resize(buf.size() + 1 + SIMD_PADDING_BYTES / sizeof(CharT), static_cast<CharT>(0));
+        };
+
+        if constexpr (std::contiguous_iterator<TIter> &&
+                      std::is_same_v<std::iter_value_t<TIter>, CharT>)
+        {
+            const CharT* first = std::to_address(low);
+            const CharT* last = first + (high - low);
+            if (const CharT* eos = std::find(first, last, static_cast<CharT>(0)); eos != last)
+            {
+                low += (eos - first) + 1;
+                return {first, true};
+            }
+            buf.assign(first, last);
+            low = high;
+            terminate_and_pad();
+            return {buf.data(), false};
         }
-        return low;
+        else
+        {
+            buf.clear();
+            bool ended_by_null = false;
+            while (low != high)
+            {
+                CharT ch = *low++;
+                if (ch == static_cast<CharT>(0))
+                {
+                    ended_by_null = true;
+                    break;
+                }
+                buf.push_back(ch);
+            }
+            terminate_and_pad();
+            return {buf.data(), ended_by_null};
+        }
     }
 
 private:
