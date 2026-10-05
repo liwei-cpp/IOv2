@@ -15,7 +15,7 @@
  * `synced_with_stdio()`、`reset()` 与（宽流）`code()` / `switch_code()`，换设备的 `detach()` /
  * `attach()` 则被 `= delete`。
  *
- * 六个流对象经 `sing_temp` 成为进程级单例，退出钩子先把本流切回同步、再 `try_flush()`，
+ * 六个流对象经 `sing_temp` 成为进程级单例，退出钩子先让本流此后的插入都按同步处理、再 `try_flush()`，
  * 不析构——与 `std::cout` 一样，退出阶段既有引用仍然有效。`cerr` / `wcerr` 构造时另外 `tie()` 到 `cout` / `wcout` 并置
  * `ios_defs::unitbuf`，三个 `char` 流与三个宽流共用 fd 1 / fd 2。
  *
@@ -36,10 +36,13 @@
  *       `setvbuf(stdout, nullptr, _IONBF, 0)`）。
  *
  * @note **晚于退出钩子的插入**：头文件模式下，比本库更早登记的 `atexit` 函数与更早构造的
- *       静态对象的析构在钩子之后才执行。钩子先把本流切回同步（此后 `synced_with_stdio()`
- *       报 `true`），这些插入结束时就把字节交给 stdio，由 glibc 在退出的最后冲刷，不会因为
- *       钩子已经跑过而留在本流缓冲里丢掉。它们按同步模式的规则报告失败：默认只置状态位，
- *       `exceptions()` 掩码含该位时抛出。共享库模式下钩子本就最后执行。
+ *       静态对象的析构在钩子之后才执行。钩子先让本流此后的插入都按同步处理（钩子之后再
+ *       `sync_with_stdio(false)` 也不改变这一点），这些插入结束时就把字节交给 stdio，由 glibc
+ *       在退出的最后冲刷，不会因为钩子已经跑过而留在本流缓冲里丢掉。它们按同步模式的规则报告
+ *       失败：默认只置状态位，`exceptions()` 掩码含该位时抛出。`synced_with_stdio()` 与
+ *       `sync_with_stdio()` 的返回值仍按用户设定的模式报告；钩子没能交出的字节（取不到锁、
+ *       或流处于失败态），之后 `clear()` 再 `sync_with_stdio(true)` 仍会交给 stdio。
+ *       共享库模式下钩子本就最后执行。
  *
  * @note **「退出阶段仍可用」只覆盖本库自己的东西**：流对象、它们的 locale 与 facet，以及
  *       facet 触到的进程级数据（`timeio` 的时区树、`messages` 的文本域表）都不在退出时析构。
@@ -87,7 +90,7 @@
  * `switch_code()`, while `detach()` / `attach()`, which would replace the device, are `= delete`.
  *
  * All six stream objects are process-wide singletons through `sing_temp` whose exit hook
- * switches the stream back to synchronized, calls `try_flush()` and never destroys it -- like
+ * has every later insertion handled as synchronized, calls `try_flush()` and never destroys it -- like
  * `std::cout`, existing references stay valid once exit begins. `cerr` / `wcerr` additionally tie themselves to `cout` / `wcout` at
  * construction and set `ios_defs::unitbuf`; the three `char` streams and the three wide
  * streams share fd 1 / fd 2 pairwise.
@@ -117,11 +120,15 @@
  *
  * @note **Insertions after the exit hook**: in header-only mode, `atexit` functions registered
  *       before this library and the destructors of static objects constructed before it run
- *       after the hook. The hook switches the stream back to synchronized first (so
- *       `synced_with_stdio()` reports `true` from then on), so those insertions hand their
- *       bytes to stdio as they finish and glibc flushes them last, instead of leaving them in
- *       this stream's buffer after the hook has run. They report failure by the rules of
- *       synchronized mode: a state bit by default, a throw when `exceptions()` includes it.
+ *       after the hook. The hook first has every later insertion on this stream handled as
+ *       synchronized (a `sync_with_stdio(false)` after the hook does not change that), so those
+ *       insertions hand their bytes to stdio as they finish and glibc flushes them last,
+ *       instead of leaving them in this stream's buffer after the hook has run. They report
+ *       failure by the rules of synchronized mode: a state bit by default, a throw when
+ *       `exceptions()` includes it. `synced_with_stdio()` and the value `sync_with_stdio()`
+ *       returns still report the mode the user set; bytes the hook could not hand over (the
+ *       lock was taken, or the stream was in a failed state) still go to stdio on a later
+ *       `clear()` and `sync_with_stdio(true)`.
  *       In shared-library mode the hook runs last anyway.
  *
  * @note **"Still usable while the process exits" covers this library's own parts only**: the
@@ -595,17 +602,20 @@ public:
     }
 
 protected:
-    // The exit hook. Synchronized first, so that an insertion after this hook (a destructor or
-    // atexit function registered earlier) hands its bytes to stdio, which glibc flushes last.
+    // The exit hook. Marked first, so that an insertion after this hook (a destructor or atexit
+    // function registered earlier) hands its bytes to stdio, which glibc flushes last. Not
+    // m_sync_with_stdio: try_flush() may move nothing, and sync_with_stdio(true) reads a true
+    // flag as "already handed over".
     void flush_at_exit() noexcept
     {
-        m_sync_with_stdio.store(true);
+        m_exited.store(true);
         this->try_flush();
     }
 
     ochannel<device_type, char_type> m_channel;
     IOv2::locale<char_type> m_locale;
-    copyable_atomic<bool> m_sync_with_stdio{true};   ///< @lang{ZH} 为 true 时每次插入结束（输出哨兵析构）都把本流缓冲推进 stdio 缓冲；退出钩子会把它置真（见文件头）。哨兵在构造时读它一次并沿用到析构，故本标志只影响之后**开始**的插入——切回同步时那批已缓冲的字节由 `sync_with_stdio` 自己持锁搬进 stdio 缓冲。原子量，使标志的翻转与 `synced_with_stdio()` 的查询可与并发输出操作安全竞争。 @endif @lang{EN} When true, every insertion (the output sentry's destructor) pushes this stream's buffer into the stdio buffer; the exit hook sets it (see the file header). A sentry reads it once on construction and uses that value through its destructor, so the flag governs the insertions that **start** afterwards -- what was already buffered when switching back to synchronized is moved into stdio's buffer by `sync_with_stdio` itself, under the lock. Atomic so that flipping the flag and querying it through `synced_with_stdio()` are safe against concurrent output operations. @endif
+    copyable_atomic<bool> m_sync_with_stdio{true};   ///< @lang{ZH} 为 true 时每次插入结束（输出哨兵析构）都把本流缓冲推进 stdio 缓冲；只由 `sync_with_stdio` 写，切真只在锁内、伴随一次搬运（退出钩子改置 `m_exited`）。哨兵在构造时读它一次并沿用到析构，故本标志只影响之后**开始**的插入——切回同步时那批已缓冲的字节由 `sync_with_stdio` 自己持锁搬进 stdio 缓冲。原子量，使标志的翻转与 `synced_with_stdio()` 的查询可与并发输出操作安全竞争。 @endif @lang{EN} When true, every insertion (the output sentry's destructor) pushes this stream's buffer into the stdio buffer; written only by `sync_with_stdio`, and set to true only under the lock together with a hand-over (the exit hook sets `m_exited` instead). A sentry reads it once on construction and uses that value through its destructor, so the flag governs the insertions that **start** afterwards -- what was already buffered when switching back to synchronized is moved into stdio's buffer by `sync_with_stdio` itself, under the lock. Atomic so that flipping the flag and querying it through `synced_with_stdio()` are safe against concurrent output operations. @endif
+    copyable_atomic<bool> m_exited{false};           ///< @lang{ZH} 退出钩子已执行。此后哨兵把每次插入都按同步处理，与 `m_sync_with_stdio` 无关（见文件头）。钩子不取锁就写它，故为原子量。 @endif @lang{EN} The exit hook has run. From then on the sentry treats every insertion as synchronized, whatever `m_sync_with_stdio` says (see the file header). The hook writes it without the lock, hence atomic. @endif
 };
 
 /// cout

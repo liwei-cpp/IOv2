@@ -4,9 +4,13 @@
 /**
  * An insertion that runs after a stream's exit hook -- here from an atexit function
  * registered before IOv2 was initialized, so exit() calls it after the hook -- still
- * reaches the device. The hook switches the stream back to synchronized, so the late
- * bytes go to stdio, which glibc flushes last. An unsynchronized stream used to keep
+ * reaches the device. The hook has every later insertion handled as synchronized, so the
+ * late bytes go to stdio, which glibc flushes last. An unsynchronized stream used to keep
  * them in its own buffer, which nothing flushed any more: the line was lost.
+ *
+ * The hook marks the stream without touching its sync flag: sync_with_stdio(true) reads a
+ * true flag as "already handed over", so bytes the hook could not hand over (here: the
+ * stream was failed) must still go out on a later clear() and sync_with_stdio(true).
  *
  * Each case runs in a child process (support/test_child.h): what is checked is what
  * the child's exit() writes, and fd 2 is pointed at a file for the run.
@@ -29,9 +33,46 @@
 namespace
 {
     const char* const kFile = "io_objects_after_exit_hook";
-    bool g_armed = false;
+    // What the late atexit function does; 0 = nothing.
+    int g_late = 0;
 
-    void write_late() { if (g_armed) IOv2::clog << "late\n"; }
+    void write_late()
+    {
+        switch (g_late)
+        {
+        case 1:
+            IOv2::clog << "late\n";
+            break;
+        case 2:
+            IOv2::clog.sync_with_stdio(false);
+            IOv2::clog << "late\n";
+            break;
+        case 3:
+            IOv2::clog.clear();
+            IOv2::clog.sync_with_stdio(true);
+            break;
+        default:
+            break;
+        }
+    }
+
+    std::string run_case(const char* test, const char* mode)
+    {
+        EXPECT_EQ(run_test_child(test, mode), 0);
+        std::ifstream in(kFile, std::ios::binary);
+        std::string got{std::istreambuf_iterator<char>(in), {}};
+        in.close();
+        ::unlink(kFile);
+        return got;
+    }
+
+    void redirect_stderr_to_file()
+    {
+        const int fd = ::open(kFile, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+        ASSERT_GE(fd, 0);
+        ASSERT_GE(::dup2(fd, STDERR_FILENO), 0);
+        ::close(fd);
+    }
 
     // Priority 101 runs before the ordinary static initializers, IOv2's among them, so
     // this atexit function runs after their exit hooks.
@@ -42,24 +83,53 @@ TEST(IoObjectsAfterExitHook, ALateInsertionStillReachesTheDevice)
 {
     if (in_test_child())
     {
-        const int fd = ::open(kFile, O_WRONLY | O_CREAT | O_TRUNC, 0644);
-        ASSERT_GE(fd, 0);
-        ASSERT_GE(::dup2(fd, STDERR_FILENO), 0);
-        ::close(fd);
+        redirect_stderr_to_file();
         IOv2::clog.sync_with_stdio(test_child_arg() == "sync");
         IOv2::clog << "main\n";
-        g_armed = true;
+        g_late = 1;
         return;
     }
 
     for (const char* mode : {"sync", "nosync"})
     {
         SCOPED_TRACE(mode);
-        EXPECT_EQ(run_test_child("IoObjectsAfterExitHook.ALateInsertionStillReachesTheDevice", mode), 0);
-        std::ifstream in(kFile, std::ios::binary);
-        const std::string got{std::istreambuf_iterator<char>(in), {}};
-        in.close();
-        ::unlink(kFile);
-        EXPECT_EQ(got, "main\nlate\n");
+        EXPECT_EQ(run_case("IoObjectsAfterExitHook.ALateInsertionStillReachesTheDevice", mode),
+                  "main\nlate\n");
     }
+}
+
+TEST(IoObjectsAfterExitHook, SwitchingOffAfterTheHookDoesNotLoseLaterInsertions)
+{
+    if (in_test_child())
+    {
+        redirect_stderr_to_file();
+        IOv2::clog.sync_with_stdio(test_child_arg() == "sync");
+        IOv2::clog << "main\n";
+        g_late = 2;
+        return;
+    }
+
+    for (const char* mode : {"sync", "nosync"})
+    {
+        SCOPED_TRACE(mode);
+        EXPECT_EQ(run_case("IoObjectsAfterExitHook.SwitchingOffAfterTheHookDoesNotLoseLaterInsertions", mode),
+                  "main\nlate\n");
+    }
+}
+
+TEST(IoObjectsAfterExitHook, BytesTheHookLeftBehindGoOutOnALaterSwitchBack)
+{
+    if (in_test_child())
+    {
+        redirect_stderr_to_file();
+        IOv2::clog.sync_with_stdio(false);
+        IOv2::clog << "pre\n";
+        // The hook's stream-level flush() does nothing on a failed stream.
+        IOv2::clog.setstate(IOv2::ios_defs::strfailbit);
+        g_late = 3;
+        return;
+    }
+
+    EXPECT_EQ(run_case("IoObjectsAfterExitHook.BytesTheHookLeftBehindGoOutOnALaterSwitchBack", "1"),
+              "pre\n");
 }

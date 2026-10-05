@@ -50,7 +50,7 @@ namespace IOv2
  * @tparam TStream 关联的输出流类型。
  * @tparam involve_input 若为 `true`，表示该流同时支持输入，构造时会将底层缓冲区
  *                       切换到写入模式（`switch_to_put`）。
- * @tparam is_std 若为 `true`，表示这是标准流：读取其 `m_sync_with_stdio` 以决定析构刷新，
+ * @tparam is_std 若为 `true`，表示这是标准流：读取其 `m_sync_with_stdio` 与 `m_exited` 以决定析构刷新，
  *                且不执行追加模式的末尾定位。
  * @endif
  *
@@ -64,8 +64,9 @@ namespace IOv2
  * @tparam TStream The associated output stream type.
  * @tparam involve_input If `true`, the stream also supports input, and construction switches
  *                       the underlying buffer to put mode (`switch_to_put`).
- * @tparam is_std If `true`, this is a standard stream: its `m_sync_with_stdio` is read to
- *                decide the destruction flush, and no append-mode end repositioning is done.
+ * @tparam is_std If `true`, this is a standard stream: its `m_sync_with_stdio` and `m_exited`
+ *                are read to decide the destruction flush, and no append-mode end
+ *                repositioning is done.
  * @endif
  */
 template <typename TStream, bool involve_input, bool is_std = false>
@@ -132,7 +133,7 @@ struct out_sentry
             tied->try_flush();
 
         if constexpr (is_std)
-            m_sync_with_stdio = os.m_sync_with_stdio.load();
+            m_sync_with_stdio = os.m_sync_with_stdio.load() || os.m_exited.load();
 
         if constexpr (involve_input)
             os.m_channel.switch_to_put();
