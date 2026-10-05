@@ -24,7 +24,6 @@
 #include <iterator>
 #include <list>
 #include <memory>
-#include <stdexcept>
 #include <string>
 #include <utility>
 
@@ -43,8 +42,8 @@ namespace
     }
 
     // -1/0/1 rather than the ordering itself: GoogleTest has no printer for
-    // std::strong_ordering, so a failed EXPECT_EQ on one prints a byte dump.
-    int order(std::strong_ordering res)
+    // std::weak_ordering, so a failed EXPECT_EQ on one prints a byte dump.
+    int order(std::weak_ordering res)
     {
         return res < 0 ? -1 : (res > 0 ? 1 : 0);
     }
@@ -86,7 +85,7 @@ namespace
 TEST(CollateChar8, ANullConfigurationIsRejected)
 {
     std::shared_ptr<collate_conf<char8_t>> empty;
-    EXPECT_THROW(collate<char8_t>{empty}, std::runtime_error);
+    EXPECT_THROW(collate<char8_t>{empty}, stream_error);
 }
 
 TEST(CollateChar8, EqualRangesCompareEqual)
@@ -177,9 +176,9 @@ TEST(CollateChar8, GermanCollationSeparatesAnUmlautFromItsBaseLetterAtTheSeconda
     EXPECT_EQ(compare_ptr(obj, u8"a", a_umlaut), -1);
 }
 
-// The four compare() overloads reach the segmenting loop by three different
-// routes -- std::find over pointers, data_to_vec over iterators, and one of each
-// -- so they are only interchangeable if they agree on every pair.
+// compare() takes a segment by two routes -- a pointer straight into a pointer
+// input, a copy for any non-contiguous iterator -- so the two are only
+// interchangeable if they agree on every pair.
 TEST(CollateChar8, ListIteratorsCompareLikePointers)
 {
     for (const char* loc : {kPlain, kGerman})
@@ -227,8 +226,8 @@ TEST(CollateChar8, APointerAndAnIteratorCompareLikeTwoPointers)
             EXPECT_EQ(order(obj.compare(l.begin(), l.end(), rhs.data(), rhs.data() + rhs.size())),
                       compare_ptr(obj, lhs, rhs));
 
-            // A random-access iterator reaches the same overload by a different
-            // deduction, so both container shapes are put through the mix.
+            // A deque iterator is random-access but not contiguous, so it is
+            // copied like a list one; both container shapes go through the mix.
             EXPECT_EQ(order(obj.compare(lhs.data(), lhs.data() + lhs.size(), dr.begin(), dr.end())),
                       compare_ptr(obj, lhs, rhs));
             EXPECT_EQ(order(obj.compare(dl.begin(), dl.end(), rhs.data(), rhs.data() + rhs.size())),
@@ -236,9 +235,8 @@ TEST(CollateChar8, APointerAndAnIteratorCompareLikeTwoPointers)
         }
 }
 
-// The iterator/pointer overload is the pointer/iterator one with the arguments
-// swapped and the answer negated, so a sign it forgot to flip would only show up
-// here.
+// The tie-break on a missing terminator depends on which side ran out of input,
+// so a sign it got backwards would only show up with the arguments swapped.
 TEST(CollateChar8, SwappingTheArgumentsReversesTheResult)
 {
     const collate<char8_t> obj = facet_for(kGerman);
@@ -415,7 +413,7 @@ TEST(CollateChar8, IteratorsOnBothSidesProduceTheSameKey)
     }
 }
 
-// mx_len is a hard cap on characters written, checked both before a segment and
+// n is a hard cap on characters written, checked both before a segment and
 // before the separator that follows it.  In "C.UTF-8" the key is the input, so the
 // truncation point is visible: 3 stops right after the separator, 4 keeps one
 // character of the second segment.
@@ -450,8 +448,36 @@ TEST(CollateChar8, AMaximumLengthTruncatesTheKey)
     }
 }
 
-// The staging buffers start at reserve(64), so anything past that grows them.
-// 128 KiB in one segment forces many growth rounds and a key far too large for
+// 0 used to mean "no limit"; it is refused so that a caller still relying on
+// that fails loudly instead of silently getting an empty key.
+TEST(CollateChar8, AZeroMaximumLengthIsRejected)
+{
+    const collate<char8_t> obj = facet_for(kPlain);
+    const std::u8string input(u8"ab");
+    std::u8string key;
+    EXPECT_THROW(obj.transform(input.data(), input.data() + input.size(), std::back_inserter(key), 0),
+                 stream_error);
+    EXPECT_TRUE(key.empty());
+}
+
+// U+082F and U+1CF7 are ignored at every level of glibc's de_DE collation, so
+// these two different ranges compare equivalent -- the reason compare() returns
+// std::weak_ordering -- and, as strxfrm promises, get the very same key.
+TEST(CollateChar8, DifferentRangesCanBeEquivalent)
+{
+    const collate<char8_t> obj = facet_for(kGerman);
+    const std::u8string lhs(u8"a\u082Fz");
+    const std::u8string rhs(u8"a\u1CF7z");
+    ASSERT_NE(lhs, rhs);
+    EXPECT_EQ(compare_ptr(obj, lhs, rhs), 0);
+
+    std::u8string kl, kr;
+    obj.transform(lhs.data(), lhs.data() + lhs.size(), std::back_inserter(kl));
+    obj.transform(rhs.data(), rhs.data() + rhs.size(), std::back_inserter(kr));
+    EXPECT_EQ(kl, kr);
+}
+
+// 128 KiB in one segment forces the staging buffers through many growth rounds and a key far too large for
 // any small-buffer optimisation; in "C.UTF-8" the result is still exactly the input.
 TEST(CollateChar8, ALargeInputIsTransformedInOnePiece)
 {
@@ -493,7 +519,7 @@ TEST(CollateChar8, ANonUtf8LocaleIsRejected)
     for (const char* name : {"C", "POSIX"})
     {
         SCOPED_TRACE(name);
-        EXPECT_THROW(collate_conf<char8_t>{name}, cvt_error);
+        EXPECT_THROW(collate_conf<char8_t>{name}, stream_error);
     }
     EXPECT_NO_THROW(collate_conf<char8_t>{kPlain});
 }
