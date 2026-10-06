@@ -785,12 +785,19 @@ private:
      * @param reader 封装内核读取的缓冲读取辅助对象。 / Buffered read helper wrapping the kernel.
      * @param to     解压结果的输出缓冲区。 / Output buffer for the decompressed data.
      * @param to_max 期望解压的最大元素数量。 / Maximum number of elements to decompress.
-     * @return 实际解压的元素数量。 / Actual number of elements decompressed.
-     * @throws cvt_error 若压缩流被截断，或 zlib 报告致命错误，或输出字节数不是 sizeof(internal_type) 的整数倍。
-     *                   / If the compressed stream is truncated, zlib reports a fatal error,
-     *                   or the output byte count is not a multiple of sizeof(internal_type).
+     * @return `first` 为实际解压的元素数量，`second` 为遇到的错误（无错误为 `nullptr`）：压缩流被截断、
+     *         zlib 报告致命错误、或输出字节数不是 sizeof(internal_type) 的整数倍时为 `cvt_error`，
+     *         下层抛出的异常原样带回。已交出元素时，`abs_cvt::get` 先交出它们、下一次 `get` 再抛出；
+     *         凑不成一个元素的尾部字节随错误丢弃。
+     *         / `first` is the number of elements actually decompressed, `second` the error hit
+     *         (`nullptr` if none): a `cvt_error` if the compressed stream is truncated, zlib reports
+     *         a fatal error, or the output byte count is not a multiple of sizeof(internal_type); an
+     *         exception from the layer below is carried back as is. When elements were delivered,
+     *         `abs_cvt::get` hands them over and the next `get` throws; trailing bytes short of a
+     *         whole element go with the error.
      */
-    std::size_t get_main(cvt_reader<KernelType>& reader, internal_type* to, std::size_t to_max)
+    std::pair<std::size_t, std::exception_ptr>
+    get_main(cvt_reader<KernelType>& reader, internal_type* to, std::size_t to_max) noexcept
         requires (cvt_cpt::support_get<KernelType>)
     {
         // Once inflate() has reported Z_STREAM_END on this stream, further
@@ -799,76 +806,82 @@ private:
         // concatenated zlib stream.  Both are wrong for a single-stream
         // contract.  Surface end-of-stream as a zero-byte read so callers
         // see a clean EOF instead.  Reset by close_stream's state_guard.
-        if (m_stream_ended) return 0;
-
-        // Note: We read one byte at a time intentionally. Decompression has
-        // unpredictable expansion ratio - a few compressed bytes could expand
-        // to overflow the output buffer. This keeps the code simple and correct.
-        // The underlying converter already buffers, so this doesn't cause syscalls.
-        reader.reset(1);
+        if (m_stream_ended) return {0, nullptr};
 
         // Ensures m_strm's in/out pointers and counts are cleared on every exit
         // path, so a throw cannot leave next_in pointing into reader's buffer
-        // after the reader is destroyed.
+        // after the reader is destroyed. Outside the try: the catch still reads
+        // avail_out to count what was delivered.
         io_buf_guard buf_guard{*m_strm};
 
         constexpr std::size_t max_type_limit = std::numeric_limits<decltype(m_strm->avail_out)>::max();
         constexpr std::size_t max_chunk = max_type_limit - (max_type_limit % sizeof(internal_type));
 
-        auto aim_output = (max_chunk / sizeof(internal_type) > to_max)
-                        ? static_cast<decltype(m_strm->avail_out)>(to_max * sizeof(internal_type))
-                        : static_cast<decltype(m_strm->avail_out)>(max_chunk);
+        const auto aim_output = (max_chunk / sizeof(internal_type) > to_max)
+                              ? static_cast<decltype(m_strm->avail_out)>(to_max * sizeof(internal_type))
+                              : static_cast<decltype(m_strm->avail_out)>(max_chunk);
 
         m_strm->avail_out = aim_output;
         m_strm->next_out = reinterpret_cast<unsigned char*>(to); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
-        auto ret = inflate(m_strm.get(), Z_NO_FLUSH);
-        zerr<true>("zlib_cvt::get fail", ret);
-
-        while (m_strm->avail_out && ret != Z_STREAM_END)
+        try
         {
-            auto [ptr, len] = reader.get_buf(1);
-            if (len == 0) break;
-            m_strm->next_in = const_cast<unsigned char*>(reinterpret_cast<const unsigned char*>(ptr)); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast,cppcoreguidelines-pro-type-const-cast)
-            m_strm->avail_in = 1;
-            // Snapshot before the call so we can prove zlib made progress on at
-            // least one axis (input consumed or output produced). The Z_OK
-            // contract guarantees this, but enforcing it here turns a
-            // hypothetical infinite loop into an explicit failure if the
-            // library ever diverges from its contract.
-            const auto prev_avail_in = m_strm->avail_in;
-            const auto prev_avail_out = m_strm->avail_out;
-            ret = inflate(m_strm.get(), Z_NO_FLUSH);
-            // Invariant: When output space is available, inflate() always consumes
-            // all provided input into its internal state, even if no output is
-            // produced yet. This assert guards against zlib misbehavior or memory
-            // corruption during development.
-            assert(m_strm->avail_in == 0);
-            zerr("zlib_cvt::get fail", ret);
-            if (m_strm->avail_in == prev_avail_in && m_strm->avail_out == prev_avail_out)
-                throw cvt_error("zlib_cvt::get fail: zlib made no progress");
+            // Note: We read one byte at a time intentionally. Decompression has
+            // unpredictable expansion ratio - a few compressed bytes could expand
+            // to overflow the output buffer. This keeps the code simple and correct.
+            // The underlying converter already buffers, so this doesn't cause syscalls.
+            reader.reset(1);
+
+            auto ret = inflate(m_strm.get(), Z_NO_FLUSH);
+            zerr<true>("zlib_cvt::get fail", ret);
+
+            while (m_strm->avail_out && ret != Z_STREAM_END)
+            {
+                auto [ptr, len] = reader.get_buf(1);
+                if (len == 0) break;
+                m_strm->next_in = const_cast<unsigned char*>(reinterpret_cast<const unsigned char*>(ptr)); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast,cppcoreguidelines-pro-type-const-cast)
+                m_strm->avail_in = 1;
+                // Snapshot before the call so we can prove zlib made progress on at
+                // least one axis (input consumed or output produced). The Z_OK
+                // contract guarantees this, but enforcing it here turns a
+                // hypothetical infinite loop into an explicit failure if the
+                // library ever diverges from its contract.
+                const auto prev_avail_in = m_strm->avail_in;
+                const auto prev_avail_out = m_strm->avail_out;
+                ret = inflate(m_strm.get(), Z_NO_FLUSH);
+                // Invariant: When output space is available, inflate() always consumes
+                // all provided input into its internal state, even if no output is
+                // produced yet. This assert guards against zlib misbehavior or memory
+                // corruption during development.
+                assert(m_strm->avail_in == 0);
+                zerr("zlib_cvt::get fail", ret);
+                if (m_strm->avail_in == prev_avail_in && m_strm->avail_out == prev_avail_out)
+                    throw cvt_error("zlib_cvt::get fail: zlib made no progress");
+            }
+
+            // Latch end-of-stream as soon as inflate() observes it, before any
+            // post-condition checks below.  If a check throws afterwards, this
+            // ensures is_eof() still reports true and any future get_main call
+            // short-circuits to 0 instead of re-entering inflate() on a finished
+            // stream.  The latch is a pure value write and cannot throw.
+            if (ret == Z_STREAM_END)
+                m_stream_ended = true;
+
+            // Exiting the loop with output space still available means the underlying
+            // kernel ran out of bytes before zlib reached Z_STREAM_END. The compressed
+            // stream is truncated: the output so far goes to the caller, the error after it.
+            if (ret != Z_STREAM_END && m_strm->avail_out != 0)
+                throw cvt_error("zlib_cvt::get fail: compressed stream truncated");
+
+            if ((aim_output - m_strm->avail_out) % sizeof(internal_type))
+                throw cvt_error("zlib_cvt::get fail: partial sequence");
+
+            return {(aim_output - m_strm->avail_out) / sizeof(internal_type), nullptr};
         }
-
-        // Latch end-of-stream as soon as inflate() observes it, before any
-        // post-condition checks below.  If a check throws afterwards, this
-        // ensures is_eof() still reports true and any future get_main call
-        // short-circuits to 0 instead of re-entering inflate() on a finished
-        // stream.  The latch is a pure value write and cannot throw.
-        if (ret == Z_STREAM_END)
-            m_stream_ended = true;
-
-        // Exiting the loop with output space still available means the underlying
-        // kernel ran out of bytes before zlib reached Z_STREAM_END. The compressed
-        // stream is truncated and partial output would silently corrupt caller data.
-        if (ret != Z_STREAM_END && m_strm->avail_out != 0)
-            throw cvt_error("zlib_cvt::get fail: compressed stream truncated");
-
-        auto res = aim_output - m_strm->avail_out;
-        // m_strm in/out fields are cleared by io_buf_guard on scope exit.
-
-        if (res % sizeof(internal_type))
-            throw cvt_error("zlib_cvt::get fail: partial sequence");
-
-        return res / sizeof(internal_type);
+        catch (...)
+        {
+            // Read before buf_guard clears avail_out on the way out.
+            return {(aim_output - m_strm->avail_out) / sizeof(internal_type), std::current_exception()};
+        }
     }
 
     /**

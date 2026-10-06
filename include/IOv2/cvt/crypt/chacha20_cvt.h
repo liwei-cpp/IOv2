@@ -472,7 +472,9 @@ private:
      * @param[in,out] reader 内部缓冲读取器。
      * @param[out]    _to    用户输出缓冲区。
      * @param[in]     to_max 期望输出的元素数量上限。
-     * @return 实际解密并写入用户缓冲的元素数量。
+     * @return `first` 为实际解密并写入用户缓冲的元素数量，`second` 为遇到的错误（无错误为
+     *         `nullptr`）。上面说的「抛出」都经 `second` 带回：已交出元素时，`abs_cvt::get`
+     *         先交出它们、下一次 `get` 再抛出；污染标志照样在出错当场置上。
      * @endif
      *
      * @lang{EN}
@@ -507,95 +509,106 @@ private:
      * @param[in,out] reader The buffered reader.
      * @param[out]    _to    The user output buffer.
      * @param[in]     to_max The maximum number of elements to deliver.
-     * @return The number of elements actually decrypted into the user buffer.
+     * @return `first` is the number of elements actually decrypted into the user buffer,
+     *         `second` the error hit (`nullptr` if none). Every "throw" above travels back
+     *         through `second`: when elements were delivered, `abs_cvt::get` hands them over and
+     *         the next `get` throws it; the taint flag is still set where the error happens.
      * @endif
      */
-    std::size_t get_main(cvt_reader<KernelType>& reader, internal_type* _to, std::size_t to_max)
+    std::pair<std::size_t, std::exception_ptr>
+    get_main(cvt_reader<KernelType>& reader, internal_type* _to, std::size_t to_max) noexcept
         requires (cvt_cpt::support_get<KernelType>)
     {
-        if (to_max == 0) return 0;
-        if (!m_cipher)
-            throw cvt_error("chacha20_cvt::get_main fail: cipher not initialized (moved-from object?)");
-
-        constexpr std::size_t isize = sizeof(internal_type);
-        constexpr std::size_t bulk_chunk = (block_size / isize) * isize;
-        static_assert(bulk_chunk >= isize,
-            "block_size must accommodate at least one internal_type");
-
-        auto* to = reinterpret_cast<uint8_t*>(_to); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
         std::size_t elements_delivered = 0;
-
-        reader.reset(block_size);
-
-        while (elements_delivered < to_max)
+        try
         {
-            if (m_leftover_len > 0)
-            {
-                // Splice path: finish the partial element carried over from a
-                // previous short read before consuming any new bulk data.
-                const std::size_t want = isize - m_leftover_len;
-                auto [ptr, cur_len] = reader.get_buf(want);
-                if (cur_len == 0) break;
-                std::memcpy(m_leftover.data() + m_leftover_len, ptr, cur_len);
-                m_leftover_len += cur_len;
-                if (m_leftover_len == isize)
-                {
-                    try { m_cipher->cipher(m_leftover.data(), to, isize); }
-                    catch (...) { BT::set_tainted(); throw; }
-                    to += isize;
-                    elements_delivered += 1;
-                    m_leftover_len = 0;
-                }
-            }
-            else
-            {
-                // Bulk path: cipher only the aligned prefix into the user buffer;
-                // stash any trailing sub-element ciphertext for the next call.
-                const std::size_t elements_remaining = to_max - elements_delivered;
-                const std::size_t want = (elements_remaining > bulk_chunk / isize)
-                                  ? bulk_chunk
-                                  : elements_remaining * isize;
-                auto [ptr, cur_len] = reader.get_buf(want);
-                if (cur_len == 0) break;
+            if (to_max == 0) return {0, nullptr};
+            if (!m_cipher)
+                throw cvt_error("chacha20_cvt::get_main fail: cipher not initialized (moved-from object?)");
 
-                const std::size_t complete_bytes = (cur_len / isize) * isize;
-                const std::size_t tail           = cur_len - complete_bytes;
+            constexpr std::size_t isize = sizeof(internal_type);
+            constexpr std::size_t bulk_chunk = (block_size / isize) * isize;
+            static_assert(bulk_chunk >= isize,
+                "block_size must accommodate at least one internal_type");
 
-                if (complete_bytes > 0)
+            auto* to = reinterpret_cast<uint8_t*>(_to); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
+
+            reader.reset(block_size);
+
+            while (elements_delivered < to_max)
+            {
+                if (m_leftover_len > 0)
                 {
-                    try
+                    // Splice path: finish the partial element carried over from a
+                    // previous short read before consuming any new bulk data.
+                    const std::size_t want = isize - m_leftover_len;
+                    auto [ptr, cur_len] = reader.get_buf(want);
+                    if (cur_len == 0) break;
+                    std::memcpy(m_leftover.data() + m_leftover_len, ptr, cur_len);
+                    m_leftover_len += cur_len;
+                    if (m_leftover_len == isize)
                     {
-                        m_cipher->cipher(reinterpret_cast<const uint8_t*>(ptr), to, complete_bytes); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
+                        try { m_cipher->cipher(m_leftover.data(), to, isize); }
+                        catch (...) { BT::set_tainted(); throw; }
+                        to += isize;
+                        elements_delivered += 1;
+                        m_leftover_len = 0;
                     }
-                    catch (...) { BT::set_tainted(); throw; }
-                    to += complete_bytes;
-                    elements_delivered += complete_bytes / isize;
                 }
-                if (tail > 0)
+                else
                 {
-                    std::memcpy(m_leftover.data(), ptr + complete_bytes, tail);
-                    m_leftover_len = tail;
+                    // Bulk path: cipher only the aligned prefix into the user buffer;
+                    // stash any trailing sub-element ciphertext for the next call.
+                    const std::size_t elements_remaining = to_max - elements_delivered;
+                    const std::size_t want = (elements_remaining > bulk_chunk / isize)
+                                      ? bulk_chunk
+                                      : elements_remaining * isize;
+                    auto [ptr, cur_len] = reader.get_buf(want);
+                    if (cur_len == 0) break;
+
+                    const std::size_t complete_bytes = (cur_len / isize) * isize;
+                    const std::size_t tail           = cur_len - complete_bytes;
+
+                    if (complete_bytes > 0)
+                    {
+                        try
+                        {
+                            m_cipher->cipher(reinterpret_cast<const uint8_t*>(ptr), to, complete_bytes); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
+                        }
+                        catch (...) { BT::set_tainted(); throw; }
+                        to += complete_bytes;
+                        elements_delivered += complete_bytes / isize;
+                    }
+                    if (tail > 0)
+                    {
+                        std::memcpy(m_leftover.data(), ptr + complete_bytes, tail);
+                        m_leftover_len = tail;
+                    }
                 }
             }
-        }
 
-        // A short read with no real EOF is a recoverable state: m_leftover is
-        // preserved and the next get_main call will complete the partial
-        // element via the splice path above. Only flag taint when we could not
-        // satisfy the request, the stream is genuinely at EOF, and we still
-        // hold a partial element — that misalignment can never be resolved.
-        //
-        // Gating on `elements_delivered < to_max` is essential: when the loop
-        // exits because the request was fully satisfied, the leftover is an
-        // in-flight artifact of the final bulk read, not a failure indicator —
-        // throwing here would discard elements we just successfully decrypted.
-        if (elements_delivered < to_max && m_leftover_len > 0 && BT::is_eof())
+            // A short read with no real EOF is a recoverable state: m_leftover is
+            // preserved and the next get_main call will complete the partial
+            // element via the splice path above. Only flag taint when we could not
+            // satisfy the request, the stream is genuinely at EOF, and we still
+            // hold a partial element — that misalignment can never be resolved.
+            //
+            // Gating on `elements_delivered < to_max` is essential: when the loop
+            // exits because the request was fully satisfied, the leftover is an
+            // in-flight artifact of the final bulk read, not a failure indicator —
+            // throwing here would discard elements we just successfully decrypted.
+            if (elements_delivered < to_max && m_leftover_len > 0 && BT::is_eof())
+            {
+                BT::set_tainted();
+                throw cvt_error("chacha20_cvt::get_main fail: stream ended on a non-aligned boundary");
+            }
+
+            return {elements_delivered, nullptr};
+        }
+        catch (...)
         {
-            BT::set_tainted();
-            throw cvt_error("chacha20_cvt::get_main fail: stream ended on a non-aligned boundary");
+            return {elements_delivered, std::current_exception()};
         }
-
-        return elements_delivered;
     }
 
     /**
