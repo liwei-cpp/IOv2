@@ -324,13 +324,6 @@ namespace
         obj.main_cont_beg();
         EXPECT_THROW(obj.adjust(code_cvt_switch{kLocaleName}), cvt_error);
 
-        // Nor through a hand-filled state: it is refused before the kernel moves.
-        code_cvt_stdio_state state;
-        state.kernel.emplace(kLocaleName);
-        ASSERT_TRUE(state.kernel->is_state_dep());
-        EXPECT_THROW(obj.adjust(state), cvt_error);
-        EXPECT_TRUE(state.kernel.has_value());
-
         code_cvt_access acc;
         obj.retrieve(acc);
         EXPECT_EQ(acc.code, "C");

@@ -70,11 +70,11 @@
 #pragma once
 #include <IOv2/common/copyable_atomic.h>
 #include <IOv2/common/iov2_export.h>
-#include <IOv2/common/metafunctions.h>
 #include <IOv2/common/sing_temp.h>
 #include <IOv2/cvt/code_cvt.h>
 #include <IOv2/cvt/code_cvt_stdio.h>
 #include <IOv2/cvt/cvt_concepts.h>
+#include <IOv2/cvt/stdin_root_cvt.h>
 #include <IOv2/device/device_concepts.h>
 #include <IOv2/device/std_device.h>
 #include <IOv2/io/io_base.h>
@@ -114,12 +114,12 @@ public:
 
 public:
     stdin_api()
-        : m_channel(device_type{}, false)
+        : m_channel(stdin_root_cvt<device_type>{device_type{}, true})
     {}
 
     template <cvt_creator TCreator>
     stdin_api(const TCreator& creator)
-        : m_channel(device_type{}, creator, false)
+        : m_channel(creator.create(stdin_root_cvt<device_type>{device_type{}, true}))
     {}
 
 public:
@@ -127,15 +127,11 @@ public:
      * @lang{ZH}
      * @brief 切换本流是否与 C stdio 同步：同步时逐字节读 `stdin`，不同步时自带读缓冲。
      *
-     * 切换意味着换掉整个 iochannel（先 `detach()` 旧的，再以同一设备重建）。已缓冲但未消费的
-     * 输入按 `io/iochannel.h` 的 `detach()` 契约丢弃；因此应在任何 stdin 读取之前调用，也**不得**在
-     * 一次提取进行中（例如用户 `io_traits::sread` 里）重入调用：`io_mutex()` 是递归锁不会拦，
-     * 但正在使用的 iochannel 会被整个换掉。与当前模式相同的调用什么也不做，也不取锁，
-     * 不会等另一线程里阻塞着的读。
-     * （`wchar_t`）解码器的移位状态随之带到新 iochannel（经 `code_cvt_stdio_state`）。尚未解码的
-     * 字节——非同步模式下预读进缓冲的，以及输入在字符中间到达 EOF 后留着的那半个字符——
-     * 都属于上面说的已缓冲输入，照样丢弃：后者被丢掉后，切换之后的读取到达 eof，不再一直置
-     * `cvtfailbit`（见 `reset()`）。
+     * 切换只翻根转换器（`stdin_root_cvt`）上的一个标志，不重建 iochannel：缓冲、解码器、设备
+     * 都留在原处，**不丢输入**。切到同步时，非同步模式下已预读进缓冲的字节照常先交出，交完才
+     * 按需逐字节读；切到不同步时，下一次缓冲空了就整块读。因此可以在读过 stdin 之后再切换，
+     * 一次提取进行中（用户 `io_traits::sread` 里）切换也只影响之后向设备要字节的方式。
+     * 与当前模式相同的调用什么也不做，也不取锁，不会等另一线程里阻塞着的读。
      *
      * @warning 这里的「同步」只表示**不带读缓冲、每次 `read(0)` 只要本次操作所需的字节**
      *          （格式化提取与 `get` / `getline` 因逐字符探分隔符而逐字节，`read(buf, n)` 则是
@@ -149,42 +145,29 @@ public:
      *          本流与 C stdio 函数或另一条标准输入流。
      *
      * 查询当前状态请用 `synced_with_stdio()`：本函数的无参形式等于 `sync_with_stdio(true)`，
-     * 会真的切换——在输入流上「调一次查、再调一次设回去」等于重建两次 iochannel，已缓冲的
-     * 输入随之丢失。
+     * 会真的切换。
      *
-     * 失败按本库统一的方式报告：置状态位，`exceptions()` 掩码含该位时才抛出。重建 iochannel
-     * 只可能因内存耗尽或（`wchar_t`）当前编码的 locale 数据库在运行期间消失而失败——都是运行
-     * 环境已坏的情形，实际不可达。（`wchar_t`）取出解码器在 `detach()` 之前，它若因内存耗尽
-     * 失败，流原样未动，只是本次没有切换。
+     * 失败按本库统一的方式报告：置状态位，`exceptions()` 掩码含该位时才抛出。翻标志本身不会
+     * 失败；（`wchar_t`）只有转换器已 tainted 时先做的自动恢复可能失败，此时标志未动、
+     * 本次没有切换。
      *
      * @param sync `true` 为同步（默认），`false` 为自带缓冲。
-     * @return 调用前的同步状态；重建失败时同步状态未改变，返回的就是当前状态。
-     * @note 重建失败时旧 iochannel 已经 detach、新的没建起来，流停在**未附接**状态：此后每次
-     *       要读设备的操作都按状态位失败（`clear()` 之后是 `cvtfailbit`；`putback()`、`code()`、
-     *       `switch_code()` 不碰设备，照常成功），`clear()` 不够，须 `reset()`
-     *       在同一 fd 上重新附接。`deof()` 探测时预读下的那 1 个字节随旧 iochannel 一并丢失
-     *       （切换成功时它会随设备带到新 iochannel）。同步标志保持原值，因此「流报告的模式」与
-     *       「它实际怎么读」始终一致。
-     *       本函数不像别的失败那样只是「这一次没做成」，而是会让流暂时不可用，故值得单独提醒。
+     * @return 调用前的同步状态；失败时同步状态未改变，返回的就是当前状态。
      * @endif
      *
      * @lang{EN}
      * @brief Switches whether this stream is synchronized with C stdio: synchronized
      * reads `stdin` byte by byte, unsynchronized reads through its own buffer.
      *
-     * Switching replaces the whole iochannel (`detach()` the old one, rebuild on the
-     * same device). Input that was buffered but not yet consumed is discarded per the
-     * `detach()` contract in `io/iochannel.h`; call this before any stdin read, and **never**
-     * re-enter it from inside an extraction (a user `io_traits::sread`, say): `io_mutex()`
-     * is recursive and will not stop it, but the iochannel in use is replaced wholesale.
+     * Switching flips one flag on the root converter (`stdin_root_cvt`) and does not rebuild
+     * the iochannel: buffers, decoder and device all stay, and **no input is lost**. Switching
+     * to synchronized hands out first, as usual, the bytes an unsynchronized stream had read
+     * ahead into its buffer, and only then reads byte by byte on demand; switching to
+     * unsynchronized reads a whole buffer the next time it runs empty. It may therefore be
+     * switched after stdin has been read, and switching in the middle of an extraction (inside
+     * a user `io_traits::sread`) only changes how the device is asked for bytes from then on.
      * A call asking for the current mode does nothing and takes no lock, so it does not wait
      * for a read blocked in another thread.
-     * (`wchar_t`) The decoder's shift state goes over to the new iochannel (through
-     * `code_cvt_stdio_state`). Bytes not decoded yet -- read ahead into the buffer of an
-     * unsynchronized stream, or the half character left behind when the input reached EOF in
-     * the middle of one -- are buffered input as above and are discarded all the same: with
-     * the latter gone, reads after the switch reach eof instead of setting `cvtfailbit`
-     * every time (see `reset()`).
      *
      * @warning "Synchronized" here means **no read buffer: each `read(0)` asks for just what
      *          the current operation needs** (formatted extraction and `get` / `getline` go
@@ -203,32 +186,16 @@ public:
      *          with C stdio functions, or with the other standard input stream, on `stdin`.
      *
      * To ask for the current state use `synced_with_stdio()`: with no argument this one means
-     * `sync_with_stdio(true)` and does switch -- on an input stream, "call once to read it,
-     * call again to put it back" rebuilds the iochannel twice and loses whatever it had
-     * buffered.
+     * `sync_with_stdio(true)` and does switch.
      *
      * A failure is reported the way this library reports every other one: a state bit is
-     * set, and it throws only when the `exceptions()` mask includes that bit. Rebuilding the
-     * iochannel can only fail on memory exhaustion or, on `wchar_t`, when the locale database
-     * of the current code vanished while the process runs -- a broken runtime environment,
-     * unreachable in practice. (`wchar_t`) Taking the decoder out comes before `detach()`;
-     * should it fail on memory exhaustion, the stream is left as it was and simply not
-     * switched.
+     * set, and it throws only when the `exceptions()` mask includes that bit. Flipping the flag
+     * cannot fail; (`wchar_t`) only the automatic recovery of a tainted converter, done first,
+     * can, and then the flag is untouched and nothing is switched.
      *
      * @param sync `true` for synchronized (the default), `false` for own buffering.
-     * @return The synchronization state before the call; when the rebuild fails the state is
-     *         unchanged, so that is also the current one.
-     * @note When the rebuild fails the old iochannel has been detached and the new one was
-     *       never built, leaving the stream **unattached**: every operation that reads the
-     *       device then fails through the state bits (`cvtfailbit` once `clear()`ed;
-     *       `putback()`, `code()` and `switch_code()` do not touch the device and succeed as
-     *       usual), `clear()` is not enough, and
-     *       `reset()` is what attaches a fresh device on the same fd. The one byte a `deof()`
-     *       probe had read ahead is lost with the old iochannel (a successful switch carries
-     *       it over with the device). The flag keeps its old
-     *       value, so what the stream reports and how it actually reads never disagree.
-     *       Unlike most failures this one leaves the stream unusable for a while, which is why
-     *       it is called out here.
+     * @return The synchronization state before the call; on failure the state is unchanged,
+     *         so that is also the current one.
      * @endif
      */
     bool sync_with_stdio(bool sync = true)
@@ -242,45 +209,15 @@ public:
         if (old_sync_state == sync)
             return old_sync_state;
 
-        // The decoder's shift state goes over to the new iochannel; a fresh one would not
-        // know about it.
-        code_cvt_stdio_state state;
-        if constexpr (std::is_same_v<char_type, wchar_t>)
-        {
-            try {
-                m_channel.retrieve(state);
-            } catch (...) {
-                this->handle_exception(std::current_exception());
-                return old_sync_state;
-            }
-        }
-
-        auto [dev, err] = m_channel.detach();
+        // Only the root's flag flips: buffers, decoder and device all stay. A tainted wide
+        // converter recovers first, and that can fail -- before the flag is touched.
         try {
-            if constexpr (std::is_same_v<char_type, char>)
-                m_channel = ichannel<device_type, char_type>(std::move(dev), !sync);
-            else if constexpr (std::is_same_v<char_type, wchar_t>)
-            {
-                // Straight from the iochannel, not through code(): that wrapper reports a
-                // failure as a state bit and an empty name, which would rebuild on the
-                // environment's encoding instead of the current one.
-                code_cvt_access acc;
-                m_channel.retrieve(acc);
-                m_channel = ichannel<device_type, wchar_t>(std::move(dev), code_cvt_stdio_creator(acc.code), !sync);
-                m_channel.adjust(state);
-            }
-            else
-                static_assert(dependent_false_v<char_type>, "invalid character type");
+            m_channel.adjust(stdin_sync{sync});
         } catch (...) {
-            // The iochannel was detached and the new one was never built: every
-            // operation that reads the device now fails until reset() attaches a
-            // fresh device. The flag stays where it was, so what the stream reports
-            // and how it actually reads still agree.
             this->handle_exception(std::current_exception());
             return old_sync_state;
         }
         m_sync_with_stdio.store(sync);
-        if (err) this->handle_exception(err);
         return old_sync_state;
     }
 
@@ -531,7 +468,7 @@ public:
 protected:
     ichannel<device_type, char_type>      m_channel;
     IOv2::locale<char_type>                 m_locale;
-    copyable_atomic<bool> m_sync_with_stdio{true};   ///< @lang{ZH} 为 true 时逐字节读 `stdin`，为 false 时自带读缓冲；该语义在构造 iochannel 时就固化进 kernel 类型，故除本标志的读写外无人查询它。写入在 `io_mutex()` 之下，原子量只为让 `synced_with_stdio()` 与全库其它查询函数一样无锁读取。 @endif @lang{EN} When true this stream reads `stdin` byte by byte, when false through its own buffer; that semantics is baked into the kernel type when the iochannel is built, so nothing but this flag's own reads and writes consults it. Writes happen under `io_mutex()`; the atomic is only so that `synced_with_stdio()` reads lock-free like the library's other query functions. @endif
+    copyable_atomic<bool> m_sync_with_stdio{true};   ///< @lang{ZH} 为 true 时逐字节读 `stdin`，为 false 时自带读缓冲；真正决定怎么读的是根转换器 `stdin_root_cvt` 上的标志，`sync_with_stdio` 两者一起改，本标志只供查询。写入在 `io_mutex()` 之下，原子量只为让 `synced_with_stdio()` 与全库其它查询函数一样无锁读取。 @endif @lang{EN} When true this stream reads `stdin` byte by byte, when false through its own buffer; what decides how it reads is the flag on the root converter `stdin_root_cvt`, which `sync_with_stdio` changes along with this one, kept here for queries only. Writes happen under `io_mutex()`; the atomic is only so that `synced_with_stdio()` reads lock-free like the library's other query functions. @endif
 };
 
 /// cin

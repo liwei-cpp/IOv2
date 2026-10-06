@@ -43,6 +43,7 @@
 #include <IOv2/io/io_concepts.h>
 
 #include <cassert>
+#include <concepts>
 #include <cstddef>
 #include <exception>
 #include <optional>
@@ -68,8 +69,9 @@ namespace IOv2
  * @note 关于读缓冲区与逻辑位置的语义细节（尤其是过度回退时位置在起点处饱和为 0），
  *       见 putbackc()、tell() 与 switch_to_put() 的说明。
  *
- * @note 方向约束落在四个构造函数上：不带工厂的两个查设备的能力，带工厂的两个改查整条管线
- *       （`cvt_fits_direction`），因为管线可以比设备更弱。
+ * @note 方向约束落在构造函数上：从设备构造、不带工厂的两个查设备的能力，带工厂的两个改查整条管线
+ *       （`cvt_fits_direction`），因为管线可以比设备更弱；接收现成转换器的那个查该转换器本身
+ *       （`cvt_direction_capable`）。
  *
  * @tparam TDevice 底层设备类型，须满足 `io_device`；构造时 `IsIn` 还要求
  *         `dev_cpt::support_get`、`IsOut` 还要求 `dev_cpt::support_put`。
@@ -97,9 +99,11 @@ namespace IOv2
  *       particular, the position saturating at 0 on over-putback), see putbackc(),
  *       tell(), and switch_to_put().
  *
- * @note The direction constraint sits on the four constructors: the creator-less ones check the
- *       device's capabilities, the creator-taking ones check the whole pipeline
- *       (`cvt_fits_direction`), since a pipeline may be weaker than its device.
+ * @note The direction constraint sits on the constructors: the two that build from a device
+ *       without a creator check the device's capabilities, the creator-taking ones check the
+ *       whole pipeline (`cvt_fits_direction`), since a pipeline may be weaker than its device,
+ *       and the one taking a ready-made converter checks that converter
+ *       (`cvt_direction_capable`).
  *
  * @tparam TDevice The underlying device type; must satisfy `io_device`. To construct one, `IsIn`
  *         additionally requires `dev_cpt::support_get` and `IsOut` `dev_cpt::support_put`.
@@ -214,6 +218,34 @@ public:
                   && cvt_fits_direction<no_rb_root_cvt<TDevice>, TCreator, IsIn, IsOut>)
         : m_cvt(buffered_read ? runtime_cvt<TDevice, TChar>(creator.create(rb_root_cvt{std::move(dev)}))
                               : runtime_cvt<TDevice, TChar>(creator.create(no_rb_root_cvt{std::move(dev)})))
+    {
+        init_cvt();
+    }
+
+    /**
+     * @lang{ZH}
+     * @brief 在一个现成的转换器上构造通道，用于上面几种按设备自动搭建的管线之外的情形
+     *        （如标准输入流以 `stdin_root_cvt` 为根）。
+     * @tparam TCvt 转换器类型，须满足 `io_converter`，设备类型为 `TDevice`、内部类型为 `TChar`，
+     *         并具备通道所需的方向。
+     * @param cvt 转换器（按值取走所有权）。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Constructs a channel on a ready-made converter, for pipelines other than the
+     *        ones the constructors above build from a device (the standard input streams'
+     *        pipeline rooted at `stdin_root_cvt`, say).
+     * @tparam TCvt The converter type; must satisfy `io_converter`, with `TDevice` as its
+     *         device type, `TChar` as its internal type, and the directions the channel needs.
+     * @param cvt The converter (ownership taken by value).
+     * @endif
+     */
+    template <io_converter TCvt>
+        requires (std::same_as<typename TCvt::device_type, TDevice>
+                  && std::same_as<typename TCvt::internal_type, TChar>
+                  && cvt_direction_capable<TCvt, IsIn, IsOut>)
+    explicit base_channel(TCvt cvt)
+        : m_cvt(runtime_cvt<TDevice, TChar>(std::move(cvt)))
     {
         init_cvt();
     }
