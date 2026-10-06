@@ -272,38 +272,49 @@ private:
      * @param[in]     to_max The maximum number of elements to deliver.
      *
      * @return
-     * @lang{ZH} 实际解密并写入用户缓冲的元素数量。 @endif
-     * @lang{EN} The number of elements actually decrypted into the user buffer. @endif
+     * @lang{ZH} `first` 为实际解密并写入用户缓冲的元素数量，`second` 为遇到的错误（无错误为
+     * `nullptr`；已交出元素时由 `abs_cvt::get` 留到下一次 `get` 抛出）。 @endif
+     * @lang{EN} `first` is the number of elements actually decrypted into the user buffer,
+     * `second` the error hit (`nullptr` if none; when elements were delivered, `abs_cvt::get`
+     * throws it on the next `get`). @endif
      *
-     * @throws cvt_error
-     * @lang{ZH} 若密钥为空（已移动走的对象）。 @endif
-     * @lang{EN} If the key is empty (moved-from object). @endif
+     * @lang{ZH} 错误：密钥为空（已移动走的对象）时为 `cvt_error`；下层抛出的异常原样带回。 @endif
+     * @lang{EN} Errors: `cvt_error` if the key is empty (moved-from object); an exception from the
+     * layer below is carried back as is. @endif
      */
-    std::size_t get_main(cvt_reader<KernelType>& reader, internal_type* to, std::size_t to_max)
+    std::pair<std::size_t, std::exception_ptr>
+    get_main(cvt_reader<KernelType>& reader, internal_type* to, std::size_t to_max) noexcept
         requires (cvt_cpt::support_get<KernelType>)
     {
-        if (to_max == 0) return 0;
-        if (m_key.empty())
-            throw cvt_error("vigenere_cvt: key not initialized (moved-from object?)");
-
         std::size_t total_count = 0;
-        reader.reset(s_buf_len);
-        while (total_count != to_max)
+        try
         {
-            const std::size_t dest_size = std::min(s_buf_len, to_max - total_count);
-            auto [ptr, cur_size] = reader.get_buf(dest_size);
-            if (cur_size == 0)
-                return total_count;
+            if (to_max == 0) return {0, nullptr};
+            if (m_key.empty())
+                throw cvt_error("vigenere_cvt: key not initialized (moved-from object?)");
 
-            for (std::size_t i = 0; i < cur_size; ++i)
+            reader.reset(s_buf_len);
+            while (total_count != to_max)
             {
-                std::size_t pos = (m_pos++) % m_key.size();
-                const internal_type src = *ptr++;
-                *to++ = sub_wrap(src, m_key[pos]);
+                const std::size_t dest_size = std::min(s_buf_len, to_max - total_count);
+                auto [ptr, cur_size] = reader.get_buf(dest_size);
+                if (cur_size == 0)
+                    return {total_count, nullptr};
+
+                for (std::size_t i = 0; i < cur_size; ++i)
+                {
+                    std::size_t pos = (m_pos++) % m_key.size();
+                    const internal_type src = *ptr++;
+                    *to++ = sub_wrap(src, m_key[pos]);
+                }
+                total_count += cur_size;
             }
-            total_count += cur_size;
+            return {total_count, nullptr};
         }
-        return total_count;
+        catch (...)
+        {
+            return {total_count, std::current_exception()};
+        }
     }
 
     /**

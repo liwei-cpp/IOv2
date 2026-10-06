@@ -1106,7 +1106,6 @@ public:
         : BT(val)
         , m_cvt_kernel(val.m_cvt_kernel)
         , m_accu_len(val.m_accu_len)
-        , m_get_failed(val.m_get_failed)
     {}
 
     /**
@@ -1144,10 +1143,8 @@ public:
         : BT(std::move(val))
         , m_cvt_kernel(std::move(val.m_cvt_kernel))
         , m_accu_len(val.m_accu_len)
-        , m_get_failed(val.m_get_failed)
     {
         val.m_accu_len = 0;
-        val.m_get_failed = false;
     }
 
     /**
@@ -1172,8 +1169,6 @@ public:
         m_cvt_kernel = std::move(val.m_cvt_kernel);
         m_accu_len = val.m_accu_len;
         val.m_accu_len = 0;
-        m_get_failed = val.m_get_failed;
-        val.m_get_failed = false;
         return *this;
     }
 
@@ -1236,7 +1231,6 @@ private:
     {
         m_cvt_kernel.init_state();
         m_accu_len = 0;
-        m_get_failed = false;
     }
 
     /**
@@ -1301,77 +1295,83 @@ private:
      * @lang{ZH}
      * 从底层缓冲区读取外部字节并解码为内部字符（由 `abs_cvt::get` 调用）。
      *
-     * @return 实际读取并解码的内部字符数量。
+     * 解码错误与下层抛出的异常一律经返回值报告：已交出字符时，`abs_cvt::get` 先交出它们、
+     * 下一次 `get` 再抛出（见 `abs_cvt` 对 `get_main` 的约定）。
+     *
+     * @return `first` 为实际读取并解码的内部字符数量，`second` 为遇到的错误（无错误为 `nullptr`）。
      * @endif
      *
      * @lang{EN}
      * Read external bytes from the underlying buffer and decode them into
      * internal characters (called by `abs_cvt::get`).
      *
-     * @return Number of internal characters actually read and decoded.
+     * Decoding errors and exceptions from the layer below are all reported through the
+     * return value: when characters were delivered, `abs_cvt::get` hands them over and the
+     * next `get` throws (see what `abs_cvt` requires of `get_main`).
+     *
+     * @return `first` is the number of internal characters actually read and decoded,
+     *         `second` the error hit (`nullptr` if none).
      * @endif
      */
-    std::size_t get_main(cvt_reader<KernelType>& reader, internal_type* to, std::size_t to_max)
+    std::pair<std::size_t, std::exception_ptr>
+    get_main(cvt_reader<KernelType>& reader, internal_type* to, std::size_t to_max) noexcept
         requires (cvt_cpt::support_get<KernelType>)
     {
-        if (to_max == 0) return 0;
-        if (m_get_failed)
-        {
-            m_get_failed = false;
-            throw cvt_error("code_cvt::get fail: invalid external sequence");
-        }
-        reader.reset(s_max_buf_size);
         std::size_t total_size = 0;
-
-        std::size_t prev_rollback = 0;
-        while (total_size < to_max)
+        try
         {
-            std::size_t dest_size = std::min<std::size_t>(to_max - total_size, s_max_buf_size);
-            dest_size = std::max(dest_size, prev_rollback + 1);
+            if (to_max == 0) return {0, nullptr};
+            reader.reset(s_max_buf_size);
 
-            if (dest_size > s_max_buf_size) [[unlikely]]
-                throw cvt_error("code_cvt::get fail: input sequence too long");
-
-            auto [ptr, cur_size] = reader.get_buf(dest_size);
-            if (cur_size == prev_rollback)
+            std::size_t prev_rollback = 0;
+            while (total_size < to_max)
             {
-                if (cur_size == 0 && (total_size != 0 || !m_cvt_kernel.is_mid_seq()))
-                    return total_size;
-                throw cvt_error("code_cvt::get fail: partial input sequence");
-            }
+                std::size_t dest_size = std::min<std::size_t>(to_max - total_size, s_max_buf_size);
+                dest_size = std::max(dest_size, prev_rollback + 1);
 
-            auto ext_cur = ptr;
-            const bool held = m_cvt_kernel.is_mid_seq();
-            auto [succ, int_len] = m_cvt_kernel.in_helper(ext_cur, ptr + cur_size, to, to + to_max - total_size);
+                if (dest_size > s_max_buf_size) [[unlikely]]
+                    throw cvt_error("code_cvt::get fail: input sequence too long");
 
-            // Update accumulated length BEFORE the failure check: in_helper may
-            // have written `int_len` chars into the caller's `to` buffer before
-            // hitting an invalid byte. Throwing without this update would leave
-            // m_accu_len inconsistent with the chars already produced.
-            m_accu_len += int_len;
-            total_size += int_len;
+                auto [ptr, cur_size] = reader.get_buf(dest_size);
+                if (cur_size == prev_rollback)
+                {
+                    if (cur_size == 0 && (total_size != 0 || !m_cvt_kernel.is_mid_seq()))
+                        return {total_size, nullptr};
+                    throw cvt_error("code_cvt::get fail: partial input sequence");
+                }
 
-            if (!succ)
-            {
-                const auto* resume = (held && ext_cur == ptr && int_len == 0)
-                                   ? ext_cur : std::min(ext_cur + 1, ptr + cur_size);
-                if (resume != ptr + cur_size)
-                    reader.rollback(ptr + cur_size - resume);
-                if (total_size == 0)
+                auto ext_cur = ptr;
+                const bool held = m_cvt_kernel.is_mid_seq();
+                auto [succ, int_len] = m_cvt_kernel.in_helper(ext_cur, ptr + cur_size, to, to + to_max - total_size);
+
+                // in_helper may have written `int_len` chars into `to` before hitting an
+                // invalid byte: count them before anything can throw.
+                m_accu_len += int_len;
+                total_size += int_len;
+
+                if (!succ)
+                {
+                    const auto* resume = (held && ext_cur == ptr && int_len == 0)
+                                       ? ext_cur : std::min(ext_cur + 1, ptr + cur_size);
+                    if (resume != ptr + cur_size)
+                        reader.rollback(ptr + cur_size - resume);
                     throw cvt_error("code_cvt::get fail: invalid external sequence");
-                m_get_failed = true;
-                return total_size;
-            }
+                }
 
-            if (ext_cur == ptr + cur_size)
-                prev_rollback = 0;
-            else
-            {
-                prev_rollback = ptr + cur_size - ext_cur;
-                reader.rollback(prev_rollback);
+                if (ext_cur == ptr + cur_size)
+                    prev_rollback = 0;
+                else
+                {
+                    prev_rollback = ptr + cur_size - ext_cur;
+                    reader.rollback(prev_rollback);
+                }
             }
+            return {total_size, nullptr};
         }
-        return total_size;
+        catch (...)
+        {
+            return {total_size, std::current_exception()};
+        }
     }
 
     /**
@@ -1407,8 +1407,9 @@ private:
      * 对于变长或状态依赖编码，还要求已到达 EOF（`is_eof()`：没有待报的错误、取数区为空、
      * 底层也到了末尾），否则再写入会影响写入内容之后的解析。
      * 定长编码可以读到一半就切换：若底层的位置与调用方读到的逻辑位置不一致（取数区里多取了
-     * 字节），或有待报的解码错误，先重定位到逻辑位置（`seek_impl(m_accu_len)`），抵消这
-     * 「一半读」并清掉相关状态，再切换；写入从逻辑位置开始。底层不能定位而又有待报的错误时抛出。
+     * 字节），先重定位到逻辑位置（`seek_impl(m_accu_len)`），抵消这「一半读」并清掉相关状态，
+     * 再切换；写入从逻辑位置开始。待报的错误（见 `abs_cvt::get`）随重定位丢弃；底层不能定位而
+     * 又有待报的错误时，由 `abs_cvt::switch_to_put` 拒绝切换。
      * 重定位之后若下层切换失败，本层仍处于读模式、停在逻辑位置，再读会重新读到那些字节
      * （坏字节则再次报错），与切换前看不出差别。
      *
@@ -1424,10 +1425,11 @@ private:
      * since writing earlier would change how what follows the written text decodes.
      * A fixed-length encoding may switch halfway through reading: if the layer below
      * stands elsewhere than the logical position the caller has read to (bytes read ahead
-     * into the read area), or a decoding error is pending, it is first repositioned to the
+     * into the read area), it is first repositioned to the
      * logical position (`seek_impl(m_accu_len)`), which undoes that half read and clears the
-     * state that goes with it; writing then starts at the logical position. With a pending
-     * error and a layer below that cannot be positioned, it throws. Should the layer below
+     * state that goes with it; writing then starts at the logical position. A pending error
+     * (see `abs_cvt::get`) goes with the repositioning; with one pending and a layer below that
+     * cannot be positioned, `abs_cvt::switch_to_put` refuses the switch. Should the layer below
      * fail to switch after the repositioning, this layer is still reading, at the logical
      * position, and reads those bytes again (a bad byte fails again): nothing to tell it
      * from before the attempt.
@@ -1450,32 +1452,33 @@ private:
             }
             else if constexpr (cvt_cpt::support_positioning<KernelType>)
             {
-                // Write where the caller stopped reading: drops the read-ahead and a
-                // pending error together.
-                if (m_get_failed || BT::kernel_tell() != m_accu_len * m_cvt_kernel.epc())
+                // Write where the caller stopped reading: drops the read-ahead. A pending
+                // error is dropped by the reposition, or by abs_cvt::switch_to_put, which also
+                // refuses the switch when the layer below cannot be positioned.
+                if (BT::kernel_tell() != m_accu_len * m_cvt_kernel.epc())
                     seek_impl(m_accu_len);
             }
-            else if (m_get_failed)
-                throw cvt_error("code_cvt::switch_to_put fail: pending error and kernel does not support positioning");
         }
     }
 
     /**
      * @lang{ZH}
-     * `abs_cvt::is_eof()` 的钩子：有待报的解码错误，或内核还收着半个字符时，流没有读完——
-     * 下一次 `get` 会报出它，所以返回 `false`；否则取决于下层（`kernel_is_eof()`）。
+     * `abs_cvt::is_eof()` 的钩子（待报的错误已由 `abs_cvt::is_eof()` 先行判断）：内核还收着
+     * 半个字符时，流没有读完——下一次 `get` 会报出它，所以返回 `false`；否则取决于下层
+     * （`kernel_is_eof()`）。
      * @endif
      *
      * @lang{EN}
-     * Hook for `abs_cvt::is_eof()`: with a decoding error pending, or half a character still
-     * held by the kernel, the stream is not read to its end -- the next `get` reports it --
-     * so this returns `false`; otherwise it is up to the layer below (`kernel_is_eof()`).
+     * Hook for `abs_cvt::is_eof()` (which has already checked for a pending error): with half
+     * a character still held by the kernel, the stream is not read to its end -- the next
+     * `get` reports it -- so this returns `false`; otherwise it is up to the layer below
+     * (`kernel_is_eof()`).
      * @endif
      */
     [[nodiscard]] bool is_eof_impl()
         requires (cvt_cpt::support_get<KernelType>)
     {
-        return !m_get_failed && !m_cvt_kernel.is_mid_seq() && BT::kernel_is_eof();
+        return !m_cvt_kernel.is_mid_seq() && BT::kernel_is_eof();
     }
 
     /**
@@ -1543,7 +1546,6 @@ private:
         if (needs_state_reset)
             m_cvt_kernel.init_state();
         m_accu_len = pos;
-        m_get_failed = false;
     }
 
     /**
@@ -1597,7 +1599,6 @@ private:
 
         m_accu_len = new_dev_pos / epc;
         m_cvt_kernel.init_state();
-        m_get_failed = false;
     }
 
 private:
@@ -1633,7 +1634,6 @@ private:
                 self.BT::m_io_status = io_status::neutral;
                 self.BT::m_is_bos_done = false;
                 self.m_accu_len = 0;
-                self.m_get_failed = false;
             }
         } guard{*this};
 
@@ -1656,7 +1656,6 @@ protected:
 
 private:
     std::size_t m_accu_len = 0; ///< 已处理的内部字符总数（逻辑位置）/ Total internal characters processed (logical position).
-    bool m_get_failed = false; ///< 上次 get 在交出字符后遇到解码错误，下次 get 抛出 / The last get hit a decoding error after delivering characters; the next get throws.
 };
 
 /**

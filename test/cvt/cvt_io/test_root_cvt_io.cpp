@@ -14,6 +14,7 @@
 
 #include <algorithm>
 #include <cstddef>
+#include <exception>
 #include <iterator>
 #include <string>
 #include <tuple>
@@ -43,7 +44,8 @@ namespace
 
         // get_main is only invoked after assert_not_tainted() passes; the stub
         // returning 0 is never actually reached in the tainted-state test.
-        std::size_t get_main(cvt_reader<KernelType>&, IT*, std::size_t) { return 0; }
+        std::pair<std::size_t, std::exception_ptr>
+                    get_main(cvt_reader<KernelType>&, IT*, std::size_t) noexcept { return {0, nullptr}; }
         void        put_main(cvt_writer<KernelType>&, const IT*, std::size_t)
         {
             throw cvt_error("failing_put_cvt: simulated failure");
@@ -67,7 +69,8 @@ namespace
         explicit bos_guard_hack_cvt(KernelType k) : BT(std::move(k)) {}
 
         void        force_neutral_status() { this->m_io_status = io_status::neutral; }
-        std::size_t get_main(cvt_reader<KernelType>&, IT*, std::size_t) { return 0; }
+        std::pair<std::size_t, std::exception_ptr>
+                    get_main(cvt_reader<KernelType>&, IT*, std::size_t) noexcept { return {0, nullptr}; }
         void        put_main(cvt_writer<KernelType>&, const IT*, std::size_t) {}
     };
 
@@ -90,7 +93,8 @@ namespace
         using external_type = wchar_t;
         explicit wext_char_cvt(KernelType k) : BT(std::move(k)) {}
 
-        std::size_t get_main(cvt_reader<KernelType>&, char*, std::size_t) { return 0; }
+        std::pair<std::size_t, std::exception_ptr>
+                    get_main(cvt_reader<KernelType>&, char*, std::size_t) noexcept { return {0, nullptr}; }
         void        put_main(cvt_writer<KernelType>&, const char*, std::size_t) {}
     };
 
@@ -113,11 +117,19 @@ namespace
         using external_type = IT;
         explicit no_switch_cvt(KernelType k) : BT(std::move(k)) {}
 
-        std::size_t get_main(cvt_reader<KernelType>& r, IT* to, std::size_t n)
+        std::pair<std::size_t, std::exception_ptr>
+        get_main(cvt_reader<KernelType>& r, IT* to, std::size_t n) noexcept
         {
-            auto [ptr, len] = r.get_buf(n);
-            std::copy(ptr, ptr + len, to);
-            return len;
+            try
+            {
+                auto [ptr, len] = r.get_buf(n);
+                std::copy(ptr, ptr + len, to);
+                return {len, nullptr};
+            }
+            catch (...)
+            {
+                return {0, std::current_exception()};
+            }
         }
         void put_main(cvt_writer<KernelType>& w, const IT* from, std::size_t n)
         {

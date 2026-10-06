@@ -33,6 +33,7 @@
 #include <cstddef>
 #include <cstring>
 #include <exception>
+#include <type_traits>
 #include <utility>
 #include <vector>
 
@@ -690,10 +691,14 @@ namespace IOv2
      * 写 `friend BT` 即可；经由中间层继承的类若有自己的钩子，须 friend 的是 `abs_cvt`
      * 特化而不是它自己的 `BT`。
      *
-     * - **`get_main(cvt_reader<KernelType>&, internal_type*, size_t) -> size_t`**
+     * - **`get_main(cvt_reader<KernelType>&, internal_type*, size_t) noexcept -> std::pair<size_t, std::exception_ptr>`**
      *   由 `abs_cvt::get` 在主内容阶段调用，执行解码逻辑。
-     *   返回值为实际解码的 `internal_type` 元素个数。
-     *   允许抛出异常；调用方会正确传播。
+     *   `first` 为已写入目标缓冲区、确定交付的 `internal_type` 元素个数；`second` 为本次遇到的错误
+     *   （无错误为 `nullptr`）。**必须声明为 `noexcept`、返回类型必须恰为该 `pair`**（由 `abs_cvt`
+     *   内的 `static_assert` 强制）：函数体用顶层 `try` 包住，`catch` 里返回已交付的个数与
+     *   `std::current_exception()`，因此计数变量要放在 `try` 之外、并在每次可能抛出的调用之前保持准确。
+     *   `first` 为 0 时 `abs_cvt::get` 当场抛出 `second`；不为 0 时先返回这些字符，下一次 `get`
+     *   再抛出——这样 `iochannel::getn` 在异常路径上报出的已读数量才准确。
      *
      * - **`put_main(cvt_writer<KernelType>&, const internal_type*, size_t)`**
      *   由 `abs_cvt::put` 在主内容阶段调用，执行编码逻辑。
@@ -773,10 +778,16 @@ namespace IOv2
      * inheriting through an intermediate layer that has hooks of its own must befriend the
      * `abs_cvt` specialization, not its own `BT`.
      *
-     * - **`get_main(cvt_reader<KernelType>&, internal_type*, size_t) -> size_t`**
+     * - **`get_main(cvt_reader<KernelType>&, internal_type*, size_t) noexcept -> std::pair<size_t, std::exception_ptr>`**
      *   Called by `abs_cvt::get` during the main-content phase to perform decoding.
-     *   Returns the number of `internal_type` elements actually decoded.
-     *   May throw; the caller propagates the exception normally.
+     *   `first` is the number of `internal_type` elements written to the destination and
+     *   delivered for good; `second` is the error this call hit (`nullptr` if none). **It must be
+     *   declared `noexcept` and return exactly that `pair`** (enforced by a `static_assert` in
+     *   `abs_cvt`): the body sits in one top-level `try` whose `catch` returns the count delivered
+     *   so far with `std::current_exception()`, so the counter lives outside the `try` and is kept
+     *   exact before every call that may throw. With `first` at 0 `abs_cvt::get` throws `second`
+     *   at once; otherwise it returns those characters and the next `get` throws it -- which is
+     *   what keeps the count `iochannel::getn` reports on the exception path exact.
      *
      * - **`put_main(cvt_writer<KernelType>&, const internal_type*, size_t)`**
      *   Called by `abs_cvt::put` during the main-content phase to perform encoding.
@@ -982,7 +993,8 @@ namespace IOv2
             , m_tmp_io_buffer(val.m_tmp_io_buffer.begin(), val.m_tmp_io_buffer.begin() + val.m_rd_end)
             , m_rd_cur(val.m_rd_cur)
             , m_rd_end(val.m_rd_end)
-            , m_is_tainted(val.m_is_tainted) {}
+            , m_is_tainted(val.m_is_tainted)
+            , m_get_error(val.m_get_error) {}
 
         /**
          * @lang{ZH}
@@ -1003,11 +1015,13 @@ namespace IOv2
             , m_rd_cur(val.m_rd_cur)
             , m_rd_end(val.m_rd_end)
             , m_is_tainted(val.m_is_tainted)
+            , m_get_error(std::move(val.m_get_error))
         {
             val.m_io_status = io_status::neutral;
             val.m_is_bos_done = false;
             val.m_rd_cur = val.m_rd_end = 0;
             val.m_is_tainted = false;
+            val.m_get_error = nullptr;
         }
 
         /**
@@ -1034,6 +1048,7 @@ namespace IOv2
                 m_rd_cur = val.m_rd_cur;
                 m_rd_end = val.m_rd_end;
                 m_is_tainted = val.m_is_tainted;
+                m_get_error = val.m_get_error;
                 // m_reader and m_writer keep pointing to &m_kernel, no change needed
             }
             return *this;
@@ -1064,6 +1079,8 @@ namespace IOv2
                 val.m_rd_cur = val.m_rd_end = 0;
                 m_is_tainted = val.m_is_tainted;
                 val.m_is_tainted = false;
+                m_get_error = std::move(val.m_get_error);
+                val.m_get_error = nullptr;
             }
             return *this;
         }
@@ -1161,6 +1178,7 @@ namespace IOv2
             self.m_io_status = io_status::neutral;
             self.m_is_bos_done = false;
             self.m_is_tainted = false;
+            self.m_get_error = nullptr;
             return { std::move(dev), local_err ? local_err : inner_err };
         }
 
@@ -1224,6 +1242,7 @@ namespace IOv2
                 self.m_io_status = io_status::neutral;
                 self.m_is_bos_done = false;
                 self.m_is_tainted = false;
+                self.m_get_error = nullptr;
 
                 if constexpr (requires { self.attach_impl(); })
                     self.attach_impl();
@@ -1427,6 +1446,8 @@ namespace IOv2
         [[nodiscard]] bool is_eof(this auto& self)
             requires (cvt_cpt::support_get<KernelType>)
         {
+            if (self.m_get_error)
+                return false;
             if constexpr (requires { { self.is_eof_impl() } -> std::same_as<bool>; })
                 return self.is_eof_impl();
             else
@@ -1447,7 +1468,10 @@ namespace IOv2
          * 进入主阶段后，若当前 IO 方向不是 `input`，且派生类支持 IO 方向切换，
          * 则自动调用 `switch_to_get()`；否则抛出异常。
          *
-         * 此方法仅在派生类提供符合签名的 `get_main` 时通过 requires 子句启用。
+         * `get_main` 在交出字符之后才出错时，本次返回这些字符，错误留到下一次 `get` 开头抛出；
+         * 重新定位、`attach()`、`detach()` 会把它丢掉。
+         *
+         * 此方法仅在派生类提供 `get_main` 时通过 requires 子句启用。
          * @endif
          *
          * @lang{EN}
@@ -1464,8 +1488,12 @@ namespace IOv2
          * derived class supports IO-direction switching, `switch_to_get()` is called
          * automatically; otherwise an exception is thrown.
          *
+         * When `get_main` fails after it has delivered characters, this call returns them and
+         * the error is thrown at the start of the next `get`; a reposition, `attach()` or
+         * `detach()` drops it.
+         *
          * This method is only enabled via a `requires` clause when the derived class
-         * provides a conforming `get_main` member function.
+         * provides a `get_main` member function.
          * @endif
          *
          * @param to
@@ -1492,9 +1520,14 @@ namespace IOv2
         template <typename Self>
         std::size_t get(this Self& self, internal_type* to, std::size_t to_max)
             requires requires(Self& t, cvt_reader<KernelType>& r, internal_type* data, std::size_t len) {
-                { t.get_main(r, data, len) } -> std::same_as<std::size_t>;
+                t.get_main(r, data, len);
             }
         {
+            // An error that get_main() hit after delivering characters was held back so that
+            // the caller got those characters; it is reported now.
+            if (self.m_get_error)
+                std::rethrow_exception(std::exchange(self.m_get_error, nullptr));
+
             // Read failures do not taint: they only advance the kernel cursor
             // and possibly leave a per-call mbstate undefined; the underlying
             // stream content is unchanged, and callers can reseek to recover.
@@ -1550,7 +1583,19 @@ namespace IOv2
                     else
                         throw cvt_error("abs_cvt::get fail: cannot switch to input mode");
                 }
-                return self.get_main(reader, to, to_max);
+                static_assert(std::is_same_v<decltype(self.get_main(reader, to, to_max)),
+                                             std::pair<std::size_t, std::exception_ptr>>,
+                              "get_main() must return std::pair<std::size_t, std::exception_ptr>");
+                static_assert(noexcept(self.get_main(reader, to, to_max)),
+                              "get_main() must be noexcept");
+                auto [count, err] = self.get_main(reader, to, to_max);
+                if (err)
+                {
+                    if (count == 0)
+                        std::rethrow_exception(err);
+                    self.m_get_error = std::move(err);
+                }
+                return count;
             }
         }
 
@@ -1920,7 +1965,7 @@ namespace IOv2
             if constexpr (requires { self.switch_to_put_impl(); })
                 self.switch_to_put_impl();
 
-            if (self.m_rd_cur != self.m_rd_end)
+            if (self.m_rd_cur != self.m_rd_end || self.m_get_error)
             {
                 if constexpr (cvt_cpt::support_positioning<KernelType>)
                     self.kernel_seek(self.kernel_tell());
@@ -2062,6 +2107,7 @@ namespace IOv2
         {
             m_kernel.seek(pos);
             m_rd_cur = m_rd_end = 0;
+            m_get_error = nullptr;
         }
 
         void kernel_rseek(std::size_t pos)
@@ -2069,6 +2115,7 @@ namespace IOv2
         {
             m_kernel.rseek(pos);
             m_rd_cur = m_rd_end = 0;
+            m_get_error = nullptr;
         }
 
         // The layer below has nothing more: the read area is used up and the kernel is at EOF.
@@ -2163,5 +2210,16 @@ namespace IOv2
          *  Note: failures inside `get` do NOT set this flag on their own.
          *  @endif */
         bool m_is_tainted = false;
+
+        /** @lang{ZH}
+         *  `get_main()` 在交出字符之后遇到的错误：本次 `get` 先把字符交出，下一次 `get` 再抛出它。
+         *  有它时 `is_eof()` 为 `false`；任何重新定位（`kernel_seek`/`kernel_rseek`）、`attach()`、`detach()` 丢弃它。
+         *  @endif
+         *  @lang{EN}
+         *  An error `get_main()` hit after it had delivered characters: this `get` hands the characters
+         *  over and the next `get` throws it. While it is held `is_eof()` is `false`; any reposition
+         *  (`kernel_seek`/`kernel_rseek`), `attach()` and `detach()` drop it.
+         *  @endif */
+        std::exception_ptr m_get_error;
     };
 }
