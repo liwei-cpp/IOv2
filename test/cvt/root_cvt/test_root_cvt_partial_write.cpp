@@ -25,6 +25,7 @@
 #include <cstddef>
 #include <fstream>
 #include <iterator>
+#include <limits>
 #include <optional>
 #include <string>
 
@@ -36,11 +37,13 @@ namespace
 {
     std::string g_out;
     std::optional<std::size_t> g_accept;
+    std::optional<std::size_t> g_report;
     bool g_plain = false;
 
     // Takes everything, except that one dput armed through g_accept takes that many
     // characters and throws dput_error, and one armed through g_plain takes none and
-    // throws a plain device_error.
+    // throws a plain device_error. g_report, if set, is what that dput_error claims was
+    // taken, in place of the truth.
     struct partial_write_device
     {
         using char_type = char;
@@ -55,9 +58,11 @@ namespace
             if (g_accept)
             {
                 const std::size_t k = std::min(*g_accept, n);
+                const std::size_t reported = g_report.value_or(k);
                 g_accept.reset();
+                g_report.reset();
                 g_out.append(s, k);
-                throw dput_error("partial_write_device: partial write", k);
+                throw dput_error("partial_write_device: partial write", reported);
             }
             g_out.append(s, n);
         }
@@ -71,6 +76,7 @@ namespace
     {
         g_out.clear();
         g_accept.reset();
+        g_report.reset();
         g_plain = false;
         Root obj{partial_write_device{}};
         obj.bos();
@@ -90,6 +96,27 @@ TEST(RootCvtPartialWrite, AFlushKeepsOnlyWhatTheDeviceDidNotAccept)
 
     obj.flush();
     EXPECT_EQ(g_out, "0123456789");
+}
+
+// A device that claims more than it was given is taken at its word only up to what it
+// was given: nothing is read past the buffer, nothing is kept, nothing goes out twice.
+// The claim is clamped before it is used, so SIZE_MAX costs no more than one past the end.
+TEST(RootCvtPartialWrite, AClaimBeyondTheBatchCountsAsTheWholeBatch)
+{
+    for (const std::size_t claim : {std::size_t{11}, std::numeric_limits<std::size_t>::max()})
+    {
+        SCOPED_TRACE(claim);
+        auto obj = opened_root();
+        obj.put("0123456789", 10);
+
+        g_accept = 10;
+        g_report = claim;
+        EXPECT_THROW(obj.flush(), dput_error);
+        EXPECT_EQ(g_out, "0123456789");
+
+        obj.flush();
+        EXPECT_EQ(g_out, "0123456789");
+    }
 }
 
 TEST(RootCvtPartialWrite, APlainDeviceErrorKeepsTheWholeBatch)
