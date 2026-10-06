@@ -434,14 +434,14 @@ public:
      * 构造函数。通过 `wctype_l` 初始化每个字符分类属性对应的 `wctype_t` 句柄，
      * 并通过 `btowc` 预建 256 项 `m_widen` 查找表。
      *
-     * 若任意 `wctype_l` 调用返回 0（分类名称不被 locale 支持），则抛出 `cvt_error`。
+     * 若任意 `wctype_l` 调用返回 0（分类名称不被 locale 支持），则抛出 `io_error`。
      * @endif
      *
      * @lang{EN}
      * Constructor. Initializes one `wctype_t` handle per classification category via
      * `wctype_l`, and builds the 256-entry `m_widen` lookup table via `btowc`.
      *
-     * Throws `cvt_error` if any `wctype_l` call returns 0 (category not supported
+     * Throws `io_error` if any `wctype_l` call returns 0 (category not supported
      * by the locale).
      * @endif
      *
@@ -449,9 +449,10 @@ public:
      * @lang{ZH} 用于查询的 locale 名称。 @endif
      * @lang{EN} The locale name to use for table construction. @endif
      *
-     * @throws cvt_error
-     * @lang{ZH} 若 `wctype_l` 对任意分类名称返回 0。 @endif
-     * @lang{EN} If `wctype_l` returns 0 for any classification category name. @endif
+     * @throws io_error
+     * @lang{ZH} 若 C 库无法实例化 `name`，或 `wctype_l` 对任意分类名称返回 0。 @endif
+     * @lang{EN} If the C library cannot instantiate `name`, or `wctype_l` returns 0 for any
+     *           classification category name. @endif
      */
     ctype_conf(const std::string& name)
         : ft_basic<ctype<CharT>>()
@@ -467,7 +468,7 @@ public:
         {
             wctype_t res = wctype_l(category, m_inter_locale.c_locale);
             if (res == 0)
-                throw cvt_error(std::string("ctype_conf constructor failed: wctype_l returned 0 for category ") + category);
+                throw io_error(std::string("ctype_conf constructor failed: wctype_l returned 0 for category ") + category);
             return res;
         };
         m_wmask_upper  = wctype_wrapper("upper");

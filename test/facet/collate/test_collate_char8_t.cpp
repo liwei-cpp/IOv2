@@ -85,7 +85,7 @@ namespace
 TEST(CollateChar8, ANullConfigurationIsRejected)
 {
     std::shared_ptr<collate_conf<char8_t>> empty;
-    EXPECT_THROW(collate<char8_t>{empty}, stream_error);
+    EXPECT_THROW(collate<char8_t>{empty}, io_error);
 }
 
 TEST(CollateChar8, EqualRangesCompareEqual)
@@ -456,7 +456,7 @@ TEST(CollateChar8, AZeroMaximumLengthIsRejected)
     const std::u8string input(u8"ab");
     std::u8string key;
     EXPECT_THROW(obj.transform(input.data(), input.data() + input.size(), std::back_inserter(key), 0),
-                 stream_error);
+                 io_error);
     EXPECT_TRUE(key.empty());
 }
 
@@ -519,7 +519,7 @@ TEST(CollateChar8, ANonUtf8LocaleIsRejected)
     for (const char* name : {"C", "POSIX"})
     {
         SCOPED_TRACE(name);
-        EXPECT_THROW(collate_conf<char8_t>{name}, stream_error);
+        EXPECT_THROW(collate_conf<char8_t>{name}, io_error);
     }
     EXPECT_NO_THROW(collate_conf<char8_t>{kPlain});
 }

@@ -15,7 +15,6 @@
 #include <IOv2/common/defs.h>
 
 #include <clocale>
-#include <stdexcept>
 #include <string>
 
 #include <langinfo.h>
@@ -53,7 +52,7 @@ struct clocale_wrapper
      * 却没有任何报告。这是唯一一处本类自己做的判定；名字是否合法仍由 C 库说了算。
      *
      * @param name locale 名；`""` 按 POSIX 规则查环境。
-     * @throws cvt_error `name` 含内嵌 NUL，或 `newlocale` 拒绝该名字。
+     * @throws io_error `name` 含内嵌 NUL，或 `newlocale` 拒绝该名字。
      * @endif
      *
      * @lang{EN}
@@ -66,7 +65,7 @@ struct clocale_wrapper
      * class makes itself; whether a name is valid is still the C library's call.
      *
      * @param name The locale name; `""` looks at the environment per POSIX.
-     * @throws cvt_error `name` contains an embedded NUL, or `newlocale` rejects it.
+     * @throws io_error `name` contains an embedded NUL, or `newlocale` rejects it.
      * @endif
      */
     explicit clocale_wrapper(const std::string& name)
@@ -74,10 +73,10 @@ struct clocale_wrapper
                                                           : nullptr)
     {
         if (name.find('\0') != std::string::npos)
-            throw cvt_error("clocale_wrapper: locale name contains an embedded NUL");
+            throw io_error("clocale_wrapper: locale name contains an embedded NUL");
 
         if (!c_locale)
-            throw cvt_error("Cannot construct a C locale: " + name);
+            throw io_error("Cannot construct a C locale: " + name);
     }
 
     ~clocale_wrapper() noexcept
@@ -90,7 +89,7 @@ struct clocale_wrapper
         : c_locale(val.c_locale ? duplocale(val.c_locale) : nullptr)
     {
         if (val.c_locale && !c_locale)
-            throw cvt_error("clocale_wrapper: duplocale failed during copy construction");
+            throw io_error("clocale_wrapper: duplocale failed during copy construction");
     }
 
     clocale_wrapper(clocale_wrapper&& val) noexcept
@@ -117,7 +116,7 @@ struct clocale_wrapper
         {
             locale_t tmp = val.c_locale ? duplocale(val.c_locale) : nullptr;
             if (val.c_locale && !tmp)
-                throw cvt_error("clocale_wrapper: duplocale failed during assignment");
+                throw io_error("clocale_wrapper: duplocale failed during assignment");
 
             if (c_locale)
                 freelocale(c_locale);
@@ -137,7 +136,7 @@ struct clocale_wrapper
      * @note 实现依赖 glibc 扩展 `nl_langinfo_l(_NL_LOCALE_NAME(LC_CTYPE), …)`（`<langinfo.h>`）；
      *       POSIX 没有等价接口，musl 等 libc 需要另想办法（例如自己保存解析后的名字）。
      * @return 已解析的 locale 名字。
-     * @throws cvt_error 若本对象处于 moved-from 状态。
+     * @throws io_error 若本对象处于 moved-from 状态。
      * @endif
      *
      * @lang{EN}
@@ -153,13 +152,13 @@ struct clocale_wrapper
      *       (`<langinfo.h>`); POSIX has no equivalent, so another libc (musl, say) would need
      *       a different route, such as keeping the resolved name itself.
      * @return The resolved locale name.
-     * @throws cvt_error If this object is in a moved-from state.
+     * @throws io_error If this object is in a moved-from state.
      * @endif
      */
     [[nodiscard]] std::string name() const
     {
         if (!c_locale)
-            throw cvt_error("clocale_wrapper::name: wrapper is in moved-from state");
+            throw io_error("clocale_wrapper::name: wrapper is in moved-from state");
 
         return nl_langinfo_l(_NL_LOCALE_NAME(LC_CTYPE), c_locale);
     }
@@ -211,21 +210,21 @@ struct clocale_user
      * @lang{ZH}
      * 构造一个语言环境守卫，切换到指定的语言环境。
      * @param wrapper 要切换到的语言环境
-     * @throws cvt_error 如果 wrapper 处于 moved-from 状态
+     * @throws io_error 如果 wrapper 处于 moved-from 状态
      * @note 捕获当前线程的语言环境以便稍后恢复
      * @endif
      *
      * @lang{EN}
      * Construct a locale guard that switches to the specified locale.
      * @param wrapper The locale to switch to
-     * @throws cvt_error If wrapper is in moved-from state
+     * @throws io_error If wrapper is in moved-from state
      * @note Captures the current thread's locale for later restoration
      * @endif
      */
     explicit clocale_user(const clocale_wrapper& wrapper)
     {
         if (!wrapper.c_locale)
-            throw cvt_error("clocale_user: wrapper is in moved-from state");
+            throw io_error("clocale_user: wrapper is in moved-from state");
         old = uselocale(wrapper.c_locale);
     }
 

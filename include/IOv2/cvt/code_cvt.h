@@ -147,7 +147,9 @@ struct codecvt_kernel<char, TInt>
      *
      * @param name 区域设置名称（如 "zh_CN.UTF-8"），传递给 clocale_wrapper。
      *
-     * @throws cvt_error 若区域设置报告 `MB_CUR_MAX == 0`（通常意味着区域设置配置异常）。
+     * @throws cvt_error 若 C 库无法实例化该名字（`clocale_wrapper` 报的 `io_error` 在此转成
+     *         `cvt_error`：对转换器而言这就是建不起来，流据此置 `cvtfailbit`），或区域设置报告
+     *         `MB_CUR_MAX == 0`（通常意味着区域设置配置异常）。
      * @endif
      *
      * @lang{EN}
@@ -156,12 +158,19 @@ struct codecvt_kernel<char, TInt>
      *
      * @param name Locale name (e.g., "zh_CN.UTF-8"), passed to clocale_wrapper.
      *
-     * @throws cvt_error If the locale reports `MB_CUR_MAX == 0` (which typically
-     *                   indicates a misconfigured locale).
+     * @throws cvt_error If the C library cannot instantiate the name (the `io_error` from
+     *                   `clocale_wrapper` becomes a `cvt_error` here: to a converter that is
+     *                   failing to be built, and a stream sets `cvtfailbit` for it), or the
+     *                   locale reports `MB_CUR_MAX == 0` (which typically indicates a
+     *                   misconfigured locale).
      * @endif
      */
     explicit codecvt_kernel(const std::string& name)
-        : m_inter_locale(name)
+        : m_inter_locale([&] {
+            // A name the C library rejects is a converter that cannot be built.
+            try { return clocale_wrapper(name); }
+            catch (const io_error& e) { throw cvt_error(e.what()); }
+        }())
     {
         clocale_user guard(m_inter_locale);
 

@@ -412,7 +412,7 @@ protected:
      *
      * @param filename `.mo` 文件的路径。
      * @return 从 `msgid`（UTF-8）到 `msgstr`（UTF-8）的翻译字典。
-     * @throw stream_error 如果文件无法打开、格式非法，或字符串数量/长度超出合理范围。
+     * @throw io_error 如果文件无法打开、格式非法，或字符串数量/长度超出合理范围。
      * @endif
      *
      * @lang{EN}
@@ -449,7 +449,7 @@ protected:
      *
      * @param filename The path to the `.mo` file.
      * @return A translation dictionary mapping `msgid` (UTF-8) to `msgstr` (UTF-8).
-     * @throw stream_error If the file cannot be opened, has an invalid format, or
+     * @throw io_error If the file cannot be opened, has an invalid format, or
      *                     the string count or length exceeds a reasonable bound.
      * @endif
      */
@@ -457,22 +457,22 @@ protected:
     {
         std::FILE* fp = fopen(filename.c_str(), "rb"); // NOLINT(cppcoreguidelines-owning-memory)
         if (!fp)
-            throw stream_error("get_translate_dictionary fail: cannot open file " + filename);
+            throw io_error("get_translate_dictionary fail: cannot open file " + filename);
 
         file_closer guard(fp);
 
         if (std::fseek(fp, 0, SEEK_END) != 0)
-            throw stream_error("get_translate_dictionary fail: invalid format");
+            throw io_error("get_translate_dictionary fail: invalid format");
         const long file_size = std::ftell(fp);
         if (file_size < 0)
-            throw stream_error("get_translate_dictionary fail: file inconsistent");
+            throw io_error("get_translate_dictionary fail: file inconsistent");
         if (std::fseek(fp, 0, SEEK_SET) != 0)
-            throw stream_error("get_translate_dictionary fail: invalid format");
+            throw io_error("get_translate_dictionary fail: invalid format");
 
         auto read_num = [fp](unsigned char* buf, bool need_swap)
         {
             if (std::fread(buf, 1, 4, fp) != 4)
-                throw stream_error("get_translate_dictionary fail: invalid format");
+                throw io_error("get_translate_dictionary fail: invalid format");
 
             std::uint32_t res = 0;
             std::memcpy(&res, buf, 4);
@@ -483,14 +483,14 @@ protected:
 
         std::array<unsigned char, 8> buff{};
         if (std::fread(buff.data(), 1, 8, fp) != 8)
-            throw stream_error("get_translate_dictionary fail: invalid format");
+            throw io_error("get_translate_dictionary fail: invalid format");
 
         bool need_swap = false;
         if ((buff[0] == 0x95) && (buff[1] == 0x04) && (buff[2] == 0x12) && (buff[3] == 0xde))
             need_swap = (std::endian::native == std::endian::little);
         else if ((buff[0] == 0xde) && (buff[1] == 0x12) && (buff[2] == 0x04) && (buff[3] == 0x95))
             need_swap = (std::endian::native == std::endian::big);
-        else throw stream_error("get_translate_dictionary fail: invalid format");
+        else throw io_error("get_translate_dictionary fail: invalid format");
 
         // Accept any .mo whose major revision (the high 16 bits) is 0, regardless of
         // minor revision. Only minor 0 (basic) and minor 1 (system-dependent strings)
@@ -506,7 +506,7 @@ protected:
         if (need_swap)
             revision = std::byteswap(revision);
         if ((revision >> 16) != 0)
-            throw stream_error("get_translate_dictionary fail: unsupported .mo major revision");
+            throw io_error("get_translate_dictionary fail: unsupported .mo major revision");
 
         auto str_num = read_num(buff.data(), need_swap);
         auto ori_offset = read_num(buff.data(), need_swap);
@@ -517,7 +517,7 @@ protected:
         // file_size / 16. Rejecting larger counts caps the O(str_num) growth of
         // oris and the result map, which the per-string length cap does not.
         if (str_num > static_cast<std::uint64_t>(file_size) / 16u)
-            throw stream_error("get_translate_dictionary fail: implausible string count");
+            throw io_error("get_translate_dictionary fail: implausible string count");
 
         // The .mo file offsets (and string lengths) are unsigned 32-bit, but
         // std::fseek takes a signed long. Where long is 64-bit (e.g. LP64
@@ -528,7 +528,7 @@ protected:
         // checked, so the worst case is a clean "invalid format" throw, never a
         // misread or out-of-bounds access.
         if (std::fseek(fp, ori_offset, SEEK_SET) != 0)
-            throw stream_error("get_translate_dictionary fail: invalid format");
+            throw io_error("get_translate_dictionary fail: invalid format");
 
         // The .mo format stores each string length as an unbounded 32-bit
         // integer, so the buffer is grown to fit each entry rather than
@@ -543,31 +543,31 @@ protected:
             auto length = read_num(buff.data(), need_swap);
             auto offset = read_num(buff.data(), need_swap);
             auto cur_pos = std::ftell(fp);
-            if (cur_pos == -1L) throw stream_error("get_translate_dictionary fail: file inconsistent");
+            if (cur_pos == -1L) throw io_error("get_translate_dictionary fail: file inconsistent");
 
             if (length > k_max_str_len)
-                throw stream_error("get_translate_dictionary fail: string too long");
+                throw io_error("get_translate_dictionary fail: string too long");
             total_str_bytes += length;
             if (total_str_bytes > static_cast<std::uint64_t>(file_size))
-                throw stream_error("get_translate_dictionary fail: total string bytes exceed file size");
+                throw io_error("get_translate_dictionary fail: total string bytes exceed file size");
             if (str_buf.size() < static_cast<std::size_t>(length) + 1)
                 str_buf.resize(static_cast<std::size_t>(length) + 1);
 
             if (std::fseek(fp, offset, SEEK_SET) != 0)
-                throw stream_error("get_translate_dictionary fail: invalid format");
+                throw io_error("get_translate_dictionary fail: invalid format");
 
             if (std::fread(str_buf.data(), 1, length, fp) != length)
-                throw stream_error("get_translate_dictionary fail: invalid format");
+                throw io_error("get_translate_dictionary fail: invalid format");
 
             str_buf[length] = u8'\0';
             oris.emplace_back(str_buf.data());
 
             if (std::fseek(fp, cur_pos, SEEK_SET) != 0)
-                throw stream_error("get_translate_dictionary fail: invalid format");
+                throw io_error("get_translate_dictionary fail: invalid format");
         }
 
         if (std::fseek(fp, aim_offset, SEEK_SET) != 0)
-            throw stream_error("get_translate_dictionary fail: invalid format");
+            throw io_error("get_translate_dictionary fail: invalid format");
         std::unordered_map<std::u8string, std::u8string> res;
 
         for (std::size_t i = 0; i < str_num; ++i)
@@ -575,27 +575,27 @@ protected:
             auto length = read_num(buff.data(), need_swap);
             auto offset = read_num(buff.data(), need_swap);
             auto cur_pos = std::ftell(fp);
-            if (cur_pos == -1L) throw stream_error("get_translate_dictionary fail: file inconsistent");
+            if (cur_pos == -1L) throw io_error("get_translate_dictionary fail: file inconsistent");
 
             if (length > k_max_str_len)
-                throw stream_error("get_translate_dictionary fail: string too long");
+                throw io_error("get_translate_dictionary fail: string too long");
             total_str_bytes += length;
             if (total_str_bytes > static_cast<std::uint64_t>(file_size))
-                throw stream_error("get_translate_dictionary fail: total string bytes exceed file size");
+                throw io_error("get_translate_dictionary fail: total string bytes exceed file size");
             if (str_buf.size() < static_cast<std::size_t>(length) + 1)
                 str_buf.resize(static_cast<std::size_t>(length) + 1);
 
             if (std::fseek(fp, offset, SEEK_SET) != 0)
-                throw stream_error("get_translate_dictionary fail: invalid format");
+                throw io_error("get_translate_dictionary fail: invalid format");
 
             if (std::fread(str_buf.data(), 1, length, fp) != length)
-                throw stream_error("get_translate_dictionary fail: invalid format");
+                throw io_error("get_translate_dictionary fail: invalid format");
 
             str_buf[length] = u8'\0';
             res.insert({oris[i], str_buf.data()});
 
             if (std::fseek(fp, cur_pos, SEEK_SET) != 0)
-                throw stream_error("get_translate_dictionary fail: invalid format");
+                throw io_error("get_translate_dictionary fail: invalid format");
         }
 
         return res;
@@ -792,7 +792,7 @@ public:
      * @param lang 候选语言字符串，或空字符串（使用环境变量）。
      * @param throw_if_fail 如果为 `true`（默认），加载失败时抛出异常；
      *                      否则静默地使翻译字典为空。
-     * @throw stream_error 如果 `throw_if_fail` 为 `true` 且字典加载失败。
+     * @throw io_error 如果 `throw_if_fail` 为 `true` 且字典加载失败。
      * @endif
      *
      * @lang{EN}
@@ -802,7 +802,7 @@ public:
      * @param lang The candidate language string, or empty (use environment variables).
      * @param throw_if_fail If `true` (default), throws on failure; otherwise silently
      *                      leaves the dictionary empty.
-     * @throw stream_error If `throw_if_fail` is `true` and dictionary loading fails.
+     * @throw io_error If `throw_if_fail` is `true` and dictionary loading fails.
      * @endif
      */
     // NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
@@ -888,7 +888,7 @@ private:
         try
         {
             if (lang.empty())
-                throw stream_error("messages_conf init fail: no language available");
+                throw io_error("messages_conf init fail: no language available");
             else
                 return get_translate_dictionary(get_domain_file({.dirname = dirname, .domain = domain}, lang));
         }
@@ -940,7 +940,7 @@ public:
      * @param lang 候选语言字符串，或空字符串（使用环境变量）。
      * @param throw_if_fail 如果为 `true`（默认），加载失败时抛出异常；
      *                      否则静默地使翻译字典为空。
-     * @throw stream_error 如果 `throw_if_fail` 为 `true` 且字典加载失败。
+     * @throw io_error 如果 `throw_if_fail` 为 `true` 且字典加载失败。
      * @endif
      *
      * @lang{EN}
@@ -950,7 +950,7 @@ public:
      * @param lang The candidate language string, or empty (use environment variables).
      * @param throw_if_fail If `true` (default), throws on failure; otherwise silently
      *                      leaves the dictionary empty.
-     * @throw stream_error If `throw_if_fail` is `true` and dictionary loading fails.
+     * @throw io_error If `throw_if_fail` is `true` and dictionary loading fails.
      * @endif
      */
     // NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
@@ -1004,7 +1004,7 @@ private:
         try
         {
             if (lang.empty())
-                throw stream_error("messages_conf init fail: no language available");
+                throw io_error("messages_conf init fail: no language available");
 
             std::unordered_map<TString, TString> res;
             auto tmp_dict = base_ft<messages>::get_translate_dictionary(base_ft<messages>::get_domain_file({.dirname = dirname, .domain = domain}, lang));
@@ -1087,7 +1087,7 @@ public:
      * @param cvt_ft `char`↔`wchar_t` 转换 facet 的名称。
      * @param throw_if_fail 如果为 `true`（默认），加载失败时抛出异常；
      *                      否则静默地使翻译字典为空。
-     * @throw stream_error 如果 `throw_if_fail` 为 `true` 且字典加载失败。
+     * @throw io_error 如果 `throw_if_fail` 为 `true` 且字典加载失败。
      * @endif
      *
      * @lang{EN}
@@ -1104,7 +1104,7 @@ public:
      * @param cvt_ft The name of the `char`↔`wchar_t` converter facet.
      * @param throw_if_fail If `true` (default), throws on failure; otherwise silently
      *                      leaves the dictionary empty.
-     * @throw stream_error If `throw_if_fail` is `true` and dictionary loading fails.
+     * @throw io_error If `throw_if_fail` is `true` and dictionary loading fails.
      * @endif
      */
     // NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
@@ -1193,7 +1193,7 @@ private:
             if constexpr (wchar_t_is_utf32)
             {
                 if (lang.empty())
-                    throw stream_error("messages_conf init fail: no language available");
+                    throw io_error("messages_conf init fail: no language available");
 
                 std::unordered_map<std::string, std::string> res;
                 auto tmp_dict = get_translate_dictionary(get_domain_file({.dirname = dirname, .domain = domain}, lang));
@@ -1226,7 +1226,7 @@ private:
                 return res;
             }
             else
-                throw stream_error("messages_conf init error: unsupported wchar_t / char32_t");
+                throw io_error("messages_conf init error: unsupported wchar_t / char32_t");
         }
         catch(...)
         {

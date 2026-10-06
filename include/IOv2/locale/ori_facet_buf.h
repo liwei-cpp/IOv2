@@ -335,7 +335,7 @@ public:
      * @note 这意味着本库的 locale 来源是**环境变量**，而**不**跟随运行期对
      * `std::setlocale` 的编程式修改。
      *
-     * @throws stream_error 当 `category` 不是已解析的五个类别之一
+     * @throws io_error 当 `category` 不是已解析的五个类别之一
      *         （`LC_CTYPE` / `LC_COLLATE` / `LC_MONETARY` / `LC_NUMERIC` / `LC_TIME`）时抛出，
      *         例如传入 `LC_ALL` 或 `LC_MESSAGES`。
      * @endif
@@ -353,7 +353,7 @@ public:
      * @note Consequently the library's locale source is the *environment*; it does
      * *not* follow runtime programmatic changes via `std::setlocale`.
      *
-     * @throws stream_error if `category` is not one of the five resolved categories
+     * @throws io_error if `category` is not one of the five resolved categories
      *         (`LC_CTYPE` / `LC_COLLATE` / `LC_MONETARY` / `LC_NUMERIC` / `LC_TIME`),
      *         e.g. when passed `LC_ALL` or `LC_MESSAGES`.
      * @endif
@@ -373,7 +373,7 @@ public:
         case LC_TIME:
             return m_time;
         default:
-            throw stream_error(
+            throw io_error(
                 "locale_name: unsupported LC category " + std::to_string(category)
                 + " (only LC_CTYPE/COLLATE/MONETARY/NUMERIC/TIME are resolved).");
         }
@@ -486,7 +486,7 @@ private:
             clocale_wrapper probe(name);
             return name;
         }
-        catch (const cvt_error&)
+        catch (const io_error&)
         {
             return "C";
         }

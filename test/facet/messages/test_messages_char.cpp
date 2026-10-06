@@ -151,7 +151,7 @@ TEST(MessagesChar, AMissingCatalogueLeavesTheKeyUntranslated)
     EXPECT_EQ(obj.translate("thank you"), "thank you");
     EXPECT_EQ(obj.head_entry(), "");
     EXPECT_THROW(messages<char>(std::make_shared<messages_conf<char>>(
-                     "messages", "zh_HK", "zh_HK")), stream_error);
+                     "messages", "zh_HK", "zh_HK")), io_error);
 }
 
 // An empty key would otherwise select the header entry, which is metadata and
@@ -181,28 +181,28 @@ TEST(MessagesChar, TheMoReaderRejectsMalformedCatalogues)
 {
     const std::string missing = "messages-parser-missing.mo";
     file_guard missing_guard(missing);
-    EXPECT_THROW(messages_probe::get_translate_dictionary(missing), stream_error);
+    EXPECT_THROW(messages_probe::get_translate_dictionary(missing), io_error);
 
-    EXPECT_THROW(parse_mo(std::string("\xde\x12", 2)), stream_error);
-    EXPECT_THROW(parse_mo(std::string(8, '\0')), stream_error);
+    EXPECT_THROW(parse_mo(std::string("\xde\x12", 2)), io_error);
+    EXPECT_THROW(parse_mo(std::string(8, '\0')), io_error);
 
     std::string header_only;
     append_u32(header_only, 0x950412deu, false);
     append_u32(header_only, 0, false);
-    EXPECT_THROW(parse_mo(header_only), stream_error);
+    EXPECT_THROW(parse_mo(header_only), io_error);
 
-    EXPECT_THROW(parse_mo(one_entry_mo("key", "value", false, 0x00010000u)), stream_error);
+    EXPECT_THROW(parse_mo(one_entry_mo("key", "value", false, 0x00010000u)), io_error);
 
     std::string implausible_count;
     for (std::uint32_t value : {0x950412deu, 0u, 2u, 28u, 44u, 0u, 0u})
         append_u32(implausible_count, value, false);
-    EXPECT_THROW(parse_mo(implausible_count), stream_error);
+    EXPECT_THROW(parse_mo(implausible_count), io_error);
 
     constexpr std::uint32_t too_long = 64u * 1024u * 1024u + 1u;
-    EXPECT_THROW(parse_mo(descriptor_only_mo(too_long, 44, 0, 44)), stream_error);
-    EXPECT_THROW(parse_mo(descriptor_only_mo(0, 44, too_long, 44)), stream_error);
-    EXPECT_THROW(parse_mo(descriptor_only_mo(45, 44, 0, 44)), stream_error);
-    EXPECT_THROW(parse_mo(descriptor_only_mo(1, 44, 45, 44) + "x"), stream_error);
-    EXPECT_THROW(parse_mo(descriptor_only_mo(1, 4096, 0, 44)), stream_error);
-    EXPECT_THROW(parse_mo(descriptor_only_mo(0, 44, 1, 4096)), stream_error);
+    EXPECT_THROW(parse_mo(descriptor_only_mo(too_long, 44, 0, 44)), io_error);
+    EXPECT_THROW(parse_mo(descriptor_only_mo(0, 44, too_long, 44)), io_error);
+    EXPECT_THROW(parse_mo(descriptor_only_mo(45, 44, 0, 44)), io_error);
+    EXPECT_THROW(parse_mo(descriptor_only_mo(1, 44, 45, 44) + "x"), io_error);
+    EXPECT_THROW(parse_mo(descriptor_only_mo(1, 4096, 0, 44)), io_error);
+    EXPECT_THROW(parse_mo(descriptor_only_mo(0, 44, 1, 4096)), io_error);
 }

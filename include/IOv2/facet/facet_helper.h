@@ -106,7 +106,7 @@ namespace IOv2::FacetHelper
      * @lang{EN} `true` if the language segment of `name` is `"C"` or `"POSIX"`, `false`
      *           otherwise. @endif
      *
-     * @throw cvt_error
+     * @throw io_error
      * @lang{ZH} 语言段为 `"C"` 或 `"POSIX"`，但 `newlocale()` 无法实例化该名称。 @endif
      * @lang{EN} The language segment is `"C"` or `"POSIX"` but `newlocale()` cannot
      *           instantiate the name. @endif

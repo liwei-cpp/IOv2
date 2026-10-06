@@ -358,7 +358,7 @@ TEST(LocaleChar8, AMissingCatalogueLeavesEveryMessageUntranslated)
     // the same lookup still observes and reports the missing catalogue.
     EXPECT_THROW((void)IOv2::locale<char8_t>("en_US.UTF-8")
                      .involve_msg("messages", "zh_CN", true),
-                 IOv2::stream_error);
+                 IOv2::io_error);
 }
 
 TEST(LocaleChar8, AnIdenticalInvolveMsgHandsBackTheInternedConf)

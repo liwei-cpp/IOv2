@@ -41,6 +41,7 @@
 
 #pragma once
 
+#include <IOv2/common/defs.h>
 #include <IOv2/common/metafunctions.h>
 #include <IOv2/facet/ctype_details.h>
 #include <IOv2/facet/facet_common.h>
@@ -521,14 +522,14 @@ public:
      * @lang{ZH} 指向 `ctype_conf<CharT>` 实例的共享指针，不得为空。 @endif
      * @lang{EN} Shared pointer to the `ctype_conf<CharT>` instance; must not be empty. @endif
      *
-     * @throws std::runtime_error
+     * @throws io_error
      * @lang{ZH} 若 `p_obj` 为空指针。 @endif
      * @lang{EN} If `p_obj` is an empty pointer. @endif
      */
     template <shared_ptr_to<ctype_conf<CharT>> TConfPtr>
     ctype(TConfPtr p_obj)
     {
-        if (!p_obj) throw std::runtime_error("shared_ptr is empty");
+        if (!p_obj) throw io_error("shared_ptr is empty");
         for (unsigned i = 0; i < s_len; ++i)
         {
             m_table[i] = p_obj->is(static_cast<CharT>(i));
@@ -770,7 +771,7 @@ public:
      * @lang{EN} Shared pointer to the `ctype_conf<CharT>` instance; must not be empty
      * and must remain valid for the lifetime of this object. @endif
      *
-     * @throws std::runtime_error
+     * @throws io_error
      * @lang{ZH} 若 `p_obj` 为空指针。 @endif
      * @lang{EN} If `p_obj` is an empty pointer. @endif
      */
@@ -778,7 +779,7 @@ public:
     ctype(TConfPtr p_obj)
         : m_obj(p_obj)
     {
-        if (!m_obj) throw std::runtime_error("shared_ptr is empty");
+        if (!m_obj) throw io_error("shared_ptr is empty");
         for (unsigned i = 0; i < s_len; ++i)
         {
             m_toupper[i] = m_obj->toupper(static_cast<CharT>(i));

@@ -28,6 +28,7 @@
  */
 #pragma once
 #include <IOv2/common/clocale_wrapper.h>
+#include <IOv2/common/defs.h>
 #include <IOv2/common/metafunctions.h>
 #include <IOv2/common/prefix_tree.h>
 #include <IOv2/cvt/cvt_facilities.h>
@@ -43,7 +44,6 @@
 #include <limits>
 #include <map>
 #include <optional>
-#include <stdexcept>
 #include <string>
 #include <string_view>
 #include <type_traits>
@@ -408,7 +408,7 @@ namespace IOv2
                 // Letting it escape the static initializer instead would call std::terminate
                 // in every program that includes this header, %Z user or not.
                 if (entries.contains(std::string{s_unknown_zone}))
-                    throw std::runtime_error(
+                    throw io_error(
                         "timeio: the tz database has a zone or abbreviation named '"
                         + std::string{s_unknown_zone} + "', colliding with the unknown-zone token");
 

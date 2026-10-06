@@ -242,7 +242,7 @@ TEST(MonetaryChar, TheCharacterTypeIsChar)
 TEST(MonetaryChar, ANullConfigurationIsRejected)
 {
     const std::shared_ptr<monetary_conf<char>> empty;
-    EXPECT_THROW((void)monetary<char>{empty}, stream_error);
+    EXPECT_THROW((void)monetary<char>{empty}, io_error);
 }
 
 // [locale.moneypunct] fixes the "C" locale completely: no currency, no
@@ -311,7 +311,7 @@ TEST(MonetaryChar, ANameTheSystemRejectsIsNotTheCLocale)
     for (const char* name : {"C.BOGUS", "C@euro", "C.", "C@", "POSIX.utf8", "POSIX@x"})
     {
         SCOPED_TRACE(name);
-        EXPECT_THROW(facet_for(name), cvt_error);
+        EXPECT_THROW(facet_for(name), io_error);
     }
 }
 

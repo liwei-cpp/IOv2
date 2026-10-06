@@ -52,7 +52,6 @@
 #include <list>
 #include <memory>
 #include <set>
-#include <stdexcept>
 #include <string>
 #include <string_view>
 #include <type_traits>
@@ -1753,7 +1752,7 @@ struct time_value_fields<std::tm>
  *
  * @note 格式串来自 locale 数据库（`nl_langinfo`），其中的自引用（如 `D_T_FMT == "%c"`）
  *   在构造时即被拒绝：构造函数检查这些复合格式串构成的图是否有环，有环则抛
- *   `std::runtime_error`。因此 `put` / `get` / `expand_format` 的递归展开总是有界的。
+ *   `io_error`。因此 `put` / `get` / `expand_format` 的递归展开总是有界的。
  *   参见 `validate_format_recursion`。
  *
  * @tparam CharT 字符类型（`char`、`wchar_t`、`char8_t`、`char32_t`）。
@@ -1843,7 +1842,7 @@ struct time_value_fields<std::tm>
  *
  * @note Format strings sourced from the locale database (`nl_langinfo`) are checked for
  *   self-reference at construction (e.g. `D_T_FMT == "%c"`): the constructor rejects a
- *   cycle among the compound format strings with `std::runtime_error`. The recursive
+ *   cycle among the compound format strings with `io_error`. The recursive
  *   expansion in `put` / `get` / `expand_format` is therefore always bounded. See
  *   `validate_format_recursion`.
  *
@@ -1872,7 +1871,7 @@ public:
      * @tparam TCtypePtr 指向 `ctype<CharT>` 的 `shared_ptr` 类型。
      * @param p_obj   locale 配置对象（不得为空）。
      * @param p_ctype ctype facet（不得为空）。
-     * @throw std::runtime_error 若任一指针为空。
+     * @throw io_error 若任一指针为空。
      * @endif
      *
      * @lang{EN}
@@ -1885,7 +1884,7 @@ public:
      * @tparam TCtypePtr A `shared_ptr` type pointing to `ctype<CharT>`.
      * @param p_obj   The locale configuration object (must not be null).
      * @param p_ctype The ctype facet (must not be null).
-     * @throw std::runtime_error If either pointer is null.
+     * @throw io_error If either pointer is null.
      * @endif
      */
     template <shared_ptr_to<timeio_conf<CharT>> TConfPtr,
@@ -1893,7 +1892,7 @@ public:
     timeio(TConfPtr p_obj, TCtypePtr p_ctype)
         : timeio(p_obj)
     {
-        if (!p_ctype) throw std::runtime_error("shared_ptr is empty");
+        if (!p_ctype) throw io_error("shared_ptr is empty");
         m_ctype = p_ctype;
     }
 
@@ -1907,7 +1906,7 @@ public:
      * 使用基础 ASCII 判断。
      * @tparam TConfPtr 指向 `timeio_conf<CharT>` 的 `shared_ptr` 类型。
      * @param p_obj locale 配置对象（不得为空）。
-     * @throw std::runtime_error 若指针为空、locale 名称表存在重复/空条目，或复合
+     * @throw io_error 若指针为空、locale 名称表存在重复/空条目，或复合
      *        格式串自引用（见 `validate_format_recursion`）。
      * @endif
      *
@@ -1921,7 +1920,7 @@ public:
      * provided, whitespace recognition uses basic ASCII comparison.
      * @tparam TConfPtr A `shared_ptr` type pointing to `timeio_conf<CharT>`.
      * @param p_obj The locale configuration object (must not be null).
-     * @throw std::runtime_error If the pointer is null, the locale name tables
+     * @throw io_error If the pointer is null, the locale name tables
      *        contain duplicates or empty entries, or a compound format string is
      *        self-referential (see `validate_format_recursion`).
      * @endif
@@ -1929,7 +1928,7 @@ public:
     template <shared_ptr_to<timeio_conf<CharT>> TConfPtr>
     timeio(TConfPtr p_obj)
     {
-        if (!p_obj) throw std::runtime_error("shared_ptr is empty");
+        if (!p_obj) throw io_error("shared_ptr is empty");
         m_day = p_obj->day_names();
         m_abbr_day = p_obj->abbr_day_names();
         m_month = p_obj->month_names();
@@ -1952,7 +1951,7 @@ public:
         check_unique_nonempty<7>(m_day, m_abbr_day, "day");
         check_unique_nonempty<12>(m_month, m_abbr_month, "month");
         if (!m_am.empty() && m_am == m_pm)
-            throw std::runtime_error("timeio: AM and PM designators are identical in locale data");
+            throw io_error("timeio: AM and PM designators are identical in locale data");
         validate_format_recursion();
 
         for (int i = 0; i < 7; ++i)
@@ -3905,7 +3904,7 @@ private:
      * @param full 全称数组。
      * @param abbr 缩写数组。
      * @param what 名称类别描述（用于错误消息，如 `"day"` 或 `"month"`）。
-     * @throw std::runtime_error 若存在空名称或不同索引的名称重复。
+     * @throw io_error 若存在空名称或不同索引的名称重复。
      * @endif
      *
      * @lang{EN}
@@ -3917,7 +3916,7 @@ private:
      * @param full The full-name array.
      * @param abbr The abbreviated-name array.
      * @param what A category label for error messages (e.g. `"day"` or `"month"`).
-     * @throw std::runtime_error If any name is empty or two different indices share a spelling.
+     * @throw io_error If any name is empty or two different indices share a spelling.
      * @endif
      */
     template <std::size_t N>
@@ -3929,7 +3928,7 @@ private:
         for (std::size_t i = 0; i < N; ++i)
         {
             if (full[i].empty() || abbr[i].empty())
-                throw std::runtime_error(std::string("timeio: empty ") + what + " name in locale data");
+                throw io_error(std::string("timeio: empty ") + what + " name in locale data");
             names[2 * i]     = &full[i];
             names[2 * i + 1] = &abbr[i];
         }
@@ -3937,7 +3936,7 @@ private:
         for (std::size_t a = 0; a < names.size(); ++a)
             for (std::size_t b = a + 1; b < names.size(); ++b)
                 if ((a / 2) != (b / 2) && *names[a] == *names[b])
-                    throw std::runtime_error(std::string("timeio: duplicate ") + what + " name in locale data");
+                    throw io_error(std::string("timeio: duplicate ") + what + " name in locale data");
     }
 
     /**
@@ -3951,7 +3950,7 @@ private:
      * 用户自己传的格式串不是节点——它只是一次入口，只能通过这些表进入递归。所以这一次检查把三
      * 条递归路径**整体**变成有界的，而不只是挡住 `D_T_FMT == "%c"` 这一种写法。
      *
-     * @throw std::runtime_error 若存在环。
+     * @throw io_error 若存在环。
      * @endif
      *
      * @lang{EN}
@@ -3967,7 +3966,7 @@ private:
      * reach the recursion through these tables. So this single check bounds all three recursive
      * paths **as a whole**, rather than merely rejecting the `D_T_FMT == "%c"` spelling.
      *
-     * @throw std::runtime_error If there is a cycle.
+     * @throw io_error If there is a cycle.
      * @endif
      */
     void validate_format_recursion() const
@@ -4064,7 +4063,7 @@ private:
             {
                 const std::size_t u = std::to_underlying(node);
                 if (color[u] == 1)
-                    throw std::runtime_error("timeio: self-referential compound format in locale data");
+                    throw io_error("timeio: self-referential compound format in locale data");
                 if (color[u] == 0) self(self, u);
             });
             color[v] = 2;

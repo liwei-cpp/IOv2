@@ -61,7 +61,7 @@ protected:
 TEST_F(ClocaleWrapperMock, NewlocaleFailureThrows)
 {
     mock_newlocale_fail = true;
-    EXPECT_THROW((void)clocale_wrapper_mock("C"), cvt_error);
+    EXPECT_THROW((void)clocale_wrapper_mock("C"), io_error);
 }
 
 TEST_F(ClocaleWrapperMock, DuplocaleFailureInCopyConstructorThrows)
@@ -69,7 +69,7 @@ TEST_F(ClocaleWrapperMock, DuplocaleFailureInCopyConstructorThrows)
     clocale_wrapper_mock loc1("C");
 
     mock_duplocale_fail = true;
-    EXPECT_THROW((void)clocale_wrapper_mock(loc1), cvt_error);
+    EXPECT_THROW((void)clocale_wrapper_mock(loc1), io_error);
 }
 
 TEST_F(ClocaleWrapperMock, DuplocaleFailureInCopyAssignmentThrows)
@@ -78,5 +78,5 @@ TEST_F(ClocaleWrapperMock, DuplocaleFailureInCopyAssignmentThrows)
     clocale_wrapper_mock loc2("C");
 
     mock_duplocale_fail = true;
-    EXPECT_THROW(loc2 = loc1, cvt_error);
+    EXPECT_THROW(loc2 = loc1, io_error);
 }

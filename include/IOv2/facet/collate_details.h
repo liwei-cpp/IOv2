@@ -99,7 +99,7 @@ public:
      * COLLATE 编码集一致，故探测结果可代表两者的实际编码。
      *
      * @param name locale 名称字符串（例如 `"zh_CN.UTF-8"`）。
-     * @throw stream_error 若 `CharT` 为 `char8_t` 且 inter locale 的编码集不是 UTF-8。
+     * @throw io_error 若 C 库无法实例化 `name`，或 `CharT` 为 `char8_t` 且 inter locale 的编码集不是 UTF-8。
      * @endif
      *
      * @lang{EN}
@@ -115,7 +115,8 @@ public:
      * so agreement here means `strcoll`/`strxfrm` agree.
      *
      * @param name The locale name string (e.g., `"zh_CN.UTF-8"`).
-     * @throw stream_error If `CharT` is `char8_t` and the inter locale's codeset is not UTF-8.
+     * @throw io_error If the C library cannot instantiate `name`, or `CharT` is `char8_t` and
+     *        the inter locale's codeset is not UTF-8.
      * @endif
      */
     collate_conf(const std::string& name)
@@ -137,7 +138,7 @@ public:
                 std::mbstate_t st{};
                 std::size_t n = std::mbrtoc32(&c32, p.mb, p.len, &st);
                 if ((n != p.len) || (c32 != p.cp))
-                    throw stream_error("collate_conf<char8_t>: inter locale is not UTF-8");
+                    throw io_error("collate_conf<char8_t>: inter locale is not UTF-8");
             }
         }
     }
@@ -205,7 +206,7 @@ public:
      *
      * @param src 待变换的字符串，以空字符结尾。
      * @return 排序键的字符数，不含结尾空字符。
-     * @throw stream_error 若 `strxfrm`/`wcsxfrm` 报告失败。
+     * @throw io_error 若 `strxfrm`/`wcsxfrm` 报告失败。
      * @endif
      *
      * @lang{EN}
@@ -218,7 +219,7 @@ public:
      *
      * @param src The string to transform, null-terminated.
      * @return The number of characters in the collation key, excluding the terminating null.
-     * @throw stream_error If `strxfrm`/`wcsxfrm` reports failure.
+     * @throw io_error If `strxfrm`/`wcsxfrm` reports failure.
      * @endif
      */
     virtual std::size_t transform_length(const CharT* src) const
@@ -239,7 +240,7 @@ public:
             static_assert(dependent_false_v<CharT>, "collate_conf::transform_length is not implemented.");
 
         if (res == xfrm_failed)
-            throw stream_error("collate_conf::transform_length: strxfrm/wcsxfrm failed");
+            throw io_error("collate_conf::transform_length: strxfrm/wcsxfrm failed");
         return res;
     }
 
@@ -255,7 +256,7 @@ public:
      * @param dest 写入排序键的目标缓冲区。
      * @param n `dest` 的容量（字符数），须大于 `transform_length(src)`。
      * @return 排序键的字符数，不含结尾空字符。
-     * @throw stream_error 若 `strxfrm`/`wcsxfrm` 报告失败，或 `n` 不足以容纳排序键及结尾空字符。
+     * @throw io_error 若 `strxfrm`/`wcsxfrm` 报告失败，或 `n` 不足以容纳排序键及结尾空字符。
      * @endif
      *
      * @lang{EN}
@@ -271,7 +272,7 @@ public:
      * @param dest Destination buffer where the collation key is written.
      * @param n Capacity of `dest` in characters; must exceed `transform_length(src)`.
      * @return The number of characters in the collation key, excluding the terminating null.
-     * @throw stream_error If `strxfrm`/`wcsxfrm` reports failure, or `n` cannot hold
+     * @throw io_error If `strxfrm`/`wcsxfrm` reports failure, or `n` cannot hold
      *        the key plus its terminating null.
      * @endif
      */
@@ -297,10 +298,10 @@ public:
             static_assert(dependent_false_v<CharT>, "collate_conf::transform is not implemented.");
 
         if (res == xfrm_failed)
-            throw stream_error("collate_conf::transform: strxfrm/wcsxfrm failed");
+            throw io_error("collate_conf::transform: strxfrm/wcsxfrm failed");
         // A short buffer leaves dest indeterminate; never hand that back as a key.
         if (res >= n)
-            throw stream_error("collate_conf::transform: destination too small");
+            throw io_error("collate_conf::transform: destination too small");
         return res;
     }
 private:

@@ -86,7 +86,7 @@ namespace
 TEST(CollateWchar, ANullConfigurationIsRejected)
 {
     std::shared_ptr<collate_conf<wchar_t>> empty;
-    EXPECT_THROW(collate<wchar_t>{empty}, stream_error);
+    EXPECT_THROW(collate<wchar_t>{empty}, io_error);
 }
 
 TEST(CollateWchar, EqualRangesCompareEqual)
@@ -457,7 +457,7 @@ TEST(CollateWchar, AZeroMaximumLengthIsRejected)
     const std::wstring input(L"ab");
     std::wstring key;
     EXPECT_THROW(obj.transform(input.data(), input.data() + input.size(), std::back_inserter(key), 0),
-                 stream_error);
+                 io_error);
     EXPECT_TRUE(key.empty());
 }
 
