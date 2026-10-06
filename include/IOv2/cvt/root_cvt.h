@@ -726,31 +726,35 @@ public:
      * @lang{ZH} io_status 不为 input 且无法切换时抛出。 @endif
      * @lang{EN} Thrown when io_status is not input and cannot be switched. @endif
      */
-    std::size_t get(internal_type* to, std::size_t to_max)
+    std::size_t get(this auto& self, internal_type* to, std::size_t to_max)
         requires (dev_cpt::support_get<device_type>)
     {
         if constexpr (dev_cpt::support_put<device_type>)
         {
-            if (m_io_status != io_status::input)
-                switch_to_get();
+            if (self.m_io_status != io_status::input)
+                self.switch_to_get();
         }
-        if (m_io_status != io_status::input)
+        if (self.m_io_status != io_status::input)
             throw cvt_error("root_cvt::get fails: invalid io status");
 
         if constexpr (!HasInBuffer)
-            return m_device.dget(to, to_max);
+            return self.m_device.dget(to, to_max);
         else
         {
-            if (m_buf_cur == m_buf_end)
+            if (self.m_buf_cur == self.m_buf_end)
             {
-                const std::size_t act_len = m_device.dget(m_buffer.data(), s_buffer_length);
-                m_buf_cur = m_buffer.data();
-                m_buf_end = m_buf_cur + act_len;
+                // A derived root may read less than a full buffer (see read_ahead).
+                std::size_t want = s_buffer_length;
+                if constexpr (requires { self.read_ahead(to_max, want); })
+                    want = self.read_ahead(std::min(to_max, want), want);
+                const std::size_t act_len = self.m_device.dget(self.m_buffer.data(), want);
+                self.m_buf_cur = self.m_buffer.data();
+                self.m_buf_end = self.m_buf_cur + act_len;
             }
 
-            const std::size_t res_len = std::min<std::size_t>(m_buf_end - m_buf_cur, to_max);
-            std::copy(m_buf_cur, m_buf_cur + res_len, to);
-            m_buf_cur += res_len;
+            const std::size_t res_len = std::min<std::size_t>(self.m_buf_end - self.m_buf_cur, to_max);
+            std::copy(self.m_buf_cur, self.m_buf_cur + res_len, to);
+            self.m_buf_cur += res_len;
             return res_len;
         }
     }
@@ -1891,7 +1895,11 @@ public:
                 m_kernel.m_buf_end = m_kernel.m_buffer.data();
 
             m_kernel.m_buf_cur = m_kernel.m_buffer.data();
-            m_kernel.m_buf_end += m_kernel.m_device.dget(m_kernel.m_buf_end, KernelType::s_buffer_length - remain);
+            // A derived root may read less than fills the buffer (see read_ahead).
+            std::size_t want = KernelType::s_buffer_length - remain;
+            if constexpr (requires { m_kernel.read_ahead(to_max - remain, want); })
+                want = m_kernel.read_ahead(to_max - remain, want);
+            m_kernel.m_buf_end += m_kernel.m_device.dget(m_kernel.m_buf_end, want);
         }
 
         if constexpr (Saturate)

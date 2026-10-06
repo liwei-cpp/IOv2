@@ -187,6 +187,28 @@ TEST(IoObjectsWchar, TheInputEncodingCanBeSwitchedMidStream)
     EXPECT_EQ(second, L"\u8c22\u8c22");
 }
 
+// Switching wcin to synchronized rebuilds nothing: the bytes the unsynchronized stream
+// had read ahead -- a multibyte character among them -- still decode afterwards.
+TEST(IoObjectsWchar, SwitchingToSynchronizedKeepsTheInputReadAhead)
+{
+    iguard g("\xe8\xaf\xb7 \xe8\xb0\xa2\xe8\xb0\xa2 ok");
+    IOv2::wcin.reset();
+    IOv2::wcin.switch_code("zh_CN.UTF-8");
+    IOv2::wcin.sync_with_stdio(false);
+
+    std::wstring first, second, third;
+    IOv2::wcin >> first;                               // pulls the whole input into the buffer
+    EXPECT_EQ(first, L"\u8bf7");
+
+    EXPECT_FALSE(IOv2::wcin.sync_with_stdio(true));
+    IOv2::wcin >> second >> third;
+    EXPECT_EQ(second, L"\u8c22\u8c22");
+    EXPECT_EQ(third, L"ok");
+    EXPECT_TRUE(IOv2::wcin.eof());
+
+    IOv2::wcin.reset();
+}
+
 TEST(IoObjectsWchar, TheOutputEncodingCanBeSwitchedMidStream)
 {
     oguard<true> out;

@@ -7,6 +7,7 @@
 #include <IOv2/cvt/cvt_concepts.h>
 #include <IOv2/cvt/root_cvt.h>
 #include <IOv2/cvt/runtime_cvt.h>
+#include <IOv2/cvt/stdin_root_cvt.h>
 #include <IOv2/device/mem_device.h>
 #include <IOv2/device/std_device.h>
 
@@ -774,59 +775,47 @@ TEST(CodeCvtStdio, ASelfMoveChangesNothing)
     EXPECT_EQ(g.contents(), "文!");
 }
 
-// What wcin.sync_with_stdio() does with the decoder: half a character left at the end of
-// the input stays in the old converter's buffer and goes with it; the kernel goes over,
-// and the new converter reaches eof.
-TEST(CodeCvtStdio, AHalfCharacterAtTheEndStaysWithTheOldConverter)
+// What wcin.sync_with_stdio() does now: it flips a flag on the root and rebuilds
+// nothing, so what the unsynchronized root had read ahead is still handed out after a
+// switch to synchronized.
+TEST(CodeCvtStdio, ReadAheadBytesSurviveASwitchToSynchronized)
 {
-    using SyncIn = code_cvt_stdio<no_rb_root_cvt<std_device<STDIN_FILENO>>>;
+    using Root = stdin_root_cvt<std_device<STDIN_FILENO>>;
 
-    iguard g("a\xe4\xb8");
-    SyncIn first{no_rb_root_cvt{std_device<STDIN_FILENO>{}}, "zh_CN.UTF-8"};
-    EXPECT_EQ(first.bos(), io_status::input);
-    first.main_cont_beg();
-    wchar_t c = 0;
-    EXPECT_EQ(first.get(&c, 1), 1u);
-    EXPECT_EQ(c, L'a');
-    EXPECT_THROW(first.get(&c, 1), cvt_error);
-    EXPECT_THROW(first.get(&c, 1), cvt_error) << "the cut-off character was dropped";
-    EXPECT_FALSE(first.is_eof());
-
-    code_cvt_stdio_state state;
-    first.retrieve(state);
-    ASSERT_TRUE(state.kernel.has_value());
-    auto [dev, err] = first.detach();
-    EXPECT_FALSE(err);
-
-    StdioIn second{rb_root_cvt{std::move(dev)}, "zh_CN.UTF-8"};
-    EXPECT_EQ(second.bos(), io_status::input);
-    second.main_cont_beg();
-    second.adjust(state);
-    EXPECT_FALSE(state.kernel.has_value());
-    EXPECT_THROW(second.adjust(state), cvt_error);
-    EXPECT_EQ(second.get(&c, 1), 0u);
-    EXPECT_TRUE(second.is_eof());
-    EXPECT_NO_THROW(second.adjust(code_cvt_switch{"C"}));
-}
-
-// The query still answers code_cvt_access, and an empty state is refused without
-// changing anything.
-TEST(CodeCvtStdio, AnEmptyStateIsRefusedAndChangesNothing)
-{
-    iguard g("ab");
-    StdioIn obj{rb_root_cvt{std_device<STDIN_FILENO>{}}, "zh_CN.UTF-8"};
+    iguard g("ab\xe4\xb8\xad" "cd");
+    code_cvt_stdio<Root> obj{Root{std_device<STDIN_FILENO>{}, false}, "zh_CN.UTF-8"};
     EXPECT_EQ(obj.bos(), io_status::input);
     obj.main_cont_beg();
+    wchar_t c = 0;
+    EXPECT_EQ(obj.get(&c, 1), 1u);
+    EXPECT_EQ(c, L'a');
 
-    const code_cvt_stdio_state empty;
-    EXPECT_THROW(obj.adjust(empty), cvt_error);
+    obj.adjust(stdin_sync{true});
+    std::wstring got;
+    while (obj.get(&c, 1) == 1)
+        got += c;
+    EXPECT_EQ(got, L"b中cd");
+}
+
+// Half a character left at the end of the input stays in the buffer across a switch:
+// every read still reports it, and none reaches eof.
+TEST(CodeCvtStdio, AHalfCharacterAtTheEndSurvivesASyncSwitch)
+{
+    using Root = stdin_root_cvt<std_device<STDIN_FILENO>>;
+
+    iguard g("a\xe4\xb8");
+    code_cvt_stdio<Root> obj{Root{std_device<STDIN_FILENO>{}, true}, "zh_CN.UTF-8"};
+    EXPECT_EQ(obj.bos(), io_status::input);
+    obj.main_cont_beg();
+    wchar_t c = 0;
+    EXPECT_EQ(obj.get(&c, 1), 1u);
+    EXPECT_THROW(obj.get(&c, 1), cvt_error);
+
+    obj.adjust(stdin_sync{false});
+    EXPECT_THROW(obj.get(&c, 1), cvt_error);
+    EXPECT_FALSE(obj.is_eof());
 
     code_cvt_access acc;
     obj.retrieve(acc);
     EXPECT_EQ(acc.code, "zh_CN.UTF-8");
-    wchar_t c = 0;
-    std::wstring got;
-    while (obj.get(&c, 1) == 1)
-        got += c;
-    EXPECT_EQ(got, L"ab");
 }

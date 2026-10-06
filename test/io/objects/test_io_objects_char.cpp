@@ -20,6 +20,7 @@
 #include <IOv2/io/objects/objects.h>
 #include <IOv2/io/objects/out_impl.h>
 #include <IOv2/io/ostream.h>
+#include <IOv2/io/traits/arithmetic.h>
 #include <IOv2/io/traits/char_and_str.h>
 
 #include <support/stdio_guard.h>
@@ -376,9 +377,8 @@ TEST(IoObjectsChar, SyncWithStdioDoesNotReplaceTheObjects)
 }
 
 // synced_with_stdio() reports the state; sync_with_stdio() sets it. Reading the
-// state through the setter is what the standard's one-function interface forces,
-// and on an input stream it costs the buffered input: each call rebuilds the
-// iochannel. The getter exists so that query and switch are separate operations.
+// state through the setter is what the standard's one-function interface forces;
+// the getter exists so that query and switch are separate operations.
 TEST(IoObjectsChar, SyncWithStdioCanBeQueriedWithoutSwitching)
 {
     iguard g("one two three\n");
@@ -396,9 +396,7 @@ TEST(IoObjectsChar, SyncWithStdioCanBeQueriedWithoutSwitching)
     IOv2::cin >> first;                                // pulls the rest into cin's buffer
     EXPECT_EQ(first, "one");
 
-    // The query leaves both the state and the buffered input alone. Through the
-    // setter this would be sync_with_stdio() + sync_with_stdio(false): two
-    // rebuilds, and " two three\n" would be gone.
+    // The query leaves both the state and the buffered input alone.
     EXPECT_FALSE(IOv2::cin.synced_with_stdio());
 
     std::string second;
@@ -408,6 +406,31 @@ TEST(IoObjectsChar, SyncWithStdioCanBeQueriedWithoutSwitching)
 
     IOv2::cin.sync_with_stdio(true);
     EXPECT_TRUE(IOv2::cin.synced_with_stdio());
+}
+
+// Switching an input stream flips a flag on its root and rebuilds nothing: what the
+// unsynchronized stream had read ahead is still handed out after a switch to
+// synchronized, and only then does it read fd 0 on demand. It used to be dropped
+// with the old iochannel.
+TEST(IoObjectsChar, SwitchingToSynchronizedKeepsTheInputReadAhead)
+{
+    iguard g("11 22 33\n44");
+    IOv2::cin.reset();
+    IOv2::cin.sync_with_stdio(false);
+
+    int x = 0;
+    IOv2::cin >> x;                                    // pulls the whole input into the buffer
+    EXPECT_EQ(x, 11);
+
+    EXPECT_FALSE(IOv2::cin.sync_with_stdio(true));
+    int y = 0, z = 0, w = 0;
+    IOv2::cin >> y >> z >> w;
+    EXPECT_EQ(y, 22);
+    EXPECT_EQ(z, 33);
+    EXPECT_EQ(w, 44);
+    EXPECT_TRUE(IOv2::cin.eof());
+
+    IOv2::cin.reset();
 }
 
 // Asking an input stream for the mode it is already in has nothing to switch, so it

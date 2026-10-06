@@ -193,16 +193,15 @@ private:
  * @brief 对全部八个标准流对象调用 `sync_with_stdio(sync)`。
  *
  * **八个流一律都会被尝试**：某个流失败不会妨碍其余的切换。每个流的失败先记在它自己的状态位上
- * （输出流是切回同步时把本流缓冲搬进 stdio 缓冲那一步失败，输入流是重建 iochannel 失败），
- * 若该流的 `exceptions()` 掩码含该位，它会抛出——本函数把这些异常收齐，最后抛一个
- * `sync_error`。默认掩码（`goodbit`）下本函数不抛任何异常，失败只体现在各流的状态位上：
- * 六个输出流一定切换（失败的只是交出积压字节那一步），输入流重建失败时保持原模式并停在
- * 未附接状态（见 `stdin_api::sync_with_stdio`）。
+ * （输出流是切回同步时把本流缓冲搬进 stdio 缓冲那一步失败；`wcin` 只在转换器已 tainted、
+ * 先做的自动恢复失败时才失败），若该流的 `exceptions()` 掩码含该位，它会抛出——本函数把
+ * 这些异常收齐，最后抛一个 `sync_error`。默认掩码（`goodbit`）下本函数不抛任何异常，失败
+ * 只体现在各流的状态位上：六个输出流一定切换（失败的只是交出积压字节那一步），输入流失败时
+ * 保持原模式（见 `stdin_api::sync_with_stdio`）。
  *
- * 应在任何 `stdin` 读取之前调用：输入流会换掉整个 iochannel，已缓冲但未消费的输入随之
- * 丢弃（见 `stdin_api::sync_with_stdio`）。输出侧没有这个限制，随时可切，与并发的插入操作
- * 安全竞争；切到同步时（已同步再调也一样）它会取该流的锁，若此前自行缓冲则把本流缓冲搬进
- * stdio 缓冲，因此可能等待正在进行的插入结束
+ * 随时可调：输入流只翻根转换器上的一个标志，已缓冲的输入不丢（见 `stdin_api::sync_with_stdio`）。
+ * 输出侧同样随时可切，与并发的插入操作安全竞争；切到同步时（已同步再调也一样）它会取该流的
+ * 锁，若此前自行缓冲则把本流缓冲搬进 stdio 缓冲，因此可能等待正在进行的插入结束
  * （见 `stdout_api::sync_with_stdio`）。
  *
  * @param sync `true` 为同步（默认），`false` 为各流自行缓冲。
@@ -215,18 +214,18 @@ private:
  *
  * **All eight streams are attempted**: one that fails cannot keep the others from switching.
  * Each failure is first recorded in that stream's own state bits (on an output stream, the
- * hand-over of its buffer to stdio when switching back to synchronized; on an input stream,
- * rebuilding the iochannel), and if that stream's `exceptions()` mask includes the bit it
- * throws -- this function collects those exceptions and finally throws one `sync_error`.
- * Under the default mask (`goodbit`) it throws nothing and the failures show up only as
- * each stream's state bits: the six output streams always switch (what can fail is only
- * the hand-over of their pending bytes), while an input stream whose rebuild fails keeps
- * its old mode and is left unattached (see `stdin_api::sync_with_stdio`).
+ * hand-over of its buffer to stdio when switching back to synchronized; `wcin` fails only
+ * when its converter is tainted and the automatic recovery done first fails), and if that
+ * stream's `exceptions()` mask includes the bit it throws -- this function collects those
+ * exceptions and finally throws one `sync_error`. Under the default mask (`goodbit`) it
+ * throws nothing and the failures show up only as each stream's state bits: the six output
+ * streams always switch (what can fail is only the hand-over of their pending bytes), while
+ * an input stream that fails keeps its old mode (see `stdin_api::sync_with_stdio`).
  *
- * Call it before any `stdin` read: the input streams replace their whole iochannel, which
- * discards input that was buffered but not yet consumed (see `stdin_api::sync_with_stdio`).
- * The output side carries no such restriction and is switchable at any time, safe against
- * concurrent insertions; switching to synchronized -- even when it already is -- takes that
+ * It may be called at any time: an input stream only flips a flag on its root converter
+ * and loses none of its buffered input (see `stdin_api::sync_with_stdio`). The output side
+ * is switchable at any time as well, safe against concurrent insertions; switching to
+ * synchronized -- even when it already is -- takes that
  * stream's lock, and moves its buffer into stdio's if it was buffering on its own, so it may
  * wait for an insertion already under way (see `stdout_api::sync_with_stdio`).
  *
