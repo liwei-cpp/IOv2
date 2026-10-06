@@ -132,11 +132,10 @@ public:
      * 一次提取进行中（例如用户 `io_traits::sread` 里）重入调用：`io_mutex()` 是递归锁不会拦，
      * 但正在使用的 iochannel 会被整个换掉。与当前模式相同的调用什么也不做，也不取锁，
      * 不会等另一线程里阻塞着的读。
-     * （`wchar_t`）解码器的状态随之带到新 iochannel（经 `code_cvt_stdio_state`）。流层调用
-     * 只有在输入于字符中间到达 EOF 时才会让解码器收着半个字符返回，所以带过去的唯一可见
-     * 效果是：此时切换不改变「`clear()` 之后仍置 `cvtfailbit`、到不了 eof」（见 `reset()`）。
-     * 非同步模式下已预读进缓冲、尚未解码的字节（半个字符也在其中）属于上面说的已缓冲输入，
-     * 照样丢弃。
+     * （`wchar_t`）解码器的移位状态随之带到新 iochannel（经 `code_cvt_stdio_state`）。尚未解码的
+     * 字节——非同步模式下预读进缓冲的，以及输入在字符中间到达 EOF 后留着的那半个字符——
+     * 都属于上面说的已缓冲输入，照样丢弃：后者被丢掉后，切换之后的读取到达 eof，不再一直置
+     * `cvtfailbit`（见 `reset()`）。
      *
      * @warning 这里的「同步」只表示**不带读缓冲、每次 `read(0)` 只要本次操作所需的字节**
      *          （格式化提取与 `get` / `getline` 因逐字符探分隔符而逐字节，`read(buf, n)` 则是
@@ -180,13 +179,12 @@ public:
      * is recursive and will not stop it, but the iochannel in use is replaced wholesale.
      * A call asking for the current mode does nothing and takes no lock, so it does not wait
      * for a read blocked in another thread.
-     * (`wchar_t`) The decoder's state goes over to the new iochannel (through
-     * `code_cvt_stdio_state`). A stream-level call returns with the decoder holding half a
-     * character only when the input reached EOF in the middle of one, so the one visible
-     * effect is that a switch then leaves "`cvtfailbit` after every `clear()`, never eof"
-     * as it was (see `reset()`). Bytes an unsynchronized stream has read ahead into its
-     * buffer but not decoded yet, half a character among them, are buffered input as above
-     * and are discarded all the same.
+     * (`wchar_t`) The decoder's shift state goes over to the new iochannel (through
+     * `code_cvt_stdio_state`). Bytes not decoded yet -- read ahead into the buffer of an
+     * unsynchronized stream, or the half character left behind when the input reached EOF in
+     * the middle of one -- are buffered input as above and are discarded all the same: with
+     * the latter gone, reads after the switch reach eof instead of setting `cvtfailbit`
+     * every time (see `reset()`).
      *
      * @warning "Synchronized" here means **no read buffer: each `read(0)` asks for just what
      *          the current operation needs** (formatted extraction and `get` / `getline` go
@@ -244,8 +242,8 @@ public:
         if (old_sync_state == sync)
             return old_sync_state;
 
-        // The decoder goes over to the new iochannel with any half character; a fresh
-        // one would not know about it.
+        // The decoder's shift state goes over to the new iochannel; a fresh one would not
+        // know about it.
         code_cvt_stdio_state state;
         if constexpr (std::is_same_v<char_type, wchar_t>)
         {
@@ -334,12 +332,12 @@ public:
      * 设备并重新初始化转换器。`stdin` 是普通文件时也不会回到开头。同步模式没有读缓冲，
      * fd 上尚未读的字节（例如本行余下的部分）照旧在那里；但已从 fd 取出、还没交给调用方的
      * 那几个字节同样丢弃：格式化提取探分隔符时偷看的那个字符（`cin >> n` 读 `12x34` 后，
-     * `reset()` 丢掉 `x`），以及 `wcin` 块读遇到解码错误后已取出、尚未交出的字节。
+     * `reset()` 丢掉 `x`），以及 `wcin` 遇到解码错误后已取出、尚未交出的字节。
      *
      * 供需要放弃残余输入的场合使用——例如交互程序在出错后丢掉这一行剩下的内容重新提示。
-     * 它**不是**出错后的必经之路：解码失败后 `clear()` 即可继续，解码器丢掉了半个字符、
-     * 从坏字节之后对齐读取，`switch_code()` 也随之可用。
-     * 例外是输入在一个字符中间到达 EOF：转换器仍收着这半个字符、无法完成转换，此后每次
+     * 它**不是**出错后的必经之路：解码失败后 `clear()` 即可继续，解码器跳过坏序列的首字节、
+     * 从下一个字节接着解码（块读与逐字符读跳过的一样多），`switch_code()` 也随之可用。
+     * 例外是输入在一个字符中间到达 EOF：那半个字符留在缓冲里、无法完成转换，此后每次
      * 读取都置 `cvtfailbit`，不会到达 eof——这时须 `reset()`，`clear()` 不够。
      * 与 `sync_with_stdio()` 一样，不要在一次提取进行中（用户 `io_traits::sread` 里）重入
      * 调用：不会崩，但本次提取之后已缓冲的输入随之丢弃。
@@ -366,17 +364,17 @@ public:
      * line, say) are still there; but the few bytes already taken off the fd and not yet
      * handed to the caller are dropped too: the character a formatted extraction peeked at
      * while looking for a delimiter (after `cin >> n` reads `12x34`, `reset()` drops the `x`),
-     * and the bytes a block read on `wcin` had taken past a decoding error.
+     * and the bytes `wcin` had taken past a decoding error.
      *
      * For the cases that want to abandon the pending input -- an interactive program
      * discarding the rest of a line after an error before prompting again. It is **not**
      * the required step after a failure: after a decode failure `clear()` is enough to
-     * carry on -- the decoder has dropped any half character and reads on, aligned, from
-     * the byte after the bad one, and `switch_code()` is available again as well. The
-     * exception is input that reaches EOF in the middle of a character: the converter still
-     * holds that half character and cannot complete it, so every later read sets
-     * `cvtfailbit` and none reaches eof -- `reset()` is needed there, `clear()` is not
-     * enough. As with
+     * carry on -- the decoder skips the first byte of the bad sequence and decodes on from
+     * the next one (block and character-at-a-time reads skip the same), and `switch_code()`
+     * is available again as well. The exception is input that reaches EOF in the middle of a
+     * character: that half character stays in the buffer and cannot be completed, so every
+     * later read sets `cvtfailbit` and none reaches eof -- `reset()` is needed there,
+     * `clear()` is not enough. As with
      * `sync_with_stdio()`, do not re-enter it from inside an extraction (a user
      * `io_traits::sread`): nothing crashes, but the input buffered beyond that extraction
      * is discarded with it.
@@ -469,8 +467,8 @@ public:
      * `adjust(code_cvt_switch)` 的包装，走本流
      * 通用的加锁与错误处理：失败按状态位报告，`exceptions()` 掩码含该位时才抛出；失败时编码、
      * 已缓冲的字节都没有改变（`code_cvt_stdio::adjust` 把所有可能失败的步骤都放在提交之前）。
-     * 解码失败之后不必先 `reset()`：`clear()` 后解码器已丢掉半个字符，`switch_code()` 随之可用
-     * （输入在字符中间到达 EOF 除外，见下方 `@note`）。
+     * 解码失败之后不必先 `reset()`，`clear()` 后照常可用。缓冲里还没解码的字节（包括输入在
+     * 字符中间到达 EOF 后留着的那半个字符）留在原处，切换后按新编码解码。
      *
      * @param new_code 新的编码名，须为 `newlocale()` 接受的 locale 名。`""` 按 POSIX 规则
      *        查环境（`LC_ALL` > `LC_CTYPE` > `LANG` > `"C"`）：查在此刻发生，切换成功后
@@ -481,8 +479,7 @@ public:
      *         `cvt_fail()`；或者直接比较 `code()` 与目标——本函数不设 `good()` 门槛，状态位已置时
      *         照常切换、位不变。
      * @note 置 `cvtfailbit`：该名字不被 `newlocale()` 接受（含内嵌 NUL 的名字按全长拒绝，不在
-     *       第一个 NUL 处截断），该编码是状态依赖的，或编码转换状态不处于初始状态
-     *       （例如输入在一个多字节字符中间到达 EOF，此时 `clear()` 不够、须 `reset()`）。
+     *       第一个 NUL 处截断），或该编码是状态依赖的。
      *       详见 `cvt/code_cvt_stdio.h`。
      * @endif
      *
@@ -498,9 +495,9 @@ public:
      * failure is reported through the state bits and throws only when the `exceptions()` mask
      * includes the bit; on failure the encoding and the buffered bytes are unchanged
      * (`code_cvt_stdio::adjust` puts every step that can fail before the commit). A decode
-     * failure needs no `reset()` first: after `clear()` the decoder has dropped any half
-     * character, and `switch_code()` is available again (except for input that reached EOF
-     * in the middle of a character; see the `@note` below).
+     * failure needs no `reset()` first; after `clear()` it works as usual. Bytes in the buffer
+     * not decoded yet (the half character left when input reached EOF in the middle of one
+     * among them) stay where they are and decode by the new encoding after the switch.
      *
      * @param new_code The new encoding name; must be a locale name `newlocale()` accepts.
      *        `""` means "look at the environment" per POSIX (`LC_ALL` > `LC_CTYPE` > `LANG` >
@@ -514,10 +511,8 @@ public:
      *         compare `code()` with the target: this function has no `good()` gate, so with a
      *         state bit already set it switches as usual and leaves the bits alone.
      * @note Sets `cvtfailbit`: the name is not accepted by `newlocale()` (a name with an
-     *       embedded NUL is rejected at its full length, not cut at the first NUL), the encoding
-     *       is state-dependent, or the encoding conversion state is not in its initial state
-     *       (input that hit EOF in the middle of a multibyte character, say -- there `clear()`
-     *       is not enough and `reset()` is).
+     *       embedded NUL is rejected at its full length, not cut at the first NUL), or the
+     *       encoding is state-dependent.
      *       See `cvt/code_cvt_stdio.h`.
      * @endif
      */

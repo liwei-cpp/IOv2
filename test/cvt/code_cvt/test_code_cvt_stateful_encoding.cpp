@@ -119,10 +119,10 @@ namespace
         EXPECT_EQ(dev.str(), kZhong + kShiftOut);
     }
 
-    // A partial sequence is held as raw bytes and completed by the next call; a
-    // shift sequence alone yields no character. Holding half a sequence
-    // (is_mid_seq) and being in a shift state (!is_init_state) are told apart.
-    void kernel_holds_a_partial_sequence_until_it_completes()
+    // A partial sequence is left unconsumed (from stays at its start) and nothing of
+    // it reaches the shift state; handed over whole with the bytes after it, it
+    // decodes. A shift sequence alone yields no character.
+    void kernel_leaves_a_partial_sequence_unconsumed()
     {
         codecvt_kernel<char, wchar_t> kernel(kLocaleName);
         std::array<wchar_t, 4> buf{};
@@ -133,20 +133,27 @@ namespace
         auto [ok, n] = kernel.in_helper(from, half.data() + half.size(), to, buf.data() + buf.size());
         EXPECT_TRUE(ok);
         EXPECT_EQ(n, 0u);
-        EXPECT_EQ(from, half.data() + half.size());
-        EXPECT_TRUE(kernel.is_mid_seq()) << "half a shift sequence left no trace";
-        EXPECT_TRUE(kernel.is_init_state()) << "the held bytes leaked into the shift state";
+        EXPECT_EQ(from, half.data()) << "half a shift sequence was consumed";
+        EXPECT_TRUE(kernel.is_init_state()) << "half a shift sequence leaked into the shift state";
 
-        // The rest of the shift sequence and 中: whole again, now in JIS X 0208.
-        const std::string rest = kShiftIn.substr(2) + "Cf";
-        from = rest.data();
+        // The whole shift sequence and 中, now in JIS X 0208.
+        from = kZhong.data();
         to = buf.data();
-        std::tie(ok, n) = kernel.in_helper(from, rest.data() + rest.size(), to, buf.data() + buf.size());
+        std::tie(ok, n) = kernel.in_helper(from, kZhong.data() + kZhong.size(), to, buf.data() + buf.size());
         EXPECT_TRUE(ok);
         ASSERT_EQ(n, 1u) << "a shift sequence came back as a character";
         EXPECT_EQ(buf[0], L'中');
-        EXPECT_EQ(from, rest.data() + rest.size());
-        EXPECT_FALSE(kernel.is_mid_seq());
+        EXPECT_EQ(from, kZhong.data() + kZhong.size());
+        EXPECT_FALSE(kernel.is_init_state());
+
+        // Half a JIS X 0208 character: left at from as well, the shift state kept.
+        const std::string c = "C";
+        from = c.data();
+        to = buf.data();
+        std::tie(ok, n) = kernel.in_helper(from, c.data() + c.size(), to, buf.data() + buf.size());
+        EXPECT_TRUE(ok);
+        EXPECT_EQ(n, 0u);
+        EXPECT_EQ(from, c.data());
         EXPECT_FALSE(kernel.is_init_state());
 
         // The way back to ASCII on its own: no character, back to the initial state.
@@ -157,13 +164,6 @@ namespace
         EXPECT_EQ(n, 0u);
         EXPECT_EQ(from, kShiftOut.data() + kShiftOut.size());
         EXPECT_TRUE(kernel.is_init_state());
-
-        // init_state() drops held bytes too.
-        from = half.data();
-        kernel.in_helper(from, half.data() + half.size(), to, buf.data() + buf.size());
-        ASSERT_TRUE(kernel.is_mid_seq());
-        kernel.init_state();
-        EXPECT_FALSE(kernel.is_mid_seq());
     }
 
     template <typename TRoot>
@@ -241,8 +241,8 @@ namespace
 
     // An invalid byte in JIS X 0208 text: only the state mbrtowc was handed is
     // unspecified after EILSEQ, so the kernel keeps the shift state it had before
-    // the byte and drops nothing but held bytes. Resetting to the initial state
-    // used to read the JIS X 0208 bytes after it as ASCII.
+    // the byte and consumes nothing of it. Resetting to the initial state used to
+    // read the JIS X 0208 bytes after it as ASCII.
     void kernel_keeps_the_shift_state_across_an_invalid_byte()
     {
         codecvt_kernel<char, wchar_t> kernel(kLocaleName);
@@ -262,13 +262,10 @@ namespace
 
         EXPECT_FALSE(decode("\xff", n));
         EXPECT_FALSE(kernel.is_init_state()) << "the error dropped the shift state";
-        EXPECT_FALSE(kernel.is_mid_seq());
 
-        // Held bytes are what an error does drop: half a JIS X 0208 character.
-        EXPECT_TRUE(decode("C", n));
-        EXPECT_TRUE(kernel.is_mid_seq());
-        EXPECT_FALSE(decode("\xff", n));
-        EXPECT_FALSE(kernel.is_mid_seq());
+        // Half a JIS X 0208 character followed by a bad byte: an error, the state kept.
+        EXPECT_FALSE(decode("C\xff", n));
+        EXPECT_EQ(n, 0u);
         EXPECT_FALSE(kernel.is_init_state());
 
         ASSERT_TRUE(decode("Cf", n));
@@ -552,7 +549,7 @@ TEST(CodeCvtStatefulEncoding, AShiftSequenceDecodesToNoCharacter)
     }
 
     // --- child ---
-    kernel_holds_a_partial_sequence_until_it_completes();
+    kernel_leaves_a_partial_sequence_unconsumed();
     shift_sequences_decode_to_no_character<rb_root_cvt<mem_device<char>>>();
     shift_sequences_decode_to_no_character<no_rb_root_cvt<mem_device<char>>>();
     a_truncated_character_fails_the_read<rb_root_cvt<mem_device<char>>>();
