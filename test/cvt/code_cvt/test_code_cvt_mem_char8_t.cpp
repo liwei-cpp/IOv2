@@ -1054,29 +1054,45 @@ TEST(CodeCvtMemChar8, TheCharactersBeforeACutOffStillComeOut)
     EXPECT_EQ(obj.tell(), 2u);
 }
 
-// A character split across two reads is held in the kernel in between, so the
-// kernel reports itself mid-sequence without leaving its initial shift state.
-TEST(CodeCvtMemChar8, TheKernelHoldsASplitCharacterBetweenCalls)
+// A character split across two reads is not consumed: from stays at its start, and
+// the caller hands the whole sequence over again once the rest has come.
+TEST(CodeCvtMemChar8, TheKernelLeavesASplitCharacterUnconsumed)
 {
     codecvt_kernel<char8_t, char32_t> kernel;
-    const char8_t bytes[] = {char8_t(0xE4), char8_t(0xB8), char8_t(0xAD)}; // 中
+    const char8_t bytes[] = {u8'a', char8_t(0xE4), char8_t(0xB8), char8_t(0xAD)}; // a中
     char32_t buf[2]{};
 
     const char8_t* from = bytes;
     char32_t* to = buf;
-    auto [ok, n] = kernel.in_helper(from, bytes + 1, to, buf + 2);
+    auto [ok, n] = kernel.in_helper(from, bytes + 2, to, buf + 2);
     EXPECT_TRUE(ok);
-    EXPECT_EQ(n, 0u);
+    ASSERT_EQ(n, 1u);
+    EXPECT_EQ(buf[0], U'a');
     EXPECT_EQ(from, bytes + 1);
-    EXPECT_TRUE(kernel.is_mid_seq());
     EXPECT_TRUE(kernel.is_init_state());
 
-    std::tie(ok, n) = kernel.in_helper(from, bytes + 3, to, buf + 2);
+    to = buf;
+    std::tie(ok, n) = kernel.in_helper(from, bytes + 4, to, buf + 2);
     EXPECT_TRUE(ok);
     ASSERT_EQ(n, 1u);
     EXPECT_EQ(buf[0], U'中');
-    EXPECT_EQ(from, bytes + 3);
-    EXPECT_FALSE(kernel.is_mid_seq());
+    EXPECT_EQ(from, bytes + 4);
+}
+
+// An invalid sequence stops from at its start; how much to skip is the caller's call.
+TEST(CodeCvtMemChar8, TheKernelStopsAtTheStartOfAnInvalidSequence)
+{
+    codecvt_kernel<char8_t, char32_t> kernel;
+    const char8_t bytes[] = {u8'a', char8_t(0xE4), u8'b', u8'c'};
+    char32_t buf[4]{};
+
+    const char8_t* from = bytes;
+    char32_t* to = buf;
+    auto [ok, n] = kernel.in_helper(from, bytes + 4, to, buf + 4);
+    EXPECT_FALSE(ok);
+    ASSERT_EQ(n, 1u);
+    EXPECT_EQ(buf[0], U'a');
+    EXPECT_EQ(from, bytes + 1);
 }
 
 // switch_to_put on a converter that is already writing changes nothing; after an

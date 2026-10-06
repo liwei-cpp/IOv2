@@ -188,18 +188,16 @@ struct codecvt_kernel<char, TInt>
 
     /**
      * @lang{ZH}
-     * 将编码转换状态（`mbstate_t`）重置为初始状态，并丢弃尚未凑成字符的输入字节。
+     * 将编码转换状态（`mbstate_t`）重置为初始状态。
      * @endif
      *
      * @lang{EN}
-     * Reset the encoding conversion state (`mbstate_t`) to its initial value and
-     * drop the input bytes that have not yet made up a character.
+     * Reset the encoding conversion state (`mbstate_t`) to its initial value.
      * @endif
      */
     void init_state() noexcept
     {
         m_state = std::mbstate_t{};
-        m_pending_len = 0;
     }
 
     /**
@@ -229,36 +227,15 @@ struct codecvt_kernel<char, TInt>
      * 判断编码转换状态是否处于初始状态。
      *
      * @return 若 `mbstate_t` 为初始状态，返回 `true`；否则返回 `false`。
-     * @note 只看移位状态；是否保存着半个字符由 `is_mid_seq()` 回答。
      * @endif
      *
      * @lang{EN}
      * Check whether the encoding conversion state is in its initial state.
      *
      * @return `true` if `mbstate_t` is in its initial state; `false` otherwise.
-     * @note Only the shift state counts; whether half a character is held is what
-     *       `is_mid_seq()` answers.
      * @endif
      */
     [[nodiscard]] bool is_init_state() const { return std::mbsinit(&m_state); }
-
-    /**
-     * @lang{ZH}
-     * 判断内核是否停在一条多字节序列的中间：保存着尚未凑成字符的输入字节。
-     * 到达输入末尾时仍为 `true`，说明输入截断在一个字符中间。
-     *
-     * @return 若保存着半个字符，返回 `true`；否则返回 `false`。
-     * @endif
-     *
-     * @lang{EN}
-     * Check whether the kernel is stopped in the middle of a multibyte sequence:
-     * it holds input bytes that have not yet made up a character. Still `true` at
-     * the end of the input means the input was cut off in the middle of a character.
-     *
-     * @return `true` if half a character is held; `false` otherwise.
-     * @endif
-     */
-    [[nodiscard]] bool is_mid_seq() const noexcept { return m_pending_len != 0; }
 
     /**
      * @lang{ZH}
@@ -403,10 +380,10 @@ struct codecvt_kernel<char, TInt>
      *         - `second`：已写入输出缓冲区的内部字符数量。
      *
      * @note 前置条件：`from`/`from_end` 和 `to`/`to_end` 各自必须指向同一数组，否则行为未定义。
-     * @note 末尾不完整的多字节序列按原始字节存进内核（`from` 越过它们），不存进 `mbstate_t`：
+     * @note 末尾不完整的多字节序列不消费（`from` 停在它的开头），也不存进 `mbstate_t`：
      *       glibc 的有状态编码（如 ISO-2022-JP）从存着半条序列的状态续接时会丢失移位态。
-     *       下次调用时这些字节接在新输入之前，整条喂给 `mbrtowc`；存着它们时
-     *       `is_mid_seq()` 为 `true`。
+     *       调用方留着这些字节，等更多输入到来后连同它们整条再交给本函数。
+     *       遇到无效序列时 `from` 同样停在它的开头，跳过多少由调用方决定。
      *       只含移位序列的一段会消费字节、推进状态，但不产出字符——`mbrtowc` 此时返回正数
      *       却不写 `*pwc`，所以每次调用前都放一个哨兵来识别。
      * @endif
@@ -431,12 +408,12 @@ struct codecvt_kernel<char, TInt>
      *       the same array; behavior is undefined otherwise. `std::greater` enforces
      *       a total order across pointers regardless of provenance, but the pointer
      *       subtractions below require same-object provenance per [expr.add]/5.
-     * @note An incomplete multibyte sequence at the end is kept in the kernel as raw
-     *       bytes (`from` moves past them), not in `mbstate_t`: glibc's stateful
-     *       encodings (ISO-2022-JP, for one) lose the shift state when they continue
-     *       from a state that holds half a sequence. On the next call those bytes go
-     *       in front of the new input and `mbrtowc` sees the sequence whole; while
-     *       they are held, `is_mid_seq()` is `true`.
+     * @note An incomplete multibyte sequence at the end is not consumed (`from` stops at
+     *       its start) and not put into `mbstate_t` either: glibc's stateful encodings
+     *       (ISO-2022-JP, for one) lose the shift state when they continue from a state
+     *       that holds half a sequence. The caller keeps those bytes and hands the
+     *       sequence over whole once more input has come. At an invalid sequence `from`
+     *       stops at its start as well, and how much to skip is up to the caller.
      *       A run that holds only a shift sequence consumes bytes and advances the
      *       state without producing a character -- `mbrtowc` then returns a positive
      *       count but leaves `*pwc` untouched, so every call is primed with a sentinel.
@@ -450,7 +427,6 @@ struct codecvt_kernel<char, TInt>
         clocale_user guard(m_inter_locale);
         // No wchar_t value glibc decodes to: it tells a shift-only run from a character.
         constexpr auto no_char = static_cast<wchar_t>(-1);
-        std::array<char, MB_LEN_MAX> joined{};
         std::size_t i_count = 0;
 
         const auto find_nul = [&]
@@ -463,11 +439,11 @@ struct codecvt_kernel<char, TInt>
         const char* nul = find_nul();
 
         const std::size_t to_max = to_end - to;
-        while (i_count < to_max && (from < from_end || m_pending_len != 0))
+        while (i_count < to_max && from < from_end)
         {
             if (nul < from)
                 nul = find_nul();
-            if (m_pending_len == 0 && from < from_end && *from == '\0')
+            if (*from == '\0')
             {
                 ++from;
                 m_state = std::mbstate_t{};
@@ -476,32 +452,20 @@ struct codecvt_kernel<char, TInt>
                 continue;
             }
 
-            // Held bytes go first, then as many new ones as fit behind them.
-            const auto remaining = static_cast<std::size_t>(nul - from);
-            const char* src = from;
-            std::size_t taken = remaining;
-            if (m_pending_len != 0)
-            {
-                taken = std::min(remaining, joined.size() - m_pending_len);
-                std::copy_n(m_pending.data(), m_pending_len, joined.data());
-                std::copy_n(from, taken, joined.data() + m_pending_len);
-                src = joined.data();
-            }
-            const std::size_t avail = m_pending_len + taken;
-
+            const auto avail = static_cast<std::size_t>(nul - from);
             auto tmp_state = m_state;
             wchar_t wch = no_char;
-            std::size_t conv = mbrtowc(&wch, src, avail, &tmp_state);
+            std::size_t conv = mbrtowc(&wch, from, avail, &tmp_state);
             if (m_is_state_dep && (conv == static_cast<std::size_t>(-1) || conv == static_cast<std::size_t>(-2))) // NOLINT(modernize-use-integer-sign-comparison)
             {
                 // glibc judges a run that opens with a complete shift sequence as a
-                // whole; take that sequence off first, so the error or the held bytes
-                // start behind it.
+                // whole; take that sequence off first, so the error or the incomplete
+                // sequence starts behind it.
                 for (std::size_t k = 1; k < avail; ++k)
                 {
                     auto st = m_state;
                     wchar_t w = no_char;
-                    const std::size_t r = mbrtowc(&w, src, k, &st);
+                    const std::size_t r = mbrtowc(&w, from, k, &st);
                     if (r == static_cast<std::size_t>(-2)) continue; // NOLINT(modernize-use-integer-sign-comparison)
                     if (r != static_cast<std::size_t>(-1) && r != 0 && w == no_char) // NOLINT(modernize-use-integer-sign-comparison)
                     {
@@ -511,46 +475,23 @@ struct codecvt_kernel<char, TInt>
                     break;
                 }
             }
-            if (conv == static_cast<std::size_t>(-1)) // NOLINT(modernize-use-integer-sign-comparison)
+            if (conv == static_cast<std::size_t>(-1) || conv == 0) // NOLINT(modernize-use-integer-sign-comparison)
             {
                 // Only tmp_state is unspecified after EILSEQ (C11 7.29.6.3.2); m_state
-                // still holds the shift state before the bad byte. Drop the held bytes.
-                m_pending_len = 0;
+                // still holds the shift state before the bad byte. conv == 0 (a NUL
+                // decoded) is rejected the same way.
                 return std::pair{false, i_count};
             }
-            else if (conv == static_cast<std::size_t>(-2)) // NOLINT(modernize-use-integer-sign-comparison)
+            if (conv == static_cast<std::size_t>(-2)) // NOLINT(modernize-use-integer-sign-comparison)
             {
-                if (nul != from_end)
-                {
-                    m_pending_len = 0;
+                // A NUL inside, or longer than any character: not the start of one.
+                if (nul != from_end || avail > MB_LEN_MAX)
                     return std::pair{false, i_count};
-                }
-                // Hold every byte of the prefix; no character is longer than MB_LEN_MAX.
-                if (taken != remaining || avail > m_pending.size())
-                {
-                    m_pending_len = 0;
-                    return std::pair{false, i_count};
-                }
-                std::copy_n(from, taken, m_pending.data() + m_pending_len);
-                m_pending_len = avail;
-                from = from_end;
-                break;
+                break;   // incomplete: left at from for the caller to keep
             }
-            else if (conv == 0)
-                return std::pair{false, i_count};
 
-            // conv bytes of src made up one complete sequence; the held bytes come first.
             m_state = tmp_state;
-            if (conv <= m_pending_len)
-            {
-                std::copy(m_pending.begin() + conv, m_pending.begin() + m_pending_len, m_pending.begin());
-                m_pending_len -= conv;
-            }
-            else
-            {
-                from += conv - m_pending_len;
-                m_pending_len = 0;
-            }
+            from += conv;
             if (wch == no_char)
                 continue; // a shift sequence alone
             *to++ = static_cast<TInt>(wch);
@@ -564,8 +505,6 @@ private:
     clocale_wrapper m_inter_locale; ///< 当前区域设置的包装对象 / Wrapper for the current locale.
     unsigned        m_epc = 0;      ///< 每个内部字符对应的最大外部字节数 / Max external bytes per internal character.
     std::mbstate_t  m_state{};      ///< 多字节转换状态 / Multi-byte conversion state.
-    std::array<char, MB_LEN_MAX> m_pending{}; ///< 尚未凑成字符的输入字节 / Input bytes not yet making up a character.
-    std::size_t     m_pending_len = 0;        ///< `m_pending` 中的字节数 / Number of bytes in `m_pending`.
     bool            m_is_state_dep = false; ///< 编码是否为状态依赖型 / Whether the encoding is state-dependent.
 };
 
@@ -608,15 +547,14 @@ struct codecvt_kernel<char8_t, TInt>
 
     /**
      * @lang{ZH}
-     * 重置编码转换状态：丢弃尚未凑成字符的输入字节（UTF-8 本身无移位状态）。
+     * 重置编码转换状态（UTF-8 无移位状态，什么也不做）。
      * @endif
      *
      * @lang{EN}
-     * Reset the conversion state: drop the input bytes that have not yet made up a
-     * character (UTF-8 itself has no shift state).
+     * Reset the conversion state (UTF-8 has no shift state; does nothing).
      * @endif
      */
-    void init_state() noexcept { m_pending_len = 0; }
+    void init_state() noexcept {}
 
     std::size_t unshift(char8_t*, std::size_t) noexcept
     {
@@ -628,7 +566,6 @@ struct codecvt_kernel<char8_t, TInt>
      * 判断编码转换状态是否处于初始状态（UTF-8 无移位状态，始终返回 `true`）。
      *
      * @return 始终返回 `true`。
-     * @note 是否保存着半个字符由 `is_mid_seq()` 回答。
      * @endif
      *
      * @lang{EN}
@@ -636,28 +573,9 @@ struct codecvt_kernel<char8_t, TInt>
      * (always `true` for UTF-8, which has no shift state).
      *
      * @return Always `true`.
-     * @note Whether half a character is held is what `is_mid_seq()` answers.
      * @endif
      */
     [[nodiscard]] bool is_init_state() const { return true; }
-
-    /**
-     * @lang{ZH}
-     * 判断内核是否停在一条多字节序列的中间：保存着尚未凑成字符的输入字节。
-     * 到达输入末尾时仍为 `true`，说明输入截断在一个字符中间。
-     *
-     * @return 若保存着半个字符，返回 `true`；否则返回 `false`。
-     * @endif
-     *
-     * @lang{EN}
-     * Check whether the kernel is stopped in the middle of a multibyte sequence:
-     * it holds input bytes that have not yet made up a character. Still `true` at
-     * the end of the input means the input was cut off in the middle of a character.
-     *
-     * @return `true` if half a character is held; `false` otherwise.
-     * @endif
-     */
-    [[nodiscard]] bool is_mid_seq() const noexcept { return m_pending_len != 0; }
 
     /**
      * @lang{ZH}
@@ -843,49 +761,10 @@ struct codecvt_kernel<char8_t, TInt>
         const TInt* const ori_to = to;
         const auto written = [&] { return static_cast<std::size_t>(to - ori_to); };
 
-        // Held bytes first: complete that character from the front of the new input.
-        if (m_pending_len != 0 && from != from_end && to != to_end)
-        {
-            std::array<char8_t, 4> joined = m_pending;
-            const std::size_t held = m_pending_len;
-            const auto taken = std::min(static_cast<std::size_t>(from_end - from), joined.size() - held);
-            for (std::size_t i = 0; i < taken; ++i)
-                joined[held + i] = from[i];
-
-            const char8_t* p = joined.data();
-            if (decode_run(p, joined.data() + held + taken, to, to + 1) == run_status::bad)
-            {
-                init_state();
-                return std::pair{false, written()};
-            }
-            const auto used = static_cast<std::size_t>(p - joined.data());
-            if (used == 0)
-            {
-                // Still short: the new input ran out before the character did.
-                m_pending = joined;
-                m_pending_len = held + taken;
-                from += taken;
-                return std::pair{true, written()};
-            }
-            from += used - held;
-            m_pending_len = 0;
-        }
-
-        switch (decode_run(from, from_end, to, to_end))
-        {
-        case run_status::bad:
-            return std::pair{false, written()};
-        case run_status::short_input:
-            // An incomplete character at the end (at most three bytes): hold it.
-            m_pending_len = static_cast<std::size_t>(from_end - from);
-            for (std::size_t i = 0; i < m_pending_len; ++i)
-                m_pending[i] = from[i];
-            from = from_end;
-            break;
-        case run_status::done:
-            break;
-        }
-        return std::pair{true, written()};
+        // An incomplete character at the end (short_input) is left at from, unconsumed,
+        // for the caller to keep; so is an invalid one (bad).
+        const bool ok = decode_run(from, from_end, to, to_end) != run_status::bad;
+        return std::pair{ok, written()};
     }
 
 private:
@@ -957,9 +836,6 @@ private:
 
         return run_status::done;
     }
-
-    std::array<char8_t, 4> m_pending{}; ///< 尚未凑成字符的输入字节 / Input bytes not yet making up a character.
-    std::size_t m_pending_len = 0;      ///< `m_pending` 中的字节数 / Number of bytes in `m_pending`.
 };
 
 /**
@@ -1295,8 +1171,9 @@ private:
      * @lang{ZH}
      * 从底层缓冲区读取外部字节并解码为内部字符（由 `abs_cvt::get` 调用）。
      *
-     * 解码错误与下层抛出的异常一律经返回值报告：已交出字符时，`abs_cvt::get` 先交出它们、
-     * 下一次 `get` 再抛出（见 `abs_cvt` 对 `get_main` 的约定）。
+     * 已交出字符之后遇到无效序列或输入截断在字符中间时，不消费那些字节、不报错，先返回已交出的
+     * 字符，下一次 `get` 从那里重新解码时自然报出；一个字符都没交出时当场抛出，无效序列只跳过
+     * 首字节。下层抛出的异常经返回值带回（见 `abs_cvt` 对 `get_main` 的约定）。
      *
      * @return `first` 为实际读取并解码的内部字符数量，`second` 为遇到的错误（无错误为 `nullptr`）。
      * @endif
@@ -1305,9 +1182,11 @@ private:
      * Read external bytes from the underlying buffer and decode them into
      * internal characters (called by `abs_cvt::get`).
      *
-     * Decoding errors and exceptions from the layer below are all reported through the
-     * return value: when characters were delivered, `abs_cvt::get` hands them over and the
-     * next `get` throws (see what `abs_cvt` requires of `get_main`).
+     * An invalid sequence, or input cut off inside a character, met after characters were
+     * delivered is left unconsumed and unreported: this call returns the characters, and the
+     * next `get` reports it when it decodes from there. With nothing delivered it throws at
+     * once, and an invalid sequence has only its first byte skipped. Exceptions from the layer
+     * below travel back through the return value (see what `abs_cvt` requires of `get_main`).
      *
      * @return `first` is the number of internal characters actually read and decoded,
      *         `second` the error hit (`nullptr` if none).
@@ -1335,13 +1214,16 @@ private:
                 auto [ptr, cur_size] = reader.get_buf(dest_size);
                 if (cur_size == prev_rollback)
                 {
-                    if (cur_size == 0 && (total_size != 0 || !m_cvt_kernel.is_mid_seq()))
+                    // Nothing more below. An incomplete sequence goes back where it was:
+                    // every later get finds it again, until a reposition drops it.
+                    if (prev_rollback != 0)
+                        reader.rollback(prev_rollback);
+                    if (prev_rollback == 0 || total_size != 0)
                         return {total_size, nullptr};
                     throw cvt_error("code_cvt::get fail: partial input sequence");
                 }
 
                 auto ext_cur = ptr;
-                const bool held = m_cvt_kernel.is_mid_seq();
                 auto [succ, int_len] = m_cvt_kernel.in_helper(ext_cur, ptr + cur_size, to, to + to_max - total_size);
 
                 // in_helper may have written `int_len` chars into `to` before hitting an
@@ -1351,8 +1233,16 @@ private:
 
                 if (!succ)
                 {
-                    const auto* resume = (held && ext_cur == ptr && int_len == 0)
-                                       ? ext_cur : std::min(ext_cur + 1, ptr + cur_size);
+                    // ext_cur is at the start of the bad sequence. With characters to hand
+                    // over, leave it there for the next get to find and report. Otherwise
+                    // report it now and skip its first byte, as block reads always did.
+                    if (total_size != 0)
+                    {
+                        if (ext_cur != ptr + cur_size)
+                            reader.rollback(ptr + cur_size - ext_cur);
+                        return {total_size, nullptr};
+                    }
+                    const auto* resume = std::min(ext_cur + 1, ptr + cur_size);
                     if (resume != ptr + cur_size)
                         reader.rollback(ptr + cur_size - resume);
                     throw cvt_error("code_cvt::get fail: invalid external sequence");
@@ -1403,36 +1293,31 @@ private:
     /**
      * @lang{ZH}
      * 切换至输出（写入）模式的派生层前置检查 hook。
-     * 从输入模式切换时，要求编码转换状态为初始状态、且内核没有停在半个字符上；
-     * 对于变长或状态依赖编码，还要求已到达 EOF（`is_eof()`：没有待报的错误、取数区为空、
-     * 底层也到了末尾），否则再写入会影响写入内容之后的解析。
-     * 定长编码可以读到一半就切换：若底层的位置与调用方读到的逻辑位置不一致（取数区里多取了
-     * 字节），先重定位到逻辑位置（`seek_impl(m_accu_len)`），抵消这「一半读」并清掉相关状态，
-     * 再切换；写入从逻辑位置开始。待报的错误（见 `abs_cvt::get`）随重定位丢弃；底层不能定位而
-     * 又有待报的错误时，由 `abs_cvt::switch_to_put` 拒绝切换。
-     * 重定位之后若下层切换失败，本层仍处于读模式、停在逻辑位置，再读会重新读到那些字节
-     * （坏字节则再次报错），与切换前看不出差别。
+     * 调用之前 `abs_cvt::switch_to_put` 已把取数区还给下层（见该函数）。
+     * 从输入模式切换时，要求编码转换状态为初始状态；对于变长或状态依赖编码，还要求已到达 EOF
+     * （`is_eof()`：没有待报的错误、下层也到了末尾），否则再写入会影响写入内容之后的解析。
+     * 定长编码可以读到一半就切换：若底层的位置与调用方读到的逻辑位置不一致（出错时跳过的
+     * 坏字节不计入逻辑位置），先重定位到逻辑位置（`seek_impl(m_accu_len)`），再切换；
+     * 写入从逻辑位置开始。重定位之后若下层切换失败，本层仍处于读模式、停在逻辑位置，再读会
+     * 重新读到那些字节（坏字节则再次报错），与切换前看不出差别。
      *
      * @throws cvt_error 若不满足上述前置条件。
      * @endif
      *
      * @lang{EN}
      * Derived-layer precondition hook for switching to output (writing) mode.
-     * When switching from input mode, the encoding conversion state must be in its
-     * initial state and the kernel must not be holding half a character; for
-     * variable-length or state-dependent encodings, EOF must also have been reached
-     * (`is_eof()`: no pending error, the read area used up, the layer below at its end),
-     * since writing earlier would change how what follows the written text decodes.
-     * A fixed-length encoding may switch halfway through reading: if the layer below
-     * stands elsewhere than the logical position the caller has read to (bytes read ahead
-     * into the read area), it is first repositioned to the
-     * logical position (`seek_impl(m_accu_len)`), which undoes that half read and clears the
-     * state that goes with it; writing then starts at the logical position. A pending error
-     * (see `abs_cvt::get`) goes with the repositioning; with one pending and a layer below that
-     * cannot be positioned, `abs_cvt::switch_to_put` refuses the switch. Should the layer below
-     * fail to switch after the repositioning, this layer is still reading, at the logical
-     * position, and reads those bytes again (a bad byte fails again): nothing to tell it
-     * from before the attempt.
+     * By the time it runs, `abs_cvt::switch_to_put` has handed the read area back to the
+     * layer below (see there). When switching from input mode, the encoding conversion state
+     * must be in its initial state; for variable-length or state-dependent encodings, EOF must
+     * also have been reached (`is_eof()`: no pending error, the layer below at its end), since
+     * writing earlier would change how what follows the written text decodes.
+     * A fixed-length encoding may switch halfway through reading: if the layer below stands
+     * elsewhere than the logical position the caller has read to (a bad byte skipped on an
+     * error does not count towards it), it is first repositioned to the logical position
+     * (`seek_impl(m_accu_len)`); writing then starts there. Should the layer below fail to
+     * switch after the repositioning, this layer is still reading, at the logical position,
+     * and reads those bytes again (a bad byte fails again): nothing to tell it from before
+     * the attempt.
      *
      * @throws cvt_error If the preconditions above are not met.
      * @endif
@@ -1442,7 +1327,7 @@ private:
     {
         if (BT::m_io_status == io_status::input)
         {
-            if (!m_cvt_kernel.is_init_state() || m_cvt_kernel.is_mid_seq())
+            if (!m_cvt_kernel.is_init_state())
                 throw cvt_error("code_cvt::switch_to_put fail: internal state is not neutral");
 
             if (m_cvt_kernel.is_var_length() || m_cvt_kernel.is_state_dep())
@@ -1452,33 +1337,11 @@ private:
             }
             else if constexpr (cvt_cpt::support_positioning<KernelType>)
             {
-                // Write where the caller stopped reading: drops the read-ahead. A pending
-                // error is dropped by the reposition, or by abs_cvt::switch_to_put, which also
-                // refuses the switch when the layer below cannot be positioned.
+                // Write where the caller stopped reading.
                 if (BT::kernel_tell() != m_accu_len * m_cvt_kernel.epc())
                     seek_impl(m_accu_len);
             }
         }
-    }
-
-    /**
-     * @lang{ZH}
-     * `abs_cvt::is_eof()` 的钩子（待报的错误已由 `abs_cvt::is_eof()` 先行判断）：内核还收着
-     * 半个字符时，流没有读完——下一次 `get` 会报出它，所以返回 `false`；否则取决于下层
-     * （`kernel_is_eof()`）。
-     * @endif
-     *
-     * @lang{EN}
-     * Hook for `abs_cvt::is_eof()` (which has already checked for a pending error): with half
-     * a character still held by the kernel, the stream is not read to its end -- the next
-     * `get` reports it -- so this returns `false`; otherwise it is up to the layer below
-     * (`kernel_is_eof()`).
-     * @endif
-     */
-    [[nodiscard]] bool is_eof_impl()
-        requires (cvt_cpt::support_get<KernelType>)
-    {
-        return !m_cvt_kernel.is_mid_seq() && BT::kernel_is_eof();
     }
 
     /**

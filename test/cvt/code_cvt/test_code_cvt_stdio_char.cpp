@@ -562,11 +562,11 @@ TEST(CodeCvtStdio, TheEncodingCanBeSwitchedAtRunTime)
     EXPECT_EQ(status.code, "zh_CN.UTF-8");
 }
 
-// 0xE6 opens a three-byte UTF-8 sequence, so a stream that ends there leaves the
-// decoder mid-character: the read that reaches the end fails, and switching
-// encoding at that point would reinterpret the byte already consumed, so it is
-// refused.
-TEST(CodeCvtStdio, TheEncodingCannotBeSwitchedMidCharacter)
+// 0xE6 opens a three-byte UTF-8 sequence, so a stream that ends there is cut off
+// mid-character: the read that reaches the end fails. The byte is not consumed -- it
+// stays in the buffer -- so switching the encoding is not refused: from the switch on,
+// what is left decodes by the new encoding.
+TEST(CodeCvtStdio, TheEncodingCanBeSwitchedAfterAHalfCharacter)
 {
     std::string partial;
     partial += '\xE6';
@@ -577,9 +577,14 @@ TEST(CodeCvtStdio, TheEncodingCannotBeSwitchedMidCharacter)
     obj.main_cont_beg();
 
     wchar_t buf[4];
-    EXPECT_THROW(obj.get(buf, 4), cvt_error); // the kernel holds 0xE6; the input ends there
+    EXPECT_THROW(obj.get(buf, 4), cvt_error);
+    EXPECT_FALSE(obj.is_eof());
 
-    EXPECT_THROW(obj.adjust(code_cvt_switch{"C"}), cvt_error);
+    EXPECT_NO_THROW(obj.adjust(code_cvt_switch{"C"}));
+    code_cvt_access acc;
+    obj.retrieve(acc);
+    EXPECT_EQ(acc.code, "C");
+    EXPECT_FALSE(obj.is_eof());
 }
 
 // The standard streams cannot be given another device, so code_cvt_stdio recovers
@@ -769,9 +774,10 @@ TEST(CodeCvtStdio, ASelfMoveChangesNothing)
     EXPECT_EQ(g.contents(), "文!");
 }
 
-// What wcin.sync_with_stdio() does with the decoder: half a character held at the end of
-// the input goes over to the new converter, which still reports the input as cut off.
-TEST(CodeCvtStdio, AHeldHalfCharacterGoesOverToANewConverter)
+// What wcin.sync_with_stdio() does with the decoder: half a character left at the end of
+// the input stays in the old converter's buffer and goes with it; the kernel goes over,
+// and the new converter reaches eof.
+TEST(CodeCvtStdio, AHalfCharacterAtTheEndStaysWithTheOldConverter)
 {
     using SyncIn = code_cvt_stdio<no_rb_root_cvt<std_device<STDIN_FILENO>>>;
 
@@ -783,11 +789,12 @@ TEST(CodeCvtStdio, AHeldHalfCharacterGoesOverToANewConverter)
     EXPECT_EQ(first.get(&c, 1), 1u);
     EXPECT_EQ(c, L'a');
     EXPECT_THROW(first.get(&c, 1), cvt_error);
+    EXPECT_THROW(first.get(&c, 1), cvt_error) << "the cut-off character was dropped";
+    EXPECT_FALSE(first.is_eof());
 
     code_cvt_stdio_state state;
     first.retrieve(state);
     ASSERT_TRUE(state.kernel.has_value());
-    EXPECT_TRUE(state.kernel->is_mid_seq());
     auto [dev, err] = first.detach();
     EXPECT_FALSE(err);
 
@@ -797,8 +804,9 @@ TEST(CodeCvtStdio, AHeldHalfCharacterGoesOverToANewConverter)
     second.adjust(state);
     EXPECT_FALSE(state.kernel.has_value());
     EXPECT_THROW(second.adjust(state), cvt_error);
-    EXPECT_THROW(second.get(&c, 1), cvt_error);
-    EXPECT_THROW(second.adjust(code_cvt_switch{"C"}), cvt_error);
+    EXPECT_EQ(second.get(&c, 1), 0u);
+    EXPECT_TRUE(second.is_eof());
+    EXPECT_NO_THROW(second.adjust(code_cvt_switch{"C"}));
 }
 
 // The query still answers code_cvt_access, and an empty state is refused without

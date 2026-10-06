@@ -699,6 +699,9 @@ namespace IOv2
      *   `std::current_exception()`，因此计数变量要放在 `try` 之外、并在每次可能抛出的调用之前保持准确。
      *   `first` 为 0 时 `abs_cvt::get` 当场抛出 `second`；不为 0 时先返回这些字符，下一次 `get`
      *   再抛出——这样 `iochannel::getn` 在异常路径上报出的已读数量才准确。
+     *   已交出字符之后遇到**由数据本身引起**的错误（无效序列、截断等），应当不消费引起错误的
+     *   输入、也不经 `second` 报告，让下一次 `get` 重新碰到它：重定位会丢弃待报的错误，
+     *   只有这样丢弃才对上层透明。`second` 只用来带回下层抛出、重读未必复现的异常。
      *
      * - **`put_main(cvt_writer<KernelType>&, const internal_type*, size_t)`**
      *   由 `abs_cvt::put` 在主内容阶段调用，执行编码逻辑。
@@ -788,6 +791,11 @@ namespace IOv2
      *   exact before every call that may throw. With `first` at 0 `abs_cvt::get` throws `second`
      *   at once; otherwise it returns those characters and the next `get` throws it -- which is
      *   what keeps the count `iochannel::getn` reports on the exception path exact.
+     *   An error **caused by the data itself** (an invalid or cut-off sequence, say) met after
+     *   characters were delivered should leave the input that caused it unconsumed and go
+     *   unreported in `second`, so the next `get` runs into it again: a reposition drops a
+     *   pending error, and only then is dropping it invisible to the layers above. `second`
+     *   is for exceptions from the layer below, which reading again need not reproduce.
      *
      * - **`put_main(cvt_writer<KernelType>&, const internal_type*, size_t)`**
      *   Called by `abs_cvt::put` during the main-content phase to perform encoding.
@@ -1926,14 +1934,15 @@ namespace IOv2
          * 将 IO 方向切换为输出（写入）模式，并将 `m_io_status` 更新为 `output`。
          *
          * 若已处于输出模式则立即返回（空操作）；否则先调用 `assert_not_tainted()`，
-         * 再调用 `switch_to_put_impl()`（若派生类实现了该 hook），最后切换底层 kernel
-         * 并更新 `m_io_status`。
+         * 再把取数区里没消费的字节还给下层（定位回 `kernel_tell()`，待报的错误一并丢弃；
+         * 下层不能定位时抛出），然后调用 `switch_to_put_impl()`（若派生类实现了该 hook），
+         * 最后切换底层 kernel 并更新 `m_io_status`。派生类因此看不到取数区。
          *
          * 仅在 `enable_io_switch` 为 `true` 且 kernel 支持 IO 方向切换时可用。
          *
          * @note 换向**可以被拒绝**：派生类的 `switch_to_put_impl()` 抛出即表示当前状态下
-         *       不允许换向，什么条件下拒绝由派生类自行规定。钩子在动 kernel 与 `m_io_status`
-         *       之前调用，因此被拒时本对象不变。
+         *       不允许换向，什么条件下拒绝由派生类自行规定。被拒时取数区可能已还给下层，
+         *       但再读得到的内容不变；kernel 与 `m_io_status` 未动。
          * @endif
          *
          * @lang{EN}
@@ -1941,16 +1950,20 @@ namespace IOv2
          * to `output`.
          *
          * Returns immediately if already in output mode (no-op). Otherwise calls
-         * `assert_not_tainted()`, then `switch_to_put_impl()` if the derived class
-         * implements it, then switches the underlying kernel and updates `m_io_status`.
+         * `assert_not_tainted()`, hands the unconsumed bytes of the read area back to the
+         * layer below (a seek to `kernel_tell()`, which drops a pending error too; it throws
+         * when the layer below cannot be positioned), then calls `switch_to_put_impl()` if the
+         * derived class implements it, then switches the underlying kernel and updates
+         * `m_io_status`. The derived class therefore never sees the read area.
          *
          * Only available when `enable_io_switch` is `true` and the kernel supports
          * IO-direction switching.
          *
          * @note A switch **may be refused**: a throw from the derived class's
          *       `switch_to_put_impl()` means the current state does not permit it, and what
-         *       warrants a refusal is up to that class. The hook runs before the kernel and
-         *       `m_io_status` are touched, so a refusal leaves this object unchanged.
+         *       warrants a refusal is up to that class. On a refusal the read area may have
+         *       gone back to the layer below, but reading on gets the same bytes; the kernel
+         *       and `m_io_status` are untouched.
          * @endif
          */
         void switch_to_put(this auto& self)
@@ -1961,10 +1974,8 @@ namespace IOv2
 
             self.assert_not_tainted();
 
-            // Note: invoke the derived-layer hook first (e.g. precondition checks), then switch the lower level.
-            if constexpr (requires { self.switch_to_put_impl(); })
-                self.switch_to_put_impl();
-
+            // Hand the read area back first; transparent to the layers above, so the
+            // derived-layer hook never has to know about it.
             if (self.m_rd_cur != self.m_rd_end || self.m_get_error)
             {
                 if constexpr (cvt_cpt::support_positioning<KernelType>)
@@ -1972,6 +1983,9 @@ namespace IOv2
                 else
                     throw cvt_error("abs_cvt::switch_to_put fail: unread input and kernel does not support positioning");
             }
+
+            if constexpr (requires { self.switch_to_put_impl(); })
+                self.switch_to_put_impl();
 
             self.m_kernel.switch_to_put();
             self.m_io_status = io_status::output;
