@@ -92,7 +92,7 @@ public:
      *
      * @tparam TConfPtr 满足 `shared_ptr_to<collate_conf<CharT>>` 约束的共享指针类型。
      * @param p_obj 指向配置对象的共享指针，不得为空。
-     * @throw stream_error 若 `p_obj` 为空。
+     * @throw io_error 若 `p_obj` 为空。
      * @endif
      *
      * @lang{EN}
@@ -100,13 +100,13 @@ public:
      *
      * @tparam TConfPtr A shared pointer type satisfying the `shared_ptr_to<collate_conf<CharT>>` constraint.
      * @param p_obj A shared pointer to the configuration object; must not be null.
-     * @throw stream_error If `p_obj` is null.
+     * @throw io_error If `p_obj` is null.
      * @endif
      */
     template <shared_ptr_to<collate_conf<CharT>> TConfPtr>
     collate(TConfPtr p_obj)
         : m_obj(p_obj)
-    { if (!m_obj) throw stream_error("shared_ptr is empty"); }
+    { if (!m_obj) throw io_error("shared_ptr is empty"); }
 
 public:
     /**
@@ -128,7 +128,7 @@ public:
      * @param low2 第二个序列的起始迭代器。
      * @param high2 第二个序列的结束迭代器。
      * @return 表示两序列排列关系的 `std::weak_ordering` 值。
-     * @throw stream_error 若底层比较失败。
+     * @throw io_error 若底层比较失败。
      * @endif
      *
      * @lang{EN}
@@ -152,7 +152,7 @@ public:
      * @param low2 Start iterator of the second sequence.
      * @param high2 End iterator of the second sequence.
      * @return A `std::weak_ordering` value indicating the collation relationship.
-     * @throw stream_error If the underlying comparison fails.
+     * @throw io_error If the underlying comparison fails.
      * @endif
      */
     template <std::input_iterator TIter1, std::input_iterator TIter2>
@@ -190,7 +190,7 @@ public:
      * @param low 字符序列的起始迭代器。
      * @param high 字符序列的结束迭代器。
      * @return 完整排序键的字符数。
-     * @throw stream_error 若底层变换失败。
+     * @throw io_error 若底层变换失败。
      * @endif
      *
      * @lang{EN}
@@ -207,7 +207,7 @@ public:
      * @param low Start iterator of the character sequence.
      * @param high End iterator of the character sequence.
      * @return The number of characters in the complete collation key.
-     * @throw stream_error If the underlying transformation fails.
+     * @throw io_error If the underlying transformation fails.
      * @endif
      */
     template <std::input_iterator TIter>
@@ -238,7 +238,7 @@ public:
      * @param high 字符序列的结束迭代器。
      * @param dest 写入排序键的目标。
      * @return 写入后的目标位置，以及写入的字符数。
-     * @throw stream_error 若底层变换失败。
+     * @throw io_error 若底层变换失败。
      * @endif
      *
      * @lang{EN}
@@ -253,7 +253,7 @@ public:
      * @param high End iterator of the character sequence.
      * @param dest Destination for the collation key.
      * @return The destination position after writing, and the number of characters written.
-     * @throw stream_error If the underlying transformation fails.
+     * @throw io_error If the underlying transformation fails.
      * @endif
      */
     template <std::input_iterator TIter, std::output_iterator<CharT> TOut>
@@ -281,7 +281,7 @@ public:
      * @param dest 写入排序键的目标。
      * @param n 最多写入的字符数，须大于 0。
      * @return 写入后的目标位置，以及实际写入的字符数。
-     * @throw stream_error 若 `n` 为 0，或底层变换失败。
+     * @throw io_error 若 `n` 为 0，或底层变换失败。
      * @endif
      *
      * @lang{EN}
@@ -305,7 +305,7 @@ public:
      * @param dest Destination for the collation key.
      * @param n Maximum number of characters to write; must be greater than 0.
      * @return The destination position after writing, and the number of characters written.
-     * @throw stream_error If `n` is 0, or the underlying transformation fails.
+     * @throw io_error If `n` is 0, or the underlying transformation fails.
      * @endif
      */
     template <std::input_iterator TIter, std::output_iterator<CharT> TOut>
@@ -313,7 +313,7 @@ public:
     {
         // 0 used to mean "unlimited"; reject it so old-style calls fail loudly.
         if (n == 0)
-            throw stream_error("collate::transform: n must be greater than 0");
+            throw io_error("collate::transform: n must be greater than 0");
 
         std::size_t written = 0;
         std::vector<CharT> buf;     // input staging for next_segment

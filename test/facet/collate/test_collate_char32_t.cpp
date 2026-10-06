@@ -85,7 +85,7 @@ namespace
 TEST(CollateChar32, ANullConfigurationIsRejected)
 {
     std::shared_ptr<collate_conf<char32_t>> empty;
-    EXPECT_THROW(collate<char32_t>{empty}, stream_error);
+    EXPECT_THROW(collate<char32_t>{empty}, io_error);
 }
 
 TEST(CollateChar32, EqualRangesCompareEqual)
@@ -456,7 +456,7 @@ TEST(CollateChar32, AZeroMaximumLengthIsRejected)
     const std::u32string input(U"ab");
     std::u32string key;
     EXPECT_THROW(obj.transform(input.data(), input.data() + input.size(), std::back_inserter(key), 0),
-                 stream_error);
+                 io_error);
     EXPECT_TRUE(key.empty());
 }
 

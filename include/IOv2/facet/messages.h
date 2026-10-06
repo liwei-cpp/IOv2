@@ -19,12 +19,12 @@
  * @endif
  */
 #pragma once
+#include <IOv2/common/defs.h>
 #include <IOv2/common/metafunctions.h>
 #include <IOv2/facet/facet_common.h>
 #include <IOv2/facet/messages_details.h>
 
 #include <memory>
-#include <stdexcept>
 #include <string>
 #include <utility>
 
@@ -75,7 +75,7 @@ public:
      *
      * @tparam TConfPtr 满足 `shared_ptr_to<messages_conf<CharT>>` 约束的指针类型。
      * @param p_obj 指向已初始化的 `messages_conf<CharT>` 的非空共享指针。
-     * @throw std::runtime_error 如果 `p_obj` 为空。
+     * @throw io_error 如果 `p_obj` 为空。
      * @endif
      *
      * @lang{EN}
@@ -83,13 +83,13 @@ public:
      *
      * @tparam TConfPtr A pointer type satisfying `shared_ptr_to<messages_conf<CharT>>`.
      * @param p_obj A non-null shared pointer to an initialized `messages_conf<CharT>`.
-     * @throw std::runtime_error If `p_obj` is empty.
+     * @throw io_error If `p_obj` is empty.
      * @endif
      */
     template <shared_ptr_to<messages_conf<CharT>> TConfPtr>
     messages(TConfPtr p_obj)
         : m_obj(p_obj)
-    { if (!m_obj) throw std::runtime_error("shared_ptr is empty"); }
+    { if (!m_obj) throw io_error("shared_ptr is empty"); }
 
     /**
      * @lang{ZH}

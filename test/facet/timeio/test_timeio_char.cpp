@@ -1036,8 +1036,8 @@ namespace
     }
 
     // Builds a rigged conf, lets `rig` change its format strings, and reports whether the
-    // timeio constructor rejected it. Only the construction sits inside the try, so a
-    // VERIFY failure -- which also throws runtime_error -- cannot pass for a rejection.
+    // timeio constructor rejected it (with an io_error). Only the construction sits inside
+    // the try, so a VERIFY failure cannot pass for a rejection.
     template <typename TRig>
     bool rejects(TRig rig)
     {
@@ -1049,7 +1049,7 @@ namespace
             (void)obj;
             return false;
         }
-        catch (const std::runtime_error&) { return true; }
+        catch (const io_error&) { return true; }
     }
 }
 

@@ -55,7 +55,7 @@ namespace IOv2
  * 结果；而 `newlocale("")` 在同样的环境下会失败。要回到启动时的编码，用本函数的返回值，
  * 不要用 `""`。
  *
- * @throws stream_error 由底层 `ori_facet_buf::locale_name` 透出：当 `category`
+ * @throws io_error 由底层 `ori_facet_buf::locale_name` 透出：当 `category`
  *         不是已解析的五个类别之一（`LC_CTYPE` / `LC_COLLATE` / `LC_MONETARY` /
  *         `LC_NUMERIC` / `LC_TIME`）时抛出，例如传入 `LC_ALL` 或 `LC_MESSAGES`。
  * @endif
@@ -75,7 +75,7 @@ namespace IOv2
  * `newlocale("")` fails in the same environment. To return to the startup encoding, use
  * what this function returns, not `""`.
  *
- * @throws stream_error propagated from the underlying `ori_facet_buf::locale_name`
+ * @throws io_error propagated from the underlying `ori_facet_buf::locale_name`
  *         if `category` is not one of the five resolved categories (`LC_CTYPE` /
  *         `LC_COLLATE` / `LC_MONETARY` / `LC_NUMERIC` / `LC_TIME`), e.g. when
  *         passed `LC_ALL` or `LC_MESSAGES`.
@@ -366,8 +366,9 @@ public:
      *
      * @param name 一个在宿主上可被实例化的 locale 名称（语义同 `newlocale`）；为空串
      *        （默认）时表示使用环境 / 默认 locale。
-     * @throws cvt_error 当**非空** `name` 无法被 C 库实例化时抛出（`cvt_error` 派生自
-     *         `io_error`，并最终派生自 `std::runtime_error`）。空 `name` 不会因此抛出。
+     * @throws io_error 当**非空** `name` 无法被 C 库实例化，或该 locale 的数据不能用来构造某个
+     *         facet 时抛出（`io_error` 派生自 `std::runtime_error`）。空 `name` 不会因名字无效
+     *         而抛出。
      * @endif
      *
      * @lang{EN}
@@ -393,9 +394,9 @@ public:
      *
      * @param name A locale name instantiable on the host (as by `newlocale`); empty (the
      *        default) selects the environment / default locale.
-     * @throws cvt_error if a *non-empty* `name` cannot be instantiated by the C library
-     *         (`cvt_error` derives from `io_error`, and ultimately from
-     *         `std::runtime_error`). An empty `name` never throws for this reason.
+     * @throws io_error if a *non-empty* `name` cannot be instantiated by the C library, or
+     *         that locale's data cannot build one of the facets (`io_error` derives from
+     *         `std::runtime_error`). An empty `name` never throws for an invalid name.
      * @endif
      */
     explicit locale(const std::string& name = "")
@@ -557,7 +558,7 @@ public:
      * 的派生 facet 缓存会被清空，以便后续按需重建。`*this` 本身不被修改。
      *
      * @param ft 要绑定的 facet（非空）。
-     * @throws stream_error 当 `ft` 为空指针时抛出。
+     * @throws io_error 当 `ft` 为空指针时抛出。
      * @return 绑定了该 facet 的新 `locale`。
      * @endif
      *
@@ -572,13 +573,13 @@ public:
      * unchanged.
      *
      * @param ft The facet to bind (must be non-null).
-     * @throws stream_error if `ft` is a null pointer.
+     * @throws io_error if `ft` is a null pointer.
      * @return A new `locale` carrying that facet.
      * @endif
      */
     locale involve(std::shared_ptr<abs_ft> ft) const
     {
-        if (!ft) throw stream_error("cannot add empty facet pointer into locale.");
+        if (!ft) throw io_error("cannot add empty facet pointer into locale.");
 
         locale res(*this);
         res.m_facet_confs[ft->id()] = std::move(ft);
@@ -603,9 +604,9 @@ public:
      * @param lang 候选语言字符串；为空（默认）表示按环境变量决定。
      * @param throw_if_fail 翻译字典**加载失败**（`filter_lang` 选中的 `.mo` 文件存在但损坏 /
      *        截断，或无可用语言）时是否抛出。为 `false`（默认）静默降级为空（穿透）facet；为
-     *        `true` 抛 `stream_error`。**降级 facet 绝不写入缓存**，因此该参数不受此前调用影响：
+     *        `true` 抛 `io_error`。**降级 facet 绝不写入缓存**，因此该参数不受此前调用影响：
      *        无论之前是否有 `false` 调用发生过降级，后续 `true` 调用都会重新尝试加载并如实抛出。
-     * @throws stream_error 当 `throw_if_fail` 为 `true` 且翻译字典加载失败时抛出；失败结果不会
+     * @throws io_error 当 `throw_if_fail` 为 `true` 且翻译字典加载失败时抛出；失败结果不会
      *         被写入缓存。
      * @throws std::filesystem::filesystem_error 解析翻译文件可用性（`filter_lang` →
      *         `available` → `std::filesystem::exists`）时，若 domain / 派生路径触发
@@ -636,11 +637,11 @@ public:
      * @param throw_if_fail Whether to throw when the translation dictionary *fails to
      *        load* (the `.mo` chosen by `filter_lang` exists but is corrupt / truncated,
      *        or no language is available). `false` (the default) silently degrades to an
-     *        empty (passthrough) facet; `true` throws `stream_error`. A degraded facet is
+     *        empty (passthrough) facet; `true` throws `io_error`. A degraded facet is
      *        *never* cached, so this flag is independent of earlier calls: regardless of
      *        any prior `false` call that degraded, a later `true` call re-attempts the
      *        load and throws as expected.
-     * @throws stream_error if `throw_if_fail` is `true` and the translation dictionary
+     * @throws io_error if `throw_if_fail` is `true` and the translation dictionary
      *         fails to load; the failed result is not cached.
      * @throws std::filesystem::filesystem_error if resolving translation-file
      *         availability (`filter_lang` -> `available` -> `std::filesystem::exists`)
@@ -713,10 +714,10 @@ public:
      *        并以该有效值同时作为缓存键与构造参数。
      * @param throw_if_fail 翻译字典**加载失败**（`filter_lang` 选中的 `.mo` 文件存在但损坏 /
      *        截断，无可用语言，或 `cvt` 编码转换器无法构造 / 转换）时是否抛出。为 `false`（默认）
-     *        静默降级为空（穿透）facet；为 `true` 抛 `stream_error`。**降级 facet 绝不写入缓存**，
+     *        静默降级为空（穿透）facet；为 `true` 抛 `io_error`。**降级 facet 绝不写入缓存**，
      *        因此该参数不受此前调用影响：无论之前是否有 `false` 调用发生过降级，后续 `true` 调用
      *        都会重新尝试加载并如实抛出。
-     * @throws stream_error 当 `throw_if_fail` 为 `true` 且翻译字典加载失败时抛出；失败结果不会
+     * @throws io_error 当 `throw_if_fail` 为 `true` 且翻译字典加载失败时抛出；失败结果不会
      *         被写入缓存。
      * @throws std::filesystem::filesystem_error 解析翻译文件可用性（`filter_lang` →
      *         `available` → `std::filesystem::exists`）时，若 domain / 派生路径触发
@@ -746,11 +747,11 @@ public:
      *        load* (the `.mo` chosen by `filter_lang` exists but is corrupt / truncated,
      *        no language is available, or the `cvt` encoding converter cannot be
      *        constructed / applied). `false` (the default) silently degrades to an empty
-     *        (passthrough) facet; `true` throws `stream_error`. A degraded facet is
+     *        (passthrough) facet; `true` throws `io_error`. A degraded facet is
      *        *never* cached, so this flag is independent of earlier calls: regardless of
      *        any prior `false` call that degraded, a later `true` call re-attempts the
      *        load and throws as expected.
-     * @throws stream_error if `throw_if_fail` is `true` and the translation dictionary
+     * @throws io_error if `throw_if_fail` is `true` and the translation dictionary
      *         fails to load; the failed result is not cached.
      * @throws std::filesystem::filesystem_error if resolving translation-file
      *         availability (`filter_lang` -> `available` -> `std::filesystem::exists`)

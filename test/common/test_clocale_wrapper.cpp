@@ -91,9 +91,9 @@ TEST(ClocaleWrapper, CopyFromMovedFrom)
 // place of the one the caller named; a NUL further in would silently shorten it.
 TEST(ClocaleWrapper, ANameWithAnEmbeddedNulIsRejected)
 {
-    EXPECT_THROW((void)clocale_wrapper(std::string("\0C", 2)), cvt_error);
-    EXPECT_THROW((void)clocale_wrapper(std::string("C\0junk", 6)), cvt_error);
-    EXPECT_THROW((void)clocale_wrapper(std::string("C\0", 2)), cvt_error);
+    EXPECT_THROW((void)clocale_wrapper(std::string("\0C", 2)), io_error);
+    EXPECT_THROW((void)clocale_wrapper(std::string("C\0junk", 6)), io_error);
+    EXPECT_THROW((void)clocale_wrapper(std::string("C\0", 2)), io_error);
 }
 
 // name() reports the locale's own resolved LC_CTYPE name, which is what lets it stand
@@ -120,7 +120,7 @@ TEST(ClocaleWrapper, NameSurvivesCopyAndMove)
 
     clocale_wrapper loc3(std::move(loc1));
     EXPECT_EQ(loc3.name(), "C");
-    EXPECT_THROW((void)loc1.name(), cvt_error);
+    EXPECT_THROW((void)loc1.name(), io_error);
 }
 
 TEST(ClocaleWrapper, ClocaleUserRejectsMovedFrom)
@@ -128,7 +128,7 @@ TEST(ClocaleWrapper, ClocaleUserRejectsMovedFrom)
     clocale_wrapper loc1("C");
     clocale_wrapper loc2(std::move(loc1));
 
-    EXPECT_THROW((void)clocale_user{loc1}, cvt_error);
+    EXPECT_THROW((void)clocale_user{loc1}, io_error);
 }
 
 TEST(ClocaleWrapper, ClocaleUserAcceptsLiveWrapper)

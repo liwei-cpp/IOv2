@@ -388,7 +388,7 @@ TEST(LocaleChar, AMissingCatalogueLeavesEveryMessageUntranslated)
     // retry the same lookup and surface the load error.
     EXPECT_THROW((void)IOv2::locale<char>("en_US.UTF-8")
                      .involve_msg("messages", "zh_CN", "zh_CN.UTF-8", true),
-                 IOv2::stream_error);
+                 IOv2::io_error);
 }
 
 TEST(LocaleChar, HasFindsACompositeAlreadyInTheCache)
@@ -404,13 +404,13 @@ TEST(LocaleChar, HasFindsACompositeAlreadyInTheCache)
 TEST(LocaleChar, InvolveRejectsAnEmptyFacetPointer)
 {
     auto loc = IOv2::locale<char>("en_US.UTF-8");
-    EXPECT_THROW((void)loc.involve(nullptr), IOv2::stream_error);
+    EXPECT_THROW((void)loc.involve(nullptr), IOv2::io_error);
 }
 
 TEST(LocaleChar, InitialLocaleNameRejectsAnUnresolvedCategory)
 {
     // Only the five resolved LC categories are accepted; LC_ALL is not one of them.
-    EXPECT_THROW((void)IOv2::initial_locale_name(LC_ALL), IOv2::stream_error);
+    EXPECT_THROW((void)IOv2::initial_locale_name(LC_ALL), IOv2::io_error);
 }
 
 TEST(LocaleChar, AnIdenticalInvolveMsgHandsBackTheInternedConf)
