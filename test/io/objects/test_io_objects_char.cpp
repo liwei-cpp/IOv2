@@ -701,8 +701,10 @@ TEST(IoObjectsChar, SyncWithStdioReportsEveryStreamThatFailed)
 // and the child reports something on cerr before exec -- say that exec failed. fork() takes
 // only the calling thread along, so the child used to block forever on cerr's lock, which
 // no thread in it would ever release. The child is a bare fork (that is what is under
-// test); only whether its line came back in time is checked, not its exit status, which
-// valgrind changes for a child that _exits.
+// test); only whether its line came back in time is checked. It ends in an exec of
+// /bin/true, not _exit: on _exit valgrind reports as leaked what the other thread owned at
+// the fork, an exec skips that check, and an access error in the child is reported when it
+// happens.
 TEST(IoObjectsChar, AChildForkedWhileAnotherThreadHoldsCerrCanStillWriteToIt)
 {
     std::atomic<bool> held{false}, release{false};
@@ -723,7 +725,8 @@ TEST(IoObjectsChar, AChildForkedWhileAnotherThreadHoldsCerrCanStillWriteToIt)
         ::close(fds[0]);
         ::dup2(fds[1], STDERR_FILENO);
         IOv2::cerr << "child\n";
-        ::_exit(0);
+        ::execl("/bin/true", "true", static_cast<char*>(nullptr));
+        ::_exit(127);
     }
     ::close(fds[1]);
 

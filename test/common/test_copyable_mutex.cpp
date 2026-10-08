@@ -277,9 +277,10 @@ TEST(CopyableMutex, SharedFlavorForwardsTheSharedLocks)
 // ---------------------------------------------------------------------------
 // 8. 跨 fork()：fork 时另一线程持有的锁，在子进程里仍能加锁。fork() 只把调用它的线程
 //    带进子进程，裸 std::mutex 在子进程里会永久阻塞（多线程程序 fork 后 exec 失败、
-//    往 cerr 报错即是这一形态）。子进程是裸 fork（检查的正是 fork 本身），不看它的
-//    退出码——valgrind 下 _exit 的子进程会因泄漏报告改退出码——只看它是否在时限内
-//    经管道回报；卡住的子进程被杀掉，不会拖住整个测试。
+//    往 cerr 报错即是这一形态）。子进程是裸 fork（检查的正是 fork 本身），只看它是否
+//    在时限内经管道回报；卡住的子进程被杀掉，不会拖住整个测试。子进程以 exec
+//    /bin/true 结束，不 _exit：valgrind 在 _exit 时把 fork 时别的线程拥有的内存报成
+//    泄漏，exec 则不做退出检查，而子进程里的访问错误在发生时就已报出。
 // ---------------------------------------------------------------------------
 namespace
 {
@@ -298,7 +299,8 @@ namespace
             const char ok = 'k';
             if (in_child())
                 (void)!::write(fds[1], &ok, 1);
-            ::_exit(0);
+            ::execl("/bin/true", "true", static_cast<char*>(nullptr));
+            ::_exit(127);
         }
         ::close(fds[1]);
         pollfd p{fds[0], POLLIN, 0};
