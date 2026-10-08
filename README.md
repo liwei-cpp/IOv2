@@ -189,6 +189,8 @@ make IOV2_PKG=iov2-shared   # 共享 .so（无需 -DIOV2_SHARED）
 > **注意**：`IOV2_SHARED` 必须在同一次链接的所有翻译单元中保持一致——把开关焙进已安装头文件正是为此提供保证。
 >
 > **多模块不支持 header-only，也不支持混用**：header-only 模式下每个模块各自定义一份单例，它们会不会被合并取决于编译器与载入方式——例如 gcc 的 STB_GNU_UNIQUE 会被动态链接器跨模块合并，而 clang 编出的弱符号在 `dlopen(RTLD_LOCAL)` 下每个插件各一份（实测），`-fvisibility=hidden` 与 Windows 多 DLL 同样各一份。各一份时，标准流各有各的缓冲与 `sync_with_stdio()` 状态，保护 tie 图的全局锁也不止一把，库的诸多保证随之失效。「header-only 主程序 + 链接 `libiov2.so` 的插件」这类混用同样不支持。有多个模块时，请让每个模块都使用共享库模式。
+>
+> **共享库模式下，包含 IOv2 头文件的模块不可卸载**：每个这样的模块在载入时把自己钉住（ELF / Mach-O 上经 `dlopen(RTLD_NOLOAD | RTLD_NODELETE)`），之后对它 `dlclose` 只减引用计数。原因是插件在标准流的 locale 等进程级缓存里留下的 facet，其 vtable、`type_info` 与控制块都在插件自己的映像里，插件一卸载，宿主下一次 `cout << 1` 就会读到已 unmap 的内存。代价：插件不能热重载，内存不回收，插件里静态对象的析构推迟到进程退出。被钉住的模块一直持有对 `libiov2.so` 的依赖，`libiov2.so` 也随之常驻。
 
 ### 线程安全
 
@@ -423,6 +425,8 @@ make IOV2_PKG=iov2-shared   # shared .so (no -DIOV2_SHARED needed)
 > **Note**: `IOV2_SHARED` must be consistent across every translation unit in a single link — baking the switch into the installed header is exactly what guarantees that.
 >
 > **Header-only is not supported across modules, and neither is mixing modes**: in header-only mode each module defines its own singletons, and whether they get merged depends on the compiler and on how the module is loaded — gcc's STB_GNU_UNIQUE objects are merged across modules by the dynamic linker, while clang's weak objects stay one per plugin under `dlopen(RTLD_LOCAL)` (measured), as they do under `-fvisibility=hidden` and across Windows DLLs. With one per module, the standard streams each have their own buffer and `sync_with_stdio()` state, there is more than one lock guarding the tie graph, and many of the library's guarantees no longer hold. A header-only main program with plugins that link `libiov2.so` is not supported either. With more than one module, have every module use shared-library mode.
+>
+> **In shared-library mode, a module that includes IOv2 headers cannot be unloaded**: each such module pins itself when it is loaded (on ELF / Mach-O through `dlopen(RTLD_NOLOAD | RTLD_NODELETE)`), and a later `dlclose` of it only drops the reference count. The reason: a facet a plugin leaves in a process-wide cache, such as the standard streams' locales, has its vtable, `type_info` and control block in the plugin's own image, so once the plugin was unloaded the host's next `cout << 1` read unmapped memory. The cost: plugins cannot be hot-reloaded, their memory is not reclaimed, and their static destructors run only at process exit. A pinned module keeps its dependency on `libiov2.so`, so `libiov2.so` stays resident too.
 
 ### Thread Safety
 

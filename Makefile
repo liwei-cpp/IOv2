@@ -28,20 +28,12 @@ SO_FLAGS  := -std=c++23 -O2 -fPIC -fvisibility=hidden -shared \
              -Iinclude \
              $(CPPFLAGS)
 
-# Linker flags. By default IOv2 does NOT force libiov2.so to stay resident: a
-# dlclose behaves like it does for any other shared library -- once you unload it,
-# you must not use anything that came from it (the stream objects, the localization
-# cache, or any reference/pointer handed out from those). Closing a library and
-# then calling into it is a use-after-unload bug on the caller's side.
-#
-# The one case this leaves exposed is a reference that outlives the unload: e.g. a
-# plugin borrows a libiov2 stream, hands it back to the host, and is then dlclose'd
-# while it held libiov2's *last* reference -- the library unmaps and the
-# process-wide singletons (s_ori_facet_buf, the stream objects) are destroyed under
-# the host's feet. If your deployment does that, uncomment the opt-in line below:
-# -z nodelete marks libiov2.so non-unloadable, so those singletons live until real
-# process exit (like libstdc++). See the lifetime/dlopen note in
-# src/iov2_objects.cpp for the full rationale.
+# Linker flags. Every consumer module pins itself at load time (see
+# common/iov2_export.h), and a pinned module never drops its dependency on
+# libiov2.so, so libiov2.so stays resident while anything uses it. -z nodelete is
+# needed only to keep it resident when the last module that loaded it is a
+# dlopen'd one that does not include IOv2 headers. See the lifetime/dlopen note in
+# src/iov2_objects.cpp.
 SO_LDFLAGS :=
 # SO_LDFLAGS := -Wl,-z,nodelete
 
@@ -57,7 +49,7 @@ SRC       := src/iov2_objects.cpp
 # Build the shared library.
 $(LIB): $(SRC)
 	@mkdir -p $(LIB_DIR)
-	$(CXX) $(SO_FLAGS) $(SRC) $(SO_LDFLAGS) -o $(LIB)
+	$(CXX) $(SO_FLAGS) $(SRC) $(SO_LDFLAGS) -ldl -o $(LIB)
 
 shared: $(LIB)
 

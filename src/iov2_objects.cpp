@@ -65,6 +65,10 @@
 #include <IOv2/io/objects/out_impl.h>
 #include <IOv2/locale/ori_facet_buf.h>
 
+#if defined(__unix__) || defined(__APPLE__)
+#include <dlfcn.h>
+#endif
+
 namespace IOv2
 {
 /**
@@ -88,14 +92,11 @@ namespace IOv2
  * `sing_temp::exit_hook`。对象存储是静态缓冲,连同其持有的堆内存保持可达、由 OS 回收,
  * 不构成泄漏;退出阶段仍在其它线程中使用这些流也不会成为释放后使用。
  *
- * @warning 不支持 dlopen/dlclose 语义。上述保证依赖一条**静态链接依赖边**。若 libiov2.so
- * 在仍有引用存活时被显式 `dlclose` 卸载,单例虽不析构,其存储与代码却随 .so 被 unmap,
- * 之后再经导出引用(或任何持有它们的对象)访问即为悬空引用 / UB;若消费者与本库仅在运行期
- * 耦合而无加载器可见的依赖边(如 `dlopen(RTLD_GLOBAL)` 靠符号插桩),顺序同样无保证。
- * libiov2.so 被设计为**常规链接期依赖的基础库**(全进程保持加载),而非被 dlopen/dlclose
- * 的插件。若将来确需对 dlopen/dlclose 鲁棒,在加载器层面把 libiov2.so 标记为不可卸载
- * (`-Wl,-z,nodelete`,或调用方 `dlopen(..., RTLD_NODELETE)`),这样 `dlclose` 只减引用计数、
- * **不 unmap**,单例活到进程真正退出,上述悬空即消除。
+ * @warning 消费者模块被钉住,libiov2.so 随之驻留:共享模式下每个包含 IOv2 头文件的模块
+ * 在载入时经 `pin_module_of` 把自己标记为不可卸载(见 `common/iov2_export.h`),对它
+ * `dlclose` 只减引用计数;它对 libiov2.so 的依赖也就一直存在,libiov2.so 不会在仍有
+ * 引用存活时被 unmap。仍不支持的是消费者与本库仅在运行期耦合、无加载器可见依赖边的用法
+ * (如 `dlopen(RTLD_GLOBAL)` 靠符号插桩):那时初始化顺序没有保证。
  * @endif
  *
  * @lang{EN}
@@ -124,19 +125,14 @@ namespace IOv2
  * heap they own, stay reachable and are reclaimed by the OS, so this is not a leak;
  * nor does using the streams from another thread during exit become a use-after-free.
  *
- * @warning dlopen/dlclose is NOT supported. The guarantee above relies on a static
- * link-dependency edge. If libiov2.so is explicitly `dlclose`d (unloaded) while
- * references are still live, the singletons are not destroyed but their storage and
- * code are unmapped with the .so, and any later use of the exported references (or of
- * anything holding them) is a dangling reference / UB. Likewise, if a consumer is
- * coupled to this library only at runtime with no loader-visible dependency edge (e.g.
- * `dlopen(RTLD_GLOBAL)` via symbol interposition), the ordering is unguaranteed.
- * libiov2.so is designed to be a normal link-time dependency -- a base library that
- * stays loaded for the whole process -- not a dlopen/dlclose'd plugin. If
- * dlopen/dlclose robustness is ever required, mark libiov2.so non-unloadable at the
- * loader level (`-Wl,-z,nodelete`, or have callers pass `dlopen(..., RTLD_NODELETE)`),
- * so that `dlclose` only drops the reference count and never unmaps -- the singletons
- * then live until real process exit and the dangling reference above disappears.
+ * @warning Consumer modules are pinned, so libiov2.so stays resident: in shared mode
+ * every module that includes IOv2 headers marks itself non-unloadable at load time
+ * through `pin_module_of` (see `common/iov2_export.h`), and a `dlclose` of it only drops
+ * the reference count. Its dependency on libiov2.so therefore never goes away, and
+ * libiov2.so is never unmapped while references to it are live. Still unsupported is a
+ * consumer coupled to this library only at runtime with no loader-visible dependency
+ * edge (e.g. `dlopen(RTLD_GLOBAL)` via symbol interposition): the initialization order is
+ * then unguaranteed.
  * @endif
  */
 
@@ -214,5 +210,15 @@ IOV2_API void copyable_mutex_watch_fork() noexcept
         ::pthread_atfork(nullptr, nullptr, &copyable_mutex_on_fork_child);
 #endif
 }
+
+#if defined(__unix__) || defined(__APPLE__)
+IOV2_API void pin_module_of(const void* addr) noexcept
+{
+    ::Dl_info info;
+    if (::dladdr(addr, &info) == 0 || info.dli_fname == nullptr)
+        return;
+    [[maybe_unused]] void* handle = ::dlopen(info.dli_fname, RTLD_LAZY | RTLD_NOLOAD | RTLD_NODELETE);
+}
+#endif
 }
 }
