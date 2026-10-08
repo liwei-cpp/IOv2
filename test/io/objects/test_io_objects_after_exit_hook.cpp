@@ -23,11 +23,13 @@
 
 #include <gtest/gtest.h>
 
+#include <atomic>
 #include <csignal>
 #include <cstdlib>
 #include <fstream>
 #include <iterator>
 #include <string>
+#include <thread>
 
 #include <fcntl.h>
 #include <sys/resource.h>
@@ -38,6 +40,33 @@ namespace
     const char* const kFile = "io_objects_after_exit_hook";
     // What the late atexit function does; 0 = nothing.
     int g_late = 0;
+
+    // An insertion that writes 'A', waits until the exit hook has run, then writes 'B'.
+    struct straddler {};
+    std::atomic<int> g_straddle{0};
+    std::thread* g_straddling = nullptr;
+}
+
+namespace IOv2
+{
+    template <>
+    struct io_traits<char, straddler>
+    {
+        template <typename TIter>
+        static TIter swrite(TIter iter, ios_base<char>&, const locale<char>&, straddler)
+        {
+            *iter++ = 'A';
+            g_straddle = 1;
+            while (g_straddle != 2)
+                std::this_thread::yield();
+            *iter++ = 'B';
+            return iter;
+        }
+    };
+}
+
+namespace
+{
 
     void write_late()
     {
@@ -64,6 +93,10 @@ namespace
             IOv2::clog.sync_with_stdio(true);
             break;
         }
+        case 5:
+            g_straddle = 2;
+            g_straddling->join();
+            break;
         default:
             break;
         }
@@ -145,6 +178,26 @@ TEST(IoObjectsAfterExitHook, BytesTheHookLeftBehindGoOutOnALaterSwitchBack)
 
     EXPECT_EQ(run_case("IoObjectsAfterExitHook.BytesTheHookLeftBehindGoOutOnALaterSwitchBack", "1"),
               "pre\n");
+}
+
+// Unsynchronized, an insertion holds the lock while the hook runs, so the hook gives up; the
+// insertion ends after it and hands everything buffered to stdio.
+TEST(IoObjectsAfterExitHook, AnInsertionInProgressWhileTheHookRunsStillReachesTheDevice)
+{
+    if (in_test_child())
+    {
+        redirect_stderr_to_file();
+        IOv2::clog.sync_with_stdio(false);
+        IOv2::clog << "head|";
+        g_straddling = new std::thread([] { IOv2::clog << straddler{}; });
+        while (g_straddle != 1)
+            std::this_thread::yield();
+        g_late = 5;
+        return;
+    }
+
+    EXPECT_EQ(run_case("IoObjectsAfterExitHook.AnInsertionInProgressWhileTheHookRunsStillReachesTheDevice", "1"),
+              "head|AB");
 }
 
 // Synchronized, a write that stops at a 5-byte file size limit keeps "56789" in the stream's

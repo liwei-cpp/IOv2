@@ -133,7 +133,7 @@ struct out_sentry
             tied->try_flush();
 
         if constexpr (is_std)
-            m_sync_with_stdio = os.m_sync_with_stdio.load() || os.m_exited.load();
+            m_sync_with_stdio = os.m_sync_with_stdio.load();
 
         if constexpr (involve_input)
             os.m_channel.switch_to_put();
@@ -195,7 +195,11 @@ struct out_sentry
         {
             if (m_os)
             {
-                if (m_is_unit_buf || m_sync_with_stdio)
+                auto exited = [&]() noexcept {
+                    if constexpr (is_std) return m_os.m_exited.load();
+                    else return false;
+                };
+                if (m_is_unit_buf || m_sync_with_stdio || exited())
                     m_os.m_channel.flush();
 
                 if (m_is_unit_buf)
