@@ -166,12 +166,19 @@ jobs:
         # with "Memory checker (MemoryCheckCommand) not set".
         #
         # A memcheck run that only writes logs and stays green would be worse
-        # than no check at all, so this exact command was verified against a
-        # program that leaks 64 bytes and writes past a 4-byte buffer: ctest
-        # reported "Defects: 3" and exited 16. The exit code is the guard; no
-        # file under Testing/Temporary carries the defect count to grep for.
-        ctest --test-dir build/${{ matrix.preset }}-release -T memcheck \
-              --output-on-failure -L all --parallel $(nproc)
+        # than no check at all. ctest's exit code catches only a test that
+        # fails: an error Valgrind finds in a forked child is counted as a
+        # defect while the test still passes, and ctest exits 0. So the
+        # defects ctest parsed, in Testing/<tag>/DynamicAnalysis.xml, fail
+        # the step as well.
+        dir=build/${{ matrix.preset }}-release
+        rc=0
+        ctest --test-dir $dir -T memcheck \
+              --output-on-failure -L all --parallel $(nproc) || rc=$?
+        if grep -q '<Defect type=' "$dir/Testing/$(head -n 1 $dir/Testing/TAG)/DynamicAnalysis.xml"; then
+          echo "[!] memcheck found defects"; exit 1
+        fi
+        exit $rc
 
   thread-safety:
     runs-on: ubuntu-latest
