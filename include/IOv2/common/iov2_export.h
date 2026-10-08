@@ -76,6 +76,13 @@
  *          `libiov2.so` 的插件」也在此列：进程里会有两套单例，各管各的；宿主若再以
  *          `-rdynamic` / `--export-dynamic` 导出 IOv2 符号，`libiov2.so` 对单例的引用会被
  *          宿主那一份插桩，.so 的初始化写进宿主的槽位，实测在 .so 初始化期间即崩溃。
+ *
+ * @warning **共享库模式会钉住每个消费者模块**：在 ELF / Mach-O 上，共享模式下包含本头文件
+ *          会给每个模块加一个 hidden 可见性的 inline 变量，其初始化调用 `detail::pin_module_of`，
+ *          使该模块不可卸载：`dlclose` 只减引用计数。模块建出的 facet 会进入进程级缓存（标准流
+ *          的 locale、`s_ori_facet_buf`），其 vtable、`type_info` 键与控制块都在该模块的映像里，
+ *          模块一卸载，这些缓存就指向已 unmap 的内存。变量必须是 hidden：默认可见性的会跨模块
+ *          合并，只钉住第一个模块。
  * @endif
  *
  * @lang{EN}
@@ -128,6 +135,16 @@
  *          `--export-dynamic`), `libiov2.so`'s references to the singletons are interposed
  *          by the host's copies, the .so's initialization writes into the host's slots,
  *          and it was measured to crash during that initialization.
+ *
+ * @warning **Shared-library mode pins every consumer module**: on ELF / Mach-O, including
+ *          this header in shared mode adds one hidden-visibility inline variable per module,
+ *          whose initializer calls `detail::pin_module_of`. That makes the module
+ *          non-unloadable: `dlclose` only drops the reference count. Facets a module builds
+ *          end up in process-wide caches (the standard streams' locales, `s_ori_facet_buf`)
+ *          with their vtables, `type_info` keys and control blocks in that module's image;
+ *          unloading it would leave those caches pointing into unmapped memory. The variable
+ *          has to be hidden: a default-visibility one would be merged across modules and pin
+ *          only the first.
  * @endif
  */
 #if defined(IOV2_SHARED)
@@ -142,4 +159,18 @@
 #  endif
 #else
 #  define IOV2_API
+#endif
+
+#if defined(IOV2_SHARED) && !defined(IOV2_EXPORTS) && (defined(__unix__) || defined(__APPLE__))
+namespace IOv2::detail
+{
+IOV2_API void pin_module_of(const void* addr) noexcept;   // defined in iov2_objects.cpp
+
+struct __attribute__((visibility("hidden"))) module_pin
+{
+    module_pin() noexcept { pin_module_of(this); }
+};
+
+__attribute__((visibility("hidden"))) inline module_pin s_module_pin;
+}
 #endif

@@ -21,6 +21,8 @@ include(IOv2GoogleTest)
 # tests silently while staying green.
 file(GLOB_RECURSE IOV2_TEST_ALL_SOURCES CONFIGURE_DEPENDS
      "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
+# A plugins/ directory holds modules a suite dlopens, not tests of its own.
+list(FILTER IOV2_TEST_ALL_SOURCES EXCLUDE REGEX "/plugins/")
 if(NOT IOV2_TEST_ALL_SOURCES)
   message(FATAL_ERROR "No test sources found under ${CMAKE_CURRENT_SOURCE_DIR}")
 endif()
@@ -108,6 +110,23 @@ if(UNIX AND NOT APPLE AND CMAKE_SIZEOF_VOID_P EQUAL 8)
     target_link_options(test_device_std_device_poll_error PRIVATE "LINKER:--wrap=read")
     target_compile_definitions(test_device_std_device_poll_error PRIVATE IOV2_TEST_WRAP_READ=1)
   endif()
+endif()
+
+# The plugin is unloadable only if g++ does not make its inline variables
+# STB_GNU_UNIQUE; the test asserts it is still resident after dlclose.
+if(IOV2_TEST_CONSUMER STREQUAL "installed-shared")
+  add_library(test_plugin_cout_number MODULE
+      "${CMAKE_CURRENT_SOURCE_DIR}/io/objects/plugin_unload/plugins/test_plugin_cout_number.cpp")
+  target_link_libraries(test_plugin_cout_number PRIVATE iov2_test_subject iov2_test_options)
+  target_include_directories(test_plugin_cout_number PRIVATE ${IOV2_TEST_SUBJECT_INCLUDE_DIRS})
+  target_compile_options(test_plugin_cout_number PRIVATE
+      $<$<CXX_COMPILER_ID:GNU>:-fno-gnu-unique>)
+  set_target_properties(test_plugin_cout_number PROPERTIES
+      LIBRARY_OUTPUT_DIRECTORY "${IOV2_TEST_BIN_DIR}")
+  add_dependencies(test_io_objects_plugin_unload test_plugin_cout_number)
+  target_link_libraries(test_io_objects_plugin_unload PRIVATE ${CMAKE_DL_LIBS})
+  target_compile_definitions(test_io_objects_plugin_unload PRIVATE
+      IOV2_TEST_UNLOAD_PLUGIN="$<TARGET_FILE:test_plugin_cout_number>")
 endif()
 
 list(LENGTH IOV2_TEST_ALL_SOURCES IOV2_TEST_SOURCE_TOTAL)
