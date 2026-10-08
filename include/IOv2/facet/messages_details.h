@@ -20,6 +20,7 @@
  * @endif
  */
 #pragma once
+#include <IOv2/common/copyable_mutex.h>
 #include <IOv2/common/defs.h>
 #include <IOv2/common/metafunctions.h>
 #include <IOv2/cvt/code_cvt.h>
@@ -751,7 +752,7 @@ private:
     // either (see common/sing_temp.h). The mutex is trivially destructible.
     inline static std::unordered_map<std::string, std::string>& s_domain_dirs =
         *new std::unordered_map<std::string, std::string>;
-    inline static std::mutex s_domain_mutex;
+    inline static copyable_mutex<std::mutex> s_domain_mutex;
 
 private:
     // Declared first: initialised before m_filtered_lang and m_domain_info (both
