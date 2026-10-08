@@ -1079,6 +1079,12 @@ private:
      *
      * 两次调用方看到的都是「put 抛了异常、设备收了 2 个」，结果却取决于它看不见的缓冲余量。
      * 按上面的规则，第一种情况只保留 `CDE`，两种情况都不写出 xyz。
+     *
+     * 这条规则只管**单次 `root_cvt::put` 调用**。上层的一次操作分几次进入本缓冲时，先进来的
+     * 那几次在这里就是「之前收下的」：经根特化 `cvt_writer` 写入的层（如 `code_cvt`）在缓冲
+     * 满时以 `dput_buffer(buf_used, buf_used)` 冲刷，本次上层 put 已编进缓冲的前缀失败后保留、
+     * 以后写出；流层的格式化插入由多次 put 组成，也是如此。这与编码失败时的口径一致——
+     * `code_cvt_stdio::recover()` 同样把已进根缓冲的前缀写出。
      * @endif
      *
      * @lang{EN}
@@ -1112,6 +1118,15 @@ private:
      * Both callers saw the same thing -- the put threw, the device took 2 -- yet the outcome
      * would hang on spare room they cannot see. Under the rule above the first case keeps only
      * `CDE`, and neither sends xyz.
+     *
+     * The rule covers **a single `root_cvt::put` call**. When one operation above enters this
+     * buffer in several steps, the earlier steps are "taken earlier" here: a layer writing
+     * through the root specialization of `cvt_writer` (`code_cvt`, say) flushes a full buffer
+     * with `dput_buffer(buf_used, buf_used)`, so the prefix its current put already encoded
+     * into the buffer is kept after a failure and goes out later; so does a stream-level
+     * formatted insertion, which is made of several puts. This matches what an encoding
+     * failure does -- `code_cvt_stdio::recover()` too sends out the prefix that reached the
+     * root's buffer.
      * @endif
      */
     void dput_buffer(std::size_t len, std::size_t old)

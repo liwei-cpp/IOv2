@@ -25,7 +25,9 @@
  *          `io_traits::swrite` 里等网络、等一个本该由正在退出的线程唤醒的条件变量，或
  *          `tie` 成环）就会让 `exit()` 永不返回。处于失败态（`eofbit`
  *          除外）的流退出时也不刷：钩子走的是流级 `flush()`，它对失败态什么也不做（`std::cout`
- *          相同）；失败后仍想要缓冲里的字节，先 `clear()` 再 `flush()`。要确保某一批输出一定到达
+ *          相同）；失败后仍想要缓冲里的字节，先 `clear()` 再 `flush()`。这些字节可能含失败的那次
+ *          插入已进缓冲的前缀：插入失败只保证置位，不保证它一个字节也没写出（见 `root_cvt.h`
+ *          的 `dput_buffer`）。要确保某一批输出一定到达
  *          设备，请在退出前自己 `flush()`，那时还有调用栈可以报告失败。
  *
  * @note 上面说的「退出时」只指 `exit()`（含 `main` 返回）：钩子是经 `__cxa_atexit` 登记的静态
@@ -105,7 +107,10 @@
  *          A stream in a failed state (`eofbit` aside) is not flushed at exit
  *          either: the hook goes through the stream-level `flush()`, which does nothing on a
  *          failed stream (as with `std::cout`); to still get the buffered bytes out after a
- *          failure, `clear()` first and then `flush()`. To be sure a particular batch of
+ *          failure, `clear()` first and then `flush()`. They may include the prefix the
+ *          failed insertion itself had put into the buffer: a failed insertion only promises
+ *          a state bit, not that none of it was written (see `dput_buffer` in
+ *          `root_cvt.h`). To be sure a particular batch of
  *          output reaches the device, `flush()` it yourself before exiting, while there is
  *          still a call stack to report a failure on.
  *
@@ -231,19 +236,23 @@ public:
      * 从「自行缓冲」切回「同步」时，此前缓冲的字节要在这里交给 stdio：标志由每次插入的
      * 输出哨兵读取，只影响之后的插入，若不在这里搬一次，那批字节会排到下一次 `printf`
      * 之后，甚至留到进程退出。因此切到 `true` 时本函数取本流的 `io_mutex()`，在锁内翻标志，
-     * 若此前为 `false` 则把本流缓冲搬进 stdio 缓冲一次——与哨兵是同一个操作，**不** `fflush`：
+     * 并把本流缓冲搬进 stdio 缓冲一次。此前已同步也搬：同步模式下一次写失败同样会把没写出的
+     * 字节留在本流缓冲里（缓冲为空时这一步什么也不做）。搬运与哨兵是同一个操作，**不** `fflush`：
      * stdio 缓冲里可能还有 `printf` 的字节，何时落盘由 stdio 决定（宽流转换器已 tainted 时
      * 例外：搬运前的自动恢复经 `root_cvt::attach` 对旧设备 `dflush()` 一次，stdio 里别人的字节
-     * 随之落盘或一并丢失，见 `cvt/code_cvt_stdio.h`）。锁内翻标志保证任何从本函数
-     * 返回的调用者都能依赖「此前缓冲的字节已在 stdio 手里」，无论搬运是自己做的还是先到的
-     * 那次做的。切到 `false` 只是一次原子交换，不取锁、不做 I/O。
+     * 随之落盘或一并丢失，见 `cvt/code_cvt_stdio.h`）。由于每次调用都在锁内搬，任何从本函数
+     * 返回的调用者都能依赖「此前缓冲的字节已在 stdio 手里」，除非本次搬运失败——那时状态位已置。
+     * 取锁意味着（已同步再调也一样）要等另一线程里正在进行的插入结束，若它阻塞在
+     * 写上（管道写满、终端被暂停）就一直等。切到 `false` 只是一次原子交换，不取锁、不做 I/O。
      *
      * 那次搬运的失败按本库统一的方式报告：置状态位（`devfailbit` / `cvtfailbit`），
      * `exceptions()` 掩码含该位时才抛出。注意此时**模式已经切换成功**，失败的只是把先前缓冲的
      * 字节交给 stdio 这一步；与同步模式的插入一样，stdout 全缓冲时设备写失败要到 stdio 自己
      * 冲刷才暴露，这里看不到。已处于失败态的流**也搬**：上一次失败保留在本流缓冲里的字节
-     * 正是要按顺序交出去的东西，不搬它们就会排到调用方下一次 `printf` 之后。搬成功则顺序
-     * 正确、位不变；再失败只是把已置的那一位再报一次（掩码武装时再抛一次）。宽流的转换器
+     * 正是要按顺序交出去的东西，不搬它们就会排到调用方下一次 `printf` 之后，同步模式下若再无
+     * 插入就一直留到进程结束而丢失。所以失败后 `clear()` 再 `sync_with_stdio(true)` 在两种模式下
+     * 都能把它们交给 stdio。搬成功则顺序正确、位不变；再失败只是把已置的那一位再报一次（掩码
+     * 武装时再抛一次）。宽流的转换器
      * 已 tainted 时，搬运前的自动恢复（`code_cvt_stdio::recover`）会在这里而不是下一次插入时
      * 把它保留的字节写出，设备失败也就在这里报。
      *
@@ -268,16 +277,22 @@ public:
      * stdio here: the flag is read by each insertion's output sentry and so only governs the
      * insertions that follow, and without a hand-over at this point those bytes would surface
      * after the next `printf`, or not until the process exits. So switching to `true` takes
-     * this stream's `io_mutex()`, flips the flag under it, and if it was `false` moves this
-     * stream's buffer into stdio's buffer once -- the sentry's operation, with **no** `fflush`:
+     * this stream's `io_mutex()`, flips the flag under it, and moves this stream's buffer into
+     * stdio's buffer once. It does so even when already synchronized: a failed write leaves
+     * the bytes it could not write in this stream's buffer in that mode too (on an empty
+     * buffer the step does nothing). The hand-over is the sentry's operation, with **no**
+     * `fflush`:
      * stdio's buffer may hold `printf`'s bytes as well, and when they land is stdio's call
      * (the exception is a wide stream whose converter is tainted: the automatic recovery
      * before the hand-over goes through `root_cvt::attach`, which `dflush()`es the old device
      * once, so bytes that are not this stream's land -- or are lost -- with it; see
      * `cvt/code_cvt_stdio.h`).
-     * Flipping under the lock lets every caller that returns from here rely on the bytes
-     * buffered before the call being in stdio's hands, whether this call moved them or the
-     * one it waited for did. Switching to `false` is a single atomic exchange: no lock, no I/O.
+     * As every call hands over under the lock, every caller that returns from here can rely
+     * on the bytes buffered before the call being in stdio's hands, unless its hand-over
+     * failed -- and then a state bit is set. Taking the lock means -- even when already synchronized -- waiting
+     * for an insertion under way in another thread, for as long as it stays blocked in a write
+     * (a full pipe, a paused terminal). Switching to `false` is a single atomic exchange: no
+     * lock, no I/O.
      *
      * A failure of that hand-over is reported the way this library reports every other one: a
      * state bit is set (`devfailbit` / `cvtfailbit`) and it throws only when the
@@ -287,7 +302,9 @@ public:
      * stdio itself flushes, not here. A stream already in a failed state is handed over **as
      * well**: the bytes the earlier failure left in this stream's buffer are exactly what has
      * to go out in order, and leaving them behind would put them after the caller's next
-     * `printf`. When the hand-over succeeds the order is right and the bits are unchanged;
+     * `printf` -- or, synchronized and with no insertion to follow, keep them until the
+     * process ends and they are lost. So after a failure, `clear()` and then
+     * `sync_with_stdio(true)` hands them to stdio in either mode. When the hand-over succeeds the order is right and the bits are unchanged;
      * when it fails again it only re-reports the bit already set (and throws once more under
      * an armed mask). On a wide stream whose converter is tainted, the automatic recovery
      * before the hand-over (`code_cvt_stdio::recover`) writes out the bytes it kept here
@@ -312,25 +329,24 @@ public:
             return m_sync_with_stdio.exchange(false);
 
         // Flag and hand-over under one lock, so a caller that returns can rely on the
-        // bytes buffered before the call being in stdio's hands.
+        // bytes buffered before the call being in stdio's hands. The hand-over runs even
+        // when already synchronized: a failed write leaves bytes behind in that mode too.
         std::lock_guard guard(this->io_mutex());
-        if (m_sync_with_stdio.exchange(true))
-            return true;
+        const bool old_sync_state = m_sync_with_stdio.exchange(true);
 
         try
         {
             // The sentry's operation, not the stream-level flush(): no fflush of bytes
-            // that are not this stream's. No good() gate: a stream in a failed state may
-            // still hold bytes (root_cvt::flush keeps them for a retry), and leaving
-            // them behind would put them after the caller's next printf. A retry that
-            // fails again only re-reports the bit that is already set.
+            // that are not this stream's, and nothing at all on an empty buffer. No good()
+            // gate: a stream in a failed state may still hold bytes (root_cvt::flush keeps
+            // them for a retry). A retry that fails again re-reports the bit already set.
             m_channel.flush();
         }
         catch (...)
         {
             this->handle_exception(std::current_exception());
         }
-        return false;
+        return old_sync_state;
     }
 
     /**
@@ -367,7 +383,7 @@ public:
      * 得到同一个编码。
      *
      * 只是 `retrieve(code_cvt_access)` 的包装，走本流通用的加锁与错误处理：失败（只在转换器
-     * 内核已被移出时发生，正常生命周期不可达）经 `handle_exception` 置 `cvtfailbit`、返回空串，
+     * 内核已被移出时发生，正常生命周期不可达）经 `handle_exception` 置 `otherfailbit`、返回空串，
      * `exceptions()` 掩码含该位时抛出。
      *
      * @return 当前编码名。
@@ -385,7 +401,7 @@ public:
      *
      * A thin wrapper over `retrieve(code_cvt_access)`, so it shares the stream's locking and
      * error handling: a failure (only when the converter's kernel has been moved out, which a
-     * live stream never reaches) goes through `handle_exception`, sets `cvtfailbit` and yields
+     * live stream never reaches) goes through `handle_exception`, sets `otherfailbit` and yields
      * an empty string; it throws when the `exceptions()` mask includes that bit.
      *
      * @return The current encoding name.
@@ -464,6 +480,9 @@ public:
     std::string switch_code(const std::string& new_code)
         requires std::is_same_v<TChar, wchar_t>
     {
+        // One lock over the query and the switch, so concurrent switches each return the
+        // code the one before them set.
+        std::lock_guard guard(this->io_mutex());
         auto res = code();
         if (res != new_code)
         {

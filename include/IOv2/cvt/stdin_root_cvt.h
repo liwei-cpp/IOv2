@@ -42,24 +42,26 @@ struct stdin_sync : cvt_behavior
  * @lang{ZH}
  * 标准输入流的根转换器：一个带读缓冲的根，同步与否是运行时的开关。
  *
- * 不同步时与 `rb_root_cvt` 完全相同，缓冲空了就整块读。同步时缓冲空了只向设备要调用方
- * 缺的那几个字节，不往前多读——逐字符读就是逐字节读设备。切到同步时缓冲里已预读的字节
- * 照常先交出，交完才按需读，所以切换不丢输入。经 `adjust(stdin_sync{...})` 切换；
- * `root_cvt::get` 与带缓冲根的 `cvt_reader` 在补缓冲时询问 `read_ahead()`，其它根没有它，
- * 不受影响。
+ * 不同步时与 `rb_root_cvt` 完全相同，需要向设备补字节时把缓冲能装的都读进来。同步时只向
+ * 设备要调用方还缺的那几个字节，不往前多读——逐字符读就是逐字节读设备。切到同步时缓冲里
+ * 已预读的字节照常先交出，交完才按需读，所以切换不丢输入。经 `adjust(stdin_sync{...})`
+ * 切换；`root_cvt::get` 与带缓冲根的 `cvt_reader` 在向设备补字节时（缓冲空了，或剩下的
+ * 不够本次所需）询问 `read_ahead()`，其它根没有它，不受影响。
  * @endif
  *
  * @lang{EN}
  * The root converter of the standard input streams: a root with a read buffer, whose being
  * synchronized is a runtime switch.
  *
- * Unsynchronized it is exactly `rb_root_cvt`, reading a whole buffer once the buffer is
- * empty. Synchronized, an empty buffer asks the device only for the bytes the caller is
- * short of and reads nothing ahead -- a character-at-a-time read reads the device a byte at
- * a time. Bytes already read ahead when it switches to synchronized are handed out first as
- * usual, and only then is reading on demand, so a switch loses no input. Switched through
- * `adjust(stdin_sync{...})`; `root_cvt::get` and the buffered-root `cvt_reader` ask
- * `read_ahead()` when they refill, and other roots, which have none, are not affected.
+ * Unsynchronized it is exactly `rb_root_cvt`, reading as much as the buffer can take
+ * whenever it has to go to the device. Synchronized, it asks the device only for the bytes
+ * the caller is still short of and reads nothing ahead -- a character-at-a-time read reads
+ * the device a byte at a time. Bytes already read ahead when it switches to synchronized are
+ * handed out first as usual, and only then is reading on demand, so a switch loses no
+ * input. The mode is switched through `adjust(stdin_sync{...})`; `root_cvt::get` and the
+ * buffered-root `cvt_reader` ask `read_ahead()` whenever they go to the device for more
+ * bytes (the buffer is empty, or what is left falls short of the request), and other
+ * roots, which have none, are not affected.
  * @endif
  *
  * @tparam TDevice
@@ -79,12 +81,15 @@ public:
 
     /**
      * @lang{ZH}
-     * 缓冲空了时向设备要多少字节：`need` 是调用方缺的，`room` 是缓冲能装的。
+     * 向设备补字节时要多少：`need` 是调用方还缺的，`room` 是缓冲尾部还能装的（缓冲里剩有
+     * 未交出的字节时，它们已移到开头，`room` 小于整个缓冲）。
      * @endif
      *
      * @lang{EN}
-     * How many bytes to ask the device for once the buffer is empty: `need` is what the
-     * caller is short of, `room` what the buffer can take.
+     * How many bytes to ask the device for when going to it for more: `need` is what the
+     * caller is still short of, `room` what the tail of the buffer can still take (with
+     * bytes not yet handed out left in the buffer, they have moved to its front and `room` is
+     * less than the whole buffer).
      * @endif
      */
     [[nodiscard]] std::size_t read_ahead(std::size_t need, std::size_t room) const noexcept
