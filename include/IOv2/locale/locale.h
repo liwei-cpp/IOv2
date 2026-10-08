@@ -20,6 +20,7 @@
  * @endif
  */
 #pragma once
+#include <IOv2/common/copyable_mutex.h>
 #include <IOv2/common/defs.h>
 #include <IOv2/common/metafunctions.h>
 #include <IOv2/facet/collate.h>
@@ -1132,6 +1133,6 @@ private:
      * operations take a shared lock, publishing new state (assignment, cache
      * insertion) takes an exclusive lock. `mutable` so const operations can lock. @endif
      */
-    mutable std::shared_mutex m_facet_mutex;
+    mutable copyable_mutex<std::shared_mutex> m_facet_mutex;
 };
 }

@@ -18,6 +18,7 @@
  */
 #pragma once
 #include <IOv2/common/clocale_wrapper.h>
+#include <IOv2/common/copyable_mutex.h>
 #include <IOv2/common/defs.h>
 #include <IOv2/common/iov2_export.h>
 #include <IOv2/common/lru_cache.h>
@@ -553,7 +554,7 @@ private:
      * must also cover every *lookup*: `lru_cache::get()` reorders the LRU list (a mutating
      * "touch"), so concurrent gets would race -- there is no lock-free read path here. @endif
      */
-    std::mutex m_mutex;
+    copyable_mutex<std::mutex> m_mutex;
 };
 
 /**

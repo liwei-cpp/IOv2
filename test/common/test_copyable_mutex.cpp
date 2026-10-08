@@ -5,12 +5,20 @@
 
 #include <gtest/gtest.h>
 
+#include <atomic>
+#include <chrono>
 #include <memory>
 #include <mutex>
+#include <shared_mutex>
 #include <thread>
 #include <type_traits>
 #include <utility>
 #include <vector>
+
+#include <poll.h>
+#include <signal.h>
+#include <sys/wait.h>
+#include <unistd.h>
 
 using namespace IOv2;
 
@@ -248,4 +256,134 @@ TEST(CopyableMutex, EnclosingTypeMove)
     EXPECT_EQ(*moved.p, 7);
     EXPECT_TRUE(moved.m.try_lock());
     moved.m.unlock();
+}
+
+// ---------------------------------------------------------------------------
+// 7. 共享形态：TMutex 有 lock_shared() 一族时照样转发，可用于 std::shared_lock。
+// ---------------------------------------------------------------------------
+TEST(CopyableMutex, SharedFlavorForwardsTheSharedLocks)
+{
+    copyable_mutex<std::shared_mutex> m;
+    {
+        std::shared_lock a(m);
+        EXPECT_TRUE(m.try_lock_shared());   // readers share it
+        m.unlock_shared();
+        EXPECT_FALSE(m.try_lock());         // a writer has to wait
+    }
+    EXPECT_TRUE(m.try_lock());
+    m.unlock();
+}
+
+// ---------------------------------------------------------------------------
+// 8. 跨 fork()：fork 时另一线程持有的锁，在子进程里仍能加锁。fork() 只把调用它的线程
+//    带进子进程，裸 std::mutex 在子进程里会永久阻塞（多线程程序 fork 后 exec 失败、
+//    往 cerr 报错即是这一形态）。子进程是裸 fork（检查的正是 fork 本身），不看它的
+//    退出码——valgrind 下 _exit 的子进程会因泄漏报告改退出码——只看它是否在时限内
+//    经管道回报；卡住的子进程被杀掉，不会拖住整个测试。
+// ---------------------------------------------------------------------------
+namespace
+{
+    // Forks; the child runs `in_child` and, if it returns true, writes one byte back.
+    // True when that byte arrived within 5 s.
+    template <typename F>
+    bool child_gets_through(F in_child)
+    {
+        int fds[2];
+        if (::pipe(fds) != 0)
+            return false;
+        const pid_t pid = ::fork();
+        if (pid == 0)
+        {
+            ::close(fds[0]);
+            const char ok = 'k';
+            if (in_child())
+                (void)!::write(fds[1], &ok, 1);
+            ::_exit(0);
+        }
+        ::close(fds[1]);
+        pollfd p{fds[0], POLLIN, 0};
+        char c = 0;
+        const bool got = pid > 0 && ::poll(&p, 1, 5000) == 1 && ::read(fds[0], &c, 1) == 1;
+        if (pid > 0 && !got)
+            ::kill(pid, SIGKILL);
+        if (pid > 0)
+            ::waitpid(pid, nullptr, 0);
+        ::close(fds[0]);
+        return got;
+    }
+
+    // Runs `body` while another thread holds `m` through `lock` / `unlock`.
+    template <typename M, typename Lock, typename Unlock, typename F>
+    void while_another_thread_holds(M& m, Lock lock, Unlock unlock, F body)
+    {
+        std::atomic<bool> held{false}, release{false};
+        std::thread t([&] {
+            lock(m);
+            held = true;
+            while (!release)
+                std::this_thread::sleep_for(std::chrono::milliseconds(1));
+            unlock(m);
+        });
+        while (!held)
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        body();
+        release = true;
+        t.join();
+    }
+
+    template <typename M>
+    void check_exclusive_held_across_fork()
+    {
+        M m;
+        while_another_thread_holds(m, [](M& x) { x.lock(); }, [](M& x) { x.unlock(); }, [&] {
+            EXPECT_TRUE(child_gets_through([&] {
+                m.lock();
+                m.unlock();
+                if (!m.try_lock())
+                    return false;
+                m.unlock();
+                return true;
+            }));
+        });
+    }
+}
+
+TEST(CopyableMutex, ALockAnotherThreadHeldAtForkIsUsableInTheChild)
+{
+    {
+        SCOPED_TRACE("std::mutex");
+        check_exclusive_held_across_fork<copyable_mutex<std::mutex>>();
+    }
+    {
+        SCOPED_TRACE("std::recursive_mutex");
+        check_exclusive_held_across_fork<copyable_mutex<std::recursive_mutex>>();
+    }
+    {
+        SCOPED_TRACE("std::shared_mutex");
+        check_exclusive_held_across_fork<copyable_mutex<std::shared_mutex>>();
+    }
+}
+
+TEST(CopyableMutex, ASharedLockAnotherThreadHeldAtForkLetsTheChildWrite)
+{
+    copyable_mutex<std::shared_mutex> m;
+    while_another_thread_holds(m, [](auto& x) { x.lock_shared(); }, [](auto& x) { x.unlock_shared(); }, [&] {
+        EXPECT_TRUE(child_gets_through([&] {
+            std::lock_guard g(m);
+            return true;
+        }));
+    });
+}
+
+// The parent's own lock is untouched by the fork: still held by the other thread, free
+// once it lets go.
+TEST(CopyableMutex, AForkLeavesTheParentsLockAlone)
+{
+    copyable_mutex<std::mutex> m;
+    while_another_thread_holds(m, [](auto& x) { x.lock(); }, [](auto& x) { x.unlock(); }, [&] {
+        EXPECT_TRUE(child_gets_through([] { return true; }));
+        EXPECT_FALSE(m.try_lock());
+    });
+    EXPECT_TRUE(m.try_lock());
+    m.unlock();
 }

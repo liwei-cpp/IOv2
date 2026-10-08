@@ -21,6 +21,7 @@
 #pragma once
 
 #include <IOv2/common/copyable_atomic.h>
+#include <IOv2/common/copyable_mutex.h>
 #include <IOv2/common/defs.h>
 #include <IOv2/common/iov2_export.h>
 #include <IOv2/cvt/cvt_concepts.h>
@@ -77,11 +78,11 @@ namespace IOv2
  * @endif
  */
 #if defined(IOV2_SHARED)
-IOV2_API std::mutex& tie_graph_mutex();     // defined in iov2_objects.cpp
+IOV2_API copyable_mutex<std::mutex>& tie_graph_mutex();     // defined in iov2_objects.cpp
 #else
-inline std::mutex& tie_graph_mutex()
+inline copyable_mutex<std::mutex>& tie_graph_mutex()
 {
-    static std::mutex m;
+    static copyable_mutex<std::mutex> m;
     return m;
 }
 #endif

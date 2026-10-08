@@ -36,6 +36,9 @@
 #include <type_traits>
 
 #include <fcntl.h>
+#include <poll.h>
+#include <signal.h>
+#include <sys/wait.h>
 #include <unistd.h>
 
 // The two implementation templates exist for the fixed-fd devices only: every
@@ -676,4 +679,54 @@ TEST(IoObjectsChar, SyncWithStdioReportsEveryStreamThatFailed)
     EXPECT_NO_THROW(IOv2::sync_with_stdio(false));
     EXPECT_NO_THROW(IOv2::sync_with_stdio(true));
     EXPECT_TRUE(IOv2::cout.good());
+}
+
+// A multithreaded program forks while another thread is in the middle of writing to cerr,
+// and the child reports something on cerr before exec -- say that exec failed. fork() takes
+// only the calling thread along, so the child used to block forever on cerr's lock, which
+// no thread in it would ever release. The child is a bare fork (that is what is under
+// test); only whether its line came back in time is checked, not its exit status, which
+// valgrind changes for a child that _exits.
+TEST(IoObjectsChar, AChildForkedWhileAnotherThreadHoldsCerrCanStillWriteToIt)
+{
+    std::atomic<bool> held{false}, release{false};
+    std::thread holder([&] {
+        IOv2::sync g(IOv2::cerr);
+        held = true;
+        while (!release)
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    });
+    while (!held)
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+
+    int fds[2];
+    ASSERT_EQ(::pipe(fds), 0);
+    const pid_t pid = ::fork();
+    if (pid == 0)
+    {
+        ::close(fds[0]);
+        ::dup2(fds[1], STDERR_FILENO);
+        IOv2::cerr << "child\n";
+        ::_exit(0);
+    }
+    ::close(fds[1]);
+
+    std::string got;
+    char buf[64];
+    pollfd p{fds[0], POLLIN, 0};
+    while (::poll(&p, 1, 5000) == 1)
+    {
+        const ssize_t n = ::read(fds[0], buf, sizeof buf);
+        if (n <= 0)
+            break;
+        got.append(buf, static_cast<std::size_t>(n));
+    }
+    if (got.empty())
+        ::kill(pid, SIGKILL);
+    ::waitpid(pid, nullptr, 0);
+    ::close(fds[0]);
+    release = true;
+    holder.join();
+
+    EXPECT_EQ(got, "child\n");
 }

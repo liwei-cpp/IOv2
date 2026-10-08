@@ -181,9 +181,38 @@ IOV2_API wcin_t&    wcin = _wcin_init.get();
  * See stream_common_operators.h.
  * @endif
  */
-IOV2_API std::mutex& tie_graph_mutex()
+IOV2_API copyable_mutex<std::mutex>& tie_graph_mutex()
 {
-    static std::mutex m;
+    static copyable_mutex<std::mutex> m;
     return m;
+}
+
+/**
+ * @lang{ZH}
+ * `copyable_mutex` 的 fork 记录与回调登记：shared 模式下的唯一定义点，理由同上——全进程
+ * 只有一份代数，`.so` 与可执行文件里内联的加锁代码比较的是同一个值，回调也只登记一次。
+ * @endif
+ * @lang{EN}
+ * The fork record of `copyable_mutex` and its handler registration: their single definition
+ * point in shared mode, for the reason above -- one generation in the whole process, so the
+ * lock code inlined into the `.so` and into the executable compares against the same value,
+ * and the handler is registered once.
+ * @endif
+ */
+namespace detail
+{
+IOV2_API fork_state& copyable_mutex_fork_state() noexcept
+{
+    static constinit fork_state s;
+    return s;
+}
+
+IOV2_API void copyable_mutex_watch_fork() noexcept
+{
+#if defined(__unix__) || defined(__APPLE__)
+    [[maybe_unused]] static const int registered =
+        ::pthread_atfork(nullptr, nullptr, &copyable_mutex_on_fork_child);
+#endif
+}
 }
 }
