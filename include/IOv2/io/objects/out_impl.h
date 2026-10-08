@@ -227,6 +227,9 @@ public:
     stdout_api(const TCreator& creator)
         : m_channel(device_type{}, creator) {}
 
+    stdout_api(const stdout_api&) = delete;
+    stdout_api& operator=(const stdout_api&) = delete;
+
 public:
     /**
      * @lang{ZH}
@@ -497,6 +500,10 @@ public:
      * `stream_common_operators` 的换设备接口在标准流上删除：本流的设备是固定的 fd 1 / fd 2，
      * 取出去就再也装不回来，换进去等于给一个进程级单例改写底层目标。需要「在同一 fd 上重新
      * 开始」请用 `reset()`（它走的是 iochannel 那一层的 `attach()`，装一个同 fd 的缺省设备）。
+     *
+     * 删除只拦得住普通的名字查找：`cout.stream_common_operators::detach()` 这样的限定名调用
+     * 仍会执行。此后每次输出都置 `cvtfailbit`，`device()` 的前置条件也不再成立，直到
+     * `reset()`。限定名的 `attach()` 只接受同一 fd 的设备。
      * @endif
      *
      * @lang{EN}
@@ -505,6 +512,11 @@ public:
      * put it back, and putting another one in rewrites the target of a process-wide singleton.
      * To start over on the same fd use `reset()`, which goes through the `attach()` one layer
      * down, in the iochannel, with a default device on the same fd.
+     *
+     * The deletion stops only ordinary name lookup: a qualified call such as
+     * `cout.stream_common_operators::detach()` still runs. Every output after it sets
+     * `cvtfailbit`, and the precondition of `device()` no longer holds, until `reset()`. A
+     * qualified `attach()` accepts only a device on the same fd.
      * @endif
      */
     std::pair<device_type, std::exception_ptr> detach() = delete;
@@ -634,7 +646,7 @@ protected:
     ochannel<device_type, char_type> m_channel;
     IOv2::locale<char_type> m_locale;
     copyable_atomic<bool> m_sync_with_stdio{true};   ///< @lang{ZH} 为 true 时每次插入结束（输出哨兵析构）都把本流缓冲推进 stdio 缓冲；只由 `sync_with_stdio` 写，切真只在锁内、伴随一次搬运（退出钩子改置 `m_exited`）。哨兵在构造时读它一次并沿用到析构，故本标志只影响之后**开始**的插入——切回同步时那批已缓冲的字节由 `sync_with_stdio` 自己持锁搬进 stdio 缓冲。原子量，使标志的翻转与 `synced_with_stdio()` 的查询可与并发输出操作安全竞争。 @endif @lang{EN} When true, every insertion (the output sentry's destructor) pushes this stream's buffer into the stdio buffer; written only by `sync_with_stdio`, and set to true only under the lock together with a hand-over (the exit hook sets `m_exited` instead). A sentry reads it once on construction and uses that value through its destructor, so the flag governs the insertions that **start** afterwards -- what was already buffered when switching back to synchronized is moved into stdio's buffer by `sync_with_stdio` itself, under the lock. Atomic so that flipping the flag and querying it through `synced_with_stdio()` are safe against concurrent output operations. @endif
-    copyable_atomic<bool> m_exited{false};           ///< @lang{ZH} 退出钩子已执行。此后哨兵把每次插入都按同步处理，与 `m_sync_with_stdio` 无关（见文件头）。钩子不取锁就写它，故为原子量。 @endif @lang{EN} The exit hook has run. From then on the sentry treats every insertion as synchronized, whatever `m_sync_with_stdio` says (see the file header). The hook writes it without the lock, hence atomic. @endif
+    copyable_atomic<bool> m_exited{false};           ///< @lang{ZH} 退出钩子已执行。哨兵在析构时读它：插入结束时钩子已经跑过，就把字节交给 stdio，与 `m_sync_with_stdio` 无关（见文件头）——钩子运行时仍在进行的插入也是如此。钩子不取锁就写它，故为原子量。 @endif @lang{EN} The exit hook has run. The sentry reads it on destruction: an insertion that ends after the hook has run hands its bytes to stdio, whatever `m_sync_with_stdio` says (see the file header) -- including one still in progress while the hook ran. The hook writes it without the lock, hence atomic. @endif
 };
 
 /// cout

@@ -61,6 +61,18 @@ namespace
     static_assert(stdout_api_accepts<IOv2::std_device<STDERR_FILENO>>);
     static_assert(!stdout_api_accepts<IOv2::std_device<STDIN_FILENO>>);
 
+    // A slice of a standard stream must not be copied or moved out of it.
+    template <typename T>
+    constexpr bool neither_copyable_nor_movable = !std::is_copy_constructible_v<T>
+                                               && !std::is_move_constructible_v<T>
+                                               && !std::is_copy_assignable_v<T>
+                                               && !std::is_move_assignable_v<T>;
+
+    static_assert(neither_copyable_nor_movable<IOv2::stdout_api<IOv2::cout_t, IOv2::std_device<STDOUT_FILENO>, char>>);
+    static_assert(neither_copyable_nor_movable<IOv2::stdin_api<IOv2::cin_t, IOv2::std_device<STDIN_FILENO>, char>>);
+
+    static_assert(std::is_final_v<IOv2::stdin_sync>);
+
     // Writes '1', switches cout back to synchronized, printf()s, then writes '2'
     // -- all from inside one insertion, with that insertion's sentry alive.
     struct flipper {};
@@ -453,6 +465,10 @@ TEST(IoObjectsChar, AdjustingWithStdinSyncIsSyncWithStdio)
     IOv2::cin.adjust(IOv2::stdin_sync{false});
     EXPECT_FALSE(IOv2::cin.synced_with_stdio());
     EXPECT_FALSE(IOv2::cin.sync_with_stdio(true)); // a real switch back
+
+    IOv2::cin.stream_common_operators::adjust(IOv2::stdin_sync{false});
+    EXPECT_FALSE(IOv2::cin.synced_with_stdio());
+    EXPECT_FALSE(IOv2::cin.sync_with_stdio(true));
 
     char buf[5] = {};
     IOv2::cin.read(buf, 5);

@@ -101,6 +101,7 @@ template <typename T, io_device TDevice, typename TChar>
 class stdin_api : public ios_state<TChar>
                 , public istream_operators<TChar>
                 , public stream_common_operators
+                , private stdin_sync_listener
 {
     friend istream_operators<TChar>;
     friend stream_common_operators;
@@ -114,13 +115,16 @@ public:
 
 public:
     stdin_api()
-        : m_channel(stdin_root_cvt<device_type>{device_type{}, true})
+        : m_channel(stdin_root_cvt<device_type>{device_type{}, true, this})
     {}
 
     template <cvt_creator TCreator>
     stdin_api(const TCreator& creator)
-        : m_channel(creator.create(stdin_root_cvt<device_type>{device_type{}, true}))
+        : m_channel(creator.create(stdin_root_cvt<device_type>{device_type{}, true, this}))
     {}
+
+    stdin_api(const stdin_api&) = delete;
+    stdin_api& operator=(const stdin_api&) = delete;
 
 public:
     /**
@@ -151,7 +155,8 @@ public:
      *
      * 失败按本库统一的方式报告：置状态位，`exceptions()` 掩码含该位时才抛出。翻标志本身不会
      * 失败；（`wchar_t`）只有转换器已 tainted 时先做的自动恢复可能失败，此时标志未动、
-     * 本次没有切换。
+     * 本次没有切换。这依赖根之上的每一层都先做完自己的事再往下传：根是最后一站，它翻转
+     * 并通知本流之后不再有可失败的步骤。
      *
      * @param sync `true` 为同步（默认），`false` 为自带缓冲。
      * @return 调用前的同步状态；失败时同步状态未改变，返回的就是当前状态。
@@ -197,7 +202,9 @@ public:
      * A failure is reported the way this library reports every other one: a state bit is
      * set, and it throws only when the `exceptions()` mask includes that bit. Flipping the flag
      * cannot fail; (`wchar_t`) only the automatic recovery of a tainted converter, done first,
-     * can, and then the flag is untouched and nothing is switched.
+     * can, and then the flag is untouched and nothing is switched. This relies on every layer
+     * above the root finishing its own work before passing the behavior down: the root is the
+     * last stop, and once it has flipped and notified this stream nothing that can fail follows.
      *
      * @param sync `true` for synchronized (the default), `false` for own buffering.
      * @return The synchronization state before the call; on failure the state is unchanged,
@@ -217,14 +224,11 @@ public:
 
         // Only the root's flag flips: buffers, decoder and device all stay. A tainted wide
         // converter recovers first, and that can fail -- before the flag is touched.
-        // m_channel's adjust, not this stream's: that one comes back here.
         try {
             m_channel.adjust(stdin_sync{sync});
         } catch (...) {
             this->handle_exception(std::current_exception());
-            return old_sync_state;
         }
-        m_sync_with_stdio.store(sync);
         return old_sync_state;
     }
 
@@ -254,41 +258,13 @@ public:
 
     /**
      * @lang{ZH}
-     * @brief 调整底层编码转换的行为；`stdin_sync{s}` 等同于 `sync_with_stdio(s)`。
-     *
-     * 隐藏 `stream_common_operators::adjust`：同步状态在根转换器的标志与本流的
-     * `synced_with_stdio()` 两处，`stdin_sync` 若直接送到根上只改前者，二者失配，之后
-     * `sync_with_stdio()` 会因查询值未变而早退。其余行为照旧交给基类。
-     *
-     * @param acc 要应用的转换行为设置。
-     * @endif
-     *
-     * @lang{EN}
-     * @brief Adjusts the behavior of the underlying encoding conversion; `stdin_sync{s}` is
-     * the same as `sync_with_stdio(s)`.
-     *
-     * Hides `stream_common_operators::adjust`: the synchronization state lives both in the
-     * root converter's flag and in this stream's `synced_with_stdio()`, and a `stdin_sync`
-     * sent straight to the root would change only the former, leaving the two apart so that a
-     * later `sync_with_stdio()` returns early on the unchanged query value. Any other behavior
-     * goes to the base class as before.
-     *
-     * @param acc The conversion-behavior settings to apply.
-     * @endif
-     */
-    void adjust(const cvt_behavior& acc)
-    {
-        if (const auto* s = dynamic_cast<const stdin_sync*>(&acc); s)
-            sync_with_stdio(s->synced);
-        else
-            stream_common_operators::adjust(acc);
-    }
-
-    /**
-     * @lang{ZH}
      * `stream_common_operators` 的换设备接口在标准流上删除：本流的设备是固定的 fd 0，取出去
      * 就再也装不回来，换进去等于给一个进程级单例改写底层来源。需要「在同一 fd 上从头开始」
      * 请用 `reset()`（它走的是 iochannel 那一层的 `attach()`，装一个同 fd 的缺省设备）。
+     *
+     * 删除只拦得住普通的名字查找：`cin.stream_common_operators::detach()` 这样的限定名调用
+     * 仍会执行。此后每次读取都置 `cvtfailbit`，`device()` 的前置条件也不再成立，直到
+     * `reset()`。限定名的 `attach()` 只接受同一 fd 的设备。
      * @endif
      *
      * @lang{EN}
@@ -297,6 +273,11 @@ public:
      * back, and putting another one in rewrites the source of a process-wide singleton. To
      * start over on the same fd use `reset()`, which goes through the `attach()` one layer
      * down, in the iochannel, with a default device on the same fd.
+     *
+     * The deletion stops only ordinary name lookup: a qualified call such as
+     * `cin.stream_common_operators::detach()` still runs. Every read after it sets
+     * `cvtfailbit`, and the precondition of `device()` no longer holds, until `reset()`. A
+     * qualified `attach()` accepts only a device on the same fd.
      * @endif
      */
     std::pair<device_type, std::exception_ptr> detach() = delete;
@@ -509,10 +490,16 @@ public:
         return res;
     }
 
+private:
+    void stdin_synced(bool synced) noexcept override
+    {
+        m_sync_with_stdio.store(synced);
+    }
+
 protected:
     ichannel<device_type, char_type>      m_channel;
     IOv2::locale<char_type>                 m_locale;
-    copyable_atomic<bool> m_sync_with_stdio{true};   ///< @lang{ZH} 为 true 时逐字节读 `stdin`，为 false 时自带读缓冲；真正决定怎么读的是根转换器 `stdin_root_cvt` 上的标志，`sync_with_stdio` 两者一起改，本标志只供查询。写入在 `io_mutex()` 之下，原子量只为让 `synced_with_stdio()` 与全库其它查询函数一样无锁读取。 @endif @lang{EN} When true this stream reads `stdin` byte by byte, when false through its own buffer; what decides how it reads is the flag on the root converter `stdin_root_cvt`, which `sync_with_stdio` changes along with this one, kept here for queries only. Writes happen under `io_mutex()`; the atomic is only so that `synced_with_stdio()` reads lock-free like the library's other query functions. @endif
+    copyable_atomic<bool> m_sync_with_stdio{true};   ///< @lang{ZH} 为 true 时逐字节读 `stdin`，为 false 时自带读缓冲；真正决定怎么读的是根转换器 `stdin_root_cvt` 上的标志，根每次翻转都经 `stdin_synced` 通知本流改它，本标志只供查询。写入在 `io_mutex()` 之下，原子量只为让 `synced_with_stdio()` 与全库其它查询函数一样无锁读取。 @endif @lang{EN} When true this stream reads `stdin` byte by byte, when false through its own buffer; what decides how it reads is the flag on the root converter `stdin_root_cvt`, which notifies this stream through `stdin_synced` every time it flips so that this one follows, kept here for queries only. Writes happen under `io_mutex()`; the atomic is only so that `synced_with_stdio()` reads lock-free like the library's other query functions. @endif
 };
 
 /// cin
