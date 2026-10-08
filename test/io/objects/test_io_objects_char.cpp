@@ -433,6 +433,38 @@ TEST(IoObjectsChar, SwitchingToSynchronizedKeepsTheInputReadAhead)
     IOv2::cin.reset();
 }
 
+// adjust(stdin_sync{...}) on the stream is sync_with_stdio: it used to flip the root's
+// flag alone, so the stream still reported synchronized, sync_with_stdio(true) returned
+// early without switching back, and the read below took the whole input off the fd.
+TEST(IoObjectsChar, AdjustingWithStdinSyncIsSyncWithStdio)
+{
+    int pipefds[2];
+    ASSERT_NE(::pipe(pipefds), -1);
+    const int saved_stdin = ::dup(STDIN_FILENO);
+    ::dup2(pipefds[0], STDIN_FILENO);
+
+    EXPECT_EQ(::write(pipefds[1], "12345X", 6), 6);
+    ::close(pipefds[1]);                          // no more input: read() cannot block
+
+    IOv2::cin.reset();
+    IOv2::cin.adjust(IOv2::stdin_sync{false});
+    EXPECT_FALSE(IOv2::cin.synced_with_stdio());
+    EXPECT_FALSE(IOv2::cin.sync_with_stdio(true)); // a real switch back
+
+    char buf[5] = {};
+    IOv2::cin.read(buf, 5);
+    EXPECT_EQ(std::string(buf, 5), "12345");
+
+    char rest = 0;
+    EXPECT_EQ(::read(STDIN_FILENO, &rest, 1), 1);  // synchronized: left on the fd
+    EXPECT_EQ(rest, 'X');
+
+    ::dup2(saved_stdin, STDIN_FILENO);
+    ::close(saved_stdin);
+    ::close(pipefds[0]);
+    IOv2::cin.reset();
+}
+
 // Asking an input stream for the mode it is already in has nothing to switch, so it
 // must not wait for the stream's lock -- which a read blocked in another thread holds
 // until input arrives. The free function asks cin and wcin the same.

@@ -790,7 +790,8 @@ public:
      * `detach()`/`attach()` 循环开始抛异常；对这类设备而言，丢失预读数据是不可避免的代价。
      * @warning 在不支持定位的设备上，丢失的不只是本缓冲区里的那个前瞻字符：根转换器自己的读缓冲
      *          （`root_cvt`，最多 `s_buffer_length` 字节的已读未消费数据）也在 `m_cvt.detach()` 里一并
-     *          丢弃，见 `root_cvt::detach`。切换 `sync_with_stdio` 这类换缓冲的操作应在任何读取之前进行。
+     *          丢弃，见 `root_cvt::detach`。`reset()` 这类分离再附接的操作因此会丢掉已预读的输入，
+     *          需要保留时应在读取之前进行。
      * @return 一个 pair：取回的设备，以及转换器在分离过程中捕获的异常指针（可能为空）。
      * @note 本函数为 noexcept。
      * @endif
@@ -808,8 +809,9 @@ public:
      * @warning On a device that does not support positioning, more than this buffer's one
      *          lookahead character is lost: the root converter's own read buffer (`root_cvt`, up
      *          to `s_buffer_length` bytes already read but not yet consumed) is discarded too,
-     *          inside `m_cvt.detach()`; see `root_cvt::detach`. Buffer-replacing operations such
-     *          as switching `sync_with_stdio` belong before any read.
+     *          inside `m_cvt.detach()`; see `root_cvt::detach`. Operations that detach and
+     *          reattach, such as `reset()`, therefore drop input already read ahead; where it
+     *          must be kept, they belong before any read.
      * @return A pair: the retrieved device, and the exception pointer captured by the
      * converter during detach (possibly null).
      * @note This function is noexcept.
@@ -838,7 +840,7 @@ public:
                     // actionable failure - the caller could not have repositioned it
                     // either after getting it back. Reporting this error would make
                     // routine detach()/attach() cycles on such devices start throwing
-                    // (e.g. sync_with_stdio() right after a formatted read has left
+                    // (e.g. reset() right after a formatted read has left
                     // one buffered lookahead character), even though nothing is
                     // actually broken; losing that lookahead (and, below, the root
                     // converter's read buffer) is the

@@ -36,10 +36,12 @@
 
 #include <gtest/gtest.h>
 
+#include <atomic>
 #include <clocale>
 #include <cstddef>
 #include <cstdlib>
 #include <string>
+#include <thread>
 
 #include <fcntl.h>
 #include <unistd.h>
@@ -206,6 +208,37 @@ TEST(IoObjectsWchar, SwitchingToSynchronizedKeepsTheInputReadAhead)
     EXPECT_EQ(third, L"ok");
     EXPECT_TRUE(IOv2::wcin.eof());
 
+    IOv2::wcin.reset();
+}
+
+// adjust(stdin_sync{...}) on wcin is sync_with_stdio, as on cin: the stream's own query
+// follows, and switching back is a real switch that leaves the rest on the fd.
+TEST(IoObjectsWchar, AdjustingWithStdinSyncIsSyncWithStdio)
+{
+    int pipefds[2];
+    ASSERT_NE(::pipe(pipefds), -1);
+    const int saved_stdin = ::dup(STDIN_FILENO);
+    ::dup2(pipefds[0], STDIN_FILENO);
+
+    EXPECT_EQ(::write(pipefds[1], "12345X", 6), 6);
+    ::close(pipefds[1]);                           // no more input: read() cannot block
+
+    IOv2::wcin.reset();
+    IOv2::wcin.adjust(IOv2::stdin_sync{false});
+    EXPECT_FALSE(IOv2::wcin.synced_with_stdio());
+    EXPECT_FALSE(IOv2::wcin.sync_with_stdio(true)); // a real switch back
+
+    wchar_t buf[5] = {};
+    IOv2::wcin.read(buf, 5);
+    EXPECT_EQ(std::wstring(buf, 5), L"12345");
+
+    char rest = 0;
+    EXPECT_EQ(::read(STDIN_FILENO, &rest, 1), 1);   // synchronized: left on the fd
+    EXPECT_EQ(rest, 'X');
+
+    ::dup2(saved_stdin, STDIN_FILENO);
+    ::close(saved_stdin);
+    ::close(pipefds[0]);
     IOv2::wcin.reset();
 }
 
@@ -577,6 +610,43 @@ TEST(IoObjectsWchar, SwitchCodeReturnsToTheStartupEncodingThroughInitialLocaleNa
     IOv2::wcout.switch_code(IOv2::initial_locale_name(LC_CTYPE));
     EXPECT_TRUE(IOv2::wcout.good());
     EXPECT_EQ(IOv2::wcout.code(), "C");
+}
+
+// Two threads switch the same stream from "C" to two other encodings at once: whichever
+// goes second returns the first one's target. The query and the switch used to take the
+// lock apart, so both could read "C" and both return it -- about one round in four.
+TEST(IoObjectsWchar, ConcurrentSwitchCodesEachReturnTheEncodingBeforeThem)
+{
+    const std::string base = "C", x = "zh_CN.UTF-8", y = "zh_CN.GBK";
+    const auto check = [&](auto& stream)
+    {
+        const std::string startup = stream.code();
+        int bad = 0;
+        for (int i = 0; i < 300; ++i)
+        {
+            stream.switch_code(base);
+            std::atomic<int> ready{0};
+            std::string rx, ry;
+            std::thread tx([&] { ++ready; while (ready.load() < 2) {} rx = stream.switch_code(x); });
+            std::thread ty([&] { ++ready; while (ready.load() < 2) {} ry = stream.switch_code(y); });
+            tx.join();
+            ty.join();
+            if (!((rx == base && ry == x) || (ry == base && rx == y)))
+                ++bad;
+        }
+        EXPECT_EQ(bad, 0);
+        EXPECT_TRUE(stream.good());
+        stream.switch_code(startup);
+    };
+
+    {
+        SCOPED_TRACE("wcout");
+        check(IOv2::wcout);
+    }
+    {
+        SCOPED_TRACE("wcin");
+        check(IOv2::wcin);
+    }
 }
 
 TEST(IoObjectsWchar, SwitchCodeRefusesAStateDependentEncoding)

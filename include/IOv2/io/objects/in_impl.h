@@ -131,11 +131,13 @@ public:
      * 都留在原处，**不丢输入**。切到同步时，非同步模式下已预读进缓冲的字节照常先交出，交完才
      * 按需逐字节读；切到不同步时，下一次缓冲空了就整块读。因此可以在读过 stdin 之后再切换，
      * 一次提取进行中（用户 `io_traits::sread` 里）切换也只影响之后向设备要字节的方式。
-     * 与当前模式相同的调用什么也不做，也不取锁，不会等另一线程里阻塞着的读。
+     * 与当前模式相同的调用什么也不做，也不取锁，不会等另一线程里阻塞着的读；模式不同时要取
+     * 本流的锁，会等另一线程里正在进行的读结束，若它阻塞在 `read(0)` 上就一直等到有输入。
      *
-     * @warning 这里的「同步」只表示**不带读缓冲、每次 `read(0)` 只要本次操作所需的字节**
-     *          （格式化提取与 `get` / `getline` 因逐字符探分隔符而逐字节，`read(buf, n)` 则是
-     *          一次 `read(0, buf, n)`），不是与 C stdio 共享缓冲：本流的设备
+     * @warning 这里的「同步」只表示**不往前多读、每次 `read(0)` 只要本次操作还缺的字节**
+     *          （格式化提取与 `get` / `getline` 因逐字符探分隔符而逐字节；`read(buf, n)` 按需
+     *          分次读：`cin` 每次至多 2048 字节，`wcin` 按还缺的字符数要字节，多字节文本会分成
+     *          多次越来越小的 `read`），不是与 C stdio 共享缓冲：本流的设备
      *          直接用 POSIX `read()`，绕过 `stdin` 的 `FILE` 缓冲（见 `device/std_device.h`
      *          的类级 `@warning`）。因此与 `std::cin` 不同：(1) 格式化提取探到的分隔符留在本流
      *          的读缓冲里，`getchar()` / `fgets()` 看不到它、拿到的是它之后的字节，而
@@ -167,12 +169,16 @@ public:
      * switched after stdin has been read, and switching in the middle of an extraction (inside
      * a user `io_traits::sread`) only changes how the device is asked for bytes from then on.
      * A call asking for the current mode does nothing and takes no lock, so it does not wait
-     * for a read blocked in another thread.
+     * for a read blocked in another thread; one asking for the other mode takes this stream's
+     * lock and waits for a read under way in another thread, which, blocked in `read(0)`, ends
+     * only when input arrives.
      *
-     * @warning "Synchronized" here means **no read buffer: each `read(0)` asks for just what
-     *          the current operation needs** (formatted extraction and `get` / `getline` go
-     *          byte by byte because they probe for the delimiter one character at a time;
-     *          `read(buf, n)` is a single `read(0, buf, n)`), not sharing a buffer with C
+     * @warning "Synchronized" here means **no reading ahead: each `read(0)` asks for just what
+     *          the current operation is still short of** (formatted extraction and `get` /
+     *          `getline` go byte by byte because they probe for the delimiter one character at
+     *          a time; `read(buf, n)` reads in as many steps as it takes: `cin` at most 2048
+     *          bytes at a time, `wcin` asking for as many bytes as it is short of characters,
+     *          so multibyte text takes a run of ever smaller `read`s), not sharing a buffer with C
      *          stdio: this stream's device calls POSIX `read()`
      *          directly and bypasses the `FILE` buffer of `stdin` (see the class-level
      *          `@warning` in `device/std_device.h`). Unlike `std::cin`, therefore: (1) the
@@ -211,6 +217,7 @@ public:
 
         // Only the root's flag flips: buffers, decoder and device all stay. A tainted wide
         // converter recovers first, and that can fail -- before the flag is touched.
+        // m_channel's adjust, not this stream's: that one comes back here.
         try {
             m_channel.adjust(stdin_sync{sync});
         } catch (...) {
@@ -247,6 +254,38 @@ public:
 
     /**
      * @lang{ZH}
+     * @brief 调整底层编码转换的行为；`stdin_sync{s}` 等同于 `sync_with_stdio(s)`。
+     *
+     * 隐藏 `stream_common_operators::adjust`：同步状态在根转换器的标志与本流的
+     * `synced_with_stdio()` 两处，`stdin_sync` 若直接送到根上只改前者，二者失配，之后
+     * `sync_with_stdio()` 会因查询值未变而早退。其余行为照旧交给基类。
+     *
+     * @param acc 要应用的转换行为设置。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Adjusts the behavior of the underlying encoding conversion; `stdin_sync{s}` is
+     * the same as `sync_with_stdio(s)`.
+     *
+     * Hides `stream_common_operators::adjust`: the synchronization state lives both in the
+     * root converter's flag and in this stream's `synced_with_stdio()`, and a `stdin_sync`
+     * sent straight to the root would change only the former, leaving the two apart so that a
+     * later `sync_with_stdio()` returns early on the unchanged query value. Any other behavior
+     * goes to the base class as before.
+     *
+     * @param acc The conversion-behavior settings to apply.
+     * @endif
+     */
+    void adjust(const cvt_behavior& acc)
+    {
+        if (const auto* s = dynamic_cast<const stdin_sync*>(&acc); s)
+            sync_with_stdio(s->synced);
+        else
+            stream_common_operators::adjust(acc);
+    }
+
+    /**
+     * @lang{ZH}
      * `stream_common_operators` 的换设备接口在标准流上删除：本流的设备是固定的 fd 0，取出去
      * 就再也装不回来，换进去等于给一个进程级单例改写底层来源。需要「在同一 fd 上从头开始」
      * 请用 `reset()`（它走的是 iochannel 那一层的 `attach()`，装一个同 fd 的缺省设备）。
@@ -266,18 +305,19 @@ public:
     /**
      * @lang{ZH}
      * @brief 在同一 fd 上继续：清状态位与异常掩码，丢弃已缓冲但未消费的输入，重新附接
-     * 设备并重新初始化转换器。`stdin` 是普通文件时也不会回到开头。同步模式没有读缓冲，
+     * 设备并重新初始化转换器。`stdin` 是普通文件时也不会回到开头。同步模式不往前多读，
      * fd 上尚未读的字节（例如本行余下的部分）照旧在那里；但已从 fd 取出、还没交给调用方的
-     * 那几个字节同样丢弃：格式化提取探分隔符时偷看的那个字符（`cin >> n` 读 `12x34` 后，
-     * `reset()` 丢掉 `x`），以及 `wcin` 遇到解码错误后已取出、尚未交出的字节。
+     * 字节同样丢弃：格式化提取探分隔符时偷看的那个字符（`cin >> n` 读 `12x34` 后，
+     * `reset()` 丢掉 `x`），`wcin` 遇到解码错误后已取出、尚未交出的字节，以及此前不同步时
+     * 整块预读进缓冲、切到同步后还没交出的字节（可达一整块缓冲）。
      *
      * 供需要放弃残余输入的场合使用——例如交互程序在出错后丢掉这一行剩下的内容重新提示。
      * 它**不是**出错后的必经之路：解码失败后 `clear()` 即可继续，解码器跳过坏序列的首字节、
      * 从下一个字节接着解码（块读与逐字符读跳过的一样多），`switch_code()` 也随之可用。
      * 例外是输入在一个字符中间到达 EOF：那半个字符留在缓冲里、无法完成转换，此后每次
      * 读取都置 `cvtfailbit`，不会到达 eof——这时须 `reset()`，`clear()` 不够。
-     * 与 `sync_with_stdio()` 一样，不要在一次提取进行中（用户 `io_traits::sread` 里）重入
-     * 调用：不会崩，但本次提取之后已缓冲的输入随之丢弃。
+     * 不要在一次提取进行中（用户 `io_traits::sread` 里）重入调用：不会崩，但本次提取之后
+     * 已缓冲的输入随之丢弃。
      *
      * 复位的范围只有状态位、异常掩码，以及缓冲与转换器的内部状态。格式状态（含 `skipws`）、
      * `width()`、`precision()`、`fill()`、locale、`sync_with_stdio()`、`tie()` 与
@@ -297,11 +337,13 @@ public:
      * @brief Carries on on the same fd: clears the state bits and the exception mask,
      * drops input that was buffered but not yet consumed, reattaches the device and
      * re-initializes the converter. A `stdin` that is a regular file does not rewind.
-     * Synchronized mode has no read buffer, so bytes not yet read from the fd (the rest of the
-     * line, say) are still there; but the few bytes already taken off the fd and not yet
-     * handed to the caller are dropped too: the character a formatted extraction peeked at
-     * while looking for a delimiter (after `cin >> n` reads `12x34`, `reset()` drops the `x`),
-     * and the bytes `wcin` had taken past a decoding error.
+     * Synchronized mode reads nothing ahead, so bytes not yet read from the fd (the rest of
+     * the line, say) are still there; but bytes already taken off the fd and not yet handed
+     * to the caller are dropped too: the character a formatted extraction peeked at while
+     * looking for a delimiter (after `cin >> n` reads `12x34`, `reset()` drops the `x`), the
+     * bytes `wcin` had taken past a decoding error, and what an earlier unsynchronized mode
+     * read ahead into the buffer and the switch to synchronized has not handed out yet (up to
+     * a whole buffer).
      *
      * For the cases that want to abandon the pending input -- an interactive program
      * discarding the rest of a line after an error before prompting again. It is **not**
@@ -311,8 +353,7 @@ public:
      * is available again as well. The exception is input that reaches EOF in the middle of a
      * character: that half character stays in the buffer and cannot be completed, so every
      * later read sets `cvtfailbit` and none reaches eof -- `reset()` is needed there,
-     * `clear()` is not enough. As with
-     * `sync_with_stdio()`, do not re-enter it from inside an extraction (a user
+     * `clear()` is not enough. Do not re-enter it from inside an extraction (a user
      * `io_traits::sread`): nothing crashes, but the input buffered beyond that extraction
      * is discarded with it.
      *
@@ -362,7 +403,7 @@ public:
      * 得到同一个编码。
      *
      * 只是 `retrieve(code_cvt_access)` 的包装，走本流通用的加锁与错误处理：失败（只在转换器
-     * 内核已被移出时发生，正常生命周期不可达）经 `handle_exception` 置 `cvtfailbit`、返回空串，
+     * 内核已被移出时发生，正常生命周期不可达）经 `handle_exception` 置 `otherfailbit`、返回空串，
      * `exceptions()` 掩码含该位时抛出。
      *
      * @return 当前编码名。
@@ -380,7 +421,7 @@ public:
      *
      * A thin wrapper over `retrieve(code_cvt_access)`, so it shares the stream's locking and
      * error handling: a failure (only when the converter's kernel has been moved out, which a
-     * live stream never reaches) goes through `handle_exception`, sets `cvtfailbit` and yields
+     * live stream never reaches) goes through `handle_exception`, sets `otherfailbit` and yields
      * an empty string; it throws when the `exceptions()` mask includes that bit.
      *
      * @return The current encoding name.
@@ -456,6 +497,9 @@ public:
     std::string switch_code(const std::string& new_code)
         requires std::is_same_v<TChar, wchar_t>
     {
+        // One lock over the query and the switch, so concurrent switches each return the
+        // code the one before them set.
+        std::lock_guard guard(this->io_mutex());
         auto res = code();
         if (res != new_code)
         {

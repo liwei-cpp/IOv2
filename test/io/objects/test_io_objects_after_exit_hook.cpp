@@ -8,9 +8,10 @@
  * late bytes go to stdio, which glibc flushes last. An unsynchronized stream used to keep
  * them in its own buffer, which nothing flushed any more: the line was lost.
  *
- * The hook marks the stream without touching its sync flag: sync_with_stdio(true) reads a
- * true flag as "already handed over", so bytes the hook could not hand over (here: the
- * stream was failed) must still go out on a later clear() and sync_with_stdio(true).
+ * Bytes the hook could not hand over (here: the stream was failed) still go out on a later
+ * clear() and sync_with_stdio(true), in either mode. Synchronized, a failed write is what
+ * leaves them behind, and sync_with_stdio(true) used to return early on its already true
+ * flag without handing them over: they were lost.
  *
  * Each case runs in a child process (support/test_child.h): what is checked is what
  * the child's exit() writes, and fd 2 is pointed at a file for the run.
@@ -22,12 +23,14 @@
 
 #include <gtest/gtest.h>
 
+#include <csignal>
 #include <cstdlib>
 #include <fstream>
 #include <iterator>
 #include <string>
 
 #include <fcntl.h>
+#include <sys/resource.h>
 #include <unistd.h>
 
 namespace
@@ -51,6 +54,16 @@ namespace
             IOv2::clog.clear();
             IOv2::clog.sync_with_stdio(true);
             break;
+        case 4:
+        {
+            rlimit r{};
+            ::getrlimit(RLIMIT_FSIZE, &r);
+            r.rlim_cur = r.rlim_max;
+            ::setrlimit(RLIMIT_FSIZE, &r);
+            IOv2::clog.clear();
+            IOv2::clog.sync_with_stdio(true);
+            break;
+        }
         default:
             break;
         }
@@ -132,4 +145,26 @@ TEST(IoObjectsAfterExitHook, BytesTheHookLeftBehindGoOutOnALaterSwitchBack)
 
     EXPECT_EQ(run_case("IoObjectsAfterExitHook.BytesTheHookLeftBehindGoOutOnALaterSwitchBack", "1"),
               "pre\n");
+}
+
+// Synchronized, a write that stops at a 5-byte file size limit keeps "56789" in the stream's
+// buffer and fails the stream; the late atexit function lifts the limit and recovers.
+TEST(IoObjectsAfterExitHook, BytesAFailedSynchronizedWriteLeftGoOutOnALaterSyncWithStdio)
+{
+    if (in_test_child())
+    {
+        redirect_stderr_to_file();
+        std::signal(SIGXFSZ, SIG_IGN);
+        rlimit r{};
+        ::getrlimit(RLIMIT_FSIZE, &r);
+        r.rlim_cur = 5;
+        ::setrlimit(RLIMIT_FSIZE, &r);
+        IOv2::clog << "0123456789";
+        EXPECT_FALSE(IOv2::clog.good());
+        g_late = 4;
+        return;
+    }
+
+    EXPECT_EQ(run_case("IoObjectsAfterExitHook.BytesAFailedSynchronizedWriteLeftGoOutOnALaterSyncWithStdio", "1"),
+              "0123456789");
 }

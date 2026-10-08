@@ -193,16 +193,19 @@ private:
  * @brief 对全部八个标准流对象调用 `sync_with_stdio(sync)`。
  *
  * **八个流一律都会被尝试**：某个流失败不会妨碍其余的切换。每个流的失败先记在它自己的状态位上
- * （输出流是切回同步时把本流缓冲搬进 stdio 缓冲那一步失败；`wcin` 只在转换器已 tainted、
+ * （输出流是切到同步时把本流缓冲搬进 stdio 缓冲那一步失败；`wcin` 只在转换器已 tainted、
  * 先做的自动恢复失败时才失败），若该流的 `exceptions()` 掩码含该位，它会抛出——本函数把
  * 这些异常收齐，最后抛一个 `sync_error`。默认掩码（`goodbit`）下本函数不抛任何异常，失败
  * 只体现在各流的状态位上：六个输出流一定切换（失败的只是交出积压字节那一步），输入流失败时
  * 保持原模式（见 `stdin_api::sync_with_stdio`）。
  *
- * 随时可调：输入流只翻根转换器上的一个标志，已缓冲的输入不丢（见 `stdin_api::sync_with_stdio`）。
- * 输出侧同样随时可切，与并发的插入操作安全竞争；切到同步时（已同步再调也一样）它会取该流的
- * 锁，若此前自行缓冲则把本流缓冲搬进 stdio 缓冲，因此可能等待正在进行的插入结束
- * （见 `stdout_api::sync_with_stdio`）。
+ * 随时可调，与并发的读写安全竞争：输入流只翻根转换器上的一个标志，已缓冲的输入不丢
+ * （见 `stdin_api::sync_with_stdio`）；输出流切到同步时把本流缓冲搬进 stdio 缓冲
+ * （见 `stdout_api::sync_with_stdio`）。但切换可能要取某个流的锁：输出流切到同步时总是取
+ * （已同步再调也一样），输入流在模式与当前不同时取；输出流切到不同步、输入流模式相同时都
+ * 不取。取锁要等另一线程里正在进行的那次读写结束，若它阻塞在设备上（读在等输入，写遇到
+ * 写满的管道或被暂停的终端），本函数就一直等到它返回——此时排在前面的流已经切换，排在
+ * 后面的还没有。
  *
  * @param sync `true` 为同步（默认），`false` 为各流自行缓冲。
  * @throws sync_error 至少一个流失败，且该流的 `exceptions()` 掩码含相应的位。异常里带着八个流
@@ -214,7 +217,7 @@ private:
  *
  * **All eight streams are attempted**: one that fails cannot keep the others from switching.
  * Each failure is first recorded in that stream's own state bits (on an output stream, the
- * hand-over of its buffer to stdio when switching back to synchronized; `wcin` fails only
+ * hand-over of its buffer to stdio when switching to synchronized; `wcin` fails only
  * when its converter is tainted and the automatic recovery done first fails), and if that
  * stream's `exceptions()` mask includes the bit it throws -- this function collects those
  * exceptions and finally throws one `sync_error`. Under the default mask (`goodbit`) it
@@ -222,12 +225,17 @@ private:
  * streams always switch (what can fail is only the hand-over of their pending bytes), while
  * an input stream that fails keeps its old mode (see `stdin_api::sync_with_stdio`).
  *
- * It may be called at any time: an input stream only flips a flag on its root converter
- * and loses none of its buffered input (see `stdin_api::sync_with_stdio`). The output side
- * is switchable at any time as well, safe against concurrent insertions; switching to
- * synchronized -- even when it already is -- takes that
- * stream's lock, and moves its buffer into stdio's if it was buffering on its own, so it may
- * wait for an insertion already under way (see `stdout_api::sync_with_stdio`).
+ * It may be called at any time, safe against concurrent reads and writes: an input stream
+ * only flips a flag on its root converter and loses none of its buffered input (see
+ * `stdin_api::sync_with_stdio`); an output stream switching to synchronized moves its
+ * buffer into stdio's (see `stdout_api::sync_with_stdio`). A switch may have to take a
+ * stream's lock, though: an output stream switching to synchronized always takes it -- even
+ * when it already is -- and an input stream takes it when the mode differs from the current
+ * one; neither an output stream switching to unsynchronized nor an input stream already in
+ * that mode takes it. Taking the lock waits for the read or write under way in another
+ * thread, and if that one is blocked on the device (a read waiting for input, a write on a
+ * full pipe or a paused terminal), this function waits until it returns -- with the streams
+ * before that one already switched and the ones after it not yet.
  *
  * @param sync `true` for synchronized (the default), `false` for per-stream buffering.
  * @throws sync_error At least one stream failed and its `exceptions()` mask included the
