@@ -91,8 +91,9 @@ namespace
 //   * ThrowingFlusher's flush fails. try_flush() is noexcept by contract, so the failure is
 //     absorbed by the target itself -- mirroring what out_tie_target<T> does with
 //     handle_exception<true>() -- and must never reach the initiating stream.
-//   * a bare tie_target makes tie()'s cycle-detection walk dynamic_cast to
-//     stream_common_operators* -> null -> break (the non-stream node case).
+//   * a bare tie_target has no outgoing edge (tied_to() is nullptr), so tie()'s
+//     cycle-detection walk ends there (the non-stream node case).
+// Test doubles only: users must not derive from tie_target (see its @warning).
 struct ThrowingFlusher : public IOv2::tie_target
 {
     int  flushed = 0;
