@@ -500,6 +500,96 @@ TEST(IoObjectsChar, AdjustingWithStdinSyncIsSyncWithStdio)
     IOv2::cin.reset();
 }
 
+namespace
+{
+    // Runs `op` on a synchronized cin whose fd 0 is a pipe holding `input`, its write end
+    // already closed so no read can block, and returns what `op` left on the fd.
+    template <typename Op>
+    std::string left_on_stdin(const std::string& input, Op op)
+    {
+        int pipefds[2];
+        if (::pipe(pipefds) == -1)
+            return "<pipe failed>";
+        const int saved_stdin = ::dup(STDIN_FILENO);
+        ::dup2(pipefds[0], STDIN_FILENO);
+        ::close(pipefds[0]);
+        const bool written = ::write(pipefds[1], input.data(), input.size())
+                             == static_cast<ssize_t>(input.size());
+        ::close(pipefds[1]);
+
+        IOv2::cin.reset();
+        IOv2::cin.sync_with_stdio(true);
+        op();
+
+        std::string rest;
+        char buf[64];
+        for (ssize_t n; (n = ::read(STDIN_FILENO, buf, sizeof buf)) > 0; )
+            rest.append(buf, static_cast<std::size_t>(n));
+        ::dup2(saved_stdin, STDIN_FILENO);
+        ::close(saved_stdin);
+        IOv2::cin.clear();
+        IOv2::cin.reset();
+        return written ? rest : "<write failed>";
+    }
+}
+
+// Synchronized means each read(0) asks only for what the operation is still short of.
+// get into a buffer it fills, and ignore(n, delim) once it has discarded n, used to peek
+// at one character more -- off the fd and into cin's own buffer, where getchar() never
+// sees it, and on a pipe that has nothing more yet, a wait for input the call does not
+// need. A get with room for no character asked the device for one before failing.
+TEST(IoObjectsChar, SynchronizedGetAndIgnoreReadNoFurtherThanTheyConsume)
+{
+    char b[8] = {};
+    EXPECT_EQ(left_on_stdin("abcdef", [&] { IOv2::cin.get<IOv2::keep_sep, IOv2::app_zt>(b, 3); }),
+              "cdef");
+    EXPECT_EQ(std::string(b), "ab");
+
+    EXPECT_EQ(left_on_stdin("abcdef", [&] { IOv2::cin.get<IOv2::keep_sep, IOv2::no_zt>(b, 2); }),
+              "cdef");
+
+    EXPECT_EQ(left_on_stdin("ab\ncd", [] { IOv2::cin.ignore(2, '\n'); }), "\ncd");
+
+    bool failed = false;
+    EXPECT_EQ(left_on_stdin("abc", [&] {
+                  IOv2::cin.get<IOv2::keep_sep, IOv2::app_zt>(b, 1);
+                  failed = IOv2::cin.str_fail();
+              }),
+              "abc");
+    EXPECT_TRUE(failed);
+}
+
+// getline is the exception, by necessity: with its buffer full it has to look at the next
+// character to know whether it is the delimiter (consumed, success) or not (overflow), and
+// with room for no character a delimiter is still an empty line it consumes.
+TEST(IoObjectsChar, SynchronizedGetlineLooksAtOneMoreOnlyToDecide)
+{
+    char b[8] = {};
+    bool good = false;
+    EXPECT_EQ(left_on_stdin("ab\ncd", [&] {
+                  IOv2::cin.get<IOv2::cons_sep, IOv2::app_zt>(b, 3);
+                  good = IOv2::cin.good();
+              }),
+              "cd");
+    EXPECT_TRUE(good);
+    EXPECT_EQ(std::string(b), "ab");
+
+    bool failed = false;
+    EXPECT_EQ(left_on_stdin("abcd\n", [&] {
+                  IOv2::cin.get<IOv2::cons_sep, IOv2::app_zt>(b, 3);
+                  failed = IOv2::cin.str_fail();
+              }),
+              "d\n");
+    EXPECT_TRUE(failed);
+
+    EXPECT_EQ(left_on_stdin("\nx", [&] {
+                  IOv2::cin.get<IOv2::cons_sep, IOv2::app_zt>(b, 1);
+                  good = IOv2::cin.good();
+              }),
+              "x");
+    EXPECT_TRUE(good);
+}
+
 // tie()'s cycle check walks through a standard stream too. os and cout have different
 // instantiations of basic_stream_common_operators as their base, so a walk that cross-cast
 // each node to one of them stopped at the other kind and accepted os -> cout -> os.
