@@ -206,7 +206,7 @@ template <typename T, io_device TDevice, typename TChar>
 class stdout_api : public ios_state<TChar>
                  , public out_flusher<T>
                  , public ostream_operators<TChar>
-                 , public stream_common_operators
+                 , public std_stream_common_operators
 {
 public:
     using device_type = TDevice;
@@ -217,7 +217,7 @@ public:
     friend out_sentry_type;
     friend out_flusher<T>;
     friend ostream_operators<TChar>;
-    friend stream_common_operators;
+    friend std_stream_common_operators;
 
 public:
     stdout_api()
@@ -500,10 +500,8 @@ public:
      * `stream_common_operators` 的换设备接口在标准流上删除：本流的设备是固定的 fd 1 / fd 2，
      * 取出去就再也装不回来，换进去等于给一个进程级单例改写底层目标。需要「在同一 fd 上重新
      * 开始」请用 `reset()`（它走的是 iochannel 那一层的 `attach()`，装一个同 fd 的缺省设备）。
-     *
-     * 删除只拦得住普通的名字查找：`cout.stream_common_operators::detach()` 这样的限定名调用
-     * 仍会执行。此后每次输出都置 `cvtfailbit`，`device()` 的前置条件也不再成立，直到
-     * `reset()`。限定名的 `attach()` 只接受同一 fd 的设备。
+     * 它们在 `std_stream_common_operators` 里是受保护的，
+     * `cout.IOv2::std_stream_common_operators::detach()` 这样的限定名调用同样编译不过。
      * @endif
      *
      * @lang{EN}
@@ -511,16 +509,41 @@ public:
      * streams: this stream's device is the fixed fd 1 / fd 2, taking it out leaves no way to
      * put it back, and putting another one in rewrites the target of a process-wide singleton.
      * To start over on the same fd use `reset()`, which goes through the `attach()` one layer
-     * down, in the iochannel, with a default device on the same fd.
-     *
-     * The deletion stops only ordinary name lookup: a qualified call such as
-     * `cout.stream_common_operators::detach()` still runs. Every output after it sets
-     * `cvtfailbit`, and the precondition of `device()` no longer holds, until `reset()`. A
-     * qualified `attach()` accepts only a device on the same fd.
+     * down, in the iochannel, with a default device on the same fd. Both are protected in
+     * `std_stream_common_operators`, so a qualified call such as
+     * `cout.IOv2::std_stream_common_operators::detach()` does not compile either.
      * @endif
      */
     std::pair<device_type, std::exception_ptr> detach() = delete;
     void attach(device_type&&) = delete;
+
+    /**
+     * @lang{ZH}
+     * @brief 调整底层编码转换的行为，与普通流的 `adjust` 相同。
+     *
+     * `std_stream_common_operators` 的 `adjust` 是受保护的，本流以自己的公开成员原样转去；
+     * 输出流没有需要截下的行为（对比 `stdin_api::adjust`）。
+     *
+     * @param acc 要应用的转换行为设置。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Adjusts the behavior of the underlying encoding conversion, as `adjust` does on an
+     * ordinary stream.
+     *
+     * The `adjust` in `std_stream_common_operators` is protected; this stream forwards to it
+     * unchanged through a public member of its own. An output stream has no behavior to catch
+     * (compare `stdin_api::adjust`).
+     *
+     * @param acc The conversion-behavior settings to apply.
+     * @endif
+     */
+    void adjust(const cvt_behavior& acc)
+    {
+        // Through T& so the call depends on T: gcc 15 resolves a this-> call at the definition
+        // and, not applying the constraints there yet, calls the two overloads ambiguous.
+        static_cast<T&>(*this).std_stream_common_operators::adjust(acc);
+    }
 
     /**
      * @lang{ZH}

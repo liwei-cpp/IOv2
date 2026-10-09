@@ -340,6 +340,30 @@ public:
      * @endif
      */
     virtual void try_flush() noexcept = 0;
+
+    /**
+     * @lang{ZH}
+     * @brief 本节点在 tie 图上的出边：本流 tie 到的目标；不带出边的节点返回 `nullptr`。
+     *
+     * 供 `basic_stream_common_operators::check_tie` 沿链遍历。经虚函数而不是交叉转换取出边：
+     * 普通流与标准流的公共基类是 `basic_stream_common_operators` 的两个不同实例化，
+     * `dynamic_cast` 到其中一个，链会在另一种流处断开，经过它的环就查不出来。缺省返回
+     * `nullptr`，故裸 `abs_flusher` 仍可作为 tie 目标。只做原子读，故为 `noexcept`。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief This node's outgoing edge in the tie graph: the target this stream is tied to, or
+     *        `nullptr` for a node that carries none.
+     *
+     * `basic_stream_common_operators::check_tie` walks the chain through it. The edge comes
+     * through a virtual rather than a cross-cast: the ordinary and the standard streams have two
+     * different instantiations of `basic_stream_common_operators` as their common base, so a
+     * `dynamic_cast` to one of them would end the chain at a stream of the other kind and a cycle
+     * through it would go unnoticed. The default returns `nullptr`, which keeps a bare
+     * `abs_flusher` usable as a tie target. Only an atomic load, hence `noexcept`.
+     * @endif
+     */
+    virtual abs_flusher* tied_to() const noexcept { return nullptr; }
 };
 
 /**
@@ -435,6 +459,16 @@ struct out_flusher : public abs_flusher
             if (i + 1 < attempts)
                 std::this_thread::yield();
         }
+    }
+
+    /**
+     * @lang{ZH} @brief 本流 tie 到的目标，即 `tie()` 的取值；见 `abs_flusher::tied_to()`。 @endif
+     * @lang{EN} @brief The target this stream is tied to, i.e. what `tie()` returns; see
+     *           `abs_flusher::tied_to()`. @endif
+     */
+    abs_flusher* tied_to() const noexcept override
+    {
+        return static_cast<const T&>(*this).tie();
     }
 };
 
