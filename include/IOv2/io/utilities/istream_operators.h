@@ -733,6 +733,13 @@ struct istream_operators
             if (n == 0)
                 throw stream_error("istream get fail: zero buffer size");
             const auto cap = static_cast<std::size_t>(n);
+            // Room for no character: fail before asking the device for one. getline still
+            // looks, since a delimiter there is an empty line it consumes.
+            if constexpr (std::is_same_v<DelimPolicy, keep_sep>)
+            {
+                if (cap - is_cstr == 0)
+                    throw stream_error{"istream get fail: no character extracted"};
+            }
             auto c = self.m_channel.getc();
             while ((gcount + is_cstr < cap) &&
                    (c.has_value()) &&
@@ -740,6 +747,16 @@ struct istream_operators
             {
                 *s++ = c.value();
                 ++gcount;
+                // Full: consume this one and stop. A peek at the next would read a byte this
+                // call does not need. getline must peek, to tell a delimiter from overflow.
+                if constexpr (std::is_same_v<DelimPolicy, keep_sep>)
+                {
+                    if (gcount + is_cstr == cap)
+                    {
+                        self.m_channel.bumpc();
+                        break;
+                    }
+                }
                 c = self.m_channel.nextc();
             }
 
@@ -1064,7 +1081,12 @@ struct istream_operators
                     && c.has_value()
                     && (c.value() != delim))
             {
-                ++gcount;
+                // The n-th one: consume it and stop, without peeking at one more.
+                if (++gcount == n)
+                {
+                    self.m_channel.bumpc();
+                    break;
+                }
                 c = self.m_channel.nextc();
             }
 

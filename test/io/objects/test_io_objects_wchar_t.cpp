@@ -242,6 +242,52 @@ TEST(IoObjectsWchar, AdjustingWithStdinSyncIsSyncWithStdio)
     IOv2::wcin.reset();
 }
 
+namespace
+{
+    // Runs `op` on a synchronized wcin whose fd 0 is a pipe holding `input`, its write end
+    // already closed so no read can block, and returns what `op` left on the fd. ASCII
+    // input only: one byte per character under every locale the suite runs in.
+    template <typename Op>
+    std::string left_on_stdin(const std::string& input, Op op)
+    {
+        int pipefds[2];
+        if (::pipe(pipefds) == -1)
+            return "<pipe failed>";
+        const int saved_stdin = ::dup(STDIN_FILENO);
+        ::dup2(pipefds[0], STDIN_FILENO);
+        ::close(pipefds[0]);
+        const bool written = ::write(pipefds[1], input.data(), input.size())
+                             == static_cast<ssize_t>(input.size());
+        ::close(pipefds[1]);
+
+        IOv2::wcin.reset();
+        IOv2::wcin.sync_with_stdio(true);
+        op();
+
+        std::string rest;
+        char buf[64];
+        for (ssize_t n; (n = ::read(STDIN_FILENO, buf, sizeof buf)) > 0; )
+            rest.append(buf, static_cast<std::size_t>(n));
+        ::dup2(saved_stdin, STDIN_FILENO);
+        ::close(saved_stdin);
+        IOv2::wcin.clear();
+        IOv2::wcin.reset();
+        return written ? rest : "<write failed>";
+    }
+}
+
+// The wide side of IoObjectsChar.SynchronizedGetAndIgnoreReadNoFurtherThanTheyConsume:
+// wcin goes through code_cvt_stdio, and its get / ignore peeked one character more too.
+TEST(IoObjectsWchar, SynchronizedGetAndIgnoreReadNoFurtherThanTheyConsume)
+{
+    wchar_t b[8] = {};
+    EXPECT_EQ(left_on_stdin("abcdef", [&] { IOv2::wcin.get<IOv2::keep_sep, IOv2::app_zt>(b, 3); }),
+              "cdef");
+    EXPECT_EQ(std::wstring(b), L"ab");
+
+    EXPECT_EQ(left_on_stdin("ab\ncd", [] { IOv2::wcin.ignore(1, L'\n'); }), "b\ncd");
+}
+
 TEST(IoObjectsWchar, TheOutputEncodingCanBeSwitchedMidStream)
 {
     oguard<true> out;

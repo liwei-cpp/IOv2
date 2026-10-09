@@ -138,7 +138,8 @@ public:
      * 本流的锁，会等另一线程里正在进行的读结束，若它阻塞在 `read(0)` 上就一直等到有输入。
      *
      * @warning 这里的「同步」只表示**不往前多读、每次 `read(0)` 只要本次操作还缺的字节**
-     *          （格式化提取与 `get` / `getline` 因逐字符探分隔符而逐字节；`read(buf, n)` 按需
+     *          （格式化提取与 `get` / `getline` 因逐字符探分隔符而逐字节；`getline` 存满缓冲时
+     *          还要多看一个字符，才能判断它是分隔符还是溢出；`read(buf, n)` 按需
      *          分次读：`cin` 每次至多 2048 字节，`wcin` 按还缺的字符数要字节，多字节文本会分成
      *          多次越来越小的 `read`），不是与 C stdio 共享缓冲：本流的设备
      *          直接用 POSIX `read()`，绕过 `stdin` 的 `FILE` 缓冲（见 `device/std_device.h`
@@ -181,7 +182,9 @@ public:
      * @warning "Synchronized" here means **no reading ahead: each `read(0)` asks for just what
      *          the current operation is still short of** (formatted extraction and `get` /
      *          `getline` go byte by byte because they probe for the delimiter one character at
-     *          a time; `read(buf, n)` reads in as many steps as it takes: `cin` at most 2048
+     *          a time; with its buffer full, `getline` still looks at one more character to
+     *          tell a delimiter from an overflow; `read(buf, n)` reads in as many steps as it
+     *          takes: `cin` at most 2048
      *          bytes at a time, `wcin` asking for as many bytes as it is short of characters,
      *          so multibyte text takes a run of ever smaller `read`s), not sharing a buffer with C
      *          stdio: this stream's device calls POSIX `read()`
