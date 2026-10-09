@@ -32,6 +32,10 @@
  *       indeterminately sequenced：不包含本头文件的翻译单元里的静态对象（实测取决于 `.o` 的
  *       链接顺序），以及**定义在本头文件包含之前**的静态对象（gcc 15 上是空引用，clang 21 上
  *       正常——两家都合规）。这两种形态请改用函数内静态量（首次使用时才构造）。
+ * @note 各流类型的 `init`（如 `cout_t::init`）按引用计数工作：头文件模式下照
+ *       `std::ios_base::Init` 的习惯另外构造一个是无害的，它不重建、也不提前收尾正在使用的流
+ *       （见 `IOv2/common/sing_temp.h` 的 `init`）。`IOV2_SHARED` 下不要构造：消费者模块里
+ *       它会另造一份流，`get()` 拿到的不是 `libiov2.so` 里的那一个。
  * @endif
  *
  * @lang{EN}
@@ -76,6 +80,12 @@
  *       one **defined before this header is included** (a null reference on gcc 15, fine on
  *       clang 21 -- both conforming). Use a function-local static, constructed on first use,
  *       for those two.
+ * @note Each stream type's `init` (such as `cout_t::init`) is reference-counted: in
+ *       header-only mode constructing another one, as is customary with
+ *       `std::ios_base::Init`, is harmless -- it neither rebuilds nor winds up the stream in
+ *       use (see `init` in `IOv2/common/sing_temp.h`). Do not construct one under
+ *       `IOV2_SHARED`: in a consumer module it builds a separate stream, and `get()` returns
+ *       that one, not the one in `libiov2.so`.
  * @endif
  */
 #pragma once
