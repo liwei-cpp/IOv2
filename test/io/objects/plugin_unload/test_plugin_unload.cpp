@@ -28,6 +28,8 @@
 #include <string>
 
 #include <dlfcn.h>
+#include <sys/wait.h>
+#include <unistd.h>
 
 TEST(PluginUnload, AFacetCachedByAnUnloadedPluginStaysUsable)
 {
@@ -56,5 +58,53 @@ TEST(PluginUnload, AFacetCachedByAnUnloadedPluginStaysUsable)
     ASSERT_EQ(run_test_child("PluginUnload.AFacetCachedByAnUnloadedPluginStaysUsable"), 0);
     std::ifstream out("plugin_unload.out");
     EXPECT_EQ(std::string(std::istreambuf_iterator<char>(out), {}), "421");
+#endif
+}
+
+/**
+ * The main program pins itself too, and glibc's dladdr names it by argv[0], which
+ * the caller of exec chose. The pin used to dlopen that name: with argv[0] set to
+ * "/dev/stdin" it opened stdin and read the input away before main ran (and with a
+ * FIFO it blocked there). The child here is run that way, with "hello" on a pipe,
+ * and must still read all of it.
+ */
+TEST(PluginUnload, TheMainProgramsPinLeavesArgv0Alone)
+{
+#if !defined(IOV2_SHARED)
+    GTEST_SKIP() << "the pin exists only in shared-library mode";
+#else
+    if (in_test_child())
+    {
+        std::string input;
+        char buf[64];
+        for (ssize_t n; (n = ::read(STDIN_FILENO, buf, sizeof buf)) > 0; )
+            input.append(buf, static_cast<std::size_t>(n));
+        std::_Exit(input == "hello" ? 0 : 1);
+    }
+
+    int fds[2];
+    ASSERT_EQ(::pipe(fds), 0);
+    const std::string executable = exe_path();
+    const pid_t child = ::fork();
+    ASSERT_NE(child, -1);
+    if (child == 0)
+    {
+        ::dup2(fds[0], STDIN_FILENO);
+        ::close(fds[0]);
+        ::close(fds[1]);
+        ::setenv(test_child_env, "1", 1);
+        ::execl(executable.c_str(), "/dev/stdin",
+                "--gtest_filter=PluginUnload.TheMainProgramsPinLeavesArgv0Alone",
+                "--gtest_color=no", static_cast<char*>(nullptr));
+        ::_exit(127);
+    }
+    ::close(fds[0]);
+    EXPECT_EQ(::write(fds[1], "hello", 5), 5);
+    ::close(fds[1]);
+
+    int status = 0;
+    ASSERT_EQ(::waitpid(child, &status, 0), child);
+    ASSERT_TRUE(WIFEXITED(status));
+    EXPECT_EQ(WEXITSTATUS(status), 0);
 #endif
 }
