@@ -78,7 +78,7 @@ struct in_sentry
      *          栈展开会先析构本地的锁守卫，置位就落到解锁之后了。锁因此必须是调用方的局部变量，而
      *          不是哨兵的成员。
      *
-     * 关联流的刷新走 `abs_flusher::try_flush()`，取不到对方的锁就跳过，绝不阻塞。本线程因此可以
+     * 关联流的刷新走 `tie_target::try_flush()`，取不到对方的锁就跳过，绝不阻塞。本线程因此可以
      * 安全地在持有本流锁的状态下发起它：tie 这条用户看不见的加锁边永远不会成为等待边，死锁只可能
      * 由用户自己能定序的锁构成。
      * @param is 要操作的输入流。
@@ -100,7 +100,7 @@ struct in_sentry
      *          the local lock guard first, so the state bits land after the unlock. The lock
      *          therefore has to be a local of the caller rather than a member of the sentry.
      *
-     * The tied stream is flushed through `abs_flusher::try_flush()`, which skips the flush rather
+     * The tied stream is flushed through `tie_target::try_flush()`, which skips the flush rather
      * than wait when the target's lock cannot be taken. This thread can therefore start it safely
      * while holding its own stream's lock: the tie edge -- the one lock edge the user cannot see
      * -- never becomes a waiting edge, so any deadlock can only be built from locks the user is

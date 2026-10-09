@@ -184,9 +184,9 @@ TEST(IstreamWsWchar, TheSentryFailsWhenTheLocaleHasNoCtypeFacet)
 
 namespace
 {
-// wchar_t counterpart: a bare abs_flusher tie target whose flush fails. try_flush() is
+// wchar_t counterpart: a bare tie_target tie target whose flush fails. try_flush() is
 // noexcept by contract, so the failure is absorbed here and recorded on the target itself.
-struct ThrowingTieW : public abs_flusher
+struct ThrowingTieW : public tie_target
 {
     int  flushed = 0;
     bool failed  = false;

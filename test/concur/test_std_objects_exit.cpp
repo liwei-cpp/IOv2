@@ -6,7 +6,7 @@
  *
  * The six standard output stream objects register a sing_temp exit hook that
  * flushes whatever they still hold. That hook goes through
- * out_flusher::try_flush(), which takes io_mutex() with try_to_lock: when
+ * out_tie_target::try_flush(), which takes io_mutex() with try_to_lock: when
  * another thread holds it the hook gives up and those buffered bytes are lost.
  * A blocking flush() there would hang rather than deadlock -- every insertion
  * runs the user's io_traits::swrite inside the lock, so one thread parked in

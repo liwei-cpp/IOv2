@@ -5,7 +5,7 @@
  * @file ostream_operators.h
  * @lang{ZH}
  * 定义了输出流的格式化与非格式化插入设施。
- * 包含输出哨兵 `out_sentry`、承载多态 `try_flush()` 的 CRTP 基类 `out_flusher`、
+ * 包含输出哨兵 `out_sentry`、承载多态 `try_flush()` 的 CRTP 基类 `out_tie_target`、
  * 输出流概念 `ostream_type`、承载各类插入操作（`put`/`write`）的 `ostream_operators`
  * 混入基类，以及插入运算符 `operator<<`：一条泛型的（把类型分派到扩展点
  * `io_traits<TChar, TValue>`），外加一条给 `ios_base` 函数指针操纵符的。
@@ -13,7 +13,7 @@
  *
  * @lang{EN}
  * Defines the formatted and unformatted insertion facilities for output streams.
- * Includes the output sentry `out_sentry`, the CRTP base `out_flusher` that carries the
+ * Includes the output sentry `out_sentry`, the CRTP base `out_tie_target` that carries the
  * polymorphic `try_flush()`, the output-stream concept `ostream_type`, the `ostream_operators`
  * mix-in base that carries the various insertion operations (`put`/`write`), and the
  * insertion `operator<<`: one generic (dispatching the type to the `io_traits<TChar, TValue>`
@@ -83,7 +83,7 @@ struct out_sentry
      *          把异常留给外层的 `catch`（例如运算符那层）**不够**：栈展开会先析构本地的锁守卫，置位
      *          就落到解锁之后了。锁因此必须是调用方的局部变量，而不是哨兵的成员。
      *
-     * 关联流的刷新走 `abs_flusher::try_flush()`，取不到对方的锁就跳过，绝不阻塞。本线程因此可以
+     * 关联流的刷新走 `tie_target::try_flush()`，取不到对方的锁就跳过，绝不阻塞。本线程因此可以
      * 安全地在持有本流锁的状态下发起它：tie 这条用户看不见的加锁边永远不会成为等待边，死锁只可能
      * 由用户自己能定序的锁构成。
      * @param os 要操作的输出流。
@@ -107,7 +107,7 @@ struct out_sentry
      *          unlock. The lock therefore has to be a local of the caller rather than a member of
      *          the sentry.
      *
-     * The tied stream is flushed through `abs_flusher::try_flush()`, which skips the flush rather
+     * The tied stream is flushed through `tie_target::try_flush()`, which skips the flush rather
      * than wait when the target's lock cannot be taken. This thread can therefore start it safely
      * while holding its own stream's lock: the tie edge -- the one lock edge the user cannot see
      * -- never becomes a waiting edge, so any deadlock can only be built from locks the user is
@@ -274,7 +274,7 @@ concept is_out_sentry = is_out_sentry_impl<T>::value;
  * @brief 承载多态 `try_flush()` 接口的抽象基类。
  *
  * 提供纯虚的 `try_flush()`，使得可通过基类指针以类型无关的方式刷新任意 tie 目标；输出流的
- * 实现由 CRTP 派生类 `out_flusher<T>` 给出。
+ * 实现由 CRTP 派生类 `out_tie_target<T>` 给出。
  * @endif
  *
  * @lang{EN}
@@ -282,25 +282,25 @@ concept is_out_sentry = is_out_sentry_impl<T>::value;
  *
  * Provides a pure virtual `try_flush()` so that any tie target can be flushed type-erased
  * through a base pointer; for output streams the implementation is given by the CRTP-derived
- * `out_flusher<T>`.
+ * `out_tie_target<T>`.
  * @endif
  */
-class abs_flusher
+class tie_target
 {
 public:
-    virtual ~abs_flusher() = default;
+    virtual ~tie_target() = default;
 
 protected:
-    abs_flusher()                              = default;
-    abs_flusher(const abs_flusher&)            = default;
-    abs_flusher& operator=(const abs_flusher&) = default;
-    abs_flusher(abs_flusher&&)                 = default;
-    abs_flusher& operator=(abs_flusher&&)      = default;
+    tie_target()                              = default;
+    tie_target(const tie_target&)            = default;
+    tie_target& operator=(const tie_target&) = default;
+    tie_target(tie_target&&)                 = default;
+    tie_target& operator=(tie_target&&)      = default;
 
 public:
     /**
      * @lang{ZH}
-     * @brief 尽力刷新本流的纯虚接口；由 `out_flusher<T>` 实现。
+     * @brief 尽力刷新本流的纯虚接口；由 `out_tie_target<T>` 实现。
      * @warning **实现必须非阻塞。** 哨兵在持有自己流的锁时调用本函数，而这条加锁边对用户不可见，
      *          他无从把它纳入自己的锁序；实现若改用阻塞的 `lock()`，AB-BA 死锁立即回归。取锁
      *          失败时必须直接返回，不得等待，也不留任何补偿——tie 因此是尽力而为，不是保证。
@@ -317,7 +317,7 @@ public:
      *
      * @lang{EN}
      * @brief Pure virtual interface that flushes this stream on a best-effort basis; implemented
-     *        by `out_flusher<T>`.
+     *        by `out_tie_target<T>`.
      * @warning **An implementation must never block.** The sentry calls this while holding its
      *          own stream's lock, and that lock edge is invisible to the user, who therefore
      *          cannot fold it into a lock order of their own; an implementation that takes a
@@ -348,7 +348,7 @@ public:
      * 供 `basic_stream_common_operators::check_tie` 沿链遍历。经虚函数而不是交叉转换取出边：
      * 普通流与标准流的公共基类是 `basic_stream_common_operators` 的两个不同实例化，
      * `dynamic_cast` 到其中一个，链会在另一种流处断开，经过它的环就查不出来。缺省返回
-     * `nullptr`，故裸 `abs_flusher` 仍可作为 tie 目标。只做原子读，故为 `noexcept`。
+     * `nullptr`，故裸 `tie_target` 仍可作为 tie 目标。只做原子读，故为 `noexcept`。
      * @endif
      *
      * @lang{EN}
@@ -360,10 +360,10 @@ public:
      * different instantiations of `basic_stream_common_operators` as their common base, so a
      * `dynamic_cast` to one of them would end the chain at a stream of the other kind and a cycle
      * through it would go unnoticed. The default returns `nullptr`, which keeps a bare
-     * `abs_flusher` usable as a tie target. Only an atomic load, hence `noexcept`.
+     * `tie_target` usable as a tie target. Only an atomic load, hence `noexcept`.
      * @endif
      */
-    virtual abs_flusher* tied_to() const noexcept { return nullptr; }
+    virtual tie_target* tied_to() const noexcept { return nullptr; }
 };
 
 /**
@@ -372,7 +372,7 @@ public:
  *
  * 虚函数无法使用 deducing-this，只能 `static_cast<T&>(*this)` 取回具体流类型；本模板专为承载
  * 该 `T` 而设，使 `ostream_operators` 不必再携带 CRTP 自身参数。每个输出流同时派生
- * `out_flusher<自身>` 与 `ostream_operators<TChar>`。
+ * `out_tie_target<自身>` 与 `ostream_operators<TChar>`。
  * @tparam T 具体的输出流类型。
  * @endif
  * @lang{EN}
@@ -381,13 +381,13 @@ public:
  *
  * A virtual cannot use deducing-this, so it must `static_cast<T&>(*this)` to recover the concrete
  * stream type; this template exists solely to carry that `T`, letting `ostream_operators` drop
- * its CRTP self-parameter. Every output stream derives from both `out_flusher<Self>` and
+ * its CRTP self-parameter. Every output stream derives from both `out_tie_target<Self>` and
  * `ostream_operators<TChar>`.
  * @tparam T The concrete output stream type.
  * @endif
  */
 template <typename T>
-struct out_flusher : public abs_flusher
+struct out_tie_target : public tie_target
 {
     /**
      * @lang{ZH}
@@ -399,7 +399,7 @@ struct out_flusher : public abs_flusher
      *
      * 刷新失败时，异常在**本流**（tie 目标）上经 `handle_exception<true>()` 落地：置对应的失败
      * 位、把原始异常存进对应的 `m_exp_*_fail` 槽位，然后返回。发起方一位不动——理由见
-     * `abs_flusher::try_flush()` 的第二条 `@warning`。这里必须用忽略掩码的那个版本：掩码版会走到
+     * `tie_target::try_flush()` 的第二条 `@warning`。这里必须用忽略掩码的那个版本：掩码版会走到
      * `clear()` 的重抛分支，那里的 `exchange` 会把刚存进去的异常清空，结果恰恰对那些显式把该位
      * 放进 `exceptions()` 的使用者一个异常对象都不留。
      *
@@ -421,7 +421,7 @@ struct out_flusher : public abs_flusher
  * When the flush fails, the exception lands on *this* stream (the tie target) through
  * `handle_exception<true>()`: the matching failure bit is set, the original exception is stored
  * in the matching `m_exp_*_fail` slot, and the function returns. The initiator is left untouched
- * -- see the second `@warning` on `abs_flusher::try_flush()` for why. The mask-ignoring form is
+ * -- see the second `@warning` on `tie_target::try_flush()` for why. The mask-ignoring form is
  * required here: the mask-honoring one would reach `clear()`'s rethrow branch, which empties the
  * slot it just filled, leaving no exception object at all for exactly those users who put the bit
  * in `exceptions()`.
@@ -462,11 +462,11 @@ struct out_flusher : public abs_flusher
     }
 
     /**
-     * @lang{ZH} @brief 本流 tie 到的目标，即 `tie()` 的取值；见 `abs_flusher::tied_to()`。 @endif
+     * @lang{ZH} @brief 本流 tie 到的目标，即 `tie()` 的取值；见 `tie_target::tied_to()`。 @endif
      * @lang{EN} @brief The target this stream is tied to, i.e. what `tie()` returns; see
-     *           `abs_flusher::tied_to()`. @endif
+     *           `tie_target::tied_to()`. @endif
      */
-    abs_flusher* tied_to() const noexcept override
+    tie_target* tied_to() const noexcept override
     {
         return static_cast<const T&>(*this).tie();
     }

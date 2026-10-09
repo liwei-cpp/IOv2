@@ -86,14 +86,14 @@ TEST(OstreamDerive, ADerivedInserterChainsWithTheInheritedOnes)
 
 namespace
 {
-// A tie target that is a bare abs_flusher, not a stream_common_operators. Used to drive two
+// A tie target that is a bare tie_target, not a stream_common_operators. Used to drive two
 // otherwise-hard-to-reach branches:
 //   * ThrowingFlusher's flush fails. try_flush() is noexcept by contract, so the failure is
-//     absorbed by the target itself -- mirroring what out_flusher<T> does with
+//     absorbed by the target itself -- mirroring what out_tie_target<T> does with
 //     handle_exception<true>() -- and must never reach the initiating stream.
-//   * a bare abs_flusher makes tie()'s cycle-detection walk dynamic_cast to
+//   * a bare tie_target makes tie()'s cycle-detection walk dynamic_cast to
 //     stream_common_operators* -> null -> break (the non-stream node case).
-struct ThrowingFlusher : public IOv2::abs_flusher
+struct ThrowingFlusher : public IOv2::tie_target
 {
     int  flushed = 0;
     bool failed  = false;
@@ -105,17 +105,17 @@ struct ThrowingFlusher : public IOv2::abs_flusher
     }
 };
 
-struct QuietFlusher : public IOv2::abs_flusher
+struct QuietFlusher : public IOv2::tie_target
 {
     int flushed = 0;
     void try_flush() noexcept override { ++flushed; }
 };
 
 // The contract itself: a tie flush can never throw into the sentry.
-static_assert(noexcept(std::declval<IOv2::abs_flusher&>().try_flush()));
+static_assert(noexcept(std::declval<IOv2::tie_target&>().try_flush()));
 }
 
-// Tie an ostream to a bare abs_flusher and drive output. Two effects are checked:
+// Tie an ostream to a bare tie_target and drive output. Two effects are checked:
 //   * the sentry flushes the tied target before locking; when that flush fails, the failure
 //     stays on the target and the insertion still succeeds (ThrowingFlusher case).
 //   * tie() accepts a non-stream flusher node: its cycle-detection walk dynamic_casts the

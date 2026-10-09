@@ -245,12 +245,12 @@ TEST(IstreamWsChar, TheSentryFailsWhenTheLocaleHasNoCtypeFacet)
 
 namespace
 {
-// A bare abs_flusher tie target whose flush fails, to exercise the input sentry's pre-lock
+// A bare tie_target tie target whose flush fails, to exercise the input sentry's pre-lock
 // "flush the tied stream" step. try_flush() is noexcept by contract, so the failure is
-// absorbed here and recorded on the target itself -- mirroring what out_flusher<T> does with
+// absorbed here and recorded on the target itself -- mirroring what out_tie_target<T> does with
 // handle_exception<true>(). It must never reach the initiating stream, which would otherwise
 // have the target's failure misattributed to it.
-struct ThrowingTie : public abs_flusher
+struct ThrowingTie : public tie_target
 {
     int  flushed = 0;
     bool failed  = false;
@@ -264,7 +264,7 @@ struct ThrowingTie : public abs_flusher
 };
 
 // The contract itself: a tie flush can never throw into the sentry.
-static_assert(noexcept(std::declval<abs_flusher&>().try_flush()));
+static_assert(noexcept(std::declval<tie_target&>().try_flush()));
 }
 
 // An istream can have a tied stream; the input sentry flushes it before acquiring the lock.

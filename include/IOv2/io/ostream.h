@@ -9,7 +9,7 @@
  *
  * `ostream` 把一条 `ochannel`（其下依次是转换器管线与设备）与一个 `locale` 组合成带格式化的
  * 输出接口；对外接口大多来自 `ios_state`（状态位与异常掩码）、`ostream_operators`（输出操作）、
- * `out_flusher`（tie 刷新用的多态 `try_flush()`）与 `stream_common_operators`（`tell()` /
+ * `out_tie_target`（tie 刷新用的多态 `try_flush()`）与 `stream_common_operators`（`tell()` /
  * `attach()` / `detach()` / `locale()` 等）四个基类。三个操纵符都是空标签类型，逻辑写在
  * `io_traits<TChar, xxx_t>` 这个扩展点里，方向由**哪个成员存在**表达：只有 `swrite`，于是只能
  * 插入、不能提取。带参数的操纵符（`setw` / `setfill` / `put_money` 等）在
@@ -34,7 +34,7 @@
  * `ostream` combines an `ochannel` (below which sit the converter pipeline and the device) with
  * a `locale` into a formatted output interface; most of its interface comes from four bases --
  * `ios_state` (the state bits and the exception mask), `ostream_operators` (the output
- * operations), `out_flusher` (the polymorphic `try_flush()` used by tie) and
+ * operations), `out_tie_target` (the polymorphic `try_flush()` used by tie) and
  * `stream_common_operators` (`tell()` / `attach()` / `detach()` / `locale()` and friends). All
  * three manipulators are empty tag types whose logic lives in the `io_traits<TChar, xxx_t>`
  * extension point, with the direction expressed by **which member exists**: only `swrite`, so they
@@ -82,7 +82,7 @@ namespace IOv2
  * @brief 字符输出流：把一条 `ochannel` 与一个 locale 组合成带格式化的输出接口。
  *
  * 对外接口大多来自基类——`ios_state` 提供状态位与异常掩码，`ostream_operators` 提供输出操作，
- * `out_flusher` 携带 tie 刷新用的多态 `try_flush()`，`stream_common_operators` 提供 `tell()`/
+ * `out_tie_target` 携带 tie 刷新用的多态 `try_flush()`，`stream_common_operators` 提供 `tell()`/
  * `attach()`/`detach()`/`locale()` 等。本类自身只持有两个成员，且按**分层顺序**声明：
  * `m_channel` 在前、`m_locale` 在后。
  *
@@ -103,7 +103,7 @@ namespace IOv2
  *        interface.
  *
  * Most of the interface comes from the bases -- `ios_state` supplies the state bits and the
- * exception mask, `ostream_operators` the output operations, `out_flusher` the polymorphic
+ * exception mask, `ostream_operators` the output operations, `out_tie_target` the polymorphic
  * `try_flush()` used by tie, and `stream_common_operators` `tell()`/`attach()`/`detach()`/
  * `locale()` and friends. This class itself holds only two members, declared in **layer order**:
  * `m_channel` first, `m_locale` second.
@@ -126,7 +126,7 @@ namespace IOv2
 template <io_device TDevice, typename TChar>
     requires dev_cpt::support_put<TDevice>
 class ostream : public ios_state<TChar>
-              , public out_flusher<ostream<TDevice, TChar>>
+              , public out_tie_target<ostream<TDevice, TChar>>
               , public ostream_operators<TChar>
               , public stream_common_operators
 {
@@ -159,7 +159,7 @@ public:
     using out_iter_type = ochannel_iterator<ochannel<TDevice, TChar>>;
 
     friend out_sentry_type;
-    friend out_flusher<ostream<TDevice, TChar>>;
+    friend out_tie_target<ostream<TDevice, TChar>>;
     friend ostream_operators<TChar>;
     friend stream_common_operators;
 
@@ -333,7 +333,7 @@ private:
     ostream(const std::lock_guard<copyable_mutex<std::recursive_mutex>>&,
             const ostream& other)
         : ios_state<TChar>(other)
-        , out_flusher<ostream<TDevice, TChar>>(other)
+        , out_tie_target<ostream<TDevice, TChar>>(other)
         , ostream_operators<TChar>(other)
         , stream_common_operators(other)
         , m_channel(other.m_channel)
@@ -390,7 +390,7 @@ public:
         // own members; `m_channel` and `m_locale` belong to no base at all. Nothing is read
         // after being moved from -- clang-tidy just cannot see that the operands are disjoint.
         ios_state<TChar>::operator=(std::move(other));
-        out_flusher<ostream<TDevice, TChar>>::operator=(std::move(other));
+        out_tie_target<ostream<TDevice, TChar>>::operator=(std::move(other));
         ostream_operators<TChar>::operator=(std::move(other));
         stream_common_operators::operator=(std::move(other));
         m_channel = std::move(other.m_channel);
@@ -421,7 +421,7 @@ public:
      *       including how this compares with `std::ofstream`.
      * @endif
      */
-    // `override` because the `abs_flusher` base (reached through `out_flusher`) has a virtual
+    // `override` because the `tie_target` base (reached through `out_tie_target`) has a virtual
     // destructor, so this one is virtual whether or not it says so.
     ~ostream() override = default;
 

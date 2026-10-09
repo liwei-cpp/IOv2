@@ -139,9 +139,9 @@ TEST(Concur, TieInBothDirectionsNeverFormsACycle)
     ostream a(mem_device<char>{});
     ostream b(mem_device<char>{});
     ostream c(mem_device<char>{});
-    abs_flusher* pa = &a;
-    abs_flusher* pb = &b;
-    abs_flusher* pc = &c;
+    tie_target* pa = &a;
+    tie_target* pb = &b;
+    tie_target* pc = &c;
 
     spawn([&](int id)
     {
