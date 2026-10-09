@@ -140,8 +140,8 @@ struct basic_stream_common_operators
      * @note **不搬运也是正确性所必需的。** 若赋值把源的 tie 边搬进目标，就等于绕过 `tie()`
      *       写入了 `m_tie_stream`，而 `tie()` 的环检测（`check_tie`）是"图无环"这一
      *       不变式的唯一把关处。例如 `b.tie(&c); c.tie(&a); a = b;` 会闭合出环 `a→c→a`，
-     *       且全程没有任何一次 `tie()` 调用；此后任意一次 `tie()` 都会在持有进程级全局锁的
-     *       情况下永久自旋。
+     *       且全程没有任何一次 `tie()` 调用；此后凡是沿链能走到这个环的 `tie()` 都会被拒
+     *       （`check_tie` 以 Floyd 判圈发现它，`tie()` 报链上已有环）。
      * @note **移动为何还要清空源。** tie 边是驱动 flush 的功能性状态，与移动同样掏空的
      *       `m_channel`、`m_locale` 同类。若不清空，一个被移走的流仍会继续静默地刷新一个
      *       调用方以为早已解除的目标。
@@ -174,7 +174,9 @@ struct basic_stream_common_operators
  *       bypassing `tie()`, whose cycle check (`check_tie`) is the only place the
  *       "graph is acyclic" invariant is enforced. For instance
  *       `b.tie(&c); c.tie(&a); a = b;` closes the cycle `a→c→a` without a single `tie()`
- *       call, after which any `tie()` spins forever while holding a process-wide lock.
+ *       call, after which every `tie()` whose walk reaches that cycle is refused (`check_tie`
+ *       finds it with Floyd's cycle detection, and `tie()` reports that the chain already
+ *       contains one).
  * @note **Why a move also clears the source.** The tie edge is functional state that drives
  *       flushing, like `m_channel` and `m_locale`, which a move also empties. Without
  *       clearing, a moved-from stream would keep silently flushing a target the caller believed
@@ -717,7 +719,8 @@ struct basic_stream_common_operators
      *          悬空指针，导致未定义行为。此契约与标准库 `std::basic_ios::tie` 一致。
      * @warning **setter 的爆炸半径比 I/O 更大。** I/O 只经 `tie()->try_flush()` 碰自己的直接
      *          目标；而本 setter 下面那次环检测要从 `str` 起沿**整条**链向前走，每一步都读节点
-     *          的 vptr（`check_tie` 靠 `dynamic_cast` 跨转），于是链上任何一个已销毁的节点都会
+     *          的 vptr（`check_tie` 经虚函数 `tied_to()` 取出边，已销毁的节点上就是一次经垃圾
+     *          vptr 的间接调用），于是链上任何一个已销毁的节点都会
      *          被解引用——哪怕发起调用的这个流与它素不相识：`b.tie(&c); delete c; a.tie(&b);`
      *          崩在 `a.tie()` 上，而 `a` 从未碰过 `c`。且这次遍历**持有进程级全局锁
      *          `tie_graph_mutex()`**：若读到的不是干净的段错误而是垃圾（release 构建常见），
@@ -821,7 +824,8 @@ struct basic_stream_common_operators
      * @warning **The setter has a wider blast radius than I/O does.** I/O only touches its own
      *          direct target, through `tie()->try_flush()`; the cycle check below walks the
      *          **whole** chain forward from `str`, reading each node's vptr on the way
-     *          (`check_tie` cross-casts with `dynamic_cast`). Any destroyed node anywhere on
+     *          (`check_tie` takes each edge through the virtual `tied_to()`, which on a destroyed
+     *          node is an indirect call through a garbage vptr). Any destroyed node anywhere on
      *          that chain is therefore dereferenced -- even when the stream making the call has
      *          never met it: `b.tie(&c); delete c; a.tie(&b);` crashes inside `a.tie()`, and `a`
      *          never touched `c`. The walk also runs while **holding the process-wide

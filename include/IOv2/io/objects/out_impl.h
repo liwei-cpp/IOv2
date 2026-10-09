@@ -10,7 +10,7 @@
  * `stdout_api` 不由 `ostream` 派生，而是同样把一条 `ochannel`（其下依次是转换器管线与固定 fd
  * 的设备 `std_device<STDOUT_FILENO>` 或 `std_device<STDERR_FILENO>`）与一个 `locale` 组合起来，
  * 对外接口来自 `ios_state`（状态位与异常掩码）、`out_tie_target`（tie 刷新用的多态 `try_flush()`）、
- * `ostream_operators`（输出操作）与 `stream_common_operators`（`tell()` / `locale()` 等）四个
+ * `ostream_operators`（输出操作）与 `std_stream_common_operators`（`tell()` / `locale()` 等）四个
  * 基类。与 `ostream` 的差别都来自「设备是固定 fd 的进程级单例」：多了 `sync_with_stdio()` /
  * `synced_with_stdio()`、`reset()` 与（宽流）`code()` / `switch_code()`，换设备的 `detach()` /
  * `attach()` 则被 `= delete`。
@@ -86,7 +86,7 @@
  * or `std_device<STDERR_FILENO>`) with a `locale`, and takes its interface from four bases --
  * `ios_state` (the state bits and the exception mask), `out_tie_target` (the polymorphic
  * `try_flush()` used by tie), `ostream_operators` (the output operations) and
- * `stream_common_operators` (`tell()` / `locale()` and friends). Every difference from
+ * `std_stream_common_operators` (`tell()` / `locale()` and friends). Every difference from
  * `ostream` follows from the device being a fixed fd owned by a process-wide singleton: it
  * adds `sync_with_stdio()` / `synced_with_stdio()`, `reset()` and, on the wide streams, `code()` /
  * `switch_code()`, while `detach()` / `attach()`, which would replace the device, are `= delete`.
@@ -509,19 +509,21 @@ public:
 
     /**
      * @lang{ZH}
-     * `stream_common_operators` 的换设备接口在标准流上删除：本流的设备是固定的 fd 1 / fd 2，
-     * 取出去就再也装不回来，换进去等于给一个进程级单例改写底层目标。需要「在同一 fd 上重新
-     * 开始」请用 `reset()`（它走的是 iochannel 那一层的 `attach()`，装一个同 fd 的缺省设备）。
+     * 普通流（`stream_common_operators`）上公开的换设备接口在标准流上删除：本流的设备是
+     * 固定的 fd 1 / fd 2，取出去就再也装不回来，换进去等于给一个进程级单例改写底层目标。
+     * 需要「在同一 fd 上重新开始」请用 `reset()`（它走的是 iochannel 那一层的 `attach()`，
+     * 装一个同 fd 的缺省设备）。
      * 它们在 `std_stream_common_operators` 里是受保护的，
      * `cout.IOv2::std_stream_common_operators::detach()` 这样的限定名调用同样编译不过。
      * @endif
      *
      * @lang{EN}
-     * The device-replacing interface of `stream_common_operators` is deleted on the standard
-     * streams: this stream's device is the fixed fd 1 / fd 2, taking it out leaves no way to
-     * put it back, and putting another one in rewrites the target of a process-wide singleton.
-     * To start over on the same fd use `reset()`, which goes through the `attach()` one layer
-     * down, in the iochannel, with a default device on the same fd. Both are protected in
+     * The device-replacing interface that is public on the ordinary streams
+     * (`stream_common_operators`) is deleted on the standard streams: this stream's device is
+     * the fixed fd 1 / fd 2, taking it out leaves no way to put it back, and putting another
+     * one in rewrites the target of a process-wide singleton. To start over on the same fd use
+     * `reset()`, which goes through the `attach()` one layer down, in the iochannel, with a
+     * default device on the same fd. Both are protected in
      * `std_stream_common_operators`, so a qualified call such as
      * `cout.IOv2::std_stream_common_operators::detach()` does not compile either.
      * @endif
