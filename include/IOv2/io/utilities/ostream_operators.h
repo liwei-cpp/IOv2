@@ -275,6 +275,12 @@ concept is_out_sentry = is_out_sentry_impl<T>::value;
  *
  * 提供纯虚的 `try_flush()`，使得可通过基类指针以类型无关的方式刷新任意 tie 目标；输出流的
  * 实现由 CRTP 派生类 `out_tie_target<T>` 给出。
+ *
+ * @warning **用户不得派生本类。** 本类只供 `out_tie_target<T>` 实现（构造函数为 `protected`
+ *          只为此），tie 目标应当是本库的一条输出流；派生本类不对应任何合理的用法。它的两个
+ *          虚函数还各有调用方看不见的约束：`try_flush()` 在发起方持有自己的流锁时被调用，
+ *          `tied_to()` 在持有进程级 `tie_graph_mutex()` 时被调用。自定义实现若在其中阻塞地
+ *          取锁或调用 `tie()`，就会死锁，或对非递归锁重复加锁（未定义行为）。
  * @endif
  *
  * @lang{EN}
@@ -283,6 +289,15 @@ concept is_out_sentry = is_out_sentry_impl<T>::value;
  * Provides a pure virtual `try_flush()` so that any tie target can be flushed type-erased
  * through a base pointer; for output streams the implementation is given by the CRTP-derived
  * `out_tie_target<T>`.
+ *
+ * @warning **Users must not derive from this class.** It exists to be implemented by
+ *          `out_tie_target<T>` alone (that is all its constructors are `protected` for), and a
+ *          tie target should be one of this library's output streams; deriving from it serves no
+ *          reasonable use. Each of its two virtuals also carries a constraint the caller cannot
+ *          see: `try_flush()` is called while the initiating stream holds its own lock, and
+ *          `tied_to()` while the process-wide `tie_graph_mutex()` is held. A custom
+ *          implementation that takes a lock blockingly or calls `tie()` in either deadlocks, or
+ *          locks a non-recursive mutex twice (undefined behavior).
  * @endif
  */
 class tie_target
@@ -347,8 +362,9 @@ public:
      *
      * 供 `basic_stream_common_operators::check_tie` 沿链遍历。经虚函数而不是交叉转换取出边：
      * 普通流与标准流的公共基类是 `basic_stream_common_operators` 的两个不同实例化，
-     * `dynamic_cast` 到其中一个，链会在另一种流处断开，经过它的环就查不出来。缺省返回
-     * `nullptr`，故裸 `tie_target` 仍可作为 tie 目标。只做原子读，故为 `noexcept`。
+     * `dynamic_cast` 到其中一个，链会在另一种流处断开，经过它的环就查不出来。在持有进程级
+     * `tie_graph_mutex()` 时被调用；`out_tie_target` 的实现只做原子读，故为 `noexcept`。
+     * 缺省返回 `nullptr`，即不带出边的节点。
      * @endif
      *
      * @lang{EN}
@@ -359,8 +375,9 @@ public:
      * through a virtual rather than a cross-cast: the ordinary and the standard streams have two
      * different instantiations of `basic_stream_common_operators` as their common base, so a
      * `dynamic_cast` to one of them would end the chain at a stream of the other kind and a cycle
-     * through it would go unnoticed. The default returns `nullptr`, which keeps a bare
-     * `tie_target` usable as a tie target. Only an atomic load, hence `noexcept`.
+     * through it would go unnoticed. It is called while the process-wide `tie_graph_mutex()` is
+     * held; `out_tie_target`'s implementation is only an atomic load, hence `noexcept`. The
+     * default returns `nullptr`, a node with no outgoing edge.
      * @endif
      */
     [[nodiscard]] virtual tie_target* tied_to() const noexcept { return nullptr; }
@@ -434,7 +451,7 @@ struct out_tie_target : public tie_target
  *       sides (insertion and extraction respectively).
  * @endif
      */
-    void try_flush() noexcept override
+    void try_flush() noexcept final
     {
         constexpr int attempts = 3;
 
@@ -466,7 +483,7 @@ struct out_tie_target : public tie_target
      * @lang{EN} @brief The target this stream is tied to, i.e. what `tie()` returns; see
      *           `tie_target::tied_to()`. @endif
      */
-    [[nodiscard]] tie_target* tied_to() const noexcept override
+    [[nodiscard]] tie_target* tied_to() const noexcept final
     {
         return static_cast<const T&>(*this).tie();
     }
