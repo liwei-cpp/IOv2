@@ -36,7 +36,7 @@ namespace
         return T<IOv2::mem_device<char>, char>{IOv2::mem_device{""}, IOv2::locale<char>("C")};
     }
 
-    IOv2::abs_flusher* as_flusher(auto& s) { return static_cast<IOv2::abs_flusher*>(&s); }
+    IOv2::tie_target* as_tie_target(auto& s) { return static_cast<IOv2::tie_target*>(&s); }
 }
 
 // Every special member resets the destination's tie to null, and a move clears the source's
@@ -50,16 +50,16 @@ TEST(OstreamTie, CopyAndMoveDoNotCarryTheTieEdge)
         // copy construction
         {
             auto src = make<T>();
-            src.tie(as_flusher(target));
-            EXPECT_EQ(src.tie(), as_flusher(target));
+            src.tie(as_tie_target(target));
+            EXPECT_EQ(src.tie(), as_tie_target(target));
             auto dst = src;                              // NOLINT(performance-unnecessary-copy-initialization)
             EXPECT_EQ(dst.tie(), nullptr);
-            EXPECT_EQ(src.tie(), as_flusher(target));     // a copy leaves the source alone
+            EXPECT_EQ(src.tie(), as_tie_target(target));  // a copy leaves the source alone
         }
         // move construction: destination null, source cleared
         {
             auto src = make<T>();
-            src.tie(as_flusher(target));
+            src.tie(as_tie_target(target));
             auto dst = std::move(src);
             EXPECT_EQ(dst.tie(), nullptr);
             EXPECT_EQ(src.tie(), nullptr);                // NOLINT(bugprone-use-after-move)
@@ -68,18 +68,18 @@ TEST(OstreamTie, CopyAndMoveDoNotCarryTheTieEdge)
         {
             auto src = make<T>();
             auto dst = make<T>();
-            src.tie(as_flusher(target));
-            dst.tie(as_flusher(target));
+            src.tie(as_tie_target(target));
+            dst.tie(as_tie_target(target));
             dst = src;
             EXPECT_EQ(dst.tie(), nullptr);
-            EXPECT_EQ(src.tie(), as_flusher(target));
+            EXPECT_EQ(src.tie(), as_tie_target(target));
         }
         // move assignment: destination null, source cleared
         {
             auto src = make<T>();
             auto dst = make<T>();
-            src.tie(as_flusher(target));
-            dst.tie(as_flusher(target));
+            src.tie(as_tie_target(target));
+            dst.tie(as_tie_target(target));
             dst = std::move(src);
             EXPECT_EQ(dst.tie(), nullptr);
             EXPECT_EQ(src.tie(), nullptr);                // NOLINT(bugprone-use-after-move)
@@ -105,21 +105,21 @@ TEST(OstreamTie, AssignmentCannotSmuggleInACycle)
         auto c = make<T>();
         auto d = make<T>();
 
-        b.tie(as_flusher(c));      // b -> c
-        c.tie(as_flusher(a));      // c -> a
+        b.tie(as_tie_target(c));   // b -> c
+        c.tie(as_tie_target(a));   // c -> a
 
         a = b;                     // used to make a -> c, closing a -> c -> a
         EXPECT_EQ(a.tie(), nullptr);
 
-        d.tie(as_flusher(a));      // used to spin forever walking the cycle
-        EXPECT_EQ(d.tie(), as_flusher(a));
+        d.tie(as_tie_target(a));   // used to spin forever walking the cycle
+        EXPECT_EQ(d.tie(), as_tie_target(a));
 
         // Same story for move assignment.
         auto e = make<T>();
         auto f = make<T>();
         auto g = make<T>();
-        f.tie(as_flusher(g));
-        g.tie(as_flusher(e));
+        f.tie(as_tie_target(g));
+        g.tie(as_tie_target(e));
         e = std::move(f);
         EXPECT_EQ(e.tie(), nullptr);
 
@@ -145,34 +145,34 @@ TEST(OstreamTie, CycleRequestsAreRejectedAndCommitNothing)
         auto c = make<T>();
 
         // self-tie: a cycle of length 1. The default mask is empty, so nothing is thrown.
-        a.tie(as_flusher(a));
+        a.tie(as_tie_target(a));
         EXPECT_TRUE(a.rdstate() & IOv2::ios_defs::strfailbit);
         EXPECT_FALSE(static_cast<bool>(a));
         EXPECT_EQ(a.tie(), nullptr);
         a.clear();
 
         // a -> b -> c, then c -> a would close the loop
-        a.tie(as_flusher(b));
-        b.tie(as_flusher(c));
+        a.tie(as_tie_target(b));
+        b.tie(as_tie_target(c));
 
-        c.tie(as_flusher(a));
+        c.tie(as_tie_target(a));
         EXPECT_TRUE(c.rdstate() & IOv2::ios_defs::strfailbit);
         EXPECT_EQ(c.tie(), nullptr);      // the existing tie is left unchanged
         c.clear();
 
         // the legal chain is untouched
-        EXPECT_EQ(a.tie(), as_flusher(b));
-        EXPECT_EQ(b.tie(), as_flusher(c));
+        EXPECT_EQ(a.tie(), as_tie_target(b));
+        EXPECT_EQ(b.tie(), as_tie_target(c));
 
         // with strfailbit in the mask the rejection throws, and still commits nothing
         c.exceptions(IOv2::ios_defs::strfailbit);
-        EXPECT_THROW(c.tie(as_flusher(a)), IOv2::stream_error);
+        EXPECT_THROW(c.tie(as_tie_target(a)), IOv2::stream_error);
         EXPECT_EQ(c.tie(), nullptr);
         c.exceptions(IOv2::ios_defs::goodbit);
         c.clear();
 
         // a legal tie still works and returns the pointer stored before the call
-        EXPECT_EQ(a.tie(nullptr), as_flusher(b));
+        EXPECT_EQ(a.tie(nullptr), as_tie_target(b));
         EXPECT_EQ(a.tie(), nullptr);
         b.tie(nullptr);
     };
@@ -192,16 +192,16 @@ TEST(OstreamTie, SelfAssignmentKeepsTheTieEdge)
         auto target = make<IOv2::ostream>();
 
         auto a = make<T>();
-        a.tie(as_flusher(target));
+        a.tie(as_tie_target(target));
 
         // Aliased through a reference to keep -Wself-move / -Wself-assign-overloaded quiet.
         auto& alias = a;
 
         a = std::move(alias);
-        EXPECT_EQ(a.tie(), as_flusher(target));
+        EXPECT_EQ(a.tie(), as_tie_target(target));
 
         a = alias;
-        EXPECT_EQ(a.tie(), as_flusher(target));
+        EXPECT_EQ(a.tie(), as_tie_target(target));
 
         a.tie(nullptr);
     };
@@ -222,7 +222,7 @@ TEST(OstreamTie, AFailedTieFlushIsRecordedOnlyOnTheTarget)
     auto writer = make<IOv2::ostream>();
 
     target.exceptions(IOv2::ios_defs::devfailbit);
-    writer.tie(as_flusher(target));
+    writer.tie(as_tie_target(target));
     EXPECT_NO_THROW(writer.put('x'));
 
     EXPECT_TRUE(writer.good());
@@ -239,7 +239,7 @@ TEST(OstreamTie, ATieFlushDoesNotWaitForTheTargetsLock)
 {
     auto target = make<IOv2::ostream>();
     auto writer = make<IOv2::ostream>();
-    writer.tie(as_flusher(target));
+    writer.tie(as_tie_target(target));
 
     std::atomic<bool> locked{false};
     std::atomic<bool> release{false};

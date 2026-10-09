@@ -110,7 +110,7 @@ TEST(OstreamFlushWchar, ATieCycleIsRejectedWhenTheTieIsSet)
 
 // An explicit flush() whose device dflush() throws routes the error through the flusher's
 // own try/catch into handle_exception -> devfailbit. With no exception mask set it does not
-// throw. This drives the catch branch of out_flusher::flush() itself (distinct from the
+// throw. This drives the catch branch of out_tie_target::flush() itself (distinct from the
 // out_sentry destructor's unitbuf flush).
 TEST(OstreamFlushWchar, ADeviceThatRefusesToFlushIsReportedAsDevfailbit)
 {

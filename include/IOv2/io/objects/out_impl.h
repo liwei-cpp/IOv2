@@ -9,7 +9,7 @@
  *
  * `stdout_api` 不由 `ostream` 派生，而是同样把一条 `ochannel`（其下依次是转换器管线与固定 fd
  * 的设备 `std_device<STDOUT_FILENO>` 或 `std_device<STDERR_FILENO>`）与一个 `locale` 组合起来，
- * 对外接口来自 `ios_state`（状态位与异常掩码）、`out_flusher`（tie 刷新用的多态 `try_flush()`）、
+ * 对外接口来自 `ios_state`（状态位与异常掩码）、`out_tie_target`（tie 刷新用的多态 `try_flush()`）、
  * `ostream_operators`（输出操作）与 `stream_common_operators`（`tell()` / `locale()` 等）四个
  * 基类。与 `ostream` 的差别都来自「设备是固定 fd 的进程级单例」：多了 `sync_with_stdio()` /
  * `synced_with_stdio()`、`reset()` 与（宽流）`code()` / `switch_code()`，换设备的 `detach()` /
@@ -19,7 +19,7 @@
  * 不析构——与 `std::cout` 一样，退出阶段既有引用仍然有效。`cerr` / `wcerr` 构造时另外 `tie()` 到 `cout` / `wcout` 并置
  * `ios_defs::unitbuf`，三个 `char` 流与三个宽流共用 fd 1 / fd 2。
  *
- * @warning **退出时的刷新是「尽力而为」的**：钩子走 `out_flusher::try_flush()`，以
+ * @warning **退出时的刷新是「尽力而为」的**：钩子走 `out_tie_target::try_flush()`，以
  *          `try_to_lock` 至多试三次取本流的 `io_mutex()`，取不到就放弃，那一批已缓冲的字节
  *          丢掉。这是有意的取舍——若改成阻塞取锁，另一个线程持锁不放（在用户的
  *          `io_traits::swrite` 里等网络、等一个本该由正在退出的线程唤醒的条件变量，或
@@ -84,7 +84,7 @@
  * `stdout_api` does not derive from `ostream`; it combines, in the same way, an `ochannel`
  * (below which sit the converter pipeline and the fixed-fd device `std_device<STDOUT_FILENO>`
  * or `std_device<STDERR_FILENO>`) with a `locale`, and takes its interface from four bases --
- * `ios_state` (the state bits and the exception mask), `out_flusher` (the polymorphic
+ * `ios_state` (the state bits and the exception mask), `out_tie_target` (the polymorphic
  * `try_flush()` used by tie), `ostream_operators` (the output operations) and
  * `stream_common_operators` (`tell()` / `locale()` and friends). Every difference from
  * `ostream` follows from the device being a fixed fd owned by a process-wide singleton: it
@@ -98,7 +98,7 @@
  * streams share fd 1 / fd 2 pairwise.
  *
  * @warning **The flush at exit is best-effort.** The hook goes through
- *          `out_flusher::try_flush()`, which takes this stream's `io_mutex()` with
+ *          `out_tie_target::try_flush()`, which takes this stream's `io_mutex()` with
  *          `try_to_lock` for at most three attempts and gives up otherwise, dropping whatever
  *          was buffered. That is the deliberate trade-off: with a blocking lock, another
  *          thread holding it and not letting go -- parked inside a user's
@@ -204,7 +204,7 @@ template <typename T, io_device TDevice, typename TChar>
     requires (std::is_same_v<TDevice, std_device<STDOUT_FILENO>> ||
               std::is_same_v<TDevice, std_device<STDERR_FILENO>>)
 class stdout_api : public ios_state<TChar>
-                 , public out_flusher<T>
+                 , public out_tie_target<T>
                  , public ostream_operators<TChar>
                  , public std_stream_common_operators
 {
@@ -215,7 +215,7 @@ public:
     using out_iter_type = ochannel_iterator<ochannel<device_type, char_type>>;
 
     friend out_sentry_type;
-    friend out_flusher<T>;
+    friend out_tie_target<T>;
     friend ostream_operators<TChar>;
     friend std_stream_common_operators;
 

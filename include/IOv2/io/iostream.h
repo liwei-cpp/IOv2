@@ -8,7 +8,7 @@
  *
  * `iostream` 把一条 `iochannel`（其下依次是转换器管线与设备）与一个 `locale` 组合成带格式化的
  * 输入输出接口；对外接口大多来自 `ios_state`（状态位与异常掩码）、`istream_operators` 与
- * `ostream_operators`（输入与输出操作）、`out_flusher`（tie 刷新用的多态 `try_flush()`）
+ * `ostream_operators`（输入与输出操作）、`out_tie_target`（tie 刷新用的多态 `try_flush()`）
  * 与 `stream_common_operators`（`tell()` / `attach()` / `detach()` / `locale()` 等）几个基类。
  * 本文件只多出 `switch_to_put()` / `switch_to_get()` 这一对单向流没有的成员。
  *
@@ -33,10 +33,10 @@
  * `iostream` combines an `iochannel` (below which sit the converter pipeline and the device) with a
  * `locale` into a formatted input/output interface; most of its interface comes from its bases --
  * `ios_state` (the state bits and the exception mask), `istream_operators` and `ostream_operators`
- * (the input and output operations), `out_flusher` (the polymorphic `try_flush()` used by tie) and
- * `stream_common_operators` (`tell()` / `attach()` / `detach()` / `locale()` and friends). All this
- * file adds beyond that is the `switch_to_put()` / `switch_to_get()` pair, which a one-way stream
- * has no need for.
+ * (the input and output operations), `out_tie_target` (the polymorphic `try_flush()` used by tie)
+ * and `stream_common_operators` (`tell()` / `attach()` / `detach()` / `locale()` and friends). All
+ * this file adds beyond that is the `switch_to_put()` / `switch_to_get()` pair, which a one-way
+ * stream has no need for.
  *
  * @warning **Bidirectional does not mean freely alternating.** A direction switch needs the
  *          underlying converter's consent, and a converter may refuse based on its own state and
@@ -83,7 +83,7 @@ namespace IOv2
  * @brief 双向字符流：把一条 `iochannel` 与一个 locale 组合成带格式化的输入输出接口。
  *
  * 对外接口大多来自基类——`ios_state` 提供状态位与异常掩码，`istream_operators` 与
- * `ostream_operators` 分别提供输入与输出操作，`out_flusher` 携带 tie 刷新用的多态 `try_flush()`，
+ * `ostream_operators` 分别提供输入与输出操作，`out_tie_target` 携带 tie 刷新用的多态 `try_flush()`，
  * `stream_common_operators` 提供 `tell()`/`attach()`/`detach()`/`locale()` 等。本类自身只持有两个
  * 成员，且按**分层顺序**声明：`m_channel` 在前、`m_locale` 在后。
  *
@@ -99,7 +99,7 @@ namespace IOv2
  *          状态与位置拒绝——什么条件下拒绝是转换器的策略，见所用转换器的文档。因此
  *          `switch_to_put()` / `switch_to_get()` 会在一个健康的流上失败（置 `cvtfailbit`）。
  *
- * @warning `out_flusher` 这个基类同时意味着**本类可以充当 tie 目标**，而刷新目标要先把它切到
+ * @warning `out_tie_target` 这个基类同时意味着**本类可以充当 tie 目标**，而刷新目标要先把它切到
  *          输出方向。发起者是绑定方，于是一次与本流无关的输出就会在本流上触发换向：压回内容
  *          可能被丢弃，转换器拒绝时还会置本流的 `cvtfailbit`——只要拒绝的条件持续成立，
  *          **每一次**刷新都会重新置位。发起方一位不动、也拿不到异常。
@@ -117,7 +117,7 @@ namespace IOv2
  *
  * Most of the interface comes from the bases -- `ios_state` supplies the state bits and the
  * exception mask, `istream_operators` and `ostream_operators` the input and output operations,
- * `out_flusher` the polymorphic `try_flush()` used by tie, and `stream_common_operators`
+ * `out_tie_target` the polymorphic `try_flush()` used by tie, and `stream_common_operators`
  * `tell()`/`attach()`/`detach()`/`locale()` and friends. This class itself holds only two members,
  * declared in **layer order**: `m_channel` first, `m_locale` second.
  *
@@ -138,14 +138,14 @@ namespace IOv2
  *          `switch_to_put()` / `switch_to_get()` can therefore fail on a perfectly healthy stream
  *          (setting `cvtfailbit`).
  *
- * @warning The `out_flusher` base also means **instances of this class can serve as tie targets**,
- *          and flushing a target first switches it to the put direction. The tied stream initiates
- *          that, so an output having nothing to do with this stream triggers a direction switch on
- *          it: pushed-back content may be discarded, and if the converter refuses, this stream's
- *          `cvtfailbit` is set -- and **every** flush sets it again for as long as the refusal
- *          holds. The initiator is untouched and receives no exception. The bar is lower than it
- *          looks: any successful extraction leaves a character in the read buffer from peeking at
- *          the delimiter, so no explicit `peek()`/`putback()` is needed.
+ * @warning The `out_tie_target` base also means **instances of this class can serve as tie
+ *          targets**, and flushing a target first switches it to the put direction. The tied stream
+ *          initiates that, so an output having nothing to do with this stream triggers a direction
+ *          switch on it: pushed-back content may be discarded, and if the converter refuses, this
+ *          stream's `cvtfailbit` is set -- and **every** flush sets it again for as long as the
+ *          refusal holds. The initiator is untouched and receives no exception. The bar is lower
+ *          than it looks: any successful extraction leaves a character in the read buffer from
+ *          peeking at the delimiter, so no explicit `peek()`/`putback()` is needed.
  *          See `switch_to_put()` and `stream_common_operators::tie()`.
  *
  * @tparam TDevice The underlying device type; must satisfy `io_device` and support both reading
@@ -157,7 +157,7 @@ template <io_device TDevice, typename TChar>
     requires (dev_cpt::support_get<TDevice> && dev_cpt::support_put<TDevice>)
 class iostream : public ios_state<TChar>
                , public istream_operators<TChar>
-               , public out_flusher<iostream<TDevice, TChar>>
+               , public out_tie_target<iostream<TDevice, TChar>>
                , public ostream_operators<TChar>
                , public stream_common_operators
 {
@@ -208,7 +208,7 @@ public:
     friend in_sentry_type;
     friend out_sentry_type;
     friend istream_operators<TChar>;
-    friend out_flusher<iostream<TDevice, TChar>>;
+    friend out_tie_target<iostream<TDevice, TChar>>;
     friend ostream_operators<TChar>;
     friend stream_common_operators;
 
@@ -383,7 +383,7 @@ private:
              const iostream& other)
         : ios_state<TChar>(other)
         , istream_operators<TChar>(other)
-        , out_flusher<iostream<TDevice, TChar>>(other)
+        , out_tie_target<iostream<TDevice, TChar>>(other)
         , ostream_operators<TChar>(other)
         , stream_common_operators(other)
         , m_channel(other.m_channel)
@@ -426,7 +426,7 @@ public:
         // after being moved from -- clang-tidy just cannot see that the operands are disjoint.
         ios_state<TChar>::operator=(std::move(other));
         istream_operators<TChar>::operator=(std::move(other));
-        out_flusher<iostream<TDevice, TChar>>::operator=(std::move(other));
+        out_tie_target<iostream<TDevice, TChar>>::operator=(std::move(other));
         ostream_operators<TChar>::operator=(std::move(other));
         stream_common_operators::operator=(std::move(other));
         m_channel = std::move(other.m_channel);
@@ -451,7 +451,7 @@ public:
      *       `@warning` on `ostream_operators::flush`.
      * @endif
      */
-    // `override` because the `abs_flusher` base (reached through `out_flusher`) has a virtual
+    // `override` because the `tie_target` base (reached through `out_tie_target`) has a virtual
     // destructor, so this one is virtual whether or not it says so.
     ~iostream() override = default;
 
@@ -530,7 +530,7 @@ public:
      *          需要保留就在切向之前消费掉。
      *          直接调用时异常由本流的 `handle_exception` 转成 `cvtfailbit`；经 tie 刷新走到
      *          这里时同样只置**本流**的位、原始异常存进本流的 `m_exp_cvt_fail`，发起方一位不动、
-     *          也拿不到异常（见 `abs_flusher::try_flush()`）。只要拒绝的条件持续成立，
+     *          也拿不到异常（见 `tie_target::try_flush()`）。只要拒绝的条件持续成立，
      *          `clear()` 之后绑定方再写一次就会再次置位。
      * @return 流自身的引用。
      * @endif
@@ -571,7 +571,7 @@ public:
      *          `handle_exception`; reached through a tie flush it likewise sets the bit on **this**
      *          stream only and stores the original exception in this stream's `m_exp_cvt_fail`,
      *          leaving the initiator untouched and without an exception (see
-     *          `abs_flusher::try_flush()`). For as long as the refusal holds, the next write by the
+     *          `tie_target::try_flush()`). For as long as the refusal holds, the next write by the
      *          tied stream sets the bit again after a `clear()`.
      * @return A reference to the stream itself.
      * @endif

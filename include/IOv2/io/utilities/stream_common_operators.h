@@ -744,7 +744,7 @@ struct basic_stream_common_operators
      * @note 设置前会沿目标流 `str` 的 tie 链向前遍历：若该链会回到本流（即形成环，自绑定是
      *       长度为 1 的环），则**本次设置不生效、本流原绑定保持不变**，从而在设置时杜绝环。这
      *       满足了 `std::basic_ios::tie` “不得成环”的前置条件，而非像标准那样把成环留作未定义
-     *       行为。仅当本流本身可作为 tie 目标（即派生自 `abs_flusher`）时才会遍历；纯输入流不
+     *       行为。仅当本流本身可作为 tie 目标（即派生自 `tie_target`）时才会遍历；纯输入流不
      *       可能被 tie，也就不可能出现在环中。
      * @note **被拒时的报错方式与库内其余操作一致**：经 `handle_exception` 置 `strfailbit`，仅
      *       当该位在异常掩码中时才抛出 `stream_error`；默认掩码为空，故默认不抛。因此本函数的
@@ -862,7 +862,7 @@ struct basic_stream_common_operators
      *       stream's existing tie is left unchanged**, so cycles are rejected at set time.
      *       This satisfies the no-cycle precondition of `std::basic_ios::tie` rather than
      *       leaving a cycle as undefined behavior as the standard does. The walk runs only
-     *       when this stream can itself be a tie target (i.e. derives from `abs_flusher`);
+     *       when this stream can itself be a tie target (i.e. derives from `tie_target`);
      *       a pure input stream can never be tied to, so it can never appear in a cycle.
      * @note **A rejection is reported the same way as every other failure in this library**:
      *       through `handle_exception`, which sets `strfailbit` and throws a `stream_error`
@@ -881,16 +881,16 @@ struct basic_stream_common_operators
      * @endif
      */
     template <typename TSelf>
-    abs_flusher* tie(this TSelf& self, abs_flusher* str)
+    tie_target* tie(this TSelf& self, tie_target* str)
     {
-        abs_flusher* res = nullptr;
+        tie_target* res = nullptr;
         bool ok = true;
 
         {
             std::lock_guard graph_lock(tie_graph_mutex());
             res = self.m_tie_stream.load();
-            if constexpr (std::derived_from<TSelf, abs_flusher>)
-                ok = check_tie(static_cast<const abs_flusher*>(&self), str);
+            if constexpr (std::derived_from<TSelf, tie_target>)
+                ok = check_tie(static_cast<const tie_target*>(&self), str);
             if (ok)
                 self.m_tie_stream.store(str);
         }
@@ -918,7 +918,7 @@ struct basic_stream_common_operators
      * @return The currently tied output stream; `nullptr` if none.
      * @endif
      */
-    abs_flusher* tie(this const auto& self)
+    tie_target* tie(this const auto& self)
     {
         return self.m_tie_stream.load();
     }
@@ -1005,13 +1005,13 @@ private:
      *       结果是一个能定位的错误，而不是静默死锁。两种失败都归并为返回 `false`，由 `tie()`
      *       给出一条同时提及二者的诊断消息。
      * @note 用 Floyd 而不是"记录已访问节点"，是因为后者要分配内存，而这里持有全局锁。
-     * @note 出边经虚函数 `abs_flusher::tied_to()` 取得，不做交叉转换：普通流与标准流的公共
+     * @note 出边经虚函数 `tie_target::tied_to()` 取得，不做交叉转换：普通流与标准流的公共
      *       基类是本模板的两个不同实例化，`dynamic_cast` 到其中一个会在另一种流处得 `nullptr`。
      * @note 本函数只做虚调用与原子读，故为 `noexcept`：`tie()` 持 `tie_graph_mutex()`
      *       期间不会有任何抛出，报错一律在放锁之后进行。
-     * @param self 发起 `tie()` 的流（作为 `abs_flusher`）。
+     * @param self 发起 `tie()` 的流（作为 `tie_target`）。
      * @param str 起点，即待设置的 tie 目标；为 `nullptr`、或指向一个不带出边的裸
-     *            `abs_flusher` 时，链长为零，本函数直接返回 `true`。
+     *            `tie_target` 时，链长为零，本函数直接返回 `true`。
      * @return `true` 表示可以安全设置；`false` 表示链会回到 `self`（本次设置会成环），或链上
      *         已存在其它环。
      * @endif
@@ -1034,27 +1034,27 @@ private:
      *       `false`, and `tie()` reports one diagnostic that names both possibilities.
      * @note Floyd is used rather than "remember every visited node", which would allocate while a
      *       process-wide lock is held.
-     * @note The outgoing edge comes from the virtual `abs_flusher::tied_to()`, not from a
+     * @note The outgoing edge comes from the virtual `tie_target::tied_to()`, not from a
      *       cross-cast: the ordinary and the standard streams have two different instantiations
      *       of this template as their common base, and a `dynamic_cast` to one of them yields
      *       `nullptr` on a stream of the other kind.
      * @note This function only does virtual calls and atomic loads, hence `noexcept`: nothing
      *       throws while `tie()` holds `tie_graph_mutex()`; reporting always happens after the
      *       lock is released.
-     * @param self The stream calling `tie()`, as an `abs_flusher`.
+     * @param self The stream calling `tie()`, as a `tie_target`.
      * @param str The starting node, i.e. the tie target being set. When it is `nullptr`, or a
-     *            bare `abs_flusher` that carries no outgoing edge, the chain has length zero and
+     *            bare `tie_target` that carries no outgoing edge, the chain has length zero and
      *            this function returns `true` immediately.
      * @return `true` if the tie is safe to set; `false` if the chain leads back to `self` (this
      *         set would form a cycle) or already contains another cycle.
      * @endif
      */
-    static bool check_tie(const abs_flusher* self, const abs_flusher* str) noexcept
+    static bool check_tie(const tie_target* self, const tie_target* str) noexcept
     {
-        // A bare abs_flusher has no outgoing edge: tied_to() is nullptr and the chain ends,
+        // A bare tie_target has no outgoing edge: tied_to() is nullptr and the chain ends,
         // which is what keeps a plain flusher usable as a tie target.
-        const abs_flusher* slow = str;
-        const abs_flusher* fast = slow;
+        const tie_target* slow = str;
+        const tie_target* fast = slow;
 
         while (slow != nullptr)
         {
@@ -1097,7 +1097,7 @@ private:
      *          pointer value straight over, making `a = b` an unchecked `tie()`.
      * @endif
      */
-    copyable_atomic<abs_flusher*> m_tie_stream{nullptr};
+    copyable_atomic<tie_target*> m_tie_stream{nullptr};
 };
 
 /// @lang{ZH} 普通流（`istream` / `ostream` / `iostream`）的公共操作基类：换设备与调整行为公开。 @endif
