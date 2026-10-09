@@ -68,6 +68,9 @@
 #if defined(__unix__) || defined(__APPLE__)
 #include <dlfcn.h>
 #endif
+#if defined(__GLIBC__)
+#include <link.h>
+#endif
 
 namespace IOv2
 {
@@ -215,9 +218,24 @@ IOV2_API void copyable_mutex_watch_fork() noexcept
 IOV2_API void pin_module_of(const void* addr) noexcept
 {
     ::Dl_info info;
+#if defined(__GLIBC__)
+    // glibc's dladdr names the main program by argv[0], which the caller of exec chose:
+    // a dlopen of it searches, opens and reads that path (a FIFO blocks before main).
+    // The link_map has the name the loader matches; the main program's is empty, and it
+    // cannot be unloaded anyway.
+    ::link_map* map = nullptr;
+    if (::dladdr1(addr, &info, reinterpret_cast<void**>(&map), RTLD_DL_LINKMAP) == 0
+        || map == nullptr || map->l_name == nullptr || map->l_name[0] == '\0')
+        return;
+    const char* name = map->l_name;
+#else
     if (::dladdr(addr, &info) == 0 || info.dli_fname == nullptr)
         return;
-    [[maybe_unused]] void* handle = ::dlopen(info.dli_fname, RTLD_LAZY | RTLD_NOLOAD | RTLD_NODELETE);
+    const char* name = info.dli_fname;
+#endif
+    // A failure leaves an error pending for the program's next dlerror(); drop it.
+    if (::dlopen(name, RTLD_LAZY | RTLD_NOLOAD | RTLD_NODELETE) == nullptr)
+        ::dlerror();
 }
 #endif
 }
