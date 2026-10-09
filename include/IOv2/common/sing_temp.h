@@ -15,6 +15,7 @@
 #include <IOv2/common/iov2_export.h>
 
 #include <array>
+#include <atomic>
 #include <cstddef>
 #include <cstdlib>
 #include <type_traits>
@@ -26,14 +27,10 @@ namespace IOv2
  * 基于 CRTP（奇异递归模板模式）的单例模板基类。
  *
  * 此类设计用于在静态初始化期间（main() 之前）创建单例对象。
- * 在头文件中定义唯一的 inline init 对象，确保单例在整个程序中只被构造一次；
+ * init 对象按引用计数工作（见 `init`），确保单例在整个程序中只被构造一次；
  * 进程退出时对单例做什么由派生类在构造时登记的退出钩子决定（见 `exit_hook`）。
  *
  * @tparam T 派生类类型（CRTP 模式）
- *
- * @note 此实现假设唯一的 inline init 对象在 main() 之前的静态初始化期间创建。
- *       静态初始化是单线程的；由于全程序只有一个 inline init 对象，构造发生一次、
- *       退出逻辑执行一次，因此不需要引用计数或原子操作。
  *
  * @par 示例
  * @code
@@ -77,18 +74,12 @@ namespace IOv2
  * CRTP (Curiously Recurring Template Pattern) based singleton template base class.
  *
  * This class is designed for creating singleton objects during static initialization
- * (before main()). A single inline init object defined in the header ensures the
+ * (before main()). Init objects are reference-counted (see `init`), which ensures the
  * singleton is constructed exactly once across the whole program; what happens to it
  * at process exit is decided by the exit hook the derived class registers at
  * construction (see `exit_hook`).
  *
  * @tparam T The derived class type (CRTP pattern)
- *
- * @note This implementation assumes the single inline init object is created during
- *       static initialization before main(). Static initialization is single-threaded,
- *       and because there is exactly one inline init object program-wide, construction
- *       happens once and the exit logic runs once, so no reference counting or atomics
- *       are needed.
  *
  * @par Example
  * @code
@@ -136,7 +127,7 @@ public:
      * @lang{ZH}
      * @brief 退出钩子的类型：以单例指针调用、不抛出的函数指针。
      *
-     * 派生类通过 `sing_temp(exit_hook)` 构造函数登记它，唯一的 init 对象析构时以
+     * 派生类通过 `sing_temp(exit_hook)` 构造函数登记它，最后一个 init 对象析构时以
      * `T*` 调用一次；对单例做什么——析构、刷新、放着不管——由钩子自己决定。未登记
      * （默认构造 `sing_temp`）时 init 对象析构单例（`~T()`）。
      * 钩子不析构单例时，单例的存储（静态缓冲）与其持有的堆内存保持可达、由操作系统在
@@ -153,7 +144,7 @@ public:
      * singleton pointer.
      *
      * The derived class registers it through the `sing_temp(exit_hook)` constructor;
-     * it is called once with a `T*` when the single init object is destroyed, and what
+     * it is called with a `T*` when the last init object is destroyed, and what
      * it does to the singleton -- destroy it, flush it, leave it alone -- is up to the
      * hook. Without a hook (default-constructed `sing_temp`) the init object destroys
      * the singleton (`~T()`). When the hook does
@@ -174,12 +165,19 @@ public:
      * @lang{ZH}
      * 用于管理单例生命周期的初始化器类。
      *
-     * 在头文件中声明唯一的 inline init 对象。因为 inline 变量全程序只有一个
-     * 实体，所以其构造函数构造单例、析构函数执行退出逻辑，各发生一次，无需引用计数。
+     * 按引用计数工作，与 `std::ios_base::Init` 相同：第一个构造的 init 对象构造单例，
+     * 最后一个析构的 init 对象执行退出逻辑，其余的只增减计数。惯用法仍是在头文件里定义
+     * 一个 inline init 对象；它先于包含该头文件的翻译单元里其后的静态对象初始化、晚于它们
+     * 析构，因此用户另外构造的 init 对象（`static`、块作用域皆可）都落在它的生命期之内，
+     * 不会重建或提前收尾正在使用的单例。退出钩子没有析构单例时，计数归零之后再来的 init
+     * 对象也不会在它身上重新构造一次。
      *
-     * @warning 必须用 `inline` 声明 init 对象（而非 `static`）。`static` 会在每个
-     *          翻译单元生成一份 init，导致单例被重复构造、退出逻辑被重复执行，
-     *          属于未定义行为。
+     * @warning 共享库模式下，各模块的 `sing_temp<T>` 静态量（存储、计数）是该模块私有的。
+     *          本库的标准流与 `ori_facet_buf` 只在 `libiov2.so` 里构造；消费者模块里构造
+     *          它们的 init 对象会在本模块另造一份单例，`get()` 拿到的不是全局那一个。共享
+     *          模式下不要自行构造这些类型的 init 对象。
+     * @warning 计数从 0 起、真正构造单例的那一次假定没有并发：惯用的 inline init 对象在
+     *          静态初始化期间完成它。
      * @warning 如果派生类定义了在构造期间使用的静态成员，它们必须在 init 对象
      *          之前初始化。使用 `inline static` 可以确保这一点。
      * @endif
@@ -187,14 +185,25 @@ public:
      * @lang{EN}
      * Initializer class for managing singleton lifetime.
      *
-     * Declare exactly one inline init object in the header. Because an inline
-     * variable is a single entity across the whole program, its constructor
-     * constructs the singleton and its destructor runs the exit logic -- each
-     * exactly once -- so no reference counting is needed.
+     * Reference-counted, like `std::ios_base::Init`: the first init object constructed
+     * constructs the singleton, the last one destroyed runs the exit logic, and the rest
+     * only move the count. The idiom is still one inline init object defined in the
+     * header; it is initialized before, and destroyed after, the statics that follow it in
+     * any translation unit including that header, so an init object a user constructs on
+     * top (`static` or at block scope alike) lies within its lifetime and neither rebuilds
+     * nor winds up the singleton in use. When the exit hook left the singleton alive, an
+     * init object that comes after the count fell to zero does not construct it again over
+     * itself either.
      *
-     * @warning The init object MUST be declared `inline`, not `static`. A `static`
-     *          init produces one object per translation unit, which would construct
-     *          the singleton and run the exit logic multiple times (undefined behavior).
+     * @warning In shared-library mode each module has its own `sing_temp<T>` statics
+     *          (storage and count). This library's standard streams and `ori_facet_buf` are
+     *          constructed in `libiov2.so` only; constructing their init object in a
+     *          consumer module builds a second singleton in that module, and `get()` returns
+     *          that one, not the global one. Do not construct init objects of these types in
+     *          shared mode.
+     * @warning The construction that starts the count from zero, the one that builds the
+     *          singleton, is assumed not to race: the idiomatic inline init object does it
+     *          during static initialization.
      * @warning If the derived class defines static members used during construction,
      *          they must be initialized BEFORE the init object. Use `inline static`
      *          to ensure this.
@@ -207,8 +216,10 @@ public:
             static_assert(std::is_class_v<T>, "sing_temp: T must be a class type");
             static_assert(!std::is_abstract_v<T>, "sing_temp: T cannot be abstract");
 
-            // A single inline init object exists program-wide, so this runs exactly
-            // once -- no reference count is needed to guard against re-entry.
+            // Only the first init constructs. A singleton whose exit hook left it alive
+            // is not built again over itself when an init comes after the count fell to 0.
+            if (count().fetch_add(1) != 0 || sing_temp::instance() != nullptr)
+                return;
             try {
                 // NOLINTNEXTLINE(cppcoreguidelines-owning-memory)
                 sing_temp::instance() = ::new (sing_temp::storage()) T();
@@ -222,8 +233,10 @@ public:
 
         ~init()
         {
-            // Mirror of the constructor: runs exactly once. A registered hook decides
-            // what happens to the singleton; without one it is destroyed.
+            // Only the last init runs the exit logic. A registered hook decides what
+            // happens to the singleton; without one it is destroyed.
+            if (count().fetch_sub(1) != 1)
+                return;
             if (sing_temp::s_exit_hook != nullptr) {
                 sing_temp::s_exit_hook(sing_temp::instance());
             } else {
@@ -262,6 +275,15 @@ public:
         init& operator=(const init&) = delete;
         init(init&&) = delete;
         init& operator=(init&&) = delete;
+
+    private:
+        // How many init objects are alive. Constant-initialized, so it is ready before
+        // any init runs; atomic, since an init may come and go on any thread after main.
+        [[nodiscard]] static std::atomic<std::size_t>& count() noexcept
+        {
+            static constinit std::atomic<std::size_t> n{0};
+            return n;
+        }
     };
 
 private:

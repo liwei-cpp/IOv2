@@ -559,6 +559,45 @@ TEST(IoObjectsChar, SynchronizedGetAndIgnoreReadNoFurtherThanTheyConsume)
     EXPECT_TRUE(failed);
 }
 
+// cout_t::init is public, and constructing one the way std::ios_base::Init is used rebuilt
+// the live cout in place: the bytes it had buffered vanished, its sync_with_stdio(false)
+// was reset, what it owned leaked, and on going away the extra init ran the exit hook.
+// Reference-counted, it is now a no-op. Shared mode is another matter: there the extra
+// init builds a separate stream in this module, which objects.h says not to do.
+TEST(IoObjectsChar, AnotherCoutInitLeavesTheLiveCoutAlone)
+{
+#if defined(IOV2_SHARED)
+    GTEST_SKIP() << "an init in a consumer module builds a separate stream";
+#else
+    // Checked after the guard is gone: while it redirects stdout, a failure's message
+    // would land in the captured file.
+    bool same_stream = false;
+    bool synced_after = true;
+    std::string while_buffered, at_the_end;
+    {
+        oguard<true> out;
+        IOv2::cout.reset();
+        const bool sync = IOv2::cout.sync_with_stdio(false);
+        IOv2::cout << "buffered-";
+        {
+            IOv2::cout_t::init again;
+            same_stream = &again.get() == &IOv2::cout;
+        }
+        synced_after = IOv2::cout.synced_with_stdio();
+        while_buffered = out.contents();           // still in cout's own buffer
+
+        IOv2::cout << "end";
+        IOv2::cout.sync_with_stdio(true);
+        at_the_end = out.contents();
+        IOv2::cout.sync_with_stdio(sync);
+    }
+    EXPECT_TRUE(same_stream);
+    EXPECT_FALSE(synced_after);
+    EXPECT_EQ(while_buffered, "");
+    EXPECT_EQ(at_the_end, "buffered-end");
+#endif
+}
+
 // getline is the exception, by necessity: with its buffer full it has to look at the next
 // character to know whether it is the delimiter (consumed, success) or not (overflow), and
 // with room for no character a delimiter is still an empty line it consumes.
