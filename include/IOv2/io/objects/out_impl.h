@@ -335,8 +335,7 @@ public:
         // bytes buffered before the call being in stdio's hands. The hand-over runs even
         // when already synchronized: a failed write leaves bytes behind in that mode too.
         std::lock_guard guard(this->io_mutex());
-        const bool old_sync_state = m_sync_with_stdio.exchange(true);
-
+        std::exception_ptr hand_over_error;
         try
         {
             // The sentry's operation, not the stream-level flush(): no fflush of bytes
@@ -347,8 +346,14 @@ public:
         }
         catch (...)
         {
-            this->handle_exception(std::current_exception());
+            hand_over_error = std::current_exception();
         }
+
+        // Only now true: synced_with_stdio() reads without the lock, and a thread that sees
+        // true may printf at once. Reported after the flip, which an armed mask would skip.
+        const bool old_sync_state = m_sync_with_stdio.exchange(true);
+        if (hand_over_error)
+            this->handle_exception(hand_over_error);
         return old_sync_state;
     }
 
@@ -359,6 +364,9 @@ public:
      * 纯读，不切换任何东西——`sync_with_stdio()` 不是 getter，它的无参形式等于
      * `sync_with_stdio(true)`。
      *
+     * 不取锁。读到 `true` 时，此前非同步模式下缓冲的字节已交给 stdio：`sync_with_stdio(true)`
+     * 先搬运、后置位，故另一线程据此直接调用 C stdio 函数，输出顺序不会颠倒。
+     *
      * @return 当前的同步状态。
      * @endif
      *
@@ -367,6 +375,10 @@ public:
      *
      * A pure read that switches nothing -- `sync_with_stdio()` is not a getter; with no
      * argument it means `sync_with_stdio(true)`.
+     *
+     * Takes no lock. A `true` means the bytes buffered while unsynchronized are already in
+     * stdio's hands: `sync_with_stdio(true)` hands them over first and sets the flag after,
+     * so another thread that goes straight to C stdio on seeing it does not get ahead of them.
      *
      * @return The current synchronization state.
      * @endif
