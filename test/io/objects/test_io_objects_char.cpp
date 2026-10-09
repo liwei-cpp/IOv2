@@ -14,6 +14,7 @@
  * The objects also have to survive sync_with_stdio: it changes how they reach
  * the C streams, not which objects they are, so their addresses must not move.
  */
+#include <IOv2/device/mem_device.h>
 #include <IOv2/device/std_device.h>
 #include <IOv2/io/io_base.h>
 #include <IOv2/io/objects/in_impl.h>
@@ -72,6 +73,25 @@ namespace
     static_assert(neither_copyable_nor_movable<IOv2::stdin_api<IOv2::cin_t, IOv2::std_device<STDIN_FILENO>, char>>);
 
     static_assert(std::is_final_v<IOv2::stdin_sync>);
+
+    // In std_stream_common_operators detach() and adjust() are protected, so even a qualified
+    // call cannot reach them on a standard stream; on an ordinary stream they stay public. The
+    // standard streams still offer adjust() of their own (cin's catches stdin_sync first).
+    template <typename S, typename Base>
+    concept base_detach_reachable = requires (S& s) { s.Base::detach(); };
+    template <typename S, typename Base>
+    concept base_adjust_reachable = requires (S& s, const IOv2::cvt_behavior& b) { s.Base::adjust(b); };
+    template <typename S>
+    concept own_adjust_callable = requires (S& s, const IOv2::cvt_behavior& b) { s.adjust(b); };
+
+    using ostream_t = IOv2::ostream<IOv2::mem_device<char>, char>;
+    static_assert(base_detach_reachable<ostream_t, IOv2::stream_common_operators>);
+    static_assert(base_adjust_reachable<ostream_t, IOv2::stream_common_operators>);
+    static_assert(!base_detach_reachable<IOv2::cout_t, IOv2::std_stream_common_operators>);
+    static_assert(!base_detach_reachable<IOv2::cin_t, IOv2::std_stream_common_operators>);
+    static_assert(!base_adjust_reachable<IOv2::cout_t, IOv2::std_stream_common_operators>);
+    static_assert(!base_adjust_reachable<IOv2::cin_t, IOv2::std_stream_common_operators>);
+    static_assert(own_adjust_callable<IOv2::cout_t> && own_adjust_callable<IOv2::cin_t>);
 
     // Writes '1', switches cout back to synchronized, printf()s, then writes '2'
     // -- all from inside one insertion, with that insertion's sentry alive.
@@ -466,10 +486,6 @@ TEST(IoObjectsChar, AdjustingWithStdinSyncIsSyncWithStdio)
     EXPECT_FALSE(IOv2::cin.synced_with_stdio());
     EXPECT_FALSE(IOv2::cin.sync_with_stdio(true)); // a real switch back
 
-    IOv2::cin.stream_common_operators::adjust(IOv2::stdin_sync{false});
-    EXPECT_FALSE(IOv2::cin.synced_with_stdio());
-    EXPECT_FALSE(IOv2::cin.sync_with_stdio(true));
-
     char buf[5] = {};
     IOv2::cin.read(buf, 5);
     EXPECT_EQ(std::string(buf, 5), "12345");
@@ -482,6 +498,23 @@ TEST(IoObjectsChar, AdjustingWithStdinSyncIsSyncWithStdio)
     ::close(saved_stdin);
     ::close(pipefds[0]);
     IOv2::cin.reset();
+}
+
+// tie()'s cycle check walks through a standard stream too. os and cout have different
+// instantiations of basic_stream_common_operators as their base, so a walk that cross-cast
+// each node to one of them stopped at the other kind and accepted os -> cout -> os.
+TEST(IoObjectsChar, ATieCycleThroughAStandardStreamIsRejected)
+{
+    IOv2::ostream os(IOv2::mem_device{""}, IOv2::locale<char>("C"));
+    os.tie(&IOv2::cout);
+
+    ASSERT_EQ(IOv2::cout.tie(), nullptr);
+    IOv2::cout.tie(&os);
+    EXPECT_TRUE(IOv2::cout.rdstate() & IOv2::ios_defs::strfailbit);
+    EXPECT_EQ(IOv2::cout.tie(), nullptr);         // nothing committed
+
+    IOv2::cout.clear();
+    os.tie(nullptr);
 }
 
 // Asking an input stream for the mode it is already in has nothing to switch, so it

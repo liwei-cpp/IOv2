@@ -96,6 +96,13 @@ inline copyable_mutex<std::mutex>& tie_graph_mutex()
  * 的具体类型执行操作。除显式标注为**不做线程同步**者（`device`/`detach`/`attach`）外，
  * 其余操作均持有本流的 `io_mutex()`，并将异常统一交由 `handle_exception` 处理。
  * 本结构还持有本流所绑定（tie）的目标指针。
+ *
+ * `is_std` 只决定换设备与调整转换行为的接口（`detach` / `attach` / `adjust`）是否公开：
+ * 为假（别名 `stream_common_operators`，供 `istream` / `ostream` / `iostream`）时公开；
+ * 为真（别名 `std_stream_common_operators`，供八个标准流）时受保护——标准流的设备是固定的
+ * fd，`adjust` 由各标准流自己提供（`stdin_api` 要先截下 `stdin_sync`），连
+ * `cout.IOv2::std_stream_common_operators::detach()` 这样的限定名调用也编译不过。
+ * @tparam is_std 是否为标准流所用。
  * @endif
  *
  * @lang{EN}
@@ -108,9 +115,19 @@ inline copyable_mutex<std::mutex>& tie_graph_mutex()
  * synchronized** (`device`/`detach`/`attach`), all operations hold the stream's `io_mutex()`
  * and route exceptions through `handle_exception`. This struct also holds the pointer to the
  * stream this one is tied to.
+ *
+ * `is_std` decides one thing: whether the device-replacing and behavior-adjusting interface
+ * (`detach` / `attach` / `adjust`) is public. It is when `is_std` is false (the alias
+ * `stream_common_operators`, for `istream` / `ostream` / `iostream`), and protected when it is
+ * true (the alias `std_stream_common_operators`, for the eight standard streams): their device
+ * is a fixed fd, and each provides its own `adjust` (`stdin_api` has to catch `stdin_sync`
+ * first), so not even a qualified call such as
+ * `cout.IOv2::std_stream_common_operators::detach()` compiles.
+ * @tparam is_std Whether the standard streams use it.
  * @endif
  */
-struct stream_common_operators
+template <bool is_std>
+struct basic_stream_common_operators
 {
     /**
      * @lang{ZH}
@@ -182,16 +199,16 @@ struct stream_common_operators
      *          `tie()`.
      * @endif
      */
-    stream_common_operators() = default;
-    stream_common_operators(const stream_common_operators&) noexcept {}
-    stream_common_operators(stream_common_operators&& other) noexcept
+    basic_stream_common_operators() = default;
+    basic_stream_common_operators(const basic_stream_common_operators&) noexcept {}
+    basic_stream_common_operators(basic_stream_common_operators&& other) noexcept
     { other.m_tie_stream.store(nullptr); }
-    stream_common_operators& operator=(const stream_common_operators&) noexcept
+    basic_stream_common_operators& operator=(const basic_stream_common_operators&) noexcept
     {
         m_tie_stream.store(nullptr);
         return *this;
     }
-    stream_common_operators& operator=(stream_common_operators&& other) noexcept
+    basic_stream_common_operators& operator=(basic_stream_common_operators&& other) noexcept
     {
         // No self-assignment guard here because none is reachable: the concrete stream classes
         // already short-circuit `a = std::move(a)` further out, so this never runs on itself
@@ -200,7 +217,7 @@ struct stream_common_operators
         other.m_tie_stream.store(nullptr);
         return *this;
     }
-    ~stream_common_operators() = default;
+    ~basic_stream_common_operators() = default;
 
     /**
      * @lang{ZH}
@@ -420,10 +437,9 @@ struct stream_common_operators
      *         occurred during detach).
      * @endif
      */
-    auto detach(this auto& self) noexcept
+    auto detach(this auto& self) noexcept requires (!is_std)
     {
-        std::lock_guard guard(self.io_mutex());
-        return self.m_channel.detach();
+        return self.detach_impl();
     }
 
     /**
@@ -508,17 +524,9 @@ struct stream_common_operators
      */
     template <typename TSelf>
     void attach(this TSelf& self, typename TSelf::device_type&& dev = typename TSelf::device_type{})
+        requires (!is_std)
     {
-        std::lock_guard guard(self.io_mutex());
-        try
-        {
-            self.clear();
-            self.m_channel.attach(std::move(dev));
-        }
-        catch (...)
-        {
-            self.handle_exception(std::current_exception());
-        }
+        self.attach_impl(std::move(dev));
     }
 
     /**
@@ -532,11 +540,9 @@ struct stream_common_operators
      * @param acc The conversion-behavior settings to apply.
      * @endif
      */
-    void adjust(this auto& self, const cvt_behavior& acc)
+    void adjust(this auto& self, const cvt_behavior& acc) requires (!is_std)
     {
-        std::lock_guard guard(self.io_mutex());
-        try { self.m_channel.adjust(acc); }
-        catch (...) { self.handle_exception(std::current_exception()); }
+        self.adjust_impl(acc);
     }
 
     /**
@@ -884,7 +890,7 @@ struct stream_common_operators
             std::lock_guard graph_lock(tie_graph_mutex());
             res = self.m_tie_stream.load();
             if constexpr (std::derived_from<TSelf, abs_flusher>)
-                ok = self.check_tie(str);
+                ok = check_tie(static_cast<const abs_flusher*>(&self), str);
             if (ok)
                 self.m_tie_stream.store(str);
         }
@@ -917,7 +923,73 @@ struct stream_common_operators
         return self.m_tie_stream.load();
     }
 
+protected:
+    /**
+     * @lang{ZH}
+     * @brief 标准流上的 `detach` / `attach` / `adjust`：与上面的公开版本相同，但受保护。
+     *
+     * 标准流的设备是固定的 fd，`detach` / `attach` 不对用户开放；`adjust` 由各标准流以自己的
+     * 公开成员提供（`stdin_api` 先截下 `stdin_sync`，`stdout_api` 直接转来）。受保护成员连
+     * 限定名调用也拦得住。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief `detach` / `attach` / `adjust` on the standard streams: the same as the public
+     * versions above, but protected.
+     *
+     * A standard stream's device is a fixed fd, so `detach` / `attach` are not offered to users;
+     * each standard stream provides `adjust` through a public member of its own (`stdin_api`
+     * catches `stdin_sync` first, `stdout_api` forwards). A protected member stops even a
+     * qualified call.
+     * @endif
+     */
+    auto detach(this auto& self) noexcept requires is_std
+    {
+        return self.detach_impl();
+    }
+
+    template <typename TSelf>
+    void attach(this TSelf& self, typename TSelf::device_type&& dev = typename TSelf::device_type{})
+        requires is_std
+    {
+        self.attach_impl(std::move(dev));
+    }
+
+    void adjust(this auto& self, const cvt_behavior& acc) requires is_std
+    {
+        self.adjust_impl(acc);
+    }
+
 private:
+    // The bodies behind the public and the protected overloads above, written once.
+    auto detach_impl(this auto& self) noexcept
+    {
+        std::lock_guard guard(self.io_mutex());
+        return self.m_channel.detach();
+    }
+
+    template <typename TSelf>
+    void attach_impl(this TSelf& self, typename TSelf::device_type&& dev)
+    {
+        std::lock_guard guard(self.io_mutex());
+        try
+        {
+            self.clear();
+            self.m_channel.attach(std::move(dev));
+        }
+        catch (...)
+        {
+            self.handle_exception(std::current_exception());
+        }
+    }
+
+    void adjust_impl(this auto& self, const cvt_behavior& acc)
+    {
+        std::lock_guard guard(self.io_mutex());
+        try { self.m_channel.adjust(acc); }
+        catch (...) { self.handle_exception(std::current_exception()); }
+    }
+
     /**
      * @lang{ZH}
      * @brief 沿 `str` 的 tie 链向前遍历，判断把 `str` 设为 tie 目标是否安全。
@@ -933,11 +1005,14 @@ private:
      *       结果是一个能定位的错误，而不是静默死锁。两种失败都归并为返回 `false`，由 `tie()`
      *       给出一条同时提及二者的诊断消息。
      * @note 用 Floyd 而不是"记录已访问节点"，是因为后者要分配内存，而这里持有全局锁。
-     * @note 本函数只做 `dynamic_cast` 与原子读，故为 `noexcept`：`tie()` 持 `tie_graph_mutex()`
+     * @note 出边经虚函数 `abs_flusher::tied_to()` 取得，不做交叉转换：普通流与标准流的公共
+     *       基类是本模板的两个不同实例化，`dynamic_cast` 到其中一个会在另一种流处得 `nullptr`。
+     * @note 本函数只做虚调用与原子读，故为 `noexcept`：`tie()` 持 `tie_graph_mutex()`
      *       期间不会有任何抛出，报错一律在放锁之后进行。
+     * @param self 发起 `tie()` 的流（作为 `abs_flusher`）。
      * @param str 起点，即待设置的 tie 目标；为 `nullptr`、或指向一个不带出边的裸
      *            `abs_flusher` 时，链长为零，本函数直接返回 `true`。
-     * @return `true` 表示可以安全设置；`false` 表示链会回到 `*this`（本次设置会成环），或链上
+     * @return `true` 表示可以安全设置；`false` 表示链会回到 `self`（本次设置会成环），或链上
      *         已存在其它环。
      * @endif
      *
@@ -959,36 +1034,36 @@ private:
      *       `false`, and `tie()` reports one diagnostic that names both possibilities.
      * @note Floyd is used rather than "remember every visited node", which would allocate while a
      *       process-wide lock is held.
-     * @note This function only does `dynamic_cast`s and atomic loads, hence `noexcept`: nothing
+     * @note The outgoing edge comes from the virtual `abs_flusher::tied_to()`, not from a
+     *       cross-cast: the ordinary and the standard streams have two different instantiations
+     *       of this template as their common base, and a `dynamic_cast` to one of them yields
+     *       `nullptr` on a stream of the other kind.
+     * @note This function only does virtual calls and atomic loads, hence `noexcept`: nothing
      *       throws while `tie()` holds `tie_graph_mutex()`; reporting always happens after the
      *       lock is released.
+     * @param self The stream calling `tie()`, as an `abs_flusher`.
      * @param str The starting node, i.e. the tie target being set. When it is `nullptr`, or a
      *            bare `abs_flusher` that carries no outgoing edge, the chain has length zero and
      *            this function returns `true` immediately.
-     * @return `true` if the tie is safe to set; `false` if the chain leads back to `*this` (this
+     * @return `true` if the tie is safe to set; `false` if the chain leads back to `self` (this
      *         set would form a cycle) or already contains another cycle.
      * @endif
      */
-    bool check_tie(abs_flusher* str) const noexcept
+    static bool check_tie(const abs_flusher* self, const abs_flusher* str) noexcept
     {
-        // Edges are stored as abs_flusher*, but only a stream_common_operators carries an
-        // outgoing edge, so each step has to cross-cast. A node that is a bare abs_flusher
-        // yields nullptr and ends the chain -- which is what keeps a plain flusher usable as a
-        // tie target.
-        auto next = [](stream_common_operators* p)
-        { return dynamic_cast<stream_common_operators*>(p->tie()); };
-
-        auto slow = dynamic_cast<stream_common_operators*>(str);
-        auto fast = slow;
+        // A bare abs_flusher has no outgoing edge: tied_to() is nullptr and the chain ends,
+        // which is what keeps a plain flusher usable as a tie target.
+        const abs_flusher* slow = str;
+        const abs_flusher* fast = slow;
 
         while (slow != nullptr)
         {
-            if (slow == this)
+            if (slow == self)
                 return false;
 
-            slow = next(slow);
-            fast = (fast != nullptr) ? next(fast) : nullptr;
-            fast = (fast != nullptr) ? next(fast) : nullptr;
+            slow = slow->tied_to();
+            fast = (fast != nullptr) ? fast->tied_to() : nullptr;
+            fast = (fast != nullptr) ? fast->tied_to() : nullptr;
 
             if (fast != nullptr && fast == slow)
                 return false;
@@ -1024,4 +1099,14 @@ private:
      */
     copyable_atomic<abs_flusher*> m_tie_stream{nullptr};
 };
+
+/// @lang{ZH} 普通流（`istream` / `ostream` / `iostream`）的公共操作基类：换设备与调整行为公开。 @endif
+/// @lang{EN} Common-operations base of the ordinary streams (`istream` / `ostream` / `iostream`):
+/// device replacement and behavior adjustment are public. @endif
+using stream_common_operators = basic_stream_common_operators<false>;
+
+/// @lang{ZH} 八个标准流的公共操作基类：换设备与调整行为受保护。 @endif
+/// @lang{EN} Common-operations base of the eight standard streams: device replacement and
+/// behavior adjustment are protected. @endif
+using std_stream_common_operators = basic_stream_common_operators<true>;
 }
