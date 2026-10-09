@@ -363,7 +363,7 @@ public:
      * `tie_target` usable as a tie target. Only an atomic load, hence `noexcept`.
      * @endif
      */
-    virtual tie_target* tied_to() const noexcept { return nullptr; }
+    [[nodiscard]] virtual tie_target* tied_to() const noexcept { return nullptr; }
 };
 
 /**
@@ -466,7 +466,7 @@ struct out_tie_target : public tie_target
      * @lang{EN} @brief The target this stream is tied to, i.e. what `tie()` returns; see
      *           `tie_target::tied_to()`. @endif
      */
-    tie_target* tied_to() const noexcept override
+    [[nodiscard]] tie_target* tied_to() const noexcept override
     {
         return static_cast<const T&>(*this).tie();
     }

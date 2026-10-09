@@ -890,7 +890,7 @@ struct basic_stream_common_operators
             std::lock_guard graph_lock(tie_graph_mutex());
             res = self.m_tie_stream.load();
             if constexpr (std::derived_from<TSelf, tie_target>)
-                ok = check_tie(static_cast<const tie_target*>(&self), str);
+                ok = check_tie(static_cast<const tie_target&>(self), str);
             if (ok)
                 self.m_tie_stream.store(str);
         }
@@ -1049,7 +1049,7 @@ private:
      *         set would form a cycle) or already contains another cycle.
      * @endif
      */
-    static bool check_tie(const tie_target* self, const tie_target* str) noexcept
+    static bool check_tie(const tie_target& self, const tie_target* str) noexcept
     {
         // A bare tie_target has no outgoing edge: tied_to() is nullptr and the chain ends,
         // which is what keeps a plain flusher usable as a tie target.
@@ -1058,7 +1058,7 @@ private:
 
         while (slow != nullptr)
         {
-            if (slow == self)
+            if (slow == &self)
                 return false;
 
             slow = slow->tied_to();
