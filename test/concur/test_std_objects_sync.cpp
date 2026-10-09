@@ -39,10 +39,13 @@
 
 #include <atomic>
 #include <chrono>
+#include <cstddef>
 #include <cstdio>
 #include <mutex>
 #include <string>
 #include <thread>
+
+#include <sys/types.h>
 
 namespace
 {
@@ -193,4 +196,56 @@ TEST(StdObjectsSync, ASecondSwitcherCannotReturnBeforeTheHandOver)
     EXPECT_EQ(out.contents(), "PB");
     EXPECT_TRUE(IOv2::cout.synced_with_stdio());
     IOv2::cout.sync_with_stdio(sync);
+}
+
+#if defined(__GLIBC__)
+namespace
+{
+    // An unbuffered fopencookie stream standing in for stdout: each fwrite of the
+    // hand-over lands here at once, still inside sync_with_stdio(true).
+    struct hand_over_probe
+    {
+        std::string received;
+        bool        synced_seen = false;
+    };
+
+    ssize_t probe_write(void* cookie, const char* buf, std::size_t size)
+    {
+        auto* probe = static_cast<hand_over_probe*>(cookie);
+        probe->received.append(buf, size);
+        probe->synced_seen = probe->synced_seen || IOv2::cout.synced_with_stdio();
+        return static_cast<ssize_t>(size);
+    }
+}
+#endif
+
+// synced_with_stdio() takes no lock, so another thread may read it while
+// sync_with_stdio(true) is still moving the buffered bytes to stdio. Reading true
+// there and going straight to printf would put its bytes ahead of them; the flag
+// must therefore turn true only after the hand-over. The probe asks at the one
+// moment that matters: from inside the hand-over's own write.
+TEST(StdObjectsSync, SyncedWithStdioIsFalseUntilTheHandOverIsDone)
+{
+#if !defined(__GLIBC__)
+    GTEST_SKIP() << "needs glibc's fopencookie";
+#else
+    IOv2::cout.reset();
+    const bool sync = IOv2::cout.sync_with_stdio(false);
+    IOv2::cout << "P";                              // in cout's own buffer
+
+    hand_over_probe probe;
+    FILE* const real_stdout = stdout;
+    FILE* const fake = ::fopencookie(&probe, "w", {nullptr, &probe_write, nullptr, nullptr});
+    ASSERT_NE(fake, nullptr);
+    std::setvbuf(fake, nullptr, _IONBF, 0);
+    stdout = fake;
+    IOv2::cout.sync_with_stdio(true);
+    stdout = real_stdout;
+    std::fclose(fake);
+
+    EXPECT_EQ(probe.received, "P");
+    EXPECT_FALSE(probe.synced_seen);
+    EXPECT_TRUE(IOv2::cout.synced_with_stdio());
+    IOv2::cout.sync_with_stdio(sync);
+#endif
 }
