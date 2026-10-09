@@ -154,7 +154,9 @@ public:
      *
      * 失败按本库统一的方式报告：置状态位，`exceptions()` 掩码含该位时才抛出。翻标志本身不会
      * 失败；（`wchar_t`）只有转换器已 tainted 时先做的自动恢复可能失败，此时标志未动、
-     * 本次没有切换。
+     * 本次没有切换。这依赖根之上的每一层都先做完自己的事再往下传：根是最后一站，它翻转之后
+     * 不再有可失败的步骤。自定义的层若先把行为传给下层、之后才抛出，根已切换而本流的查询值
+     * 未变；此后切回原模式的调用会在开头就返回，这一失配不会自行恢复。
      *
      * @param sync `true` 为同步（默认），`false` 为自带缓冲。
      * @return 调用前的同步状态；失败时同步状态未改变，返回的就是当前状态。
@@ -200,7 +202,12 @@ public:
      * A failure is reported the way this library reports every other one: a state bit is
      * set, and it throws only when the `exceptions()` mask includes that bit. Flipping the flag
      * cannot fail; (`wchar_t`) only the automatic recovery of a tainted converter, done first,
-     * can, and then the flag is untouched and nothing is switched.
+     * can, and then the flag is untouched and nothing is switched. This relies on every layer
+     * above the root finishing its own work before passing the behavior down: the root is the
+     * last stop, and once it has flipped nothing that can fail follows. A custom layer that
+     * passes it down first and throws afterwards leaves the root switched while this stream
+     * still reports the old mode; a later call asking for the old mode then returns at once,
+     * so the mismatch does not heal on its own.
      *
      * @param sync `true` for synchronized (the default), `false` for own buffering.
      * @return The synchronization state before the call; on failure the state is unchanged,
