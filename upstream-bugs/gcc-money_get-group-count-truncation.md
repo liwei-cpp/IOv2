@@ -4,8 +4,8 @@
 - **Upstream project / component**: GCC / `libstdc++`
 - **Bug ID**: PR 125554
 - **Reported**: 2026-06-01 16:07 UTC by liwei
-- **Last modified upstream**: 2026-06-01 16:07 UTC
-- **Current status**: `UNCONFIRMED` — submitted, awaiting maintainer triage; `Assignee: Not yet assigned to anyone`, no maintainer comments yet.
+- **Last modified upstream**: 2026-06-09 17:53 UTC (checked 2026-10-10)
+- **Current status**: `NEW` — confirmed by Jonathan Wakely on 2026-06-02; `Assignee: Not yet assigned to anyone`, no comments, no patch.
 
 [中文](#中文) | [English](#english)
 
@@ -19,7 +19,7 @@
 
 ### 当前状态
 
-`UNCONFIRMED`(已提交,尚未被 GCC 维护者确认)。Assignee 字段仍为 *Not yet assigned to anyone*,目前没有任何来自上游开发者的评论。后续状态变更请以上游链接为准:<https://gcc.gnu.org/bugzilla/show_bug.cgi?id=125554>。
+`NEW`(已确认):2026-06-02 由 Jonathan Wakely 从 `UNCONFIRMED` 改为 `NEW`。Assignee 字段仍为 *Not yet assigned to anyone*,没有评论,也还没有补丁;此后只有他人加入 CC。以上为 2026-10-10 核对的状态,后续变更请以上游链接为准:<https://gcc.gnu.org/bugzilla/show_bug.cgi?id=125554>。
 
 ### Bug 描述
 
@@ -72,7 +72,7 @@ IOv2 自身的 `monetary` facet 的解析逻辑与 libstdc++ 的 `_M_extract` �
 
 ### Current status
 
-`UNCONFIRMED` — submitted, awaiting upstream triage. The `Assignee` field still reads *Not yet assigned to anyone*; there are no maintainer comments yet. For up-to-date status, see <https://gcc.gnu.org/bugzilla/show_bug.cgi?id=125554>.
+`NEW` (confirmed): Jonathan Wakely moved it from `UNCONFIRMED` to `NEW` on 2026-06-02. The `Assignee` field still reads *Not yet assigned to anyone*; there are no comments and no patch yet, only others joining CC since. This is the status as checked on 2026-10-10; for up-to-date status, see <https://gcc.gnu.org/bugzilla/show_bug.cgi?id=125554>.
 
 ### Bug description
 

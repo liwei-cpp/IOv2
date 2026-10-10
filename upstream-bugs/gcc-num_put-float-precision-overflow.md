@@ -4,8 +4,8 @@
 - **Upstream project / component**: GCC / `libstdc++`
 - **Bug ID**: PR 125505
 - **Reported**: 2026-05-29 20:38 UTC
-- **Last modified upstream**: 2026-05-29 20:38 UTC
-- **Current status**: `UNCONFIRMED` — submitted, awaiting maintainer triage; not yet assigned, `P3 / normal`, no maintainer comments.
+- **Last modified upstream**: 2026-06-09 17:47 UTC (checked 2026-10-10)
+- **Current status**: `NEW` — confirmed by Jonathan Wakely on 2026-05-30; not yet assigned, `P3 / normal`, no comments, no patch.
 
 [中文](#中文) | [English](#english)
 
@@ -19,7 +19,7 @@
 
 ### 当前状态
 
-`UNCONFIRMED`(已提交,尚未被 GCC 维护者确认)。Assignee 字段仍为 *Not yet assigned to anyone*,Importance 为 `P3 / normal`,目前没有任何来自上游开发者的评论。后续状态变更请以上游链接为准:<https://gcc.gnu.org/bugzilla/show_bug.cgi?id=125505>。
+`NEW`(已确认):2026-05-30 由 Jonathan Wakely 从 `UNCONFIRMED` 改为 `NEW`。Assignee 字段仍为 *Not yet assigned to anyone*,Importance 为 `P3 / normal`,没有评论,也还没有补丁;此后只有他人加入 CC。以上为 2026-10-10 核对的状态,后续变更请以上游链接为准:<https://gcc.gnu.org/bugzilla/show_bug.cgi?id=125505>。
 
 > 复现于 macOS / Apple libc;libstdc++ 的代码路径与平台无关,唯一与平台相关的前提——`vsnprintf` 在输出超过 `INT_MAX` 时返回负值——在 glibc 上同样成立。
 
@@ -124,7 +124,7 @@ IOv2 的 `numeric` facet 在 `insert_float` 末尾也走同一族 `snprintf` 调
 
 ### Current status
 
-`UNCONFIRMED` — submitted, awaiting upstream triage. The `Assignee` field still reads *Not yet assigned to anyone*; `Importance` is `P3 / normal`; there are no maintainer comments yet. For up-to-date status, see <https://gcc.gnu.org/bugzilla/show_bug.cgi?id=125505>.
+`NEW` (confirmed): Jonathan Wakely moved it from `UNCONFIRMED` to `NEW` on 2026-05-30. The `Assignee` field still reads *Not yet assigned to anyone*; `Importance` is `P3 / normal`; there are no comments and no patch yet, only others joining CC since. This is the status as checked on 2026-10-10; for up-to-date status, see <https://gcc.gnu.org/bugzilla/show_bug.cgi?id=125505>.
 
 > Reproduced on macOS / Apple libc; the libstdc++ code path is platform-independent, and the only platform-dependent precondition — `vsnprintf` returning a negative value when the output would exceed `INT_MAX` — also holds on glibc.
 
