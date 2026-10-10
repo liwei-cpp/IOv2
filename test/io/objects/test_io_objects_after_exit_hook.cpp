@@ -117,6 +117,7 @@ namespace
         return got;
     }
 
+#if !defined(IOV2_SHARED)
     // gtest has written to stdout already: drain that to the old fd first.
     void redirect_stdout_to_file()
     {
@@ -126,6 +127,7 @@ namespace
         ASSERT_GE(::dup2(fd, STDOUT_FILENO), 0);
         ::close(fd);
     }
+#endif
 
     void redirect_stderr_to_file()
     {
@@ -242,8 +244,15 @@ TEST(IoObjectsAfterExitHook, BytesAFailedSynchronizedWriteLeftGoOutOnALaterSyncW
 // fully buffered then, so the bytes stayed in stdio's buffer and were lost (round-34 review,
 // B-S1). _Exit right after the insertion stands in for that moment: nothing flushes stdio
 // afterwards. The insertion must push its bytes out itself.
+//
+// Header-only mode only: in shared-library mode the hooks are registered while libiov2.so
+// initializes, before register_early, so write_late runs before them and its _Exit keeps
+// them from running at all. The sentry code under test is the same inline code either way.
 TEST(IoObjectsAfterExitHook, AnInsertionAfterStdiosLastFlushStillReachesTheDevice)
 {
+#if defined(IOV2_SHARED)
+    GTEST_SKIP() << "shared mode runs the exit hooks after this program's atexit functions";
+#else
     if (in_test_child())
     {
         redirect_stdout_to_file();
@@ -255,4 +264,5 @@ TEST(IoObjectsAfterExitHook, AnInsertionAfterStdiosLastFlushStillReachesTheDevic
 
     const std::string got = run_case("IoObjectsAfterExitHook.AnInsertionAfterStdiosLastFlushStillReachesTheDevice", "1");
     EXPECT_TRUE(got.ends_with("head|late")) << got;
+#endif
 }
