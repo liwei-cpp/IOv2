@@ -98,6 +98,43 @@
 
 namespace IOv2
 {
+/**
+ * @lang{ZH}
+ * @brief 标准输入流（`cin` / `wcin`）的实现模板。
+ *
+ * 把一条 `ichannel`（其下是转换器管线与根转换器 `stdin_root_cvt`，最底层是 fd 0 上的
+ * `std_device<STDIN_FILENO>`）与一个 `locale` 组合起来，对外接口来自 `ios_state`、
+ * `istream_operators` 与 `std_stream_common_operators` 三个基类。与 `istream` 的差别见
+ * 文件头：多了 `sync_with_stdio()` / `synced_with_stdio()`、`reset()` 与（宽流）`code()` /
+ * `switch_code()`，`adjust()` 截下 `stdin_sync`，`detach()` / `attach()` 被删除。
+ *
+ * 不可复制；具体的流类型（`cin_t`、`wcin_t`）同时派生自 `sing_temp`，作为进程级单例使用。
+ *
+ * @tparam T 派生的具体流类型（CRTP），供 `in_sentry` 与基类回调使用。
+ * @tparam TDevice 设备类型，必须是 `std_device<STDIN_FILENO>`。
+ * @tparam TChar 字符类型（`char` 或 `wchar_t`）。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief The implementation template behind the standard input streams (`cin` / `wcin`).
+ *
+ * Combines an `ichannel` (below which sit the converter pipeline and the root converter
+ * `stdin_root_cvt`, with `std_device<STDIN_FILENO>` on fd 0 at the bottom) with a `locale`,
+ * and takes its interface from three bases: `ios_state`, `istream_operators` and
+ * `std_stream_common_operators`. The differences from `istream` are listed in the file
+ * header: it adds `sync_with_stdio()` / `synced_with_stdio()`, `reset()` and, on the wide
+ * stream, `code()` / `switch_code()`; its `adjust()` catches `stdin_sync`; and `detach()` /
+ * `attach()` are deleted.
+ *
+ * Not copyable; the concrete stream types (`cin_t`, `wcin_t`) also derive from `sing_temp`
+ * and are used as process-wide singletons.
+ *
+ * @tparam T The concrete derived stream type (CRTP), used by `in_sentry` and the base-class
+ *         callbacks.
+ * @tparam TDevice The device type; must be `std_device<STDIN_FILENO>`.
+ * @tparam TChar The character type (`char` or `wchar_t`).
+ * @endif
+ */
 template <typename T, io_device TDevice, typename TChar>
     requires std::is_same_v<TDevice, std_device<STDIN_FILENO>>
 class stdin_api : public ios_state<TChar>
@@ -115,10 +152,36 @@ public:
     friend in_sentry_type;
 
 public:
+    /**
+     * @lang{ZH}
+     * @brief 默认构造：在 fd 0 上建立一条不带额外转换层的输入通道，初始为同步模式。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Default constructor: builds an input channel on fd 0 with no extra converter
+     * layer, starting in synchronized mode.
+     * @endif
+     */
     stdin_api()
         : m_channel(stdin_root_cvt<device_type>{device_type{}, true})
     {}
 
+    /**
+     * @lang{ZH}
+     * @brief 以转换器创建器构造：在 fd 0 的根转换器之上叠加 `creator` 创建的转换层，
+     * 初始为同步模式。
+     * @tparam TCreator 转换器创建器类型。
+     * @param creator 用于在根转换器之上构建转换器管线的创建器（如 `code_cvt_stdio_creator`）。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Constructs with a converter creator: stacks the layers `creator` builds on top
+     * of the root converter on fd 0, starting in synchronized mode.
+     * @tparam TCreator The converter-creator type.
+     * @param creator The creator that builds the converter pipeline on top of the root
+     *        converter (such as `code_cvt_stdio_creator`).
+     * @endif
+     */
     template <cvt_creator TCreator>
     stdin_api(const TCreator& creator)
         : m_channel(creator.create(stdin_root_cvt<device_type>{device_type{}, true}))
@@ -304,6 +367,8 @@ public:
 
     /**
      * @lang{ZH}
+     * @brief 已删除：标准流不能取出设备。
+     *
      * 普通流（`stream_common_operators`）上公开的换设备接口在标准流上删除：本流的设备是
      * 固定的 fd 0，取出去就再也装不回来，换进去等于给一个进程级单例改写底层来源。需要
      * 「在同一 fd 上从头开始」请用 `reset()`（它走的是 iochannel 那一层的 `attach()`，装一个
@@ -313,6 +378,8 @@ public:
      * @endif
      *
      * @lang{EN}
+     * @brief Deleted: a standard stream cannot hand out its device.
+     *
      * The device-replacing interface that is public on the ordinary streams
      * (`stream_common_operators`) is deleted on the standard streams: this stream's device is
      * the fixed fd 0, taking it out leaves no way to put it back, and putting another one in
@@ -324,6 +391,17 @@ public:
      * @endif
      */
     std::pair<device_type, std::exception_ptr> detach() = delete;
+
+    /**
+     * @lang{ZH}
+     * @brief 已删除：标准流不能换入设备。理由与替代做法见 `detach()`。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Deleted: a standard stream cannot take another device. See `detach()` for why,
+     * and for what to use instead.
+     * @endif
+     */
     void attach(device_type&&) = delete;
 
     /**
@@ -534,12 +612,69 @@ public:
     }
 
 protected:
+    /**
+     * @lang{ZH}
+     * @brief 本流的输入通道：转换器管线、根转换器 `stdin_root_cvt` 与 fd 0 上的设备。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief This stream's input channel: the converter pipeline, the root converter
+     * `stdin_root_cvt` and the device on fd 0.
+     * @endif
+     */
     ichannel<device_type, char_type>      m_channel;
+
+    /**
+     * @lang{ZH}
+     * @brief 本流的 locale，经 `std_stream_common_operators` 的 `locale()` 存取。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief This stream's locale, accessed through `locale()` in
+     * `std_stream_common_operators`.
+     * @endif
+     */
     IOv2::locale<char_type>                 m_locale;
-    copyable_atomic<bool> m_sync_with_stdio{true};   ///< @lang{ZH} 为 true 时逐字节读 `stdin`，为 false 时自带读缓冲；真正决定怎么读的是根转换器 `stdin_root_cvt` 上的标志，`sync_with_stdio` 两者一起改，本标志只供查询。写入在 `io_mutex()` 之下，原子量只为让 `synced_with_stdio()` 与全库其它查询函数一样无锁读取。 @endif @lang{EN} When true this stream reads `stdin` byte by byte, when false through its own buffer; what decides how it reads is the flag on the root converter `stdin_root_cvt`, which `sync_with_stdio` changes along with this one, kept here for queries only. Writes happen under `io_mutex()`; the atomic is only so that `synced_with_stdio()` reads lock-free like the library's other query functions. @endif
+
+    /**
+     * @lang{ZH}
+     * @brief 本流当前是否与 C stdio 同步，供 `synced_with_stdio()` 查询。
+     *
+     * 为 true 时逐字节读 `stdin`，为 false 时自带读缓冲；真正决定怎么读的是根转换器
+     * `stdin_root_cvt` 上的标志，`sync_with_stdio` 两者一起改，本标志只供查询。写入在
+     * `io_mutex()` 之下，原子量只为让 `synced_with_stdio()` 与全库其它查询函数一样无锁读取。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Whether this stream is currently synchronized with C stdio, for
+     * `synced_with_stdio()` to report.
+     *
+     * When true this stream reads `stdin` byte by byte, when false through its own buffer;
+     * what decides how it reads is the flag on the root converter `stdin_root_cvt`, which
+     * `sync_with_stdio` changes along with this one, kept here for queries only. Writes happen
+     * under `io_mutex()`; the atomic is only so that `synced_with_stdio()` reads lock-free like
+     * the library's other query functions.
+     * @endif
+     */
+    copyable_atomic<bool> m_sync_with_stdio{true};
 };
 
-/// cin
+/**
+ * @lang{ZH}
+ * @brief 标准输入流 `cin`（`char`）的类型。
+ *
+ * 进程级单例（`sing_temp`），构造函数私有，经全局引用 `cin` 使用。退出钩子为空——与
+ * `std::cin` 一样退出时不析构。构造时 `tie()` 到 `cout`。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief The type of the standard input stream `cin` (`char`).
+ *
+ * A process-wide singleton (`sing_temp`) with a private constructor, used through the global
+ * reference `cin`. Its exit hook is empty -- like `std::cin`, it is not destroyed at exit.
+ * It ties itself to `cout` at construction.
+ * @endif
+ */
 class cin_t : public stdin_api<cin_t, std_device<STDIN_FILENO>, char>
             , public sing_temp<cin_t>
 {
@@ -561,11 +696,46 @@ private:
 #if defined(IOV2_SHARED)
 extern IOV2_API cin_t& cin;   // defined in iov2_objects.cpp
 #else
+/// @cond INTERNAL
 inline cin_t::init _cin_init;
+/// @endcond
+/**
+ * @lang{ZH}
+ * @brief 标准输入流对象（`char`），读 fd 0。
+ *
+ * `IOV2_SHARED` 下是 `libiov2.so` 里唯一一份的引用（定义在 `iov2_objects.cpp`），头文件模式下
+ * 是本程序内的 `inline` 变量。可在哪些静态对象的构造 / 析构里使用，见 `objects.h`。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief The standard input stream object (`char`), reading fd 0.
+ *
+ * Under `IOV2_SHARED` a reference to the single copy inside `libiov2.so` (defined in
+ * `iov2_objects.cpp`); in header-only mode an `inline` variable of the program itself. For
+ * which static objects may use it from their constructors and destructors, see `objects.h`.
+ * @endif
+ */
 inline cin_t&      cin = _cin_init.get();
 #endif
 
-/// wcin
+/**
+ * @lang{ZH}
+ * @brief 宽字符标准输入流 `wcin`（`wchar_t`）的类型。
+ *
+ * 进程级单例（`sing_temp`），构造函数私有，经全局引用 `wcin` 使用。启动时以
+ * `initial_locale_name(LC_CTYPE)` 选定的编码解码字节（`code_cvt_stdio`）。退出钩子为空——
+ * 与 `std::wcin` 一样退出时不析构。构造时 `tie()` 到 `wcout`。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief The type of the wide standard input stream `wcin` (`wchar_t`).
+ *
+ * A process-wide singleton (`sing_temp`) with a private constructor, used through the global
+ * reference `wcin`. It decodes bytes (`code_cvt_stdio`) in the encoding
+ * `initial_locale_name(LC_CTYPE)` picks at startup. Its exit hook is empty -- like
+ * `std::wcin`, it is not destroyed at exit. It ties itself to `wcout` at construction.
+ * @endif
+ */
 class wcin_t : public stdin_api<wcin_t, std_device<STDIN_FILENO>, wchar_t>
              , public sing_temp<wcin_t>
 {
@@ -587,7 +757,25 @@ private:
 #if defined(IOV2_SHARED)
 extern IOV2_API wcin_t& wcin;   // defined in iov2_objects.cpp
 #else
+/// @cond INTERNAL
 inline wcin_t::init _wcin_init;
+/// @endcond
+/**
+ * @lang{ZH}
+ * @brief 宽字符标准输入流对象（`wchar_t`），读 fd 0。
+ *
+ * `IOV2_SHARED` 下是 `libiov2.so` 里唯一一份的引用（定义在 `iov2_objects.cpp`），头文件模式下
+ * 是本程序内的 `inline` 变量。可在哪些静态对象的构造 / 析构里使用，见 `objects.h`。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief The wide standard input stream object (`wchar_t`), reading fd 0.
+ *
+ * Under `IOV2_SHARED` a reference to the single copy inside `libiov2.so` (defined in
+ * `iov2_objects.cpp`); in header-only mode an `inline` variable of the program itself. For
+ * which static objects may use it from their constructors and destructors, see `objects.h`.
+ * @endif
+ */
 inline wcin_t&      wcin = _wcin_init.get();
 #endif
 }

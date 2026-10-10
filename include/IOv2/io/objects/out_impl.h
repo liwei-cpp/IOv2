@@ -93,10 +93,11 @@
  * `switch_code()`, while `detach()` / `attach()`, which would replace the device, are `= delete`.
  *
  * All six stream objects are process-wide singletons through `sing_temp` whose exit hook
- * has every later insertion handled as synchronized, calls `try_flush()` and never destroys it -- like
- * `std::cout`, existing references stay valid once exit begins. `cerr` / `wcerr` additionally tie themselves to `cout` / `wcout` at
- * construction and set `ios_defs::unitbuf`; the three `char` streams and the three wide
- * streams share fd 1 / fd 2 pairwise.
+ * has every later insertion handled as synchronized, calls `try_flush()` and never destroys
+ * it -- like `std::cout`, existing references stay valid once exit begins. `cerr` / `wcerr`
+ * additionally tie themselves to `cout` / `wcout` at construction and set
+ * `ios_defs::unitbuf`; the three `char` streams and the three wide streams share fd 1 / fd 2
+ * pairwise.
  *
  * @warning **The flush at exit is best-effort.** The hook goes through
  *          `out_tie_target::try_flush()`, which takes this stream's `io_mutex()` with
@@ -203,6 +204,45 @@
 
 namespace IOv2
 {
+/**
+ * @lang{ZH}
+ * @brief 标准输出流（`cout` / `cerr` / `clog` 及三个宽流）的实现模板。
+ *
+ * 把一条 `ochannel`（其下是转换器管线，最底层是 fd 1 或 fd 2 上的 `std_device`）与一个
+ * `locale` 组合起来，对外接口来自 `ios_state`、`out_tie_target`、`ostream_operators` 与
+ * `std_stream_common_operators` 四个基类。与 `ostream` 的差别见文件头：多了
+ * `sync_with_stdio()` / `synced_with_stdio()`、`reset()` 与（宽流）`code()` / `switch_code()`，
+ * `detach()` / `attach()` 被删除。退出钩子经受保护的 `flush_at_exit()` 进入。
+ *
+ * 不可复制；具体的流类型（`cout_t` 等）同时派生自 `sing_temp`，作为进程级单例使用。
+ *
+ * @tparam T 派生的具体流类型（CRTP），供 `out_sentry`、`out_tie_target` 与基类回调使用。
+ * @tparam TDevice 设备类型，必须是 `std_device<STDOUT_FILENO>` 或 `std_device<STDERR_FILENO>`。
+ * @tparam TChar 字符类型（`char` 或 `wchar_t`）。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief The implementation template behind the standard output streams (`cout` / `cerr` /
+ * `clog` and the three wide ones).
+ *
+ * Combines an `ochannel` (below which sit the converter pipeline and, at the bottom, a
+ * `std_device` on fd 1 or fd 2) with a `locale`, and takes its interface from four bases:
+ * `ios_state`, `out_tie_target`, `ostream_operators` and `std_stream_common_operators`. The
+ * differences from `ostream` are listed in the file header: it adds `sync_with_stdio()` /
+ * `synced_with_stdio()`, `reset()` and, on the wide streams, `code()` / `switch_code()`, and
+ * `detach()` / `attach()` are deleted. The exit hook enters through the protected
+ * `flush_at_exit()`.
+ *
+ * Not copyable; the concrete stream types (`cout_t` and the rest) also derive from
+ * `sing_temp` and are used as process-wide singletons.
+ *
+ * @tparam T The concrete derived stream type (CRTP), used by `out_sentry`, `out_tie_target`
+ *         and the base-class callbacks.
+ * @tparam TDevice The device type; must be `std_device<STDOUT_FILENO>` or
+ *         `std_device<STDERR_FILENO>`.
+ * @tparam TChar The character type (`char` or `wchar_t`).
+ * @endif
+ */
 template <typename T, io_device TDevice, typename TChar>
     requires (std::is_same_v<TDevice, std_device<STDOUT_FILENO>> ||
               std::is_same_v<TDevice, std_device<STDERR_FILENO>>)
@@ -223,9 +263,35 @@ public:
     friend std_stream_common_operators;
 
 public:
+    /**
+     * @lang{ZH}
+     * @brief 默认构造：在本流的 fd 上建立一条不带额外转换层的输出通道，初始为同步模式。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Default constructor: builds an output channel on this stream's fd with no extra
+     * converter layer, starting in synchronized mode.
+     * @endif
+     */
     stdout_api()
         : m_channel(device_type{}) {}
 
+    /**
+     * @lang{ZH}
+     * @brief 以转换器创建器构造：在本流 fd 上的输出通道里叠加 `creator` 创建的转换层，
+     * 初始为同步模式。
+     * @tparam TCreator 转换器创建器类型。
+     * @param creator 用于构建转换器管线的创建器（如 `code_cvt_stdio_creator`）。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Constructs with a converter creator: stacks the layers `creator` builds into the
+     * output channel on this stream's fd, starting in synchronized mode.
+     * @tparam TCreator The converter-creator type.
+     * @param creator The creator that builds the converter pipeline (such as
+     *        `code_cvt_stdio_creator`).
+     * @endif
+     */
     template <cvt_creator TCreator>
     stdout_api(const TCreator& creator)
         : m_channel(device_type{}, creator) {}
@@ -295,10 +361,10 @@ public:
      * `cvt/code_cvt_stdio.h`).
      * As every call hands over under the lock, every caller that returns from here can rely
      * on the bytes buffered before the call being in stdio's hands, unless its hand-over
-     * failed -- and then a state bit is set. Taking the lock means -- even when already synchronized -- waiting
-     * for an insertion under way in another thread, for as long as it stays blocked in a write
-     * (a full pipe, a paused terminal). Switching to `false` is a single atomic exchange: no
-     * lock, no I/O.
+     * failed -- and then a state bit is set. Taking the lock means -- even when already
+     * synchronized -- waiting for an insertion under way in another thread, for as long as it
+     * stays blocked in a write (a full pipe, a paused terminal). Switching to `false` is a
+     * single atomic exchange: no lock, no I/O.
      *
      * A failure of that hand-over is reported the way this library reports every other one: a
      * state bit is set (`devfailbit` / `cvtfailbit`) and it throws only when the
@@ -310,11 +376,12 @@ public:
      * to go out in order, and leaving them behind would put them after the caller's next
      * `printf` -- or, synchronized and with no insertion to follow, keep them until the
      * process ends and they are lost. So after a failure, `clear()` and then
-     * `sync_with_stdio(true)` hands them to stdio in either mode. When the hand-over succeeds the order is right and the bits are unchanged;
-     * when it fails again it only re-reports the bit already set (and throws once more under
-     * an armed mask). On a wide stream whose converter is tainted, the automatic recovery
-     * before the hand-over (`code_cvt_stdio::recover`) writes out the bytes it kept here
-     * rather than at the next insertion, so a device failure is reported here too.
+     * `sync_with_stdio(true)` hands them to stdio in either mode. When the hand-over succeeds
+     * the order is right and the bits are unchanged; when it fails again it only re-reports
+     * the bit already set (and throws once more under an armed mask). On a wide stream whose
+     * converter is tainted, the automatic recovery before the hand-over
+     * (`code_cvt_stdio::recover`) writes out the bytes it kept here rather than at the next
+     * insertion, so a device failure is reported here too.
      *
      * To ask for the current state use `synced_with_stdio()`: with no argument this one means
      * `sync_with_stdio(true)` and does switch.
@@ -512,6 +579,8 @@ public:
 
     /**
      * @lang{ZH}
+     * @brief 已删除：标准流不能取出设备。
+     *
      * 普通流（`stream_common_operators`）上公开的换设备接口在标准流上删除：本流的设备是
      * 固定的 fd 1 / fd 2，取出去就再也装不回来，换进去等于给一个进程级单例改写底层目标。
      * 需要「在同一 fd 上重新开始」请用 `reset()`（它走的是 iochannel 那一层的 `attach()`，
@@ -521,6 +590,8 @@ public:
      * @endif
      *
      * @lang{EN}
+     * @brief Deleted: a standard stream cannot hand out its device.
+     *
      * The device-replacing interface that is public on the ordinary streams
      * (`stream_common_operators`) is deleted on the standard streams: this stream's device is
      * the fixed fd 1 / fd 2, taking it out leaves no way to put it back, and putting another
@@ -532,6 +603,17 @@ public:
      * @endif
      */
     std::pair<device_type, std::exception_ptr> detach() = delete;
+
+    /**
+     * @lang{ZH}
+     * @brief 已删除：标准流不能换入设备。理由与替代做法见 `detach()`。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Deleted: a standard stream cannot take another device. See `detach()` for why,
+     * and for what to use instead.
+     * @endif
+     */
     void attach(device_type&&) = delete;
 
     /**
@@ -673,23 +755,119 @@ public:
     }
 
 protected:
-    // The exit hook. Marked first, so that an insertion after this hook (a destructor or atexit
-    // function registered earlier, or another thread) hands its bytes to stdio and flushes it. Not
-    // m_sync_with_stdio: try_flush() may move nothing, and sync_with_stdio(true) reads a true
-    // flag as "already handed over".
+    /**
+     * @lang{ZH}
+     * @brief 退出钩子：先置 `m_exited`，再 `try_flush()`。
+     *
+     * 先置标记，使晚于本钩子的插入（更早登记的析构函数或 `atexit` 函数，或另一线程）把字节
+     * 交给 stdio 并冲刷它。不改 `m_sync_with_stdio`：`try_flush()` 可能什么也没搬走，而
+     * `sync_with_stdio(true)` 会把已为真的标志当作「已经交出过」。
+     * 刷新是尽力而为的，见文件头的 `@warning`。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief The exit hook: sets `m_exited` first, then calls `try_flush()`.
+     *
+     * Marked first, so that an insertion after this hook (a destructor or atexit function
+     * registered earlier, or another thread) hands its bytes to stdio and flushes it. Not
+     * `m_sync_with_stdio`: `try_flush()` may move nothing, and `sync_with_stdio(true)` reads a
+     * true flag as "already handed over". The flush is best-effort; see the `@warning` in the
+     * file header.
+     * @endif
+     */
     void flush_at_exit() noexcept
     {
         m_exited.store(true);
         this->try_flush();
     }
 
+    /**
+     * @lang{ZH}
+     * @brief 本流的输出通道：转换器管线与本流 fd 上的设备。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief This stream's output channel: the converter pipeline and the device on this
+     * stream's fd.
+     * @endif
+     */
     ochannel<device_type, char_type> m_channel;
+
+    /**
+     * @lang{ZH}
+     * @brief 本流的 locale，经 `std_stream_common_operators` 的 `locale()` 存取。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief This stream's locale, accessed through `locale()` in
+     * `std_stream_common_operators`.
+     * @endif
+     */
     IOv2::locale<char_type> m_locale;
-    copyable_atomic<bool> m_sync_with_stdio{true};   ///< @lang{ZH} 为 true 时每次插入结束（输出哨兵析构）都把本流缓冲推进 stdio 缓冲；只由 `sync_with_stdio` 写，切真只在锁内、伴随一次搬运（退出钩子改置 `m_exited`）。哨兵在构造时读它一次并沿用到析构，故本标志只影响之后**开始**的插入——切回同步时那批已缓冲的字节由 `sync_with_stdio` 自己持锁搬进 stdio 缓冲。原子量，使标志的翻转与 `synced_with_stdio()` 的查询可与并发输出操作安全竞争。 @endif @lang{EN} When true, every insertion (the output sentry's destructor) pushes this stream's buffer into the stdio buffer; written only by `sync_with_stdio`, and set to true only under the lock together with a hand-over (the exit hook sets `m_exited` instead). A sentry reads it once on construction and uses that value through its destructor, so the flag governs the insertions that **start** afterwards -- what was already buffered when switching back to synchronized is moved into stdio's buffer by `sync_with_stdio` itself, under the lock. Atomic so that flipping the flag and querying it through `synced_with_stdio()` are safe against concurrent output operations. @endif
-    copyable_atomic<bool> m_exited{false};           ///< @lang{ZH} 退出钩子已执行。哨兵在析构时读它：插入结束时钩子已经跑过，就把字节交给 stdio，与 `m_sync_with_stdio` 无关（见文件头）——钩子运行时仍在进行的插入也是如此。钩子不取锁就写它，故为原子量。 @endif @lang{EN} The exit hook has run. The sentry reads it on destruction: an insertion that ends after the hook has run hands its bytes to stdio, whatever `m_sync_with_stdio` says (see the file header) -- including one still in progress while the hook ran. The hook writes it without the lock, hence atomic. @endif
+
+    /**
+     * @lang{ZH}
+     * @brief 本流当前是否与 C stdio 同步，由输出哨兵读取。
+     *
+     * 为 true 时每次插入结束（输出哨兵析构）都把本流缓冲推进 stdio 缓冲；只由 `sync_with_stdio`
+     * 写，切真只在锁内、伴随一次搬运（退出钩子改置 `m_exited`）。哨兵在构造时读它一次并沿用到
+     * 析构，故本标志只影响之后**开始**的插入——切回同步时那批已缓冲的字节由 `sync_with_stdio`
+     * 自己持锁搬进 stdio 缓冲。原子量，使标志的翻转与 `synced_with_stdio()` 的查询可与并发输出
+     * 操作安全竞争。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Whether this stream is currently synchronized with C stdio, read by the output
+     * sentry.
+     *
+     * When true, every insertion (the output sentry's destructor) pushes this stream's buffer
+     * into the stdio buffer; written only by `sync_with_stdio`, and set to true only under the
+     * lock together with a hand-over (the exit hook sets `m_exited` instead). A sentry reads it
+     * once on construction and uses that value through its destructor, so the flag governs the
+     * insertions that **start** afterwards -- what was already buffered when switching back to
+     * synchronized is moved into stdio's buffer by `sync_with_stdio` itself, under the lock.
+     * Atomic so that flipping the flag and querying it through `synced_with_stdio()` are safe
+     * against concurrent output operations.
+     * @endif
+     */
+    copyable_atomic<bool> m_sync_with_stdio{true};
+
+    /**
+     * @lang{ZH}
+     * @brief 退出钩子已执行。
+     *
+     * 哨兵在析构时读它：插入结束时钩子已经跑过，就把字节交给 stdio，与 `m_sync_with_stdio`
+     * 无关（见文件头）——钩子运行时仍在进行的插入也是如此。钩子不取锁就写它，故为原子量。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief The exit hook has run.
+     *
+     * The sentry reads it on destruction: an insertion that ends after the hook has run hands
+     * its bytes to stdio, whatever `m_sync_with_stdio` says (see the file header) -- including
+     * one still in progress while the hook ran. The hook writes it without the lock, hence
+     * atomic.
+     * @endif
+     */
+    copyable_atomic<bool> m_exited{false};
 };
 
-/// cout
+/**
+ * @lang{ZH}
+ * @brief 标准输出流 `cout`（`char`）的类型。
+ *
+ * 进程级单例（`sing_temp`），构造函数私有，经全局引用 `cout` 使用。
+ * 退出钩子为 `flush_at_exit()`（尽力而为的刷新，见文件头），不析构。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief The type of the standard output stream `cout` (`char`).
+ *
+ * A process-wide singleton (`sing_temp`) with a private constructor, used through the
+ * global reference `cout`. Its exit hook is `flush_at_exit()` (a best-effort flush;
+ * see the file header) and it is never destroyed.
+ * @endif
+ */
 class cout_t : public stdout_api<cout_t, std_device<STDOUT_FILENO>, char>
              , public sing_temp<cout_t>
 {
@@ -708,11 +886,46 @@ private:
 #if defined(IOV2_SHARED)
 extern IOV2_API cout_t& cout;   // defined in iov2_objects.cpp
 #else
+/// @cond INTERNAL
 inline cout_t::init _cout_init;
+/// @endcond
+/**
+ * @lang{ZH}
+ * @brief 标准输出流对象（`char`），写 fd 1。
+ *
+ * `IOV2_SHARED` 下是 `libiov2.so` 里唯一一份的引用（定义在 `iov2_objects.cpp`），头文件模式下
+ * 是本程序内的 `inline` 变量。可在哪些静态对象的构造 / 析构里使用，见 `objects.h`。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief The standard output stream object (`char`), writing fd 1.
+ *
+ * Under `IOV2_SHARED` a reference to the single copy inside `libiov2.so` (defined in
+ * `iov2_objects.cpp`); in header-only mode an `inline` variable of the program itself. For
+ * which static objects may use it from their constructors and destructors, see `objects.h`.
+ * @endif
+ */
 inline cout_t&      cout = _cout_init.get();
 #endif
 
-/// cerr
+/**
+ * @lang{ZH}
+ * @brief 标准错误流 `cerr`（`char`）的类型。
+ *
+ * 进程级单例（`sing_temp`），构造函数私有，经全局引用 `cerr` 使用。
+ * 退出钩子为 `flush_at_exit()`（尽力而为的刷新，见文件头），不析构。
+ * 构造时 `tie()` 到 `cout` 并置 `ios_defs::unitbuf`。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief The type of the standard error stream `cerr` (`char`).
+ *
+ * A process-wide singleton (`sing_temp`) with a private constructor, used through the
+ * global reference `cerr`. Its exit hook is `flush_at_exit()` (a best-effort flush;
+ * see the file header) and it is never destroyed. It ties itself to `cout` and sets
+ * `ios_defs::unitbuf` at construction.
+ * @endif
+ */
 class cerr_t : public stdout_api<cerr_t, std_device<STDERR_FILENO>, char>
              , public sing_temp<cerr_t>
 {
@@ -735,11 +948,44 @@ private:
 #if defined(IOV2_SHARED)
 extern IOV2_API cerr_t& cerr;   // defined in iov2_objects.cpp
 #else
+/// @cond INTERNAL
 inline cerr_t::init _cerr_init;
+/// @endcond
+/**
+ * @lang{ZH}
+ * @brief 标准错误流对象（`char`），写 fd 2。
+ *
+ * `IOV2_SHARED` 下是 `libiov2.so` 里唯一一份的引用（定义在 `iov2_objects.cpp`），头文件模式下
+ * 是本程序内的 `inline` 变量。可在哪些静态对象的构造 / 析构里使用，见 `objects.h`。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief The standard error stream object (`char`), writing fd 2.
+ *
+ * Under `IOV2_SHARED` a reference to the single copy inside `libiov2.so` (defined in
+ * `iov2_objects.cpp`); in header-only mode an `inline` variable of the program itself. For
+ * which static objects may use it from their constructors and destructors, see `objects.h`.
+ * @endif
+ */
 inline cerr_t&      cerr = _cerr_init.get();
 #endif
 
-/// clog
+/**
+ * @lang{ZH}
+ * @brief 标准日志流 `clog`（`char`）的类型。
+ *
+ * 进程级单例（`sing_temp`），构造函数私有，经全局引用 `clog` 使用。
+ * 退出钩子为 `flush_at_exit()`（尽力而为的刷新，见文件头），不析构。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief The type of the standard log stream `clog` (`char`).
+ *
+ * A process-wide singleton (`sing_temp`) with a private constructor, used through the
+ * global reference `clog`. Its exit hook is `flush_at_exit()` (a best-effort flush;
+ * see the file header) and it is never destroyed.
+ * @endif
+ */
 class clog_t : public stdout_api<clog_t, std_device<STDERR_FILENO>, char>
              , public sing_temp<clog_t>
 {
@@ -758,11 +1004,46 @@ private:
 #if defined(IOV2_SHARED)
 extern IOV2_API clog_t& clog;   // defined in iov2_objects.cpp
 #else
+/// @cond INTERNAL
 inline clog_t::init _clog_init;
+/// @endcond
+/**
+ * @lang{ZH}
+ * @brief 标准日志流对象（`char`），写 fd 2。
+ *
+ * `IOV2_SHARED` 下是 `libiov2.so` 里唯一一份的引用（定义在 `iov2_objects.cpp`），头文件模式下
+ * 是本程序内的 `inline` 变量。可在哪些静态对象的构造 / 析构里使用，见 `objects.h`。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief The standard log stream object (`char`), writing fd 2.
+ *
+ * Under `IOV2_SHARED` a reference to the single copy inside `libiov2.so` (defined in
+ * `iov2_objects.cpp`); in header-only mode an `inline` variable of the program itself. For
+ * which static objects may use it from their constructors and destructors, see `objects.h`.
+ * @endif
+ */
 inline clog_t&      clog = _clog_init.get();
 #endif
 
-/// wcout
+/**
+ * @lang{ZH}
+ * @brief 宽字符标准输出流 `wcout`（`wchar_t`）的类型。
+ *
+ * 进程级单例（`sing_temp`），构造函数私有，经全局引用 `wcout` 使用。启动时以
+ * `initial_locale_name(LC_CTYPE)` 选定的编码把字符编码成字节（`code_cvt_stdio`）。
+ * 退出钩子为 `flush_at_exit()`（尽力而为的刷新，见文件头），不析构。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief The type of the wide standard output stream `wcout` (`wchar_t`).
+ *
+ * A process-wide singleton (`sing_temp`) with a private constructor, used through the
+ * global reference `wcout`. It encodes characters into bytes (`code_cvt_stdio`) in the encoding
+ * `initial_locale_name(LC_CTYPE)` picks at startup. Its exit hook is `flush_at_exit()` (a
+ * best-effort flush; see the file header) and it is never destroyed.
+ * @endif
+ */
 class wcout_t : public stdout_api<wcout_t, std_device<STDOUT_FILENO>, wchar_t>
               , public sing_temp<wcout_t>
 {
@@ -782,11 +1063,48 @@ private:
 #if defined(IOV2_SHARED)
 extern IOV2_API wcout_t& wcout;   // defined in iov2_objects.cpp
 #else
+/// @cond INTERNAL
 inline wcout_t::init _wcout_init;
+/// @endcond
+/**
+ * @lang{ZH}
+ * @brief 宽字符标准输出流对象（`wchar_t`），写 fd 1。
+ *
+ * `IOV2_SHARED` 下是 `libiov2.so` 里唯一一份的引用（定义在 `iov2_objects.cpp`），头文件模式下
+ * 是本程序内的 `inline` 变量。可在哪些静态对象的构造 / 析构里使用，见 `objects.h`。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief The wide standard output stream object (`wchar_t`), writing fd 1.
+ *
+ * Under `IOV2_SHARED` a reference to the single copy inside `libiov2.so` (defined in
+ * `iov2_objects.cpp`); in header-only mode an `inline` variable of the program itself. For
+ * which static objects may use it from their constructors and destructors, see `objects.h`.
+ * @endif
+ */
 inline wcout_t&      wcout = _wcout_init.get();
 #endif
 
-/// wcerr
+/**
+ * @lang{ZH}
+ * @brief 宽字符标准错误流 `wcerr`（`wchar_t`）的类型。
+ *
+ * 进程级单例（`sing_temp`），构造函数私有，经全局引用 `wcerr` 使用。启动时以
+ * `initial_locale_name(LC_CTYPE)` 选定的编码把字符编码成字节（`code_cvt_stdio`）。
+ * 退出钩子为 `flush_at_exit()`（尽力而为的刷新，见文件头），不析构。
+ * 构造时 `tie()` 到 `wcout` 并置 `ios_defs::unitbuf`。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief The type of the wide standard error stream `wcerr` (`wchar_t`).
+ *
+ * A process-wide singleton (`sing_temp`) with a private constructor, used through the
+ * global reference `wcerr`. It encodes characters into bytes (`code_cvt_stdio`) in the
+ * encoding `initial_locale_name(LC_CTYPE)` picks at startup. Its exit hook is
+ * `flush_at_exit()` (a best-effort flush; see the file header) and it is never destroyed. It
+ * ties itself to `wcout` and sets `ios_defs::unitbuf` at construction.
+ * @endif
+ */
 class wcerr_t : public stdout_api<wcerr_t, std_device<STDERR_FILENO>, wchar_t>
               , public sing_temp<wcerr_t>
 {
@@ -809,11 +1127,46 @@ private:
 #if defined(IOV2_SHARED)
 extern IOV2_API wcerr_t& wcerr;   // defined in iov2_objects.cpp
 #else
+/// @cond INTERNAL
 inline wcerr_t::init _wcerr_init;
+/// @endcond
+/**
+ * @lang{ZH}
+ * @brief 宽字符标准错误流对象（`wchar_t`），写 fd 2。
+ *
+ * `IOV2_SHARED` 下是 `libiov2.so` 里唯一一份的引用（定义在 `iov2_objects.cpp`），头文件模式下
+ * 是本程序内的 `inline` 变量。可在哪些静态对象的构造 / 析构里使用，见 `objects.h`。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief The wide standard error stream object (`wchar_t`), writing fd 2.
+ *
+ * Under `IOV2_SHARED` a reference to the single copy inside `libiov2.so` (defined in
+ * `iov2_objects.cpp`); in header-only mode an `inline` variable of the program itself. For
+ * which static objects may use it from their constructors and destructors, see `objects.h`.
+ * @endif
+ */
 inline wcerr_t&      wcerr = _wcerr_init.get();
 #endif
 
-/// wclog
+/**
+ * @lang{ZH}
+ * @brief 宽字符标准日志流 `wclog`（`wchar_t`）的类型。
+ *
+ * 进程级单例（`sing_temp`），构造函数私有，经全局引用 `wclog` 使用。启动时以
+ * `initial_locale_name(LC_CTYPE)` 选定的编码把字符编码成字节（`code_cvt_stdio`）。
+ * 退出钩子为 `flush_at_exit()`（尽力而为的刷新，见文件头），不析构。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief The type of the wide standard log stream `wclog` (`wchar_t`).
+ *
+ * A process-wide singleton (`sing_temp`) with a private constructor, used through the
+ * global reference `wclog`. It encodes characters into bytes (`code_cvt_stdio`) in the encoding
+ * `initial_locale_name(LC_CTYPE)` picks at startup. Its exit hook is `flush_at_exit()` (a
+ * best-effort flush; see the file header) and it is never destroyed.
+ * @endif
+ */
 class wclog_t : public stdout_api<wclog_t, std_device<STDERR_FILENO>, wchar_t>
               , public sing_temp<wclog_t>
 {
@@ -833,7 +1186,25 @@ private:
 #if defined(IOV2_SHARED)
 extern IOV2_API wclog_t& wclog;   // defined in iov2_objects.cpp
 #else
+/// @cond INTERNAL
 inline wclog_t::init _wclog_init;
+/// @endcond
+/**
+ * @lang{ZH}
+ * @brief 宽字符标准日志流对象（`wchar_t`），写 fd 2。
+ *
+ * `IOV2_SHARED` 下是 `libiov2.so` 里唯一一份的引用（定义在 `iov2_objects.cpp`），头文件模式下
+ * 是本程序内的 `inline` 变量。可在哪些静态对象的构造 / 析构里使用，见 `objects.h`。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief The wide standard log stream object (`wchar_t`), writing fd 2.
+ *
+ * Under `IOV2_SHARED` a reference to the single copy inside `libiov2.so` (defined in
+ * `iov2_objects.cpp`); in header-only mode an `inline` variable of the program itself. For
+ * which static objects may use it from their constructors and destructors, see `objects.h`.
+ * @endif
+ */
 inline wclog_t&      wclog = _wclog_init.get();
 #endif
 }
