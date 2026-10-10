@@ -205,16 +205,45 @@ namespace
     // hand-over lands here at once, still inside sync_with_stdio(true).
     struct hand_over_probe
     {
+        bool (*synced)() = nullptr;                 // the stream's synced_with_stdio()
         std::string received;
-        bool        synced_seen = false;
+        bool        synced_seen = false;            // true seen during the hand-over
+        bool        synced_after = false;
     };
 
     ssize_t probe_write(void* cookie, const char* buf, std::size_t size)
     {
         auto* probe = static_cast<hand_over_probe*>(cookie);
         probe->received.append(buf, size);
-        probe->synced_seen = probe->synced_seen || IOv2::cout.synced_with_stdio();
+        probe->synced_seen = probe->synced_seen || probe->synced();
         return static_cast<ssize_t>(size);
+    }
+
+    // Buffers `text` on unsynchronized `s`, then switches it back with the probe as stdout.
+    template <typename S, typename C>
+    hand_over_probe hand_over_through_probe(S& s, const C* text, bool (*synced)())
+    {
+        hand_over_probe probe;
+        probe.synced = synced;
+        s.reset();
+        const bool sync = s.sync_with_stdio(false);
+        s << text;                                  // in the stream's own buffer
+
+        FILE* const real_stdout = stdout;
+        FILE* const fake = ::fopencookie(&probe, "w", {nullptr, &probe_write, nullptr, nullptr});
+        if (fake != nullptr)
+        {
+            std::setvbuf(fake, nullptr, _IONBF, 0);
+            stdout = fake;
+            s.sync_with_stdio(true);
+            stdout = real_stdout;
+            std::fclose(fake);
+        }
+        else
+            probe.received = "<fopencookie failed>";
+        probe.synced_after = s.synced_with_stdio();
+        s.sync_with_stdio(sync);
+        return probe;
     }
 }
 #endif
@@ -229,23 +258,24 @@ TEST(StdObjectsSync, SyncedWithStdioIsFalseUntilTheHandOverIsDone)
 #if !defined(__GLIBC__)
     GTEST_SKIP() << "needs glibc's fopencookie";
 #else
-    IOv2::cout.reset();
-    const bool sync = IOv2::cout.sync_with_stdio(false);
-    IOv2::cout << "P";                              // in cout's own buffer
-
-    hand_over_probe probe;
-    FILE* const real_stdout = stdout;
-    FILE* const fake = ::fopencookie(&probe, "w", {nullptr, &probe_write, nullptr, nullptr});
-    ASSERT_NE(fake, nullptr);
-    std::setvbuf(fake, nullptr, _IONBF, 0);
-    stdout = fake;
-    IOv2::cout.sync_with_stdio(true);
-    stdout = real_stdout;
-    std::fclose(fake);
-
+    const auto probe = hand_over_through_probe(IOv2::cout, "P",
+                                               [] { return IOv2::cout.synced_with_stdio(); });
     EXPECT_EQ(probe.received, "P");
     EXPECT_FALSE(probe.synced_seen);
-    EXPECT_TRUE(IOv2::cout.synced_with_stdio());
-    IOv2::cout.sync_with_stdio(sync);
+    EXPECT_TRUE(probe.synced_after);
+#endif
+}
+
+// The same on wcout, whose hand-over goes through code_cvt_stdio before the device.
+TEST(StdObjectsSync, WcoutSyncedWithStdioIsFalseUntilTheHandOverIsDone)
+{
+#if !defined(__GLIBC__)
+    GTEST_SKIP() << "needs glibc's fopencookie";
+#else
+    const auto probe = hand_over_through_probe(IOv2::wcout, L"P",
+                                               [] { return IOv2::wcout.synced_with_stdio(); });
+    EXPECT_EQ(probe.received, "P");
+    EXPECT_FALSE(probe.synced_seen);
+    EXPECT_TRUE(probe.synced_after);
 #endif
 }

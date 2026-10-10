@@ -17,6 +17,7 @@
 #include <IOv2/device/mem_device.h>
 #include <IOv2/device/std_device.h>
 #include <IOv2/io/io_base.h>
+#include <IOv2/io/iostream.h>
 #include <IOv2/io/objects/in_impl.h>
 #include <IOv2/io/objects/objects.h>
 #include <IOv2/io/objects/out_impl.h>
@@ -25,6 +26,7 @@
 #include <IOv2/io/traits/char_and_str.h>
 
 #include <support/stdio_guard.h>
+#include <support/test_child.h>
 
 #include <gtest/gtest.h>
 
@@ -32,6 +34,7 @@
 #include <chrono>
 #include <cstddef>
 #include <cstdio>
+#include <cstdlib>
 #include <string>
 #include <thread>
 #include <type_traits>
@@ -654,6 +657,114 @@ TEST(IoObjectsChar, ATieCycleThroughAStandardStreamIsRejected)
 
     IOv2::cout.clear();
     os.tie(nullptr);
+}
+
+// The other shapes the round-33 review probed through tie_target::tied_to(), each mixing the
+// two instantiations of basic_stream_common_operators: a three-cycle, a five-cycle through an
+// iostream, a self-tie, and a cycle across character types. Each attempt that would close a
+// cycle is refused and leaves the edge as it was; the edges on the way are accepted.
+TEST(IoObjectsChar, EveryTieCycleShapeThroughStandardStreamsIsRejected)
+{
+    const auto refused = [](auto& s, IOv2::tie_target* target) {
+        IOv2::tie_target* const before = s.tie();
+        s.tie(target);
+        const bool ok = (s.rdstate() & IOv2::ios_defs::strfailbit) && s.tie() == before;
+        s.clear();
+        return ok;
+    };
+
+    IOv2::ostream os(IOv2::mem_device{""}, IOv2::locale<char>("C"));
+    IOv2::iostream io(IOv2::mem_device{""}, IOv2::locale<char>("C"));
+    IOv2::ostream wos(IOv2::mem_device{L""}, IOv2::locale<wchar_t>("C"));
+    ASSERT_EQ(IOv2::cerr.tie(), &IOv2::cout);      // tied at construction
+
+    os.tie(&IOv2::cerr);                           // cout -> os -> cerr -> cout
+    EXPECT_TRUE(refused(IOv2::cout, &os));
+
+    io.tie(&os);                                   // cout -> clog -> io -> os -> cerr -> cout
+    IOv2::clog.tie(&io);
+    EXPECT_TRUE(IOv2::clog.good());
+    EXPECT_EQ(IOv2::clog.tie(), &io);
+    EXPECT_TRUE(refused(IOv2::cout, &IOv2::clog));
+
+    EXPECT_TRUE(refused(IOv2::cerr, &IOv2::cerr)); // the length-1 cycle
+
+    wos.tie(&IOv2::cout);                          // cout -> wos -> cout, across char types
+    EXPECT_TRUE(refused(IOv2::cout, &wos));
+
+    EXPECT_EQ(IOv2::cout.tie(), nullptr);
+    IOv2::clog.tie(nullptr);
+    io.tie(nullptr);
+    os.tie(nullptr);
+    wos.tie(nullptr);
+}
+
+namespace
+{
+    // Re-runs `test` in a child whose fd 0 or fd 1 is broken before exec, so that the stream
+    // objects are constructed over it; `mode` names the breakage and reaches the child as
+    // test_child_arg(). Returns the child's exit status, or -1 if it did not exit.
+    int run_with_broken_fd(const std::string& test, const std::string& mode)
+    {
+        const std::string filter = "--gtest_filter=" + test;
+        const std::string executable = exe_path();
+        const pid_t child = ::fork();
+        if (child == -1)
+            return -1;
+        if (child == 0)
+        {
+            if (mode == "stdin-closed")
+                ::close(STDIN_FILENO);
+            else if (mode == "stdin-directory")
+                ::dup2(::open(".", O_RDONLY), STDIN_FILENO);
+            else if (mode == "stdin-write-only")
+                ::dup2(::open("/dev/null", O_WRONLY), STDIN_FILENO);
+            else if (mode == "stdout-closed")
+                ::close(STDOUT_FILENO);
+            else if (mode == "stdout-read-only")
+                ::dup2(::open("/dev/null", O_RDONLY), STDOUT_FILENO);
+            ::setenv(test_child_env, mode.c_str(), 1);
+            ::execl(executable.c_str(), executable.c_str(), filter.c_str(), "--gtest_color=no",
+                    static_cast<char*>(nullptr));
+            ::_exit(127);
+        }
+        int status = 0;
+        if (::waitpid(child, &status, 0) != child || !WIFEXITED(status))
+            return -1;
+        return WEXITSTATUS(status);
+    }
+}
+
+// fd 0 or fd 1 broken when the process starts: closed, a directory, or open in the wrong
+// direction. Constructing the stream objects over it must neither abort nor hang, and the
+// first operation reports the device failure through devfailbit. Only a review probe had
+// run these.
+TEST(IoObjectsChar, AStandardStreamOverABrokenFdFailsItsFirstOperation)
+{
+    if (in_test_child())
+    {
+        ::alarm(10);                               // a hang fails the case instead of the run
+        const std::string mode = test_child_arg();
+        bool dev_failed = false;
+        if (mode.starts_with("stdin"))
+        {
+            char c = 0;
+            IOv2::cin.get(c);
+            dev_failed = IOv2::cin.dev_fail();
+        }
+        else
+        {
+            IOv2::cout << 'x';
+            IOv2::cout.flush();
+            dev_failed = IOv2::cout.dev_fail();
+        }
+        std::_Exit(dev_failed ? 0 : 1);
+    }
+
+    for (const char* mode : {"stdin-closed", "stdin-directory", "stdin-write-only",
+                             "stdout-closed", "stdout-read-only"})
+        EXPECT_EQ(run_with_broken_fd("IoObjectsChar.AStandardStreamOverABrokenFdFailsItsFirstOperation", mode), 0)
+            << mode;
 }
 
 // Asking an input stream for the mode it is already in has nothing to switch, so it
