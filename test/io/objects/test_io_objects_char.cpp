@@ -50,12 +50,10 @@
 // template with any other device must be rejected at the template head.
 namespace
 {
-    struct probe_stream;
-
     template <typename Dev>
-    concept stdin_api_accepts = requires { typename IOv2::stdin_api<probe_stream, Dev, char>; };
+    concept stdin_api_accepts = requires { typename IOv2::stdin_api<Dev, char>; };
     template <typename Dev>
-    concept stdout_api_accepts = requires { typename IOv2::stdout_api<probe_stream, Dev, char>; };
+    concept stdout_api_accepts = requires { typename IOv2::stdout_api<Dev, char>; };
 
     static_assert(stdin_api_accepts<IOv2::std_device<STDIN_FILENO>>);
     static_assert(!stdin_api_accepts<IOv2::std_device<STDOUT_FILENO>>);
@@ -72,8 +70,8 @@ namespace
                                                && !std::is_copy_assignable_v<T>
                                                && !std::is_move_assignable_v<T>;
 
-    static_assert(neither_copyable_nor_movable<IOv2::stdout_api<IOv2::cout_t, IOv2::std_device<STDOUT_FILENO>, char>>);
-    static_assert(neither_copyable_nor_movable<IOv2::stdin_api<IOv2::cin_t, IOv2::std_device<STDIN_FILENO>, char>>);
+    static_assert(neither_copyable_nor_movable<IOv2::stdout_api<IOv2::std_device<STDOUT_FILENO>, char>>);
+    static_assert(neither_copyable_nor_movable<IOv2::stdin_api<IOv2::std_device<STDIN_FILENO>, char>>);
 
     static_assert(std::is_final_v<IOv2::stdin_sync>);
 

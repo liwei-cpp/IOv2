@@ -110,7 +110,6 @@ namespace IOv2
  *
  * 不可复制；具体的流类型（`cin_t`、`wcin_t`）同时派生自 `sing_temp`，作为进程级单例使用。
  *
- * @tparam T 派生的具体流类型（CRTP），供 `in_sentry` 与基类回调使用。
  * @tparam TDevice 设备类型，必须是 `std_device<STDIN_FILENO>`。
  * @tparam TChar 字符类型（`char` 或 `wchar_t`）。
  * @endif
@@ -129,13 +128,11 @@ namespace IOv2
  * Not copyable; the concrete stream types (`cin_t`, `wcin_t`) also derive from `sing_temp`
  * and are used as process-wide singletons.
  *
- * @tparam T The concrete derived stream type (CRTP), used by `in_sentry` and the base-class
- *         callbacks.
  * @tparam TDevice The device type; must be `std_device<STDIN_FILENO>`.
  * @tparam TChar The character type (`char` or `wchar_t`).
  * @endif
  */
-template <typename T, io_device TDevice, typename TChar>
+template <io_device TDevice, typename TChar>
     requires std::is_same_v<TDevice, std_device<STDIN_FILENO>>
 class stdin_api : public ios_state<TChar>
                 , public istream_operators<TChar>
@@ -147,7 +144,7 @@ class stdin_api : public ios_state<TChar>
 public:
     using device_type = TDevice;
     using char_type = TChar;
-    using in_sentry_type = in_sentry<T, false>;
+    using in_sentry_type = in_sentry<stdin_api, false>;
     using in_iter_type = ichannel_iterator<ichannel<device_type, char_type>>;
     friend in_sentry_type;
 
@@ -357,12 +354,12 @@ public:
      * @param acc The conversion-behavior settings to apply.
      * @endif
      */
-    void adjust(const cvt_behavior& acc)
+    void adjust(this auto& self, const cvt_behavior& acc)
     {
         if (const auto* s = dynamic_cast<const stdin_sync*>(&acc); s)
-            sync_with_stdio(s->synced);
+            self.sync_with_stdio(s->synced);
         else
-            static_cast<T&>(*this).std_stream_common_operators::adjust(acc);   // T&: see stdout_api::adjust
+            self.std_stream_common_operators::adjust(acc);   // through self: see stdout_api::adjust
     }
 
     /**
@@ -675,10 +672,10 @@ protected:
  * It ties itself to `cout` at construction.
  * @endif
  */
-class cin_t : public stdin_api<cin_t, std_device<STDIN_FILENO>, char>
+class cin_t : public stdin_api<std_device<STDIN_FILENO>, char>
             , public sing_temp<cin_t>
 {
-    using BT = stdin_api<cin_t, std_device<STDIN_FILENO>, char>;
+    using BT = stdin_api<std_device<STDIN_FILENO>, char>;
     friend sing_temp<cin_t>;
 
 private:
@@ -736,10 +733,10 @@ inline cin_t&      cin = _cin_init.get();
  * `std::wcin`, it is not destroyed at exit. It ties itself to `wcout` at construction.
  * @endif
  */
-class wcin_t : public stdin_api<wcin_t, std_device<STDIN_FILENO>, wchar_t>
+class wcin_t : public stdin_api<std_device<STDIN_FILENO>, wchar_t>
              , public sing_temp<wcin_t>
 {
-    using BT = stdin_api<wcin_t, std_device<STDIN_FILENO>, wchar_t>;
+    using BT = stdin_api<std_device<STDIN_FILENO>, wchar_t>;
     friend sing_temp<wcin_t>;
 
 private:
