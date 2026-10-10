@@ -238,8 +238,11 @@ namespace IOv2
          * `EST`，不是 `America/Panama`。规范化的活交给 `locate_zone`，它自己会做；而原文
          * 是 `tm_zone` 往返所必需的——put 侧原样写出 `tm_zone`，get 侧要能原样还回去。
          *
-         * 缩写取自每个时区**全部**转换的 `abbrev`：从 tzdb 数据的起点一直走到「当前时刻
-         * + 10 年」（系统时钟异常偏早时以 2038-01-01 兜底）。只在某一个时刻上取一次是不够
+         * 缩写取自每个时区**全部**转换的 `abbrev`：从 `year::min()` 年 1 月 1 日一直走到「当前时刻
+         * + 10 年」（系统时钟异常偏早时以 2038-01-01 兜底）。起点不取 `sys_seconds::min()`：
+         * libstdc++ 把每个时区第一段的起点定在 `year::min()` 年 1 月 1 日，早于它的时刻落在
+         * 带规则的段上时 `get_info` 会抛异常（tzdata 2026d 起的 `CST6CDT` 等四个区即如此）；
+         * 而这一刻之前不会再有别的转换，从这里起走不漏任何缩写。只在某一个时刻上取一次是不够
          * 的——那样只会拿到该时刻生效的那一个，夏令时缩写与南北半球各漏掉一半。不设下界是
          * 因为 put 侧的 `%Z` 原样写出 `std::tm::tm_zone`，而 `localtime()` 能表示任意时刻：
          * 树里缺哪个缩写，哪个就是本库写得出却读不回的。上界随系统时钟推移，不会因为写死
@@ -295,8 +298,13 @@ namespace IOv2
          * needs -- the put side writes `tm_zone` out unchanged, so get must be able to put it back.
          *
          * The abbreviations come from the `abbrev` of **every** transition each zone goes
-         * through, walked from the start of the tzdb data up to the current time plus ten
+         * through, walked from January 1 of `year::min()` up to the current time plus ten
          * years (falling back to 2038-01-01 should the system clock read implausibly early).
+         * The walk does not start at `sys_seconds::min()`: libstdc++ starts every zone's first
+         * period on January 1 of `year::min()`, and `get_info` throws for an earlier instant
+         * that falls on a period with rules (as the four zones `CST6CDT` and co. do since
+         * tzdata 2026d); no transition comes before that instant, so starting there misses no
+         * abbreviation.
          * Sampling a single instant is not enough: it yields only the one abbreviation in
          * effect then, missing every daylight-saving abbreviation and half of each hemisphere.
          * There is no lower bound because the put side of `%Z` writes `std::tm::tm_zone`
@@ -378,9 +386,14 @@ namespace IOv2
                     const sys_seconds floor{sys_days{2038y / January / 1}};
                     const sys_seconds horizon = (projected > floor) ? projected : floor;
 
+                    // Not sys_seconds::min(): libstdc++ starts every zone's first period at
+                    // year::min(), and an earlier instant on a period with rules throws
+                    // (CST6CDT and co. since tzdata 2026d). Nothing is lost by starting here.
+                    const sys_seconds start{sys_days{year::min() / January / 1}};
+
                     for (const auto& zone : tzdb.zones)
                     {
-                        sys_seconds t = sys_seconds::min();
+                        sys_seconds t = start;
                         while (t < horizon)
                         {
                             const sys_info info = zone.get_info(t);
