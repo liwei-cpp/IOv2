@@ -611,7 +611,7 @@ public:
         return res;
     }
 
-protected:
+private:
     /**
      * @lang{ZH}
      * @brief 本流的输入通道：转换器管线、根转换器 `stdin_root_cvt` 与 fd 0 上的设备。

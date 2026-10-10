@@ -782,6 +782,7 @@ protected:
         this->try_flush();
     }
 
+private:
     /**
      * @lang{ZH}
      * @brief 本流的输出通道：转换器管线与本流 fd 上的设备。
