@@ -93,6 +93,16 @@ namespace
     static_assert(!base_adjust_reachable<IOv2::cin_t, IOv2::std_stream_common_operators>);
     static_assert(own_adjust_callable<IOv2::cout_t> && own_adjust_callable<IOv2::cin_t>);
 
+    // tie(p) through a reference to the common base would skip the cycle check (the base
+    // cannot tell whether the stream may be tied to) and could not report a rejection. It
+    // used to fail only by accident, on handle_exception missing from the base; it is now
+    // constrained out. On the streams themselves, input streams included, it stays callable.
+    template <typename S>
+    concept tie_settable = requires (S& s, IOv2::tie_target* t) { s.tie(t); };
+    static_assert(!tie_settable<IOv2::std_stream_common_operators>);
+    static_assert(!tie_settable<IOv2::stream_common_operators>);
+    static_assert(tie_settable<IOv2::cout_t> && tie_settable<IOv2::cin_t> && tie_settable<ostream_t>);
+
     // Writes '1', switches cout back to synchronized, printf()s, then writes '2'
     // -- all from inside one insertion, with that insertion's sentry alive.
     struct flipper {};
