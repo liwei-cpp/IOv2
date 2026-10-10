@@ -1,0 +1,269 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=11"/>
+<meta name="generator" content="Doxygen 1.9.8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>IOv2: include/IOv2/common/copyable_mutex.h 源文件</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="resize.js"></script>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr id="projectrow">
+  <td id="projectalign">
+   <div id="projectname">IOv2
+   </div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 制作者 Doxygen 1.9.8 -->
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+/* @license-end */
+</script>
+<script type="text/javascript" src="menudata.js"></script>
+<script type="text/javascript" src="menu.js"></script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(function() {
+  initMenu('',true,false,'search.php','搜索');
+  $(document).ready(function() { init_search(); });
+});
+/* @license-end */
+</script>
+<div id="main-nav"></div>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(document).ready(function() { init_codefold(0); });
+/* @license-end */
+</script>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(document).ready(function(){initNavTree('copyable__mutex_8h_source.html',''); initResizable(); });
+/* @license-end */
+</script>
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">载入中...</div>
+<div class="SRStatus" id="Searching">搜索中...</div>
+<div class="SRStatus" id="NoMatches">未找到</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="header">
+  <div class="headertitle"><div class="title">copyable_mutex.h</div></div>
+</div><!--header-->
+<div class="contents">
+<a href="copyable__mutex_8h.html">浏览该文件的文档.</a><div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span><span class="comment">// SPDX-FileCopyrightText: 2026 liwei &lt;liwei.cpp@gmail.com&gt;</span></div>
+<div class="line"><a id="l00002" name="l00002"></a><span class="lineno">    2</span><span class="comment">// SPDX-License-Identifier: MIT</span></div>
+<div class="line"><a id="l00003" name="l00003"></a><span class="lineno">    3</span> </div>
+<div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span><span class="preprocessor">#pragma once</span></div>
+<div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span> </div>
+<div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span><span class="preprocessor">#include &lt;<a class="code" href="iov2__export_8h.html">IOv2/common/iov2_export.h</a>&gt;</span></div>
+<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span> </div>
+<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span><span class="preprocessor">#include &lt;atomic&gt;</span></div>
+<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span><span class="preprocessor">#include &lt;memory&gt;</span></div>
+<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span><span class="preprocessor">#include &lt;mutex&gt;</span></div>
+<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span> </div>
+<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span><span class="preprocessor">#if defined(__unix__) || defined(__APPLE__)</span></div>
+<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span><span class="preprocessor">#include &lt;pthread.h&gt;</span></div>
+<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span><span class="preprocessor">#endif</span></div>
+<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span> </div>
+<div class="foldopen" id="foldopen00027" data-start="{" data-end="}">
+<div class="line"><a id="l00027" name="l00027"></a><span class="lineno"><a class="line" href="namespaceIOv2_1_1detail.html">   27</a></span><span class="keyword">namespace </span><a class="code hl_namespace" href="namespaceIOv2_1_1detail.html">IOv2::detail</a></div>
+<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span>{</div>
+<div class="foldopen" id="foldopen00040" data-start="{" data-end="};">
+<div class="line"><a id="l00040" name="l00040"></a><span class="lineno"><a class="line" href="structIOv2_1_1detail_1_1fork__state.html">   40</a></span><span class="keyword">struct </span><a class="code hl_struct" href="structIOv2_1_1detail_1_1fork__state.html">fork_state</a></div>
+<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span>{</div>
+<div class="line"><a id="l00042" name="l00042"></a><span class="lineno"><a class="line" href="structIOv2_1_1detail_1_1fork__state.html#a5a65e700d378b96c47891fb08b585014">   42</a></span>    std::atomic&lt;unsigned&gt; <a class="code hl_variable" href="structIOv2_1_1detail_1_1fork__state.html#a5a65e700d378b96c47891fb08b585014">generation</a>{0};</div>
+<div class="line"><a id="l00043" name="l00043"></a><span class="lineno"><a class="line" href="structIOv2_1_1detail_1_1fork__state.html#a0e6ccc60ffb2a7b332ac55c448fe7864">   43</a></span>    std::mutex            <a class="code hl_variable" href="structIOv2_1_1detail_1_1fork__state.html#a0e6ccc60ffb2a7b332ac55c448fe7864">refresh</a>;</div>
+<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span>};</div>
+</div>
+<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span> </div>
+<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span><span class="preprocessor">#if defined(IOV2_SHARED)</span></div>
+<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span><a class="code hl_define" href="iov2__export_8h.html#a7b01fd78d4b2344ee4df2aa21b1f7cef">IOV2_API</a> <a class="code hl_struct" href="structIOv2_1_1detail_1_1fork__state.html">fork_state</a>&amp; <a class="code hl_function" href="namespaceIOv2_1_1detail.html#a80ba2a976d6c803fe1db81c8c857aad2">copyable_mutex_fork_state</a>() noexcept;   <span class="comment">// defined in iov2_objects.cpp</span></div>
+<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span><a class="code hl_define" href="iov2__export_8h.html#a7b01fd78d4b2344ee4df2aa21b1f7cef">IOV2_API</a> <span class="keywordtype">void</span>        <a class="code hl_function" href="namespaceIOv2_1_1detail.html#a72a7f9141263b485b2d78850d1f8edca">copyable_mutex_watch_fork</a>() noexcept;   <span class="comment">// defined in iov2_objects.cpp</span></div>
+<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span><span class="preprocessor">#else</span></div>
+<div class="foldopen" id="foldopen00050" data-start="{" data-end="}">
+<div class="line"><a id="l00050" name="l00050"></a><span class="lineno"><a class="line" href="namespaceIOv2_1_1detail.html#a80ba2a976d6c803fe1db81c8c857aad2">   50</a></span><span class="keyword">inline</span> <a class="code hl_struct" href="structIOv2_1_1detail_1_1fork__state.html">fork_state</a>&amp; <a class="code hl_function" href="namespaceIOv2_1_1detail.html#a80ba2a976d6c803fe1db81c8c857aad2">copyable_mutex_fork_state</a>() noexcept</div>
+<div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span>{</div>
+<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span>    <span class="keyword">static</span> <span class="keyword">constinit</span> <a class="code hl_struct" href="structIOv2_1_1detail_1_1fork__state.html">fork_state</a> s;</div>
+<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span>    <span class="keywordflow">return</span> s;</div>
+<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span>}</div>
+</div>
+<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span><span class="preprocessor">#endif</span></div>
+<div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span> </div>
+<div class="foldopen" id="foldopen00069" data-start="{" data-end="}">
+<div class="line"><a id="l00069" name="l00069"></a><span class="lineno"><a class="line" href="namespaceIOv2_1_1detail.html#a97b3bcee754736ed1f1038757ffd4147">   69</a></span><span class="keyword">inline</span> <span class="keywordtype">void</span> <a class="code hl_function" href="namespaceIOv2_1_1detail.html#a97b3bcee754736ed1f1038757ffd4147">copyable_mutex_on_fork_child</a>() noexcept</div>
+<div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span>{</div>
+<div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span>    <span class="keyword">auto</span>&amp; s = <a class="code hl_function" href="namespaceIOv2_1_1detail.html#a80ba2a976d6c803fe1db81c8c857aad2">copyable_mutex_fork_state</a>();</div>
+<div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span>    s.generation.fetch_add(1, std::memory_order_relaxed);</div>
+<div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span>    std::construct_at(&amp;s.refresh);</div>
+<div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span>}</div>
+</div>
+<div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span> </div>
+<div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span><span class="preprocessor">#if !defined(IOV2_SHARED)</span></div>
+<div class="foldopen" id="foldopen00087" data-start="{" data-end="}">
+<div class="line"><a id="l00087" name="l00087"></a><span class="lineno"><a class="line" href="namespaceIOv2_1_1detail.html#a72a7f9141263b485b2d78850d1f8edca">   87</a></span><span class="keyword">inline</span> <span class="keywordtype">void</span> <a class="code hl_function" href="namespaceIOv2_1_1detail.html#a72a7f9141263b485b2d78850d1f8edca">copyable_mutex_watch_fork</a>() noexcept</div>
+<div class="line"><a id="l00088" name="l00088"></a><span class="lineno">   88</span>{</div>
+<div class="line"><a id="l00089" name="l00089"></a><span class="lineno">   89</span><span class="preprocessor">#if defined(__unix__) || defined(__APPLE__)</span></div>
+<div class="line"><a id="l00090" name="l00090"></a><span class="lineno">   90</span>    [[maybe_unused]] <span class="keyword">static</span> <span class="keyword">const</span> <span class="keywordtype">int</span> registered =</div>
+<div class="line"><a id="l00091" name="l00091"></a><span class="lineno">   91</span>        ::pthread_atfork(<span class="keyword">nullptr</span>, <span class="keyword">nullptr</span>, &amp;<a class="code hl_function" href="namespaceIOv2_1_1detail.html#a97b3bcee754736ed1f1038757ffd4147">copyable_mutex_on_fork_child</a>);</div>
+<div class="line"><a id="l00092" name="l00092"></a><span class="lineno">   92</span><span class="preprocessor">#endif</span></div>
+<div class="line"><a id="l00093" name="l00093"></a><span class="lineno">   93</span>}</div>
+</div>
+<div class="line"><a id="l00094" name="l00094"></a><span class="lineno">   94</span><span class="preprocessor">#endif</span></div>
+<div class="line"><a id="l00095" name="l00095"></a><span class="lineno">   95</span>}</div>
+</div>
+<div class="line"><a id="l00096" name="l00096"></a><span class="lineno">   96</span> </div>
+<div class="line"><a id="l00097" name="l00097"></a><span class="lineno">   97</span><span class="keyword">namespace </span><a class="code hl_namespace" href="namespaceIOv2.html">IOv2</a></div>
+<div class="line"><a id="l00098" name="l00098"></a><span class="lineno">   98</span>{</div>
+<div class="line"><a id="l00186" name="l00186"></a><span class="lineno">  186</span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> TMutex = std::mutex&gt;</div>
+<div class="foldopen" id="foldopen00187" data-start="{" data-end="};">
+<div class="line"><a id="l00187" name="l00187"></a><span class="lineno"><a class="line" href="classIOv2_1_1copyable__mutex.html">  187</a></span><span class="keyword">class </span><a class="code hl_class" href="classIOv2_1_1copyable__mutex.html">copyable_mutex</a></div>
+<div class="line"><a id="l00188" name="l00188"></a><span class="lineno">  188</span>{</div>
+<div class="line"><a id="l00189" name="l00189"></a><span class="lineno">  189</span><span class="keyword">public</span>:</div>
+<div class="foldopen" id="foldopen00190" data-start="{" data-end="}">
+<div class="line"><a id="l00190" name="l00190"></a><span class="lineno"><a class="line" href="classIOv2_1_1copyable__mutex.html#af95fcbb49a873e3043e99d09776d1e6a">  190</a></span>    <a class="code hl_function" href="classIOv2_1_1copyable__mutex.html#af95fcbb49a873e3043e99d09776d1e6a">copyable_mutex</a>() noexcept</div>
+<div class="line"><a id="l00191" name="l00191"></a><span class="lineno">  191</span>        : m_generation(detail::copyable_mutex_fork_state().generation.load(<a class="code hl_namespace" href="namespacestd.html">std</a>::memory_order_relaxed))</div>
+<div class="line"><a id="l00192" name="l00192"></a><span class="lineno">  192</span>    {</div>
+<div class="line"><a id="l00193" name="l00193"></a><span class="lineno">  193</span>        <a class="code hl_function" href="namespaceIOv2_1_1detail.html#a72a7f9141263b485b2d78850d1f8edca">detail::copyable_mutex_watch_fork</a>();</div>
+<div class="line"><a id="l00194" name="l00194"></a><span class="lineno">  194</span>    }</div>
+</div>
+<div class="line"><a id="l00195" name="l00195"></a><span class="lineno">  195</span> </div>
+<div class="line"><a id="l00196" name="l00196"></a><span class="lineno">  196</span>    <span class="comment">// Copy/move construct a fresh, unlocked mutex; no lock state is carried over.</span></div>
+<div class="line"><a id="l00197" name="l00197"></a><span class="lineno"><a class="line" href="classIOv2_1_1copyable__mutex.html#ac99876cdc91eb54e267e0486dee370b7">  197</a></span>    <a class="code hl_function" href="classIOv2_1_1copyable__mutex.html#ac99876cdc91eb54e267e0486dee370b7">copyable_mutex</a>(<span class="keyword">const</span> <a class="code hl_class" href="classIOv2_1_1copyable__mutex.html">copyable_mutex</a>&amp;) noexcept : <a class="code hl_function" href="classIOv2_1_1copyable__mutex.html#ac99876cdc91eb54e267e0486dee370b7">copyable_mutex</a>() {}</div>
+<div class="line"><a id="l00198" name="l00198"></a><span class="lineno"><a class="line" href="classIOv2_1_1copyable__mutex.html#ab37df19355ee2fe065c7553490fb6272">  198</a></span>    <a class="code hl_class" href="classIOv2_1_1copyable__mutex.html">copyable_mutex</a>&amp; <a class="code hl_function" href="classIOv2_1_1copyable__mutex.html#ab37df19355ee2fe065c7553490fb6272">operator=</a>(<span class="keyword">const</span> <a class="code hl_class" href="classIOv2_1_1copyable__mutex.html">copyable_mutex</a>&amp;) <span class="keyword">noexcept</span> { <span class="keywordflow">return</span> *<span class="keyword">this</span>; }</div>
+<div class="line"><a id="l00199" name="l00199"></a><span class="lineno"><a class="line" href="classIOv2_1_1copyable__mutex.html#a73bbad669e393f13ce320ceb35c8c502">  199</a></span>    <a class="code hl_function" href="classIOv2_1_1copyable__mutex.html#a73bbad669e393f13ce320ceb35c8c502">copyable_mutex</a>(<a class="code hl_class" href="classIOv2_1_1copyable__mutex.html">copyable_mutex</a>&amp;&amp;) noexcept : <a class="code hl_class" href="classIOv2_1_1copyable__mutex.html">copyable_mutex</a>() {}</div>
+<div class="line"><a id="l00200" name="l00200"></a><span class="lineno"><a class="line" href="classIOv2_1_1copyable__mutex.html#a196c303228057a51a50de4813b3cf09d">  200</a></span>    <a class="code hl_class" href="classIOv2_1_1copyable__mutex.html">copyable_mutex</a>&amp; <a class="code hl_function" href="classIOv2_1_1copyable__mutex.html#a196c303228057a51a50de4813b3cf09d">operator=</a>(<a class="code hl_class" href="classIOv2_1_1copyable__mutex.html">copyable_mutex</a>&amp;&amp;) noexcept { <span class="keywordflow">return</span> *<span class="keyword">this</span>; }</div>
+<div class="line"><a id="l00201" name="l00201"></a><span class="lineno">  201</span> </div>
+<div class="line"><a id="l00202" name="l00202"></a><span class="lineno"><a class="line" href="classIOv2_1_1copyable__mutex.html#ac011e7767fc523e02cec9a2857f697e5">  202</a></span>    <a class="code hl_function" href="classIOv2_1_1copyable__mutex.html#ac011e7767fc523e02cec9a2857f697e5">~copyable_mutex</a>() = <span class="keywordflow">default</span>;</div>
+<div class="line"><a id="l00203" name="l00203"></a><span class="lineno">  203</span> </div>
+<div class="line"><a id="l00204" name="l00204"></a><span class="lineno"><a class="line" href="classIOv2_1_1copyable__mutex.html#ab4691bf16e1a84729c24e999a7dac3e9">  204</a></span>    <span class="keywordtype">void</span> <a class="code hl_function" href="classIOv2_1_1copyable__mutex.html#ab4691bf16e1a84729c24e999a7dac3e9">lock</a>()     { refresh_after_fork(); m_mutex.lock(); }</div>
+<div class="line"><a id="l00205" name="l00205"></a><span class="lineno"><a class="line" href="classIOv2_1_1copyable__mutex.html#a8cd9791531c22f5bc9e1b98c0ac5cd19">  205</a></span>    <span class="keywordtype">void</span> <a class="code hl_function" href="classIOv2_1_1copyable__mutex.html#a8cd9791531c22f5bc9e1b98c0ac5cd19">unlock</a>()   { m_mutex.unlock(); }</div>
+<div class="line"><a id="l00206" name="l00206"></a><span class="lineno"><a class="line" href="classIOv2_1_1copyable__mutex.html#a2188fa7d4c9e7c2fb9eda85f6eb7fc7b">  206</a></span>    <span class="keywordtype">bool</span> <a class="code hl_function" href="classIOv2_1_1copyable__mutex.html#a2188fa7d4c9e7c2fb9eda85f6eb7fc7b">try_lock</a>() { refresh_after_fork(); <span class="keywordflow">return</span> m_mutex.try_lock(); }</div>
+<div class="line"><a id="l00207" name="l00207"></a><span class="lineno">  207</span> </div>
+<div class="foldopen" id="foldopen00208" data-start="{" data-end="}">
+<div class="line"><a id="l00208" name="l00208"></a><span class="lineno"><a class="line" href="classIOv2_1_1copyable__mutex.html#aab2431f8d42828a7b3be5a66a1adc0d3">  208</a></span>    <span class="keywordtype">void</span> <a class="code hl_function" href="classIOv2_1_1copyable__mutex.html#aab2431f8d42828a7b3be5a66a1adc0d3">lock_shared</a>() <span class="keyword">requires</span> <span class="keyword">requires</span> (TMutex&amp; m) { m.lock_shared(); }</div>
+<div class="line"><a id="l00209" name="l00209"></a><span class="lineno">  209</span>    {</div>
+<div class="line"><a id="l00210" name="l00210"></a><span class="lineno">  210</span>        refresh_after_fork();</div>
+<div class="line"><a id="l00211" name="l00211"></a><span class="lineno">  211</span>        m_mutex.lock_shared();</div>
+<div class="line"><a id="l00212" name="l00212"></a><span class="lineno">  212</span>    }</div>
+</div>
+<div class="foldopen" id="foldopen00213" data-start="{" data-end="}">
+<div class="line"><a id="l00213" name="l00213"></a><span class="lineno"><a class="line" href="classIOv2_1_1copyable__mutex.html#a368dc57fac232f921fca3c3999ea277f">  213</a></span>    <span class="keywordtype">void</span> <a class="code hl_function" href="classIOv2_1_1copyable__mutex.html#a368dc57fac232f921fca3c3999ea277f">unlock_shared</a>() <span class="keyword">requires</span> <span class="keyword">requires</span> (TMutex&amp; m) { m.unlock_shared(); }</div>
+<div class="line"><a id="l00214" name="l00214"></a><span class="lineno">  214</span>    {</div>
+<div class="line"><a id="l00215" name="l00215"></a><span class="lineno">  215</span>        m_mutex.unlock_shared();</div>
+<div class="line"><a id="l00216" name="l00216"></a><span class="lineno">  216</span>    }</div>
+</div>
+<div class="foldopen" id="foldopen00217" data-start="{" data-end="}">
+<div class="line"><a id="l00217" name="l00217"></a><span class="lineno"><a class="line" href="classIOv2_1_1copyable__mutex.html#a789cfaa69fb21d9617d46c45999b162c">  217</a></span>    <span class="keywordtype">bool</span> <a class="code hl_function" href="classIOv2_1_1copyable__mutex.html#a789cfaa69fb21d9617d46c45999b162c">try_lock_shared</a>() <span class="keyword">requires</span> <span class="keyword">requires</span> (TMutex&amp; m) { m.try_lock_shared(); }</div>
+<div class="line"><a id="l00218" name="l00218"></a><span class="lineno">  218</span>    {</div>
+<div class="line"><a id="l00219" name="l00219"></a><span class="lineno">  219</span>        refresh_after_fork();</div>
+<div class="line"><a id="l00220" name="l00220"></a><span class="lineno">  220</span>        <span class="keywordflow">return</span> m_mutex.try_lock_shared();</div>
+<div class="line"><a id="l00221" name="l00221"></a><span class="lineno">  221</span>    }</div>
+</div>
+<div class="line"><a id="l00222" name="l00222"></a><span class="lineno">  222</span> </div>
+<div class="line"><a id="l00223" name="l00223"></a><span class="lineno">  223</span><span class="keyword">private</span>:</div>
+<div class="line"><a id="l00224" name="l00224"></a><span class="lineno">  224</span>    <span class="comment">// In the child of a fork() the mutex may be held by a thread that did not come along;</span></div>
+<div class="line"><a id="l00225" name="l00225"></a><span class="lineno">  225</span>    <span class="comment">// the first lock there rebuilds it unlocked. Never taken in a process that has not forked.</span></div>
+<div class="line"><a id="l00226" name="l00226"></a><span class="lineno">  226</span>    <span class="keywordtype">void</span> refresh_after_fork()</div>
+<div class="line"><a id="l00227" name="l00227"></a><span class="lineno">  227</span>    {</div>
+<div class="line"><a id="l00228" name="l00228"></a><span class="lineno">  228</span>        <span class="keyword">const</span> <span class="keywordtype">unsigned</span> gen = <a class="code hl_function" href="namespaceIOv2_1_1detail.html#a80ba2a976d6c803fe1db81c8c857aad2">detail::copyable_mutex_fork_state</a>().<a class="code hl_variable" href="structIOv2_1_1detail_1_1fork__state.html#a5a65e700d378b96c47891fb08b585014">generation</a>.load(std::memory_order_relaxed);</div>
+<div class="line"><a id="l00229" name="l00229"></a><span class="lineno">  229</span>        <span class="keywordflow">if</span> (m_generation.load(std::memory_order_acquire) != gen) [[unlikely]]</div>
+<div class="line"><a id="l00230" name="l00230"></a><span class="lineno">  230</span>            rebuild(gen);</div>
+<div class="line"><a id="l00231" name="l00231"></a><span class="lineno">  231</span>    }</div>
+<div class="line"><a id="l00232" name="l00232"></a><span class="lineno">  232</span> </div>
+<div class="line"><a id="l00233" name="l00233"></a><span class="lineno">  233</span>    <span class="keywordtype">void</span> rebuild(<span class="keywordtype">unsigned</span> gen)</div>
+<div class="line"><a id="l00234" name="l00234"></a><span class="lineno">  234</span>    {</div>
+<div class="line"><a id="l00235" name="l00235"></a><span class="lineno">  235</span>        std::lock_guard guard(<a class="code hl_function" href="namespaceIOv2_1_1detail.html#a80ba2a976d6c803fe1db81c8c857aad2">detail::copyable_mutex_fork_state</a>().refresh);</div>
+<div class="line"><a id="l00236" name="l00236"></a><span class="lineno">  236</span>        <span class="keywordflow">if</span> (m_generation.load(std::memory_order_relaxed) != gen)</div>
+<div class="line"><a id="l00237" name="l00237"></a><span class="lineno">  237</span>        {</div>
+<div class="line"><a id="l00238" name="l00238"></a><span class="lineno">  238</span>            std::construct_at(&amp;m_mutex);</div>
+<div class="line"><a id="l00239" name="l00239"></a><span class="lineno">  239</span>            m_generation.store(gen, std::memory_order_release);</div>
+<div class="line"><a id="l00240" name="l00240"></a><span class="lineno">  240</span>        }</div>
+<div class="line"><a id="l00241" name="l00241"></a><span class="lineno">  241</span>    }</div>
+<div class="line"><a id="l00242" name="l00242"></a><span class="lineno">  242</span> </div>
+<div class="line"><a id="l00243" name="l00243"></a><span class="lineno">  243</span>    TMutex                m_mutex;</div>
+<div class="line"><a id="l00244" name="l00244"></a><span class="lineno">  244</span>    std::atomic&lt;unsigned&gt; m_generation;</div>
+<div class="line"><a id="l00245" name="l00245"></a><span class="lineno">  245</span>};</div>
+</div>
+<div class="line"><a id="l00246" name="l00246"></a><span class="lineno">  246</span>}</div>
+<div class="ttc" id="aclassIOv2_1_1copyable__mutex_html"><div class="ttname"><a href="classIOv2_1_1copyable__mutex.html">IOv2::copyable_mutex</a></div><div class="ttdef"><b>Definition</b> copyable_mutex.h:188</div></div>
+<div class="ttc" id="aclassIOv2_1_1copyable__mutex_html_a196c303228057a51a50de4813b3cf09d"><div class="ttname"><a href="classIOv2_1_1copyable__mutex.html#a196c303228057a51a50de4813b3cf09d">IOv2::copyable_mutex::operator=</a></div><div class="ttdeci">copyable_mutex &amp; operator=(copyable_mutex &amp;&amp;) noexcept</div><div class="ttdef"><b>Definition</b> copyable_mutex.h:200</div></div>
+<div class="ttc" id="aclassIOv2_1_1copyable__mutex_html_a2188fa7d4c9e7c2fb9eda85f6eb7fc7b"><div class="ttname"><a href="classIOv2_1_1copyable__mutex.html#a2188fa7d4c9e7c2fb9eda85f6eb7fc7b">IOv2::copyable_mutex::try_lock</a></div><div class="ttdeci">bool try_lock()</div><div class="ttdef"><b>Definition</b> copyable_mutex.h:206</div></div>
+<div class="ttc" id="aclassIOv2_1_1copyable__mutex_html_a368dc57fac232f921fca3c3999ea277f"><div class="ttname"><a href="classIOv2_1_1copyable__mutex.html#a368dc57fac232f921fca3c3999ea277f">IOv2::copyable_mutex::unlock_shared</a></div><div class="ttdeci">void unlock_shared()</div><div class="ttdef"><b>Definition</b> copyable_mutex.h:213</div></div>
+<div class="ttc" id="aclassIOv2_1_1copyable__mutex_html_a73bbad669e393f13ce320ceb35c8c502"><div class="ttname"><a href="classIOv2_1_1copyable__mutex.html#a73bbad669e393f13ce320ceb35c8c502">IOv2::copyable_mutex::copyable_mutex</a></div><div class="ttdeci">copyable_mutex(copyable_mutex &amp;&amp;) noexcept</div><div class="ttdef"><b>Definition</b> copyable_mutex.h:199</div></div>
+<div class="ttc" id="aclassIOv2_1_1copyable__mutex_html_a789cfaa69fb21d9617d46c45999b162c"><div class="ttname"><a href="classIOv2_1_1copyable__mutex.html#a789cfaa69fb21d9617d46c45999b162c">IOv2::copyable_mutex::try_lock_shared</a></div><div class="ttdeci">bool try_lock_shared()</div><div class="ttdef"><b>Definition</b> copyable_mutex.h:217</div></div>
+<div class="ttc" id="aclassIOv2_1_1copyable__mutex_html_a8cd9791531c22f5bc9e1b98c0ac5cd19"><div class="ttname"><a href="classIOv2_1_1copyable__mutex.html#a8cd9791531c22f5bc9e1b98c0ac5cd19">IOv2::copyable_mutex::unlock</a></div><div class="ttdeci">void unlock()</div><div class="ttdef"><b>Definition</b> copyable_mutex.h:205</div></div>
+<div class="ttc" id="aclassIOv2_1_1copyable__mutex_html_aab2431f8d42828a7b3be5a66a1adc0d3"><div class="ttname"><a href="classIOv2_1_1copyable__mutex.html#aab2431f8d42828a7b3be5a66a1adc0d3">IOv2::copyable_mutex::lock_shared</a></div><div class="ttdeci">void lock_shared()</div><div class="ttdef"><b>Definition</b> copyable_mutex.h:208</div></div>
+<div class="ttc" id="aclassIOv2_1_1copyable__mutex_html_ab37df19355ee2fe065c7553490fb6272"><div class="ttname"><a href="classIOv2_1_1copyable__mutex.html#ab37df19355ee2fe065c7553490fb6272">IOv2::copyable_mutex::operator=</a></div><div class="ttdeci">copyable_mutex &amp; operator=(const copyable_mutex &amp;) noexcept</div><div class="ttdef"><b>Definition</b> copyable_mutex.h:198</div></div>
+<div class="ttc" id="aclassIOv2_1_1copyable__mutex_html_ab4691bf16e1a84729c24e999a7dac3e9"><div class="ttname"><a href="classIOv2_1_1copyable__mutex.html#ab4691bf16e1a84729c24e999a7dac3e9">IOv2::copyable_mutex::lock</a></div><div class="ttdeci">void lock()</div><div class="ttdef"><b>Definition</b> copyable_mutex.h:204</div></div>
+<div class="ttc" id="aclassIOv2_1_1copyable__mutex_html_ac011e7767fc523e02cec9a2857f697e5"><div class="ttname"><a href="classIOv2_1_1copyable__mutex.html#ac011e7767fc523e02cec9a2857f697e5">IOv2::copyable_mutex::~copyable_mutex</a></div><div class="ttdeci">~copyable_mutex()=default</div></div>
+<div class="ttc" id="aclassIOv2_1_1copyable__mutex_html_ac99876cdc91eb54e267e0486dee370b7"><div class="ttname"><a href="classIOv2_1_1copyable__mutex.html#ac99876cdc91eb54e267e0486dee370b7">IOv2::copyable_mutex::copyable_mutex</a></div><div class="ttdeci">copyable_mutex(const copyable_mutex &amp;) noexcept</div><div class="ttdef"><b>Definition</b> copyable_mutex.h:197</div></div>
+<div class="ttc" id="aclassIOv2_1_1copyable__mutex_html_af95fcbb49a873e3043e99d09776d1e6a"><div class="ttname"><a href="classIOv2_1_1copyable__mutex.html#af95fcbb49a873e3043e99d09776d1e6a">IOv2::copyable_mutex::copyable_mutex</a></div><div class="ttdeci">copyable_mutex() noexcept</div><div class="ttdef"><b>Definition</b> copyable_mutex.h:190</div></div>
+<div class="ttc" id="aiov2__export_8h_html"><div class="ttname"><a href="iov2__export_8h.html">iov2_export.h</a></div></div>
+<div class="ttc" id="aiov2__export_8h_html_a7b01fd78d4b2344ee4df2aa21b1f7cef"><div class="ttname"><a href="iov2__export_8h.html#a7b01fd78d4b2344ee4df2aa21b1f7cef">IOV2_API</a></div><div class="ttdeci">#define IOV2_API</div><div class="ttdef"><b>Definition</b> iov2_export.h:161</div></div>
+<div class="ttc" id="anamespaceIOv2_1_1detail_html"><div class="ttname"><a href="namespaceIOv2_1_1detail.html">IOv2::detail</a></div><div class="ttdef"><b>Definition</b> copyable_mutex.h:28</div></div>
+<div class="ttc" id="anamespaceIOv2_1_1detail_html_a72a7f9141263b485b2d78850d1f8edca"><div class="ttname"><a href="namespaceIOv2_1_1detail.html#a72a7f9141263b485b2d78850d1f8edca">IOv2::detail::copyable_mutex_watch_fork</a></div><div class="ttdeci">void copyable_mutex_watch_fork() noexcept</div><div class="ttdef"><b>Definition</b> copyable_mutex.h:87</div></div>
+<div class="ttc" id="anamespaceIOv2_1_1detail_html_a80ba2a976d6c803fe1db81c8c857aad2"><div class="ttname"><a href="namespaceIOv2_1_1detail.html#a80ba2a976d6c803fe1db81c8c857aad2">IOv2::detail::copyable_mutex_fork_state</a></div><div class="ttdeci">fork_state &amp; copyable_mutex_fork_state() noexcept</div><div class="ttdef"><b>Definition</b> copyable_mutex.h:50</div></div>
+<div class="ttc" id="anamespaceIOv2_1_1detail_html_a97b3bcee754736ed1f1038757ffd4147"><div class="ttname"><a href="namespaceIOv2_1_1detail.html#a97b3bcee754736ed1f1038757ffd4147">IOv2::detail::copyable_mutex_on_fork_child</a></div><div class="ttdeci">void copyable_mutex_on_fork_child() noexcept</div><div class="ttdef"><b>Definition</b> copyable_mutex.h:69</div></div>
+<div class="ttc" id="anamespaceIOv2_html"><div class="ttname"><a href="namespaceIOv2.html">IOv2</a></div><div class="ttdef"><b>Definition</b> clocale_wrapper.h:23</div></div>
+<div class="ttc" id="anamespacestd_html"><div class="ttname"><a href="namespacestd.html">std</a></div><div class="ttdef"><b>Definition</b> ori_facet_buf.h:83</div></div>
+<div class="ttc" id="astructIOv2_1_1detail_1_1fork__state_html"><div class="ttname"><a href="structIOv2_1_1detail_1_1fork__state.html">IOv2::detail::fork_state</a></div><div class="ttdef"><b>Definition</b> copyable_mutex.h:41</div></div>
+<div class="ttc" id="astructIOv2_1_1detail_1_1fork__state_html_a0e6ccc60ffb2a7b332ac55c448fe7864"><div class="ttname"><a href="structIOv2_1_1detail_1_1fork__state.html#a0e6ccc60ffb2a7b332ac55c448fe7864">IOv2::detail::fork_state::refresh</a></div><div class="ttdeci">std::mutex refresh</div><div class="ttdef"><b>Definition</b> copyable_mutex.h:43</div></div>
+<div class="ttc" id="astructIOv2_1_1detail_1_1fork__state_html_a5a65e700d378b96c47891fb08b585014"><div class="ttname"><a href="structIOv2_1_1detail_1_1fork__state.html#a5a65e700d378b96c47891fb08b585014">IOv2::detail::fork_state::generation</a></div><div class="ttdeci">std::atomic&lt; unsigned &gt; generation</div><div class="ttdef"><b>Definition</b> copyable_mutex.h:42</div></div>
+</div><!-- fragment --></div><!-- contents -->
+</div><!-- doc-content -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><a class="el" href="dir_d44c64559bbebec7f509842c48db8b23.html">include</a></li><li class="navelem"><a class="el" href="dir_1157f564aec2b3a7d6bde4eba89ab805.html">IOv2</a></li><li class="navelem"><a class="el" href="dir_98a4c929f2469063f0704c3ffa090255.html">common</a></li><li class="navelem"><a class="el" href="copyable__mutex_8h.html">copyable_mutex.h</a></li>
+    <li class="footer">制作者 <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8 </li>
+  </ul>
+</div>
+</body>
+</html>

@@ -1,0 +1,21 @@
+<map id="IOv2::abs_ft" name="IOv2::abs_ft">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,145,104,170"/>
+<area shape="rect" id="Node000002" href="$classIOv2_1_1base__ft.html" title=" " alt="" coords="177,5,329,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="71,132,105,93,151,55,176,42,178,47,153,60,109,97,75,136"/>
+<area shape="rect" id="Node000003" href="$classIOv2_1_1base__ft.html" title=" " alt="" coords="164,70,343,95"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="87,135,151,104,188,93,189,98,153,109,89,140"/>
+<area shape="rect" id="Node000005" href="$classIOv2_1_1base__ft_3_01ctype_01_4.html" title=" " alt="" coords="167,119,340,145"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="118,147,166,140,167,146,118,152"/>
+<area shape="rect" id="Node000006" href="$classIOv2_1_1base__ft_3_01messages_01_4.html" title="Base class for the messages facet, providing gettext text&#45;domain management and .mo file parsing." alt="" coords="152,169,355,194"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="118,162,152,166,152,172,118,168"/>
+<area shape="rect" id="Node000007" href="$classIOv2_1_1base__ft_3_01monetary_01_4.html" title="Base class for the monetary facet, providing POSIX lconv&#45;to&#45;pattern conversion utilities." alt="" coords="153,218,353,243"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="92,174,153,203,193,215,192,220,151,208,89,179"/>
+<area shape="rect" id="Node000008" href="$classIOv2_1_1base__ft_3_01timeio_01_4.html" title="The intermediate base specialization for timeio, holding its character&#45;type&#45;independent time&#45;zone dat..." alt="" coords="164,267,343,293"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="75,179,108,218,130,237,153,254,179,265,177,270,151,258,126,242,104,222,71,183"/>
+<area shape="rect" id="Node000004" href="$classIOv2_1_1ft__basic_3_01TFacet_3_01CharT_01_4_01_4.html" title=" " alt="" coords="403,63,569,103"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="356,80,402,80,402,85,356,85"/>
+<area shape="rect" id="Node000009" href="$classIOv2_1_1ft__basic_3_01timeio_3_01CharT_01_4_01_4.html" title="Base class template specialization for the timeio facet." alt="" coords="403,260,569,300"/>
+<area shape="poly" id="edge8_Node000008_Node000009" title=" " alt="" coords="356,277,402,277,402,283,356,283"/>
+<area shape="rect" id="Node000010" href="$classIOv2_1_1timeio__conf_3_01CharT_01_4.html" title="Locale configuration class for the timeio facet specialised for wide characters (wchar_t / char32_t U..." alt="" coords="617,260,765,300"/>
+<area shape="poly" id="edge9_Node000009_Node000010" title=" " alt="" coords="583,277,617,277,617,283,583,283"/>
+</map>
