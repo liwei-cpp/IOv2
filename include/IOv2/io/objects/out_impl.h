@@ -39,8 +39,9 @@
  *
  * @note **晚于退出钩子的插入**：头文件模式下，比本库更早登记的 `atexit` 函数与更早构造的
  *       静态对象的析构在钩子之后才执行。钩子先让本流此后的插入都按同步处理（钩子之后再
- *       `sync_with_stdio(false)` 也不改变这一点），这些插入结束时就把字节交给 stdio，由 glibc
- *       在退出的最后冲刷，不会因为钩子已经跑过而留在本流缓冲里丢掉。它们按同步模式的规则报告
+ *       `sync_with_stdio(false)` 也不改变这一点），这些插入结束时就把字节交给 stdio 并冲刷
+ *       stdio 的缓冲，不会因为钩子已经跑过而留在本流缓冲里丢掉；另一线程里的插入可能结束在
+ *       glibc 退出时最后一次冲刷 stdio 之后，自己冲刷也就不依赖那一次。它们按同步模式的规则报告
  *       失败：默认只置状态位，`exceptions()` 掩码含该位时抛出。`synced_with_stdio()` 与
  *       `sync_with_stdio()` 的返回值仍按用户设定的模式报告；钩子没能交出的字节（取不到锁、
  *       或流处于失败态），之后 `clear()` 再 `sync_with_stdio(true)` 仍会交给 stdio。
@@ -127,8 +128,10 @@
  *       before this library and the destructors of static objects constructed before it run
  *       after the hook. The hook first has every later insertion on this stream handled as
  *       synchronized (a `sync_with_stdio(false)` after the hook does not change that), so those
- *       insertions hand their bytes to stdio as they finish and glibc flushes them last,
- *       instead of leaving them in this stream's buffer after the hook has run. They report
+ *       insertions hand their bytes to stdio as they finish and flush stdio's buffer, instead
+ *       of leaving them in this stream's buffer after the hook has run; an insertion on another
+ *       thread may finish after glibc's last flush of stdio at exit, so it does not rely on that
+ *       one. They report
  *       failure by the rules of synchronized mode: a state bit by default, a throw when
  *       `exceptions()` includes it. `synced_with_stdio()` and the value `sync_with_stdio()`
  *       returns still report the mode the user set; bytes the hook could not hand over (the
@@ -671,7 +674,7 @@ public:
 
 protected:
     // The exit hook. Marked first, so that an insertion after this hook (a destructor or atexit
-    // function registered earlier) hands its bytes to stdio, which glibc flushes last. Not
+    // function registered earlier, or another thread) hands its bytes to stdio and flushes it. Not
     // m_sync_with_stdio: try_flush() may move nothing, and sync_with_stdio(true) reads a true
     // flag as "already handed over".
     void flush_at_exit() noexcept

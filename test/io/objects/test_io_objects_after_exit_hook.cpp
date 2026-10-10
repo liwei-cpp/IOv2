@@ -25,6 +25,7 @@
 
 #include <atomic>
 #include <csignal>
+#include <cstdio>
 #include <cstdlib>
 #include <fstream>
 #include <iterator>
@@ -97,6 +98,10 @@ namespace
             g_straddle = 2;
             g_straddling->join();
             break;
+        case 6:
+            // _Exit skips glibc's last flush of stdio: the insertion ends after it.
+            IOv2::cout << "late";
+            std::_Exit(0);
         default:
             break;
         }
@@ -110,6 +115,16 @@ namespace
         in.close();
         ::unlink(kFile);
         return got;
+    }
+
+    // gtest has written to stdout already: drain that to the old fd first.
+    void redirect_stdout_to_file()
+    {
+        std::fflush(stdout);
+        const int fd = ::open(kFile, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+        ASSERT_GE(fd, 0);
+        ASSERT_GE(::dup2(fd, STDOUT_FILENO), 0);
+        ::close(fd);
     }
 
     void redirect_stderr_to_file()
@@ -220,4 +235,24 @@ TEST(IoObjectsAfterExitHook, BytesAFailedSynchronizedWriteLeftGoOutOnALaterSyncW
 
     EXPECT_EQ(run_case("IoObjectsAfterExitHook.BytesAFailedSynchronizedWriteLeftGoOutOnALaterSyncWithStdio", "1"),
               "0123456789");
+}
+
+// An insertion after the hook hands its bytes to stdio, but on another thread it may end
+// after glibc's last flush of stdio at exit -- and a stdout stdio never wrote to is still
+// fully buffered then, so the bytes stayed in stdio's buffer and were lost (round-34 review,
+// B-S1). _Exit right after the insertion stands in for that moment: nothing flushes stdio
+// afterwards. The insertion must push its bytes out itself.
+TEST(IoObjectsAfterExitHook, AnInsertionAfterStdiosLastFlushStillReachesTheDevice)
+{
+    if (in_test_child())
+    {
+        redirect_stdout_to_file();
+        IOv2::cout.sync_with_stdio(false);
+        IOv2::cout << "head|";                     // the hook flushes this one
+        g_late = 6;
+        return;
+    }
+
+    const std::string got = run_case("IoObjectsAfterExitHook.AnInsertionAfterStdiosLastFlushStillReachesTheDevice", "1");
+    EXPECT_TRUE(got.ends_with("head|late")) << got;
 }

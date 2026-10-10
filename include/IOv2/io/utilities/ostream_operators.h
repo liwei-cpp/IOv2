@@ -165,8 +165,10 @@ struct out_sentry
      * @brief 析构时对 unitbuf / 与 stdio 同步的流执行自动刷新，并按异常掩码决定是否上报失败。
      *
      * 对设置了 unitbuf 或与 stdio 同步的流，析构会把缓冲区 `flush()` 出去（unitbuf 时再对设备
-     * `dflush()`）。刷新失败经 `handle_exception` 上报：按类别置 `devfailbit`/`cvtfailbit`/
-     * `strfailbit`，并在该位处于异常掩码时抛出。无失败位入掩码时（默认）只置位不抛。
+     * `dflush()`）。标准流的退出钩子跑过之后同样如此，并且总是再 `dflush()`：这次插入可能结束在
+     * glibc 退出时最后一次冲刷 stdio 之后，交给 stdio 的字节不再有人冲刷。刷新失败经
+     * `handle_exception` 上报：按类别置 `devfailbit`/`cvtfailbit`/`strfailbit`，并在该位处于
+     * 异常掩码时抛出。无失败位入掩码时（默认）只置位不抛。
      *
      * 若析构发生在栈展开期间，则仍尝试刷新但**只置位、绝不抛出**，以免触发 `std::terminate`；
      * 该判定由 `handle_exception` 自身完成。为使正常退出路径的通知得以传播，本析构声明为
@@ -178,10 +180,13 @@ struct out_sentry
      * to report a flush failure according to the exception mask.
      *
      * For a stream with unitbuf set or synced with stdio, destruction flushes the buffer via
-     * `flush()` (and, for unitbuf, `dflush()`es the device). A flush failure is reported through
-     * `handle_exception`: it sets `devfailbit`/`cvtfailbit`/`strfailbit` by category and throws
-     * when that bit is in the exception mask. When no such bit is in the mask (the default) the
-     * bit is only set and nothing is thrown.
+     * `flush()` (and, for unitbuf, `dflush()`es the device). So it does after a standard
+     * stream's exit hook has run, always with the `dflush()`: the insertion may end after glibc's
+     * last flush of stdio at exit, and nothing would flush the bytes handed to stdio any more.
+     * A flush failure is reported through `handle_exception`: it sets
+     * `devfailbit`/`cvtfailbit`/`strfailbit` by category and throws when that bit is in the
+     * exception mask. When no such bit is in the mask (the default) the bit is only set and
+     * nothing is thrown.
      *
      * If destruction happens during stack unwinding it still attempts the flush but **only sets
      * bits and never throws**, so as not to trigger `std::terminate`; that test lives in
@@ -202,7 +207,9 @@ struct out_sentry
                 if (m_is_unit_buf || m_sync_with_stdio || exited())
                     m_os.m_channel.flush();
 
-                if (m_is_unit_buf)
+                // After the exit hook, stdio's own last flush may already be behind us:
+                // glibc leaves a stdout it never used fully buffered, so push the bytes out.
+                if (m_is_unit_buf || exited())
                     m_os.m_channel.device().dflush();
             }
         }
