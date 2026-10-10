@@ -34,6 +34,7 @@
 #include <exception>
 #include <mutex>
 #include <optional>
+#include <type_traits>
 #include <utility>
 
 namespace IOv2
@@ -748,7 +749,9 @@ struct basic_stream_common_operators
      *       长度为 1 的环），则**本次设置不生效、本流原绑定保持不变**，从而在设置时杜绝环。这
      *       满足了 `std::basic_ios::tie` “不得成环”的前置条件，而非像标准那样把成环留作未定义
      *       行为。仅当本流本身可作为 tie 目标（即派生自 `tie_target`）时才会遍历；纯输入流不
-     *       可能被 tie，也就不可能出现在环中。
+     *       可能被 tie，也就不可能出现在环中。经基类引用调用（如
+     *       `static_cast<std_stream_common_operators&>(cout).tie(p)`）不参与重载：那时 `self`
+     *       是基类本身，既无从判断是否可作为 tie 目标，也没有 `handle_exception` 报告失败。
      * @note **被拒时的报错方式与库内其余操作一致**：经 `handle_exception` 置 `strfailbit`，仅
      *       当该位在异常掩码中时才抛出 `stream_error`；默认掩码为空，故默认不抛。因此本函数的
      *       返回值只表示“设置前保存的那个指针”，并不表示本次设置是否生效——要判断是否生效，请
@@ -867,7 +870,11 @@ struct basic_stream_common_operators
      *       This satisfies the no-cycle precondition of `std::basic_ios::tie` rather than
      *       leaving a cycle as undefined behavior as the standard does. The walk runs only
      *       when this stream can itself be a tie target (i.e. derives from `tie_target`);
-     *       a pure input stream can never be tied to, so it can never appear in a cycle.
+     *       a pure input stream can never be tied to, so it can never appear in a cycle. A call
+     *       through a base-class reference (such as
+     *       `static_cast<std_stream_common_operators&>(cout).tie(p)`) does not take part in
+     *       overload resolution: `self` would then be the base itself, which can neither tell
+     *       whether it may be tied to nor report a failure through `handle_exception`.
      * @note **A rejection is reported the same way as every other failure in this library**:
      *       through `handle_exception`, which sets `strfailbit` and throws a `stream_error`
      *       only when that bit is in the exception mask -- and the mask is empty by default,
@@ -885,6 +892,7 @@ struct basic_stream_common_operators
      * @endif
      */
     template <typename TSelf>
+        requires (!std::is_same_v<std::remove_cv_t<TSelf>, basic_stream_common_operators>)
     tie_target* tie(this TSelf& self, tie_target* str)
     {
         tie_target* res = nullptr;
