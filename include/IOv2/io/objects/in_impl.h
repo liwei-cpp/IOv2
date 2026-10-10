@@ -11,8 +11,9 @@
  * 的设备 `std_device<STDIN_FILENO>`）与一个 `locale` 组合起来，对外接口来自 `ios_state`（状态位
  * 与异常掩码）、`istream_operators`（输入操作）与 `std_stream_common_operators`（`tell()` /
  * `locale()` 等）三个基类。与 `istream` 的差别都来自「设备是固定 fd 的进程级单例」：多了
- * `sync_with_stdio()` / `synced_with_stdio()`、`reset()` 与（宽流）`code()` / `switch_code()`，换设备的
- * `detach()` / `attach()` 则被 `= delete`。
+ * `sync_with_stdio()` / `synced_with_stdio()`、`reset()` 与（宽流）`code()` / `switch_code()`，
+ * `adjust()` 收到 `stdin_sync` 时改走 `sync_with_stdio()`，换设备的 `detach()` / `attach()`
+ * 则被 `= delete`。
  *
  * 两个流对象经 `sing_temp` 成为进程级单例，退出钩子为空——与 `std::cin` 一样，退出时不析构，
  * 退出阶段既有引用仍然有效。构造时各自 `tie()` 到同字符类型的输出流（`cin` → `cout`，
@@ -43,7 +44,8 @@
  * `std_stream_common_operators` (`tell()` / `locale()` and friends). Every difference from
  * `istream` follows from the device being a fixed fd owned by a process-wide singleton: it
  * adds `sync_with_stdio()` / `synced_with_stdio()`, `reset()` and, on the wide stream, `code()` /
- * `switch_code()`, while `detach()` / `attach()`, which would replace the device, are `= delete`.
+ * `switch_code()`; its `adjust()` hands a `stdin_sync` to `sync_with_stdio()`; and `detach()` /
+ * `attach()`, which would replace the device, are `= delete`.
  *
  * Both stream objects are process-wide singletons through `sing_temp` with an empty exit
  * hook -- like `std::cin` they are not destroyed at exit, so existing references stay valid
