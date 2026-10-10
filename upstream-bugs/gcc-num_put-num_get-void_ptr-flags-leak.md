@@ -4,8 +4,8 @@
 - **Upstream project / component**: GCC / `libstdc++`
 - **Bug ID**: PR 125500
 - **Reported**: 2026-05-29 17:04 UTC
-- **Last modified upstream**: 2026-05-29 17:04 UTC
-- **Current status**: `UNCONFIRMED` — submitted, awaiting maintainer triage; not yet assigned, no comments from GCC maintainers.
+- **Last modified upstream**: 2026-06-09 17:47 UTC (checked 2026-10-10)
+- **Current status**: `NEW` — confirmed by Jonathan Wakely on 2026-05-29; not yet assigned, no comments, no patch.
 
 [中文](#中文) | [English](#english)
 
@@ -19,7 +19,7 @@
 
 ### 当前状态
 
-`UNCONFIRMED`(已提交,尚未被 GCC 维护者确认)。Assignee 字段仍为 *Not yet assigned to anyone*,Importance 为 `P3 / normal`,目前没有任何来自上游开发者的评论。后续状态变更请以上游链接为准:<https://gcc.gnu.org/bugzilla/show_bug.cgi?id=125500>。
+`NEW`(已确认):2026-05-29 由 Jonathan Wakely 从 `UNCONFIRMED` 改为 `NEW`。Assignee 字段仍为 *Not yet assigned to anyone*,Importance 为 `P3 / normal`,没有评论,也还没有补丁;此后只有他人加入 CC。以上为 2026-10-10 核对的状态,后续变更请以上游链接为准:<https://gcc.gnu.org/bugzilla/show_bug.cgi?id=125500>。
 
 ### Bug 描述
 
@@ -64,7 +64,7 @@ IOv2 自己的 `numeric` facet 在 `put(const void*)` / `get(void*&)` 中历史�
 
 ### Current status
 
-`UNCONFIRMED` — submitted, awaiting upstream triage. The `Assignee` field still reads *Not yet assigned to anyone*; `Importance` is `P3 / normal`; there are no maintainer comments yet. For up-to-date status, see <https://gcc.gnu.org/bugzilla/show_bug.cgi?id=125500>.
+`NEW` (confirmed): Jonathan Wakely moved it from `UNCONFIRMED` to `NEW` on 2026-05-29. The `Assignee` field still reads *Not yet assigned to anyone*; `Importance` is `P3 / normal`; there are no comments and no patch yet, only others joining CC since. This is the status as checked on 2026-10-10; for up-to-date status, see <https://gcc.gnu.org/bugzilla/show_bug.cgi?id=125500>.
 
 ### Bug description
 

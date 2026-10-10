@@ -4,8 +4,8 @@
 - **Upstream project / component**: GCC / `libstdc++`
 - **Bug ID**: PR 125499
 - **Reported**: 2026-05-29 15:23 UTC
-- **Last modified upstream**: 2026-05-29 15:23 UTC
-- **Current status**: `UNCONFIRMED` — submitted, awaiting maintainer triage; not yet assigned, no comments from GCC maintainers.
+- **Last modified upstream**: 2026-05-29 22:26 UTC (checked 2026-10-10)
+- **Current status**: `UNCONFIRMED` — not yet confirmed or assigned; Jonathan Wakely commented (#1) that [LWG 3689](https://cplusplus.github.io/LWG/issue3689) is related.
 
 [中文](#中文) | [English](#english)
 
@@ -19,7 +19,7 @@
 
 ### 当前状态
 
-`UNCONFIRMED`(已提交,尚未被 GCC 维护者确认)。Assignee 字段仍为 *Not yet assigned to anyone*,Importance 为 `P3 / normal`,目前没有任何来自上游开发者的评论。后续状态变更请以上游链接为准:<https://gcc.gnu.org/bugzilla/show_bug.cgi?id=125499>。
+`UNCONFIRMED`(已提交,尚未被 GCC 维护者确认)。Assignee 字段仍为 *Not yet assigned to anyone*,Importance 为 `P3 / normal`。2026-05-29 Jonathan Wakely 在评论 #1 中指出 [LWG 3689](https://cplusplus.github.io/LWG/issue3689)(「num_get overflow determination unclear and incorrect」,状态 New)与本问题相关;此外只有他人加入 CC,没有其他评论。以上为 2026-10-10 核对的状态,后续变更请以上游链接为准:<https://gcc.gnu.org/bugzilla/show_bug.cgi?id=125499>。
 
 ### Bug 描述
 
@@ -76,7 +76,7 @@ IOv2 自身的 `numeric` facet 在数字解析末尾也有一段历史上与 lib
 
 ### Current status
 
-`UNCONFIRMED` — submitted, awaiting upstream triage. The `Assignee` field still reads *Not yet assigned to anyone*; `Importance` is `P3 / normal`; there are no maintainer comments yet. For up-to-date status, see <https://gcc.gnu.org/bugzilla/show_bug.cgi?id=125499>.
+`UNCONFIRMED` — submitted, not yet confirmed. The `Assignee` field still reads *Not yet assigned to anyone*; `Importance` is `P3 / normal`. On 2026-05-29 Jonathan Wakely noted in comment #1 that [LWG 3689](https://cplusplus.github.io/LWG/issue3689) ("num_get overflow determination unclear and incorrect", status New) is related; apart from others joining CC there has been no other activity. This is the status as checked on 2026-10-10; for up-to-date status, see <https://gcc.gnu.org/bugzilla/show_bug.cgi?id=125499>.
 
 ### Bug description
 
