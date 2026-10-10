@@ -216,7 +216,6 @@ namespace IOv2
  *
  * 不可复制；具体的流类型（`cout_t` 等）同时派生自 `sing_temp`，作为进程级单例使用。
  *
- * @tparam T 派生的具体流类型（CRTP），供 `out_sentry`、`out_tie_target` 与基类回调使用。
  * @tparam TDevice 设备类型，必须是 `std_device<STDOUT_FILENO>` 或 `std_device<STDERR_FILENO>`。
  * @tparam TChar 字符类型（`char` 或 `wchar_t`）。
  * @endif
@@ -236,29 +235,27 @@ namespace IOv2
  * Not copyable; the concrete stream types (`cout_t` and the rest) also derive from
  * `sing_temp` and are used as process-wide singletons.
  *
- * @tparam T The concrete derived stream type (CRTP), used by `out_sentry`, `out_tie_target`
- *         and the base-class callbacks.
  * @tparam TDevice The device type; must be `std_device<STDOUT_FILENO>` or
  *         `std_device<STDERR_FILENO>`.
  * @tparam TChar The character type (`char` or `wchar_t`).
  * @endif
  */
-template <typename T, io_device TDevice, typename TChar>
+template <io_device TDevice, typename TChar>
     requires (std::is_same_v<TDevice, std_device<STDOUT_FILENO>> ||
               std::is_same_v<TDevice, std_device<STDERR_FILENO>>)
 class stdout_api : public ios_state<TChar>
-                 , public out_tie_target<T>
+                 , public out_tie_target<stdout_api<TDevice, TChar>>
                  , public ostream_operators<TChar>
                  , public std_stream_common_operators
 {
 public:
     using device_type = TDevice;
     using char_type = TChar;
-    using out_sentry_type = out_sentry<T, false, true>;
+    using out_sentry_type = out_sentry<stdout_api, false, true>;
     using out_iter_type = ochannel_iterator<ochannel<device_type, char_type>>;
 
     friend out_sentry_type;
-    friend out_tie_target<T>;
+    friend out_tie_target<stdout_api>;
     friend ostream_operators<TChar>;
     friend std_stream_common_operators;
 
@@ -637,11 +634,12 @@ public:
      * @param acc The conversion-behavior settings to apply.
      * @endif
      */
-    void adjust(const cvt_behavior& acc)
+    void adjust(this auto& self, const cvt_behavior& acc)
     {
-        // Through T& so the call depends on T: gcc 15 resolves a this-> call at the definition
-        // and, not applying the constraints there yet, calls the two overloads ambiguous.
-        static_cast<T&>(*this).std_stream_common_operators::adjust(acc);
+        // Through self so the call depends on the deduced type: gcc 15 resolves a this-> call
+        // at the definition and, not applying the constraints there yet, calls the two
+        // overloads ambiguous.
+        self.std_stream_common_operators::adjust(acc);
     }
 
     /**
@@ -868,10 +866,10 @@ protected:
  * see the file header) and it is never destroyed.
  * @endif
  */
-class cout_t : public stdout_api<cout_t, std_device<STDOUT_FILENO>, char>
+class cout_t : public stdout_api<std_device<STDOUT_FILENO>, char>
              , public sing_temp<cout_t>
 {
-    using BT = stdout_api<cout_t, std_device<STDOUT_FILENO>, char>;
+    using BT = stdout_api<std_device<STDOUT_FILENO>, char>;
     friend sing_temp<cout_t>;
 
 private:
@@ -926,10 +924,10 @@ inline cout_t&      cout = _cout_init.get();
  * `ios_defs::unitbuf` at construction.
  * @endif
  */
-class cerr_t : public stdout_api<cerr_t, std_device<STDERR_FILENO>, char>
+class cerr_t : public stdout_api<std_device<STDERR_FILENO>, char>
              , public sing_temp<cerr_t>
 {
-    using BT = stdout_api<cerr_t, std_device<STDERR_FILENO>, char>;
+    using BT = stdout_api<std_device<STDERR_FILENO>, char>;
     friend sing_temp<cerr_t>;
 
 private:
@@ -986,10 +984,10 @@ inline cerr_t&      cerr = _cerr_init.get();
  * see the file header) and it is never destroyed.
  * @endif
  */
-class clog_t : public stdout_api<clog_t, std_device<STDERR_FILENO>, char>
+class clog_t : public stdout_api<std_device<STDERR_FILENO>, char>
              , public sing_temp<clog_t>
 {
-    using BT = stdout_api<clog_t, std_device<STDERR_FILENO>, char>;
+    using BT = stdout_api<std_device<STDERR_FILENO>, char>;
     friend sing_temp<clog_t>;
 
 private:
@@ -1044,10 +1042,10 @@ inline clog_t&      clog = _clog_init.get();
  * best-effort flush; see the file header) and it is never destroyed.
  * @endif
  */
-class wcout_t : public stdout_api<wcout_t, std_device<STDOUT_FILENO>, wchar_t>
+class wcout_t : public stdout_api<std_device<STDOUT_FILENO>, wchar_t>
               , public sing_temp<wcout_t>
 {
-    using BT = stdout_api<wcout_t, std_device<STDOUT_FILENO>, wchar_t>;
+    using BT = stdout_api<std_device<STDOUT_FILENO>, wchar_t>;
     friend sing_temp<wcout_t>;
 
 private:
@@ -1105,10 +1103,10 @@ inline wcout_t&      wcout = _wcout_init.get();
  * ties itself to `wcout` and sets `ios_defs::unitbuf` at construction.
  * @endif
  */
-class wcerr_t : public stdout_api<wcerr_t, std_device<STDERR_FILENO>, wchar_t>
+class wcerr_t : public stdout_api<std_device<STDERR_FILENO>, wchar_t>
               , public sing_temp<wcerr_t>
 {
-    using BT = stdout_api<wcerr_t, std_device<STDERR_FILENO>, wchar_t>;
+    using BT = stdout_api<std_device<STDERR_FILENO>, wchar_t>;
     friend sing_temp<wcerr_t>;
 
 private:
@@ -1167,10 +1165,10 @@ inline wcerr_t&      wcerr = _wcerr_init.get();
  * best-effort flush; see the file header) and it is never destroyed.
  * @endif
  */
-class wclog_t : public stdout_api<wclog_t, std_device<STDERR_FILENO>, wchar_t>
+class wclog_t : public stdout_api<std_device<STDERR_FILENO>, wchar_t>
               , public sing_temp<wclog_t>
 {
-    using BT = stdout_api<wclog_t, std_device<STDERR_FILENO>, wchar_t>;
+    using BT = stdout_api<std_device<STDERR_FILENO>, wchar_t>;
     friend sing_temp<wclog_t>;
 
 private:
