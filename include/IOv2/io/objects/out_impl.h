@@ -293,8 +293,11 @@ public:
     stdout_api(const TCreator& creator)
         : m_channel(device_type{}, creator) {}
 
+    ~stdout_api() override = default;
     stdout_api(const stdout_api&) = delete;
     stdout_api& operator=(const stdout_api&) = delete;
+    stdout_api(stdout_api&&) = delete;
+    stdout_api& operator=(stdout_api&&) = delete;
 
 public:
     /**
@@ -876,9 +879,6 @@ private:
     cout_t()
         : sing_temp<cout_t>([](cout_t* p) noexcept { p->flush_at_exit(); })
     {}
-
-    cout_t(const cout_t&) = delete;
-    cout_t& operator=(const cout_t&) = delete;
 };
 
 #if defined(IOV2_SHARED)
@@ -938,9 +938,6 @@ private:
         tie(&cout);
         setf(ios_defs::unitbuf);
     }
-
-    cerr_t(const cerr_t&) = delete;
-    cerr_t& operator=(const cerr_t&) = delete;
 };
 
 #if defined(IOV2_SHARED)
@@ -994,9 +991,6 @@ private:
     clog_t()
         : sing_temp<clog_t>([](clog_t* p) noexcept { p->flush_at_exit(); })
     {}
-
-    clog_t(const clog_t&) = delete;
-    clog_t& operator=(const clog_t&) = delete;
 };
 
 #if defined(IOV2_SHARED)
@@ -1053,9 +1047,6 @@ private:
         : BT(code_cvt_stdio_creator(IOv2::initial_locale_name(LC_CTYPE)))
         , sing_temp<wcout_t>([](wcout_t* p) noexcept { p->flush_at_exit(); })
     {}
-
-    wcout_t(const wcout_t&) = delete;
-    wcout_t& operator=(const wcout_t&) = delete;
 };
 
 #if defined(IOV2_SHARED)
@@ -1117,9 +1108,6 @@ private:
         tie(&wcout);
         setf(ios_defs::unitbuf);
     }
-
-    wcerr_t(const wcerr_t&) = delete;
-    wcerr_t& operator=(const wcerr_t&) = delete;
 };
 
 #if defined(IOV2_SHARED)
@@ -1176,9 +1164,6 @@ private:
         : BT(code_cvt_stdio_creator(IOv2::initial_locale_name(LC_CTYPE)))
         , sing_temp<wclog_t>([](wclog_t* p) noexcept { p->flush_at_exit(); })
     {}
-
-    wclog_t(const wclog_t&) = delete;
-    wclog_t& operator=(const wclog_t&) = delete;
 };
 
 #if defined(IOV2_SHARED)

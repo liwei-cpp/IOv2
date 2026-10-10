@@ -73,6 +73,12 @@ namespace
     static_assert(neither_copyable_nor_movable<IOv2::stdout_api<IOv2::std_device<STDOUT_FILENO>, char>>);
     static_assert(neither_copyable_nor_movable<IOv2::stdin_api<IOv2::std_device<STDIN_FILENO>, char>>);
 
+    // The eight stream types declare no special member of their own: they get this from the base.
+    static_assert(neither_copyable_nor_movable<IOv2::cin_t> && neither_copyable_nor_movable<IOv2::wcin_t>);
+    static_assert(neither_copyable_nor_movable<IOv2::cout_t> && neither_copyable_nor_movable<IOv2::wcout_t>);
+    static_assert(neither_copyable_nor_movable<IOv2::cerr_t> && neither_copyable_nor_movable<IOv2::wcerr_t>);
+    static_assert(neither_copyable_nor_movable<IOv2::clog_t> && neither_copyable_nor_movable<IOv2::wclog_t>);
+
     static_assert(std::is_final_v<IOv2::stdin_sync>);
 
     // In std_stream_common_operators detach() and adjust() are protected, so even a qualified

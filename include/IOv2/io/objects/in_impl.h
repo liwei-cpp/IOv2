@@ -184,8 +184,11 @@ public:
         : m_channel(creator.create(stdin_root_cvt<device_type>{device_type{}, true}))
     {}
 
+    ~stdin_api() = default;
     stdin_api(const stdin_api&) = delete;
     stdin_api& operator=(const stdin_api&) = delete;
+    stdin_api(stdin_api&&) = delete;
+    stdin_api& operator=(stdin_api&&) = delete;
 
 public:
     /**
@@ -685,9 +688,6 @@ private:
     {
         tie(&cout);
     }
-
-    cin_t(const cin_t&) = delete;
-    cin_t& operator=(const cin_t&) = delete;
 };
 
 #if defined(IOV2_SHARED)
@@ -746,9 +746,6 @@ private:
     {
         tie(&wcout);
     }
-
-    wcin_t(const wcin_t&) = delete;
-    wcin_t& operator=(const wcin_t&) = delete;
 };
 
 #if defined(IOV2_SHARED)
