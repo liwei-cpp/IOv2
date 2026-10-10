@@ -327,7 +327,7 @@ namespace
         }
     };
 
-    class failing_wcin : public IOv2::stdin_api<failing_wcin, IOv2::std_device<STDIN_FILENO>, wchar_t>
+    class failing_wcin : public IOv2::stdin_api<IOv2::std_device<STDIN_FILENO>, wchar_t>
     {
     public:
         failing_wcin() : stdin_api(failing_creator{}) {}
