@@ -393,14 +393,18 @@ namespace IOv2
 
                     for (const auto& zone : tzdb.zones)
                     {
-                        sys_seconds t = start;
-                        while (t < horizon)
+                        try
                         {
-                            const sys_info info = zone.get_info(t);
-                            if (!info.abbrev.empty()) entries[info.abbrev].is_abbrev = true;
-                            if (info.end <= t) break;
-                            t = time_point_cast<seconds>(info.end);
+                            sys_seconds t = start;
+                            while (t < horizon)
+                            {
+                                const sys_info info = zone.get_info(t);
+                                if (!info.abbrev.empty()) entries[info.abbrev].is_abbrev = true;
+                                if (info.end <= t) break;
+                                t = time_point_cast<seconds>(info.end);
+                            }
                         }
+                        catch (...) {} // NOLINT(bugprone-empty-catch)
                     }
                 }
 
