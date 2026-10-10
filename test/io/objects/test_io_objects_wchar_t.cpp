@@ -22,6 +22,10 @@
  * The encoding cannot be a state-dependent one: wcerr and wclog share one fd,
  * and each would keep its own shift state, so switch_code() refuses it.
  */
+#include <IOv2/cvt/code_cvt_stdio.h>
+#include <IOv2/cvt/cvt_concepts.h>
+#include <IOv2/cvt/stdin_root_cvt.h>
+#include <IOv2/device/std_device.h>
 #include <IOv2/io/io_base.h>
 #include <IOv2/io/objects/in_impl.h>
 #include <IOv2/io/objects/objects.h>
@@ -40,8 +44,11 @@
 #include <clocale>
 #include <cstddef>
 #include <cstdlib>
+#include <stdexcept>
 #include <string>
 #include <thread>
+#include <type_traits>
+#include <utility>
 
 #include <fcntl.h>
 #include <unistd.h>
@@ -286,6 +293,85 @@ TEST(IoObjectsWchar, SynchronizedGetAndIgnoreReadNoFurtherThanTheyConsume)
     EXPECT_EQ(std::wstring(b), L"ab");
 
     EXPECT_EQ(left_on_stdin("ab\ncd", [] { IOv2::wcin.ignore(1, L'\n'); }), "b\ncd");
+}
+
+namespace
+{
+    bool g_fail_attach = false;
+
+    // A root whose attach fails on demand. With it a reset() can taint the converter, and the
+    // recovery sync_with_stdio() starts with can fail -- neither can happen to the real wcin,
+    // whose pipeline has no step that fails there.
+    template <typename TDevice>
+    struct failing_root : IOv2::stdin_root_cvt<TDevice>
+    {
+        using BT = IOv2::stdin_root_cvt<TDevice>;
+        explicit failing_root(BT&& root) : BT(std::move(root)) {}
+        void attach(TDevice&& dev = TDevice{})
+        {
+            if (g_fail_attach)
+                throw std::runtime_error("failing_root: attach");
+            BT::attach(std::move(dev));
+        }
+    };
+
+    struct failing_creator
+    {
+        using category = IOv2::CvtCreatorCategory;
+        template <typename TKernel>
+        auto create(TKernel&& kernel) const
+        {
+            using device = typename std::remove_cvref_t<TKernel>::device_type;
+            return IOv2::code_cvt_stdio{failing_root<device>{std::forward<TKernel>(kernel)},
+                                        std::string("C")};
+        }
+    };
+
+    class failing_wcin : public IOv2::stdin_api<failing_wcin, IOv2::std_device<STDIN_FILENO>, wchar_t>
+    {
+    public:
+        failing_wcin() : stdin_api(failing_creator{}) {}
+    };
+}
+
+// The one failure sync_with_stdio() can have: on a wide stream whose converter is tainted, the
+// recovery it starts with. The flag is then untouched and nothing switches -- the query, the
+// return value and how the root reads all keep the old mode. Only a custom pipeline gets here,
+// so until now only a review probe had run this branch.
+TEST(IoObjectsWchar, ASwitchWhoseRecoveryFailsKeepsTheMode)
+{
+    int pipefds[2];
+    ASSERT_NE(::pipe(pipefds), -1);
+    const int saved_stdin = ::dup(STDIN_FILENO);
+    ::dup2(pipefds[0], STDIN_FILENO);
+    ::close(pipefds[0]);
+    EXPECT_EQ(::write(pipefds[1], "abcdef", 6), 6);
+    ::close(pipefds[1]);                           // no more input: read() cannot block
+
+    failing_wcin in;
+    g_fail_attach = true;
+    in.reset();                                    // the attach fails: the converter is tainted
+    in.clear();
+    const bool before = in.sync_with_stdio(false); // its recovery fails as well
+    const bool failed = !in.good();
+    const bool still_synced = in.synced_with_stdio();
+    g_fail_attach = false;
+    in.clear();
+
+    wchar_t c = 0;
+    in.get(c);                                     // recovers now, and reads synchronized
+    std::string rest;
+    char buf[16];
+    for (ssize_t n; (n = ::read(STDIN_FILENO, buf, sizeof buf)) > 0; )
+        rest.append(buf, static_cast<std::size_t>(n));
+    ::dup2(saved_stdin, STDIN_FILENO);
+    ::close(saved_stdin);
+
+    EXPECT_TRUE(before);
+    EXPECT_TRUE(failed);
+    EXPECT_TRUE(still_synced);
+    EXPECT_EQ(c, L'a');
+    EXPECT_EQ(rest, "bcdef");                      // one byte taken: the root never switched
 }
 
 TEST(IoObjectsWchar, TheOutputEncodingCanBeSwitchedMidStream)
