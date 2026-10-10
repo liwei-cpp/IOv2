@@ -134,9 +134,20 @@ class sync_error : public io_error
 {
 public:
     /**
-     * @lang{ZH} 每个标准流一个成员：非空为该流失败时抛出的异常，空为该流切换成功。 @endif
-     * @lang{EN} One member per standard stream: non-null is the exception that stream threw,
-     * null means it switched successfully. @endif
+     * @lang{ZH}
+     * @brief 八个标准流各自的切换结果。
+     *
+     * 每个标准流一个成员（`cout_err` … `wcin_err`，以流名加 `_err` 命名）：非空为该流失败时
+     * 抛出的异常，空为该流切换成功。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief The switch outcome of each of the eight standard streams.
+     *
+     * One member per standard stream (`cout_err` ... `wcin_err`, named after the stream plus
+     * `_err`): non-null is the exception that stream threw, null means it switched
+     * successfully.
+     * @endif
      */
     struct failures
     {
@@ -149,7 +160,17 @@ public:
         std::exception_ptr cin_err;
         std::exception_ptr wcin_err;
 
-        /// @lang{ZH} 是否有任何一个流失败。 @endif @lang{EN} Whether any stream failed. @endif
+        /**
+         * @lang{ZH}
+         * @brief 检查是否有任何一个流失败。
+         * @return 至少一个成员非空时为 `true`。
+         * @endif
+         *
+         * @lang{EN}
+         * @brief Checks whether any stream failed.
+         * @return `true` if at least one member is non-null.
+         * @endif
+         */
         [[nodiscard]] bool any() const noexcept
         {
             return cout_err || cerr_err || clog_err || wcout_err
@@ -157,15 +178,39 @@ public:
         }
     };
 
+    /**
+     * @lang{ZH}
+     * @brief 由八个流的结果构造异常。
+     *
+     * `what()` 的文本在这里一次拼好：依次列出失败的流名与各自异常的 `what()`。
+     *
+     * @param failed 八个流各自的结果，至少应有一个非空。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Constructs the exception from the outcome of the eight streams.
+     *
+     * The `what()` text is composed here once: the failing streams in turn, each with the
+     * `what()` of its exception.
+     *
+     * @param failed The outcome of each of the eight streams; at least one should be non-null.
+     * @endif
+     */
     explicit sync_error(failures failed)
         : io_error(describe(failed))
         , m_failed(std::move(failed))
     {}
 
     /**
-     * @lang{ZH} @brief 八个流各自的结果。 @return 对 `failures` 的常引用。 @endif
-     * @lang{EN} @brief The outcome for each of the eight streams. @return A const reference
-     * to the `failures`. @endif
+     * @lang{ZH}
+     * @brief 获取八个流各自的结果。
+     * @return 对 `failures` 的常引用。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Gets the outcome for each of the eight streams.
+     * @return A const reference to the `failures`.
+     * @endif
      */
     [[nodiscard]] const failures& failed() const noexcept { return m_failed; }
 
