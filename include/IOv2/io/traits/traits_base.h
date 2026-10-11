@@ -35,9 +35,10 @@
  * };
  * ```
  *
- * 迭代器形式的成员可以**组合**：一个类型的 `sread` 可以依次调用各成分的 `sread`，成分之间要跳
- * 空白就调 `io_traits<TChar, ws_t>::sread(it, end, io, loc, ws)`。成分自己不跳前导空白——那是
- * 运算符里哨兵的事，而组合内部没有哨兵。
+ * 迭代器形式的成员可以**组合**：一个类型的 `sread` / `swrite` 可以依次读写各成分，用本文件的
+ * `compose_read` / `compose_write` 调用即可，不必写出 `io_traits<TChar, T>` 的模板实参；成分之间
+ * 要跳空白就 `compose_read(it, end, io, loc, ws)`。成分自己不跳前导空白——那是运算符里哨兵的事，
+ * 而组合内部没有哨兵。
  *
  * 经运算符调用时，成员不必为空输入操心：哨兵之后的预检已确认至少还有一个字符，否则直接失败、
  * 不调用成员。但读到一半碰到末尾时**必须抛 `stream_error`**，不要让迭代器在末尾解引用抛出的
@@ -174,10 +175,11 @@
  * };
  * ```
  *
- * Iterator-form members **compose**: a type's `sread` can call its components' `sread` in turn,
- * and skip whitespace between them with `io_traits<TChar, ws_t>::sread(it, end, io, loc, ws)`. A
- * component does not skip leading whitespace itself -- that is the job of the sentry in the
- * operator, and there is no sentry inside a composition.
+ * Iterator-form members **compose**: a type's `sread` / `swrite` can read or write its components
+ * in turn through this file's `compose_read` / `compose_write`, without spelling the template
+ * arguments of `io_traits<TChar, T>`; to skip whitespace between components,
+ * `compose_read(it, end, io, loc, ws)`. A component does not skip leading whitespace itself --
+ * that is the job of the sentry in the operator, and there is no sentry inside a composition.
  *
  * Called through the operator, a member need not worry about empty input: the precheck after the
  * sentry has made sure at least one character is left, and fails without calling the member
@@ -322,6 +324,9 @@
 
 namespace IOv2
 {
+template <typename TChar> class ios_base;
+template <typename TChar> class locale;
+
 /**
  * @lang{ZH}
  * @brief `TIter` 能否作为字符类型为 `TChar` 的**输出**迭代器使用——插入侧扩展点的迭代器约束。
@@ -450,5 +455,64 @@ struct parse_context_type
 {
     using type = T;
 };
+
+/**
+ * @lang{ZH}
+ * @brief 在一个迭代器形式的 `sread` 里提取一个成分：调用 `io_traits<TChar, T>::sread`，`TChar`
+ *        与 `T` 由实参推导。
+ *
+ * 只是一层转发：不加锁、不建哨兵、不跳前导空白，也不经 `parse_context_type` 中转（`std::tm`
+ * 这类类型要直接提取它的上下文类型）。成分之间要跳空白就提取 `ws`。
+ * @note 名字不叫 `sread`：调用方通常就写在自己的成员 `sread` 里，不加限定的 `sread(...)` 会先在
+ *       类作用域找到那个成员并就此停下，命名空间里的同名函数进不了重载决议。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief Extracts one component inside an iterator-form `sread`: calls
+ *        `io_traits<TChar, T>::sread`, with `TChar` and `T` deduced from the arguments.
+ *
+ * A plain forward: no lock, no sentry, no leading-whitespace skip, and no `parse_context_type`
+ * relay (for a type such as `std::tm`, extract its context type directly). To skip whitespace
+ * between components, extract `ws`.
+ * @note It is not named `sread`: the caller usually sits inside its own member `sread`, and an
+ *       unqualified `sread(...)` finds that member in class scope and stops there, so a namespace
+ *       function of the same name never reaches overload resolution.
+ * @endif
+ */
+template <typename TIter, typename TSent, typename TChar, typename T>
+TIter compose_read(TIter it, TSent end, ios_base<TChar>& io, const locale<TChar>& loc, T& value)
+{
+    return io_traits<TChar, std::remove_const_t<T>>::sread(it, end, io, loc, value);
+}
+
+/**
+ * @lang{ZH}
+ * @brief 在一个迭代器形式的 `swrite` 里写出一个成分：调用 `io_traits<TChar, std::decay_t<T>>::swrite`，
+ *        `TChar` 与 `T` 由实参推导。
+ *
+ * 键取衰退型，于是字符串字面量与数组名按指针写出，与 `os << "..."` 一致。不加锁、不建哨兵。
+ * @note 名字不叫 `swrite`，理由同 `compose_read`。
+ * @warning **`width()` 由第一个用到它的成分取走**：`os << setw(10) << pt` 只把 `pt` 的第一个成分
+ *          填到 10 位。要让宽度作用于整体，先把各成分写进临时串，再按原 `width()` 整体写出。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief Writes one component inside an iterator-form `swrite`: calls
+ *        `io_traits<TChar, std::decay_t<T>>::swrite`, with `TChar` and `T` deduced from the
+ *        arguments.
+ *
+ * The key is the decayed type, so string literals and array names are written as pointers, as
+ * with `os << "..."`. No lock, no sentry.
+ * @note It is not named `swrite`, for the same reason as `compose_read`.
+ * @warning **`width()` goes to the first component that uses it**: `os << setw(10) << pt` pads only
+ *          `pt`'s first component to 10. To have the width apply to the whole, write the components
+ *          into a temporary string first, then write that out with the original `width()`.
+ * @endif
+ */
+template <typename TIter, typename TChar, typename T>
+TIter compose_write(TIter it, ios_base<TChar>& io, const locale<TChar>& loc, const T& value)
+{
+    return io_traits<TChar, std::decay_t<T>>::swrite(it, io, loc, value);
+}
 
 }

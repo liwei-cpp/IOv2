@@ -498,7 +498,7 @@ inline constexpr struct ws_t {} ws{};
  * @brief `ws` 的扩展点特化：只提供迭代器形式的 `sread`，跳过接下来的空白字符。
  *
  * 取迭代器形式而非流形式，是为了能**组合**：另一个类型的迭代器形式 `sread` 在两个成分之间可以
- * 直接调 `io_traits<TChar, ws_t>::sread(it, end, io, loc, ws)` 跳过空白——成分自己的 `sread`
+ * 调 `compose_read(it, end, io, loc, ws)` 跳过空白——成分自己的 `sread`
  * 不跳前导空白（那是哨兵的事），而组合内部没有哨兵。锁、哨兵与 `catch` 一律归运算符。
  *
  * 跳到末尾**不抛**，原样返回 `end`：组合场景下由下一个成分决定这算不算错；`is >> ws` 场景下
@@ -524,7 +524,7 @@ inline constexpr struct ws_t {} ws{};
  *        which skips the whitespace characters that follow.
  *
  * The iterator form rather than the stream form is what makes it **composable**: another type's
- * iterator-form `sread` can call `io_traits<TChar, ws_t>::sread(it, end, io, loc, ws)` between
+ * iterator-form `sread` can call `compose_read(it, end, io, loc, ws)` between
  * two components to skip whitespace -- a component's own `sread` does not skip leading whitespace
  * (that is the sentry's job), and there is no sentry inside a composition. The lock, the sentry
  * and the `catch` all belong to the operator.

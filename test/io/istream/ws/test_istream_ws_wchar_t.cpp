@@ -160,13 +160,13 @@ struct io_traits<TChar, point>
 
         point tmp;
         expect('(');
-        it = io_traits<TChar, ws_t>::sread(it, end, io, loc, ws);
-        it = io_traits<TChar, int>::sread(it, end, io, loc, tmp.x);
-        it = io_traits<TChar, ws_t>::sread(it, end, io, loc, ws);
+        it = compose_read(it, end, io, loc, ws);
+        it = compose_read(it, end, io, loc, tmp.x);
+        it = compose_read(it, end, io, loc, ws);
         expect(',');
-        it = io_traits<TChar, ws_t>::sread(it, end, io, loc, ws);
-        it = io_traits<TChar, int>::sread(it, end, io, loc, tmp.y);
-        it = io_traits<TChar, ws_t>::sread(it, end, io, loc, ws);
+        it = compose_read(it, end, io, loc, ws);
+        it = compose_read(it, end, io, loc, tmp.y);
+        it = compose_read(it, end, io, loc, ws);
         expect(')');
 
         p = tmp;
