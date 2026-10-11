@@ -35,8 +35,17 @@
  * };
  * ```
  *
+ * 迭代器形式的成员可以**组合**：一个类型的 `sread` 可以依次调用各成分的 `sread`，成分之间要跳
+ * 空白就调 `io_traits<TChar, ws_t>::sread(it, end, io, loc, ws)`。成分自己不跳前导空白——那是
+ * 运算符里哨兵的事，而组合内部没有哨兵。
+ *
+ * 经运算符调用时，成员不必为空输入操心：哨兵之后的预检已确认至少还有一个字符，否则直接失败、
+ * 不调用成员。但读到一半碰到末尾时**必须抛 `stream_error`**，不要让迭代器在末尾解引用抛出的
+ * `eof_error` 逃出去——它只会被记成 `eofbit`，失败就丢了。组合内部没有预检，被组合调用的成员
+ * 面对的可能是空输入，同样按这条处理。
+ *
  * **流形式**（操纵符用这一档；成员直接拿到流本身，**不加锁、不建哨兵**，需要就自己来——
- * `io_traits<TChar, ws_t>::sread` 就是自己加锁、自己构造哨兵、并自己 `catch` 的）：
+ * `io_traits<TChar, endl_t>::swrite` 就是自己加锁、并自己 `catch` 的）：
  * ```cpp
  * template <ostream_type T>
  *     requires std::same_as<typename T::char_type, TChar>
@@ -68,8 +77,8 @@
  *          运算符对流形式不加锁，它的 `try` / `catch` 在你的 `lock_guard` 之外；异常一旦逃出去，
  *          栈展开会先析构你那个局部的锁守卫，`handle_exception` 的置位就落到**解锁之后**，失败
  *          路径与成功路径对同一把 `io_mutex()` 的可见性时序于是对不上。因此凡是取了
- *          `io_mutex()` 的流形式成员——库内是 `io_traits<TChar, ws_t>::sread` 与
- *          `io_traits<TChar, endl_t>::swrite`——都在锁内自己 `catch` 并调 `handle_exception`。
+ *          `io_mutex()` 的流形式成员——库内只有 `io_traits<TChar, endl_t>::swrite`——都在锁内
+ *          自己 `catch` 并调 `handle_exception`。
  *          掩码命中时异常仍会逃到运算符那层再处理一遍，这是无害的：`handle_exception` 是幂等的
  *          （见 `io_base` 上的说明）。反过来，压根不加锁的流形式成员（`setw`、`setfill` 那些）
  *          两条路径同样不加锁，一致，交给运算符即可。
@@ -165,9 +174,21 @@
  * };
  * ```
  *
+ * Iterator-form members **compose**: a type's `sread` can call its components' `sread` in turn,
+ * and skip whitespace between them with `io_traits<TChar, ws_t>::sread(it, end, io, loc, ws)`. A
+ * component does not skip leading whitespace itself -- that is the job of the sentry in the
+ * operator, and there is no sentry inside a composition.
+ *
+ * Called through the operator, a member need not worry about empty input: the precheck after the
+ * sentry has made sure at least one character is left, and fails without calling the member
+ * otherwise. Running into the end midway, however, the member **must throw `stream_error`**; do
+ * not let the `eof_error` that dereferencing the iterator at its end throws escape -- it is
+ * recorded as `eofbit` alone and the failure would be lost. Inside a composition there is no
+ * precheck, so a member called from one may face empty input and follows the same rule.
+ *
  * **Stream form** (used by manipulators; the member gets the stream itself and there is **no
- * lock and no sentry** -- do it yourself if you need one, as `io_traits<TChar, ws_t>::sread` does,
- * which takes the lock, builds the sentry and catches, all itself):
+ * lock and no sentry** -- do it yourself if you need one, as `io_traits<TChar, endl_t>::swrite`
+ * does, taking the lock and catching itself):
  * ```cpp
  * template <ostream_type T>
  *     requires std::same_as<typename T::char_type, TChar>
@@ -208,8 +229,8 @@
  *          destroys that local guard first and `handle_exception` sets the state bits **after the
  *          unlock**, leaving the failure path inconsistent with the success path with respect to
  *          the same `io_mutex()`. Every stream-form member that takes `io_mutex()` -- in this
- *          library, `io_traits<TChar, ws_t>::sread` and `io_traits<TChar, endl_t>::swrite` --
- *          therefore catches under its own lock and calls `handle_exception` there. On a masked
+ *          library, only `io_traits<TChar, endl_t>::swrite` -- therefore catches under its own
+ *          lock and calls `handle_exception` there. On a masked
  *          rethrow the exception still reaches the operator and is handled once more, which is
  *          harmless: `handle_exception` is idempotent (see its description on `io_base`).
  *          Conversely, a stream-form member that takes no lock at all (`setw`, `setfill` and the

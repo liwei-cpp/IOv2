@@ -205,3 +205,29 @@ TEST(IstreamIgnoreWchar, IgnoreOnAFailedStreamIsReportedRatherThanThrown)
     expect_reported.operator()<istream>();
     expect_reported.operator()<iostream>();
 }
+
+// See the char counterpart: a stream already carrying eofbit fails both forms of ignore.
+TEST(IstreamIgnoreWchar, IgnoreOnAStreamAlreadyAtTheEndFails)
+{
+    auto expect_refused = []<template <typename, typename> class T>()
+    {
+        T is{mem_device{std::wstring(L"ab")}};
+        std::wstring tok;
+        is >> tok;
+        ASSERT_EQ(is.rdstate(), ios_defs::eofbit);
+
+        is.ignore();
+        EXPECT_TRUE(is.str_fail());
+
+        is.clear(ios_defs::eofbit);
+        is.ignore(5, L'\n');
+        EXPECT_TRUE(is.str_fail());
+
+        is.clear();
+        is.ignore();
+        EXPECT_EQ(is.rdstate(), ios_defs::eofbit);
+    };
+
+    expect_refused.operator()<istream>();
+    expect_refused.operator()<iostream>();
+}

@@ -195,3 +195,23 @@ TEST(IstreamReadWchar, ACountThatIsNegativeIsRejected)
     expect_rejected.operator()<istream>();
     expect_rejected.operator()<iostream>();
 }
+
+// See the char counterpart: a stream already carrying eofbit fails a read, even of zero.
+TEST(IstreamReadWchar, ReadOnAStreamAlreadyAtTheEndFails)
+{
+    auto expect_refused = []<template <typename, typename> class T>()
+    {
+        T is{mem_device{std::wstring(L"ab")}};
+        std::wstring tok;
+        is >> tok;
+        ASSERT_EQ(is.rdstate(), ios_defs::eofbit);
+
+        wchar_t buf[2] = {L'x', L'x'};
+        EXPECT_EQ(is.read(buf, 0), buf);
+        EXPECT_TRUE(is.str_fail());
+        EXPECT_EQ(buf[0], L'x');
+    };
+
+    expect_refused.operator()<istream>();
+    expect_refused.operator()<iostream>();
+}

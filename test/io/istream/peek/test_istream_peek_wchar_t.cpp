@@ -152,3 +152,25 @@ TEST(IstreamPeekWchar, PeekAtTheEndThrowsWhenEndOfFileIsMasked)
     expect_thrown.operator()<istream>();
     expect_thrown.operator()<iostream>();
 }
+
+// See the char counterpart: a stream already carrying eofbit fails a peek; clear() lifts it.
+TEST(IstreamPeekWchar, PeekOnAStreamAlreadyAtTheEndFails)
+{
+    auto expect_refused = []<template <typename, typename> class T>()
+    {
+        T is{mem_device{std::wstring(L"ab")}};
+        std::wstring tok;
+        is >> tok;
+        ASSERT_EQ(is.rdstate(), ios_defs::eofbit);
+
+        EXPECT_FALSE(is.peek().has_value());
+        EXPECT_TRUE(is.str_fail());
+
+        is.clear();
+        EXPECT_FALSE(is.peek().has_value());
+        EXPECT_EQ(is.rdstate(), ios_defs::eofbit);
+    };
+
+    expect_refused.operator()<istream>();
+    expect_refused.operator()<iostream>();
+}

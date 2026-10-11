@@ -167,3 +167,26 @@ TEST(IstreamPeekChar, PeekAtTheEndThrowsWhenEndOfFileIsMasked)
     expect_thrown.operator()<istream>();
     expect_thrown.operator()<iostream>();
 }
+
+// An end seen by an earlier operation sticks: the sentry requires good(), as the standard's does,
+// so a peek on a stream that already carries eofbit fails without looking. clear() lifts it.
+TEST(IstreamPeekChar, PeekOnAStreamAlreadyAtTheEndFails)
+{
+    auto expect_refused = []<template <typename, typename> class T>()
+    {
+        T is{mem_device{std::string("ab")}};
+        std::string tok;
+        is >> tok;
+        ASSERT_EQ(is.rdstate(), ios_defs::eofbit);
+
+        EXPECT_FALSE(is.peek().has_value());
+        EXPECT_TRUE(is.str_fail());
+
+        is.clear();
+        EXPECT_FALSE(is.peek().has_value());
+        EXPECT_EQ(is.rdstate(), ios_defs::eofbit);
+    };
+
+    expect_refused.operator()<istream>();
+    expect_refused.operator()<iostream>();
+}

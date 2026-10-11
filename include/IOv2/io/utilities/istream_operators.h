@@ -84,8 +84,13 @@ struct in_sentry
      * @param is 要操作的输入流。
      * @param noskip 若为 `true`，则不跳过前导空白；若为 `false`，按当前 locale 的
      *               空白定义跳过前导空白。
-     * @throw stream_error 若流无效，或缺少 ctype facet。
+     * @throw stream_error 若流入口时不处于 `good()` 状态（已带 `eofbit` 也算），或缺少 ctype facet。
      * @throw eof_error 若在跳过空白的过程中到达输入结尾。
+     * @note 入口判 `good()` 而非 `operator bool`，与标准的哨兵一致：上一次操作碰到的末尾会让本次
+     *       操作直接失败、不再触碰设备，`while (is >> x)` 这类循环因此必然终止，哪怕 `x` 的提取允许
+     *       一个字符都不读（如 `ws`）。末尾那次检查仍是 `operator bool`：本次跳空白跳到末尾只置
+     *       `eofbit`，不算失败——要不要算失败由调用方定，提取运算符的预检对 `ws` 以外的类型
+     *       判失败。
      * @endif
      * @lang{EN}
      * @brief Constructs the input sentry: validates the stream, flushes the tied stream, and
@@ -108,14 +113,24 @@ struct in_sentry
      * @param is The input stream to operate on.
      * @param noskip If `true`, leading whitespace is not skipped; if `false`, leading
      *               whitespace is skipped according to the current locale's definition.
-     * @throw stream_error If the stream is invalid or the ctype facet is missing.
+     * @throw stream_error If the stream is not `good()` on entry (a set `eofbit` counts), or the
+     *        ctype facet is missing.
      * @throw eof_error If end of input is reached while skipping whitespace.
+     * @note The entry check is `good()` rather than `operator bool`, matching the standard's
+     *       sentry: an end of input met by an earlier operation makes this one fail outright
+     *       without touching the device, so a loop such as `while (is >> x)` always terminates,
+     *       even when extracting `x` may read no character at all (`ws`, say). The check at the end
+     *       is still `operator bool`: a skip that reaches the end in this call sets `eofbit` only
+     *       and is not a failure -- whether it is one is the caller's call, and the extraction
+     *       operator's precheck makes it one for every type but `ws`.
      * @endif
      */
     in_sentry(TStream& is, bool noskip)
         : m_is(is)
     {
-        if (!m_is)
+        // good(), not operator bool: a sticky eofbit stops the work here, as the standard's sentry
+        // does. The check at the end stays !m_is -- a skip that reaches EOF sets eofbit only.
+        if (!m_is.good())
             throw stream_error("istream_sentry create fail: Invalid istream");
 
         if (auto* tied = is.tie())
@@ -252,6 +267,20 @@ struct app_zt;
  * @endif
  */
 struct no_zt;
+
+/**
+ * @lang{ZH}
+ * @brief `ws` 操纵符的类型，定义在 `IOv2/io/istream.h`。此处前向声明，供 `operator>>` 豁免它的
+ *        末尾预检；`std::is_same_v` 不要求类型完整。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief The type of the `ws` manipulator, defined in `IOv2/io/istream.h`. Declared here so that
+ *        `operator>>` can exempt it from the end-of-input precheck; `std::is_same_v` does not need
+ *        a complete type.
+ * @endif
+ */
+struct ws_t;
 
 template <typename TChar>
 struct istream_operators;
@@ -1141,9 +1170,10 @@ struct istream_operators
         std::lock_guard guard(self.io_mutex());
         try
         {
+            // Before the sentry, as the standard orders it: the sentry rejects a set eofbit.
+            self.unset_state(IOv2::ios_defs::eofbit);
             using sentry_type = typename TSelf::in_sentry_type;
             sentry_type cerb(self, true);
-            self.unset_state(IOv2::ios_defs::eofbit);
             self.m_channel.putbackc(c);
         }
         catch(...)
@@ -1223,8 +1253,12 @@ private:
  * @tparam TValue 目标类型（或操纵符类型）。
  * @param obj 输入流。
  * @param value 接收解析结果的对象，或操纵符。
+ * @note 末尾分两处把关：流入口时已带 `eofbit` 由哨兵拒掉（它判 `good()`）；本次跳空白跳到末尾
+ *       由哨兵之后的预检拒掉，`sread` 不会被调用，目标与 `width()` 都不动——与标准中哨兵失败、
+ *       提取体不执行一致。唯一的例外是 `ws_t`：它像 `std::ws` 一样，把跳到末尾报告为单独的
+ *       `eofbit` 而非失败，因此不做预检。
  * @return 流自身的引用。
- * @throw stream_error 若在未提取到任何值时已处于 EOF。
+ * @throw stream_error 若跳过空白后已到末尾（`ws` 除外）。
  * @endif
  *
  * @lang{EN}
@@ -1262,8 +1296,14 @@ private:
  * @tparam TValue The target type (or the manipulator type).
  * @param obj The input stream.
  * @param value The object receiving the parsed result, or the manipulator.
+ * @note The end of input is guarded in two places: a stream already carrying `eofbit` on entry is
+ *       rejected by the sentry, which tests `good()`; a skip that reaches the end in this call is
+ *       rejected by the precheck after the sentry, so `sread` is never called and neither the
+ *       target nor `width()` is touched -- as in the standard, where a failed sentry means the
+ *       extraction body does not run. The one exception is `ws_t`: like `std::ws` it reports
+ *       reaching the end as `eofbit` alone rather than as a failure, so it skips the precheck.
  * @return A reference to the stream itself.
- * @throw stream_error If EOF is already reached with no value extracted.
+ * @throw stream_error If the stream is at its end after skipping whitespace (except for `ws`).
  * @endif
  */
 template <istream_type T, typename TValue>
@@ -1311,8 +1351,13 @@ T& operator>>(T& obj, TValue&& value)
             bool skip = bool(obj.flags() & ios_defs::skipws);
             sentry_type cerb(obj, !skip);
 
-            if (obj.eof())
-                throw stream_error("istream extraction fail: reached EOF with no value extracted");
+            // ws is the one extraction that may read nothing: like std::ws it reports the end
+            // with eofbit alone, so a skip that ran off the end is not a failure for it.
+            if constexpr (!std::is_same_v<TV, ws_t>)
+            {
+                if (obj.eof())
+                    throw stream_error("istream extraction fail: reached EOF with no value extracted");
+            }
 
             if constexpr (iter_v)
                 io_traits<TChar, TV>::sread(iter, std::default_sentinel, obj, obj.locale(),

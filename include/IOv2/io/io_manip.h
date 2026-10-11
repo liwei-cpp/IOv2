@@ -33,7 +33,7 @@
  *          本文件这几个操纵符不取锁，只因为它们各自都是对 `ios_base` 上某个原子成员的单次
  *          读-改-写（`exchange` / `fetch_or` / CAS 循环之一）。像"先读 `flags()`
  *          再按结果 `setf()`"这样跨两次调用的逻辑不在此列，写在流形式里就是竞态；范例见
- *          `endl` 与 `ws`，两者都自己取锁并自己 `catch`（理由见 `traits/traits_base.h`）。
+ *          `endl`，它自己取锁并自己 `catch`（理由见 `traits/traits_base.h`）。
  * @warning **工厂函数返回的是临时对象，只应作为同一个完整表达式的一部分立即使用。**
  *          `put_money_t` / `get_money_t` 持有对实参的引用，`put_time_t` / `get_time_t` 持有
  *          裸指针。写成 `os << put_money(x)` 是安全的——临时量活到完整表达式结束；但
@@ -88,8 +88,8 @@
  *          because each is a single read-modify-write on one atomic member of `ios_base`
  *          (one of `exchange`, `fetch_or`, a CAS loop). Logic spanning two calls -- say
  *          reading `flags()` and then calling `setf()` on the result -- is not, and is a race
- *          if written in the stream form; `endl` and `ws` are the examples to follow, taking
- *          the lock and catching for themselves (see `traits/traits_base.h` for why).
+ *          if written in the stream form; `endl` is the example to follow, taking the lock and
+ *          catching for itself (see `traits/traits_base.h` for why).
  * @warning **A factory returns a temporary, to be used only as part of the same full
  *          expression.** `put_money_t` / `get_money_t` hold a reference to the argument, and
  *          `put_time_t` / `get_time_t` hold raw pointers. `os << put_money(x)` is safe -- the

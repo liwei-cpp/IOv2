@@ -47,8 +47,10 @@
  */
 #pragma once
 #include <IOv2/common/copyable_mutex.h>
+#include <IOv2/common/defs.h>
 #include <IOv2/cvt/cvt_concepts.h>
 #include <IOv2/device/device_concepts.h>
+#include <IOv2/facet/ctype.h>
 #include <IOv2/io/io_base.h>
 #include <IOv2/io/iochannel.h>
 #include <IOv2/io/iochannel_iterator.h>
@@ -57,7 +59,7 @@
 #include <IOv2/io/utilities/stream_common_operators.h>
 #include <IOv2/locale/locale.h>
 
-#include <exception>
+#include <iterator>
 #include <mutex>
 #include <type_traits>
 #include <utility>
@@ -493,62 +495,78 @@ inline constexpr struct ws_t {} ws{};
 
 /**
  * @lang{ZH}
- * @brief `ws` 的扩展点特化：只提供 `sread`，跳过流中接下来的空白字符。
+ * @brief `ws` 的扩展点特化：只提供迭代器形式的 `sread`，跳过接下来的空白字符。
  *
- * 空白的跳过由输入哨兵完成：`in_sentry` 的形参名为 `noskip`，以 `noskip == false` 构造即为
- * 跳过空白。
- * @note 这与流上的 `skipws` 标志（及清除它的 `noskipws` 操纵符）**没有关系**：`in_sentry`
- *       不读该标志，只看构造实参；读标志的是提取运算符，由它把 `!skip` 传给哨兵。而 `ws`
- *       这条路径传的是字面量 `false`，因此 **`is >> noskipws >> ws` 照样跳空白**——这正是
- *       `ws` 应有的语义。
+ * 取迭代器形式而非流形式，是为了能**组合**：另一个类型的迭代器形式 `sread` 在两个成分之间可以
+ * 直接调 `io_traits<TChar, ws_t>::sread(it, end, io, loc, ws)` 跳过空白——成分自己的 `sread`
+ * 不跳前导空白（那是哨兵的事），而组合内部没有哨兵。锁、哨兵与 `catch` 一律归运算符。
+ *
+ * 跳到末尾**不抛**，原样返回 `end`：组合场景下由下一个成分决定这算不算错；`is >> ws` 场景下
+ * 运算符对 `ws_t` 豁免哨兵之后的末尾预检，迭代器上报 `saw_eof`，运算符只置 `eofbit`、不置失败位，
+ * 与 `std::ws` 一致。流入口时已带
+ * `eofbit` 则由哨兵拒掉（置 `strfailbit`），`while (is >> ws)` 因此必然终止。
+ * @note 跳空白与流上的 `skipws` 标志（及 `noskipws`）**没有关系**：本成员无条件跳，因此
+ *       **`is >> noskipws >> ws` 照样跳空白**——这正是 `ws` 应有的语义。`skipws` 开着时哨兵会先
+ *       跳一遍，本成员随即碰到非空白字符或末尾，结果相同。
  *
  * 操纵符的方向由**成员的有无**表达：这里只有 `sread`，于是 `os << ws` 不满足插入运算符的约束、
  * 没有可行重载。改用约束是不够的——`iostream` 同时满足两个流概念，若两侧都提供成员，
  * 两个方向都会调用成功。
- * @note 锁由本成员自己取——流形式不加锁，而这里需要把哨兵罩在锁内。`catch` 也必须在同一把锁内：
- *       `operator>>` 那层 `catch` 在锁之外，只靠它的话失败路径上的置位会发生在解锁之后。掩码命中
- *       时异常仍会逃到运算符那层再处理一次，`handle_exception` 是幂等的。
+ * @param it 输入的起始迭代器。
+ * @param end 输入的结束哨兵。
+ * @param loc 提供 `ctype<TChar>` 的 locale，空白按它判定。
+ * @return 指向第一个非空白字符的迭代器；全是空白时为 `end`。
+ * @throw stream_error 若 locale 中没有 `ctype<TChar>` facet。
  * @endif
  *
  * @lang{EN}
- * @brief Extension-point specialization for `ws`: provides only `sread`, which skips the
- *        whitespace characters that follow in the stream.
+ * @brief Extension-point specialization for `ws`: provides only the iterator form of `sread`,
+ *        which skips the whitespace characters that follow.
  *
- * The skipping is done by the input sentry: its parameter is named `noskip`, and constructing
- * `in_sentry` with `noskip == false` is what skips whitespace.
- * @note This has **nothing to do with** the stream's `skipws` flag (or the `noskipws`
- *       manipulator that clears it): `in_sentry` never reads that flag, only its constructor
- *       argument; it is the extraction operator that reads the flag and passes `!skip` to the
- *       sentry. This path passes a literal `false`, so **`is >> noskipws >> ws` still skips
- *       whitespace** — which is exactly what `ws` is supposed to do.
+ * The iterator form rather than the stream form is what makes it **composable**: another type's
+ * iterator-form `sread` can call `io_traits<TChar, ws_t>::sread(it, end, io, loc, ws)` between
+ * two components to skip whitespace -- a component's own `sread` does not skip leading whitespace
+ * (that is the sentry's job), and there is no sentry inside a composition. The lock, the sentry
+ * and the `catch` all belong to the operator.
+ *
+ * Reaching the end does **not** throw; `end` is simply returned. In a composition the next
+ * component decides whether that is an error; for `is >> ws` the operator exempts `ws_t` from the
+ * end-of-input precheck after the sentry, the iterator reports `saw_eof`, and the operator sets
+ * `eofbit` alone, no failure bit, matching `std::ws`. A stream that already
+ * carries `eofbit` on entry is rejected by the sentry (`strfailbit`), so `while (is >> ws)`
+ * always terminates.
+ * @note The skipping has **nothing to do with** the stream's `skipws` flag (or `noskipws`): this
+ *       member skips unconditionally, so **`is >> noskipws >> ws` still skips whitespace** —
+ *       which is exactly what `ws` is supposed to do. With `skipws` set the sentry skips first and
+ *       this member then meets a non-whitespace character or the end straight away; the result
+ *       is the same.
  *
  * A manipulator's direction is expressed by **which member exists**: only `sread` is here, so
  * `os << ws` leaves the insertion operator unsatisfied and there is no viable overload. A
  * constraint would not be enough -- `iostream` satisfies both stream concepts, so if both members
  * existed both directions would call successfully.
- * @note The lock is taken here: the stream form is never locked by the operator, and the sentry
- *       has to run under one. The `catch` has to be under that same lock: `operator>>`'s own
- *       `catch` sits outside it, so relying on that one alone would set the state bits after the
- *       unlock. On a masked rethrow the exception still reaches the operator and is handled a
- *       second time; `handle_exception` is idempotent.
+ * @param it The start of the input.
+ * @param end The end sentinel of the input.
+ * @param loc The locale supplying `ctype<TChar>`, which decides what whitespace is.
+ * @return An iterator to the first non-whitespace character; `end` if everything was whitespace.
+ * @throw stream_error If the locale carries no `ctype<TChar>` facet.
  * @endif
  */
 template <typename TChar>
 struct io_traits<TChar, ws_t>
 {
-    template <istream_type T>
-        requires (std::is_same_v<typename T::char_type, TChar>)
-    static void sread(T& is, const ws_t&)
+    template <typename TIter, std::sentinel_for<TIter> TSent>
+        requires (std::is_same_v<TChar, typename TIter::value_type>)
+    static TIter sread(TIter it, TSent end, ios_base<TChar>&, const locale<TChar>& loc,
+                       const ws_t&)
     {
-        std::lock_guard guard(is.io_mutex());
-        try
-        {
-            typename T::in_sentry_type cerb(is, false);
-        }
-        catch(...)
-        {
-            is.handle_exception(std::current_exception());
-        }
+        auto ct = loc.template get<ctype<TChar>>();
+        if (!ct)
+            throw stream_error("cannot get ctype facet");
+
+        while (it != end && ct->is_any(base_ft<ctype>::space, *it))
+            ++it;
+        return it;
     }
 };
 }
