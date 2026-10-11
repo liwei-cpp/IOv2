@@ -300,3 +300,25 @@ TEST(IstreamReadChar, ASatisfiedReadDoesNotGoBackToTheDevice)
     EXPECT_EQ(std::string(buf, 3), "42\n");
     EXPECT_LT(std::chrono::duration_cast<std::chrono::milliseconds>(elapsed).count(), 1000);
 }
+
+// An end seen by an earlier operation sticks: the sentry requires good(), as the standard's does,
+// so a read on a stream that already carries eofbit fails -- even for a count of zero, which on a
+// good stream is satisfied without reading.
+TEST(IstreamReadChar, ReadOnAStreamAlreadyAtTheEndFails)
+{
+    auto expect_refused = []<template <typename, typename> class T>()
+    {
+        T is{mem_device{std::string("ab")}};
+        std::string tok;
+        is >> tok;
+        ASSERT_EQ(is.rdstate(), ios_defs::eofbit);
+
+        char buf[2] = {'x', 'x'};
+        EXPECT_EQ(is.read(buf, 0), buf);
+        EXPECT_TRUE(is.str_fail());
+        EXPECT_EQ(buf[0], 'x');
+    };
+
+    expect_refused.operator()<istream>();
+    expect_refused.operator()<iostream>();
+}

@@ -20,6 +20,7 @@
 
 #include <cstddef>
 #include <ctime>
+#include <iterator>
 #include <limits>
 #include <stdfloat>
 #include <string>
@@ -458,8 +459,6 @@ static_assert( !swrites_as<wchar_t, os_c, IOv2::ends_t>  );
 // The rest never name TChar, so the mismatch was inert; they are constrained for symmetry.
 static_assert(  swrites_as<char,    os_c, IOv2::flush_t> );
 static_assert( !swrites_as<wchar_t, os_c, IOv2::flush_t> );
-static_assert(  sreads_as <char,    is_c, IOv2::ws_t>    );
-static_assert( !sreads_as <wchar_t, is_c, IOv2::ws_t>    );
 static_assert(  swrites_as<char,    os_c, IOv2::setw_t>  );
 static_assert( !swrites_as<wchar_t, os_c, IOv2::setw_t>  );
 static_assert(  sreads_as <char,    is_c, IOv2::setw_t>  );
@@ -468,6 +467,16 @@ static_assert( !sreads_as <wchar_t, is_c, IOv2::setw_t>  );
 // setfill already tied T::char_type to TFill; TChar is now tied too, so all three must agree.
 static_assert(  swrites_as<char,    os_c, IOv2::setfill_t<char>> );
 static_assert( !swrites_as<wchar_t, os_c, IOv2::setfill_t<char>> );
+
+// ws reads through the iterator form, so that another sread can call it between components; the
+// iterator constraint is what ties its TChar, and it has no stream form left to probe.
+template <typename TChar, typename S, typename V>
+concept sreads_iter_as = requires (S& s, typename S::in_iter_type& it, const V& v)
+{ IOv2::io_traits<TChar, V>::sread(it, std::default_sentinel, s, s.locale(), v); };
+
+static_assert(  sreads_iter_as<char,    is_c, IOv2::ws_t> );
+static_assert( !sreads_iter_as<wchar_t, is_c, IOv2::ws_t> );
+static_assert( !sreads_as     <char,    is_c, IOv2::ws_t> );
 
 // ---------------------------------------------------------------------------------------------
 // 9. A key carrying top-level cv routes exactly like its unqualified spelling.

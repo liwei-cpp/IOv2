@@ -81,8 +81,9 @@ TEST(IstreamPutbackChar, ASuccessfulPutbackLeavesTheStateAlone)
     expect_state_kept.operator()<iostream>();
 }
 
-// putback unsets eofbit before reaching the buffer, so a stream that has read
-// everything can be given something to read again.
+// putback unsets eofbit before building the sentry -- which rejects a stream
+// that is not good() -- so a stream that has read everything can be given
+// something to read again.
 TEST(IstreamPutbackChar, PutbackClearsEndOfFile)
 {
     istream is(mem_device{std::string("ab")});

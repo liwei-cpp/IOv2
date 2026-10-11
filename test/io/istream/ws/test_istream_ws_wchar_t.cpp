@@ -27,7 +27,11 @@
 
 #include <gtest/gtest.h>
 
+#include <iterator>
 #include <string>
+#include <type_traits>
+#include <utility>
+#include <vector>
 
 using namespace IOv2;
 
@@ -98,6 +102,104 @@ TEST(IstreamWsWchar, WsSkipsWhereExtractionWillNotWhenSkipwsIsOff)
 
     expect_manual.operator()<istream>();
     expect_manual.operator()<iostream>();
+}
+
+// See the char counterpart: the sentry's good() check is what ends the loop.
+TEST(IstreamWsWchar, ALoopOnWsEndsOnceTheEndHasBeenSeen)
+{
+    auto expect_ends = []<template <typename, typename> class T>()
+    {
+        T is{mem_device{std::wstring(L"  ")}, locale<wchar_t>("C")};
+
+        int rounds = 0;
+        while (is >> ws)
+            if (++rounds == 100) break;
+        EXPECT_EQ(rounds, 1);
+        EXPECT_TRUE(is.eof());
+        EXPECT_TRUE(is.rdstate() & ios_defs::strfailbit);
+
+        is.clear();
+        is >> ws;
+        EXPECT_TRUE(is.eof());
+        EXPECT_FALSE(is.rdstate() & ios_defs::strfailbit);
+    };
+
+    expect_ends.operator()<istream>();
+    expect_ends.operator()<iostream>();
+}
+
+namespace
+{
+// See the char counterpart: "( x , y )" parsed by composing iterator-form sread calls.
+struct point
+{
+    int x = 0;
+    int y = 0;
+};
+}
+
+namespace IOv2
+{
+template <typename TChar>
+struct io_traits<TChar, point>
+{
+    template <typename TIter, std::sentinel_for<TIter> TSent>
+        requires (std::is_same_v<TChar, typename TIter::value_type>)
+    static TIter sread(TIter it, TSent end, ios_base<TChar>& io, const locale<TChar>& loc,
+                       point& p)
+    {
+        auto ct = loc.template get<ctype<TChar>>();
+        if (!ct)
+            throw stream_error("cannot get ctype facet");
+
+        auto expect = [&](char c) {
+            if (it == end || *it != ct->widen(c))
+                throw stream_error("point: unexpected character");
+            ++it;
+        };
+
+        point tmp;
+        expect('(');
+        it = io_traits<TChar, ws_t>::sread(it, end, io, loc, ws);
+        it = io_traits<TChar, int>::sread(it, end, io, loc, tmp.x);
+        it = io_traits<TChar, ws_t>::sread(it, end, io, loc, ws);
+        expect(',');
+        it = io_traits<TChar, ws_t>::sread(it, end, io, loc, ws);
+        it = io_traits<TChar, int>::sread(it, end, io, loc, tmp.y);
+        it = io_traits<TChar, ws_t>::sread(it, end, io, loc, ws);
+        expect(')');
+
+        p = tmp;
+        return it;
+    }
+};
+}
+
+TEST(IstreamWsWchar, WsComposesInsideAnotherTypesSread)
+{
+    auto expect_composed = []<template <typename, typename> class T>()
+    {
+        {
+            T is{mem_device{std::wstring(L"  ( 3 , 4 )(5,6)\n(  -7,8  )  ")}, locale<wchar_t>("C")};
+            std::vector<std::pair<int, int>> got;
+            point p;
+            while (is >> p)
+                got.emplace_back(p.x, p.y);
+            EXPECT_EQ(got, (std::vector<std::pair<int, int>>{{3, 4}, {5, 6}, {-7, 8}}));
+        }
+        {
+            T is{mem_device{std::wstring(L"(3, 4  ")}, locale<wchar_t>("C")};
+            point p{1, 2};
+            is >> p;
+            EXPECT_TRUE(is.rdstate() & ios_defs::strfailbit);
+            EXPECT_TRUE(is.eof());
+            EXPECT_EQ(p.x, 1);
+            EXPECT_EQ(p.y, 2);
+        }
+    };
+
+    expect_composed.operator()<istream>();
+    expect_composed.operator()<iostream>();
 }
 
 // wchar_t counterpart of the char case: a function-pointer manipulator in a NON-CONST lvalue
@@ -231,10 +333,12 @@ using DirOut_w  = ostream<mem_device<wchar_t>, wchar_t>;
 using DirBoth_w = iostream<mem_device<wchar_t>, wchar_t>;
 
 // See the char counterpart for why the io_traits members are probed directly rather than
-// through `s >> m` / `s << m`.
+// through `s >> m` / `s << m`, and why extraction accepts either form of sread.
 template <typename S, typename M>
 concept can_extract_w = requires (S& s, const M& m)
-{ io_traits<typename S::char_type, M>::sread(s, m); };
+{ io_traits<typename S::char_type, M>::sread(s, m); }
+    || requires (S& s, typename S::in_iter_type& it, const M& m)
+{ io_traits<typename S::char_type, M>::sread(it, std::default_sentinel, s, s.locale(), m); };
 
 template <typename S, typename M>
 concept can_insert_w = requires (S& s, const M& m)

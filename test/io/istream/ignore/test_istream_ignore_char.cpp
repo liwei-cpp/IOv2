@@ -371,3 +371,30 @@ TEST(IstreamIgnoreChar, IgnoreOnAFailedStreamIsReportedRatherThanThrown)
     expect_reported.operator()<istream>();
     expect_reported.operator()<iostream>();
 }
+
+// An end seen by an earlier operation sticks: the sentry requires good(), as the standard's does,
+// so both forms of ignore fail on a stream that already carries eofbit. clear() lifts it.
+TEST(IstreamIgnoreChar, IgnoreOnAStreamAlreadyAtTheEndFails)
+{
+    auto expect_refused = []<template <typename, typename> class T>()
+    {
+        T is{mem_device{std::string("ab")}};
+        std::string tok;
+        is >> tok;
+        ASSERT_EQ(is.rdstate(), ios_defs::eofbit);
+
+        is.ignore();
+        EXPECT_TRUE(is.str_fail());
+
+        is.clear(ios_defs::eofbit);
+        is.ignore(5, '\n');
+        EXPECT_TRUE(is.str_fail());
+
+        is.clear();
+        is.ignore();
+        EXPECT_EQ(is.rdstate(), ios_defs::eofbit);
+    };
+
+    expect_refused.operator()<istream>();
+    expect_refused.operator()<iostream>();
+}

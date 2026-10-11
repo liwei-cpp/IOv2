@@ -335,3 +335,46 @@ TEST(IstreamGetWchar, RepeatedGetsWalkAFileLineByLine)
     expect_walked.operator()<istream, ifile_device<char>>();
     expect_walked.operator()<iostream, file_device<char>>();
 }
+
+// See the char counterpart: a stream already carrying eofbit fails every form of get.
+TEST(IstreamGetWchar, GetOnAStreamAlreadyAtTheEndFails)
+{
+    auto expect_refused = []<template <typename, typename> class T>()
+    {
+        auto drained = [] {
+            T is{mem_device{std::wstring(L"ab")}};
+            std::wstring tok;
+            is >> tok;
+            return is;
+        };
+
+        {
+            T is = drained();
+            ASSERT_EQ(is.rdstate(), ios_defs::eofbit);
+            EXPECT_FALSE(is.get().has_value());
+            EXPECT_TRUE(is.str_fail());
+        }
+        {
+            T is = drained();
+            wchar_t c = L'x';
+            is.get(c);
+            EXPECT_TRUE(is.str_fail());
+            EXPECT_EQ(c, L'x');
+        }
+        {
+            T is = drained();
+            wchar_t buf[4] = {L'x', L'x', L'x', L'x'};
+            is.template get<keep_sep, app_zt>(buf, 4, L'\n');
+            EXPECT_TRUE(is.str_fail());
+        }
+        {
+            T is = drained();
+            is.clear();
+            EXPECT_FALSE(is.get().has_value());
+            EXPECT_TRUE(is.eof());
+        }
+    };
+
+    expect_refused.operator()<istream>();
+    expect_refused.operator()<iostream>();
+}

@@ -330,3 +330,47 @@ TEST(IstreamGetChar, RepeatedGetsWalkAFileLineByLine)
     expect_walked.operator()<istream, ifile_device<char>>();
     expect_walked.operator()<iostream, file_device<char>>();
 }
+
+// An end seen by an earlier operation sticks: the sentry requires good(), as the standard's does,
+// so every form of get fails on a stream that already carries eofbit. clear() lifts it.
+TEST(IstreamGetChar, GetOnAStreamAlreadyAtTheEndFails)
+{
+    auto expect_refused = []<template <typename, typename> class T>()
+    {
+        auto drained = [] {
+            T is{mem_device{std::string("ab")}};
+            std::string tok;
+            is >> tok;
+            return is;
+        };
+
+        {
+            T is = drained();
+            ASSERT_EQ(is.rdstate(), ios_defs::eofbit);
+            EXPECT_FALSE(is.get().has_value());
+            EXPECT_TRUE(is.str_fail());
+        }
+        {
+            T is = drained();
+            char c = 'x';
+            is.get(c);
+            EXPECT_TRUE(is.str_fail());
+            EXPECT_EQ(c, 'x');
+        }
+        {
+            T is = drained();
+            char buf[4] = {'x', 'x', 'x', 'x'};
+            is.template get<keep_sep, app_zt>(buf, 4, '\n');
+            EXPECT_TRUE(is.str_fail());
+        }
+        {
+            T is = drained();
+            is.clear();
+            EXPECT_FALSE(is.get().has_value());
+            EXPECT_TRUE(is.eof());
+        }
+    };
+
+    expect_refused.operator()<istream>();
+    expect_refused.operator()<iostream>();
+}

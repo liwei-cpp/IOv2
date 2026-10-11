@@ -36,8 +36,11 @@
 
 #include <gtest/gtest.h>
 
+#include <iterator>
 #include <string>
+#include <type_traits>
 #include <utility>
+#include <vector>
 
 using namespace IOv2;
 
@@ -141,6 +144,113 @@ TEST(IstreamWsChar, WsSkipsWhereExtractionWillNotWhenSkipwsIsOff)
 
     expect_manual.operator()<istream>();
     expect_manual.operator()<iostream>();
+}
+
+// ws never fails on reaching the end, so what stops `while (is >> ws)` is the sentry refusing a
+// stream that already carries eofbit -- the standard's sentry does the same through good(). The
+// first round reaches the end and succeeds; the second fails without touching the device.
+TEST(IstreamWsChar, ALoopOnWsEndsOnceTheEndHasBeenSeen)
+{
+    auto expect_ends = []<template <typename, typename> class T>()
+    {
+        T is{mem_device{std::string("  ")}, locale<char>("C")};
+
+        int rounds = 0;
+        while (is >> ws)
+            if (++rounds == 100) break;
+        EXPECT_EQ(rounds, 1);
+        EXPECT_TRUE(is.eof());
+        EXPECT_TRUE(is.rdstate() & ios_defs::strfailbit);
+
+        // clear() is what lets it run again.
+        is.clear();
+        is >> ws;
+        EXPECT_TRUE(is.eof());
+        EXPECT_FALSE(is.rdstate() & ios_defs::strfailbit);
+    };
+
+    expect_ends.operator()<istream>();
+    expect_ends.operator()<iostream>();
+}
+
+namespace
+{
+// A composite parsed by calling its components' iterator-form sread in turn: "( x , y )". The
+// components do not skip leading whitespace, so ws is called between them; the operator's
+// sentry has already skipped the whitespace before '('.
+struct point
+{
+    int x = 0;
+    int y = 0;
+};
+}
+
+namespace IOv2
+{
+template <typename TChar>
+struct io_traits<TChar, point>
+{
+    template <typename TIter, std::sentinel_for<TIter> TSent>
+        requires (std::is_same_v<TChar, typename TIter::value_type>)
+    static TIter sread(TIter it, TSent end, ios_base<TChar>& io, const locale<TChar>& loc,
+                       point& p)
+    {
+        auto ct = loc.template get<ctype<TChar>>();
+        if (!ct)
+            throw stream_error("cannot get ctype facet");
+
+        auto expect = [&](char c) {
+            if (it == end || *it != ct->widen(c))
+                throw stream_error("point: unexpected character");
+            ++it;
+        };
+
+        point tmp;
+        expect('(');
+        it = io_traits<TChar, ws_t>::sread(it, end, io, loc, ws);
+        it = io_traits<TChar, int>::sread(it, end, io, loc, tmp.x);
+        it = io_traits<TChar, ws_t>::sread(it, end, io, loc, ws);
+        expect(',');
+        it = io_traits<TChar, ws_t>::sread(it, end, io, loc, ws);
+        it = io_traits<TChar, int>::sread(it, end, io, loc, tmp.y);
+        it = io_traits<TChar, ws_t>::sread(it, end, io, loc, ws);
+        expect(')');
+
+        p = tmp;
+        return it;
+    }
+};
+}
+
+// The reason ws reads through the iterator form: another type's sread can call it between its
+// components. Whitespace inside and between the composites is all skipped, a loop over them
+// ends after the last one, and a composite cut short by the end fails -- the end ws returns is
+// caught by the next component, not taken for success.
+TEST(IstreamWsChar, WsComposesInsideAnotherTypesSread)
+{
+    auto expect_composed = []<template <typename, typename> class T>()
+    {
+        {
+            T is{mem_device{std::string("  ( 3 , 4 )(5,6)\n(  -7,8  )  ")}, locale<char>("C")};
+            std::vector<std::pair<int, int>> got;
+            point p;
+            while (is >> p)
+                got.emplace_back(p.x, p.y);
+            EXPECT_EQ(got, (std::vector<std::pair<int, int>>{{3, 4}, {5, 6}, {-7, 8}}));
+        }
+        {
+            T is{mem_device{std::string("(3, 4  ")}, locale<char>("C")};
+            point p{1, 2};
+            is >> p;
+            EXPECT_TRUE(is.rdstate() & ios_defs::strfailbit);
+            EXPECT_TRUE(is.eof());
+            EXPECT_EQ(p.x, 1);
+            EXPECT_EQ(p.y, 2);
+        }
+    };
+
+    expect_composed.operator()<istream>();
+    expect_composed.operator()<iostream>();
 }
 
 // A function pointer is the only manipulator shape that bypasses io_traits, and it must beat
@@ -297,13 +407,15 @@ using DirIn_c   = istream<mem_device<char>, char>;
 using DirOut_c  = ostream<mem_device<char>, char>;
 using DirBoth_c = iostream<mem_device<char>, char>;
 
-// These probe the stream form of io_traits directly -- the rung the insertion / extraction
-// operators try first for a manipulator. `requires { s >> m; }` would answer a broader question:
-// it also folds in the operator's other rungs and the function-pointer manipulator overload, so a
-// failure would no longer point at the stream form itself.
+// These probe io_traits members directly. `requires { s >> m; }` would answer a broader question:
+// it also folds in the function-pointer manipulator overload, so a failure would no longer point
+// at the member itself. Extraction accepts either form of sread -- ws uses the iterator form so
+// that it composes inside another sread -- and only an istream has the iterator to probe with.
 template <typename S, typename M>
 concept can_extract = requires (S& s, const M& m)
-{ io_traits<typename S::char_type, M>::sread(s, m); };
+{ io_traits<typename S::char_type, M>::sread(s, m); }
+    || requires (S& s, typename S::in_iter_type& it, const M& m)
+{ io_traits<typename S::char_type, M>::sread(it, std::default_sentinel, s, s.locale(), m); };
 
 template <typename S, typename M>
 concept can_insert = requires (S& s, const M& m)
