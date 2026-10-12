@@ -88,7 +88,7 @@ add_library(iov2_test_subject INTERFACE)
 set(IOV2_TEST_SUBJECT_INCLUDE_DIRS "")
 
 if(IOV2_TEST_CONSUMER STREQUAL "source")
-  set(IOV2_TEST_SUBJECT_INCLUDE_DIRS "${PROJECT_SOURCE_DIR}/include")
+  set(IOV2_TEST_SUBJECT_INCLUDE_DIRS "${IOV2_REPO_ROOT}/include")
 else()
   find_package(PkgConfig REQUIRED)
   if(IOV2_TEST_CONSUMER STREQUAL "installed-shared")
@@ -102,9 +102,10 @@ else()
 
   # The whole point of these two modes is that the repo headers are NOT used, so
   # a stray source-tree path here would make the job silently test nothing new.
-  # ci.yml checks the generated compile commands for the same thing.
+  # ci.yml checks the generated compile commands for the same thing. The whole
+  # repository, not this project's test/: the headers to keep out are in include/.
   foreach(dir IN LISTS IOV2_INSTALLED_INCLUDE_DIRS)
-    cmake_path(IS_PREFIX PROJECT_SOURCE_DIR "${dir}" NORMALIZE _inside_repo)
+    cmake_path(IS_PREFIX IOV2_REPO_ROOT "${dir}" NORMALIZE _inside_repo)
     if(_inside_repo)
       message(FATAL_ERROR
           "pkg-config ${_iov2_pc} resolved to '${dir}', inside the source tree. "

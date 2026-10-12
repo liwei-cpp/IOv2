@@ -6,7 +6,7 @@
     {
       "name": "base",
       "hidden": true,
-      "binaryDir": "${sourceDir}/build/${presetName}",
+      "binaryDir": "${sourceDir}/../build/${presetName}",
       "cacheVariables": {
         "IOV2_TEST_MODE": "release",
         "IOV2_TEST_CONSUMER": "source"

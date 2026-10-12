@@ -1,4 +1,12 @@
-# The test suite: one per-feature suite and CTest test per source-holding directory.
+# IOv2 -- the test suite: one per-feature suite and CTest test per source-holding
+# directory.
+#
+# The library itself is header-only and needs no build system; the top-level
+# Makefile owns the optional shared-library packaging (make shared / install /
+# install-shared) and nothing else. This project builds only the tests, which is
+# why it is rooted here rather than at the repository root: configure it from
+# this directory. Its build trees still land in the repository's build/; see
+# CMakePresets.json.
 #
 # test/Makefile linked everything into seven executables, one per top-level
 # directory, each driven by a hand-written main() that called its tests in a
@@ -12,6 +20,44 @@
 # directory that directly holds a .cpp", computed below rather than recorded in
 # a manifest.
 
+cmake_minimum_required(VERSION 3.25)
+
+project(IOv2
+    VERSION 0.1.0
+    DESCRIPTION "C++23 I/O and localization library"
+    HOMEPAGE_URL "https://github.com/liwei-cpp/IOv2"
+    LANGUAGES CXX)
+
+if(PROJECT_SOURCE_DIR STREQUAL PROJECT_BINARY_DIR)
+  message(FATAL_ERROR
+      "In-source builds are not supported: they would recreate the obj_*/bin_* clutter "
+      "in the source tree that moving to CMake removed. Configure into a separate "
+      "directory, e.g. cmake --preset gcc-release")
+endif()
+
+# The repository, of which this project is the test/ directory: the library's
+# include/ is found from here. Normalized, so compile commands carry no "/..".
+cmake_path(GET PROJECT_SOURCE_DIR PARENT_PATH IOV2_REPO_ROOT)
+
+list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
+
+# Compile commands are how the installed-* consumer modes are audited for
+# source-tree header leakage, so they are always generated.
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+# Must precede include(CTest): that is what writes these into
+# DartConfiguration.tcl, where `ctest -T memcheck` reads them. The three options
+# are the ones test/Makefile's valgrind target passed.
+#
+# These apply to every test. The one option that must not is --fair-sched=yes,
+# which only the concur suite needs; it is passed through VALGRIND_OPTS on that
+# test alone, below.
+find_program(MEMORYCHECK_COMMAND valgrind)
+set(MEMORYCHECK_COMMAND_OPTIONS
+    "--error-exitcode=1 --leak-check=full --max-stackframe=6000000")
+
+include(CTest)
+
 include(IOv2TestOptions)
 include(IOv2GoogleTest)
 
@@ -21,8 +67,11 @@ include(IOv2GoogleTest)
 # tests silently while staying green.
 file(GLOB_RECURSE IOV2_TEST_ALL_SOURCES CONFIGURE_DEPENDS
      "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
-# A plugins/ directory holds modules a suite dlopens, not tests of its own.
+# A plugins/ directory holds modules a suite dlopens, not tests of its own, and
+# cmake/ holds the main() every suite links.
 list(FILTER IOV2_TEST_ALL_SOURCES EXCLUDE REGEX "/plugins/")
+set(IOV2_TEST_MAIN "${CMAKE_CURRENT_SOURCE_DIR}/cmake/gtest_main.cpp")
+list(REMOVE_ITEM IOV2_TEST_ALL_SOURCES "${IOV2_TEST_MAIN}")
 if(NOT IOV2_TEST_ALL_SOURCES)
   message(FATAL_ERROR "No test sources found under ${CMAKE_CURRENT_SOURCE_DIR}")
 endif()
@@ -51,7 +100,7 @@ foreach(suite_dir IN LISTS IOV2_TEST_SUITE_DIRS)
   file(GLOB suite_sources CONFIGURE_DEPENDS
        "${CMAKE_CURRENT_SOURCE_DIR}/${suite_dir}/*.cpp")
 
-  add_executable(${target} "${PROJECT_SOURCE_DIR}/cmake/gtest_main.cpp" ${suite_sources})
+  add_executable(${target} "${IOV2_TEST_MAIN}" ${suite_sources})
 
   target_link_libraries(${target} PRIVATE
       iov2_test_subject iov2_test_options iov2_test_thirdparty iov2_test_gtest)

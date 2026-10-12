@@ -218,15 +218,16 @@ make IOV2_PKG=iov2-shared   # 共享 .so（无需 -DIOV2_SHARED）
 - **依赖**：核心头文件库本身无需构建，但部分特性依赖 `zlib` 和 `Botan`。
 
 **运行测试**
-`test` 目录包含了所有的单元测试与验证程序，由 CMake/CTest 构建，按目录划分成套件。运行测试前，请确保系统中已安装必要的依赖（如 `botan-2` 和 `zlib` 开发包）。
+`test` 目录包含了所有的单元测试与验证程序，由 CMake/CTest 构建，按目录划分成套件。CMake 工程只用于测试，因此它的根就是 `test` 目录，以下命令都在该目录下执行。运行测试前，请确保系统中已安装必要的依赖（如 `botan-2` 和 `zlib` 开发包）。
 
 ```bash
+cd test
 cmake --preset gcc-release                        # 配置
 cmake --build --preset gcc-release --parallel "$(nproc)"     # 编译全部
 ctest --preset gcc-release --parallel             # 运行全部套件
 ctest --preset gcc-release -L io                  # 只跑 IO 模块
 ```
-构建产物位于 `build/<preset>/`，不再污染源码树。更多用法（sanitizer、Valgrind、覆盖率、如何新增测试文件）参见 `test/README.md`，可用配置见 `cmake --list-presets`。
+构建产物位于仓库根目录的 `build/<preset>/`，不再污染源码树。更多用法（sanitizer、Valgrind、覆盖率、如何新增测试文件）参见 `test/README.md`，可用配置见 `cmake --list-presets`。
 
 ### 许可证
 IOv2 依据 **MIT 许可证**分发，全文见 [`LICENSE`](LICENSE)。
@@ -454,15 +455,16 @@ Thread safety is provided **at the stream-object layer**: every stream owns a re
 - **Dependencies**: The core library requires no build, but specific converters depend on `zlib` and `Botan`.
 
 **Running Tests**
-The `test` directory contains all unit tests, built by CMake/CTest as one suite per directory. Ensure you have the necessary dependencies installed (e.g., `botan-2` and `zlib` development packages).
+The `test` directory contains all unit tests, built by CMake/CTest as one suite per directory. The CMake project exists only for the tests, so it is rooted at `test`, and the commands below run there. Ensure you have the necessary dependencies installed (e.g., `botan-2` and `zlib` development packages).
 
 ```bash
+cd test
 cmake --preset gcc-release                        # configure
 cmake --build --preset gcc-release --parallel "$(nproc)"     # build everything
 ctest --preset gcc-release --parallel             # run every suite
 ctest --preset gcc-release -L io                  # run the IO module only
 ```
-Build output goes to `build/<preset>/` rather than into the source tree. For sanitizers, Valgrind, coverage and how to add a test file, see `test/README.md`; `cmake --list-presets` lists the available configurations.
+Build output goes to `build/<preset>/` at the repository root rather than into the source tree. For sanitizers, Valgrind, coverage and how to add a test file, see `test/README.md`; `cmake --list-presets` lists the available configurations.
 
 ### License
 IOv2 is distributed under the **MIT License**. See [`LICENSE`](LICENSE) for the full text.
