@@ -19,6 +19,11 @@ env:
 # clang-tidy -- are the ones main's ruleset requires. clang-tidy reads the
 # library headers and belongs to no build system; the other five moved off
 # test/Makefile, which no longer exists.
+#
+# The CMake project is test/, and `cmake --build --preset` and `ctest --preset`
+# look for CMakePresets.json only in the working directory, so every step that
+# names a preset runs in test/. Its build trees are still build/<preset> at the
+# root, which is where the steps that name a path look.
 jobs:
   build:
     # Explicit, because the check context is this name and main's ruleset
@@ -95,14 +100,17 @@ jobs:
         echo "cpus=$(nproc) ram=$(free -m | awk '/^Mem:/ {print $2}')MB arch=$(uname -m)"
 
     - name: Configure and build (Release)
+      working-directory: test
       run: |
         cmake --preset ${{ matrix.preset }}-release
         cmake --build --preset ${{ matrix.preset }}-release --parallel $(nproc)
 
     - name: Run tests (Release)
+      working-directory: test
       run: ctest --preset ${{ matrix.preset }}-release --parallel $(nproc)
 
     - name: Run tests (Release) across locales
+      working-directory: test
       run: |
         # No reconfigure and no rebuild: the only variable is the process
         # locale. Compiling once and re-running is what makes several locales
@@ -126,17 +134,20 @@ jobs:
         done
 
     - name: Configure and build (Sanitizers)
+      working-directory: test
       run: |
         cmake --preset ${{ matrix.preset }}-sanitizer
         cmake --build --preset ${{ matrix.preset }}-sanitizer --parallel $(nproc)
 
     - name: Run tests (Sanitizers)
+      working-directory: test
       run: ctest --preset ${{ matrix.preset }}-sanitizer --parallel $(nproc)
       env:
         ASAN_OPTIONS: halt_on_error=1
         UBSAN_OPTIONS: halt_on_error=1:print_stacktrace=1
 
     - name: Run tests (Sanitizers) across locales
+      working-directory: test
       run: |
         # Again no rebuild -- the sanitizer binaries from the previous step are
         # reused. This pairing is the point: the locale-dependent paths are
@@ -194,6 +205,7 @@ jobs:
         echo "cpus=$(nproc) ram=$(free -m | awk '/^Mem:/ {print $2}')MB arch=$(uname -m)"
 
     - name: Run concurrency tests under ThreadSanitizer
+      working-directory: test
       run: |
         # Only the concur suite is built. It collects every test that actually
         # runs threads -- TSan has nothing to observe in a single-threaded test,
@@ -231,11 +243,15 @@ jobs:
         # $(nproc) in this job resolves to.
         echo "cpus=$(nproc) ram=$(free -m | awk '/^Mem:/ {print $2}')MB arch=$(uname -m)"
 
-    - name: Generate Coverage Report
+    - name: Build and run the coverage tests
+      working-directory: test
       run: |
         cmake --preset gcc-coverage
         cmake --build --preset gcc-coverage --parallel $(nproc)
         ctest --preset gcc-coverage --parallel $(nproc)
+
+    - name: Generate Coverage Report
+      run: |
         # branch_coverage=1 on every lcov call: the data is already in the .gcda,
         # lcov just drops it by default, and the rewrite batches are accepted on a
         # line/function/branch comparison. A branch baseline taken after the first
@@ -384,6 +400,7 @@ jobs:
         done
 
     - name: Run the full test suite against the installed shared library
+      working-directory: test
       run: |
         # Consume libiov2 the real-user way: installed headers (switch already
         # on) + pkg-config for cflags/libs, with the source tree's include/ off
@@ -428,6 +445,7 @@ jobs:
         "$smoke/consumer_ho" | grep -q 'iov2 header-only ok'
 
     - name: Run the full test suite against the installed header-only library
+      working-directory: test
       run: |
         export PKG_CONFIG_PATH=/opt/iov2-ho/lib/pkgconfig
         export LC_ALL=C
@@ -438,7 +456,7 @@ jobs:
     - name: Verify the installed modes used no source-tree headers
       run: |
         # The point of both modes is that include/ in the repo is not consulted.
-        # CMakeLists.txt refuses a pkg-config prefix inside the source tree; this
+        # test/CMakeLists.txt refuses a pkg-config prefix inside the repository; this
         # checks the commands that were actually issued.
         for d in gcc-installed-shared gcc-installed-header-only; do
           if grep -q -- "-I${PWD}/include" build/$d/compile_commands.json; then

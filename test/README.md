@@ -8,12 +8,13 @@
 
 ### 构建系统
 
-本目录的测试由顶层的 CMake/CTest 构建，配置以 preset 形式给出（见仓库根目录的
-`CMakePresets.json`）。测试源文件按目录划分成套件，每个直接含 `.cpp` 的目录各成
-一套，CTest 中的名字就是该目录的点分形式：`concur`、`facet.collate`、`io.istream.read`。
+本目录的测试由 CMake/CTest 构建。CMake 工程只用于测试，所以它的根就是本目录：
+`CMakeLists.txt`、`CMakePresets.json` 与 `cmake/` 都在这里，配置以 preset 形式给出。
+测试源文件按目录划分成套件，每个直接含 `.cpp` 的目录各成一套，CTest 中的名字就是该目录的点分形式：`concur`、`facet.collate`、`io.istream.read`。
 
-构建产物一律在 `build/<preset>/` 下，不写进源码树。所有命令都在**仓库根目录**执行，
-不是本目录。
+构建产物一律在仓库根目录的 `build/<preset>/` 下，不写进源码树。所有命令都在**本目录**
+执行，不是仓库根目录：`cmake --build --preset` 与 `ctest --preset` 只在当前目录找
+`CMakePresets.json`。
 
 ### 快速开始
 
@@ -67,7 +68,7 @@ cmake --build --preset gcc-release --target test_facet_collate
 ### Valgrind
 
 ```bash
-ctest --test-dir build/gcc-release -T memcheck --output-on-failure -L all --parallel
+ctest --test-dir ../build/gcc-release -T memcheck --output-on-failure -L all --parallel
 ```
 
 注意是 `--test-dir` 而不是 `--preset`：`-T memcheck` 让 ctest 进入 dashboard 模式，
@@ -82,10 +83,10 @@ ctest --test-dir build/gcc-release -T memcheck --output-on-failure -L all --para
 cmake --preset gcc-coverage
 cmake --build --preset gcc-coverage --parallel "$(nproc)"
 ctest --preset gcc-coverage --parallel
-lcov --capture --directory build/gcc-coverage --output-file coverage.info \
+lcov --capture --directory ../build/gcc-coverage --output-file coverage.info \
      --rc branch_coverage=1 \
      --ignore-errors mismatch --ignore-errors inconsistent --ignore-errors negative
-lcov --extract coverage.info "${PWD}/include/*" --output-file coverage.info \
+lcov --extract coverage.info "$(dirname "$PWD")/include/*" --output-file coverage.info \
      --rc branch_coverage=1 --ignore-errors unused
 lcov --list coverage.info --rc branch_coverage=1
 ```
@@ -94,7 +95,7 @@ lcov --list coverage.info --rc branch_coverage=1
 lcov 默认丢弃而已，所以加上它不需要重新编译，也不会改变行覆盖——只是多出 `BRDA`
 记录。重写批次的验收要比 line/function/branch 三项。
 
-`--extract` 的模式必须锚定在仓库路径上。写成 `*/include/*` 会把
+`--extract` 的模式必须锚定在仓库路径上（`$(dirname "$PWD")` 即仓库根目录）。写成 `*/include/*` 会把
 `/usr/local/include/c++/...` 一并匹配进来，多出上百个 libstdc++ 头文件。
 
 ### ThreadSanitizer
@@ -125,7 +126,7 @@ TSan 是 happens-before 检测器，不会凭空造出竞争，所以报红就�
 ### 对着已安装的库跑
 
 ```bash
-make install-shared PREFIX=/opt/iov2                 # 顶层 Makefile 负责打包安装
+make -C .. install-shared PREFIX=/opt/iov2           # 顶层 Makefile 负责打包安装
 export PKG_CONFIG_PATH=/opt/iov2/lib/pkgconfig
 export LD_LIBRARY_PATH=/opt/iov2/lib
 cmake --preset gcc-installed-shared
@@ -133,14 +134,14 @@ cmake --build --preset gcc-installed-shared --parallel "$(nproc)"
 ctest --preset gcc-installed-shared --parallel
 ```
 
-头文件模式同理，用 `make install` 与 `gcc-installed-header-only`。这两种模式下源码树的
-`include/` 不参与编译，CMake 会拒绝落在源码树内的 pkg-config 前缀。
+头文件模式同理，用 `make -C .. install` 与 `gcc-installed-header-only`。这两种模式下源码树的
+`include/` 不参与编译，CMake 会拒绝落在仓库内的 pkg-config 前缀。
 
 ### 清理
 
 ```bash
-rm -rf build/gcc-release   # 单个配置
-rm -rf build              # 全部
+rm -rf ../build/gcc-release   # 单个配置
+rm -rf ../build              # 全部
 ```
 
 ---
@@ -149,13 +150,16 @@ rm -rf build              # 全部
 
 ### Build System
 
-The tests here are built by the top-level CMake/CTest; configurations are given as
-presets (see `CMakePresets.json` in the repository root). The sources are split into
+The tests here are built by CMake/CTest. The CMake project exists only for the tests,
+so it is rooted in this directory: `CMakeLists.txt`, `CMakePresets.json` and `cmake/`
+all live here, and configurations are given as presets. The sources are split into
 suites, one per directory that directly holds a `.cpp`, and a suite's CTest name is
 that directory in dotted form: `concur`, `facet.collate`, `io.istream.read`.
 
-Build output always goes to `build/<preset>/`, never into the source tree. Run every
-command below from the **repository root**, not from this directory.
+Build output always goes to `build/<preset>/` at the repository root, never into the
+source tree. Run every command below from **this directory**, not from the repository
+root: `cmake --build --preset` and `ctest --preset` look for `CMakePresets.json` only
+in the working directory.
 
 ### Quick Start
 
@@ -212,7 +216,7 @@ cmake --build --preset gcc-release --target test_facet_collate
 ### Valgrind
 
 ```bash
-ctest --test-dir build/gcc-release -T memcheck --output-on-failure -L all --parallel
+ctest --test-dir ../build/gcc-release -T memcheck --output-on-failure -L all --parallel
 ```
 
 `--test-dir`, not `--preset`: `-T memcheck` puts ctest in dashboard mode, which
@@ -229,10 +233,10 @@ The verdict is **ctest's exit code**, not the log: no file under
 cmake --preset gcc-coverage
 cmake --build --preset gcc-coverage --parallel "$(nproc)"
 ctest --preset gcc-coverage --parallel
-lcov --capture --directory build/gcc-coverage --output-file coverage.info \
+lcov --capture --directory ../build/gcc-coverage --output-file coverage.info \
      --rc branch_coverage=1 \
      --ignore-errors mismatch --ignore-errors inconsistent --ignore-errors negative
-lcov --extract coverage.info "${PWD}/include/*" --output-file coverage.info \
+lcov --extract coverage.info "$(dirname "$PWD")/include/*" --output-file coverage.info \
      --rc branch_coverage=1 --ignore-errors unused
 lcov --list coverage.info --rc branch_coverage=1
 ```
@@ -242,7 +246,8 @@ the `.gcda`; lcov drops it by default, so adding the flag needs no rebuild and
 cannot change line coverage -- it only adds `BRDA` records. Rewrite batches are
 accepted on a line/function/branch comparison.
 
-The `--extract` pattern has to be anchored at the repository. Written as
+The `--extract` pattern has to be anchored at the repository (`$(dirname "$PWD")` is
+its root). Written as
 `*/include/*` it also matches `/usr/local/include/c++/...` and drags in a hundred-odd
 libstdc++ headers.
 
@@ -280,7 +285,7 @@ run while CI stays green.
 ### Running Against an Installed Library
 
 ```bash
-make install-shared PREFIX=/opt/iov2                 # the top-level Makefile packages and installs
+make -C .. install-shared PREFIX=/opt/iov2           # the top-level Makefile packages and installs
 export PKG_CONFIG_PATH=/opt/iov2/lib/pkgconfig
 export LD_LIBRARY_PATH=/opt/iov2/lib
 cmake --preset gcc-installed-shared
@@ -288,13 +293,13 @@ cmake --build --preset gcc-installed-shared --parallel "$(nproc)"
 ctest --preset gcc-installed-shared --parallel
 ```
 
-Header-only mode is the same with `make install` and `gcc-installed-header-only`. In
-both modes the source tree's `include/` takes no part in the build, and CMake refuses
-a pkg-config prefix that lies inside the source tree.
+Header-only mode is the same with `make -C .. install` and `gcc-installed-header-only`.
+In both modes the source tree's `include/` takes no part in the build, and CMake
+refuses a pkg-config prefix that lies inside the repository.
 
 ### Cleaning
 
 ```bash
-rm -rf build/gcc-release   # one configuration
-rm -rf build               # all of them
+rm -rf ../build/gcc-release   # one configuration
+rm -rf ../build               # all of them
 ```
