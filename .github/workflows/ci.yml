@@ -499,6 +499,24 @@ jobs:
         # $(nproc) in this job resolves to.
         echo "cpus=$(nproc) ram=$(free -m | awk '/^Mem:/ {print $2}')MB arch=$(uname -m)"
 
+    - name: Every source carries an SPDX licence line
+      run: |
+        # NOTICE promises this for every .h and .cpp under include/, src/ and
+        # test/, so a file copied out of the repository still names its licence.
+        # Nothing else enforces it, and a new file without one once went
+        # unnoticed for two commits. The first lines only, so a mention inside
+        # a test's data does not count.
+        missing=$(find include src test -type f \( -name '*.h' -o -name '*.cpp' \) | sort |
+          while IFS= read -r f; do
+            head -n 5 "$f" | grep -q '^// SPDX-License-Identifier: ' || echo "$f"
+          done)
+        if [ -n "$missing" ]; then
+          echo "[!] no SPDX-License-Identifier line in the first 5 lines of:"
+          echo "$missing"
+          exit 1
+        fi
+        echo "OK: every .h/.cpp under include/ src/ test/ carries an SPDX line"
+
     - name: Run clang-tidy
       run: |
         # Use default clang-tidy from the image (which will be a recent version)
