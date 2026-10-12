@@ -33,8 +33,8 @@ jobs:
           mkdir -p docs
           touch docs/.nojekyll
           # Doxygen will generate en/ and zh/ subdirectories
-          doxygen Doxyfile.zh
-          doxygen Doxyfile.en
+          doxygen doxygen/Doxyfile.zh
+          doxygen doxygen/Doxyfile.en
           # The generated site republishes the source as HTML, so ship the
           # complete permission notice alongside its SPDX-marked listings.
           install -m 0644 LICENSE NOTICE PROVENANCE.md docs/

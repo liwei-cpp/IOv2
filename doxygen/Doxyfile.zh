@@ -1,8 +1,9 @@
-# Doxyfile.en
+# Doxyfile.zh
+# 相对路径以运行 doxygen 的目录为准：在仓库根目录执行 `doxygen doxygen/Doxyfile.zh`。
 PROJECT_NAME           = "IOv2"
 OUTPUT_DIRECTORY       = docs
-HTML_OUTPUT            = en
-OUTPUT_LANGUAGE        = English
+HTML_OUTPUT            = zh
+OUTPUT_LANGUAGE        = Chinese
 INPUT                  = include
 RECURSIVE              = YES
 GENERATE_LATEX         = NO
@@ -12,11 +13,11 @@ GENERATE_TREEVIEW      = YES
 EXTRACT_ALL            = YES
 EXTRACT_STATIC         = YES
 
-# 将 @lang{EN} 映射为 \if EN
+# 将 @lang{ZH} 映射为 \if ZH
 ALIASES               += "lang{1}=\if \1"
 
-# 开启 EN 部分
-ENABLED_SECTIONS       = EN
+# 开启 ZH 部分
+ENABLED_SECTIONS       = ZH
 
 # 依赖图输出为矢量格式。显式写死 HAVE_DOT，避免不同 doxygen 版本默认值不一致：
 # 1.9.x 默认 YES、1.14 默认 NO，不写的话 CI 和本地产物会不一样。

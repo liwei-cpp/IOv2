@@ -15,8 +15,8 @@
 # name without a path and so leave next to the sources.
 coverage.info
 
-# Doxygen output. Doxyfile.en and Doxyfile.zh both set OUTPUT_DIRECTORY = docs,
-# so running either from a clone fills these two in beside the checked-in
-# docs/index.html.
+# Doxygen output. doxygen/Doxyfile.en and doxygen/Doxyfile.zh both set
+# OUTPUT_DIRECTORY = docs, so running either from the clone's root fills these
+# two in beside the checked-in docs/index.html.
 docs/en/
 docs/zh/
