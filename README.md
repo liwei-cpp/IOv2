@@ -214,7 +214,7 @@ make IOV2_PKG=iov2-shared   # 共享 .so（无需 -DIOV2_SHARED）
 ### 开发环境与测试
 - **标准**：C++23 及以上。
 - **平台**：目前只支持 **Linux + glibc + libstdc++**，CI 也只覆盖这套环境。`std_device` 直接使用 POSIX 接口，`timeio`、`numeric` 用到 glibc 的 `nl_langinfo` 扩展项（`_NL_TIME_ERA_*`、`YESSTR`/`NOSTR` 等），macOS 与 Windows 尚未适配。
-- **编译器**：GCC 15+ 或 Clang 18+ (建议配合 libstdc++)。
+- **编译器**：GCC 15+ 或 Clang 19+ (建议配合 libstdc++)。
 - **依赖**：核心头文件库本身无需构建，但部分特性依赖 `zlib` 和 `Botan`。
 
 **运行测试**
@@ -451,7 +451,7 @@ Thread safety is provided **at the stream-object layer**: every stream owns a re
 ### Development Environment & Tests
 - **Standard**: C++23 or later.
 - **Platform**: **Linux with glibc and libstdc++** only, which is also all CI covers. `std_device` uses POSIX calls directly, and `timeio` and `numeric` rely on glibc's `nl_langinfo` extensions (`_NL_TIME_ERA_*`, `YESSTR`/`NOSTR`); macOS and Windows are not yet supported.
-- **Compiler**: GCC 15+ or Clang 18+ (with libstdc++ recommended).
+- **Compiler**: GCC 15+ or Clang 19+ (with libstdc++ recommended).
 - **Dependencies**: The core library requires no build, but specific converters depend on `zlib` and `Botan`.
 
 **Running Tests**

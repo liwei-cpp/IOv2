@@ -23,7 +23,7 @@
 cmake_minimum_required(VERSION 3.25)
 
 project(IOv2
-    VERSION 0.1.0
+    VERSION 1.0.0
     DESCRIPTION "C++23 I/O and localization library"
     HOMEPAGE_URL "https://github.com/liwei-cpp/IOv2"
     LANGUAGES CXX)
