@@ -28,10 +28,10 @@
   - 运行时多态：`runtime_cvt`。
 - **语义层**：重新设计的 `locale` 与 `collate`、`ctype`、`messages`、`monetary`、`numeric`、`timeio` 六类 facet。
 - **流与通道**：`istream`、`ostream`、`iostream`、`iochannel`，操纵符，以及预定义标准流对象 `cin`/`cout`/`cerr`/`clog` 及其宽字符版本。
+- **带填充的数值与货币可读回**：用相同的 locale、flags 与 `fill` 写出的字段都能原样读回；读不回的填充组合在写出侧被拒绝。
 - **唯一的 I/O 扩展点** `io_traits<TChar, T>`，以及转发辅助 `compose_read`/`compose_write`。
 - **流级线程安全**：单次 I/O 操作在流的 `io_mutex()` 下原子完成；`IOv2::sync` 使一组操作整体原子；`tie` 恒无环，且 tie 刷新不会死锁。
 - **两种发布模式**：header-only（默认）与共享库 `libiov2.so`，经 `make install` / `make install-shared` 安装，附 pkg-config 文件。
-
 #### 环境要求
 
 - C++23；Linux + glibc + libstdc++。
@@ -79,10 +79,10 @@ Versioning: breaking changes come only with a major version bump.
   - Runtime polymorphism: `runtime_cvt`.
 - **Semantic layer**: a redesigned `locale` and six facet families: `collate`, `ctype`, `messages`, `monetary`, `numeric`, `timeio`.
 - **Streams and channels**: `istream`, `ostream`, `iostream`, `iochannel`, manipulators, and the predefined `cin`/`cout`/`cerr`/`clog` with their wide-character counterparts.
+- **Padded numbers and monetary values read back**: a field written under a given locale, flags and `fill` reads back as the same value under the same settings; fills that would not are refused when writing.
 - **A single I/O extension point**, `io_traits<TChar, T>`, plus the forwarding helpers `compose_read`/`compose_write`.
 - **Stream-level thread safety**: each I/O operation completes atomically under the stream's `io_mutex()`; `IOv2::sync` makes a group of operations atomic; `tie` can never form a cycle, and the tie flush cannot deadlock.
 - **Two distribution modes**: header-only (the default) and the shared library `libiov2.so`, installed with `make install` / `make install-shared`, with pkg-config files.
-
 #### Requirements
 
 - C++23; Linux + glibc + libstdc++.
