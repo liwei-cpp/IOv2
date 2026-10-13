@@ -1442,7 +1442,26 @@ inline void skipws(ios_base<TChar>& base)
     base.setf(ios_defs::skipws);
 }
 
-/** @lang{ZH} @brief 清除 `skipws`：输入时不跳过前导空白。 @endif @lang{EN} @brief Clear `skipws`: do not skip leading whitespace on input. @endif */
+/**
+ * @lang{ZH}
+ * @brief 清除 `skipws`：输入时不跳过前导空白。
+ * @note **与标准的差异**：数值提取另会跳过字段前的填充字符 `fill()`，这与 `skipws` 无关——
+ *       那是补齐，不是空白，跳过它是为了让带填充写出的字段能读回（见 `setfill`）。`fill()`
+ *       是默认的空格时，二者重叠：`is >> noskipws >> i` 读 `" 43"` 得到 43，而标准库会失败。
+ *       其余空白（如 `'\\t'`）仍会挡住提取；把 `fill` 设成非空格，空格也回归 `skipws` 管辖。
+ *       字符与字符串的提取不认填充，不受影响。
+ * @endif
+ * @lang{EN}
+ * @brief Clear `skipws`: do not skip leading whitespace on input.
+ * @note **Departure from the standard**: numeric extraction also skips the fill character
+ *       `fill()` in front of the field, independently of `skipws` — that is padding, not
+ *       whitespace, and skipping it is what lets a padded field read back (see `setfill`). With
+ *       the default space fill the two overlap: `is >> noskipws >> i` reads `" 43"` as 43, where
+ *       the standard library fails. Any other whitespace (a `'\\t'`, say) still stops the
+ *       extraction, and with a fill other than a space the space is `skipws`'s again. Character
+ *       and string extraction do not honour fill and are unaffected.
+ * @endif
+ */
 template <typename TChar>
 inline void noskipws(ios_base<TChar>& base)
 {

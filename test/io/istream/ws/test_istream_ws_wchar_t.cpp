@@ -85,7 +85,7 @@ TEST(IstreamWsWchar, WsSkipsWhereExtractionWillNotWhenSkipwsIsOff)
 {
     auto expect_manual = []<template <typename, typename> class T>()
     {
-        T is{mem_device{std::wstring(L"  42  7")}, locale<wchar_t>("C")};
+        T is{mem_device{std::wstring(L"\t\t42\t\t7")}, locale<wchar_t>("C")};
         is.unsetf(ios_defs::skipws);
 
         int v = 0;

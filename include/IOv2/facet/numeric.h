@@ -320,18 +320,23 @@ public:
             if (plen > ios_defs::max_pad_count)
                 throw stream_error("numeric put fail: fill count exceeds max_pad_count");
 
-            // No fill_alters_reading check here: the padded content is truename() /
-            // falsename(), not a number, so no fill character can make the field read
-            // as a different value. Rejecting digits here would only break the ordinary
-            // setfill('0') << setw(n) << boolalpha spelling.
+            // Not fill_alters_reading: the content is a name, not a number, so digits are
+            // harmless (setfill('0') << boolalpha is ordinary). What is not is a fill in
+            // front that starts either name: "tttrue" would read as a different word.
+            const char_type fill = io.fill();
+            if ((flags & ios_defs::adjustfield) != ios_defs::left
+                && ((!m_true_name.empty() && m_true_name[0] == fill)
+                    || (!m_false_name.empty() && m_false_name[0] == fill)))
+                throw stream_error("numeric put fail: fill would change the value the field reads as");
+
             if ((flags & ios_defs::adjustfield) == ios_defs::left)
             {
                 s = std::copy(name.begin(), name.end(), s);
-                s = std::fill_n(s, plen, io.fill());
+                s = std::fill_n(s, plen, fill);
             }
             else
             {
-                s = std::fill_n(s, plen, io.fill());
+                s = std::fill_n(s, plen, fill);
                 s = std::copy(name.begin(), name.end(), s);
             }
             return s;
@@ -460,13 +465,14 @@ public:
      * 超出范围则按 LWG 23 将结果设为 `true` 并失败。
      * 若设置了 `boolalpha`，则将输入字符与 `truename()`/`falsename()` 逐字符前缀匹配，
      * 以最长匹配确定结果；若无法确定，则按 LWG 23 将结果设为 `false` 并失败。
+     * 名字之前的流填充字符先被跳过，除非它就是某个名字的首字符。
      * 解析失败时抛出异常。
      *
      * @tparam TIter 输入迭代器类型。
      * @tparam TSent 哨兵类型，满足 `std::sentinel_for<TIter>`。
      * @param beg 输入范围的起始迭代器。
      * @param end 输入范围的结束哨兵。
-     * @param io 提供格式标志的流对象。
+     * @param io 提供格式标志与填充字符的流对象。
      * @param v 解析成功后写入结果的布尔值引用。
      * @return 消费输入后的迭代器。
      * @throw stream_error 若解析失败。
@@ -480,13 +486,15 @@ public:
      * With `boolalpha`, the input is matched character by character against
      * `truename()`/`falsename()` using the longest-match rule; if no match is
      * determined, the result is set to `false` and fails per LWG 23.
+     * The stream's fill character is skipped in front of the name first, unless it is the
+     * first character of either name.
      * Throws on parse failure.
      *
      * @tparam TIter The input iterator type.
      * @tparam TSent The sentinel type satisfying `std::sentinel_for<TIter>`.
      * @param beg Start iterator of the input range.
      * @param end End sentinel of the input range.
-     * @param io Stream object providing format flags.
+     * @param io Stream object providing format flags and the fill character.
      * @param v Reference to the boolean variable to receive the parsed result.
      * @return The iterator after consuming the parsed input.
      * @throw stream_error If parsing fails.
@@ -524,6 +532,13 @@ public:
             // keeps the facet from consuming more than it needs.
             const std::basic_string<CharT>& fname = m_false_name;
             const std::basic_string<CharT>& tname = m_true_name;
+
+            // Fill in front of the name is `right` padding. The writer refuses a fill
+            // that starts either name, so one that does is left to the match instead.
+            const CharT fill = io.fill();
+            if ((fname.empty() || fname[0] != fill) && (tname.empty() || tname[0] != fill))
+                while (beg != end && *beg == fill)
+                    ++beg;
 
             bool f_live = true;
             bool t_live = true;
@@ -1077,10 +1092,13 @@ private:
             && (prefix[1] == m_out.lower_x || prefix[1] == m_out.upper_x);
         const ios_defs::fmtflags adjust = flags & ios_defs::adjustfield;
         const bool trails_value = adjust == ios_defs::left;
-        const bool leads_digits = !trails_value
+        // Leading zeros would join the first group and break it, so a field that
+        // carries a separator is not one a '0' fill may lead.
+        const bool separated = digit_len != static_cast<std::size_t>(raw_end - raw_begin);
+        const bool leads_digits = !trails_value && !separated
             && (adjust == ios_defs::internal || !(start_sign || start_0x));
         if (fill_alters_reading(io.fill(), basefield, leads_digits, trails_value,
-                                prefix_len != 0 && prefix[0] == m_out.minus))
+                                prefix_len != 0 && prefix[0] == m_out.minus, false))
             throw stream_error("numeric put fail: fill would change the value the field reads as");
 
         if (trails_value)
@@ -1104,17 +1122,20 @@ private:
 
     /**
      * @lang{ZH}
-     * @brief 判断一段填充字符是否会改变人从该字段读到的数值。
+     * @brief 判断一段填充字符是否会改变该字段读到的数值，或使它无法被读回。
      *
      * @par 为什么需要这个判断
      * 格式化的产物是给人看的。`fill` 只应起补齐字段宽度的作用，不应改变这段文本读起来
      * 是几。`setfill('9') << setw(6) << 42` 写出 `"999942"`，读者读到的是 999942 而不是
-     * 42——这段文本本身就已经错了，与它能否被原样解析回来无关。因此判据是"人读到的数
-     * 是否还是原来那个数"，命中即由调用方抛出 `stream_error`。
+     * 42——这段文本本身就已经错了。判据的第一层因此是"人读到的数是否还是原来那个数"。
+     * 第二层是读回：本库的提取会认同一个 `fill`（见 `skip_fill`），因此凡是这里放行的
+     * 字段，用相同的 locale、flags 与 `fill` 都能读回原值；读不回的组合也在这里拒绝。
+     * 命中即由调用方抛出 `stream_error`。
      *
      * @par 判据
      * 危险与否既取决于是哪个字符，也取决于它落在哪里：
-     * - **digit**：仅当它是 `'0'` 且紧贴数字之前时安全（前导零按约定不改变读数）。
+     * - **digit**：仅当它是 `'0'` 且紧贴数字之前时安全（前导零按约定不改变读数）；
+     *   字段含千位分隔符时也不安全，因为前导零会并入第一组，`"000012,345"` 是不合法的分组。
      *   其余数字在任何位置都危险；`'0'` 落在数值之后（`"42000000"` 读作 42000000）
      *   或落在符号 / 进制前缀之前（`"00000-42"` 读不成任何数）同样危险。
      *   **"是不是 digit"随 `basefield` 变**：十六进制下 `'a'`–`'f'` 与 `'A'`–`'F'` 也是数字，
@@ -1127,30 +1148,38 @@ private:
      * - **`'+'` / `'-'`**：落在数值之前时会被读成该数值的符号，故仅当它与数值本身的
      *   符号一致时才安全：`"++++42"` 读作 +42（正确），`"----42"` 读作 −42（而值是
      *   +42，错误）；对负值则正好相反。位于数值之后一律安全（`"42----"` 仍读作 42）。
+     * - **数值之后还会被解析接下去的字符**：人读不错，但提取会把它当成数值的延续而失败，
+     *   故仅在数值之后拒绝——启用分组时的千位分隔符（`"42,,,,"` 是不合法的分组）、
+     *   浮点的 `'e'`/`'E'`（`"4.5eeeee"` 是不完整的指数）、`hex` 整数的 `'x'`/`'X'`
+     *   （`"0xxxxx"` 是没有数字的 `0x` 前缀）。
      * - **其余字符**一律安全：
-     *   - 千位分隔符必须左右都有数字才成立，而填充段靠数字的那一侧之外只可能是符号、
-     *     进制前缀或字段边界，故它永远无法与数值结合（`"    12345"` 在以空格为千位
-     *     分隔符的 locale 下仍读作 12345——把它算作危险会让这些 locale 的默认填充全部失败）。
-     *   - `'x'`/`'X'`/`'e'`/`'E'` 需要其后跟数字才有意义，而"填充段后面跟数字"这一位置
-     *     上任何digit填充都已被拒绝。
+     *   - 数值之前的千位分隔符：它必须左右都有数字才成立，而填充段靠数字的那一侧之外只
+     *     可能是符号、进制前缀或字段边界，故它无法与数值结合，提取时作为填充跳过。
+     *   - 数值之前的 `'x'`/`'X'`/`'e'`/`'E'`：它们需要其后跟数字才有意义，而"填充段后面
+     *     跟数字"这一位置上任何digit填充都已被拒绝。
      * @endif
      *
      * @lang{EN}
-     * @brief Decides whether a run of fill characters changes the number a human reads
-     * out of the field.
+     * @brief Decides whether a run of fill characters changes the number the field reads
+     * as, or keeps it from being read back.
      *
      * @par Why this test exists
      * Formatted output is meant to be read by people. `fill` is only supposed to pad a
      * field to its width, never to change what number the text says.
      * `setfill('9') << setw(6) << 42` writes `"999942"`, which a reader reads as 999942
-     * rather than 42 — that text is already wrong, independently of whether it can be
-     * parsed back. The criterion is therefore "does a human still read the same number",
-     * and the caller throws `stream_error` on a hit.
+     * rather than 42 — that text is already wrong. The first layer of the test is
+     * therefore "does a human still read the same number". The second is reading back:
+     * this library's extraction honours the same `fill` (see `skip_fill`), so every field
+     * let through here reads back as the original value under the same locale, flags and
+     * `fill`, and a combination that would not is refused here too. The caller throws
+     * `stream_error` on a hit.
      *
      * @par The criterion
      * Danger depends both on which character it is and on where it lands:
      * - **A digit**: safe only when it is `'0'` sitting immediately before the digits
-     *   (leading zeros conventionally do not change the reading). Every other digit is
+     *   (leading zeros conventionally do not change the reading), and not even then when the
+     *   field carries a thousands separator, since the zeros join the first group and
+     *   `"000012,345"` is malformed grouping. Every other digit is
      *   dangerous everywhere; `'0'` is equally dangerous after the value
      *   (`"42000000"` reads as 42000000) or before a sign or base prefix
      *   (`"00000-42"` reads as no number at all).
@@ -1169,14 +1198,19 @@ private:
      *   `"++++42"` reads as +42 (right), while `"----42"` reads as −42 although the
      *   value is +42 (wrong); for a negative value it is the other way round. After the
      *   value they are always safe (`"42----"` still reads as 42).
+     * - **What the parser would carry on with after the value**: a person reads it right,
+     *   but extraction takes it as a continuation of the number and fails, so it is
+     *   refused after the value only — the thousands separator when grouping is on
+     *   (`"42,,,,"` is malformed grouping), `'e'`/`'E'` for a floating-point value
+     *   (`"4.5eeeee"` is an unfinished exponent), and `'x'`/`'X'` for a `hex` integer
+     *   (`"0xxxxx"` is an `0x` prefix with no digits).
      * - **Everything else** is safe:
-     *   - The thousands separator needs digits on both sides, and on the far side of a
-     *     fill run there can only be a sign, a base prefix or the field edge, so it can
-     *     never bind to the value (`"    12345"` still reads as 12345 in a locale whose
-     *     separator is a space — treating it as dangerous would fail every default-fill
-     *     output in such locales).
-     *   - `'x'`/`'X'`/`'e'`/`'E'` are only meaningful with digits after them, and in the
-     *     one position where digits do follow the run, any digit fill is already rejected.
+     *   - The thousands separator in front of the value needs digits on both sides, and
+     *     on the far side of a fill run there can only be a sign, a base prefix or the
+     *     field edge, so it cannot bind to the value; extraction skips it as fill.
+     *   - `'x'`/`'X'`/`'e'`/`'E'` in front of the value are only meaningful with digits
+     *     after them, and in the one position where digits do follow the run, any digit
+     *     fill is already rejected.
      * @endif
      *
      * @param fill
@@ -1194,9 +1228,11 @@ private:
      * tens of millions. @endif
      *
      * @param leads_digits
-     * @lang{ZH} 该段填充是否紧贴数字之前，中间不隔符号或进制前缀。 @endif
+     * @lang{ZH} 该段填充是否紧贴数字之前，中间不隔符号或进制前缀；字段含千位分隔符时
+     * 调用方传 `false`，使 `'0'` 也被拒绝。 @endif
      * @lang{EN} Whether the run sits immediately before the digits, with no sign or
-     * base prefix in between. @endif
+     * base prefix in between; callers pass `false` when the field carries a thousands
+     * separator, so that `'0'` is refused too. @endif
      *
      * @param trails_value
      * @lang{ZH} 该段填充是否位于数值之后。与 `leads_digits` 互斥；两者皆为 `false`
@@ -1210,24 +1246,30 @@ private:
      * @lang{EN} Whether the value being formatted is itself negative. Used only to tell
      * whether a sign-shaped fill agrees with it. @endif
      *
+     * @param floating
+     * @lang{ZH} 该数值是否为浮点。决定数值之后的 `'e'`/`'E'` 与 `'x'`/`'X'` 哪一对会被
+     * 解析接下去。 @endif
+     * @lang{EN} Whether the value is floating-point. It decides which of `'e'`/`'E'` and
+     * `'x'`/`'X'` the parser would carry on with after the value. @endif
+     *
      * @return
-     * @lang{ZH} 若这段填充会改变人读到的数值则返回 `true`。 @endif
-     * @lang{EN} `true` if the run changes the number a human reads. @endif
+     * @lang{ZH} 若这段填充会改变读到的数值、或使字段读不回则返回 `true`。 @endif
+     * @lang{EN} `true` if the run changes the number the field reads as, or keeps it from
+     * being read back. @endif
      */
     [[nodiscard]] bool fill_alters_reading(char_type fill, ios_defs::fmtflags basefield,
                                            bool leads_digits, bool trails_value,
-                                           bool negative) const
+                                           bool negative, bool floating) const
     {
         const int radix = basefield == ios_defs::hex ? 16 : 10;
-        const char_type* const digits  = m_out.lower.data();
-        const char_type* const udigits = m_out.upper.data();
-        if (std::find(digits,  digits  + radix, fill) != digits  + radix
-         || std::find(udigits, udigits + radix, fill) != udigits + radix)
-            return !(fill == digits[0] && leads_digits);
+        if (is_digit_glyph(fill, radix))
+            return !(fill == m_out.lower[0] && leads_digits);
 
-        // Past the value nothing but a digit can still be read into it.
+        // Past the value only what the parser would take as a continuation matters.
         if (trails_value)
-            return false;
+            return (!m_grouping.empty() && fill == m_thousands_sep)
+                || (floating ? (fill == m_in.lower_e || fill == m_in.upper_e)
+                             : (radix == 16 && (fill == m_in.lower_x || fill == m_in.upper_x)));
 
         if (fill == m_decimal_point)
             return true;
@@ -1287,10 +1329,14 @@ private:
       // `fill` is sticky stream state: a stream carrying setfill('1') must keep working
       // for every output whose width leaves nothing to pad.
       const bool trails_value = (adjust == ios_defs::left);
-      const bool leads_digits = !trails_value
+      // Leading zeros would join the first group and break it, so a field that
+      // carries a separator is not one a '0' fill may lead.
+      const bool separated = !m_grouping.empty()
+          && std::find(cs, cs + len, m_thousands_sep) != cs + len;
+      const bool leads_digits = !trails_value && !separated
           && (adjust == ios_defs::internal || !(startSign || start0x));
       if (fill_alters_reading(fill, basefield, leads_digits, trails_value,
-                              cs[0] == m_out.minus))
+                              cs[0] == m_out.minus, true))
           throw stream_error("numeric put fail: fill would change the value the field reads as");
 
       // The field is short of `w`, so the fill run gets placed.
@@ -1512,10 +1558,113 @@ private:
 
     /**
      * @lang{ZH}
+     * @brief 判断 `ch` 在给定进制下是否算数字字形。
+     *
+     * `radix` 为 16 时 `'a'`–`'f'` 与 `'A'`–`'F'` 都算，其余进制只算 `'0'`–`'9'`。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Whether `ch` counts as a digit glyph in the given base.
+     *
+     * With `radix` 16 both `'a'`–`'f'` and `'A'`–`'F'` count; every other base counts
+     * `'0'`–`'9'` only.
+     * @endif
+     *
+     * @param ch
+     * @lang{ZH} 待判断的字符。 @endif
+     * @lang{EN} The character to test. @endif
+     *
+     * @param radix
+     * @lang{ZH} 进制，10 或 16。 @endif
+     * @lang{EN} The base, 10 or 16. @endif
+     *
+     * @return
+     * @lang{ZH} 若 `ch` 是该进制的数字字形则为 `true`。 @endif
+     * @lang{EN} `true` if `ch` is a digit glyph of that base. @endif
+     */
+    [[nodiscard]] bool is_digit_glyph(char_type ch, int radix) const noexcept
+    {
+        const char_type* const lower = m_out.lower.data();
+        const char_type* const upper = m_out.upper.data();
+        return std::find(lower, lower + radix, ch) != lower + radix
+            || std::find(upper, upper + radix, ch) != upper + radix;
+    }
+
+    /**
+     * @lang{ZH}
+     * @brief 跳过一段填充字符，使写出侧补齐的字段能被读回。
+     *
+     * 写出侧把填充放在三处：字段最前（`right`）、符号或 `0x` 之后（`internal`）、数值之后
+     * （`left`）。提取在前两处调用本函数；数值之后的填充不吞，它属于流，由下一次提取在
+     * 字段最前跳过——与 `get_money` 一致。
+     *
+     * 数字（按 `radix`）与小数点永不当作填充：它们原样作为数值读入。这是对的，因为写出侧
+     * 只放行紧贴数字之前的 `'0'`，而前导零读回的就是原值；若跳过它，`fill` 为 `'0'` 时
+     * 未补齐的 `"0"` 会被吞成一个空字段。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Skips a run of fill characters, so that a field padded on the writing side
+     *        reads back.
+     *
+     * The writing side places fill in three spots: in front of the field (`right`), after
+     * a sign or `0x` (`internal`), and after the value (`left`). Extraction calls this in the
+     * first two. Fill after the value is not consumed: it belongs to the stream, and the
+     * next extraction skips it in front of its own field — as `get_money` does.
+     *
+     * A digit (per `radix`) or the decimal point is never taken as fill: it is read into the
+     * value as it stands. That is right because the writing side lets only a `'0'` sit
+     * directly in front of the digits, and leading zeros read back as the original value;
+     * skipping it would swallow an unpadded `"0"` whole when `fill` is `'0'`.
+     * @endif
+     *
+     * @tparam TIter
+     * @lang{ZH} 输入迭代器类型。 @endif
+     * @lang{EN} The input iterator type. @endif
+     *
+     * @tparam TSent
+     * @lang{ZH} 哨兵类型。 @endif
+     * @lang{EN} The sentinel type. @endif
+     *
+     * @param beg
+     * @lang{ZH} 当前读取位置，跳过的字符从这里消耗。 @endif
+     * @lang{EN} The current read position; skipped characters are consumed from it. @endif
+     *
+     * @param end
+     * @lang{ZH} 输入范围的结束哨兵。 @endif
+     * @lang{EN} End sentinel of the input range. @endif
+     *
+     * @param fill
+     * @lang{ZH} 流的填充字符。 @endif
+     * @lang{EN} The stream's fill character. @endif
+     *
+     * @param radix
+     * @lang{ZH} 当前已知的进制，决定哪些字形算数字。 @endif
+     * @lang{EN} The base known so far, which decides what glyphs count as digits. @endif
+     *
+     * @return
+     * @lang{ZH} 跳过的字符数。 @endif
+     * @lang{EN} How many characters were skipped. @endif
+     */
+    template <typename TIter, std::sentinel_for<TIter> TSent>
+    std::size_t skip_fill(TIter& beg, TSent end, char_type fill, int radix) const
+    {
+        if (is_digit_glyph(fill, radix) || fill == m_decimal_point)
+            return 0;
+
+        std::size_t n = 0;
+        for (; beg != end && *beg == fill; ++beg)
+            ++n;
+        return n;
+    }
+
+    /**
+     * @lang{ZH}
      * @brief 从字符流中提取整数字段并解析为 `TValue`。
      *
      * 自动检测基数前缀（`0x`/`0X` 表示十六进制，`0` 表示八进制），
      * 在 `basefield == 0` 时依据输入内容动态确定基数。
+     * 字段最前、符号之后与 `0x` 之后的流填充字符按 `skip_fill` 跳过。
      * 在提取过程中同步累计分组信息，提取完成后调用 `FacetHelper::verify_grouping`
      * 校验是否符合 locale 的分组规则。
      * 溢出时按 LWG 23 将结果设为 `numeric_limits` 的极值并返回失败；
@@ -1526,7 +1675,7 @@ private:
      * @tparam TValue 目标整数类型。
      * @param beg 输入范围的起始迭代器。
      * @param end 输入范围的结束哨兵。
-     * @param io 提供格式标志的流对象。
+     * @param io 提供格式标志与填充字符的流对象。
      * @param v 解析成功后写入结果的整数引用。
      * @return `{成功标志, 消费后迭代器}` 的 `pair`。
      * @endif
@@ -1536,6 +1685,8 @@ private:
      *
      * Automatically detects base prefixes (`0x`/`0X` for hexadecimal, `0` for octal),
      * and determines the base dynamically from the input when `basefield == 0`.
+     * The stream's fill character is skipped in front of the field, after a sign and
+     * after `0x`, as `skip_fill` describes.
      * Grouping information is accumulated during extraction and validated by
      * `FacetHelper::verify_grouping` after extraction. On overflow, the result is clamped
      * to the `numeric_limits` extreme value and failure is returned per LWG 23; the overflow
@@ -1547,7 +1698,7 @@ private:
      * @tparam TValue The target integer type.
      * @param beg Start iterator of the input range.
      * @param end End sentinel of the input range.
-     * @param io Stream object providing format flags.
+     * @param io Stream object providing format flags and the fill character.
      * @param v Reference to the integer variable to receive the parsed result.
      * @return A `pair` of `{success flag, iterator after consumed input}`.
      * @endif
@@ -1563,8 +1714,14 @@ private:
                   : requested_base == ios_defs::oct ? 8
                   : 10;
 
+        // Fill in front of the field is `right` padding. A sign-shaped fill got past the
+        // writer only by agreeing with the value, so a run of it is the sign.
+        const char_type fill = io.fill();
+        const bool sign_fill = (fill == m_in.minus || fill == m_in.plus) && !is_punct(fill);
         bool negative = false;
-        if (beg != end)
+        if (skip_fill(beg, end, fill, radix) != 0 && sign_fill)
+            negative = fill == m_in.minus;
+        else if (beg != end)
         {
             const char_type first = *beg;
             const bool has_sign = first == m_in.minus
@@ -1573,6 +1730,7 @@ private:
             {
                 negative = first == m_in.minus;
                 ++beg;
+                skip_fill(beg, end, fill, radix);   // `internal` padding
             }
         }
 
@@ -1600,6 +1758,7 @@ private:
                 has_digit = false;
                 digits_in_group = 0;
                 ++beg;
+                skip_fill(beg, end, fill, radix);   // `internal` padding
             }
         }
 
@@ -1738,11 +1897,13 @@ private:
      * 小数部分以及科学计数法指数（含指数符号）。
      * 所有识别到的字符都被转换为对应的 ASCII 字符并追加到 `xtrc`，
      * 以便随后由 `convert_to_v` 在 "C" locale 下调用 `strtof`/`strtod`/`strtold` 解析。
+     * 符号前后的流填充字符按 `skip_fill` 跳过。
      *
      * @tparam TIter 输入迭代器类型。
      * @tparam TSent 哨兵类型。
      * @param beg 输入范围的起始迭代器。
      * @param end 输入范围的结束哨兵。
+     * @param io 提供填充字符的流对象。
      * @param xtrc 接收规范化 ASCII 字符串的输出字符串；调用前应已预留容量。
      * @return `{成功标志, 消费后迭代器}` 的 `pair`。
      * @endif
@@ -1755,17 +1916,19 @@ private:
      * scientific-notation exponent (including exponent sign). All recognized characters
      * are translated to their ASCII equivalents and appended to `xtrc`, ready for
      * `strtof`/`strtod`/`strtold` under the "C" locale inside `convert_to_v`.
+     * The stream's fill character is skipped around the sign as `skip_fill` describes.
      *
      * @tparam TIter The input iterator type.
      * @tparam TSent The sentinel type.
      * @param beg Start iterator of the input range.
      * @param end End sentinel of the input range.
+     * @param io Stream object providing the fill character.
      * @param xtrc Output string that receives the normalized ASCII representation; should have reserved capacity before the call.
      * @return A `pair` of `{success flag, iterator after consumed input}`.
      * @endif
      */
     template <typename TIter, std::sentinel_for<TIter> TSent>
-    std::pair<bool, TIter> extract_float(TIter beg, TSent end, ios_base<char_type>&, std::string& xtrc) const
+    std::pair<bool, TIter> extract_float(TIter beg, TSent end, ios_base<char_type>& io, std::string& xtrc) const
     {
         char_type c = char_type();
         bool at_end = beg == end;
@@ -1806,13 +1969,21 @@ private:
             else at_end = true;
         };
 
-        // -- mantissa sign -------------------------------------------------
-        if (!at_end)
+        // -- padding and mantissa sign -------------------------------------
+        // As in extract_int: fill in front is `right` padding, a sign-shaped run of it is
+        // the sign, and `internal` padding follows a sign.
+        const char_type fill = io.fill();
+        const bool sign_fill = (fill == m_in.minus || fill == m_in.plus) && !is_punct(fill);
+        if (skip_fill(beg, end, fill, 10) != 0 && sign_fill)
+            xtrc += fill == m_in.plus ? '+' : '-';
+        else if (beg != end && take_sign(*beg))
         {
-            c = *beg;
-            if (take_sign(c))
-                advance();
+            ++beg;
+            skip_fill(beg, end, fill, 10);
         }
+        at_end = beg == end;
+        if (!at_end)
+            c = *beg;
 
         // -- leading zeros -------------------------------------------------
         // They all count towards the first group, but only one reaches `xtrc`:

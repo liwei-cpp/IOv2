@@ -118,13 +118,15 @@ TEST(IoBaseManipBasefield, AdjustfieldDecidesWhereTheFieldPaddingGoes)
 // '0' only pads a hex value where it lands between the "0x" and the digits, i.e.
 // under `internal`. Padding `left` would append "0000" to the value and padding
 // `right` would put it in front of the "0x", and both are rejected outright.
+// Even `internal` is refused once the digits carry a separator: the zeros would
+// join the first group, and "0x000012_345_678" does not read back.
 TEST(IoBaseManipBasefield, AZeroFillIsOnlyLegalUnderInternal)
 {
-    auto attempt = [](ios_defs::fmtflags adjust, std::string& text) {
+    auto attempt = [](ios_defs::fmtflags adjust, long v, std::string& text) {
         ostream os{mem_device{""}, grouped<char>()};
-        os << hex << showbase << setw(16) << setfill('0');
+        os << hex << showbase << setw(8) << setfill('0');
         os.setf(adjust, ios_defs::adjustfield);
-        os << 0x12345678l;
+        os << v;
         const bool ok = os.good();
         auto [dev, err] = os.detach();
         text = dev.str();
@@ -132,11 +134,13 @@ TEST(IoBaseManipBasefield, AZeroFillIsOnlyLegalUnderInternal)
     };
 
     std::string text;
-    EXPECT_TRUE(attempt(ios_defs::internal, text));
-    EXPECT_EQ(text, "0x000012_345_678");
+    EXPECT_TRUE(attempt(ios_defs::internal, 0x123l, text));
+    EXPECT_EQ(text, "0x000123");
 
-    EXPECT_FALSE(attempt(ios_defs::left, text));
-    EXPECT_FALSE(attempt(ios_defs::right, text));
+    EXPECT_FALSE(attempt(ios_defs::left, 0x123l, text));
+    EXPECT_FALSE(attempt(ios_defs::right, 0x123l, text));
+
+    EXPECT_FALSE(attempt(ios_defs::internal, 0x1234l, text));
 
     // An ordinary fill works for all three.
     auto spaced = [](ios_defs::fmtflags adjust) {
@@ -160,10 +164,10 @@ TEST(IoBaseManipBasefield, TheSameRulesHoldOnAWideStream)
               L"0x12_345_678");
 
     EXPECT_EQ(formatted<wchar_t>([](auto& os) {
-                  os << hex << showbase << setw(16) << internal << setfill(L'0')
-                     << 0x12345678l;
+                  os << hex << showbase << setw(8) << internal << setfill(L'0')
+                     << 0x123l;
               }),
-              L"0x000012_345_678");
+              L"0x000123");
 
     EXPECT_EQ(formatted<wchar_t>([](auto& os) {
                   os << oct << showbase << setw(12) << left << setfill(L'*') << 01234567l;

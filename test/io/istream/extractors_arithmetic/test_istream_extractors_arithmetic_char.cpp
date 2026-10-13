@@ -727,19 +727,21 @@ TEST(IstreamExtractArithmeticChar, AnOverlongMantissaIsRoundedRatherThanRejected
 }
 
 // The leading whitespace an extraction skips is skipped by the sentry, so
-// turning skipws off leaves the space in the way and the number is never found.
+// turning skipws off leaves it in the way and the number is never found. A tab
+// stands in for it: a space is also the default fill, which the next test shows
+// is skipped as padding whatever skipws says.
 TEST(IstreamExtractArithmeticChar, WithSkipwsOffLeadingWhitespaceStopsTheExtraction)
 {
     auto expect_stopped = []<template <typename, typename> class T>()
     {
-        T is{mem_device{std::string(" 43")}, locale<char>("C")};
+        T is{mem_device{std::string("\t43")}, locale<char>("C")};
 
         int i = 0;
         is >> noskipws >> i;
         EXPECT_FALSE(static_cast<bool>(is));
         EXPECT_EQ(i, 0);
 
-        // The space is still there, so a caller who steps over it gets the value.
+        // The tab is still there, so a caller who steps over it gets the value.
         is.clear();
         is.ignore();
         is >> i;
@@ -748,6 +750,30 @@ TEST(IstreamExtractArithmeticChar, WithSkipwsOffLeadingWhitespaceStopsTheExtract
 
     expect_stopped.operator()<istream>();
     expect_stopped.operator()<iostream>();
+}
+
+// Fill in front of a number is padding the numeric facet skips on its own, so
+// with the default space fill a space-padded field reads back even with skipws
+// off. Under any other fill the space belongs to skipws again and stops it.
+TEST(IstreamExtractArithmeticChar, WithSkipwsOffASpaceFillIsStillSkippedAsPadding)
+{
+    auto expect_padding = []<template <typename, typename> class T>()
+    {
+        T is{mem_device{std::string("  43")}, locale<char>("C")};
+
+        int i = 0;
+        is >> noskipws >> i;
+        EXPECT_TRUE(static_cast<bool>(is));
+        EXPECT_EQ(i, 43);
+
+        T starred{mem_device{std::string("  43")}, locale<char>("C")};
+        starred.fill('*');
+        starred >> noskipws >> i;
+        EXPECT_FALSE(static_cast<bool>(starred));
+    };
+
+    expect_padding.operator()<istream>();
+    expect_padding.operator()<iostream>();
 }
 
 TEST(IstreamExtractArithmeticChar, AMissingNumericFacetLeavesTheTargetUnchanged)

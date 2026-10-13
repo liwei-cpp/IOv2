@@ -121,12 +121,13 @@ TEST(IstreamWsChar, WsAtTheEndSetsEndOfFileWithoutFailing)
 }
 
 // With skipws off an extraction stops dead on leading whitespace; ws is then
-// the caller's way to get past it, which is what the manipulator is for.
+// the caller's way to get past it, which is what the manipulator is for. Tabs,
+// because a space is the default fill, which a number skips as padding anyway.
 TEST(IstreamWsChar, WsSkipsWhereExtractionWillNotWhenSkipwsIsOff)
 {
     auto expect_manual = []<template <typename, typename> class T>()
     {
-        T is{mem_device{std::string("  42  7")}, locale<char>("C")};
+        T is{mem_device{std::string("\t\t42\t\t7")}, locale<char>("C")};
         is.unsetf(ios_defs::skipws);
 
         int v = 0;

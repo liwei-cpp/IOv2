@@ -404,7 +404,7 @@ TEST(IstreamExtractArithmeticWchar, WithSkipwsOffLeadingWhitespaceStopsTheExtrac
 {
     auto expect_stopped = []<template <typename, typename> class T>()
     {
-        T is{mem_device{std::wstring(L" 43")}, locale<wchar_t>("C")};
+        T is{mem_device{std::wstring(L"\t43")}, locale<wchar_t>("C")};
 
         int i = 0;
         is >> noskipws >> i;
@@ -418,6 +418,28 @@ TEST(IstreamExtractArithmeticWchar, WithSkipwsOffLeadingWhitespaceStopsTheExtrac
 
     expect_stopped.operator()<istream>();
     expect_stopped.operator()<iostream>();
+}
+
+// See the char counterpart: the default space fill is padding, skipped even with skipws off.
+TEST(IstreamExtractArithmeticWchar, WithSkipwsOffASpaceFillIsStillSkippedAsPadding)
+{
+    auto expect_padding = []<template <typename, typename> class T>()
+    {
+        T is{mem_device{std::wstring(L"  43")}, locale<wchar_t>("C")};
+
+        int i = 0;
+        is >> noskipws >> i;
+        EXPECT_TRUE(static_cast<bool>(is));
+        EXPECT_EQ(i, 43);
+
+        T starred{mem_device{std::wstring(L"  43")}, locale<wchar_t>("C")};
+        starred.fill(L'*');
+        starred >> noskipws >> i;
+        EXPECT_FALSE(static_cast<bool>(starred));
+    };
+
+    expect_padding.operator()<istream>();
+    expect_padding.operator()<iostream>();
 }
 
 TEST(IstreamExtractArithmeticWchar, ATrailingEndOfInputThrowsAfterTheValueIsStored)
