@@ -13,7 +13,7 @@
 `book-v1.*` 是书籍配套代码的独立发布线（GPL-3.0-or-later），代码冻结在出版时的
 状态，版本号与本库无关，不在本文件记录。
 
-### [1.0.0] - 未发布
+### [1.0.0] - 2026-10-13
 
 首个正式版本。自此公开接口遵循语义化版本：破坏性变更只在主版本号提升时发生。
 
@@ -60,7 +60,7 @@ format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 (GPL-3.0-or-later), frozen as published. Its version numbers are unrelated to
 this library's and are not recorded here.
 
-### [1.0.0] - Unreleased
+### [1.0.0] - 2026-10-13
 
 First stable release. From here on the public interface follows Semantic
 Versioning: breaking changes come only with a major version bump.
