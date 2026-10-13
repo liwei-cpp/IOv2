@@ -10,8 +10,9 @@
 [语义化版本](https://semver.org/lang/zh-CN/)，格式参照
 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)。
 
-`book-v1.*` 是书籍配套代码的独立发布线（GPL-3.0-or-later），代码冻结在出版时的
-状态，版本号与本库无关，不在本文件记录。
+`book-v1.*` 是《重构C++ IO流》（李伟 著，中文版第 1 版，人民邮电出版社，2026 年 6 月）
+配套代码的独立发布线（GPL-3.0-or-later），代码冻结在出版时的状态，版本号与本库无关，
+不在本文件记录。此后的书籍直接基于本库主线 1.x，不另设发布线。
 
 ### [1.0.0] - 2026-10-13
 
@@ -56,9 +57,12 @@ This file records changes to the IOv2 mainline (the `main` branch, tagged
 `vX.Y.Z`). Versions follow [Semantic Versioning](https://semver.org/), and the
 format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-`book-v1.*` is a separate release line holding the book's companion code
-(GPL-3.0-or-later), frozen as published. Its version numbers are unrelated to
-this library's and are not recorded here.
+`book-v1.*` is a separate release line holding the companion code of
+the book 《重构C++ IO流》 (in Chinese, 1st edition; Posts & Telecom Press,
+June 2026), under GPL-3.0-or-later and frozen as
+published. Its version numbers are unrelated to this library's and are not
+recorded here. Later books build directly on this library's 1.x mainline and
+have no release line of their own.
 
 ### [1.0.0] - 2026-10-13
 
