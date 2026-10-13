@@ -1237,3 +1237,245 @@ TEST(NumericChar, PosixGroupingSentinelsAreCanonicalised)
     FacetHelper::adjust_grouping(stopped);
     EXPECT_EQ(stopped, (std::vector<uint8_t>{3, 2, 0}));
 }
+
+namespace
+{
+    // One padded field, written and then read back under the same ios_base. The
+    // writer refusing the fill is a legitimate outcome, reported by returning
+    // false; whatever it does write has to read back as the same value, leaving
+    // behind nothing but the fill that trails a `left` field.
+    template <typename TVal>
+    bool expect_reads_back(const numeric<char>& obj, ios_base<char>& io, TVal v)
+    {
+        std::string text;
+        try
+        {
+            io.width(10);
+            text = put_str(obj, io, v);
+        }
+        catch (const stream_error&)
+        {
+            return false;
+        }
+
+        SCOPED_TRACE(::testing::PrintToString(text));
+        for (bool streamed : {false, true})
+        {
+            SCOPED_TRACE(streamed ? "iochannel iterator" : "string iterator");
+            const auto r = streamed ? parse_over_a_stream(obj, io, text, TVal{})
+                                    : parse_over_pointers(obj, io, text, TVal{});
+            EXPECT_TRUE(r.ok);
+            EXPECT_EQ(r.value, v);
+            EXPECT_EQ(r.rest.find_first_not_of(io.fill()), std::string::npos) << r.rest;
+        }
+        return true;
+    }
+}
+
+// The promise setfill makes: a padded field the writer lets through reads back
+// as the same value under the same flags and fill. Every fill that has a meaning
+// somewhere in a number is tried in every adjustment, against a grouped facet as
+// well as a plain one, and only the inert fills are required to be accepted.
+TEST(NumericChar, EveryPaddedFieldTheWriterAcceptsReadsBack)
+{
+    const numeric<char> plain   = facet_for("C");
+    const numeric<char> grouped = facet_of(tuned()->groups({3}).separator(',').point('.').ptr());
+
+    for (const char fill : std::string(" *_01+-.,xXeEaft"))
+        for (const auto adjust : {ios_defs::left, ios_defs::right, ios_defs::internal})
+            for (const numeric<char>* obj : {&plain, &grouped})
+            {
+                SCOPED_TRACE(std::string("fill '") + fill + "', adjust "
+                             + std::to_string(adjust) + (obj == &grouped ? ", grouped" : ""));
+                const bool inert = fill == ' ' || fill == '*' || fill == '_';
+
+                const auto check = [&](auto setup, auto v)
+                {
+                    ios_base<char> io;
+                    io.fill(fill);
+                    io.setf(adjust, ios_defs::adjustfield);
+                    io.precision(1);
+                    setup(io);
+                    const bool accepted = expect_reads_back(*obj, io, v);
+                    if (inert)
+                    {
+                        EXPECT_TRUE(accepted) << ::testing::PrintToString(v);
+                    }
+                };
+                const auto as_is     = [](ios_base<char>&) {};
+                const auto showpos   = [](ios_base<char>& io) { io.setf(ios_defs::showpos); };
+                const auto hex       = [](ios_base<char>& io) { io.setf(ios_defs::hex, ios_defs::basefield); };
+                const auto hex_base  = [](ios_base<char>& io)
+                {
+                    io.setf(ios_defs::hex, ios_defs::basefield);
+                    io.setf(ios_defs::showbase);
+                };
+                const auto hex_upper = [](ios_base<char>& io)
+                {
+                    io.setf(ios_defs::hex, ios_defs::basefield);
+                    io.setf(ios_defs::showbase | ios_defs::uppercase);
+                };
+                const auto oct_base  = [](ios_base<char>& io)
+                {
+                    io.setf(ios_defs::oct, ios_defs::basefield);
+                    io.setf(ios_defs::showbase);
+                };
+                const auto fixed     = [](ios_base<char>& io) { io.setf(ios_defs::fixed, ios_defs::floatfield); };
+                const auto sci       = [](ios_base<char>& io) { io.setf(ios_defs::scientific, ios_defs::floatfield); };
+                const auto alpha     = [](ios_base<char>& io) { io.setf(ios_defs::boolalpha); };
+
+                check(as_is, 0L);
+                check(as_is, 42L);
+                check(as_is, -42L);
+                check(as_is, 12345L);
+                check(as_is, -12345L);
+                check(showpos, 42L);
+                check(hex, 0UL);
+                check(hex, 0xabUL);
+                check(hex_base, 0xabUL);
+                check(hex_upper, 0xabUL);
+                check(oct_base, 8UL);
+                check(fixed, 3.5);
+                check(fixed, -3.5);
+                check(fixed, 1234.5);
+                check(sci, 4500.0);
+                check(as_is, true);
+                check(as_is, false);
+                check(alpha, true);
+                check(alpha, false);
+            }
+}
+
+// What extraction would carry on reading past the value is refused there, even
+// though a person reads the field right: "4.5eeeee" is an unfinished exponent,
+// "0xxxxx" an 0x prefix with no digits, and "42,,,," malformed grouping. Each is
+// fine where the parser has no such reading of it.
+TEST(NumericChar, AFillTheParserWouldCarryOnWithAfterTheValueIsRejected)
+{
+    const numeric<char> plain   = facet_for("C");
+    const numeric<char> grouped = facet_of(tuned()->groups({3}).separator(',').ptr());
+
+    const auto put = [](const numeric<char>& obj, char fill, ios_defs::fmtflags adjust,
+                        ios_defs::fmtflags flags, auto v)
+    {
+        ios_base<char> ios;
+        ios.fill(fill);
+        ios.width(8);
+        ios.precision(1);
+        ios.setf(adjust, ios_defs::adjustfield);
+        ios.setf(flags & ~ios_defs::basefield);
+        if (flags & ios_defs::basefield)
+            ios.setf(flags & ios_defs::basefield, ios_defs::basefield);
+        try
+        {
+            return put_str(obj, ios, v);
+        }
+        catch (const stream_error&)
+        {
+            return std::string();
+        }
+    };
+
+    EXPECT_EQ(put(plain, 'e', ios_defs::left, ios_defs::fixed, 4.5), "");
+    EXPECT_EQ(put(plain, 'E', ios_defs::left, ios_defs::fixed, 4.5), "");
+    EXPECT_EQ(put(plain, 'e', ios_defs::right, ios_defs::fixed, 4.5), "eeeee4.5");
+    EXPECT_EQ(put(plain, 'e', ios_defs::left, ios_defs::fmtflags{}, 42L), "42eeeeee");
+
+    EXPECT_EQ(put(plain, 'x', ios_defs::left, ios_defs::hex, 0L), "");
+    EXPECT_EQ(put(plain, 'X', ios_defs::left, ios_defs::hex, 0L), "");
+    EXPECT_EQ(put(plain, 'x', ios_defs::right, ios_defs::hex, 0L), "xxxxxxx0");
+    EXPECT_EQ(put(plain, 'x', ios_defs::left, ios_defs::fmtflags{}, 0L), "0xxxxxxx");
+
+    EXPECT_EQ(put(grouped, ',', ios_defs::left, ios_defs::fmtflags{}, 42L), "");
+    EXPECT_EQ(put(grouped, ',', ios_defs::left, ios_defs::fixed, 4.5), "");
+    EXPECT_EQ(put(grouped, ',', ios_defs::right, ios_defs::fmtflags{}, 12345L), ",,12,345");
+    EXPECT_EQ(put(plain, ',', ios_defs::left, ios_defs::fmtflags{}, 42L), "42,,,,,,");
+
+    // Leading zeros join the first group, so zero padding and a separator do not
+    // mix; a grouped value too short to carry a separator still takes it.
+    EXPECT_EQ(put(grouped, '0', ios_defs::right, ios_defs::fmtflags{}, 12345L), "");
+    EXPECT_EQ(put(grouped, '0', ios_defs::internal, ios_defs::fmtflags{}, -12345L), "");
+    EXPECT_EQ(put(grouped, '0', ios_defs::right, ios_defs::fixed, 1234.5), "");
+    EXPECT_EQ(put(grouped, '0', ios_defs::right, ios_defs::fmtflags{}, 42L), "00000042");
+    EXPECT_EQ(put(grouped, '0', ios_defs::right, ios_defs::fixed, 4.5), "000004.5");
+}
+
+// Under boolalpha the field is a name, so a digit fill is harmless, but a fill in
+// front that starts either name would read as a different word.
+TEST(NumericChar, ABoolalphaFillThatStartsANameIsRejectedInFrontOfIt)
+{
+    const numeric<char> obj = facet_for("C");
+
+    const auto put = [&obj](char fill, ios_defs::fmtflags adjust, bool v)
+    {
+        ios_base<char> ios;
+        ios.fill(fill);
+        ios.width(6);
+        ios.setf(ios_defs::boolalpha);
+        ios.setf(adjust, ios_defs::adjustfield);
+        try
+        {
+            return put_str(obj, ios, v);
+        }
+        catch (const stream_error&)
+        {
+            return std::string();
+        }
+    };
+
+    EXPECT_EQ(put('t', ios_defs::right, true), "");
+    EXPECT_EQ(put('f', ios_defs::right, true), "");
+    EXPECT_EQ(put('t', ios_defs::left, true), "truett");
+    EXPECT_EQ(put('0', ios_defs::right, false), "0false");
+}
+
+// fill is sticky stream state, so whatever it is set to must not get in the way of
+// a field that carries no padding at all.
+TEST(NumericChar, AStickyFillDoesNotGetInTheWayOfAnUnpaddedField)
+{
+    const numeric<char> plain   = facet_for("C");
+    const numeric<char> grouped = facet_of(tuned()->groups({3}).separator(',').ptr());
+
+    ios_base<char> zero;
+    zero.fill('0');
+    expect_parses(plain, zero, "0", 0L);
+    expect_parses(plain, zero, "007", 7L);
+
+    ios_base<char> minus;
+    minus.fill('-');
+    expect_parses(plain, minus, "-42", -42L);
+    expect_parses(plain, minus, "42", 42L);
+    expect_parses(plain, minus, "-3.5", -3.5);
+
+    ios_base<char> point;
+    point.fill('.');
+    expect_parses(plain, point, ".5", 0.5);
+
+    ios_base<char> ex;
+    ex.fill('x');
+    ex.setf(ios_defs::hex, ios_defs::basefield);
+    expect_parses(plain, ex, "0x1f", 31L);
+
+    ios_base<char> separator;
+    separator.fill(',');
+    expect_parses(grouped, separator, "1,234", 1234L);
+
+    ios_base<char> letter;
+    letter.fill('t');
+    letter.setf(ios_defs::boolalpha);
+    expect_parses(plain, letter, "true", true);
+}
+
+// Fill after a `left` field stays in the input; the next field skips it in front
+// of itself, so padded fields can be read one after another.
+TEST(NumericChar, FillTrailingAFieldIsSkippedByTheNextOne)
+{
+    const numeric<char> obj = facet_for("C");
+    ios_base<char>      ios;
+    ios.fill('*');
+
+    expect_parses(obj, ios, "42****17****", 42L, "****17****");
+    expect_parses(obj, ios, "****17****", 17L, "****");
+    expect_parses(obj, ios, "3.5**-1.5**", 3.5, "**-1.5**");
+    expect_parses(obj, ios, "**-1.5**", -1.5, "**");
+}

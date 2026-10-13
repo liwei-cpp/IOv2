@@ -401,16 +401,25 @@ struct setfill_t
  *          - 数字处处不可用，`'0'` 例外——它仅当补在数字正前方时可用，故
  *            `setfill('0') << setw(8) << internal << -42` 得到 `"-0000042"`，而同样的
  *            `right`（`"00000-42"`）与 `left`（`"42000000"`）都会失败；十六进制补零同理，
- *            只有 `internal` 把零放进 `0x` 与数字之间。
+ *            只有 `internal` 把零放进 `0x` 与数字之间。字段含千位分隔符时补零一律不可用
+ *            （`"000012,345"` 的前导零会并入第一组，分组不合法）。
  *            **`hex` 下多算六个**：`'a'`–`'f'` 与 `'A'`–`'F'` 也是数字（两种大小写都算，
  *            与 `uppercase` 无关）。其余进制仍是 `'0'`–`'9'`：判据看的是人读起来像不像
  *            数字，不是该进制收不收，所以 `oct` 下 `'8'`/`'9'` 照样不可用。
  *          - 小数点仅当补在数值之后时可用（`"42......"` 可以，`"......42"` 不行）。
  *          - 正负号仅当与该数值自身的符号一致时可用（`"++++42"` 可以，`"----42"` 不行），
  *            补在数值之后一律可用。
- *          - 其余字符（`'*'`、`' '`、千位分隔符、当前进制用不到的字母等）不受影响。
+ *          - 数值之后不可用提取会接着读下去的字符：启用分组时的千位分隔符（`"42,,,,"`）、
+ *            浮点的 `'e'`/`'E'`（`"4.5eeeee"`）、`hex` 整数的 `'x'`/`'X'`（`"0xxxxx"`）。
+ *          - `boolalpha` 写出时，补在名字之前的字符不得是 `truename`/`falsename` 的首字符
+ *            （`"tttrue"` 不行）；数字在这里可用。
+ *          - 其余字符（`'*'`、`' '`、数值之前的千位分隔符、当前进制用不到的字母等）不受影响。
  *          `fill` 是粘性流状态，只在**真的要补齐**的那一次判断：宽度不大于内容时不补齐，
- *          也就不会失败。提取 `get_money` 时用同一判据把关，见 `get_money`。
+ *          也就不会失败。
+ * @note **提取认同一个 `fill`**：数值与货币的提取都会跳过补齐用的填充字符，因此凡是插入侧
+ *       放行的字段，用相同的 locale、flags 与 `fill` 都能原样读回。数值的规则是：字段最前、符号或 `0x` 之后的填充被跳过；数值之后的填充留在
+ *       流里，由下一次提取跳过；数字与小数点永不当作填充；一串与符号同形的填充读作该符号。
+ *       货币见 `get_money`，它对提取到的填充用同一判据把关。
  * @note `TFill` 由实参推导，且必须与目标流的 `char_type` **完全一致**——
  *       `io_traits<TChar, setfill_t<TFill>>` 的两个成员都要求二者 `same_as`，不存在隐式转换。
  *       因此对 `wchar_t` 流须写 `setfill(L'*')`，写成 `setfill('*')` 会编译失败而非静默转换。
@@ -428,6 +437,8 @@ struct setfill_t
  *            `setfill('0') << setw(8) << internal << -42` gives `"-0000042"` while the same
  *            with `right` (`"00000-42"`) or `left` (`"42000000"`) fails. Zero-padded hex behaves
  *            the same way: only `internal` puts the zeros between the `0x` and the digits.
+ *            Zero padding is never usable on a field that carries a thousands separator
+ *            (the zeros of `"000012,345"` join the first group, which breaks the grouping).
  *            **`hex` adds six more**: `'a'`–`'f'` and `'A'`–`'F'` are digits too (both cases,
  *            whatever `uppercase` is set to). Every other base keeps `'0'`–`'9'`, because the
  *            test is whether a character looks like a digit to a reader rather than whether the
@@ -436,11 +447,23 @@ struct setfill_t
  *            `"......42"` no).
  *          - A sign is usable only where it agrees with the value's own sign (`"++++42"` yes,
  *            `"----42"` no), and always usable after the value.
- *          - Every other character (`'*'`, `' '`, the thousands separator, a letter the current
- *            base does not use, …) is unaffected.
+ *          - After the value, nothing extraction would carry on reading is usable: the
+ *            thousands separator when grouping is on (`"42,,,,"`), `'e'`/`'E'` for a
+ *            floating-point value (`"4.5eeeee"`), and `'x'`/`'X'` for a `hex` integer
+ *            (`"0xxxxx"`).
+ *          - Under `boolalpha`, fill in front of the name must not be the first character of
+ *            `truename` or `falsename` (`"tttrue"` no); digits are fine there.
+ *          - Every other character (`'*'`, `' '`, the thousands separator in front of the
+ *            value, a letter the current base does not use, …) is unaffected.
  *          `fill` is sticky stream state and is only tested where padding is actually written:
- *          a width that does not exceed the content pads nothing and so cannot fail. `get_money`
- *          applies the same test on extraction; see `get_money`.
+ *          a width that does not exceed the content pads nothing and so cannot fail.
+ * @note **Extraction honours the same `fill`**: both numeric and monetary extraction skip the
+ *       fill characters that padding wrote, so every field the inserter lets through reads back
+ *       as written under the same locale, flags and `fill`. The numeric rules: fill in front of the field and after a sign or `0x` is skipped;
+ *       fill after the value stays in the stream for the next extraction to skip; a digit or
+ *       the decimal point is never taken as fill; and a run of sign-shaped fill reads as that
+ *       sign. For monetary values see `get_money`, which vets the fill it consumes with the
+ *       same test.
  * @note `TFill` is deduced from the argument and must match the target stream's `char_type`
  *       **exactly**: both members of `io_traits<TChar, setfill_t<TFill>>` require the two to be
  *       `same_as`, so no implicit conversion applies. A `wchar_t` stream therefore needs
