@@ -637,38 +637,9 @@ TEST(FileDeviceChar, DseekRejectsAnOffsetThatWouldOverflowTheFileOffsetType)
 }
 
 // ---------------------------------------------------------------------------
-// Failures that need the operating system to produce them.  /dev/full accepts
-// an open and then fails every write with ENOSPC, which is the only portable
-// way to reach the partial-write and flush-failure paths.
+// Failures that need the operating system to produce them.  The ones that
+// write to /dev/full are Linux-only and live in linux/.
 // ---------------------------------------------------------------------------
-
-TEST(FileDeviceChar, FlushReportsAWriteThatTheSystemRefused)
-{
-    ofile_device<char> dev("/dev/full");
-    dev.dput("some data", 9);
-    EXPECT_THROW(dev.dflush(), device_error);
-}
-
-TEST(FileDeviceChar, CloseReportsTheFailedFlushAndStillReleasesTheFile)
-{
-    ofile_device<char> dev("/dev/full");
-    dev.dput("some data", 9);
-
-    EXPECT_THROW(dev.close(), device_error);
-    // close() resets the handle before re-throwing, so the device is closed
-    // even though it reported an error.
-    EXPECT_FALSE(dev.is_open());
-}
-
-TEST(FileDeviceChar, PutReportsAPartialWrite)
-{
-    ofile_device<char> dev("/dev/full");
-
-    // Large enough that it cannot sit in the FILE buffer: the write reaches the
-    // system and comes back short.
-    const std::string large(1024 * 1024, 'A');
-    EXPECT_THROW(dev.dput(large.data(), large.size()), device_error);
-}
 
 TEST(FileDeviceChar, ANonSeekableFileIsRejected)
 {

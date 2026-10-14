@@ -41,7 +41,7 @@ TEST(StdDevicePosix, GetRetriesReadAndPollAfterSignalInterrupts)
     struct sigaction action {};
     struct sigaction old_action {};
     action.sa_handler = no_op_signal_handler;
-    ::sigemptyset(&action.sa_mask);
+    sigemptyset(&action.sa_mask);   // unqualified: a macro on macOS
     ASSERT_EQ(::sigaction(SIGUSR1, &action, &old_action), 0);
 
     const auto run_interrupted_read = [](bool non_blocking)
