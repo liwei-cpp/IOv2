@@ -547,18 +547,21 @@ jobs:
             os: windows-latest
             preset: windows-msvc-release
             jobs: 4
+            keep_going: -k 0      # Ninja
           # clang-cl on the MSVC STL and UCRT -- the pairing the local
           # win-clangcl-xwin preset runs under Wine, here on a real Windows.
           - name: windows-clang-cl
             os: windows-latest
             preset: windows-clangcl-release
             jobs: 4
+            keep_going: -k 0      # Ninja
           # Apple clang on libc++: the standard library differs from the
           # libstdc++ every Linux job uses.
           - name: macos-clang
             os: macos-latest
             preset: macos-clang-release
             jobs: 3
+            keep_going: -k        # make
 
     steps:
     - uses: actions/checkout@v6
@@ -572,8 +575,11 @@ jobs:
     - name: Configure and build
       working-directory: test
       run: |
+        # Keep going past a failed target: a compiler these jobs are the only
+        # ones to run (cl.exe, Apple clang) should report every error in one
+        # run, not the first one per run.
         cmake --preset ${{ matrix.preset }}
-        cmake --build --preset ${{ matrix.preset }} --parallel ${{ matrix.jobs }}
+        cmake --build --preset ${{ matrix.preset }} --parallel ${{ matrix.jobs }} -- ${{ matrix.keep_going }}
 
     - name: Run tests
       working-directory: test
