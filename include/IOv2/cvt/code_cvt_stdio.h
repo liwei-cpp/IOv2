@@ -79,8 +79,8 @@ struct code_cvt_switch : cvt_behavior
  * 字符编码（区域设置）：向 `adjust()` 传入 `code_cvt_switch` 策略即可。查询当前编码用
  * `retrieve()` + `code_cvt_access`，报的是内核实际持有的 locale 的名字。
  *
- * 本类专用于标准流：底层设备只能是 `std_device<STDIN_FILENO>` / `<STDOUT_FILENO>` /
- * `<STDERR_FILENO>`。这类设备是无状态的 fd 包装，缺省构造的对象与被替换的对象指向同一个
+ * 本类专用于标准流：底层设备只能是 `std_input_device` / `std_output_device` /
+ * `std_error_device`。这类设备是无状态的 fd 包装，缺省构造的对象与被替换的对象指向同一个
  * fd，于是「转换器 tainted 后缺省构造一个设备重新 `attach()`」等价于就地重新初始化——
  * 本类据此在 `put`/`get`/`flush`/`adjust` 入口自动恢复：发现 `is_tainted()` 即先重新附接
  * 同一 fd（`attach()` + `bos()` + `main_cont_beg()`），再执行本次操作。调用方（标准流对象）
@@ -112,7 +112,7 @@ struct code_cvt_switch : cvt_behavior
  * reports the name of the locale the kernel actually holds.
  *
  * This class is for the standard streams only: the underlying device must be
- * `std_device<STDIN_FILENO>` / `<STDOUT_FILENO>` / `<STDERR_FILENO>`. Those devices are
+ * `std_input_device` / `std_output_device` / `std_error_device`. Those devices are
  * stateless fd wrappers -- a default-constructed one refers to the same fd as the one it
  * replaces -- so "default-construct a device and `attach()` it once the converter is
  * tainted" amounts to re-initializing in place. The class uses that to recover on its
@@ -148,9 +148,9 @@ struct code_cvt_switch : cvt_behavior
  * @endif
  */
 template <io_converter KernelType>
-    requires (std::is_same_v<typename KernelType::device_type, std_device<STDIN_FILENO>> ||
-              std::is_same_v<typename KernelType::device_type, std_device<STDOUT_FILENO>> ||
-              std::is_same_v<typename KernelType::device_type, std_device<STDERR_FILENO>>)
+    requires (std::is_same_v<typename KernelType::device_type, std_input_device> ||
+              std::is_same_v<typename KernelType::device_type, std_output_device> ||
+              std::is_same_v<typename KernelType::device_type, std_error_device>)
 class code_cvt_stdio : public code_cvt<KernelType, wchar_t>
 {
 private:

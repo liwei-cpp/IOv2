@@ -624,12 +624,12 @@ TEST(FileDeviceChar8, WriteOnlyOpenFlagCombinations)
     }
     {
         file_guard g(name);
-        ofile_device<char8_t> dev(name, file_open_flag::binary);
+        ofile_device<char8_t> dev(name);
         EXPECT_TRUE(dev.is_open());
     }
     {
         file_guard g(name);
-        ofile_device<char8_t> dev(name, file_open_flag::trunc | file_open_flag::binary);
+        ofile_device<char8_t> dev(name, file_open_flag::trunc);
         EXPECT_TRUE(dev.is_open());
     }
 }
@@ -650,11 +650,11 @@ TEST(FileDeviceChar8, ReadWriteOpenFlagCombinations)
     }
 }
 
-TEST(FileDeviceChar8, ReadOnlyBinaryOpen)
+TEST(FileDeviceChar8, ReadOnlyOpen)
 {
     const char* name = "modes_test_u8.txt";
     file_guard g(name, std::u8string(u8"existing"));
 
-    ifile_device<char8_t> dev(name, file_open_flag::binary);
+    ifile_device<char8_t> dev(name);
     EXPECT_TRUE(dev.is_open());
 }

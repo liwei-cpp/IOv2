@@ -86,6 +86,58 @@
       "inherits": "gcc",
       "displayName": "g++, release, against installed headers only",
       "cacheVariables": { "IOV2_TEST_CONSUMER": "installed-header-only" }
+    },
+
+    {
+      "name": "win-clangcl-xwin",
+      "hidden": true,
+      "inherits": "base",
+      "description": "Cross-built on Linux for Windows (MSVC ABI) and run under Wine; see cmake/toolchains/windows-clangcl-xwin.cmake. IOV2_TEST_COMPONENTS lists the components ported so far.",
+      "generator": "Ninja",
+      "toolchainFile": "${sourceDir}/cmake/toolchains/windows-clangcl-xwin.cmake",
+      "cacheVariables": { "IOV2_TEST_COMPONENTS": "device" }
+    },
+    {
+      "name": "win-clangcl-xwin-release",
+      "inherits": "win-clangcl-xwin",
+      "displayName": "clang-cl -> Windows under Wine, release (/O2 /Z7 -DNDEBUG)"
+    },
+    {
+      "name": "win-clangcl-xwin-debug",
+      "inherits": "win-clangcl-xwin",
+      "displayName": "clang-cl -> Windows under Wine, debug (/Od /Z7)",
+      "cacheVariables": { "IOV2_TEST_MODE": "debug" }
+    },
+
+    {
+      "name": "windows",
+      "hidden": true,
+      "inherits": "base",
+      "description": "Native Windows, from a shell where the MSVC environment is set up (vcvars, or ilammy/msvc-dev-cmd in CI). IOV2_TEST_COMPONENTS lists the components ported so far.",
+      "generator": "Ninja",
+      "condition": { "type": "equals", "lhs": "${hostSystemName}", "rhs": "Windows" },
+      "cacheVariables": { "IOV2_TEST_COMPONENTS": "device" }
+    },
+    {
+      "name": "windows-msvc-release",
+      "inherits": "windows",
+      "displayName": "MSVC cl, release (/O2 /Z7 -DNDEBUG)",
+      "environment": { "CC": "cl", "CXX": "cl" }
+    },
+    {
+      "name": "windows-clangcl-release",
+      "inherits": "windows",
+      "displayName": "clang-cl, release (/O2 /Z7 -DNDEBUG)",
+      "environment": { "CC": "clang-cl", "CXX": "clang-cl" }
+    },
+    {
+      "name": "macos-clang-release",
+      "inherits": "base",
+      "displayName": "Apple clang, release (-O3 -g -DNDEBUG)",
+      "description": "IOV2_TEST_COMPONENTS lists the components ported so far.",
+      "condition": { "type": "equals", "lhs": "${hostSystemName}", "rhs": "Darwin" },
+      "environment": { "CXX": "clang++" },
+      "cacheVariables": { "IOV2_TEST_COMPONENTS": "device" }
     }
   ],
 
@@ -99,6 +151,11 @@
     { "name": "gcc-coverage", "configurePreset": "gcc-coverage" },
     { "name": "gcc-installed-shared", "configurePreset": "gcc-installed-shared" },
     { "name": "gcc-installed-header-only", "configurePreset": "gcc-installed-header-only" },
+    { "name": "win-clangcl-xwin-release", "configurePreset": "win-clangcl-xwin-release" },
+    { "name": "win-clangcl-xwin-debug", "configurePreset": "win-clangcl-xwin-debug" },
+    { "name": "windows-msvc-release", "configurePreset": "windows-msvc-release" },
+    { "name": "windows-clangcl-release", "configurePreset": "windows-clangcl-release" },
+    { "name": "macos-clang-release", "configurePreset": "macos-clang-release" },
     {
       "name": "gcc-tsan",
       "configurePreset": "gcc-tsan",
@@ -123,6 +180,11 @@
     { "name": "gcc-coverage", "inherits": "base", "configurePreset": "gcc-coverage" },
     { "name": "gcc-installed-shared", "inherits": "base", "configurePreset": "gcc-installed-shared" },
     { "name": "gcc-installed-header-only", "inherits": "base", "configurePreset": "gcc-installed-header-only" },
+    { "name": "win-clangcl-xwin-release", "inherits": "base", "configurePreset": "win-clangcl-xwin-release" },
+    { "name": "win-clangcl-xwin-debug", "inherits": "base", "configurePreset": "win-clangcl-xwin-debug" },
+    { "name": "windows-msvc-release", "inherits": "base", "configurePreset": "windows-msvc-release" },
+    { "name": "windows-clangcl-release", "inherits": "base", "configurePreset": "windows-clangcl-release" },
+    { "name": "macos-clang-release", "inherits": "base", "configurePreset": "macos-clang-release" },
     {
       "name": "gcc-tsan",
       "configurePreset": "gcc-tsan",

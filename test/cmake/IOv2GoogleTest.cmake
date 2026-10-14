@@ -24,6 +24,11 @@ FetchContent_Declare(googletest
 
 set(INSTALL_GTEST OFF CACHE BOOL "" FORCE)
 set(BUILD_GMOCK ON CACHE BOOL "" FORCE)
+# On MSVC-ABI toolchains gtest otherwise forces the static CRT on itself, which
+# fails to link against tests on the default /MD. Forced "shared" here only means
+# "leave the runtime alone": gtest then follows CMAKE_MSVC_RUNTIME_LIBRARY, like
+# the tests do. Ignored elsewhere.
+set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 
 FetchContent_MakeAvailable(googletest)
 
@@ -41,6 +46,12 @@ foreach(_gtest_target IN ITEMS gtest gtest_main gmock gmock_main)
     set_target_properties(${_gtest_target} PROPERTIES
         CXX_STANDARD 23
         CXX_EXTENSIONS OFF)
+    # On MSVC-ABI toolchains gtest adds -W4 -WX to itself, and newer compilers
+    # warn in its sources (clang-cl 21: -Wcharacter-conversion in
+    # gtest-printers.h). Its warnings are upstream's, as above; ours stay -WX.
+    if(MSVC)
+      target_compile_options(${_gtest_target} PRIVATE /WX-)
+    endif()
   endif()
 endforeach()
 

@@ -953,7 +953,7 @@ private:
      *
      * 本缓冲区只在一端进出，是个后进先出栈，栈顶放在**末尾**：末尾即为下一次读取将返回的
      * 字符，压入与弹出都是 `push_back` / `pop_back`。非输入模式下退化为 `std::monostate`，
-     * 并借助 `[[no_unique_address]]` 不占用对象空间。
+     * 并借助 `IOV2_NO_UNIQUE_ADDRESS` 不占用对象空间。
      * @endif
      *
      * @lang{EN}
@@ -962,10 +962,10 @@ private:
      * This buffer is pushed and popped at one end only, making it a LIFO stack whose top is
      * kept at the **back**: the back element is the character the next read will return, and
      * both operations are `push_back` / `pop_back`. In non-input mode it degenerates to
-     * `std::monostate` and, thanks to `[[no_unique_address]]`, takes no object space.
+     * `std::monostate` and, thanks to `IOV2_NO_UNIQUE_ADDRESS`, takes no object space.
      * @endif
      */
-    [[no_unique_address]]
+    IOV2_NO_UNIQUE_ADDRESS
     std::conditional_t<IsIn, std::basic_string<char_type>, std::monostate> m_read_buf;
 };
 

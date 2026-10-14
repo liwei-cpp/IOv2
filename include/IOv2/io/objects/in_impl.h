@@ -8,7 +8,7 @@
  * （`wchar_t`）。
  *
  * `stdin_api` 不由 `istream` 派生，而是同样把一条 `ichannel`（其下依次是转换器管线与固定 fd
- * 的设备 `std_device<STDIN_FILENO>`）与一个 `locale` 组合起来，对外接口来自 `ios_state`（状态位
+ * 的设备 `std_input_device`）与一个 `locale` 组合起来，对外接口来自 `ios_state`（状态位
  * 与异常掩码）、`istream_operators`（输入操作）与 `std_stream_common_operators`（`tell()` /
  * `locale()` 等）三个基类。与 `istream` 的差别都来自「设备是固定 fd 的进程级单例」：多了
  * `sync_with_stdio()` / `synced_with_stdio()`、`reset()` 与（宽流）`code()` / `switch_code()`，
@@ -38,7 +38,7 @@
  * with the two standard input stream objects `cin` (`char`) and `wcin` (`wchar_t`).
  *
  * `stdin_api` does not derive from `istream`; it combines, in the same way, an `ichannel`
- * (below which sit the converter pipeline and the fixed-fd device `std_device<STDIN_FILENO>`)
+ * (below which sit the converter pipeline and the fixed-fd device `std_input_device`)
  * with a `locale`, and takes its interface from three bases -- `ios_state` (the state bits and
  * the exception mask), `istream_operators` (the input operations) and
  * `std_stream_common_operators` (`tell()` / `locale()` and friends). Every difference from
@@ -94,8 +94,6 @@
 #include <type_traits>
 #include <utility>
 
-#include <unistd.h>
-
 namespace IOv2
 {
 /**
@@ -103,14 +101,14 @@ namespace IOv2
  * @brief 标准输入流（`cin` / `wcin`）的实现模板。
  *
  * 把一条 `ichannel`（其下是转换器管线与根转换器 `stdin_root_cvt`，最底层是 fd 0 上的
- * `std_device<STDIN_FILENO>`）与一个 `locale` 组合起来，对外接口来自 `ios_state`、
+ * `std_input_device`）与一个 `locale` 组合起来，对外接口来自 `ios_state`、
  * `istream_operators` 与 `std_stream_common_operators` 三个基类。与 `istream` 的差别见
  * 文件头：多了 `sync_with_stdio()` / `synced_with_stdio()`、`reset()` 与（宽流）`code()` /
  * `switch_code()`，`adjust()` 截下 `stdin_sync`，`detach()` / `attach()` 被删除。
  *
  * 不可复制；具体的流类型（`cin_t`、`wcin_t`）同时派生自 `sing_temp`，作为进程级单例使用。
  *
- * @tparam TDevice 设备类型，必须是 `std_device<STDIN_FILENO>`。
+ * @tparam TDevice 设备类型，必须是 `std_input_device`。
  * @tparam TChar 字符类型（`char` 或 `wchar_t`）。
  * @endif
  *
@@ -118,7 +116,7 @@ namespace IOv2
  * @brief The implementation template behind the standard input streams (`cin` / `wcin`).
  *
  * Combines an `ichannel` (below which sit the converter pipeline and the root converter
- * `stdin_root_cvt`, with `std_device<STDIN_FILENO>` on fd 0 at the bottom) with a `locale`,
+ * `stdin_root_cvt`, with `std_input_device` on fd 0 at the bottom) with a `locale`,
  * and takes its interface from three bases: `ios_state`, `istream_operators` and
  * `std_stream_common_operators`. The differences from `istream` are listed in the file
  * header: it adds `sync_with_stdio()` / `synced_with_stdio()`, `reset()` and, on the wide
@@ -128,12 +126,12 @@ namespace IOv2
  * Not copyable; the concrete stream types (`cin_t`, `wcin_t`) also derive from `sing_temp`
  * and are used as process-wide singletons.
  *
- * @tparam TDevice The device type; must be `std_device<STDIN_FILENO>`.
+ * @tparam TDevice The device type; must be `std_input_device`.
  * @tparam TChar The character type (`char` or `wchar_t`).
  * @endif
  */
 template <io_device TDevice, typename TChar>
-    requires std::is_same_v<TDevice, std_device<STDIN_FILENO>>
+    requires std::is_same_v<TDevice, std_input_device>
 class stdin_api : public ios_state<TChar>
                 , public istream_operators<TChar>
                 , public std_stream_common_operators
@@ -675,10 +673,10 @@ private:
  * It ties itself to `cout` at construction.
  * @endif
  */
-class cin_t : public stdin_api<std_device<STDIN_FILENO>, char>
+class cin_t : public stdin_api<std_input_device, char>
             , public sing_temp<cin_t>
 {
-    using BT = stdin_api<std_device<STDIN_FILENO>, char>;
+    using BT = stdin_api<std_input_device, char>;
     friend sing_temp<cin_t>;
 
 private:
@@ -733,10 +731,10 @@ inline cin_t&      cin = _cin_init.get();
  * `std::wcin`, it is not destroyed at exit. It ties itself to `wcout` at construction.
  * @endif
  */
-class wcin_t : public stdin_api<std_device<STDIN_FILENO>, wchar_t>
+class wcin_t : public stdin_api<std_input_device, wchar_t>
              , public sing_temp<wcin_t>
 {
-    using BT = stdin_api<std_device<STDIN_FILENO>, wchar_t>;
+    using BT = stdin_api<std_input_device, wchar_t>;
     friend sing_temp<wcin_t>;
 
 private:

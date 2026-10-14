@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: MIT
 
 #pragma once
+#include <support/platform.h>
+
 #include <array>
 #include <cstdio>
 #include <filesystem>
@@ -10,10 +12,11 @@
 #include <sstream>
 #include <stdexcept>
 #include <string>
-#include <unistd.h>
 
 namespace
 {
+    namespace sys = iov2_test::sys;
+
     // Redirects stdin from a pipe whose write end stays open until close_write().
     // Unlike iguard (a regular file, where poll() always reports ready and read()
     // never waits), this reproduces a stream that has data but has not ended --
@@ -22,11 +25,11 @@ namespace
     {
         explicit pipe_iguard(const std::string& buf)
         {
-            if (::pipe(m_fds) != 0)
+            if (sys::pipe(m_fds) != 0)
                 throw std::runtime_error("Cannot create pipe");
 
-            m_old_stdin = ::dup(STDIN_FILENO);
-            if (m_old_stdin == -1 || ::dup2(m_fds[0], STDIN_FILENO) == -1)
+            m_old_stdin = sys::dup(sys::stdin_fd);
+            if (m_old_stdin == -1 || sys::dup2(m_fds[0], sys::stdin_fd) == -1)
                 throw std::runtime_error("Cannot re-direct stdin");
 
             feed(buf);
@@ -36,22 +39,22 @@ namespace
         // has consumed enough of what was fed before.
         void feed(const std::string& buf)
         {
-            if (!buf.empty() && ::write(m_fds[1], buf.c_str(), buf.size())
-                                    != static_cast<ssize_t>(buf.size()))
+            if (!buf.empty() && sys::write(m_fds[1], buf.c_str(), buf.size())
+                                    != static_cast<long long>(buf.size()))
                 throw std::runtime_error("Cannot fill pipe");
         }
 
         void close_write()
         {
-            if (m_fds[1] != -1) { ::close(m_fds[1]); m_fds[1] = -1; }
+            if (m_fds[1] != -1) { sys::close(m_fds[1]); m_fds[1] = -1; }
         }
 
         ~pipe_iguard()
         {
             close_write();
-            ::dup2(m_old_stdin, STDIN_FILENO);
-            ::close(m_old_stdin);
-            ::close(m_fds[0]);
+            sys::dup2(m_old_stdin, sys::stdin_fd);
+            sys::close(m_old_stdin);
+            sys::close(m_fds[0]);
         }
 
         pipe_iguard(const pipe_iguard&) = delete;
@@ -72,18 +75,18 @@ namespace
                 t.write(buf.c_str(), buf.size());
             }
             
-            m_old_stdin = dup(STDIN_FILENO);
-            if (freopen("stdio_input_guard", "r", stdin) == nullptr)
+            m_old_stdin = sys::dup(sys::stdin_fd);
+            if (!sys::reopen("stdio_input_guard", "r", stdin))
                 throw std::runtime_error("Cannot re-direct stdin");
-            setbuf(stdin, NULL);
+            setvbuf(stdin, nullptr, _IONBF, 0);
         }
-        
+
         ~iguard()
         {
             fflush(stdin);
-            dup2(m_old_stdin, STDIN_FILENO);
-            close(m_old_stdin);
-            setbuf(stdin, NULL);
+            sys::dup2(m_old_stdin, sys::stdin_fd);
+            sys::close(m_old_stdin);
+            setvbuf(stdin, nullptr, _IONBF, 0);
             std::filesystem::remove("stdio_input_guard");
         }
 
@@ -101,17 +104,17 @@ namespace
             
             if constexpr (isOut)
             {
-                m_old_std = dup(STDOUT_FILENO);
-                if (freopen(m_dir_file_name, "w", stdout) == nullptr)
+                m_old_std = sys::dup(sys::stdout_fd);
+                if (!sys::reopen(m_dir_file_name, "w", stdout))
                     throw std::runtime_error("Cannot re-direct stdout");
-                setbuf(stdout, NULL);
+                setvbuf(stdout, nullptr, _IONBF, 0);
             }
             else
             {
-                m_old_std = dup(STDERR_FILENO);
-                if (freopen(m_dir_file_name, "w", stderr) == nullptr)
+                m_old_std = sys::dup(sys::stderr_fd);
+                if (!sys::reopen(m_dir_file_name, "w", stderr))
                     throw std::runtime_error("Cannot re-direct stderr");
-                setbuf(stderr, NULL);
+                setvbuf(stderr, nullptr, _IONBF, 0);
             }
         }
         
@@ -120,16 +123,16 @@ namespace
             if constexpr (isOut)
             {
                 fflush(stdout);
-                dup2(m_old_std, STDOUT_FILENO);
-                close(m_old_std);
-                setbuf(stdout, NULL);
+                sys::dup2(m_old_std, sys::stdout_fd);
+                sys::close(m_old_std);
+                setvbuf(stdout, nullptr, _IONBF, 0);
             }
             else
             {
                 fflush(stderr);
-                dup2(m_old_std, STDERR_FILENO);
-                close(m_old_std);
-                setbuf(stderr, NULL);
+                sys::dup2(m_old_std, sys::stderr_fd);
+                sys::close(m_old_std);
+                setvbuf(stderr, nullptr, _IONBF, 0);
             }
             std::filesystem::remove(m_dir_file_name);
         }
@@ -165,7 +168,7 @@ namespace
         ~full_buffer()
         {
             std::clearerr(stream());
-            std::setbuf(stream(), nullptr);
+            std::setvbuf(stream(), nullptr, _IONBF, 0);
             std::clearerr(stream());
         }
 

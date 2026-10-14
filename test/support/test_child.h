@@ -17,12 +17,10 @@
 //     EXPECT_EQ(run_test_child("Suite.Name", "arg"), 0);
 
 #include <support/exe_path.h>
+#include <support/platform.h>
 
 #include <cstdlib>
 #include <string>
-
-#include <sys/wait.h>
-#include <unistd.h>
 
 namespace
 {
@@ -40,25 +38,10 @@ namespace
     // Re-runs this executable on `test` (a full "Suite.Name") with `arg` in the
     // environment. Returns the child's exit status -- 0 when its checks passed --
     // or -1 if it could not be run.
+    // `arg` must not be empty: on Windows an empty value removes the variable.
     inline int run_test_child(const std::string& test, const std::string& arg = "1")
     {
-        const std::string filter = "--gtest_filter=" + test;
-        const std::string executable = exe_path();
-        const pid_t child = ::fork();
-        if (child == -1)
-            return -1;
-
-        if (child == 0)
-        {
-            ::setenv(test_child_env, arg.c_str(), 1);
-            ::execl(executable.c_str(), executable.c_str(),
-                    filter.c_str(), "--gtest_color=no", static_cast<char*>(nullptr));
-            ::_exit(127);
-        }
-
-        int status = 0;
-        if (::waitpid(child, &status, 0) != child || !WIFEXITED(status))
-            return -1;
-        return WEXITSTATUS(status);
+        return iov2_test::sys::run_self({"--gtest_filter=" + test, "--gtest_color=no"},
+                                        test_child_env, arg);
     }
 }

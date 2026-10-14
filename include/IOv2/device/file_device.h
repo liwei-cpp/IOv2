@@ -16,6 +16,7 @@
 #pragma once
 #include <IOv2/common/defs.h>
 #include <IOv2/common/metafunctions.h>
+#include <IOv2/device/platform/file_device_backend.h>
 
 #include <cerrno>
 #include <cstddef>
@@ -23,11 +24,13 @@
 #include <cstdio>
 #include <exception>
 #include <expected>
+#include <filesystem>
 #include <limits>
 #include <memory>
 #include <string>
 #include <type_traits>
 #include <utility>
+#include <variant>
 
 namespace IOv2
 {
@@ -49,7 +52,10 @@ namespace IOv2
 enum class file_open_flag : std::uint8_t
 {
     none        = 0,                            ///< @lang{ZH} 无特殊标志。 @endif @lang{EN} No special flags. @endif
-    binary      = (std::uint8_t)1 << 0,         ///< @lang{ZH} 以二进制模式打开文件。 @endif @lang{EN} Open the file in binary mode. @endif
+    /// @lang{ZH} 已废弃，不起作用：文件在所有平台上都以二进制打开，不做换行转换。保留只为兼容旧代码，将在 2.0 中删除。 @endif
+    /// @lang{EN} Deprecated, no effect: files open in binary on every platform, with no newline translation. Kept only so that existing code compiles; to be removed in 2.0. @endif
+    binary [[deprecated("file_device always opens in binary; the flag has no effect")]]
+                = (std::uint8_t)1 << 0,
     trunc       = (std::uint8_t)1 << 1,         ///< @lang{ZH} 如果文件已存在，则截断它。 @endif @lang{EN} Truncate the file if it already exists. @endif
     noreplace   = (std::uint8_t)1 << 2          ///< @lang{ZH} 如果文件已存在，则打开失败。 @endif @lang{EN} Fail to open if the file already exists. @endif
 };
@@ -81,7 +87,10 @@ class basic_file_device;
  * 封装了 C 标准 I/O 库，提供了一个 RAII 风格的接口来管理文件。
  * 它可以通过模板参数配置为只读、只写或读写模式。
  *
- * @note 目前仅支持 Linux 系统。
+ * @note 支持 POSIX（Linux、macOS）与 Windows；打开、定位等平台相关操作在 `device/platform/`
+ *       下的后端里。
+ * @note 文件在所有平台上都以二进制打开：读写的就是文件里的字节，位置与大小都以字节计，
+ *       Windows 上也不做 `\r\n` 与 `\n` 的转换。需要换行转换时，在转换器层处理。
  * @note 此类不是线程安全的，多线程并发由更高层次的代码处理。
  *
  * @tparam IsIn 指定设备是否支持输入（读取）。
@@ -95,7 +104,12 @@ class basic_file_device;
  * This class wraps the C standard I/O library, providing an RAII-style interface for managing files.
  * It can be configured as read-only, write-only, or read-write via template parameters.
  *
- * @note Currently, only Linux is supported.
+ * @note Supports POSIX (Linux, macOS) and Windows; the platform-specific operations, such as
+ *       opening and seeking, live in the backends under `device/platform/`.
+ * @note Files open in binary on every platform: what is read and written are the file's
+ *       bytes, positions and sizes count bytes, and on Windows too there is no translation
+ *       between `\r\n` and `\n`. Newline translation, where wanted, belongs in the converter
+ *       layer.
  * @note This class is not thread-safe; multi-threading is handled at a higher level.
  *
  * @tparam IsIn Specifies if the device supports input (reading).
@@ -148,6 +162,11 @@ public:
      * @lang{ZH}
      * @brief 构造函数，打开一个文件并准备 I/O 操作。
      *
+     * 路径的编码由传入的类型决定，规则与 `std::filesystem::path` 相同：`char` 字符串
+     * （`std::string`、`const char*`）按平台的原生窄编码解释——POSIX 上字节原样使用，
+     * Windows 上按 ANSI 代码页，与 `fopen`、`std::ifstream` 一致；`char8_t` 字符串
+     * （`u8"..."`）按 UTF-8；`wchar_t` 字符串在 Windows 上即 UTF-16。
+     *
      * @param file_name 要打开的文件的路径。
      * @param flags 文件打开标志。
      * @throw device_error 如果文件打开、查询大小或定位失败。
@@ -156,29 +175,39 @@ public:
      * @lang{EN}
      * @brief Constructor that opens a file and prepares it for I/O operations.
      *
+     * The path's encoding follows the type passed in, by the rules of `std::filesystem::path`:
+     * a `char` string (`std::string`, `const char*`) is in the platform's native narrow
+     * encoding -- its bytes as they are on POSIX, the ANSI code page on Windows, as with
+     * `fopen` and `std::ifstream`; a `char8_t` string (`u8"..."`) is UTF-8; a `wchar_t`
+     * string is UTF-16 on Windows.
+     *
      * @param file_name The path to the file to open.
      * @param flags File opening flags.
      * @throw device_error If opening the file, querying its size, or seeking fails.
      * @endif
      */
-    explicit basic_file_device(const std::string& file_name, file_open_flag flags = file_open_flag::none)
+    explicit basic_file_device(const std::filesystem::path& file_name, file_open_flag flags = file_open_flag::none)
     {
         const char* mode = fopen_mode(flags);
-        m_file.reset(std::fopen(file_name.c_str(), mode));
+        m_file.reset(detail::file_open(file_name, mode));
         if (!m_file)
-            throw device_error("cannot open file \"" + file_name + "\" (errno=" + std::to_string(errno) + ")");
+        {
+            const int err = errno;
+            throw device_error("cannot open file \"" + detail::path_for_message(file_name)
+                               + "\" (errno=" + std::to_string(err) + ")");
+        }
 
-        if (fseek_64(m_file.get(), 0, SEEK_END) != 0)
-            throw device_error("cannot get file length for \"" + file_name + "\"");
+        if (detail::file_seek(m_file.get(), 0, SEEK_END) != 0)
+            throw device_error("cannot get file length for \"" + detail::path_for_message(file_name) + "\"");
 
-        int64_t len = ftell_64(m_file.get());
+        int64_t len = detail::file_tell(m_file.get());
         if (len < 0)
-            throw device_error("cannot get file length for \"" + file_name + "\"");
+            throw device_error("cannot get file length for \"" + detail::path_for_message(file_name) + "\"");
         else if (!std::in_range<std::size_t>(len))
             throw device_error("file too large for this platform");
 
-        if (fseek_64(m_file.get(), 0, SEEK_SET) != 0)
-            throw device_error("cannot reset the file for \"" + file_name + "\"");
+        if (detail::file_seek(m_file.get(), 0, SEEK_SET) != 0)
+            throw device_error("cannot reset the file for \"" + detail::path_for_message(file_name) + "\"");
 
         m_file_len = static_cast<std::size_t>(len);
     }
@@ -188,7 +217,7 @@ public:
      * @brief 尝试打开一个文件，并以 `std::expected` 返回结果。
      *
      * 这是一个不会抛出异常的工厂函数。如果成功，返回文件设备；如果失败，返回错误信息。
-     * @param file_name 要打开的文件的路径。
+     * @param file_name 要打开的文件的路径，编码规则见构造函数。
      * @param flags 文件打开标志。
      * @return 包含 `basic_file_device` 或错误字符串的 `std::expected` 对象。
      * @endif
@@ -198,12 +227,12 @@ public:
      *
      * This is a factory function that does not throw exceptions. It returns a file device on success
      * or an error message on failure.
-     * @param file_name The path to the file to open.
+     * @param file_name The path to the file to open; see the constructor for its encoding.
      * @param flags File opening flags.
      * @return A `std::expected` object containing either a `basic_file_device` or an error string.
      * @endif
      */
-    static std::expected<basic_file_device, std::string> try_open(const std::string& file_name, file_open_flag flags = file_open_flag::none)
+    static std::expected<basic_file_device, std::string> try_open(const std::filesystem::path& file_name, file_open_flag flags = file_open_flag::none)
     {
         try {
             return basic_file_device(file_name, flags);
@@ -219,6 +248,7 @@ public:
     basic_file_device(basic_file_device&& other) noexcept
         : m_file(std::move(other.m_file))
         , m_file_len(other.m_file_len)
+        , m_last_dir(std::exchange(other.m_last_dir, decltype(m_last_dir){}))
     {
         other.m_file_len = 0;
     }
@@ -229,6 +259,7 @@ public:
             m_file = std::move(other.m_file);
             m_file_len = other.m_file_len;
             other.m_file_len = 0;
+            m_last_dir = std::exchange(other.m_last_dir, decltype(m_last_dir){});
         }
         return *this;
     }
@@ -330,6 +361,7 @@ public:
             }
             m_file.reset();
             m_file_len = 0;
+            m_last_dir = {};
             if (ptr) std::rethrow_exception(ptr);
         }
     }
@@ -371,6 +403,11 @@ public:
             throw device_error("file_device::dget fail: null buffer");
         if (!is_open())
             throw device_error("file_device::dget fail: file is closed");
+        if constexpr (IsOut)
+        {
+            if (!turn_to(io_dir::read))
+                throw device_error("file_device::dget fail: cannot switch from writing to reading");
+        }
 
         if (std::ferror(m_file.get()))
             std::clearerr(m_file.get());
@@ -403,7 +440,7 @@ public:
         if (!is_open())
             throw device_error("file_device::dtell fail: file is closed");
 
-        auto res = ftell_64(m_file.get());
+        auto res = detail::file_tell(m_file.get());
         if (!std::in_range<std::size_t>(res))
             throw device_error("file_device::dtell fail: got invalid position");
         return static_cast<std::size_t>(res);
@@ -459,8 +496,9 @@ public:
         if (v > std::numeric_limits<int64_t>::max())
             throw device_error("file_device::dseek fail: position exceeds maximum seekable range");
 
-        if (fseek_64(m_file.get(), static_cast<int64_t>(v), SEEK_SET) != 0)
+        if (detail::file_seek(m_file.get(), static_cast<int64_t>(v), SEEK_SET) != 0)
             throw device_error("file_device::dseek fail: fseek invalid response");
+        m_last_dir = {};
     }
 
     /**
@@ -486,8 +524,9 @@ public:
 
         const int64_t l_off = -static_cast<int64_t>(offset);
 
-        if (fseek_64(m_file.get(), l_off, SEEK_END) != 0)
+        if (detail::file_seek(m_file.get(), l_off, SEEK_END) != 0)
             throw device_error("file_device::drseek fail: fseek invalid response");
+        m_last_dir = {};
     }
 
     /**
@@ -519,9 +558,14 @@ public:
             throw device_error("file_device::dput fail: null buffer");
         if (!is_open())
             throw device_error("file_device::dput fail: file is closed");
+        if constexpr (IsIn)
+        {
+            if (!turn_to(io_dir::write))
+                throw device_error("file_device::dput fail: cannot switch from reading to writing");
+        }
         std::size_t written = std::fwrite(ch, sizeof(CharType), n, m_file.get());
 
-        auto res = ftell_64(m_file.get());
+        auto res = detail::file_tell(m_file.get());
         if (res >= 0)
         {
             if (!std::in_range<std::size_t>(res))
@@ -557,6 +601,7 @@ public:
         if (!is_open()) return;
         if (std::fflush(m_file.get()) == EOF)
             throw device_error("file_device::dflush fail: fflush error");
+        m_last_dir = {};
     }
 
 private:
@@ -564,23 +609,20 @@ private:
     {
         using enum file_open_flag;
 
-        file_open_flag checkres = flags & (trunc | binary | noreplace);
+        // Always binary: a text-mode FILE translates newlines below the converters, which
+        // breaks their position arithmetic. The deprecated `binary` bit is masked off here
+        // (not named, which would warn in every user's build).
+        file_open_flag checkres = flags & (trunc | noreplace);
 
         if constexpr (IsIn && IsOut)
         {
             if (checkres == none)
-                return "r+";
-            else if (checkres == trunc)
-                return "w+";
-            else if (checkres == binary)
                 return "r+b";
-            else if (checkres == (trunc | binary))
+            else if (checkres == trunc)
                 return "w+b";
             // noreplace (O_EXCL) implies creating a new file, so it's always empty.
             // Therefore, trunc is implicit in this mode.
             else if (checkres == noreplace || checkres == (trunc | noreplace))
-                return "w+x";
-            else if (checkres == (binary | noreplace) || checkres == (binary | trunc | noreplace))
                 return "w+bx";
             else
                 throw device_error("Invalid open mode combination for read-write file");
@@ -588,8 +630,6 @@ private:
         else if constexpr (IsIn)
         {
             if (checkres == none)
-                return "r";
-            else if (checkres == binary)
                 return "rb";
             else
                 throw device_error("Invalid open mode combination for read-only file");
@@ -598,13 +638,9 @@ private:
         {
             // In write-only mode, "w" already truncates by default if noreplace is not present.
             if (checkres == none || checkres == trunc)
-                return "w";
-            else if (checkres == binary || checkres == (trunc | binary))
                 return "wb";
             // noreplace implies creation of a new file.
             else if (checkres == noreplace || checkres == (trunc | noreplace))
-                return "wx";
-            else if (checkres == (binary | noreplace) || checkres == (binary | trunc | noreplace))
                 return "wbx";
             else
                 throw device_error("Invalid open mode combination for write-only file");
@@ -613,25 +649,6 @@ private:
         {
             static_assert(dependent_false_nttp_v<IsIn, IsOut>, "file device cannot open with neither in nor out mode");
         }
-    }
-
-private:
-    static int fseek_64(FILE* stream, int64_t offset, int origin)
-    {
-#if defined(_WIN32)
-        return _fseeki64(stream, offset, origin);
-#else
-        return fseeko(stream, offset, origin);
-#endif
-    }
-
-    static int64_t ftell_64(FILE* stream)
-    {
-#if defined(_WIN32)
-        return _ftelli64(stream);
-#else
-        return ftello(stream);
-#endif
     }
 
 private:
@@ -646,13 +663,33 @@ private:
     // `dsize()` cannot return without truncation).
     //
     // Invariant: `m_file_len <= INT64_MAX`. All writes to this field source
-    // from a non-negative `int64_t` (the result of `ftell_64()`), narrowed
+    // from a non-negative `int64_t` (the result of `detail::file_tell()`), narrowed
     // through `std::in_range<size_t>` in the constructor and `dput()`.
     // This invariant is what makes `-static_cast<int64_t>(offset)` in
     // `drseek()` safe: any `offset <= m_file_len` fits in `int64_t`'s
     // positive range, so the negation cannot overflow. Do not introduce
     // setters or alternate sources that bypass the `int64_t`-derived path.
     std::size_t m_file_len = 0;
+
+    // Which way the FILE was last used. C requires a seek or flush between
+    // reading and writing on one stream (C17 7.21.5.3p7); glibc lets it go,
+    // the MSVC CRT fails the write. Only a read-write device can switch.
+    enum class io_dir : std::uint8_t { none, read, write };
+
+    IOV2_NO_UNIQUE_ADDRESS
+    std::conditional_t<IsIn && IsOut, io_dir, std::monostate> m_last_dir{};
+
+    // Records that the next operation goes `to`, seeking to the current
+    // position first if the last one went the other way. False if that seek failed.
+    bool turn_to(io_dir to)
+        requires (IsIn && IsOut)
+    {
+        if (m_last_dir != io_dir::none && m_last_dir != to
+            && detail::file_seek(m_file.get(), 0, SEEK_CUR) != 0)
+            return false;
+        m_last_dir = to;
+        return true;
+    }
 };
 
 /**

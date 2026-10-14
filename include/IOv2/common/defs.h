@@ -16,6 +16,24 @@
 #include <stdexcept>
 #include <string>
 
+/**
+ * @lang{ZH}
+ * `[[no_unique_address]]` 的可移植写法。MSVC ABI（`cl.exe` 与 clang-cl）为保持二进制兼容，
+ * 接受但忽略标准写法（标准允许忽略），只认 `[[msvc::no_unique_address]]`；其余平台用标准写法。
+ * @endif
+ *
+ * @lang{EN}
+ * Portable spelling of `[[no_unique_address]]`. The MSVC ABI (`cl.exe` and clang-cl) accepts
+ * but ignores the standard spelling to stay binary compatible (the standard permits ignoring
+ * it) and honours only `[[msvc::no_unique_address]]`; everywhere else the standard one is used.
+ * @endif
+ */
+#if defined(_MSC_VER)
+#define IOV2_NO_UNIQUE_ADDRESS [[msvc::no_unique_address]]
+#else
+#define IOV2_NO_UNIQUE_ADDRESS [[no_unique_address]]
+#endif
+
 namespace IOv2
 {
     /**

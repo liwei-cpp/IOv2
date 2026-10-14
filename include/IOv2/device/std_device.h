@@ -15,20 +15,14 @@
  */
 #pragma once
 #include <IOv2/common/defs.h>
+#include <IOv2/device/platform/std_device_backend.h>
 
-#include <algorithm>
-#include <cassert>
-#include <cerrno>
 #include <cstddef>
 #include <cstdio>
-#include <limits>
 #include <optional>
 #include <type_traits>
 #include <utility>
 #include <variant>
-
-#include <poll.h>
-#include <unistd.h>
 
 namespace IOv2
 {
@@ -36,34 +30,41 @@ namespace IOv2
  * @lang{ZH}
  * @brief 封装标准 I/O 文件描述符的设备。
  *
- * 这个类模板通过文件描述符（`STDIN_FILENO`, `STDOUT_FILENO`, `STDERR_FILENO`）
+ * 这个类模板通过标准流的文件描述符（0、1、2）
  * 来创建一个 I/O 设备。它为标准输入提供了阻塞读取（fd 设了 `O_NONBLOCK` 时以 `poll` 等待，
  * `EINTR` 自动重试）和 EOF 处理，并为标准输出/错误提供了写入和刷新功能。
  *
- * @note 目前仅支持 Linux 系统。
+ * @note 支持 POSIX（Linux、macOS）与 Windows；平台相关的读操作在 `device/platform/` 下的后端里。
+ *       下文的 `O_NONBLOCK`、`poll`、`EINTR` 只适用于 POSIX，Windows 的差异见 Windows 后端。
  * @note 此类不是线程安全的，多线程并发由更高层次的代码处理。
  * @note 输出侧经 `fwrite` 写，**不处理 `EAGAIN`**：fd 设了 `O_NONBLOCK`（终端上它同时作用于
  *       fd 0/1/2）时，写满内核缓冲的那部分返回失败、字节丢失，流置 `devfailbit`。`std::cout`
  *       同样如此（实测）。
  * @note 终端处于 raw 模式且 `VMIN == 0` 时，阻塞 fd 上 `read` 超时返回 0，被当成（粘性的）EOF；
  *       设了 `O_NONBLOCK` 的 fd 则以 `poll(-1)` 等待，不受 `VTIME` 影响。两者行为不同。
+ * @note macOS 的 `poll` 不支持终端以外的字符设备（如 `/dev/zero`），报 `POLLNVAL`：stdin 重定向自
+ *       这类设备时，探测后的 `dget` 只返回缓存的那 1 个字节；fd 还设了 `O_NONBLOCK` 时，`read`
+ *       遇 `EAGAIN` 后的等待抛 `device_error`。终端与管道不受影响（实测）。
  *
  * @warning 对于 stdin，此类使用底层的 POSIX `read()`，它会绕过 stdio 缓冲。
  * 请勿在 stdin 上将 `std_input_device` 与 C stdio 函数（`scanf`, `fgets`, `getchar` 等）
  * 混合使用，因为由于缓冲不一致，这可能会导致数据丢失或意外行为。
  *
- * @tparam ID 文件描述符。必须是 `STDIN_FILENO`、`STDOUT_FILENO` 或 `STDERR_FILENO` 之一。
+ * @tparam ID 文件描述符。必须是 0、1 或 2（POSIX 上即 `STDIN_FILENO`、`STDOUT_FILENO`、
+ *         `STDERR_FILENO`）；请用别名 `std_input_device`、`std_output_device`、`std_error_device`。
  * @endif
  *
  * @lang{EN}
  * @brief A device that encapsulates standard I/O file descriptors.
  *
- * This class template uses a file descriptor (`STDIN_FILENO`, `STDOUT_FILENO`, `STDERR_FILENO`)
+ * This class template uses a standard stream's file descriptor (0, 1, 2)
  * to create an I/O device. It provides blocking reads (waiting with `poll` when the fd has
  * `O_NONBLOCK`, retrying on `EINTR`) and EOF handling for standard input, and write/flush
  * capabilities for standard output/error.
  *
- * @note Currently, only Linux is supported.
+ * @note Supports POSIX (Linux, macOS) and Windows; the platform-specific reads live in the
+ *       backends under `device/platform/`. `O_NONBLOCK`, `poll` and `EINTR` below apply to
+ *       POSIX only; see the Windows backend for how Windows differs.
  * @note This class is not thread-safe; multi-threading is handled at a higher level.
  * @note The output side writes with `fwrite` and does **not handle `EAGAIN`**: with
  *       `O_NONBLOCK` on the fd (on a terminal it applies to fds 0/1/2 alike), the part that
@@ -72,17 +73,23 @@ namespace IOv2
  * @note With the terminal in raw mode and `VMIN == 0`, a `read` on a blocking fd that times
  *       out returns 0 and is taken as (sticky) EOF, while an fd with `O_NONBLOCK` waits in
  *       `poll(-1)` and ignores `VTIME`. The two behave differently.
+ * @note macOS's `poll` does not support character devices other than terminals (such as
+ *       `/dev/zero`) and reports `POLLNVAL`: with stdin redirected from one, a `dget` after a
+ *       probe returns only the cached byte, and if the fd also has `O_NONBLOCK`, the wait
+ *       after an `EAGAIN` throws `device_error`. Terminals and pipes are unaffected (measured).
  *
  * @warning For stdin, this class uses low-level POSIX read() which bypasses
  * stdio buffering. Do NOT mix usage of std_input_device with C stdio functions
  * (scanf, fgets, getchar, etc.) on stdin, as this may cause data loss or
  * unexpected behavior due to buffering inconsistencies.
  *
- * @tparam ID The file descriptor. Must be one of `STDIN_FILENO`, `STDOUT_FILENO`, or `STDERR_FILENO`.
+ * @tparam ID The file descriptor. Must be 0, 1 or 2 (on POSIX, `STDIN_FILENO`, `STDOUT_FILENO`,
+ *         `STDERR_FILENO`); use the aliases `std_input_device`, `std_output_device`,
+ *         `std_error_device`.
  * @endif
  */
 template <int ID>
-    requires ((ID == STDIN_FILENO) || (ID == STDOUT_FILENO) || (ID == STDERR_FILENO))
+    requires ((ID == detail::std_in_fd) || (ID == detail::std_out_fd) || (ID == detail::std_err_fd))
 class std_device
 {
 public:
@@ -116,7 +123,7 @@ public:
     std_device(std_device&& other) noexcept
         : m_active(std::exchange(other.m_active, false))
     {
-        if constexpr (ID == STDIN_FILENO)
+        if constexpr (ID == detail::std_in_fd)
         {
             m_eof_hit = other.m_eof_hit;
             m_c = other.m_c;
@@ -151,7 +158,7 @@ public:
         if (this != &other)
         {
             m_active = std::exchange(other.m_active, false);
-            if constexpr (ID == STDIN_FILENO)
+            if constexpr (ID == detail::std_in_fd)
             {
                 m_eof_hit = other.m_eof_hit;
                 other.m_eof_hit = false;
@@ -178,7 +185,7 @@ public:
      */
     ~std_device()
     {
-        if constexpr ((ID == STDOUT_FILENO) || (ID == STDERR_FILENO))
+        if constexpr ((ID == detail::std_out_fd) || (ID == detail::std_err_fd))
         {
             if (!m_active) return;
             try {
@@ -200,9 +207,10 @@ public:
      * - 读到 0（EOF：文件读完、管道写端全部关闭、终端上一行开头的 `^D`）：置位 EOF 标志并
      *   返回 `true`。
      *
-     * 终端**挂断**（pty 主端关闭）不算 EOF：`read` 得 `EIO`、`poll` 报 `POLLERR`，按设备错误
+     * 终端**挂断**（pty 主端关闭）在 Linux 上不算 EOF：`read` 得 `EIO`、`poll` 报 `POLLERR`，按设备错误
      * 抛 `device_error`，流上是 `devfailbit`（`std::cin` 此时报 eof|fail）；阻塞 fd 上偶尔也会
-     * 先读到 0 而得 EOF，取决于内核时序（实测）。
+     * 先读到 0 而得 EOF，取决于内核时序（实测）。macOS 上挂断即 EOF：`poll` 报 `POLLIN|POLLHUP`，
+     * `read` 返回 0（实测）。
      *
      * @warning 本函数**可能阻塞**：当流上暂时无数据、也尚未到达 EOF 时，它会一直等待，
      *          直到有字节到达或确认 EOF 为止。因此在交互式终端上调用会等待用户输入。
@@ -223,10 +231,11 @@ public:
      * - 0 is read (EOF: a file read to its end, every write end of a pipe closed, `^D` at the
      *   start of a terminal line): sets the EOF flag and returns `true`.
      *
-     * A terminal **hang-up** (the pty master closed) is not EOF: `read` gets `EIO` and `poll`
-     * reports `POLLERR`, which is thrown as `device_error` and shows as `devfailbit` on the
-     * stream (`std::cin` reports eof|fail there); on a blocking fd a 0 is occasionally read
-     * first and gives EOF, depending on kernel timing (measured).
+     * On Linux a terminal **hang-up** (the pty master closed) is not EOF: `read` gets `EIO` and
+     * `poll` reports `POLLERR`, which is thrown as `device_error` and shows as `devfailbit` on
+     * the stream (`std::cin` reports eof|fail there); on a blocking fd a 0 is occasionally read
+     * first and gives EOF, depending on kernel timing (measured). On macOS a hang-up is EOF:
+     * `poll` reports `POLLIN|POLLHUP` and `read` returns 0 (measured).
      *
      * @warning This function **may block**: when no data is currently available and
      *          EOF has not yet been reached, it waits until a byte arrives or EOF is
@@ -238,7 +247,7 @@ public:
      * @endif
      */
     [[nodiscard]] bool deof()
-        requires (ID == STDIN_FILENO)
+        requires (ID == detail::std_in_fd)
     {
         if (m_eof_hit) return true;
 
@@ -291,7 +300,7 @@ public:
      * @endif
      */
     std::size_t dget(char* s, std::size_t n)
-        requires (ID == STDIN_FILENO)
+        requires (ID == detail::std_in_fd)
     {
         if (n == 0 || m_eof_hit) return 0;
         if (s == nullptr)
@@ -299,20 +308,8 @@ public:
 
         if (m_c.has_value())
         {
-            // Whether a read() would return at once: data is ready, or the peer hung
-            // up (read() then returns 0 without waiting). On a poll error the answer
-            // is "no"; the next blocking read() reports it.
-            const auto readable_now = []() noexcept
-            {
-                struct pollfd pfd{ .fd = ID, .events = POLLIN, .revents = 0 };
-                int r = poll(&pfd, 1, 0);
-                while (r == -1 && errno == EINTR)
-                    r = poll(&pfd, 1, 0);
-                return r > 0 && (pfd.revents & (POLLIN | POLLHUP)) != 0;
-            };
-
             *s = m_c.value();
-            if (n > 1 && readable_now())
+            if (n > 1 && detail::std_fd_readable_now(ID))
             {
                 // Top up with what is already there, so a probe followed by a bulk
                 // read still reads in bulk. Only when data is ready: waiting here
@@ -350,14 +347,14 @@ public:
      * @endif
      */
     void dput(const char* ch, std::size_t n)
-        requires ((ID == STDOUT_FILENO) || (ID == STDERR_FILENO))
+        requires ((ID == detail::std_out_fd) || (ID == detail::std_err_fd))
     {
         if (n == 0) return;
         if (ch == nullptr)
             throw device_error("std_device::dput fail: null buffer");
 
         std::size_t written = 0;
-        if constexpr (ID == STDOUT_FILENO)
+        if constexpr (ID == detail::std_out_fd)
             written = std::fwrite(ch, sizeof(char), n, stdout);
         else
             written = std::fwrite(ch, sizeof(char), n, stderr);
@@ -378,10 +375,10 @@ public:
      * @endif
      */
     void dflush()
-        requires ((ID == STDOUT_FILENO) || (ID == STDERR_FILENO))
+        requires ((ID == detail::std_out_fd) || (ID == detail::std_err_fd))
     {
         bool flush_res = false;
-        if constexpr (ID == STDOUT_FILENO)
+        if constexpr (ID == detail::std_out_fd)
             flush_res = (std::fflush(stdout) != EOF);
         else
             flush_res = (std::fflush(stderr) != EOF);
@@ -393,46 +390,14 @@ public:
 private:
     std::size_t do_get(char* s, std::size_t n)
     {
-        assert((s != nullptr) && (n != 0));
-
-        constexpr auto max_read = static_cast<std::size_t>(std::numeric_limits<ssize_t>::max());
-        ssize_t ret = 0;
-        while (true)
-        {
-            ret = read(ID, s, std::min(n, max_read));
-            if (ret != -1) break;
-
-            if (errno == EINTR) continue;
-            if (errno == EAGAIN || errno == EWOULDBLOCK)
-            {
-                struct pollfd pfd{ .fd = ID, .events = POLLIN, .revents = 0 };
-                if (poll(&pfd, 1, -1) == -1)
-                {
-                    if (errno == EINTR) continue;
-                    throw device_error("std_device::do_get fail: poll error");
-                }
-                else if (pfd.revents & (POLLERR | POLLNVAL))
-                    throw device_error("std_device::do_get fail: poll revents error");
-                else if (pfd.revents & POLLIN) continue;
-                else if (pfd.revents & POLLHUP)
-                {
-                    ret = 0;
-                    break;
-                }
-                else
-                    throw device_error("std_device::do_get fail: unexpected poll revents");
-            }
-            else
-                throw device_error("std_device::do_get fail: read error");
-        }
-
+        const std::size_t ret = detail::std_fd_read(ID, s, n);
         if (ret == 0)
             m_eof_hit = true;
-        return static_cast<std::size_t>(ret);
+        return ret;
     }
 private:
-    [[no_unique_address]] std::conditional_t<ID == STDIN_FILENO, bool, std::monostate> m_eof_hit{};
-    [[no_unique_address]] std::conditional_t<ID == STDIN_FILENO, std::optional<char_type>, std::monostate> m_c;
+    IOV2_NO_UNIQUE_ADDRESS std::conditional_t<ID == detail::std_in_fd, bool, std::monostate> m_eof_hit{};
+    IOV2_NO_UNIQUE_ADDRESS std::conditional_t<ID == detail::std_in_fd, std::optional<char_type>, std::monostate> m_c;
     bool m_active = true;   ///< @lang{ZH} 本对象是否仍持有该流的收尾冲刷责任：缺省构造为 true，随移动转交给目标、源对象变 false。析构函数只在为 true 时冲刷（fd 1 / 2）；stdin 上只是状态标记。 @endif @lang{EN} Whether this object still holds the duty to flush the stream when it dies: true on default construction, handed to the target by a move, false on the moved-from object. The destructor flushes (fd 1 / 2) only while it is true; on stdin it is a state marker only. @endif
 };
 
@@ -445,7 +410,7 @@ private:
  * @brief Type alias for the standard input device.
  * @endif
  */
-using std_input_device = std_device<STDIN_FILENO>;
+using std_input_device = std_device<detail::std_in_fd>;
 
 /**
  * @lang{ZH}
@@ -456,7 +421,7 @@ using std_input_device = std_device<STDIN_FILENO>;
  * @brief Type alias for the standard output device.
  * @endif
  */
-using std_output_device = std_device<STDOUT_FILENO>;
+using std_output_device = std_device<detail::std_out_fd>;
 
 /**
  * @lang{ZH}
@@ -467,6 +432,6 @@ using std_output_device = std_device<STDOUT_FILENO>;
  * @brief Type alias for the standard error device.
  * @endif
  */
-using std_error_device = std_device<STDERR_FILENO>;
+using std_error_device = std_device<detail::std_err_fd>;
 
 }

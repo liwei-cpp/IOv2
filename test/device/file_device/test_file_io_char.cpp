@@ -697,23 +697,12 @@ TEST(FileDeviceChar, WriteOnlyOpenFlagCombinations)
     }
     {
         file_guard g(name);
-        ofile_device<char> dev(name, file_open_flag::noreplace | file_open_flag::binary);
-        EXPECT_TRUE(dev.is_open());
-    }
-    {
-        file_guard g(name);
-        ofile_device<char> dev(name, file_open_flag::binary);
+        ofile_device<char> dev(name);
         EXPECT_TRUE(dev.is_open());
     }
     {
         file_guard g(name);
         ofile_device<char> dev(name, file_open_flag::trunc | file_open_flag::noreplace);
-        EXPECT_TRUE(dev.is_open());
-    }
-    {
-        file_guard g(name);
-        ofile_device<char> dev(name, file_open_flag::binary | file_open_flag::trunc
-                                     | file_open_flag::noreplace);
         EXPECT_TRUE(dev.is_open());
     }
 }
@@ -730,13 +719,8 @@ TEST(FileDeviceChar, ReadWriteOpenFlagCombinations)
     }
     {
         file_guard g(name, existing);
-        file_device<char> dev(name, file_open_flag::binary);
+        file_device<char> dev(name);
         EXPECT_EQ(dev.dsize(), existing.size());
-    }
-    {
-        file_guard g(name, existing);
-        file_device<char> dev(name, file_open_flag::trunc | file_open_flag::binary);
-        EXPECT_EQ(dev.dsize(), 0u);
     }
     {
         file_guard g(name);
@@ -745,27 +729,16 @@ TEST(FileDeviceChar, ReadWriteOpenFlagCombinations)
     }
     {
         file_guard g(name);
-        file_device<char> dev(name, file_open_flag::noreplace | file_open_flag::binary);
-        EXPECT_TRUE(dev.is_open());
-    }
-    {
-        file_guard g(name);
         file_device<char> dev(name, file_open_flag::trunc | file_open_flag::noreplace);
-        EXPECT_TRUE(dev.is_open());
-    }
-    {
-        file_guard g(name);
-        file_device<char> dev(name, file_open_flag::binary | file_open_flag::trunc
-                                    | file_open_flag::noreplace);
         EXPECT_TRUE(dev.is_open());
     }
 }
 
-TEST(FileDeviceChar, ReadOnlyBinaryOpen)
+TEST(FileDeviceChar, ReadOnlyOpen)
 {
     const char* name = "modes_test.txt";
     file_guard g(name, std::string("existing"));
 
-    ifile_device<char> dev(name, file_open_flag::binary);
+    ifile_device<char> dev(name);
     EXPECT_TRUE(dev.is_open());
 }
