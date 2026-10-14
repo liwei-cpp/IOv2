@@ -20,6 +20,7 @@
 #include <gtest/gtest.h>
 
 #include <csignal>
+#include <filesystem>
 #include <fstream>
 #include <string>
 
@@ -60,7 +61,7 @@ namespace
         char buf[100]{};
         std::size_t got = 0;
         EXPECT_NO_THROW(got = dev.dget(buf, sizeof buf)) << "reaching the end was taken for a read error";
-        EXPECT_EQ(std::string(buf, got), "xxxxx");
+        EXPECT_EQ(std::string(buf, got), std::string(std::filesystem::file_size(kFile), 'x'));
     }
 }
 
