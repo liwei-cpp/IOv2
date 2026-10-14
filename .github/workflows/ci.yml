@@ -18,7 +18,8 @@ env:
 # build (g++), build (clang++), thread-safety, coverage, install-paths,
 # clang-tidy -- are the ones main's ruleset requires. clang-tidy reads the
 # library headers and belongs to no build system; the other five moved off
-# test/Makefile, which no longer exists.
+# test/Makefile, which no longer exists. The portability (...) jobs, for the
+# platforms other than Linux, are not required yet.
 #
 # The CMake project is test/, and `cmake --build --preset` and `ctest --preset`
 # look for CMakePresets.json only in the working directory, so every step that
@@ -520,7 +521,60 @@ jobs:
     - name: Run clang-tidy
       run: |
         # Use default clang-tidy from the image (which will be a recent version)
-        clang-tidy $(find include/IOv2 -name '*.h') \
+        # The Windows backends need the MSVC CRT and SDK headers, which this
+        # Linux image does not have; the portability jobs compile them instead.
+        clang-tidy $(find include/IOv2 -name '*.h' -not -path '*/platform/windows/*') \
           --checks='bugprone-*,performance-*,modernize-*,cppcoreguidelines-*,-modernize-use-trailing-return-type,-cppcoreguidelines-avoid-magic-numbers,-cppcoreguidelines-pro-bounds-pointer-arithmetic,-cppcoreguidelines-pro-bounds-constant-array-index,-cppcoreguidelines-avoid-non-const-global-variables,-cppcoreguidelines-pro-bounds-avoid-unchecked-container-access,-clang-diagnostic-pragma-once-outside-header' \
           --warnings-as-errors='bugprone-*' \
           -- -std=c++23 -x c++ -I include -I /usr/include -I /usr/include/botan-2
+
+  # The platforms the cross-platform port has reached. Each builds and runs only
+  # the components ported so far -- IOV2_TEST_COMPONENTS in its preset, today
+  # device -- and grows as the port does; the Linux jobs above stay the full
+  # gate. No container: the GHCR image is Linux-only, and the point here is the
+  # platform's own compiler, standard library and C runtime.
+  portability:
+    name: portability (${{ matrix.name }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      # One platform failing says nothing about the others.
+      fail-fast: false
+      matrix:
+        include:
+          # cl.exe itself, not only clang-cl: it has warnings of its own that /WX
+          # turns into errors, and it is what most Windows users build with.
+          - name: windows-msvc
+            os: windows-latest
+            preset: windows-msvc-release
+            jobs: 4
+          # clang-cl on the MSVC STL and UCRT -- the pairing the local
+          # win-clangcl-xwin preset runs under Wine, here on a real Windows.
+          - name: windows-clang-cl
+            os: windows-latest
+            preset: windows-clangcl-release
+            jobs: 4
+          # Apple clang on libc++: the standard library differs from the
+          # libstdc++ every Linux job uses.
+          - name: macos-clang
+            os: macos-latest
+            preset: macos-clang-release
+            jobs: 3
+
+    steps:
+    - uses: actions/checkout@v6
+
+    - name: Set up the MSVC environment
+      # cl, clang-cl and the linker find the CRT and SDK through what vcvars
+      # sets; the Ninja presets expect it to be in place already.
+      if: runner.os == 'Windows'
+      uses: ilammy/msvc-dev-cmd@v1
+
+    - name: Configure and build
+      working-directory: test
+      run: |
+        cmake --preset ${{ matrix.preset }}
+        cmake --build --preset ${{ matrix.preset }} --parallel ${{ matrix.jobs }}
+
+    - name: Run tests
+      working-directory: test
+      run: ctest --preset ${{ matrix.preset }} --parallel ${{ matrix.jobs }}
