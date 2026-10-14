@@ -42,7 +42,7 @@ namespace
         rlimit small = old;
         small.rlim_cur = 5;
 
-        RWDev dev(kFile, file_open_flag::trunc | file_open_flag::binary);
+        RWDev dev(kFile, file_open_flag::trunc);
         ::setrlimit(RLIMIT_FSIZE, &small);
         if (which == "dput")
         {
@@ -83,7 +83,7 @@ TEST(FileDeviceStaleError, AReadAfterAFailedWriteReachesTheEndCleanly)
 TEST(FileDeviceStaleError, EofStaysStickyOnTheNormalPath)
 {
     file_guard g(kFile, "abc");
-    RWDev dev(kFile, file_open_flag::binary);
+    RWDev dev(kFile);
 
     char buf[16]{};
     EXPECT_EQ(dev.dget(buf, sizeof buf), 3u);

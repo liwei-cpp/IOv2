@@ -58,6 +58,45 @@ set(MEMORYCHECK_COMMAND_OPTIONS
 
 include(CTest)
 
+# Select top-level test components at configure time, not merely at CTest run
+# time. This lets a platform bring up (say) device without first making every
+# unrelated platform backend and optional dependency buildable.
+set(IOV2_TEST_KNOWN_COMPONENTS common concur cvt device facet io locale)
+set(IOV2_TEST_COMPONENTS "all" CACHE STRING
+    "Semicolon-separated top-level test components to configure, or 'all'")
+set_property(CACHE IOV2_TEST_COMPONENTS PROPERTY STRINGS
+    all ${IOV2_TEST_KNOWN_COMPONENTS})
+
+if(IOV2_TEST_COMPONENTS STREQUAL "all")
+  set(IOV2_TEST_SELECTED_COMPONENTS ${IOV2_TEST_KNOWN_COMPONENTS})
+else()
+  set(IOV2_TEST_SELECTED_COMPONENTS "")
+  foreach(component IN LISTS IOV2_TEST_COMPONENTS)
+    if(component STREQUAL "all")
+      message(FATAL_ERROR
+          "IOV2_TEST_COMPONENTS may be 'all' or a component list, but not both")
+    endif()
+    if(NOT component IN_LIST IOV2_TEST_KNOWN_COMPONENTS)
+      list(JOIN IOV2_TEST_KNOWN_COMPONENTS ", " known_components)
+      message(FATAL_ERROR
+          "Unknown IOV2_TEST_COMPONENTS entry '${component}'. Known components: ${known_components}")
+    endif()
+    list(APPEND IOV2_TEST_SELECTED_COMPONENTS "${component}")
+  endforeach()
+  list(REMOVE_DUPLICATES IOV2_TEST_SELECTED_COMPONENTS)
+endif()
+
+if(NOT IOV2_TEST_SELECTED_COMPONENTS)
+  message(FATAL_ERROR "IOV2_TEST_COMPONENTS must select at least one component")
+endif()
+
+# Today only cvt and io suites exercise the optional zlib/Botan converters.
+set(IOV2_TEST_NEEDS_OPTIONAL_DEPS OFF)
+if("cvt" IN_LIST IOV2_TEST_SELECTED_COMPONENTS OR
+   "io" IN_LIST IOV2_TEST_SELECTED_COMPONENTS)
+  set(IOV2_TEST_NEEDS_OPTIONAL_DEPS ON)
+endif()
+
 include(IOv2TestOptions)
 include(IOv2GoogleTest)
 
@@ -76,8 +115,43 @@ if(NOT IOV2_TEST_ALL_SOURCES)
   message(FATAL_ERROR "No test sources found under ${CMAKE_CURRENT_SOURCE_DIR}")
 endif()
 
-set(IOV2_TEST_SUITE_DIRS "")
+# Tests of what only some platforms have sit in a subdirectory named for them:
+# posix/ (signals, O_NONBLOCK, rlimits), linux/ (/dev/full, GNU ld's --wrap),
+# windows/ (text-mode CRLF and Ctrl+Z). Each is built on its platform alone, so
+# test sources need no #ifdef; support/platform.h covers the API differences.
+# Matched on the path below this directory, never on where the checkout lives.
+set(IOV2_TEST_OTHER_PLATFORM_DIRS "")
+if(NOT UNIX)
+  list(APPEND IOV2_TEST_OTHER_PLATFORM_DIRS posix)
+endif()
+if(NOT CMAKE_SYSTEM_NAME STREQUAL "Linux")
+  list(APPEND IOV2_TEST_OTHER_PLATFORM_DIRS linux)
+endif()
+if(NOT WIN32)
+  list(APPEND IOV2_TEST_OTHER_PLATFORM_DIRS windows)
+endif()
+list(JOIN IOV2_TEST_OTHER_PLATFORM_DIRS "|" _other_platforms)
+
+set(IOV2_TEST_SELECTED_SOURCES "")
 foreach(source IN LISTS IOV2_TEST_ALL_SOURCES)
+  file(RELATIVE_PATH source_rel "${CMAKE_CURRENT_SOURCE_DIR}" "${source}")
+  string(REGEX REPLACE "/.*$" "" source_component "${source_rel}")
+  if(NOT source_component IN_LIST IOV2_TEST_SELECTED_COMPONENTS)
+    continue()
+  endif()
+  if(_other_platforms AND source_rel MATCHES "/(${_other_platforms})/")
+    continue()
+  endif()
+  list(APPEND IOV2_TEST_SELECTED_SOURCES "${source}")
+endforeach()
+
+if(NOT IOV2_TEST_SELECTED_SOURCES)
+  message(FATAL_ERROR
+      "IOV2_TEST_COMPONENTS='${IOV2_TEST_COMPONENTS}' selected no test sources")
+endif()
+
+set(IOV2_TEST_SUITE_DIRS "")
+foreach(source IN LISTS IOV2_TEST_SELECTED_SOURCES)
   get_filename_component(source_dir "${source}" DIRECTORY)
   file(RELATIVE_PATH source_dir "${CMAKE_CURRENT_SOURCE_DIR}" "${source_dir}")
   list(APPEND IOV2_TEST_SUITE_DIRS "${source_dir}")
@@ -155,15 +229,15 @@ endforeach()
 # closed between read() and poll(). Elsewhere the macro stays undefined and the
 # tests skip themselves.
 if(UNIX AND NOT APPLE AND CMAKE_SIZEOF_VOID_P EQUAL 8)
-  if(TARGET test_device_std_device_poll_error)
-    target_link_options(test_device_std_device_poll_error PRIVATE "LINKER:--wrap=read")
-    target_compile_definitions(test_device_std_device_poll_error PRIVATE IOV2_TEST_WRAP_READ=1)
+  if(TARGET test_device_std_device_posix_poll_error)
+    target_link_options(test_device_std_device_posix_poll_error PRIVATE "LINKER:--wrap=read")
+    target_compile_definitions(test_device_std_device_posix_poll_error PRIVATE IOV2_TEST_WRAP_READ=1)
   endif()
 endif()
 
 # The plugin is unloadable only if g++ does not make its inline variables
 # STB_GNU_UNIQUE; the test asserts it is still resident after dlclose.
-if(IOV2_TEST_CONSUMER STREQUAL "installed-shared")
+if(IOV2_TEST_CONSUMER STREQUAL "installed-shared" AND TARGET test_io_objects_plugin_unload)
   add_library(test_plugin_cout_number MODULE
       "${CMAKE_CURRENT_SOURCE_DIR}/io/objects/plugin_unload/plugins/test_plugin_cout_number.cpp")
   target_link_libraries(test_plugin_cout_number PRIVATE iov2_test_subject iov2_test_options)
@@ -178,7 +252,7 @@ if(IOV2_TEST_CONSUMER STREQUAL "installed-shared")
       IOV2_TEST_UNLOAD_PLUGIN="$<TARGET_FILE:test_plugin_cout_number>")
 endif()
 
-list(LENGTH IOV2_TEST_ALL_SOURCES IOV2_TEST_SOURCE_TOTAL)
+list(LENGTH IOV2_TEST_SELECTED_SOURCES IOV2_TEST_SOURCE_TOTAL)
 list(LENGTH IOV2_TEST_SUITE_DIRS IOV2_TEST_SUITE_COUNT)
 message(STATUS
     "IOv2 tests: ${IOV2_TEST_SOURCE_TOTAL} sources in "

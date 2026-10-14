@@ -5,28 +5,24 @@
 #include <IOv2/device/device_concepts.h>
 #include <IOv2/device/std_device.h>
 
+#include <support/platform.h>
 #include <support/stdio_guard.h>
 
 #include <gtest/gtest.h>
 
-#include <fcntl.h>
-#include <type_traits>
-#include <unistd.h>
-
 #include <chrono>
-#include <csignal>
 #include <cstdio>
 #include <cstring>
-#include <pthread.h>
 #include <string>
 #include <thread>
+#include <type_traits>
 #include <utility>
 
 using namespace IOv2;
 
 namespace
 {
-    void no_op_signal_handler(int) {}
+    namespace sys = iov2_test::sys;
 
     static_assert(io_device<std_input_device>);
     static_assert(io_device<std_output_device>);
@@ -128,21 +124,21 @@ TEST(StdDevice, AProbedByteStaysFirstInALongerRead)
 TEST(StdDevice, AProbedByteDoesNotWaitForMoreInput)
 {
     int pipefds[2];
-    ASSERT_NE(::pipe(pipefds), -1);
+    ASSERT_NE(sys::pipe(pipefds), -1);
 
-    const int saved_stdin = ::dup(STDIN_FILENO);
-    ::dup2(pipefds[0], STDIN_FILENO);
+    const int saved_stdin = sys::dup(sys::stdin_fd);
+    sys::dup2(pipefds[0], sys::stdin_fd);
 
     std_input_device d;
     char buf[3] = {};
 
-    ASSERT_EQ(::write(pipefds[1], "a", 1), 1);
+    ASSERT_EQ(sys::write(pipefds[1], "a", 1), 1);
     EXPECT_FALSE(d.deof());                        // "a" is now the look-ahead byte
 
     std::thread late_writer([write_fd = pipefds[1]]
     {
         std::this_thread::sleep_for(std::chrono::milliseconds(300));
-        (void)::write(write_fd, "bc", 2);
+        (void)sys::write(write_fd, "bc", 2);
     });
 
     EXPECT_EQ(d.dget(buf, sizeof(buf)), 1u);       // not 3: it must not wait for "bc"
@@ -152,10 +148,10 @@ TEST(StdDevice, AProbedByteDoesNotWaitForMoreInput)
     EXPECT_EQ(d.dget(buf, sizeof(buf)), 2u);
     EXPECT_EQ(std::string(buf, 2), "bc");
 
-    ::dup2(saved_stdin, STDIN_FILENO);
-    ::close(saved_stdin);
-    ::close(pipefds[0]);
-    ::close(pipefds[1]);
+    sys::dup2(saved_stdin, sys::stdin_fd);
+    sys::close(saved_stdin);
+    sys::close(pipefds[0]);
+    sys::close(pipefds[1]);
 }
 
 // The other shape the top-up sees: the peer sent one byte and hung up. That is
@@ -164,16 +160,16 @@ TEST(StdDevice, AProbedByteDoesNotWaitForMoreInput)
 TEST(StdDevice, AProbedByteBeforeAHangupComesBackAndEofFollows)
 {
     int pipefds[2];
-    ASSERT_NE(::pipe(pipefds), -1);
+    ASSERT_NE(sys::pipe(pipefds), -1);
 
-    const int saved_stdin = ::dup(STDIN_FILENO);
-    ::dup2(pipefds[0], STDIN_FILENO);
+    const int saved_stdin = sys::dup(sys::stdin_fd);
+    sys::dup2(pipefds[0], sys::stdin_fd);
 
     std_input_device d;
     char buf[3] = {};
 
-    ASSERT_EQ(::write(pipefds[1], "a", 1), 1);
-    ::close(pipefds[1]);
+    ASSERT_EQ(sys::write(pipefds[1], "a", 1), 1);
+    sys::close(pipefds[1]);
     EXPECT_FALSE(d.deof());                        // "a" is the look-ahead byte
 
     EXPECT_EQ(d.dget(buf, sizeof(buf)), 1u);
@@ -181,9 +177,9 @@ TEST(StdDevice, AProbedByteBeforeAHangupComesBackAndEofFollows)
     EXPECT_TRUE(d.deof());                         // the hang-up was seen during the top-up
     EXPECT_EQ(d.dget(buf, sizeof(buf)), 0u);
 
-    ::dup2(saved_stdin, STDIN_FILENO);
-    ::close(saved_stdin);
-    ::close(pipefds[0]);
+    sys::dup2(saved_stdin, sys::stdin_fd);
+    sys::close(saved_stdin);
+    sys::close(pipefds[0]);
 }
 
 TEST(StdDevice, PutAcceptsANullBufferOnlyForZeroLength)
@@ -419,42 +415,11 @@ TEST(StdDevice, MoveAssignmentHandsOverTheDutyWithoutFlushing)
     std::setvbuf(stdout, nullptr, _IONBF, 0);
 }
 
-// The reason a moved-from device must stay quiet: glibc discards the buffer
-// when fflush fails, so the first flush is the only one that can see the error.
-// If the moved-from object's destructor took that flush, its catch(...) would
-// swallow the failure and the owner's own dflush() would find nothing to report.
-TEST(StdDevice, AMovedFromDeviceDoesNotConsumeTheFlushFailure)
-{
-    bool flush_threw = false;
-    {
-        oguard<true> g;
-        char buffer[BUFSIZ];
-        std::setvbuf(stdout, buffer, _IOFBF, sizeof(buffer));
-
-        const int saved = ::dup(STDOUT_FILENO);
-        std_output_device owner;
-        {
-            std_output_device original;
-            original.dput("some data", 9);      // fills the FILE buffer only
-            owner = std::move(original);
-            ::close(STDOUT_FILENO);
-        }                                       // original dies with the fd gone
-
-        try { owner.dflush(); }
-        catch (const device_error&) { flush_threw = true; }
-
-        ::dup2(saved, STDOUT_FILENO);
-        ::close(saved);
-        std::setvbuf(stdout, nullptr, _IONBF, 0);
-    }
-    EXPECT_TRUE(flush_threw);
-}
-
 // ---------------------------------------------------------------------------
-// Error paths.  The only portable way to make a standard stream fail is to take
-// its descriptor away, so each case closes one, drives the operation, and puts
-// it back before reporting: a failure printed while stdout or stderr is gone
-// would have nowhere to go.
+// A closed descriptor.  Making a standard stream fail by taking its descriptor
+// away is a POSIX technique: the Windows CRT ends the process on I/O to a
+// closed descriptor, so the cases that reach it are in posix/. What stays here
+// never touches the descriptor, and so runs everywhere.
 // ---------------------------------------------------------------------------
 
 namespace
@@ -462,53 +427,30 @@ namespace
     template <typename F>
     bool throws_with_fd_closed(int fd, F&& op)
     {
-        const int saved = ::dup(fd);
-        ::close(fd);
+        const int saved = sys::dup(fd);
+        sys::close(fd);
 
         bool threw = false;
         try { op(); }
         catch (const device_error&) { threw = true; }
 
-        ::dup2(saved, fd);
-        ::close(saved);
+        sys::dup2(saved, fd);
+        sys::close(saved);
         return threw;
     }
 }
 
-TEST(StdDevice, PutFailsWhenStdoutIsClosed)
-{
-    bool threw = false;
-    {
-        oguard<true> g;
-        std_output_device d;
-        threw = throws_with_fd_closed(STDOUT_FILENO, [&] { d.dput("test", 4); });
-    }
-    EXPECT_TRUE(threw);
-}
-
-TEST(StdDevice, PutFailsWhenStderrIsClosed)
-{
-    bool threw = false;
-    {
-        oguard<false> g;
-        std_error_device d;
-        threw = throws_with_fd_closed(STDERR_FILENO, [&] { d.dput("test", 4); });
-    }
-    EXPECT_TRUE(threw);
-}
-
 // dflush() is fflush(), and oguard leaves the stream unbuffered, so there is
 // never anything queued for fflush() to push at the descriptor: it returns 0
-// whether or not the descriptor is still there.  The next two cases pin that,
-// and the two after them give the stream a buffer so that the flush is the call
-// that reaches the descriptor -- which is what makes dflush()'s throw reachable.
+// whether or not the descriptor is still there.  The next two cases pin that;
+// posix/ has the buffered ones, where the flush is what reaches the descriptor.
 TEST(StdDevice, FlushOnAnUnbufferedStdoutSucceedsEvenWithTheDescriptorClosed)
 {
     bool threw = false;
     {
         oguard<true> g;
         std_output_device d;
-        threw = throws_with_fd_closed(STDOUT_FILENO, [&] { d.dflush(); });
+        threw = throws_with_fd_closed(sys::stdout_fd, [&] { d.dflush(); });
     }
     EXPECT_FALSE(threw);
 }
@@ -519,210 +461,7 @@ TEST(StdDevice, FlushOnAnUnbufferedStderrSucceedsEvenWithTheDescriptorClosed)
     {
         oguard<false> g;
         std_error_device d;
-        threw = throws_with_fd_closed(STDERR_FILENO, [&] { d.dflush(); });
+        threw = throws_with_fd_closed(sys::stderr_fd, [&] { d.dflush(); });
     }
     EXPECT_FALSE(threw);
-}
-
-TEST(StdDevice, FlushReportsTheFailedWriteOfABufferedStdout)
-{
-    bool put_threw = false;
-    bool flush_threw = false;
-    {
-        oguard<true> g;
-        std_output_device d;
-
-        // The buffer has to outlive every call that can touch the stream, and
-        // the stream has to be put back to unbuffered before it dies.
-        char buffer[BUFSIZ];
-        std::setvbuf(stdout, buffer, _IOFBF, sizeof(buffer));
-
-        const int saved = ::dup(STDOUT_FILENO);
-        ::close(STDOUT_FILENO);
-
-        // fwrite only fills the buffer, so the write itself still succeeds...
-        try { d.dput("some data", 9); }
-        catch (const device_error&) { put_threw = true; }
-        // ...and the flush is what finds the descriptor gone.
-        try { d.dflush(); }
-        catch (const device_error&) { flush_threw = true; }
-
-        ::dup2(saved, STDOUT_FILENO);
-        ::close(saved);
-        std::setvbuf(stdout, nullptr, _IONBF, 0);
-    }
-    EXPECT_FALSE(put_threw);
-    EXPECT_TRUE(flush_threw);
-}
-
-TEST(StdDevice, FlushReportsTheFailedWriteOfABufferedStderr)
-{
-    bool put_threw = false;
-    bool flush_threw = false;
-    {
-        oguard<false> g;
-        std_error_device d;
-
-        char buffer[BUFSIZ];
-        std::setvbuf(stderr, buffer, _IOFBF, sizeof(buffer));
-
-        const int saved = ::dup(STDERR_FILENO);
-        ::close(STDERR_FILENO);
-
-        try { d.dput("some data", 9); }
-        catch (const device_error&) { put_threw = true; }
-        try { d.dflush(); }
-        catch (const device_error&) { flush_threw = true; }
-
-        ::dup2(saved, STDERR_FILENO);
-        ::close(saved);
-        std::setvbuf(stderr, nullptr, _IONBF, 0);
-    }
-    EXPECT_FALSE(put_threw);
-    EXPECT_TRUE(flush_threw);
-}
-
-TEST(StdDevice, DestructorSuppressesABufferedFlushFailure)
-{
-    bool reached_after_destruction = false;
-    {
-        oguard<true> g;
-        char buffer[BUFSIZ];
-        std::setvbuf(stdout, buffer, _IOFBF, sizeof(buffer));
-
-        const int saved = ::dup(STDOUT_FILENO);
-        {
-            std_output_device d;
-            d.dput("some data", 9);
-            ::close(STDOUT_FILENO);
-        }
-
-        ::dup2(saved, STDOUT_FILENO);
-        ::close(saved);
-        std::setvbuf(stdout, nullptr, _IONBF, 0);
-        reached_after_destruction = true;
-    }
-    EXPECT_TRUE(reached_after_destruction);
-}
-
-TEST(StdDevice, GetFailsWhenStdinIsClosed)
-{
-    iguard g("abc");
-    std_input_device d;
-
-    const bool threw = throws_with_fd_closed(STDIN_FILENO, [&]
-    {
-        char buf = 0;
-        d.dget(&buf, 1);
-    });
-    EXPECT_TRUE(threw);
-}
-
-TEST(StdDevice, GetRetriesReadAndPollAfterSignalInterrupts)
-{
-    struct sigaction action {};
-    struct sigaction old_action {};
-    action.sa_handler = no_op_signal_handler;
-    ::sigemptyset(&action.sa_mask);
-    ASSERT_EQ(::sigaction(SIGUSR1, &action, &old_action), 0);
-
-    const auto run_interrupted_read = [](bool non_blocking)
-    {
-        int pipefds[2];
-        ASSERT_NE(::pipe(pipefds), -1);
-
-        const int saved_stdin = ::dup(STDIN_FILENO);
-        ASSERT_NE(saved_stdin, -1);
-        ASSERT_NE(::dup2(pipefds[0], STDIN_FILENO), -1);
-        if (non_blocking)
-        {
-            const int flags = ::fcntl(STDIN_FILENO, F_GETFL, 0);
-            ASSERT_NE(flags, -1);
-            ASSERT_NE(::fcntl(STDIN_FILENO, F_SETFL, flags | O_NONBLOCK), -1);
-        }
-
-        const pthread_t waiting_thread = ::pthread_self();
-        int signal_result = -1;
-        ssize_t write_result = -1;
-        std::thread interrupter([&]
-        {
-            std::this_thread::sleep_for(std::chrono::milliseconds(30));
-            signal_result = ::pthread_kill(waiting_thread, SIGUSR1);
-            std::this_thread::sleep_for(std::chrono::milliseconds(30));
-            write_result = ::write(pipefds[1], "x", 1);
-        });
-
-        std_input_device d;
-        char ch = 0;
-        std::size_t got = 0;
-        bool threw = false;
-        try { got = d.dget(&ch, 1); }
-        catch (const device_error&) { threw = true; }
-
-        interrupter.join();
-        ::dup2(saved_stdin, STDIN_FILENO);
-        ::close(saved_stdin);
-        ::close(pipefds[0]);
-        ::close(pipefds[1]);
-
-        EXPECT_FALSE(threw);
-        EXPECT_EQ(signal_result, 0);
-        EXPECT_EQ(write_result, 1);
-        EXPECT_EQ(got, 1u);
-        EXPECT_EQ(ch, 'x');
-    };
-
-    run_interrupted_read(false); // interrupts blocking read()
-    run_interrupted_read(true);  // interrupts poll() after EAGAIN
-
-    EXPECT_EQ(::sigaction(SIGUSR1, &old_action, nullptr), 0);
-}
-
-// ---------------------------------------------------------------------------
-// A non-blocking stdin.  dget() must wait for the data it was asked for rather
-// than report a short read, and must recognise the writer hanging up as EOF --
-// which is why this needs a pipe: a regular file is always ready and never ends
-// mid-stream.
-// ---------------------------------------------------------------------------
-
-TEST(StdDevice, GetWaitsOnANonBlockingStdinAndSeesTheHangup)
-{
-    int pipefds[2];
-    ASSERT_NE(::pipe(pipefds), -1);
-
-    const int saved_stdin = ::dup(STDIN_FILENO);
-    ::dup2(pipefds[0], STDIN_FILENO);
-    const int flags = ::fcntl(STDIN_FILENO, F_GETFL, 0);
-    ::fcntl(STDIN_FILENO, F_SETFL, flags | O_NONBLOCK);
-
-    std_input_device d;
-    char buf[5] = {};
-
-    // The data arrives after the read has already started.
-    std::thread t([&]
-    {
-        std::this_thread::sleep_for(std::chrono::milliseconds(50));
-        (void)::write(pipefds[1], "hello", 5);
-    });
-
-    EXPECT_EQ(d.dget(buf, 5), 5u);
-    EXPECT_EQ(std::memcmp(buf, "hello", 5), 0);
-    t.join();
-
-    // Close the write end only after dget() is waiting in poll().  If it were
-    // closed first, read() would return 0 directly and the POLLHUP path would
-    // never be exercised.
-    std::thread closer([write_fd = pipefds[1]]
-    {
-        std::this_thread::sleep_for(std::chrono::milliseconds(50));
-        ::close(write_fd);
-    });
-    EXPECT_EQ(d.dget(buf, 1), 0u);
-    EXPECT_TRUE(d.deof());
-    closer.join();
-    pipefds[1] = -1;
-
-    ::dup2(saved_stdin, STDIN_FILENO);
-    ::close(saved_stdin);
-    ::close(pipefds[0]);
 }

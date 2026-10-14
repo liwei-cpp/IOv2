@@ -43,37 +43,71 @@ set_property(CACHE IOV2_TEST_CONSUMER PROPERTY STRINGS
 # ------------------------------------------------------------------ options
 add_library(iov2_test_options INTERFACE)
 
-# -std=c++23, not -std=gnu++23. target_compile_features(cxx_std_23) would default
-# to extensions on and emit the GNU dialect, which the Makefile does not use.
+# Keep the compiler-specific spelling explicit. GCC/Clang need -std=c++23 rather
+# than the GNU dialect; current MSVC and clang-cl expose C++23 through
+# /std:c++latest.
 set_target_properties(iov2_test_options PROPERTIES INTERFACE_COMPILE_FEATURES "")
-target_compile_options(iov2_test_options INTERFACE -std=c++23)
+if(MSVC)
+  target_compile_options(iov2_test_options INTERFACE
+      /std:c++latest /permissive- /Zc:__cplusplus /utf-8 /W4 /WX)
+else()
+  target_compile_options(iov2_test_options INTERFACE
+      -std=c++23 -Wall -Werror -Wshadow)
+endif()
 
 # POSIX.1-2008: locale_t, newlocale, uselocale and the *_l ctype helpers. The
-# headers do not compile without it. Applied to every mode, as CPPFLAGS is in
-# the Makefile.
-target_compile_definitions(iov2_test_options INTERFACE _POSIX_C_SOURCE=200809L)
-
-target_compile_options(iov2_test_options INTERFACE -Wall -Werror -Wshadow)
+# POSIX implementation does not compile without it. It must not leak into the
+# Windows CRT implementation.
+if(NOT WIN32)
+  target_compile_definitions(iov2_test_options INTERFACE _POSIX_C_SOURCE=200809L)
+endif()
 
 # Per-mode flags, transcribed from test/Makefile. Sanitizer flags must reach the
 # link line as well as the compile line, hence the matching target_link_options.
 if(IOV2_TEST_MODE STREQUAL "release")
-  target_compile_options(iov2_test_options INTERFACE -O3 -g)
+  if(MSVC)
+    target_compile_options(iov2_test_options INTERFACE /O2 /Z7)
+  else()
+    target_compile_options(iov2_test_options INTERFACE -O3 -g)
+  endif()
   target_compile_definitions(iov2_test_options INTERFACE NDEBUG)
 elseif(IOV2_TEST_MODE STREQUAL "debug")
-  target_compile_options(iov2_test_options INTERFACE -g -O0)
+  if(MSVC)
+    target_compile_options(iov2_test_options INTERFACE /Od /Z7)
+  else()
+    target_compile_options(iov2_test_options INTERFACE -g -O0)
+  endif()
 elseif(IOV2_TEST_MODE STREQUAL "sanitizer")
   # No NDEBUG here, matching the Makefile.
-  target_compile_options(iov2_test_options INTERFACE
-      -g -O1 -fsanitize=address,undefined -fno-omit-frame-pointer)
-  target_link_options(iov2_test_options INTERFACE -fsanitize=address,undefined)
+  if(MSVC)
+    # The Windows MSVC ABI supports AddressSanitizer but not UBSan.
+    target_compile_options(iov2_test_options INTERFACE /O1 /Z7 /fsanitize=address)
+  else()
+    target_compile_options(iov2_test_options INTERFACE
+        -g -O1 -fsanitize=address,undefined -fno-omit-frame-pointer)
+    target_link_options(iov2_test_options INTERFACE -fsanitize=address,undefined)
+  endif()
 elseif(IOV2_TEST_MODE STREQUAL "tsan")
-  target_compile_options(iov2_test_options INTERFACE
-      -g -O1 -fsanitize=thread -fno-omit-frame-pointer)
-  target_link_options(iov2_test_options INTERFACE -fsanitize=thread)
+  if(MSVC)
+    message(FATAL_ERROR "IOV2_TEST_MODE=tsan is not supported by the MSVC ABI")
+  else()
+    target_compile_options(iov2_test_options INTERFACE
+        -g -O1 -fsanitize=thread -fno-omit-frame-pointer)
+    target_link_options(iov2_test_options INTERFACE -fsanitize=thread)
+  endif()
 elseif(IOV2_TEST_MODE STREQUAL "coverage")
-  target_compile_options(iov2_test_options INTERFACE -g -O0 --coverage)
-  target_link_options(iov2_test_options INTERFACE --coverage)
+  if(MSVC)
+    if(NOT CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+      message(FATAL_ERROR
+          "Windows coverage requires clang-cl so llvm-cov can export an LCOV report")
+    endif()
+    target_compile_options(iov2_test_options INTERFACE
+        /Od /Z7 -fprofile-instr-generate -fcoverage-mapping)
+    target_link_options(iov2_test_options INTERFACE -fprofile-instr-generate)
+  else()
+    target_compile_options(iov2_test_options INTERFACE -g -O0 --coverage)
+    target_link_options(iov2_test_options INTERFACE --coverage)
+  endif()
 endif()
 
 # ------------------------------------------------- library under test
@@ -114,20 +148,24 @@ else()
   endforeach()
 endif()
 
-# ---------------------------------------------------- third-party libraries
+# --------------------------------------------- optional third-party libraries
 #
 # Only the include directory and the link library are taken from pkg-config.
 # `pkg-config --cflags botan-2` also reports -fstack-protector -m64 -pthread,
 # which test/Makefile does not pass; -fstack-protector in particular changes code
 # generation, so adopting it would make the two builds incomparable. Dropping
-# CFLAGS_OTHER is what keeps this an equivalence migration.
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(BOTAN REQUIRED botan-2)
-find_package(ZLIB REQUIRED)
-
-# Plain INTERFACE, not SYSTEM: -isystem would suppress warnings from these
-# headers, and with -Werror that is the difference between a build the Makefile
-# fails and one CMake lets through.
+# CFLAGS_OTHER is what keeps this an equivalence migration. The target always
+# exists so suite construction stays uniform, but dependency-free component
+# selections leave it empty and perform no discovery.
 add_library(iov2_test_thirdparty INTERFACE)
-target_include_directories(iov2_test_thirdparty INTERFACE ${BOTAN_INCLUDE_DIRS})
-target_link_libraries(iov2_test_thirdparty INTERFACE ${BOTAN_LIBRARIES} ZLIB::ZLIB)
+if(IOV2_TEST_NEEDS_OPTIONAL_DEPS)
+  find_package(PkgConfig REQUIRED)
+  pkg_check_modules(BOTAN REQUIRED botan-2)
+  find_package(ZLIB REQUIRED)
+
+  # Plain INTERFACE, not SYSTEM: -isystem would suppress warnings from these
+  # headers, and with -Werror that is the difference between a build the
+  # Makefile fails and one CMake lets through.
+  target_include_directories(iov2_test_thirdparty INTERFACE ${BOTAN_INCLUDE_DIRS})
+  target_link_libraries(iov2_test_thirdparty INTERFACE ${BOTAN_LIBRARIES} ZLIB::ZLIB)
+endif()

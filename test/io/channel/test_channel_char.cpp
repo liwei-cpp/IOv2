@@ -863,8 +863,8 @@ TEST(ChannelChar, AMovedFromOchannelOverAStdDeviceWritesNothingWhenItDies)
 
     auto moved = []
     {
-        using Buf = IOv2::ochannel<IOv2::std_device<STDOUT_FILENO>, char>;
-        Buf src{IOv2::std_device<STDOUT_FILENO>{}};
+        using Buf = IOv2::ochannel<IOv2::std_output_device, char>;
+        Buf src{IOv2::std_output_device{}};
         src.putn("hello", 5);
         src.flush();                                // into stdio's buffer, not to the fd
         EXPECT_EQ(__fpending(stdout), 5u);

@@ -8,7 +8,7 @@
  * （`char`）与 `wcout` / `wcerr` / `wclog`（`wchar_t`）。
  *
  * `stdout_api` 不由 `ostream` 派生，而是同样把一条 `ochannel`（其下依次是转换器管线与固定 fd
- * 的设备 `std_device<STDOUT_FILENO>` 或 `std_device<STDERR_FILENO>`）与一个 `locale` 组合起来，
+ * 的设备 `std_output_device` 或 `std_error_device`）与一个 `locale` 组合起来，
  * 对外接口来自 `ios_state`（状态位与异常掩码）、`out_tie_target`（tie 刷新用的多态 `try_flush()`）、
  * `ostream_operators`（输出操作）与 `std_stream_common_operators`（`tell()` / `locale()` 等）四个
  * 基类。与 `ostream` 的差别都来自「设备是固定 fd 的进程级单例」：多了 `sync_with_stdio()` /
@@ -83,8 +83,8 @@
  * `wcout` / `wcerr` / `wclog` (`wchar_t`).
  *
  * `stdout_api` does not derive from `ostream`; it combines, in the same way, an `ochannel`
- * (below which sit the converter pipeline and the fixed-fd device `std_device<STDOUT_FILENO>`
- * or `std_device<STDERR_FILENO>`) with a `locale`, and takes its interface from four bases --
+ * (below which sit the converter pipeline and the fixed-fd device `std_output_device`
+ * or `std_error_device`) with a `locale`, and takes its interface from four bases --
  * `ios_state` (the state bits and the exception mask), `out_tie_target` (the polymorphic
  * `try_flush()` used by tie), `ostream_operators` (the output operations) and
  * `std_stream_common_operators` (`tell()` / `locale()` and friends). Every difference from
@@ -200,8 +200,6 @@
 #include <type_traits>
 #include <utility>
 
-#include <unistd.h>
-
 namespace IOv2
 {
 /**
@@ -216,7 +214,7 @@ namespace IOv2
  *
  * 不可复制；具体的流类型（`cout_t` 等）同时派生自 `sing_temp`，作为进程级单例使用。
  *
- * @tparam TDevice 设备类型，必须是 `std_device<STDOUT_FILENO>` 或 `std_device<STDERR_FILENO>`。
+ * @tparam TDevice 设备类型，必须是 `std_output_device` 或 `std_error_device`。
  * @tparam TChar 字符类型（`char` 或 `wchar_t`）。
  * @endif
  *
@@ -235,14 +233,13 @@ namespace IOv2
  * Not copyable; the concrete stream types (`cout_t` and the rest) also derive from
  * `sing_temp` and are used as process-wide singletons.
  *
- * @tparam TDevice The device type; must be `std_device<STDOUT_FILENO>` or
- *         `std_device<STDERR_FILENO>`.
+ * @tparam TDevice The device type; must be `std_output_device` or `std_error_device`.
  * @tparam TChar The character type (`char` or `wchar_t`).
  * @endif
  */
 template <io_device TDevice, typename TChar>
-    requires (std::is_same_v<TDevice, std_device<STDOUT_FILENO>> ||
-              std::is_same_v<TDevice, std_device<STDERR_FILENO>>)
+    requires (std::is_same_v<TDevice, std_output_device> ||
+              std::is_same_v<TDevice, std_error_device>)
 class stdout_api : public ios_state<TChar>
                  , public out_tie_target<stdout_api<TDevice, TChar>>
                  , public ostream_operators<TChar>
@@ -870,10 +867,10 @@ private:
  * see the file header) and it is never destroyed.
  * @endif
  */
-class cout_t : public stdout_api<std_device<STDOUT_FILENO>, char>
+class cout_t : public stdout_api<std_output_device, char>
              , public sing_temp<cout_t>
 {
-    using BT = stdout_api<std_device<STDOUT_FILENO>, char>;
+    using BT = stdout_api<std_output_device, char>;
     friend sing_temp<cout_t>;
 
 private:
@@ -925,10 +922,10 @@ inline cout_t&      cout = _cout_init.get();
  * `ios_defs::unitbuf` at construction.
  * @endif
  */
-class cerr_t : public stdout_api<std_device<STDERR_FILENO>, char>
+class cerr_t : public stdout_api<std_error_device, char>
              , public sing_temp<cerr_t>
 {
-    using BT = stdout_api<std_device<STDERR_FILENO>, char>;
+    using BT = stdout_api<std_error_device, char>;
     friend sing_temp<cerr_t>;
 
 private:
@@ -982,10 +979,10 @@ inline cerr_t&      cerr = _cerr_init.get();
  * see the file header) and it is never destroyed.
  * @endif
  */
-class clog_t : public stdout_api<std_device<STDERR_FILENO>, char>
+class clog_t : public stdout_api<std_error_device, char>
              , public sing_temp<clog_t>
 {
-    using BT = stdout_api<std_device<STDERR_FILENO>, char>;
+    using BT = stdout_api<std_error_device, char>;
     friend sing_temp<clog_t>;
 
 private:
@@ -1037,10 +1034,10 @@ inline clog_t&      clog = _clog_init.get();
  * best-effort flush; see the file header) and it is never destroyed.
  * @endif
  */
-class wcout_t : public stdout_api<std_device<STDOUT_FILENO>, wchar_t>
+class wcout_t : public stdout_api<std_output_device, wchar_t>
               , public sing_temp<wcout_t>
 {
-    using BT = stdout_api<std_device<STDOUT_FILENO>, wchar_t>;
+    using BT = stdout_api<std_output_device, wchar_t>;
     friend sing_temp<wcout_t>;
 
 private:
@@ -1095,10 +1092,10 @@ inline wcout_t&      wcout = _wcout_init.get();
  * ties itself to `wcout` and sets `ios_defs::unitbuf` at construction.
  * @endif
  */
-class wcerr_t : public stdout_api<std_device<STDERR_FILENO>, wchar_t>
+class wcerr_t : public stdout_api<std_error_device, wchar_t>
               , public sing_temp<wcerr_t>
 {
-    using BT = stdout_api<std_device<STDERR_FILENO>, wchar_t>;
+    using BT = stdout_api<std_error_device, wchar_t>;
     friend sing_temp<wcerr_t>;
 
 private:
@@ -1154,10 +1151,10 @@ inline wcerr_t&      wcerr = _wcerr_init.get();
  * best-effort flush; see the file header) and it is never destroyed.
  * @endif
  */
-class wclog_t : public stdout_api<std_device<STDERR_FILENO>, wchar_t>
+class wclog_t : public stdout_api<std_error_device, wchar_t>
               , public sing_temp<wclog_t>
 {
-    using BT = stdout_api<std_device<STDERR_FILENO>, wchar_t>;
+    using BT = stdout_api<std_error_device, wchar_t>;
     friend sing_temp<wclog_t>;
 
 private:
