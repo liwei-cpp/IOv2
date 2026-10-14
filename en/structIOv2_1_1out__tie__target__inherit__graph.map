@@ -1,0 +1,25 @@
+<map id="IOv2::out_tie_target&lt; T &gt;" name="IOv2::out_tie_target&lt; T &gt;">
+<area shape="rect" id="Node000001" title="CRTP base carrying the polymorphic try_flush(): the down&#45;cast to the concrete stream type T is locali..." alt="" coords="176,147,365,172"/>
+<area shape="rect" id="Node000003" href="$classIOv2_1_1stdout__api.html" title=" " alt="" coords="429,43,592,83"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="309,138,412,93,445,81,447,86,414,98,311,143"/>
+<area shape="rect" id="Node000006" href="$classIOv2_1_1stdout__api.html" title=" " alt="" coords="425,107,597,147"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="378,142,424,136,425,141,379,148"/>
+<area shape="rect" id="Node000008" href="$classIOv2_1_1stdout__api.html" title=" " alt="" coords="419,171,603,211"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="379,171,419,176,418,182,379,176"/>
+<area shape="rect" id="Node000011" href="$classIOv2_1_1stdout__api.html" title=" " alt="" coords="413,241,608,281"/>
+<area shape="poly" id="edge10_Node000001_Node000011" title=" " alt="" coords="312,175,414,221,457,238,455,243,412,226,310,180"/>
+<area shape="rect" id="Node000002" href="$classIOv2_1_1tie__target.html" title="Abstract base carrying the polymorphic try_flush() interface." alt="" coords="5,147,128,172"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="142,157,176,157,176,162,142,162"/>
+<area shape="rect" id="Node000004" href="$classIOv2_1_1cerr__t.html" title="The type of the standard error stream cerr (char)." alt="" coords="663,5,760,31"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="605,39,662,26,663,31,607,44"/>
+<area shape="rect" id="Node000005" href="$classIOv2_1_1clog__t.html" title="The type of the standard log stream clog (char)." alt="" coords="662,55,761,80"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="606,63,662,64,662,69,606,68"/>
+<area shape="rect" id="Node000007" href="$classIOv2_1_1cout__t.html" title="The type of the standard output stream cout (char)." alt="" coords="661,111,761,136"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="610,123,661,122,661,127,611,128"/>
+<area shape="rect" id="Node000009" href="$classIOv2_1_1wcerr__t.html" title="The type of the wide standard error stream wcerr (wchar_t)." alt="" coords="657,160,765,185"/>
+<area shape="poly" id="edge8_Node000008_Node000009" title=" " alt="" coords="616,179,657,175,657,180,617,184"/>
+<area shape="rect" id="Node000010" href="$classIOv2_1_1wclog__t.html" title="The type of the wide standard log stream wclog (wchar_t)." alt="" coords="656,209,767,235"/>
+<area shape="poly" id="edge9_Node000008_Node000010" title=" " alt="" coords="616,205,656,211,655,216,616,210"/>
+<area shape="rect" id="Node000012" href="$classIOv2_1_1wcout__t.html" title="The type of the wide standard output stream wcout (wchar_t)." alt="" coords="656,259,767,284"/>
+<area shape="poly" id="edge11_Node000011_Node000012" title=" " alt="" coords="622,264,656,266,656,271,621,269"/>
+</map>

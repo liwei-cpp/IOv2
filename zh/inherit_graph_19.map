@@ -1,0 +1,109 @@
+<map id="类继承关系图" name="类继承关系图">
+<area shape="rect" id="Node000000" href="$structIOv2_1_1basic__stream__common__operators.html" title="为输入流与输出流提供公共操作的混入（mix&#45;in）基类。" alt="" coords="243,426,466,466"/>
+<area shape="rect" id="Node000001" href="$classIOv2_1_1stdin__api.html" title=" " alt="" coords="543,55,706,95"/>
+<area shape="poly" id="edge27_Node000000_Node000001" title=" " alt="" coords="465,416,470,411,484,392,494,373,503,336,501,299,494,261,487,223,485,184,493,145,518,106,542,88,545,92,522,109,498,147,490,185,492,222,499,260,506,298,508,336,499,375,489,395,474,414,469,420"/>
+<area shape="rect" id="Node000005" href="$classIOv2_1_1stdin__api.html" title=" " alt="" coords="531,119,718,159"/>
+<area shape="poly" id="edge29_Node000000_Node000005" title=" " alt="" coords="465,416,470,411,490,381,498,352,498,323,494,293,490,262,489,232,498,201,518,170,532,157,536,161,522,173,502,203,495,232,495,262,499,292,503,322,503,353,495,384,474,414,469,420"/>
+<area shape="rect" id="Node000011" href="$classIOv2_1_1stdout__api.html" title=" " alt="" coords="543,769,706,809"/>
+<area shape="poly" id="edge31_Node000000_Node000011" title=" " alt="" coords="471,473,474,476,497,512,506,547,505,582,499,617,493,652,492,686,500,720,522,755,545,772,542,776,518,758,495,722,487,687,488,651,494,616,500,582,501,548,492,514,470,480,467,477"/>
+<area shape="rect" id="Node000017" href="$classIOv2_1_1stdout__api.html" title=" " alt="" coords="539,933,711,973"/>
+<area shape="poly" id="edge34_Node000000_Node000017" title=" " alt="" coords="471,473,474,476,495,505,508,533,516,561,519,589,513,644,499,699,486,754,480,808,482,836,490,863,502,891,522,919,540,934,537,938,518,922,498,894,485,865,477,836,475,808,481,753,494,698,508,644,513,589,511,562,503,535,490,507,470,480,467,477"/>
+<area shape="rect" id="Node000020" href="$classIOv2_1_1stdout__api.html" title=" " alt="" coords="533,605,717,645"/>
+<area shape="poly" id="edge36_Node000000_Node000020" title=" " alt="" coords="468,471,474,476,486,490,494,505,499,534,504,562,510,576,522,589,541,602,538,607,518,593,506,579,499,564,494,535,489,507,482,493,470,480,465,476"/>
+<area shape="rect" id="Node000025" href="$classIOv2_1_1stdout__api.html" title=" " alt="" coords="527,1047,722,1087"/>
+<area shape="poly" id="edge39_Node000000_Node000025" title=" " alt="" coords="471,473,474,476,487,498,496,525,505,592,504,671,499,756,494,842,493,921,501,987,510,1013,522,1034,534,1045,531,1049,518,1037,505,1015,496,988,488,921,489,842,494,756,499,671,499,592,491,526,482,500,470,480,467,477"/>
+<area shape="rect" id="Node000009" href="$classIOv2_1_1iostream.html" title="双向字符流：把一条 iochannel 与一个 locale 组合成带格式化的输入输出接口。" alt="" coords="529,311,720,351"/>
+<area shape="poly" id="edge41_Node000000_Node000009" title=" " alt="" coords="456,418,471,410,485,399,494,387,503,374,519,361,542,349,545,354,521,366,507,377,498,390,489,402,473,415,458,423"/>
+<area shape="rect" id="Node000036" href="$classIOv2_1_1istream.html" title="字符输入流：把一条 ichannel 与一个 locale 组合成带格式化的输入接口。" alt="" coords="533,183,716,223"/>
+<area shape="poly" id="edge42_Node000000_Node000036" title=" " alt="" coords="464,416,470,411,486,390,493,368,494,324,494,279,502,256,518,233,533,221,537,226,522,237,506,259,499,280,499,324,498,369,491,392,474,414,468,420"/>
+<area shape="rect" id="Node000032" href="$classIOv2_1_1ostream.html" title="字符输出流：把一条 ochannel 与一个 locale 组合成带格式化的输出接口。" alt="" coords="531,426,718,466"/>
+<area shape="poly" id="edge43_Node000000_Node000032" title=" " alt="" coords="480,443,531,443,531,449,480,449"/>
+<area shape="rect" id="Node000037" href="$classIOv2_1_1stdin__api.html" title="标准输入流（cin / wcin）的实现模板。" alt="" coords="529,247,720,287"/>
+<area shape="poly" id="edge44_Node000000_Node000037" title=" " alt="" coords="463,416,470,411,482,397,489,384,494,356,499,327,506,312,518,297,535,285,538,290,522,301,510,315,504,328,499,357,494,386,486,400,474,415,466,421"/>
+<area shape="rect" id="Node000034" href="$classIOv2_1_1stdout__api.html" title="标准输出流（cout / cerr / clog 及三个宽流）的实现模板。" alt="" coords="525,490,725,530"/>
+<area shape="poly" id="edge45_Node000000_Node000034" title=" " alt="" coords="454,467,540,487,539,493,453,472"/>
+<area shape="rect" id="Node000002" href="$classIOv2_1_1cin__t.html" title="标准输入流 cin（char）的类型。" alt="" coords="787,35,878,60"/>
+<area shape="poly" id="edge28_Node000001_Node000002" title=" " alt="" coords="720,60,787,51,787,56,721,65"/>
+<area shape="rect" id="Node000006" href="$classIOv2_1_1wcin__t.html" title="宽字符标准输入流 wcin（wchar_t）的类型。" alt="" coords="781,252,884,277"/>
+<area shape="poly" id="edge30_Node000005_Node000006" title=" " alt="" coords="718,162,731,169,759,188,785,210,823,250,819,254,781,214,756,192,728,174,716,167"/>
+<area shape="rect" id="Node000012" href="$classIOv2_1_1cerr__t.html" title="标准错误流 cerr（char）的类型。" alt="" coords="784,748,881,773"/>
+<area shape="poly" id="edge32_Node000011_Node000012" title=" " alt="" coords="720,773,783,765,784,770,721,778"/>
+<area shape="rect" id="Node000014" href="$classIOv2_1_1clog__t.html" title="标准日志流 clog（char）的类型。" alt="" coords="783,816,882,841"/>
+<area shape="poly" id="edge33_Node000011_Node000014" title=" " alt="" coords="721,804,784,817,782,822,720,810"/>
+<area shape="rect" id="Node000018" href="$classIOv2_1_1cout__t.html" title="标准输出流 cout（char）的类型。" alt="" coords="783,912,883,937"/>
+<area shape="poly" id="edge35_Node000017_Node000018" title=" " alt="" coords="724,937,782,929,782,934,725,942"/>
+<area shape="rect" id="Node000021" href="$classIOv2_1_1wcerr__t.html" title="宽字符标准错误流 wcerr（wchar_t）的类型。" alt="" coords="779,584,887,609"/>
+<area shape="poly" id="edge37_Node000020_Node000021" title=" " alt="" coords="730,608,778,601,779,606,731,613"/>
+<area shape="rect" id="Node000023" href="$classIOv2_1_1wclog__t.html" title="宽字符标准日志流 wclog（wchar_t）的类型。" alt="" coords="777,652,888,677"/>
+<area shape="poly" id="edge38_Node000020_Node000023" title=" " alt="" coords="731,642,777,651,776,657,730,648"/>
+<area shape="rect" id="Node000026" href="$classIOv2_1_1wcout__t.html" title="宽字符标准输出流 wcout（wchar_t）的类型。" alt="" coords="777,1025,888,1051"/>
+<area shape="poly" id="edge40_Node000025_Node000026" title=" " alt="" coords="735,1049,776,1043,777,1048,736,1054"/>
+<area shape="rect" id="Node000038" href="$classIOv2_1_1ios__base.html" title="所有流的格式化状态基类。" alt="" coords="5,819,189,844"/>
+<area shape="rect" id="Node000039" href="$structIOv2_1_1ios__state.html" title=" " alt="" coords="266,819,443,844"/>
+<area shape="poly" id="edge46_Node000038_Node000039" title=" " alt="" coords="203,829,266,829,266,834,203,834"/>
+<area shape="rect" id="Node000040" href="$structIOv2_1_1ios__state.html" title=" " alt="" coords="255,868,455,893"/>
+<area shape="poly" id="edge47_Node000038_Node000040" title=" " alt="" coords="178,844,288,865,287,871,177,849"/>
+<area shape="rect" id="Node000004" href="$structIOv2_1_1ios__state.html" title="在格式化状态之上，管理流状态位及其关联异常的组件。" alt="" coords="261,569,448,595"/>
+<area shape="poly" id="edge48_Node000038_Node000004" title=" " alt="" coords="105,804,122,760,149,706,187,651,210,626,236,605,260,592,262,597,239,610,214,630,191,655,154,709,127,763,110,806"/>
+<area shape="poly" id="edge49_Node000004_Node000001" title=" " alt="" coords="458,565,470,555,491,527,505,500,513,472,515,445,510,390,496,335,481,279,475,222,477,193,484,164,498,135,518,105,541,87,545,92,522,109,502,138,489,166,482,194,480,222,487,278,501,333,515,389,521,445,518,473,510,502,495,530,474,558,462,569"/>
+<area shape="poly" id="edge50_Node000004_Node000005" title=" " alt="" coords="458,565,470,555,488,531,500,508,508,485,510,461,506,414,495,366,484,318,479,269,482,245,488,220,500,195,518,170,532,157,535,161,522,173,505,197,493,222,487,246,485,269,489,317,501,365,512,413,516,461,513,486,505,510,493,534,474,559,462,569"/>
+<area shape="poly" id="edge51_Node000004_Node000011" title=" " alt="" coords="462,597,474,605,489,624,497,643,499,681,501,719,508,737,522,755,545,770,542,775,518,759,503,739,496,720,494,681,492,644,485,627,470,609,459,601"/>
+<area shape="poly" id="edge52_Node000004_Node000017" title=" " alt="" coords="462,595,474,605,490,625,500,645,510,684,508,724,500,763,492,802,490,841,498,880,508,899,522,919,540,933,537,938,518,923,503,902,493,882,485,841,487,801,495,762,503,723,505,685,495,647,485,628,470,609,459,600"/>
+<area shape="poly" id="edge53_Node000004_Node000020" title=" " alt="" coords="449,594,533,608,532,613,449,599"/>
+<area shape="poly" id="edge54_Node000004_Node000025" title=" " alt="" coords="462,595,474,606,495,633,508,660,516,686,519,713,514,767,501,820,488,873,482,926,484,953,491,980,503,1006,522,1034,535,1045,531,1049,518,1037,498,1009,486,981,479,954,476,926,482,872,496,819,509,766,514,713,511,687,503,661,490,635,470,609,458,599"/>
+<area shape="poly" id="edge55_Node000004_Node000009" title=" " alt="" coords="459,564,470,555,487,532,495,509,496,485,494,461,492,437,493,412,501,386,518,362,533,350,536,354,522,365,505,389,498,412,498,436,500,461,502,485,500,510,492,535,474,559,462,568"/>
+<area shape="poly" id="edge56_Node000004_Node000036" title=" " alt="" coords="459,564,470,555,486,535,496,516,505,477,503,438,495,398,487,358,484,317,492,275,503,254,518,234,532,221,535,225,522,237,507,257,498,277,489,317,492,357,500,397,508,437,511,478,501,518,490,538,474,559,462,569"/>
+<area shape="poly" id="edge57_Node000004_Node000032" title=" " alt="" coords="459,561,470,555,487,537,494,517,501,496,518,476,538,464,541,468,522,480,506,499,499,519,491,539,474,559,462,566"/>
+<area shape="poly" id="edge58_Node000004_Node000037" title=" " alt="" coords="458,564,470,555,492,524,500,493,500,462,495,430,490,397,489,364,497,331,518,298,532,285,536,289,522,301,502,333,494,365,495,397,500,429,505,461,505,494,497,526,474,558,462,568"/>
+<area shape="poly" id="edge59_Node000004_Node000034" title=" " alt="" coords="431,564,471,554,558,528,559,533,473,559,433,569"/>
+<area shape="rect" id="Node000008" href="$structIOv2_1_1istream__operators.html" title="为输入流提供各类提取操作的混入（mix&#45;in）基类。" alt="" coords="265,138,444,178"/>
+<area shape="poly" id="edge60_Node000008_Node000001" title=" " alt="" coords="433,131,558,93,559,98,435,136"/>
+<area shape="poly" id="edge61_Node000008_Node000005" title=" " alt="" coords="458,148,531,143,531,148,458,154"/>
+<area shape="poly" id="edge62_Node000008_Node000009" title=" " alt="" coords="458,177,474,188,486,202,493,216,499,244,504,271,510,284,522,297,539,309,536,313,518,301,506,287,499,273,494,245,488,218,482,205,470,192,455,182"/>
+<area shape="poly" id="edge63_Node000008_Node000036" title=" " alt="" coords="458,173,534,185,533,191,457,178"/>
+<area shape="poly" id="edge64_Node000008_Node000037" title=" " alt="" coords="459,180,473,188,489,199,498,211,507,222,521,233,546,245,544,250,519,238,504,226,494,214,485,203,471,192,456,185"/>
+<area shape="rect" id="Node000010" href="$structIOv2_1_1ostream__operators.html" title="为输出流提供各类插入操作的混入（mix&#45;in）基类。" alt="" coords="263,698,446,738"/>
+<area shape="poly" id="edge65_Node000010_Node000011" title=" " alt="" coords="446,739,548,766,547,771,444,744"/>
+<area shape="poly" id="edge66_Node000010_Node000017" title=" " alt="" coords="458,743,474,756,489,777,497,798,498,840,500,880,507,899,522,919,540,932,537,937,518,923,503,902,495,881,493,840,491,799,484,780,470,760,454,747"/>
+<area shape="poly" id="edge67_Node000010_Node000020" title=" " alt="" coords="451,691,471,684,495,670,519,656,553,642,555,647,521,660,497,674,473,688,453,696"/>
+<area shape="poly" id="edge68_Node000010_Node000025" title=" " alt="" coords="460,743,474,756,496,792,505,828,504,863,498,898,493,932,492,965,500,999,522,1034,535,1045,532,1049,518,1037,495,1001,486,966,487,931,493,897,498,863,499,829,491,794,470,760,456,747"/>
+<area shape="poly" id="edge69_Node000010_Node000009" title=" " alt="" coords="456,696,470,684,485,664,495,645,504,605,502,566,494,526,486,486,484,445,492,403,503,383,518,362,532,349,535,353,522,365,507,385,497,405,489,445,491,485,499,525,507,565,509,605,500,646,490,667,474,688,460,700"/>
+<area shape="poly" id="edge70_Node000010_Node000032" title=" " alt="" coords="457,695,470,684,488,659,495,634,496,609,494,583,491,556,492,530,500,503,518,476,533,464,536,468,522,480,504,505,497,531,496,556,499,582,502,608,501,635,493,661,474,688,460,699"/>
+<area shape="poly" id="edge71_Node000010_Node000034" title=" " alt="" coords="457,694,470,684,484,667,491,650,494,614,496,577,504,559,518,540,534,528,537,532,522,544,508,561,502,578,499,614,496,651,488,670,474,688,460,699"/>
+<area shape="rect" id="Node000013" href="$classIOv2_1_1sing__temp.html" title=" " alt="" coords="527,719,722,744"/>
+<area shape="poly" id="edge72_Node000013_Node000012" title=" " alt="" coords="729,743,784,751,783,756,728,749"/>
+<area shape="rect" id="Node000003" href="$classIOv2_1_1sing__temp.html" title=" " alt="" coords="530,5,719,31"/>
+<area shape="poly" id="edge73_Node000003_Node000002" title=" " alt="" coords="729,30,787,38,787,44,728,35"/>
+<area shape="rect" id="Node000015" href="$classIOv2_1_1sing__temp.html" title=" " alt="" coords="526,833,723,859"/>
+<area shape="poly" id="edge74_Node000015_Node000014" title=" " alt="" coords="737,834,783,830,783,835,738,839"/>
+<area shape="rect" id="Node000019" href="$classIOv2_1_1sing__temp.html" title=" " alt="" coords="525,883,724,908"/>
+<area shape="poly" id="edge75_Node000019_Node000018" title=" " alt="" coords="729,907,783,915,782,920,728,913"/>
+<area shape="rect" id="Node000022" href="$classIOv2_1_1sing__temp.html" title=" " alt="" coords="521,555,728,580"/>
+<area shape="poly" id="edge76_Node000022_Node000021" title=" " alt="" coords="729,579,779,586,778,592,728,585"/>
+<area shape="rect" id="Node000007" href="$classIOv2_1_1sing__temp.html" title=" " alt="" coords="525,376,725,401"/>
+<area shape="poly" id="edge77_Node000007_Node000006" title=" " alt="" coords="711,369,728,361,757,341,783,318,820,276,824,279,786,322,760,346,731,366,713,374"/>
+<area shape="rect" id="Node000024" href="$classIOv2_1_1sing__temp.html" title=" " alt="" coords="521,669,729,695"/>
+<area shape="poly" id="edge78_Node000024_Node000023" title=" " alt="" coords="743,669,777,667,777,672,743,675"/>
+<area shape="rect" id="Node000027" href="$classIOv2_1_1sing__temp.html" title=" " alt="" coords="520,997,729,1023"/>
+<area shape="poly" id="edge79_Node000027_Node000026" title=" " alt="" coords="733,1022,778,1028,777,1033,732,1027"/>
+<area shape="rect" id="Node000028" href="$classIOv2_1_1tie__target.html" title="承载多态 try_flush() 接口的抽象基类。" alt="" coords="36,433,159,459"/>
+<area shape="rect" id="Node000029" href="$structIOv2_1_1out__tie__target.html" title=" " alt="" coords="266,347,443,401"/>
+<area shape="poly" id="edge80_Node000028_Node000029" title=" " alt="" coords="156,427,265,396,266,401,158,432"/>
+<area shape="rect" id="Node000030" href="$structIOv2_1_1out__tie__target.html" title=" " alt="" coords="271,203,438,257"/>
+<area shape="poly" id="edge81_Node000028_Node000030" title=" " alt="" coords="110,420,159,345,194,304,236,268,270,249,272,254,239,272,198,308,163,349,114,423"/>
+<area shape="rect" id="Node000031" href="$structIOv2_1_1out__tie__target.html" title=" " alt="" coords="237,282,472,322"/>
+<area shape="poly" id="edge83_Node000028_Node000031" title=" " alt="" coords="118,422,169,376,202,352,236,332,264,320,266,325,239,336,205,357,173,380,122,426"/>
+<area shape="rect" id="Node000033" href="$structIOv2_1_1out__tie__target.html" title=" " alt="" coords="266,619,443,673"/>
+<area shape="poly" id="edge85_Node000028_Node000033" title=" " alt="" coords="116,469,165,536,200,573,239,605,267,620,265,625,236,610,196,577,161,540,111,472"/>
+<area shape="rect" id="Node000035" href="$structIOv2_1_1out__tie__target.html" title=" " alt="" coords="266,491,443,545"/>
+<area shape="poly" id="edge87_Node000028_Node000035" title=" " alt="" coords="158,460,266,491,265,496,156,465"/>
+<area shape="rect" id="Node000016" href="$structIOv2_1_1out__tie__target.html" title="承载多态 try_flush() 的 CRTP 基类：对具体流类型 T 的向下转型集中于此。" alt="" coords="260,769,449,795"/>
+<area shape="poly" id="edge88_Node000028_Node000016" title=" " alt="" coords="106,471,119,529,144,604,161,643,183,682,209,717,239,748,273,767,270,772,236,752,205,721,178,684,156,646,139,606,114,530,100,473"/>
+<area shape="poly" id="edge82_Node000030_Node000009" title=" " alt="" coords="452,258,473,268,497,283,521,297,551,309,549,314,519,302,495,287,471,272,449,263"/>
+<area shape="poly" id="edge84_Node000031_Node000032" title=" " alt="" coords="466,327,474,332,491,352,499,372,506,392,522,411,543,424,540,428,518,415,501,394,494,374,486,354,470,336,463,331"/>
+<area shape="poly" id="edge86_Node000033_Node000034" title=" " alt="" coords="455,615,470,605,485,590,494,573,502,556,518,540,540,528,542,532,522,544,506,560,498,576,490,593,474,609,458,619"/>
+<area shape="poly" id="edge89_Node000016_Node000011" title=" " alt="" coords="463,782,543,784,543,789,463,787"/>
+<area shape="poly" id="edge90_Node000016_Node000017" title=" " alt="" coords="463,798,474,805,487,819,494,834,499,863,504,892,510,905,522,919,540,931,537,935,518,923,506,908,499,893,494,864,489,835,482,822,470,809,460,802"/>
+<area shape="poly" id="edge91_Node000016_Node000020" title=" " alt="" coords="447,762,470,748,487,726,494,704,500,680,518,656,539,643,542,647,522,660,505,682,499,705,492,729,474,752,450,766"/>
+<area shape="poly" id="edge92_Node000016_Node000025" title=" " alt="" coords="463,797,474,806,495,834,503,863,504,892,500,921,496,949,496,977,503,1005,522,1034,536,1045,533,1049,518,1037,498,1008,491,978,491,949,495,920,498,891,498,864,490,836,470,809,460,801"/>
+</map>

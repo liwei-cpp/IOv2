@@ -1,0 +1,41 @@
+<map id="IOv2::basic_stream_common_operators&lt; is_std &gt;" name="IOv2::basic_stream_common_operators&lt; is_std &gt;">
+<area shape="rect" id="Node000001" title="Mix&#45;in base that provides operations common to input and output streams." alt="" coords="5,327,228,367"/>
+<area shape="rect" id="Node000002" href="$classIOv2_1_1stdin__api.html" title=" " alt="" coords="295,5,457,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="125,313,144,257,175,188,218,117,244,84,274,55,293,43,296,48,278,59,248,88,222,120,179,190,149,259,130,314"/>
+<area shape="rect" id="Node000004" href="$classIOv2_1_1stdin__api.html" title=" " alt="" coords="283,69,469,109"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="131,312,153,269,185,218,226,166,274,121,297,107,300,112,278,125,230,169,190,221,158,272,135,315"/>
+<area shape="rect" id="Node000006" href="$classIOv2_1_1stdout__api.html" title=" " alt="" coords="295,135,457,175"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="139,314,196,249,234,214,275,184,298,172,301,177,277,189,237,218,200,253,143,317"/>
+<area shape="rect" id="Node000009" href="$classIOv2_1_1stdout__api.html" title=" " alt="" coords="290,199,462,239"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="156,317,211,282,275,248,305,236,307,241,277,253,214,287,159,321"/>
+<area shape="rect" id="Node000011" href="$classIOv2_1_1stdout__api.html" title=" " alt="" coords="284,263,468,303"/>
+<area shape="poly" id="edge10_Node000001_Node000011" title=" " alt="" coords="211,321,294,300,295,305,212,326"/>
+<area shape="rect" id="Node000014" href="$classIOv2_1_1stdout__api.html" title=" " alt="" coords="279,327,473,367"/>
+<area shape="poly" id="edge13_Node000001_Node000014" title=" " alt="" coords="242,344,279,344,279,349,242,349"/>
+<area shape="rect" id="Node000016" href="$classIOv2_1_1iostream.html" title="Bidirectional character stream: combines an iochannel and a locale into a formatted input/output inte..." alt="" coords="281,391,471,431"/>
+<area shape="poly" id="edge15_Node000001_Node000016" title=" " alt="" coords="212,367,295,388,294,393,211,373"/>
+<area shape="rect" id="Node000017" href="$classIOv2_1_1istream.html" title="Character input stream: combines an ichannel and a locale into a formatted input interface." alt="" coords="285,455,467,495"/>
+<area shape="poly" id="edge16_Node000001_Node000017" title=" " alt="" coords="159,372,214,407,277,440,307,452,305,457,275,445,211,411,156,377"/>
+<area shape="rect" id="Node000018" href="$classIOv2_1_1ostream.html" title="Character output stream: combines an ochannel and a locale into a formatted output interface." alt="" coords="283,519,469,559"/>
+<area shape="poly" id="edge17_Node000001_Node000018" title=" " alt="" coords="143,376,200,441,237,475,277,504,301,516,298,521,275,509,234,479,196,445,139,379"/>
+<area shape="rect" id="Node000019" href="$classIOv2_1_1stdin__api.html" title="The implementation template behind the standard input streams (cin / wcin)." alt="" coords="281,583,471,623"/>
+<area shape="poly" id="edge18_Node000001_Node000019" title=" " alt="" coords="135,378,157,421,189,472,229,524,278,569,298,580,295,585,274,573,226,528,185,475,153,424,130,380"/>
+<area shape="rect" id="Node000020" href="$classIOv2_1_1stdout__api.html" title="The implementation template behind the standard output streams (cout / cerr / clog and the three wide..." alt="" coords="276,647,476,687"/>
+<area shape="poly" id="edge19_Node000001_Node000020" title=" " alt="" coords="130,379,149,434,179,502,222,572,248,604,278,633,296,644,293,649,274,637,244,608,218,576,175,505,144,436,125,381"/>
+<area shape="rect" id="Node000003" href="$classIOv2_1_1cin__t.html" title="The type of the standard input stream cin (char)." alt="" coords="534,10,625,35"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="471,21,534,21,534,26,471,27"/>
+<area shape="rect" id="Node000005" href="$classIOv2_1_1wcin__t.html" title="The type of the wide standard input stream wcin (wchar_t)." alt="" coords="528,59,631,85"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="483,78,527,74,528,79,483,83"/>
+<area shape="rect" id="Node000007" href="$classIOv2_1_1cerr__t.html" title="The type of the standard error stream cerr (char)." alt="" coords="531,109,628,134"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="471,136,530,127,531,132,472,142"/>
+<area shape="rect" id="Node000008" href="$classIOv2_1_1clog__t.html" title="The type of the standard log stream clog (char)." alt="" coords="530,158,629,183"/>
+<area shape="poly" id="edge7_Node000006_Node000008" title=" " alt="" coords="472,160,530,164,530,169,471,165"/>
+<area shape="rect" id="Node000010" href="$classIOv2_1_1cout__t.html" title="The type of the standard output stream cout (char)." alt="" coords="529,207,629,233"/>
+<area shape="poly" id="edge9_Node000009_Node000010" title=" " alt="" coords="476,217,529,217,529,222,476,222"/>
+<area shape="rect" id="Node000012" href="$classIOv2_1_1wcerr__t.html" title="The type of the wide standard error stream wcerr (wchar_t)." alt="" coords="525,257,633,282"/>
+<area shape="poly" id="edge11_Node000011_Node000012" title=" " alt="" coords="482,273,525,270,525,276,482,278"/>
+<area shape="rect" id="Node000013" href="$classIOv2_1_1wclog__t.html" title="The type of the wide standard log stream wclog (wchar_t)." alt="" coords="524,306,635,331"/>
+<area shape="poly" id="edge12_Node000011_Node000013" title=" " alt="" coords="482,299,524,306,523,312,481,304"/>
+<area shape="rect" id="Node000015" href="$classIOv2_1_1wcout__t.html" title="The type of the wide standard output stream wcout (wchar_t)." alt="" coords="524,355,635,381"/>
+<area shape="poly" id="edge14_Node000014_Node000015" title=" " alt="" coords="487,356,524,360,524,365,487,361"/>
+</map>

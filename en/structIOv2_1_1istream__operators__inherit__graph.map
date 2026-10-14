@@ -1,0 +1,17 @@
+<map id="IOv2::istream_operators&lt; TChar &gt;" name="IOv2::istream_operators&lt; TChar &gt;">
+<area shape="rect" id="Node000001" title="Mix&#45;in base that provides the various extraction operations for input streams." alt="" coords="5,133,184,173"/>
+<area shape="rect" id="Node000002" href="$classIOv2_1_1stdin__api.html" title=" " alt="" coords="246,5,409,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="129,122,176,88,231,55,258,43,260,48,233,60,179,92,132,127"/>
+<area shape="rect" id="Node000004" href="$classIOv2_1_1stdin__api.html" title=" " alt="" coords="234,69,421,109"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="181,127,253,107,255,112,182,132"/>
+<area shape="rect" id="Node000006" href="$classIOv2_1_1iostream.html" title="Bidirectional character stream: combines an iochannel and a locale into a formatted input/output inte..." alt="" coords="232,133,423,173"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="198,151,232,151,232,156,198,156"/>
+<area shape="rect" id="Node000007" href="$classIOv2_1_1istream.html" title="Character input stream: combines an ichannel and a locale into a formatted input interface." alt="" coords="236,197,419,237"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="182,174,255,195,253,200,181,180"/>
+<area shape="rect" id="Node000008" href="$classIOv2_1_1stdin__api.html" title="The implementation template behind the standard input streams (cin / wcin)." alt="" coords="232,261,423,301"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="132,180,179,214,233,247,260,259,258,264,231,252,176,219,129,184"/>
+<area shape="rect" id="Node000003" href="$classIOv2_1_1cin__t.html" title="The type of the standard input stream cin (char)." alt="" coords="477,13,567,38"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="423,23,476,23,476,28,423,28"/>
+<area shape="rect" id="Node000005" href="$classIOv2_1_1wcin__t.html" title="The type of the wide standard input stream wcin (wchar_t)." alt="" coords="471,77,573,102"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="434,87,470,87,470,92,434,92"/>
+</map>
