@@ -297,7 +297,7 @@ TEST(MemDeviceChar, FailedSeeksLeaveTheReadPositionAlone)
 
     // Negative offsets reach dseek as huge size_t values; they must be rejected
     // rather than wrap into a valid position.
-    EXPECT_ANY_THROW(obj.dseek(-100));
+    EXPECT_ANY_THROW(obj.dseek(static_cast<std::size_t>(-100)));
     EXPECT_EQ(obj.dtell(), 3u);
 
     EXPECT_ANY_THROW(obj.dseek(obj.dtell() + 100));
@@ -306,7 +306,7 @@ TEST(MemDeviceChar, FailedSeeksLeaveTheReadPositionAlone)
     EXPECT_ANY_THROW(obj.dseek(obj.dtell() - 100));
     EXPECT_EQ(obj.dtell(), 3u);
 
-    EXPECT_ANY_THROW(obj.drseek(-100));
+    EXPECT_ANY_THROW(obj.drseek(static_cast<std::size_t>(-100)));
     EXPECT_EQ(obj.dtell(), 3u);
 
     EXPECT_ANY_THROW(obj.drseek(100));
@@ -449,7 +449,7 @@ TEST(MemDeviceChar, FailedSeeksLeaveTheWritePositionAlone)
     EXPECT_ANY_THROW(obj.dseek(100));
     EXPECT_EQ(obj.dtell(), 3u);
 
-    EXPECT_ANY_THROW(obj.dseek(-100));
+    EXPECT_ANY_THROW(obj.dseek(static_cast<std::size_t>(-100)));
     EXPECT_EQ(obj.dtell(), 3u);
 
     EXPECT_ANY_THROW(obj.dseek(obj.dtell() + 100));
@@ -458,7 +458,7 @@ TEST(MemDeviceChar, FailedSeeksLeaveTheWritePositionAlone)
     EXPECT_ANY_THROW(obj.dseek(obj.dtell() - 100));
     EXPECT_EQ(obj.dtell(), 3u);
 
-    EXPECT_ANY_THROW(obj.drseek(-100));
+    EXPECT_ANY_THROW(obj.drseek(static_cast<std::size_t>(-100)));
     EXPECT_EQ(obj.dtell(), 3u);
 
     EXPECT_ANY_THROW(obj.drseek(100));
