@@ -10,6 +10,7 @@
 #include <gtest/gtest.h>
 
 #include <cstddef>
+#include <cstdint>
 #include <cstring>
 #include <limits>
 #include <string>
@@ -631,6 +632,9 @@ TEST(FileDeviceChar, DrseekPastTheStartThrows)
 
 TEST(FileDeviceChar, DseekRejectsAnOffsetThatWouldOverflowTheFileOffsetType)
 {
+    if (std::in_range<std::int64_t>(std::numeric_limits<std::size_t>::max()))
+        GTEST_SKIP() << "every size_t fits the file offset type here (a 32-bit target)";
+
     file_guard g("dseek_overflow.txt", std::string("hi"));
     ofile_device<char> dev("dseek_overflow.txt");
     EXPECT_THROW(dev.dseek(std::numeric_limits<std::size_t>::max()), device_error);
