@@ -493,7 +493,7 @@ public:
                 throw device_error("file_device::dseek fail: invalid parameter");
         }
 
-        if (v > std::numeric_limits<int64_t>::max())
+        if (!std::in_range<int64_t>(v))
             throw device_error("file_device::dseek fail: position exceeds maximum seekable range");
 
         if (detail::file_seek(m_file.get(), static_cast<int64_t>(v), SEEK_SET) != 0)
