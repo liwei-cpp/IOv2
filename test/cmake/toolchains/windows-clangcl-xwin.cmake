@@ -59,7 +59,9 @@ endforeach()
 # the two differ (measured: a 1-byte _read of CRLF from a pipe).
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
-set(CMAKE_CROSSCOMPILING_EMULATOR "env;WINEDEBUG=-all;wine")
+# IOV2_TEST_UNDER_WINE lets a test skip what only Wine gets wrong (Wine passes
+# the host environment through); real Windows never sets it.
+set(CMAKE_CROSSCOMPILING_EMULATOR "env;WINEDEBUG=-all;IOV2_TEST_UNDER_WINE=1;wine")
 
 set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
 set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
