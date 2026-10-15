@@ -14,6 +14,33 @@
 配套代码的独立发布线（GPL-3.0-or-later），代码冻结在出版时的状态，版本号与本库无关，
 不在本文件记录。此后的书籍直接基于本库主线 1.x，不另设发布线。
 
+### [Unreleased]
+
+#### 新增
+
+- **设备层可在 Windows 与 macOS 上构建、运行**：Windows 上为 MSVC `cl` 与 clang-cl（x64、x86），
+  macOS 上为 Apple clang。其余各层尚未移植。
+- `IOV2_NO_UNIQUE_ADDRESS`：`[[no_unique_address]]` 的可移植写法。MSVC ABI 忽略标准写法、
+  只认 `[[msvc::no_unique_address]]`。
+
+#### 变更
+
+- `file_device` 的构造函数与 `try_open` 改为接受 `std::filesystem::path`，路径编码由传入的
+  类型决定：`char` 字符串按平台的原生窄编码（Windows 上为 ANSI 代码页，与 `fopen` 一致），
+  `char8_t` 字符串按 UTF-8，`wchar_t` 字符串在 Windows 上即 UTF-16。传入 `std::string` 与
+  字符串字面量的代码不受影响；只能隐式转换为 `std::string` 的自定义类型不再能直接传入。
+- `file_device` 在所有平台上都以二进制打开文件，Windows 上也不做 `\r\n` 与 `\n` 的转换。
+  换行转换将由转换器层提供（#505）。
+
+#### 废弃
+
+- `file_open_flag::binary`：已不起作用，计划在 2.0 中删除。
+
+#### 修复
+
+- 读写 `file_device` 在读与写之间切换时先定位一次，满足 C 标准对同一流读写切换的要求。
+  此前依赖 glibc 的宽容，在 MSVC CRT 上写入会失败。
+
 ### [1.0.0] - 2026-10-13
 
 首个正式版本。自此公开接口遵循语义化版本：破坏性变更只在主版本号提升时发生。
@@ -64,6 +91,41 @@ published. Its version numbers are unrelated to this library's and are not
 recorded here. Later books build directly on this library's 1.x mainline and
 have no release line of their own.
 
+### [Unreleased]
+
+#### Added
+
+- **The device layer builds and runs on Windows and macOS**: MSVC `cl` and
+  clang-cl (x64, x86) on Windows, Apple clang on macOS. The other layers are not
+  ported yet.
+- `IOV2_NO_UNIQUE_ADDRESS`: a portable spelling of `[[no_unique_address]]`. The
+  MSVC ABI ignores the standard spelling and honours only
+  `[[msvc::no_unique_address]]`.
+
+#### Changed
+
+- `file_device`'s constructor and `try_open` take a `std::filesystem::path`, so
+  the path's encoding follows the type passed in: a `char` string is in the
+  platform's native narrow encoding (the ANSI code page on Windows, as with
+  `fopen`), a `char8_t` string is UTF-8, and a `wchar_t` string is UTF-16 on
+  Windows. Code passing a `std::string` or a string literal is unaffected; a
+  user type that only converts implicitly to `std::string` can no longer be
+  passed as is.
+- `file_device` opens files in binary on every platform; on Windows too there is
+  no translation between `\r\n` and `\n`. Newline translation is to come from
+  the converter layer (#505).
+
+#### Deprecated
+
+- `file_open_flag::binary`: it no longer has any effect, and is to be removed in
+  2.0.
+
+#### Fixed
+
+- A read-write `file_device` seeks once when switching between reading and
+  writing, as C requires of a stream used both ways. It used to rely on glibc
+  tolerating the omission; on the MSVC CRT the write failed.
+
 ### [1.0.0] - 2026-10-13
 
 First stable release. From here on the public interface follows Semantic
@@ -101,4 +163,5 @@ and `PROVENANCE.md`.
 - macOS and Windows are not yet supported.
 - Decoupling "read returned 0" from EOF detection (#6) is outside this release.
 
+[Unreleased]: https://github.com/liwei-cpp/IOv2/compare/v1.0.0...HEAD
 [1.0.0]: https://github.com/liwei-cpp/IOv2/releases/tag/v1.0.0
