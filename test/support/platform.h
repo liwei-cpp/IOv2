@@ -69,6 +69,13 @@ inline long long write(int fd, const void* buf, std::size_t n)
 inline void set_env(const char* name, const std::string& value) { ::_putenv_s(name, value.c_str()); }
 inline void unset_env(const char* name) { ::_putenv_s(name, ""); }
 
+// getenv() is deprecated by MSVC; getenv_s() reports the length it would copy.
+inline bool env_is_set(const char* name)
+{
+    std::size_t len = 0;
+    return ::getenv_s(&len, nullptr, 0, name) == 0 && len != 0;
+}
+
 // freopen() is deprecated by MSVC, and freopen_s() opens the file unshared, so a
 // test could not read a capture file while the stream still holds it (measured).
 // The file is opened shared instead and put under the stream's descriptor.
@@ -129,6 +136,7 @@ inline long long write(int fd, const void* buf, std::size_t n) { return ::write(
 
 inline void set_env(const char* name, const std::string& value) { ::setenv(name, value.c_str(), 1); }
 inline void unset_env(const char* name) { ::unsetenv(name); }
+inline bool env_is_set(const char* name) { return std::getenv(name) != nullptr; }
 
 inline bool reopen(const char* name, const char* mode, std::FILE* stream)
 {
