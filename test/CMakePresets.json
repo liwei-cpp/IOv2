@@ -63,6 +63,24 @@
     },
 
     {
+      "name": "gcc-unsigned-char",
+      "hidden": true,
+      "inherits": "gcc",
+      "cacheVariables": { "CMAKE_CXX_FLAGS": "-funsigned-char" }
+    },
+    {
+      "name": "gcc-unsigned-char-release",
+      "inherits": "gcc-unsigned-char",
+      "displayName": "g++ -funsigned-char, release (-O3 -g -DNDEBUG)"
+    },
+    {
+      "name": "gcc-unsigned-char-sanitizer",
+      "inherits": "gcc-unsigned-char",
+      "displayName": "g++ -funsigned-char, ASan+UBSan (-O1 -g, no NDEBUG)",
+      "cacheVariables": { "IOV2_TEST_MODE": "sanitizer" }
+    },
+
+    {
       "name": "gcc-tsan",
       "inherits": "gcc",
       "displayName": "g++, ThreadSanitizer (concur only)",
@@ -105,7 +123,7 @@
     {
       "name": "win-clangcl-xwin-debug",
       "inherits": "win-clangcl-xwin",
-      "displayName": "clang-cl -> Windows under Wine, debug (/Od /Z7)",
+      "displayName": "clang-cl -> Windows under Wine, debug CRT (/Od /Z7 /MTd)",
       "cacheVariables": { "IOV2_TEST_MODE": "debug" }
     },
 
@@ -125,19 +143,51 @@
       "environment": { "CC": "cl", "CXX": "cl" }
     },
     {
+      "name": "windows-msvc-debug",
+      "inherits": "windows",
+      "displayName": "MSVC cl, debug CRT (/Od /Z7 /MDd)",
+      "environment": { "CC": "cl", "CXX": "cl" },
+      "cacheVariables": { "IOV2_TEST_MODE": "debug" }
+    },
+    {
+      "name": "windows-msvc-sanitizer",
+      "inherits": "windows",
+      "displayName": "MSVC cl, ASan (/O1 /Z7 /fsanitize=address, no NDEBUG)",
+      "environment": { "CC": "cl", "CXX": "cl" },
+      "cacheVariables": { "IOV2_TEST_MODE": "sanitizer" }
+    },
+    {
+      "name": "windows-msvc-x86-release",
+      "inherits": "windows",
+      "displayName": "MSVC cl, 32-bit x86, release (/O2 /Z7 -DNDEBUG)",
+      "description": "From a shell where the x86 MSVC environment is set up (vcvars32, or ilammy/msvc-dev-cmd with arch: x86).",
+      "environment": { "CC": "cl", "CXX": "cl" }
+    },
+    {
       "name": "windows-clangcl-release",
       "inherits": "windows",
       "displayName": "clang-cl, release (/O2 /Z7 -DNDEBUG)",
       "environment": { "CC": "clang-cl", "CXX": "clang-cl" }
     },
     {
-      "name": "macos-clang-release",
+      "name": "macos",
+      "hidden": true,
       "inherits": "base",
-      "displayName": "Apple clang, release (-O3 -g -DNDEBUG)",
       "description": "IOV2_TEST_COMPONENTS lists the components ported so far.",
       "condition": { "type": "equals", "lhs": "${hostSystemName}", "rhs": "Darwin" },
       "environment": { "CXX": "clang++" },
       "cacheVariables": { "IOV2_TEST_COMPONENTS": "device" }
+    },
+    {
+      "name": "macos-clang-release",
+      "inherits": "macos",
+      "displayName": "Apple clang, release (-O3 -g -DNDEBUG)"
+    },
+    {
+      "name": "macos-clang-sanitizer",
+      "inherits": "macos",
+      "displayName": "Apple clang, ASan+UBSan (-O1 -g, no NDEBUG)",
+      "cacheVariables": { "IOV2_TEST_MODE": "sanitizer" }
     }
   ],
 
@@ -156,6 +206,12 @@
     { "name": "windows-msvc-release", "configurePreset": "windows-msvc-release" },
     { "name": "windows-clangcl-release", "configurePreset": "windows-clangcl-release" },
     { "name": "macos-clang-release", "configurePreset": "macos-clang-release" },
+    { "name": "gcc-unsigned-char-release", "configurePreset": "gcc-unsigned-char-release" },
+    { "name": "gcc-unsigned-char-sanitizer", "configurePreset": "gcc-unsigned-char-sanitizer" },
+    { "name": "windows-msvc-debug", "configurePreset": "windows-msvc-debug" },
+    { "name": "windows-msvc-sanitizer", "configurePreset": "windows-msvc-sanitizer" },
+    { "name": "windows-msvc-x86-release", "configurePreset": "windows-msvc-x86-release" },
+    { "name": "macos-clang-sanitizer", "configurePreset": "macos-clang-sanitizer" },
     {
       "name": "gcc-tsan",
       "configurePreset": "gcc-tsan",
@@ -185,6 +241,12 @@
     { "name": "windows-msvc-release", "inherits": "base", "configurePreset": "windows-msvc-release" },
     { "name": "windows-clangcl-release", "inherits": "base", "configurePreset": "windows-clangcl-release" },
     { "name": "macos-clang-release", "inherits": "base", "configurePreset": "macos-clang-release" },
+    { "name": "gcc-unsigned-char-release", "inherits": "base", "configurePreset": "gcc-unsigned-char-release" },
+    { "name": "gcc-unsigned-char-sanitizer", "inherits": "base", "configurePreset": "gcc-unsigned-char-sanitizer" },
+    { "name": "windows-msvc-debug", "inherits": "base", "configurePreset": "windows-msvc-debug" },
+    { "name": "windows-msvc-sanitizer", "inherits": "base", "configurePreset": "windows-msvc-sanitizer" },
+    { "name": "windows-msvc-x86-release", "inherits": "base", "configurePreset": "windows-msvc-x86-release" },
+    { "name": "macos-clang-sanitizer", "inherits": "base", "configurePreset": "macos-clang-sanitizer" },
     {
       "name": "gcc-tsan",
       "configurePreset": "gcc-tsan",

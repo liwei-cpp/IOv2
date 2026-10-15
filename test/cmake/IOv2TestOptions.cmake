@@ -74,6 +74,11 @@ if(IOV2_TEST_MODE STREQUAL "release")
 elseif(IOV2_TEST_MODE STREQUAL "debug")
   if(MSVC)
     target_compile_options(iov2_test_options INTERFACE /Od /Z7)
+    if(NOT CMAKE_MSVC_RUNTIME_LIBRARY OR CMAKE_MSVC_RUNTIME_LIBRARY MATCHES "DLL$")
+      set(CMAKE_MSVC_RUNTIME_LIBRARY MultiThreadedDebugDLL)
+    else()
+      set(CMAKE_MSVC_RUNTIME_LIBRARY MultiThreadedDebug)
+    endif()
   else()
     target_compile_options(iov2_test_options INTERFACE -g -O0)
   endif()
@@ -81,7 +86,13 @@ elseif(IOV2_TEST_MODE STREQUAL "sanitizer")
   # No NDEBUG here, matching the Makefile.
   if(MSVC)
     # The Windows MSVC ABI supports AddressSanitizer but not UBSan.
-    target_compile_options(iov2_test_options INTERFACE /O1 /Z7 /fsanitize=address)
+    target_compile_options(iov2_test_options INTERFACE /O1 /Z7)
+    # Directory-wide, unlike every other flag here, so that GoogleTest (included
+    # after this file) is instrumented too: the MSVC STL stamps each object with
+    # detect_mismatch("annotate_string"/"annotate_vector", "0" or "1") by whether
+    # ASan is on, and an instrumented test linked against an uninstrumented
+    # gtest.lib fails with LNK2038.
+    add_compile_options(/fsanitize=address)
   else()
     target_compile_options(iov2_test_options INTERFACE
         -g -O1 -fsanitize=address,undefined -fno-omit-frame-pointer)
@@ -108,6 +119,11 @@ elseif(IOV2_TEST_MODE STREQUAL "coverage")
     target_compile_options(iov2_test_options INTERFACE -g -O0 --coverage)
     target_link_options(iov2_test_options INTERFACE --coverage)
   endif()
+endif()
+
+if(IOV2_TEST_MODE MATCHES "^(debug|sanitizer)$" AND NOT MSVC)
+  target_compile_definitions(iov2_test_options INTERFACE
+      _GLIBCXX_ASSERTIONS _LIBCPP_HARDENING_MODE=_LIBCPP_HARDENING_MODE_DEBUG)
 endif()
 
 # ------------------------------------------------- library under test

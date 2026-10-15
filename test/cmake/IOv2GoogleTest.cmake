@@ -32,7 +32,9 @@ set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 
 FetchContent_MakeAvailable(googletest)
 
-# iov2_test_options is an INTERFACE target, so none of its flags reach gtest. For
+# iov2_test_options is an INTERFACE target, so none of its flags reach gtest (the
+# one exception, MSVC's /fsanitize=address, is set directory-wide in
+# IOv2TestOptions.cmake for the reason given there). For
 # -Wall -Werror -Wshadow that is what we want: those are ours to satisfy, not
 # upstream's. For -std it is not. gtest's headers change shape with __cplusplus
 # (GTEST_INTERNAL_HAS_STRING_VIEW and friends), so a library compiled at the

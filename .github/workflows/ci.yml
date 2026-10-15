@@ -13,13 +13,16 @@ on:
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  IOV2_TIDY_CHECKS: >-
+    bugprone-*,performance-*,modernize-*,cppcoreguidelines-*,-modernize-use-trailing-return-type,-cppcoreguidelines-avoid-magic-numbers,-cppcoreguidelines-pro-bounds-pointer-arithmetic,-cppcoreguidelines-pro-bounds-constant-array-index,-cppcoreguidelines-avoid-non-const-global-variables,-cppcoreguidelines-pro-bounds-avoid-unchecked-container-access,-clang-diagnostic-pragma-once-outside-header
 
-# The test suite is built and run by CMake/CTest, and these six contexts --
-# build (g++), build (clang++), thread-safety, coverage, install-paths,
-# clang-tidy -- are the ones main's ruleset requires. clang-tidy reads the
-# library headers and belongs to no build system; the other five moved off
-# test/Makefile, which no longer exists. The portability (...) jobs, for the
-# platforms other than Linux, are not required yet.
+# The test suite is built and run by CMake/CTest. Every job here, each matrix
+# entry included, is a check that main's ruleset requires, under the name the
+# job reports (build (g++), portability (windows-msvc), ...). Adding, removing
+# or renaming one means updating the ruleset in the same change; a required
+# check that no longer runs blocks every pull request. clang-tidy and
+# clang-tidy-windows read the library headers and belong to no build system;
+# the rest build with CMake.
 #
 # The CMake project is test/, and `cmake --build --preset` and `ctest --preset`
 # look for CMakePresets.json only in the working directory, so every step that
@@ -41,6 +44,8 @@ jobs:
             cxx: g++
           - preset: clang
             cxx: clang++
+          - preset: gcc-unsigned-char
+            cxx: g++ -funsigned-char
 
     container:
       image: ghcr.io/liwei-cpp/iov2-ci-gcc15:latest
@@ -167,6 +172,9 @@ jobs:
         UBSAN_OPTIONS: halt_on_error=1:print_stacktrace=1
 
     - name: Run memory check (Valgrind)
+      # Not for -funsigned-char: what it changes is how a char value is read,
+      # which the locale runs above exercise; the memory it touches is the same.
+      if: matrix.preset != 'gcc-unsigned-char'
       run: |
         # Both compilers, because they produce different code for Valgrind to
         # walk.
@@ -522,11 +530,28 @@ jobs:
       run: |
         # Use default clang-tidy from the image (which will be a recent version)
         # The Windows backends need the MSVC CRT and SDK headers, which this
-        # Linux image does not have; the portability jobs compile them instead.
+        # Linux image does not have; the clang-tidy-windows job checks them.
         clang-tidy $(find include/IOv2 -name '*.h' -not -path '*/platform/windows/*') \
-          --checks='bugprone-*,performance-*,modernize-*,cppcoreguidelines-*,-modernize-use-trailing-return-type,-cppcoreguidelines-avoid-magic-numbers,-cppcoreguidelines-pro-bounds-pointer-arithmetic,-cppcoreguidelines-pro-bounds-constant-array-index,-cppcoreguidelines-avoid-non-const-global-variables,-cppcoreguidelines-pro-bounds-avoid-unchecked-container-access,-clang-diagnostic-pragma-once-outside-header' \
+          --checks="$IOV2_TIDY_CHECKS" \
           --warnings-as-errors='bugprone-*' \
           -- -std=c++23 -x c++ -I include -I /usr/include -I /usr/include/botan-2
+
+  clang-tidy-windows:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v6
+
+    - name: Set up the MSVC environment
+      uses: ilammy/msvc-dev-cmd@v1
+
+    - name: Run clang-tidy
+      shell: bash
+      run: |
+        clang-tidy --version
+        clang-tidy include/IOv2/device/*.h include/IOv2/device/platform/windows/*.h \
+          --checks="$IOV2_TIDY_CHECKS" \
+          --warnings-as-errors='bugprone-*' \
+          -- -std=c++23 -x c++ -I include --target=x86_64-pc-windows-msvc
 
   # The platforms the cross-platform port has reached. Each builds and runs only
   # the components ported so far -- IOV2_TEST_COMPONENTS in its preset, today
@@ -555,11 +580,32 @@ jobs:
             preset: windows-clangcl-release
             jobs: 4
             keep_going: -k 0      # Ninja
+          - name: windows-msvc-debug
+            os: windows-latest
+            preset: windows-msvc-debug
+            jobs: 4
+            keep_going: -k 0      # Ninja
+          - name: windows-msvc-asan
+            os: windows-latest
+            preset: windows-msvc-sanitizer
+            jobs: 4
+            keep_going: -k 0      # Ninja
+          - name: windows-msvc-x86
+            os: windows-latest
+            preset: windows-msvc-x86-release
+            arch: x86
+            jobs: 4
+            keep_going: -k 0      # Ninja
           # Apple clang on libc++: the standard library differs from the
           # libstdc++ every Linux job uses.
           - name: macos-clang
             os: macos-latest
             preset: macos-clang-release
+            jobs: 3
+            keep_going: -k        # make
+          - name: macos-clang-asan
+            os: macos-latest
+            preset: macos-clang-sanitizer
             jobs: 3
             keep_going: -k        # make
 
@@ -571,6 +617,8 @@ jobs:
       # sets; the Ninja presets expect it to be in place already.
       if: runner.os == 'Windows'
       uses: ilammy/msvc-dev-cmd@v1
+      with:
+        arch: ${{ matrix.arch || 'x64' }}
 
     - name: Configure and build
       working-directory: test
@@ -584,3 +632,6 @@ jobs:
     - name: Run tests
       working-directory: test
       run: ctest --preset ${{ matrix.preset }} --parallel ${{ matrix.jobs }}
+      env:
+        ASAN_OPTIONS: halt_on_error=1
+        UBSAN_OPTIONS: halt_on_error=1:print_stacktrace=1
