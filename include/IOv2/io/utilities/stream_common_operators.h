@@ -94,7 +94,7 @@ inline copyable_mutex<std::mutex>& tie_graph_mutex()
  *
  * 本结构集中承载定位、底层设备管理、转换行为调整、locale 存取与流绑定
  * 等成员，供具体流类型派生使用；这些成员通过 deducing-this（`this auto& self`）以派生类
- * 的具体类型执行操作。除显式标注为**不做线程同步**者（`device`/`detach`/`attach`）外，
+ * 的具体类型执行操作。除显式标注为**不做线程同步**者（`device`）外，
  * 其余操作均持有本流的 `io_mutex()`，并将异常统一交由 `handle_exception` 处理。
  * 本结构还持有本流所绑定（tie）的目标指针。
  *
@@ -113,7 +113,7 @@ inline copyable_mutex<std::mutex>& tie_graph_mutex()
  * conversion-behavior adjustment, locale access, and stream tying, for
  * concrete stream types to derive from; these members use deducing-this (`this auto& self`)
  * to operate on the concrete derived type. Except for those explicitly documented as **not
- * synchronized** (`device`/`detach`/`attach`), all operations hold the stream's `io_mutex()`
+ * synchronized** (`device`), all operations hold the stream's `io_mutex()`
  * and route exceptions through `handle_exception`. This struct also holds the pointer to the
  * stream this one is tied to.
  *
