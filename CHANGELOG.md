@@ -14,6 +14,15 @@
 配套代码的独立发布线（GPL-3.0-or-later），代码冻结在出版时的状态，版本号与本库无关，
 不在本文件记录。此后的书籍直接基于本库主线 1.x，不另设发布线。
 
+### [1.0.1] - 待定
+
+#### 变更
+
+- **tie 改为链式**：`a.tie(&b); b.tie(&c);` 之后，`a` 的一次 I/O 会依次刷新 `c`、`b`，
+  此前只刷 `b`。每一级仍是尽力而为、不阻塞。标准输出流的退出钩子同样沿链刷新。
+  相应地，tie 链上**每一个**流（不只是直接目标）都须活过所有经由它的流；标准流 tie 链上的
+  流须活到退出钩子之后，否则先解开 tie。
+
 ### [1.0.0] - 2026-10-13
 
 首个正式版本。自此公开接口遵循语义化版本：破坏性变更只在主版本号提升时发生。
@@ -64,6 +73,17 @@ published. Its version numbers are unrelated to this library's and are not
 recorded here. Later books build directly on this library's 1.x mainline and
 have no release line of their own.
 
+### [1.0.1] - TBD
+
+#### Changed
+
+- **A tie is now chained**: after `a.tie(&b); b.tie(&c);`, an I/O on `a` flushes `c` and
+  then `b`; before, it flushed `b` only. Each link is still best-effort and never blocks. The
+  exit hook of the standard output streams flushes along the chain too. Accordingly, **every**
+  stream on a tie chain, not just the direct target, must outlive every stream whose chain
+  passes through it; a stream on a standard stream's tie chain must outlive the exit hook, or
+  the tie must be undone first.
+
 ### [1.0.0] - 2026-10-13
 
 First stable release. From here on the public interface follows Semantic
@@ -101,4 +121,5 @@ and `PROVENANCE.md`.
 - macOS and Windows are not yet supported.
 - Decoupling "read returned 0" from EOF detection (#6) is outside this release.
 
+[1.0.1]: https://github.com/liwei-cpp/IOv2/releases/tag/v1.0.1
 [1.0.0]: https://github.com/liwei-cpp/IOv2/releases/tag/v1.0.0

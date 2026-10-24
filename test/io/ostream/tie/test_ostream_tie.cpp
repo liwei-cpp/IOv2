@@ -10,6 +10,10 @@
  * cycle in the graph would make a flush walk forever while holding the graph
  * lock, so cycles have to be impossible to create by any route -- including the
  * routes that do not go through tie() at all.
+ *
+ * A tie flush follows the whole chain, furthest link first, and each link is
+ * best-effort on its own: a link that is locked or failed is skipped without
+ * stopping the flush from reaching the links beyond it.
  */
 #include <IOv2/common/defs.h>
 #include <IOv2/device/mem_device.h>
@@ -17,6 +21,7 @@
 #include <IOv2/io/iostream.h>
 #include <IOv2/io/istream.h>
 #include <IOv2/io/ostream.h>
+#include <IOv2/io/traits/char_and_str.h>
 #include <IOv2/io/utilities/ostream_operators.h>
 #include <IOv2/locale/locale.h>
 
@@ -25,18 +30,52 @@
 #include <support/failing_device.h>
 
 #include <atomic>
+#include <functional>
+#include <string>
 #include <thread>
 #include <utility>
 
 namespace
 {
     template <template<typename, typename> class T>
-    T<IOv2::mem_device<char>, char> make()
+    T<IOv2::mem_device<char>, char> make(const std::string& init = "")
     {
-        return T<IOv2::mem_device<char>, char>{IOv2::mem_device{""}, IOv2::locale<char>("C")};
+        return T<IOv2::mem_device<char>, char>{IOv2::mem_device{init}, IOv2::locale<char>("C")};
     }
 
     IOv2::tie_target* as_tie_target(auto& s) { return static_cast<IOv2::tie_target*>(&s); }
+
+    // A stream whose dflush() throws, so that a flush reaching it shows up as dev_fail().
+    using failing_ostream = IOv2::ostream<failing_device<char>, char>;
+
+    failing_ostream make_failing()
+    {
+        return failing_ostream{failing_device<char>{std::string(""), true}, IOv2::locale<char>("C")};
+    }
+
+    // The end of a chain: counts its flushes and runs a probe at each one. Test double only;
+    // users must not derive from tie_target (see its @warning).
+    struct ProbeFlusher : public IOv2::tie_target
+    {
+        int flushed = 0;
+        std::function<void()> probe;
+
+        void try_flush() noexcept override
+        {
+            ++flushed;
+            if (probe)
+                probe();
+        }
+    };
+
+    // One I/O on s in whichever direction it supports, so that its sentry runs the tie flush.
+    void drive(auto& s)
+    {
+        if constexpr (requires { s.put('x'); })
+            s.put('x');
+        else
+            s.get();
+    }
 }
 
 // Every special member resets the destination's tie to null, and a move clears the source's
@@ -260,4 +299,116 @@ TEST(OstreamTie, ATieFlushDoesNotWaitForTheTargetsLock)
     release.store(true);
     holder.join();
     writer.tie(nullptr);
+}
+
+// A tie is chained: an I/O flushes its target, the target's target and so on, furthest link
+// first -- the order "flush the tie before flushing" gives at every link. A failure on a link
+// stays on that link.
+TEST(OstreamTie, AnIoFlushesTheWholeChainFurthestLinkFirst)
+{
+    auto helper = []<template<typename, typename> class T>()
+    {
+        auto b = make_failing();
+        ProbeFlusher c;
+        bool b_flushed_first = false;
+        c.probe = [&] { b_flushed_first = b.dev_fail(); };
+
+        auto a = make<T>("y");          // input for the istream initiator
+        a.tie(as_tie_target(b));
+        b.tie(&c);
+
+        drive(a);
+        EXPECT_EQ(c.flushed, 1);
+        EXPECT_FALSE(b_flushed_first);
+        EXPECT_TRUE(b.dev_fail());      // b was flushed, after c
+        EXPECT_TRUE(a.good());          // and its failure did not reach a
+
+        a.tie(nullptr);
+        b.tie(nullptr);
+        b.clear();
+    };
+
+    helper.operator()<IOv2::ostream>();
+    helper.operator()<IOv2::iostream>();
+    helper.operator()<IOv2::istream>();
+}
+
+// The same with real streams all the way down, so that every link goes through
+// out_tie_target::try_flush() and tied_to(): the flush reaches the third stream.
+TEST(OstreamTie, AFlushCrossesEveryRealStreamOnTheChain)
+{
+    auto a = make<IOv2::ostream>();
+    auto b = make<IOv2::ostream>();
+    auto c = make_failing();
+    a.tie(as_tie_target(b));
+    b.tie(as_tie_target(c));
+
+    a.put('x');
+    EXPECT_TRUE(c.dev_fail());
+    EXPECT_TRUE(a.good());
+    EXPECT_TRUE(b.good());
+
+    a.tie(nullptr);
+    b.tie(nullptr);
+    c.clear();
+}
+
+// Each link is best-effort on its own: a link whose lock another thread holds is skipped, and the
+// flush still reaches the links beyond it.
+TEST(OstreamTie, ALockedLinkIsSkippedAndTheLinksBeyondItAreStillFlushed)
+{
+    auto a = make<IOv2::ostream>();
+    auto b = make_failing();
+    ProbeFlusher c;
+    a.tie(as_tie_target(b));
+    b.tie(&c);
+
+    std::atomic<bool> locked{false};
+    std::atomic<bool> release{false};
+    std::thread holder([&]
+    {
+        IOv2::sync guard(b);
+        locked.store(true);
+        while (!release.load())
+            std::this_thread::yield();
+    });
+
+    while (!locked.load())
+        std::this_thread::yield();
+
+    a.put('x');
+    EXPECT_EQ(c.flushed, 1);
+    EXPECT_FALSE(b.dev_fail());         // skipped, not attempted
+
+    release.store(true);
+    holder.join();
+
+    a.put('x');                         // control: with the lock free, b is flushed too
+    EXPECT_EQ(c.flushed, 2);
+    EXPECT_TRUE(b.dev_fail());
+
+    a.tie(nullptr);
+    b.tie(nullptr);
+    b.clear();
+}
+
+// A link in a failed state refuses its own flush, as flush() always does on a failed stream, but
+// still passes the flush on down the chain.
+TEST(OstreamTie, AFailedLinkStillPassesTheFlushOn)
+{
+    auto a = make<IOv2::ostream>();
+    auto b = make<IOv2::ostream>();
+    ProbeFlusher c;
+    a.tie(as_tie_target(b));
+    b.tie(&c);
+
+    b.setstate(IOv2::ios_defs::devfailbit);
+    a.put('x');
+    EXPECT_EQ(c.flushed, 1);
+    EXPECT_TRUE(b.rdstate() & IOv2::ios_defs::strfailbit);   // b's own flush was refused
+    EXPECT_TRUE(a.good());
+
+    a.tie(nullptr);
+    b.tie(nullptr);
+    b.clear();
 }

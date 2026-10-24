@@ -16,7 +16,8 @@
  * `attach()` 则被 `= delete`。
  *
  * 六个流对象经 `sing_temp` 成为进程级单例，退出钩子先让本流此后的插入都按同步处理、再 `try_flush()`，
- * 不析构——与 `std::cout` 一样，退出阶段既有引用仍然有效。`cerr` / `wcerr` 构造时另外 `tie()` 到 `cout` / `wcout` 并置
+ * 不析构——与 `std::cout` 一样，退出阶段既有引用仍然有效。`try_flush()` 会先沿本流的 tie 链逐级
+ * 往下刷，因此本流 tie 链上的每个流都必须活到退出钩子之后（见 `tie()`）。`cerr` / `wcerr` 构造时另外 `tie()` 到 `cout` / `wcout` 并置
  * `ios_defs::unitbuf`，三个 `char` 流与三个宽流共用 fd 1 / fd 2。
  *
  * @warning **退出时的刷新是「尽力而为」的**：钩子走 `out_tie_target::try_flush()`，以
@@ -94,7 +95,9 @@
  *
  * All six stream objects are process-wide singletons through `sing_temp` whose exit hook
  * has every later insertion handled as synchronized, calls `try_flush()` and never destroys
- * it -- like `std::cout`, existing references stay valid once exit begins. `cerr` / `wcerr`
+ * it -- like `std::cout`, existing references stay valid once exit begins. `try_flush()` first
+ * flushes down this stream's tie chain link by link, so every stream on that chain must outlive
+ * the exit hook (see `tie()`). `cerr` / `wcerr`
  * additionally tie themselves to `cout` / `wcout` at construction and set
  * `ios_defs::unitbuf`; the three `char` streams and the three wide streams share fd 1 / fd 2
  * pairwise.
@@ -763,7 +766,8 @@ protected:
      * 先置标记，使晚于本钩子的插入（更早登记的析构函数或 `atexit` 函数，或另一线程）把字节
      * 交给 stdio 并冲刷它。不改 `m_sync_with_stdio`：`try_flush()` 可能什么也没搬走，而
      * `sync_with_stdio(true)` 会把已为真的标志当作「已经交出过」。
-     * 刷新是尽力而为的，见文件头的 `@warning`。
+     * `try_flush()` 会先沿 tie 链刷下游（`cerr` 因此会先刷 `cout`）。刷新是尽力而为的，见文件头
+     * 的 `@warning`。
      * @endif
      *
      * @lang{EN}
@@ -772,8 +776,9 @@ protected:
      * Marked first, so that an insertion after this hook (a destructor or atexit function
      * registered earlier, or another thread) hands its bytes to stdio and flushes it. Not
      * `m_sync_with_stdio`: `try_flush()` may move nothing, and `sync_with_stdio(true)` reads a
-     * true flag as "already handed over". The flush is best-effort; see the `@warning` in the
-     * file header.
+     * true flag as "already handed over". `try_flush()` flushes down the tie chain first (so
+     * `cerr` flushes `cout` first). The flush is best-effort; see the `@warning` in the file
+     * header.
      * @endif
      */
     void flush_at_exit() noexcept

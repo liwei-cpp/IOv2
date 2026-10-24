@@ -25,8 +25,14 @@
  * so the worker reads live memory and the process leaves cleanly; under the
  * gcc-tsan preset this is the run that would report a use-after-free if that
  * ever regressed.
+ *
+ * The last case is the tie chain: the hook's try_flush() flushes down cout's
+ * tie chain first, so bytes left in a stream cout is tied to reach their file
+ * at exit; the same child without the tie is the control.
  */
+#include <IOv2/device/file_device.h>
 #include <IOv2/io/objects/objects.h>
+#include <IOv2/io/ostream.h>
 #include <IOv2/io/traits/char_and_str.h>
 
 #include <support/exe_path.h>
@@ -54,6 +60,7 @@ namespace
     const char* const kModeEnv = "IOV2_EXIT_HOOK_MODE";
     const char* const kOutFile = "exit_hook_child.out";
     const char* const kPending = "PENDING-AT-EXIT";
+    const char* const kChainFile = "exit_hook_chain.out";
 
     // The child does next to nothing, but it is exec'd, so it pays for a process
     // start-up: long enough not to be flaky on a loaded machine, short enough
@@ -106,9 +113,9 @@ namespace
 
     // gtest writes its own lines to the same fd, so the marker is searched for
     // rather than compared against the whole file.
-    bool child_wrote_pending()
+    bool child_wrote_pending(const char* file = kOutFile)
     {
-        std::ifstream in(kOutFile);
+        std::ifstream in(file);
         std::stringstream buf;
         buf << in.rdbuf();
         return buf.str().find(kPending) != std::string::npos;
@@ -141,6 +148,17 @@ TEST(StdObjectsExit, ExitIsNotBlockedByAStreamLock)
             << "exit() did not return with a stream left in a failed state";
         EXPECT_FALSE(child_wrote_pending())
             << "the exit hook flushed a failed stream, which stream-level flush() never does";
+
+        std::filesystem::remove(kChainFile);
+        EXPECT_EQ(run_exit_hook_child("unchained"), 0);
+        EXPECT_FALSE(child_wrote_pending(kChainFile))
+            << "control: an untied stream nobody flushes kept nothing in its buffer";
+
+        std::filesystem::remove(kChainFile);
+        EXPECT_EQ(run_exit_hook_child("chained"), 0);
+        EXPECT_TRUE(child_wrote_pending(kChainFile))
+            << "cout's exit hook did not flush down its tie chain";
+        std::filesystem::remove(kChainFile);
         return;
     }
 
@@ -179,6 +197,16 @@ TEST(StdObjectsExit, ExitIsNotBlockedByAStreamLock)
         worker.detach();
         while (g_inserts.load() < 100)
             std::this_thread::yield();
+    }
+    else if (std::string_view(mode) == "chained" || std::string_view(mode) == "unchained")
+    {
+        // Leaked on purpose: a tie target must outlive cout's exit hook. Nothing but a
+        // flush down cout's tie chain moves these bytes out of its buffer.
+        auto* log = new IOv2::ostream(IOv2::ofile_device<char>{kChainFile},
+                                      IOv2::locale<char>("C"));
+        *log << kPending;
+        if (std::string_view(mode) == "chained")
+            IOv2::cout.tie(log);
     }
 
     std::exit(0);   // runs the six exit hooks

@@ -25,6 +25,7 @@
 #include <IOv2/io/traits/arithmetic.h>
 #include <IOv2/io/traits/char_and_str.h>
 
+#include <support/failing_device.h>
 #include <support/stdio_guard.h>
 #include <support/test_child.h>
 
@@ -660,6 +661,25 @@ TEST(IoObjectsChar, ATieCycleThroughAStandardStreamIsRejected)
     EXPECT_EQ(IOv2::cout.tie(), nullptr);         // nothing committed
 
     IOv2::cout.clear();
+    os.tie(nullptr);
+}
+
+// A tie flush follows the chain through a standard stream as well, for the same reason: each
+// link is taken through the virtual tied_to(), not a cross-cast to one of the two bases.
+TEST(IoObjectsChar, ATieFlushFollowsTheChainThroughAStandardStream)
+{
+    IOv2::ostream os(IOv2::mem_device{""}, IOv2::locale<char>("C"));
+    IOv2::ostream end(failing_device<char>{std::string(""), true}, IOv2::locale<char>("C"));
+    os.tie(&IOv2::cout);
+    ASSERT_EQ(IOv2::cout.tie(), nullptr);
+    IOv2::cout.tie(&end);                          // os -> cout -> end
+
+    os.put('x');
+    EXPECT_TRUE(end.dev_fail());                   // end's dflush() throws, so it was reached
+    EXPECT_TRUE(os.good());
+    EXPECT_TRUE(IOv2::cout.good());
+
+    IOv2::cout.tie(nullptr);
     os.tie(nullptr);
 }
 
