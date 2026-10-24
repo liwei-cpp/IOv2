@@ -83,9 +83,10 @@ struct out_sentry
      *          把异常留给外层的 `catch`（例如运算符那层）**不够**：栈展开会先析构本地的锁守卫，置位
      *          就落到解锁之后了。锁因此必须是调用方的局部变量，而不是哨兵的成员。
      *
-     * 关联流的刷新走 `tie_target::try_flush()`，取不到对方的锁就跳过，绝不阻塞。本线程因此可以
-     * 安全地在持有本流锁的状态下发起它：tie 这条用户看不见的加锁边永远不会成为等待边，死锁只可能
-     * 由用户自己能定序的锁构成。
+     * 关联流的刷新走 `tie_target::try_flush()`，取不到对方的锁就跳过，绝不阻塞；它还会沿 tie 链
+     * 逐级往下刷（见 `out_tie_target::try_flush()`），每一级同样不阻塞。本线程因此可以安全地在
+     * 持有本流锁的状态下发起它：tie 这条用户看不见的加锁边永远不会成为等待边，死锁只可能由用户
+     * 自己能定序的锁构成。
      * @param os 要操作的输出流。
      * @param is_unit_buf 是否为 unitbuf 流（决定析构时是否自动刷新并对设备 `dflush`）。
      * @param is_app_mode 是否为追加模式；非标准流在追加模式下会在构造时定位到末尾。
@@ -108,10 +109,11 @@ struct out_sentry
      *          the sentry.
      *
      * The tied stream is flushed through `tie_target::try_flush()`, which skips the flush rather
-     * than wait when the target's lock cannot be taken. This thread can therefore start it safely
-     * while holding its own stream's lock: the tie edge -- the one lock edge the user cannot see
-     * -- never becomes a waiting edge, so any deadlock can only be built from locks the user is
-     * able to order.
+     * than wait when the target's lock cannot be taken; it also carries the flush down the tie
+     * chain link by link (see `out_tie_target::try_flush()`), and no link waits either. This
+     * thread can therefore start it safely while holding its own stream's lock: the tie edge --
+     * the one lock edge the user cannot see -- never becomes a waiting edge, so any deadlock can
+     * only be built from locks the user is able to order.
      * @param os The output stream to operate on.
      * @param is_unit_buf Whether this is a unitbuf stream (governs the auto-flush and device
      *                    `dflush` on destruction).
@@ -322,7 +324,7 @@ protected:
 public:
     /**
      * @lang{ZH}
-     * @brief 尽力刷新本流的纯虚接口；由 `out_tie_target<T>` 实现。
+     * @brief 尽力刷新本流及其下游 tie 链的纯虚接口；由 `out_tie_target<T>` 实现。
      * @warning **实现必须非阻塞。** 哨兵在持有自己流的锁时调用本函数，而这条加锁边对用户不可见，
      *          他无从把它纳入自己的锁序；实现若改用阻塞的 `lock()`，AB-BA 死锁立即回归。取锁
      *          失败时必须直接返回，不得等待，也不留任何补偿——tie 因此是尽力而为，不是保证。
@@ -338,8 +340,8 @@ public:
      * @endif
      *
      * @lang{EN}
-     * @brief Pure virtual interface that flushes this stream on a best-effort basis; implemented
-     *        by `out_tie_target<T>`.
+     * @brief Pure virtual interface that flushes this stream and the tie chain downstream of it
+     *        on a best-effort basis; implemented by `out_tie_target<T>`.
      * @warning **An implementation must never block.** The sentry calls this while holding its
      *          own stream's lock, and that lock edge is invisible to the user, who therefore
      *          cannot fold it into a lock order of their own; an implementation that takes a
@@ -367,10 +369,12 @@ public:
      * @lang{ZH}
      * @brief 本节点在 tie 图上的出边：本流 tie 到的目标；不带出边的节点返回 `nullptr`。
      *
-     * 供 `basic_stream_common_operators::check_tie` 沿链遍历。经虚函数而不是交叉转换取出边：
-     * 普通流与标准流的公共基类是 `basic_stream_common_operators` 的两个不同实例化，
-     * `dynamic_cast` 到其中一个，链会在另一种流处断开，经过它的环就查不出来。在持有进程级
-     * `tie_graph_mutex()` 时被调用；`out_tie_target` 的实现只做原子读，故为 `noexcept`。
+     * 供 `basic_stream_common_operators::check_tie` 判环、`out_tie_target::try_flush()` 逐级刷新
+     * 时沿链遍历。经虚函数而不是交叉转换取出边：普通流与标准流的公共基类是
+     * `basic_stream_common_operators` 的两个不同实例化，`dynamic_cast` 到其中一个，链会在另一种
+     * 流处断开，经过它的环就查不出来，刷新也传不过去。`check_tie` 在持有进程级
+     * `tie_graph_mutex()` 时调用它，`try_flush()` 则不持该锁；`out_tie_target` 的实现只做原子读，
+     * 故为 `noexcept`。
      * 缺省返回 `nullptr`，即不带出边的节点。
      * @endif
      *
@@ -378,12 +382,14 @@ public:
      * @brief This node's outgoing edge in the tie graph: the target this stream is tied to, or
      *        `nullptr` for a node that carries none.
      *
-     * `basic_stream_common_operators::check_tie` walks the chain through it. The edge comes
-     * through a virtual rather than a cross-cast: the ordinary and the standard streams have two
-     * different instantiations of `basic_stream_common_operators` as their common base, so a
-     * `dynamic_cast` to one of them would end the chain at a stream of the other kind and a cycle
-     * through it would go unnoticed. It is called while the process-wide `tie_graph_mutex()` is
-     * held; `out_tie_target`'s implementation is only an atomic load, hence `noexcept`. The
+     * `basic_stream_common_operators::check_tie` walks the chain through it to detect cycles, and
+     * `out_tie_target::try_flush()` to flush link by link. The edge comes through a virtual rather
+     * than a cross-cast: the ordinary and the standard streams have two different instantiations
+     * of `basic_stream_common_operators` as their common base, so a `dynamic_cast` to one of them
+     * would end the chain at a stream of the other kind -- a cycle through it would go unnoticed,
+     * and a flush would not get past it. `check_tie` calls it while holding the process-wide
+     * `tie_graph_mutex()`, `try_flush()` without it; `out_tie_target`'s
+     * implementation is only an atomic load, hence `noexcept`. The
      * default returns `nullptr`, a node with no outgoing edge.
      * @endif
      */
@@ -415,7 +421,13 @@ struct out_tie_target : public tie_target
 {
     /**
      * @lang{ZH}
-     * @brief 尽力刷新本流：取到锁就 `flush()`，取不到就放弃。
+     * @brief 沿 tie 链尽力刷新：先对本流的 tie 目标递归 `try_flush()`，再刷本流——取到锁就
+     *        `flush()`，取不到就放弃。
+     *
+     * **tie 是链式的**：`A.tie(&B); B.tie(&C);` 之后，`A` 的一次 I/O 依次刷 `C`、`B`，顺序与
+     * 标准流的"刷新前先刷 tie 目标"一致。下游这一步无条件进行，与本流取不取得到锁、处于何种
+     * 状态都无关，每一级各自尽力而为。递归在取本流锁之前进行，故任一时刻发起方之外至多再持
+     * 一把流锁。递归必然终止：`tie()` 在设置时拒绝成环（见 `check_tie`）。
      *
      * 锁一律以 `std::try_to_lock` 获取，至多尝试三次、其间让出时间片。放弃时不做任何补偿，
      * 该次 tie 刷新就此跳过。调大尝试次数不会更安全：真正的 AB-BA 场景下对方线程正阻塞在本
@@ -434,8 +446,16 @@ struct out_tie_target : public tie_target
      * @endif
      *
  * @lang{EN}
- * @brief Flushes this stream on a best-effort basis: `flush()`es if the lock can be taken,
- *        gives up otherwise.
+ * @brief Flushes along the tie chain on a best-effort basis: first `try_flush()`es this
+ *        stream's tie target recursively, then this stream -- `flush()`ing it if the lock can be
+ *        taken, giving up otherwise.
+ *
+ * **A tie is chained**: after `A.tie(&B); B.tie(&C);`, an I/O on `A` flushes `C` and then `B`,
+ * the same order as a standard stream's "flush the tie target before flushing". The downstream
+ * step is unconditional -- it runs whether or not this stream's lock can be taken and whatever
+ * state this stream is in; each link is best-effort on its own. The recursion happens before
+ * this stream's lock is taken, so at any moment at most one stream lock besides the initiator's
+ * is held. It always terminates: `tie()` refuses to form a cycle at set time (see `check_tie`).
  *
  * The lock is always taken with `std::try_to_lock`, for at most three attempts with a yield in
  * between. Giving up leaves nothing pending; that tie flush is simply skipped. Raising the
@@ -460,6 +480,10 @@ struct out_tie_target : public tie_target
      */
     void try_flush() noexcept final
     {
+        // Downstream first, before taking our own lock; tie() keeps the chain acyclic.
+        if (auto ptr = tied_to(); ptr != nullptr)
+            ptr->try_flush();
+
         constexpr int attempts = 3;
 
         T& obj = static_cast<T&>(*this);
@@ -743,9 +767,9 @@ struct ostream_operators
      *   - **写与刷互斥**：`put`/`write`/`operator<<` 在其哨兵生命周期内持有同一把
      *     `io_mutex()`，故写与刷不会并发。
      *
-     * 本函数**不刷新 tie 流**：与标准 `std::basic_ostream::flush` 一致，刷新只作用于本流，
-     * 关联流的刷新仅由输出操作的哨兵在其入口触发。因刷新不再沿 tie 链传播，也就不存在递归回
-     * 到本流的可能，无需任何"正在刷新"自旋/跳过标志。
+     * 本函数**不刷新本流的 tie 目标**，只作用于本流。tie 刷新只由 I/O 操作的哨兵在其入口经
+     * `tie_target::try_flush()` 触发，并在那里沿 tie 链逐级传递；本函数不调用 `try_flush()`，
+     * 也就不会递归回到本流，无需任何"正在刷新"自旋/跳过标志。
      *
      * 输出前的读写模式切换由 `iochannel::flush()` 自行完成（其内部会 `switch_to_put()`），
      * 故此处无需哨兵代劳。
@@ -775,11 +799,11 @@ struct ostream_operators
      *   - **Write and flush are mutually exclusive**: `put`/`write`/`operator<<` hold the same
      *     `io_mutex()` for their sentry's lifetime, so a write never races a flush.
      *
-     * This function **does not flush tied streams**: like the standard
-     * `std::basic_ostream::flush`, it acts on this stream alone; tied streams are flushed only
-     * by the sentry at the entry of an output operation. Since a flush no longer propagates
-     * down the tie chain, it can never recurse back into this stream, so no "already flushing"
-     * spin/skip flag is needed.
+     * This function **does not flush this stream's tie target**; it acts on this stream alone. A
+     * tie flush is started only by the sentry at the entry of an I/O operation, through
+     * `tie_target::try_flush()`, and is carried down the tie chain link by link from there; this
+     * function never calls `try_flush()`, so it can never recurse back into this stream, and no
+     * "already flushing" spin/skip flag is needed.
      *
      * Switching the buffer from get to put mode is done by `iochannel::flush()` itself (it
      * calls `switch_to_put()` internally), so no sentry is needed for that either.
