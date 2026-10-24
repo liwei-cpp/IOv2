@@ -204,6 +204,10 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: ghcr.io/liwei-cpp/iov2-ci-gcc15:latest
+      # On a memory layout it cannot use, the TSan runtime re-execs itself after
+      # personality(ADDR_NO_RANDOMIZE), which Docker's default seccomp profile
+      # refuses; the exec'd exit-hook children then die in a TSan CHECK at random.
+      options: --security-opt seccomp=unconfined
     steps:
     - uses: actions/checkout@v6
 
