@@ -1193,8 +1193,11 @@
      （"让 `str` 所指的流存活于所有绑定到它的流之后……否则任何 I/O、以及任何一次实参非
      `nullptr` 的 `tie()` setter 调用，都会解引用悬空指针"），不是并发契约——
      **"文档只覆盖并发场景"的假设不成立。**
-     附带确认：链式 `A→B→C` 中 `C` 先死时 **`A << x` 是安全的**——刷新明确不沿 tie 链传播
-     （`ostream_operators.h:667`），A 只刷 B、不碰 C。
+     ~~附带确认：链式 `A→B→C` 中 `C` 先死时 **`A << x` 是安全的**——刷新明确不沿 tie 链传播
+     （`ostream_operators.h:667`），A 只刷 B、不碰 C。~~
+     **1.0.1 起作废**：tie 改为链式（`out_tie_target::try_flush()` 先递归刷下游），`A << x`
+     会依次刷 C、B，C 先死即为 UB。生命周期契约仍覆盖它（C 须活过 B），`tie()` 文档已改写
+     为"整条链都会被走到"。
 
 186. **`std::vector<ostream>` 扩容后 tie 悬垂：真实 `heap-use-after-free`，同属第 185 条的契约。**
      `stream_common_operators.h:727` 起已明确"**销毁之外，被移动同样会让一个 tie 目标失效**"。

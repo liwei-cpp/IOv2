@@ -679,7 +679,9 @@ struct basic_stream_common_operators
      * @brief 设置本流所绑定（tie）的输出流，并返回先前绑定的流。
      *
      * 绑定后，本流在每次 I/O 前都会（经 sentry）调用 `tie()->try_flush()`，以保证例如提示符
-     * 先于其对应的输入被刷出。
+     * 先于其对应的输入被刷出。**tie 是链式的**：目标若自己也 tie 了别的流，会先把那个流刷掉，
+     * 如此逐级向下——`a.tie(&b); b.tie(&c);` 之后 `a` 的一次 I/O 依次刷 `c`、`b`（见
+     * `out_tie_target::try_flush()`）。
      *
      * @tparam TSelf 派生的具体流类型（由 deducing-this 推导）。
      * @param str 要绑定的输出流；传 `nullptr` 解除绑定。
@@ -718,15 +720,19 @@ struct basic_stream_common_operators
      *          所有绑定到它的流之后（这也是标准用法，如全局 `cout` 活得比 `cin` 久）。否则
      *          任何 I/O、**以及任何一次实参非 `nullptr` 的 `tie()` setter 调用**，都会解引用
      *          悬空指针，导致未定义行为。此契约与标准库 `std::basic_ios::tie` 一致。
-     * @warning **setter 的爆炸半径比 I/O 更大。** I/O 只经 `tie()->try_flush()` 碰自己的直接
-     *          目标；而本 setter 下面那次环检测要从 `str` 起沿**整条**链向前走，每一步都读节点
-     *          的 vptr（`check_tie` 经虚函数 `tied_to()` 取出边，已销毁的节点上就是一次经垃圾
-     *          vptr 的间接调用），于是链上任何一个已销毁的节点都会
-     *          被解引用——哪怕发起调用的这个流与它素不相识：`b.tie(&c); delete c; a.tie(&b);`
-     *          崩在 `a.tie()` 上，而 `a` 从未碰过 `c`。且这次遍历**持有进程级全局锁
-     *          `tie_graph_mutex()`**：若读到的不是干净的段错误而是垃圾（release 构建常见），
-     *          可能沿垃圾指针继续走，或误报"链上已有环"，**整个进程的 `tie()` 都受影响**。
-     *          实参为 `nullptr` 时不触发遍历，不受此影响。
+     * @warning **整条链都会被走到，而不只是直接目标。** I/O 经 `tie()->try_flush()` 逐级刷新，
+     *          本 setter 下面那次环检测也从 `str` 起沿链向前走，两者每一步都读节点的 vptr（经
+     *          虚函数 `tied_to()` 取出边，已销毁的节点上就是一次经垃圾 vptr 的间接调用），于是
+     *          链上任何一个已销毁的节点都会被解引用——哪怕发起调用的这个流与它素不相识：
+     *          `a.tie(&b); b.tie(&c); delete c;` 之后 `a << x` 与 `d.tie(&b)` 都会出事，而 `a`、
+     *          `d` 从未碰过 `c`。setter 的遍历还**持有进程级全局锁 `tie_graph_mutex()`**：若读到
+     *          的不是干净的段错误而是垃圾（release 构建常见），可能沿垃圾指针继续走，或误报
+     *          "链上已有环"，**整个进程的 `tie()` 都受影响**。实参为 `nullptr` 时不触发遍历，
+     *          不受此影响。
+     * @warning **标准流对象永不析构，退出钩子也会沿链刷新。** `cout` 等标准输出流在 `exit()`
+     *          时经 `try_flush()` 刷新自己，也就会刷它的整条 tie 链。故把标准流（直接或经中间流）
+     *          tie 到一个会先于退出钩子析构的流——例如晚于本库构造的静态对象——之前，须在该流
+     *          析构前把相应的 tie 解开，否则退出时就是未定义行为。
      * @warning **销毁之外，"被移动"同样会让一个 tie 目标失效。** 移动一个流会掏空它的
      *          `m_channel` 与 `m_locale`，但指向它的那些流并不会被更新——它们仍指向这个
      *          已被移空的对象。这不会导致未定义行为（`tie()->try_flush()` 会在该目标上置一个失败
@@ -743,8 +749,9 @@ struct basic_stream_common_operators
      *          这个窗口关不上，是因为 `try_flush()` 取的是**目标自己**的锁，而目标的**析构**
      *          不受任何锁保护——目标上的赋值与 `attach()`/`detach()` 已由它的 `io_mutex()`
      *          覆盖，析构则没有任何锁覆盖得了。故若要在生命周期中途销毁（或移动）某个 tie
-     *          目标 P，调用方必须：先保证没有任何线程正在、也不会即将对任何 `tie() == P` 的流
-     *          发起 I/O；再对这些流调用 `tie(nullptr)`（或确保其已析构）；最后才销毁 P。
+     *          目标 P，调用方必须：先保证没有任何线程正在、也不会即将对任何 tie 链经过 P 的流
+     *          （直接或经中间流 tie 到 P）发起 I/O；再对所有 `tie() == P` 的流调用
+     *          `tie(nullptr)`（或确保其已析构）；最后才销毁 P。
      * @note 设置前会沿目标流 `str` 的 tie 链向前遍历：若该链会回到本流（即形成环，自绑定是
      *       长度为 1 的环），则**本次设置不生效、本流原绑定保持不变**，从而在设置时杜绝环。这
      *       满足了 `std::basic_ios::tie` “不得成环”的前置条件，而非像标准那样把成环留作未定义
@@ -768,7 +775,10 @@ struct basic_stream_common_operators
      * @brief Sets the output stream this stream is tied to and returns the previous one.
      *
      * Once tied, before every I/O operation this stream calls `tie()->try_flush()` (via the
-     * sentry), so that e.g. a prompt is flushed before its matching input is read.
+     * sentry), so that e.g. a prompt is flushed before its matching input is read. **A tie is
+     * chained**: a target that is itself tied to another stream flushes that one first, and so on
+     * down the chain -- after `a.tie(&b); b.tie(&c);`, an I/O on `a` flushes `c` and then `b`
+     * (see `out_tie_target::try_flush()`).
      *
      * @tparam TSelf The concrete derived stream type (deduced via deducing-this).
      * @param str The stream to tie to; pass `nullptr` to untie.
@@ -824,19 +834,26 @@ struct basic_stream_common_operators
      *          outlives `cin`); otherwise any I/O, **and any `tie()` setter call whose argument
      *          is not `nullptr`**, dereferences a dangling pointer — undefined behavior. This
      *          matches the `std::basic_ios::tie` contract.
-     * @warning **The setter has a wider blast radius than I/O does.** I/O only touches its own
-     *          direct target, through `tie()->try_flush()`; the cycle check below walks the
-     *          **whole** chain forward from `str`, reading each node's vptr on the way
-     *          (`check_tie` takes each edge through the virtual `tied_to()`, which on a destroyed
-     *          node is an indirect call through a garbage vptr). Any destroyed node anywhere on
-     *          that chain is therefore dereferenced -- even when the stream making the call has
-     *          never met it: `b.tie(&c); delete c; a.tie(&b);` crashes inside `a.tie()`, and `a`
-     *          never touched `c`. The walk also runs while **holding the process-wide
-     *          `tie_graph_mutex()`**: should the read yield garbage rather than a clean
-     *          segfault (common in release builds), it may keep walking through garbage
+     * @warning **The whole chain is walked, not just the direct target.** I/O flushes link by
+     *          link through `tie()->try_flush()`, and the cycle check below walks the chain
+     *          forward from `str`; both read each node's vptr on the way (the edge comes through
+     *          the virtual `tied_to()`, which on a destroyed node is an indirect call through a
+     *          garbage vptr). Any destroyed node anywhere on the chain is therefore dereferenced
+     *          -- even when the stream making the call has never met it: after
+     *          `a.tie(&b); b.tie(&c); delete c;`, both `a << x` and `d.tie(&b)` go wrong, and
+     *          neither `a` nor `d` ever touched `c`. The setter's walk also runs while **holding
+     *          the process-wide `tie_graph_mutex()`**: should the read yield garbage rather than a
+     *          clean segfault (common in release builds), it may keep walking through garbage
      *          pointers, or falsely report "the chain already contains a cycle", and **every
      *          `tie()` in the process is affected**. A `nullptr` argument starts no walk and is
      *          not exposed to this.
+     * @warning **The standard stream objects are never destroyed, and their exit hook flushes
+     *          along the chain too.** `cout` and the other standard output streams flush
+     *          themselves through `try_flush()` at `exit()`, which flushes their whole tie chain.
+     *          So if a standard stream is tied, directly or through intermediate streams, to a
+     *          stream destroyed before that exit hook runs -- a static object constructed after
+     *          this library, say -- the tie must be undone before that stream is destroyed, or
+     *          the exit is undefined behavior.
      * @warning **Beyond destruction, *being moved from* also invalidates a tie target.**
      *          Moving a stream empties its `m_channel` and `m_locale`, but the streams
      *          pointing at it are not updated -- they still point at the emptied object. This
@@ -860,8 +877,9 @@ struct basic_stream_common_operators
      *          assignment and `attach()`/`detach()` on the target are covered by its
      *          `io_mutex()`, destruction is coverable by nothing. Therefore, to destroy (or
      *          move from) a tie target P during its lifetime, the caller must: first ensure no
-     *          thread is performing, or about to perform, I/O on any stream whose
-     *          `tie() == P`; then `tie(nullptr)` those streams (or ensure they are already
+     *          thread is performing, or about to perform, I/O on any stream whose tie chain
+     *          passes through P (tied to P directly or through intermediate streams); then
+     *          `tie(nullptr)` every stream whose `tie() == P` (or ensure it is already
      *          destroyed); and only then destroy P.
      * @note Before setting, the tie chain reachable from the target `str` is walked
      *       forward: if that chain leads back to this stream (i.e. it would form a cycle;
