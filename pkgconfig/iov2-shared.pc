@@ -15,6 +15,6 @@ libdir=${prefix}/lib
 Name: IOv2
 Description: C++23 I/O and localization library (shared library / DSO mode)
 URL: https://github.com/liwei-cpp/IOv2
-Version: 1.0.0
+Version: 1.0.1
 Cflags: -I${includedir} -D_POSIX_C_SOURCE=200809L
 Libs: -L${libdir} -liov2

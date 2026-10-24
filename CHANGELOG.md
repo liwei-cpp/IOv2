@@ -14,7 +14,7 @@
 配套代码的独立发布线（GPL-3.0-or-later），代码冻结在出版时的状态，版本号与本库无关，
 不在本文件记录。此后的书籍直接基于本库主线 1.x，不另设发布线。
 
-### [1.0.1] - 待定
+### [1.0.1] - 2026-10-23
 
 #### 变更
 
@@ -73,7 +73,7 @@ published. Its version numbers are unrelated to this library's and are not
 recorded here. Later books build directly on this library's 1.x mainline and
 have no release line of their own.
 
-### [1.0.1] - TBD
+### [1.0.1] - 2026-10-23
 
 #### Changed
 
