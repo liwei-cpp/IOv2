@@ -588,8 +588,8 @@ public:
      * 固定的 fd 1 / fd 2，取出去就再也装不回来，换进去等于给一个进程级单例改写底层目标。
      * 需要「在同一 fd 上重新开始」请用 `reset()`（它走的是 iochannel 那一层的 `attach()`，
      * 装一个同 fd 的缺省设备）。
-     * 它们在 `std_stream_common_operators` 里是受保护的，
-     * `cout.IOv2::std_stream_common_operators::detach()` 这样的限定名调用同样编译不过。
+     * `std_stream_common_operators` 不向标准流提供这两个函数（公开版本受 `requires (!is_std)`
+     * 约束），`cout.IOv2::std_stream_common_operators::detach()` 这样的限定名调用同样编译不过。
      * @endif
      *
      * @lang{EN}
@@ -600,9 +600,10 @@ public:
      * the fixed fd 1 / fd 2, taking it out leaves no way to put it back, and putting another
      * one in rewrites the target of a process-wide singleton. To start over on the same fd use
      * `reset()`, which goes through the `attach()` one layer down, in the iochannel, with a
-     * default device on the same fd. Both are protected in
-     * `std_stream_common_operators`, so a qualified call such as
-     * `cout.IOv2::std_stream_common_operators::detach()` does not compile either.
+     * default device on the same fd. `std_stream_common_operators` does not offer either one
+     * to the standard streams (the public versions are constrained with `requires (!is_std)`),
+     * so a qualified call such as `cout.IOv2::std_stream_common_operators::detach()` does not
+     * compile either.
      * @endif
      */
     std::pair<device_type, std::exception_ptr> detach() = delete;

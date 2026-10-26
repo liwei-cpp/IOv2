@@ -14,6 +14,14 @@
 配套代码的独立发布线（GPL-3.0-or-later），代码冻结在出版时的状态，版本号与本库无关，
 不在本文件记录。此后的书籍直接基于本库主线 1.x，不另设发布线。
 
+### [1.0.2] - 待定
+
+#### 变更
+
+- 标准流的公共操作基类 `std_stream_common_operators` 不再含受保护的 `detach` / `attach`
+  重载（从未被调用）。标准流上的限定名调用（如 `cout.IOv2::std_stream_common_operators::detach()`）
+  仍然编译不过，改由公开版本的 `requires (!is_std)` 拒绝；公开接口不变。
+
 ### [1.0.1] - 2026-10-23
 
 #### 变更
@@ -73,6 +81,16 @@ published. Its version numbers are unrelated to this library's and are not
 recorded here. Later books build directly on this library's 1.x mainline and
 have no release line of their own.
 
+### [1.0.2] - TBD
+
+#### Changed
+
+- `std_stream_common_operators`, the common-operations base of the standard streams, no
+  longer has protected `detach` / `attach` overloads (nothing ever called them). A qualified
+  call on a standard stream, such as `cout.IOv2::std_stream_common_operators::detach()`, still
+  does not compile; the public version's `requires (!is_std)` now refuses it. The public
+  interface is unchanged.
+
 ### [1.0.1] - 2026-10-23
 
 #### Changed
@@ -121,5 +139,6 @@ and `PROVENANCE.md`.
 - macOS and Windows are not yet supported.
 - Decoupling "read returned 0" from EOF detection (#6) is outside this release.
 
+[1.0.2]: https://github.com/liwei-cpp/IOv2/releases/tag/v1.0.2
 [1.0.1]: https://github.com/liwei-cpp/IOv2/releases/tag/v1.0.1
 [1.0.0]: https://github.com/liwei-cpp/IOv2/releases/tag/v1.0.0
