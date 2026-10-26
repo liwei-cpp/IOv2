@@ -62,6 +62,7 @@ int main() {
 - 发现经过：曾尝试让 `stdin_api` / `stdout_api` **私有继承** `stream_common_operators`、用 `using` 只暴露需要的接口，以便在编译期挡住 `cin.stream_common_operators::detach()` 这类限定名调用（这些成员全是 deducing this）。gcc 正确拒绝 `cout.IOv2::stream_common_operators::detach()`，clang 却放行，由此发现本 bug。
 - 最终方案（`main` 上的 `0e2f4a6d`）：改为 `basic_stream_common_operators<is_std>` 模板，标准流公有继承 `<true>`，其中 `detach` / `attach` / `adjust` 是 **protected** 成员（以 `requires` 区分的一对重载）。成员本身受保护时，「成员按指明方式可访问」这一层就过不去，Clang 会正常检查，gcc 与 clang 都在编译期拒绝限定名调用。
 - `test/io/objects/test_io_objects_char.cpp` 的 `static_assert` 在两个编译器上锁住这一点，无需按编译器区分。
+- 1.0.2 起：protected 的 `detach` / `attach` 重载已删除（从未被调用），标准流上只剩受保护的 `adjust`。限定名 `detach()` 改由公开版本的 `requires (!is_std)` 拒绝，约束检查不经访问控制，同样不受本 bug 影响。
 
 ---
 
@@ -116,3 +117,4 @@ So `d.N::B::f()` is ill-formed for the same reason as `d.N::B::g()`. Clang appea
 - How it was found: we tried making `stdin_api` / `stdout_api` inherit `stream_common_operators` **privately**, exposing only what they need through `using`, so that qualified calls such as `cin.stream_common_operators::detach()` would fail to compile (all those members use deducing this). GCC correctly rejected `cout.IOv2::stream_common_operators::detach()`; Clang accepted it, which is how this bug surfaced.
 - The final design (`0e2f4a6d` on `main`): a `basic_stream_common_operators<is_std>` template; the standard streams derive publicly from `<true>`, where `detach` / `attach` / `adjust` are **protected** members (a pair of overloads told apart by `requires`). With the member itself protected, the "accessible as designated" check already fails, which Clang does perform, so GCC and Clang both reject the qualified calls at compile time.
 - `static_assert`s in `test/io/objects/test_io_objects_char.cpp` pin this down on both compilers, with no per-compiler guard.
+- From 1.0.2: the protected `detach` / `attach` overloads are removed (nothing ever called them), leaving only the protected `adjust` on the standard streams. A qualified `detach()` is now refused by the public version's `requires (!is_std)`; a constraint check does not go through access control, so it is not affected by this bug either.
