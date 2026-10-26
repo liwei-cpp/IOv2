@@ -41,6 +41,14 @@
 - 读写 `file_device` 在读与写之间切换时先定位一次，满足 C 标准对同一流读写切换的要求。
   此前依赖 glibc 的宽容，在 MSVC CRT 上写入会失败。
 
+### [1.0.2] - 2026-10-26
+
+#### 变更
+
+- 标准流的公共操作基类 `std_stream_common_operators` 不再含受保护的 `detach` / `attach`
+  重载（从未被调用）。标准流上的限定名调用（如 `cout.IOv2::std_stream_common_operators::detach()`）
+  仍然编译不过，改由公开版本的 `requires (!is_std)` 拒绝；公开接口不变。
+
 ### [1.0.1] - 2026-10-23
 
 #### 变更
@@ -135,6 +143,16 @@ have no release line of their own.
   writing, as C requires of a stream used both ways. It used to rely on glibc
   tolerating the omission; on the MSVC CRT the write failed.
 
+### [1.0.2] - 2026-10-26
+
+#### Changed
+
+- `std_stream_common_operators`, the common-operations base of the standard streams, no
+  longer has protected `detach` / `attach` overloads (nothing ever called them). A qualified
+  call on a standard stream, such as `cout.IOv2::std_stream_common_operators::detach()`, still
+  does not compile; the public version's `requires (!is_std)` now refuses it. The public
+  interface is unchanged.
+
 ### [1.0.1] - 2026-10-23
 
 #### Changed
@@ -184,5 +202,6 @@ and `PROVENANCE.md`.
 - Decoupling "read returned 0" from EOF detection (#6) is outside this release.
 
 [Unreleased]: https://github.com/liwei-cpp/IOv2/compare/v1.0.0...HEAD
+[1.0.2]: https://github.com/liwei-cpp/IOv2/releases/tag/v1.0.2
 [1.0.1]: https://github.com/liwei-cpp/IOv2/releases/tag/v1.0.1
 [1.0.0]: https://github.com/liwei-cpp/IOv2/releases/tag/v1.0.0

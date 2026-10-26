@@ -98,11 +98,12 @@ inline copyable_mutex<std::mutex>& tie_graph_mutex()
  * 其余操作均持有本流的 `io_mutex()`，并将异常统一交由 `handle_exception` 处理。
  * 本结构还持有本流所绑定（tie）的目标指针。
  *
- * `is_std` 只决定换设备与调整转换行为的接口（`detach` / `attach` / `adjust`）是否公开：
- * 为假（别名 `stream_common_operators`，供 `istream` / `ostream` / `iostream`）时公开；
- * 为真（别名 `std_stream_common_operators`，供八个标准流）时受保护——标准流的设备是固定的
- * fd，`adjust` 由各标准流自己提供（`stdin_api` 要先截下 `stdin_sync`），连
- * `cout.IOv2::std_stream_common_operators::detach()` 这样的限定名调用也编译不过。
+ * `is_std` 只决定换设备与调整转换行为的接口（`detach` / `attach` / `adjust`）怎样提供：
+ * 为假（别名 `stream_common_operators`，供 `istream` / `ostream` / `iostream`）时三者都公开；
+ * 为真（别名 `std_stream_common_operators`，供八个标准流）时 `detach` / `attach` 不提供——
+ * 标准流的设备是固定的 fd，公开版本受 `requires (!is_std)` 约束，
+ * `cout.IOv2::std_stream_common_operators::detach()` 这样的限定名调用因约束不满足而编译不过；
+ * `adjust` 受保护，由各标准流自己提供（`stdin_api` 要先截下 `stdin_sync`）。
  * @tparam is_std 是否为标准流所用。
  * @endif
  *
@@ -117,13 +118,15 @@ inline copyable_mutex<std::mutex>& tie_graph_mutex()
  * and route exceptions through `handle_exception`. This struct also holds the pointer to the
  * stream this one is tied to.
  *
- * `is_std` decides one thing: whether the device-replacing and behavior-adjusting interface
- * (`detach` / `attach` / `adjust`) is public. It is when `is_std` is false (the alias
- * `stream_common_operators`, for `istream` / `ostream` / `iostream`), and protected when it is
- * true (the alias `std_stream_common_operators`, for the eight standard streams): their device
- * is a fixed fd, and each provides its own `adjust` (`stdin_api` has to catch `stdin_sync`
- * first), so not even a qualified call such as
- * `cout.IOv2::std_stream_common_operators::detach()` compiles.
+ * `is_std` decides one thing: how the device-replacing and behavior-adjusting interface
+ * (`detach` / `attach` / `adjust`) is offered. When `is_std` is false (the alias
+ * `stream_common_operators`, for `istream` / `ostream` / `iostream`) all three are public. When
+ * it is true (the alias `std_stream_common_operators`, for the eight standard streams),
+ * `detach` / `attach` are not offered at all: their device is a fixed fd, and the public versions
+ * are constrained with `requires (!is_std)`, so a qualified call such as
+ * `cout.IOv2::std_stream_common_operators::detach()` does not compile, its constraint being
+ * unsatisfied; `adjust` is protected, and each standard stream provides its own (`stdin_api`
+ * has to catch `stdin_sync` first).
  * @tparam is_std Whether the standard streams use it.
  * @endif
  */
@@ -442,7 +445,8 @@ struct basic_stream_common_operators
      */
     auto detach(this auto& self) noexcept requires (!is_std)
     {
-        return self.detach_impl();
+        std::lock_guard guard(self.io_mutex());
+        return self.m_channel.detach();
     }
 
     /**
@@ -529,7 +533,16 @@ struct basic_stream_common_operators
     void attach(this TSelf& self, typename TSelf::device_type&& dev = typename TSelf::device_type{})
         requires (!is_std)
     {
-        self.attach_impl(std::move(dev));
+        std::lock_guard guard(self.io_mutex());
+        try
+        {
+            self.clear();
+            self.m_channel.attach(std::move(dev));
+        }
+        catch (...)
+        {
+            self.handle_exception(std::current_exception());
+        }
     }
 
     /**
@@ -956,63 +969,32 @@ struct basic_stream_common_operators
 protected:
     /**
      * @lang{ZH}
-     * @brief 标准流上的 `detach` / `attach` / `adjust`：与上面的公开版本相同，但受保护。
+     * @brief 标准流上的 `adjust`：与上面的公开版本相同，但受保护。
      *
-     * 标准流的设备是固定的 fd，`detach` / `attach` 不对用户开放；`adjust` 由各标准流以自己的
-     * 公开成员提供（`stdin_api` 先截下 `stdin_sync`，`stdout_api` 直接转来）。受保护成员连
-     * 限定名调用也拦得住。
+     * `adjust` 由各标准流以自己的公开成员提供（`stdin_api` 先截下 `stdin_sync`，`stdout_api`
+     * 直接转来），这里只是它们转调的落点。受保护成员连限定名调用也拦得住。`detach` / `attach`
+     * 在标准流上没有对应版本：标准流的设备是固定的 fd，上面的公开版本又受 `requires (!is_std)`
+     * 约束，限定名调用因此也编译不过。
      * @endif
      *
      * @lang{EN}
-     * @brief `detach` / `attach` / `adjust` on the standard streams: the same as the public
-     * versions above, but protected.
+     * @brief `adjust` on the standard streams: the same as the public version above, but
+     * protected.
      *
-     * A standard stream's device is a fixed fd, so `detach` / `attach` are not offered to users;
-     * each standard stream provides `adjust` through a public member of its own (`stdin_api`
-     * catches `stdin_sync` first, `stdout_api` forwards). A protected member stops even a
-     * qualified call.
+     * Each standard stream provides `adjust` through a public member of its own (`stdin_api`
+     * catches `stdin_sync` first, `stdout_api` forwards); this is only where they forward to. A
+     * protected member stops even a qualified call. `detach` / `attach` have no counterpart on
+     * the standard streams: their device is a fixed fd, and the public versions above are
+     * constrained with `requires (!is_std)`, so a qualified call does not compile either.
      * @endif
      */
-    auto detach(this auto& self) noexcept requires is_std
-    {
-        return self.detach_impl();
-    }
-
-    template <typename TSelf>
-    void attach(this TSelf& self, typename TSelf::device_type&& dev = typename TSelf::device_type{})
-        requires is_std
-    {
-        self.attach_impl(std::move(dev));
-    }
-
     void adjust(this auto& self, const cvt_behavior& acc) requires is_std
     {
         self.adjust_impl(acc);
     }
 
 private:
-    // The bodies behind the public and the protected overloads above, written once.
-    auto detach_impl(this auto& self) noexcept
-    {
-        std::lock_guard guard(self.io_mutex());
-        return self.m_channel.detach();
-    }
-
-    template <typename TSelf>
-    void attach_impl(this TSelf& self, typename TSelf::device_type&& dev)
-    {
-        std::lock_guard guard(self.io_mutex());
-        try
-        {
-            self.clear();
-            self.m_channel.attach(std::move(dev));
-        }
-        catch (...)
-        {
-            self.handle_exception(std::current_exception());
-        }
-    }
-
+    // The body behind both adjust overloads above, the public and the protected, written once.
     void adjust_impl(this auto& self, const cvt_behavior& acc)
     {
         std::lock_guard guard(self.io_mutex());
@@ -1134,8 +1116,8 @@ private:
 /// device replacement and behavior adjustment are public. @endif
 using stream_common_operators = basic_stream_common_operators<false>;
 
-/// @lang{ZH} 八个标准流的公共操作基类：换设备与调整行为受保护。 @endif
-/// @lang{EN} Common-operations base of the eight standard streams: device replacement and
-/// behavior adjustment are protected. @endif
+/// @lang{ZH} 八个标准流的公共操作基类：不提供换设备；调整行为受保护。 @endif
+/// @lang{EN} Common-operations base of the eight standard streams: device replacement is not
+/// offered; behavior adjustment is protected. @endif
 using std_stream_common_operators = basic_stream_common_operators<true>;
 }

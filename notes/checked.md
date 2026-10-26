@@ -7604,6 +7604,7 @@ B（claude）竞态与状态错误、C（engineering-minimal-change-engineer）�
 clang 那一腿的 `ctest -T memcheck` 本地仍未跑（交给 CI）。本轮新留下的：
 
 - **protected 的 `detach` 只锁住了限定名形态**：`test_io_objects_char.cpp:77-93` 的 static_assert 不覆盖「派生类取显式对象成员地址」（B-N2，判为 C++ 固有缺口不报，但没有回归防线）。
+  **1.0.2 起不再成立**：`std_stream_common_operators` 里的 protected `detach` / `attach` 已删除，标准流上没有这两个成员可取地址，旁路随之消失；限定名调用改由公开版本的 `requires (!is_std)` 拦住。
 - **插件回归 `-U__unix__` 阳性对照下 `wcout` 一格不崩**的原因未深究（B-N5，推测插件没在进程级缓存里留下宽流条目）。
 - **Helgrind/DRD 要进 CI 必须加注解**：原样头文件下子进程一侧两工具都只有误报（C-N1）。影子头 `.review/tmp/C-shadow/include` 证明「重建后 `pthread_mutex_destroy`+`init` + `m_generation` HB 注解」有效；注解进库代码还是做测试专用影子头，待用户定。
 - **`dlmopen(LM_ID_NEWLM)` 载入插件会在新命名空间再载一份 `libiov2.so`、得到第二套单例**：只想到、未测。

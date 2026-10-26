@@ -82,9 +82,10 @@ namespace
 
     static_assert(std::is_final_v<IOv2::stdin_sync>);
 
-    // In std_stream_common_operators detach() and adjust() are protected, so even a qualified
-    // call cannot reach them on a standard stream; on an ordinary stream they stay public. The
-    // standard streams still offer adjust() of their own (cin's catches stdin_sync first).
+    // Even a qualified call cannot reach detach() or adjust() on a standard stream: in
+    // std_stream_common_operators detach() is constrained out and adjust() is protected. On an
+    // ordinary stream both stay public. The standard streams still offer adjust() of their own
+    // (cin's catches stdin_sync first).
     template <typename S, typename Base>
     concept base_detach_reachable = requires (S& s) { s.Base::detach(); };
     template <typename S, typename Base>
