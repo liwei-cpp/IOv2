@@ -13,5 +13,5 @@ includedir=${prefix}/include
 Name: IOv2
 Description: C++23 I/O and localization library (header-only mode)
 URL: https://github.com/liwei-cpp/IOv2
-Version: 1.0.1
+Version: 1.0.2
 Cflags: -I${includedir} -D_POSIX_C_SOURCE=200809L
