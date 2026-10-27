@@ -270,7 +270,8 @@ public:
      * `FILE*` 由 `std::unique_ptr<FILE, file_deleter>` 持有，删除器调用的 `std::fclose()`
      * 在关闭前会冲刷 stdio 缓冲，因此输出设备无需在此另行 `dflush()`。代价是失败无从得知：
      * `fclose()` 的返回值被丢弃，析构函数也无法报告。要拿到冲刷失败，请在销毁前显式调用
-     * `dflush()` 或 `close()`——后者先 `dflush()` 再关闭，失败会以 `device_error` 抛出。
+     * `dflush()` 或 `close()`——后者先 `dflush()` 再关闭，冲刷或关闭失败都会以 `device_error`
+     * 抛出。
      * @endif
      *
      * @lang{EN}
@@ -281,7 +282,7 @@ public:
      * separate `dflush()` here. The price is that a failure goes unseen: `fclose()`'s return
      * value is discarded, and a destructor could not report it anyway. To see a flush failure,
      * call `dflush()` or `close()` explicitly before destruction -- the latter does the
-     * `dflush()` first and throws `device_error` on failure.
+     * `dflush()` first and throws `device_error` if either the flush or the close fails.
      * @endif
      */
     ~basic_file_device() = default;
@@ -335,7 +336,10 @@ public:
      *
      * 该函数保证无论是否发生异常，文件句柄都会被释放。
      * 对于输出设备，会首先尝试刷新缓冲区（dflush）。如果刷新过程中抛出异常，
-     * 会先确保文件句柄被正确关闭，然后再重新抛出捕获到的异常。
+     * 会先确保文件句柄被正确关闭，然后再重新抛出捕获到的异常。`fclose()` 的返回值也会
+     * 检查：冲刷成功之后关闭本身仍可能失败（如 close(2) 报 EIO），此时抛出 `device_error`；
+     * 两者都失败时报告先发生的冲刷失败。无论哪种情况，返回或抛出时文件都已关闭。
+     * @throw device_error 冲刷或关闭失败。
      * @endif
      *
      * @lang{EN}
@@ -344,6 +348,11 @@ public:
      * This function guarantees that the file handle is released regardless of whether an exception occurs.
      * For output devices, it first attempts to flush the buffer (dflush). If an exception occurs
      * during flushing, the file handle is still reset before the exception is re-thrown.
+     * `fclose()`'s result is checked too: a close can fail on its own after a successful
+     * flush (EIO from close(2), say), and then `device_error` is thrown; when both fail, the
+     * earlier flush failure is the one reported. Either way the file is closed on return or
+     * throw.
+     * @throw device_error If the flush or the close fails.
      * @endif
      */
     void close()
@@ -359,9 +368,17 @@ public:
                     ptr = std::current_exception();
                 }
             }
-            m_file.reset();
+            // Not m_file.reset(): the deleter has to discard fclose()'s result, and a close
+            // can fail on its own even after a successful flush (EIO on close(2), say).
+            FILE* fp = m_file.release();
             m_file_len = 0;
             m_last_dir = {};
+            if (std::fclose(fp) != 0 && !ptr) // NOLINT(cppcoreguidelines-owning-memory)
+            {
+                const int err = errno;
+                ptr = std::make_exception_ptr(
+                    device_error("cannot close file (errno=" + std::to_string(err) + ")"));
+            }
             if (ptr) std::rethrow_exception(ptr);
         }
     }
