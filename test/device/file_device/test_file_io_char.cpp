@@ -11,10 +11,14 @@
 
 #include <cstddef>
 #include <cstring>
+#include <filesystem>
 #include <limits>
 #include <string>
+#include <system_error>
 #include <type_traits>
 #include <utility>
+
+#include <unistd.h>
 
 using namespace IOv2;
 
@@ -657,6 +661,29 @@ TEST(FileDeviceChar, CloseReportsTheFailedFlushAndStillReleasesTheFile)
     EXPECT_THROW(dev.close(), device_error);
     // close() resets the handle before re-throwing, so the device is closed
     // even though it reported an error.
+    EXPECT_FALSE(dev.is_open());
+}
+
+TEST(FileDeviceChar, CloseReportsAFailedFcloseAndStillReleasesTheFile)
+{
+    // fclose() can fail with nothing left to flush. Closing the descriptor behind
+    // stdio's back makes fclose()'s own close(2) fail with EBADF; close() must
+    // report that rather than discard it as the deleter does.
+    file_guard g("close_ebadf.txt", std::string("hi"));
+    ifile_device<char> dev("close_ebadf.txt");
+
+    const auto target = std::filesystem::canonical("close_ebadf.txt");
+    int fd = -1;
+    for (const auto& entry : std::filesystem::directory_iterator("/proc/self/fd"))
+    {
+        std::error_code ec;
+        if (std::filesystem::read_symlink(entry.path(), ec) == target)
+            fd = std::stoi(entry.path().filename().string());
+    }
+    ASSERT_NE(fd, -1);
+    ASSERT_EQ(::close(fd), 0);
+
+    EXPECT_THROW(dev.close(), device_error);
     EXPECT_FALSE(dev.is_open());
 }
 
