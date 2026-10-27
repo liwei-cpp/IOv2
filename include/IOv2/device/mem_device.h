@@ -43,8 +43,9 @@ namespace IOv2
  * @tparam CharT 字符类型。必须是平凡的标准布局类型（可平凡复制、可平凡默认构造、
  *         标准布局），这是标准对 `std::basic_string` 元素类型的要求（[strings.general]）。
  * @tparam Traits 字符类型的特性，默认为 `std::char_traits<CharT>`。
+ *         `Traits::char_type` 必须是 `CharT`（[string.require]）。
  * @tparam Allocator 内存分配器，默认为 `std::allocator<CharT>`。
- *         必须满足 `is_always_equal` 或 `propagate_on_container_move_assignment`，
+ *         其 `value_type` 必须是 `CharT`（[string.require]），且必须满足 `is_always_equal` 或 `propagate_on_container_move_assignment`，
  *         以确保移动赋值操作为 noexcept。
  * @endif
  *
@@ -61,8 +62,9 @@ namespace IOv2
  *         copyable, trivially default constructible, standard-layout), as the standard
  *         requires of `std::basic_string`'s element type ([strings.general]).
  * @tparam Traits The character traits, defaulting to `std::char_traits<CharT>`.
+ *         `Traits::char_type` must be `CharT` ([string.require]).
  * @tparam Allocator The memory allocator, defaulting to `std::allocator<CharT>`.
- *         Must satisfy `is_always_equal` or `propagate_on_container_move_assignment`
+ *         Its `value_type` must be `CharT` ([string.require]), and it must satisfy `is_always_equal` or `propagate_on_container_move_assignment`
  *         to ensure noexcept move assignment.
  * @endif
  */
@@ -72,6 +74,8 @@ template <class CharT,
     requires std::is_trivially_copyable_v<CharT> &&
              std::is_trivially_default_constructible_v<CharT> &&
              std::is_standard_layout_v<CharT> &&
+             std::is_same_v<typename Traits::char_type, CharT> &&
+             std::is_same_v<typename std::allocator_traits<Allocator>::value_type, CharT> &&
              (std::allocator_traits<Allocator>::is_always_equal::value ||
               std::allocator_traits<Allocator>::propagate_on_container_move_assignment::value)
 class mem_device
