@@ -9,6 +9,7 @@
 
 #include <cstddef>
 #include <limits>
+#include <memory>
 #include <string>
 #include <type_traits>
 #include <utility>
@@ -54,6 +55,15 @@ namespace
     static_assert(!mem_device_accepts<not_trivially_copyable>);
     static_assert(!mem_device_accepts<not_trivially_default_constructible>);
     static_assert(!mem_device_accepts<not_standard_layout>);
+
+    // basic_string also requires Traits::char_type and the allocator's
+    // value_type to be the element type ([string.require]).
+    template <class C, class T, class A = std::allocator<C>>
+    concept mem_device_accepts_with = requires { typename mem_device<C, T, A>; };
+
+    static_assert(mem_device_accepts_with<char, std::char_traits<char>>);
+    static_assert(!mem_device_accepts_with<char, std::char_traits<char16_t>>);
+    static_assert(!mem_device_accepts_with<char, std::char_traits<char>, std::allocator<int>>);
 }
 
 TEST(MemDeviceChar, Traits)
