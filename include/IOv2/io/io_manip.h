@@ -1135,8 +1135,9 @@ template<typename TChar> struct put_time_t
  *            所以 `std::tm t{}` 得到 `+0000` 而不是字面量；
  *          - `%Z` 写出 `tm_zone`，它为空指针或空串时（`std::tm t{}` 即如此）改写
  *            @ref base_ft<timeio>::s_unknown_zone（即 `UNKNOWN`），流仍保持 `good()`；
- *          - 平台两个扩展都没有时，`%z` 与 `%Z` 一律退化为字面量。
- *          退化不置失败位，只能靠检查输出发现。若 `tm_zone` 是时区数据库里查不到的串
+ *          - 本版本只支持 glibc，两个成员总是存在；探测并不依赖模板参数，在缺少这两个成员
+ *            的平台上是编译错误，而不是退化为字面量。
+ *          退化（如上面的 `UNKNOWN`）不置失败位，只能靠检查输出发现。若 `tm_zone` 是时区数据库里查不到的串
  *          （如 `+08`），`get_time` 会置 `strfailbit`。详见 `timeio` 与 `get_time`。
  * @warning **`%z` 的取值域是 `(-24h, +24h)`，超出的 `tm_gmtoff` 被静默钳到 `±23:59:59`，
  *          **不置失败位**——`tm_gmtoff` 为 400 小时会写出 `+2359`。同一说明符还只有分钟分辨率：
@@ -1208,8 +1209,10 @@ template<typename TChar> struct put_time_t
  *          - `%Z` writes `tm_zone`, substituting @ref base_ft<timeio>::s_unknown_zone (that is,
  *            `UNKNOWN`) when that member is null or empty (as it is in a `std::tm t{}`), leaving
  *            the stream `good()`;
- *          - on a platform with neither extension both `%z` and `%Z` degrade to literals.
- *          A degradation sets no failure bit, so it shows up only on inspecting the output. And
+ *          - this release supports glibc only, where both members always exist; the probes do
+ *            not depend on a template parameter, so on a platform lacking the members they are
+ *            a compile error, not a degradation to literals.
+ *          A degradation (such as `UNKNOWN` above) sets no failure bit, so it shows up only on inspecting the output. And
  *          if `tm_zone` holds a string the time-zone database does not know (`+08`, say),
  *          `get_time` sets `strfailbit`. See `timeio` and `get_time`.
  * @warning **`%z` spans `(-24h, +24h)`; a `tm_gmtoff` outside it is clamped silently** to
