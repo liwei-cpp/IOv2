@@ -14,6 +14,20 @@
 配套代码的独立发布线（GPL-3.0-or-later），代码冻结在出版时的状态，版本号与本库无关，
 不在本文件记录。此后的书籍直接基于本库主线 1.x，不另设发布线。
 
+### [Unreleased]
+
+#### 修复
+
+- `file_device::close()` 检查 `fclose()` 的返回值：冲刷成功之后关闭本身仍可能失败（如
+  close(2) 报 EIO），此前这类失败被删除器静默丢弃，现在抛出 `device_error`。两者都失败时
+  报告先发生的冲刷失败；无论哪种情况，文件都已关闭。析构函数的行为不变。
+- `mem_device` 的约束补上 `Traits::char_type` 与分配器 `value_type` 必须是 `CharT` 两项
+  （`std::basic_string` 的要求），错误的组合在用户代码处被拒绝，而不是在 `<string>` 内部
+  报错。合法代码不受影响。
+- 注释更正：`locale` 拷贝赋值不是两阶段加锁；与 `cerr` 共用 stderr 的是
+  `fprintf(stderr, ...)` 而非 `printf`；`tm_gmtoff` / `tm_zone` 的探测在缺少这两个成员的
+  平台上是编译错误而非退化为字面量（本版本只支持 glibc，两个成员总是存在）。
+
 ### [1.0.2] - 2026-10-26
 
 #### 变更
@@ -80,6 +94,22 @@ June 2026), under GPL-3.0-or-later and frozen as
 published. Its version numbers are unrelated to this library's and are not
 recorded here. Later books build directly on this library's 1.x mainline and
 have no release line of their own.
+
+### [Unreleased]
+
+#### Fixed
+
+- `file_device::close()` checks `fclose()`'s result: a close can fail on its own after a
+  successful flush (EIO from close(2), say), and that failure, which the deleter used to
+  discard silently, now throws `device_error`. When both fail, the earlier flush failure is
+  the one reported; either way the file is closed. The destructor is unchanged.
+- `mem_device`'s constraint now also requires `Traits::char_type` and the allocator's
+  `value_type` to be `CharT` (as `std::basic_string` does), so a wrong combination is rejected
+  at the user's code rather than inside `<string>`. Valid code is unaffected.
+- Comment corrections: `locale` copy assignment is not two-phase locking; the writer sharing
+  stderr with `cerr` is `fprintf(stderr, ...)`, not `printf`; the `tm_gmtoff` / `tm_zone`
+  probes are a compile error, not a degradation to literals, on a platform lacking those
+  members (this release supports glibc only, where both always exist).
 
 ### [1.0.2] - 2026-10-26
 
