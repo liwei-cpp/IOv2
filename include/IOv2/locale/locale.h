@@ -473,8 +473,9 @@ public:
      * @lang{ZH}
      * @brief 拷贝赋值。赋值是 locale 实例上唯一的原地修改操作。
      *
-     * 采用两阶段加锁：先在共享锁下对源做快照（不阻塞源上的并发只读读者），再在独占锁
-     * 下发布进 `*this`。两把锁从不同时持有，故按构造即无死锁。加锁保证源的一致性、并
+     * 分两段临界区完成：先在源的共享锁下对源做快照（不阻塞源上的并发只读读者），放开
+     * 该锁后，再在 `*this` 的独占锁下发布。两把锁从不同时持有，故按构造即无死锁（这不是
+     * 两阶段加锁：释放源锁之后才获取目标锁）。加锁保证源的一致性、并
      * 使各 map 不出现撕裂读。
      *
      * @warning 按类级线程契约（见类文档），赋值期间调用方必须保证没有其它线程访问
@@ -487,10 +488,12 @@ public:
      * @lang{EN}
      * @brief Copy assignment. Assignment is the only in-place mutating operation on a locale instance.
      *
-     * Uses two-phase locking: first snapshot the source under a shared lock
-     * (concurrent const readers of the source are not blocked), then publish into
-     * `*this` under an exclusive lock. The two locks are never held at once, so this
-     * is deadlock-free by construction. The locks keep the source consistent and the
+     * Works in two separate critical sections: snapshot the source under the source's
+     * shared lock (concurrent const readers of the source are not blocked), release
+     * it, then publish into `*this` under the destination's exclusive lock. The two
+     * locks are never held at once, so this is deadlock-free by construction (it is
+     * not two-phase locking: the destination lock is taken after the source lock is
+     * released). The locks keep the source consistent and the
      * maps free of torn reads.
      *
      * @warning Per the class threading contract (see the class doc), the caller must

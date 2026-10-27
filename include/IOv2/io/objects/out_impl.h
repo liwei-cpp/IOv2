@@ -65,7 +65,7 @@
  *
  * @note **宽流不接受状态依赖的编码**（如 ISO-2022-JP）：环境变量指向这样的 locale 时，宽流改用
  *       `"C"`；`switch_code()` 切换到这样的编码会失败。移位状态只记在每个宽流自己的转换器里，
- *       而 `wcerr` 与 `wclog`（连同 `cerr`、`printf`）共用 stderr 这一个 fd，交错输出无法可靠地
+ *       而 `wcerr` 与 `wclog`（连同 `cerr`、`fprintf(stderr, ...)`）共用 stderr 这一个 fd，交错输出无法可靠地
  *       解码。见 `cvt/code_cvt_stdio.h`。
  *
  * @note **与 `printf` 混写时的锁序**：这些流写出时先持本流的 `io_mutex()`，再取 `stdout` /
@@ -165,7 +165,7 @@
  * @note **The wide streams take no state-dependent encoding** (ISO-2022-JP, say): when the
  *       environment names such a locale they use `"C"` instead, and `switch_code()` to such an
  *       encoding fails. The shift state lives in each wide stream's own converter while `wcerr`
- *       and `wclog` (and `cerr`, and `printf`) share the one stderr fd, so interleaved output
+ *       and `wclog` (and `cerr`, and `fprintf(stderr, ...)`) share the one stderr fd, so interleaved output
  *       cannot be decoded reliably. See `cvt/code_cvt_stdio.h`.
  *
  * @note **Lock order when mixing with `printf`**: these streams write out holding their own
