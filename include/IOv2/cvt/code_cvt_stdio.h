@@ -94,7 +94,8 @@ struct code_cvt_switch : cvt_behavior
  *
  * 本类不接受状态依赖的编码（如 ISO-2022-JP）：构造时遇到则改用 `"C"`，`adjust()` 切换到
  * 则抛出 `cvt_error`、不切换。移位状态只记在各自的内核里，而一个 fd 由多个写端共用
- * （`wcerr` 与 `wclog`，以及 `cerr`、`printf`），写失败后也无从得知 fd 停在哪个移位状态，
+ * （如 stderr 由 `wcerr` 与 `wclog`，以及 `cerr`、`fprintf(stderr, ...)` 共用），写失败后
+ * 也无从得知 fd 停在哪个移位状态，
  * 交错输出因此无法可靠地解码。
  *
  * @tparam KernelType 底层 I/O 转换器类型，须满足 `io_converter` 概念；
@@ -135,7 +136,8 @@ struct code_cvt_switch : cvt_behavior
  * The class takes no state-dependent encoding (ISO-2022-JP, say): one given at
  * construction is replaced by `"C"`, and `adjust()` switching to one throws `cvt_error`
  * and switches nothing. The shift state lives in each converter's own kernel while one
- * fd is shared by several writers (`wcerr` and `wclog`, as well as `cerr` and `printf`),
+ * fd is shared by several writers (stderr by `wcerr` and `wclog`, as well as `cerr` and
+ * `fprintf(stderr, ...)`),
  * and after a failed write there is no knowing which shift state the fd was left in, so
  * interleaved output cannot be decoded reliably.
  *

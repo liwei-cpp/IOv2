@@ -1457,7 +1457,8 @@ struct time_parse_context
      * **只覆盖它真正重建出来的字段**：`tm_year` / `tm_mon` / `tm_mday` / `tm_hour` /
      * `tm_min` / `tm_sec` / `tm_wday` / `tm_yday` / `tm_isdst` 这九项总是写；`tm_gmtoff`
      * 只在三个条件同时成立时写——`TzLevel` 至少为 `tz_level::offset`、确实解析到了 `%z`、
-     * 且当前平台的 `std::tm` 带这个成员（用 `requires` 表达式探测，不看平台宏）。@p out 的
+     * 且当前平台的 `std::tm` 带这个成员（用 `requires` 表达式探测，不看平台宏；该探测不依赖
+     * 模板参数，只在成员存在时成立，本版本只支持的 glibc 上总是如此）。@p out 的
      * 其余成员保持原值。整体覆盖会把 `tm_gmtoff`、`tm_zone` 清成 `0` 与 `nullptr`，等于把调用
      * 方结构体里一个有效指针改成空指针。逐字段写入也与 `std::time_get::get` 的行为一致
      * （后者同样只写它解析到的字段）。
@@ -1498,7 +1499,9 @@ struct time_parse_context
      * `tm_yday` and `tm_isdst`. `tm_gmtoff` is written only when all three of the following
      * hold -- `TzLevel` is at least `tz_level::offset`, a `%z` was in fact parsed, and this
      * platform's `std::tm` carries that member (detected with a `requires` expression rather
-     * than a platform macro). Every other member of @p out keeps its value. Overwriting the
+     * than a platform macro; the probe does not depend on a template parameter, so it only
+     * works where the member exists, as it always does on glibc, the only platform this
+     * release supports). Every other member of @p out keeps its value. Overwriting the
      * struct as a whole would clear `tm_gmtoff` and `tm_zone` to `0` and `nullptr`, turning a
      * valid pointer in the caller's struct into a null one. Assigning field by field also
      * matches `std::time_get::get`, which likewise writes only the fields it parsed.
@@ -1720,6 +1723,8 @@ struct time_value_fields<std::tm>
  * `get` 侧的档位由 `time_parse_context` 的 `TzLevel` 模板参数给出，对应上表"时区档"一列：
  * 低于该档的说明符退化为字面量，达到该档的说明符真的解析。`std::tm` 那两行填的是本平台的档：
  * 它随两个扩展成员的有无而定，两个都有是"区域"，只有 `tm_gmtoff` 是"偏移"，都没有是"无"。
+ * 本版本只支持 glibc，两个成员都有，因此总是"区域"；后两档留待移植，眼下的探测在缺少成员的
+ * 平台上会编译失败。
  *
  * 能否供出 `%Z` 只看值类型，不看运行期取值：带 `tm_zone` 成员的平台上，`std::tm` 的 `%Z`
  * 对**任何**取值都写得出内容——有名字写名字，`tm_zone` 为空指针或空串则写
@@ -1804,6 +1809,8 @@ struct time_value_fields<std::tm>
  * the "Tier" column above: a specifier needing more than that tier degrades to a literal, and one
  * the tier can hold really parses. The two `std::tm` rows carry this platform's tier; it follows
  * the two extension members -- zone with both, offset with `tm_gmtoff` alone, none with neither.
+ * This release supports glibc only, which has both, so the tier is always zone; the other two
+ * are left for porting, and the present probes fail to compile where the members are missing.
  *
  * Whether `%Z` can be supplied depends on the value's type, not on its run-time value: on a
  * platform whose `std::tm` carries `tm_zone`, `%Z` produces content for **every** `std::tm` -- the
@@ -2642,8 +2649,9 @@ public:
      *       是标准成员，glibc / BSD / macOS 一直都有），`%z` 写它的值；带 `tm_zone` 时
      *       `%Z` 写它，`tm_zone` 为空指针或空串则写
      *       @ref base_ft<timeio>::s_unknown_zone。成员的有无用 `requires` 表达式
-     *       探测，不看平台宏。平台的 `std::tm` **不带** `tm_gmtoff` 时 `%z` 与 `%Z` 才退化为
-     *       字面量，`%c` / `%X` / `%r` 里 locale 自带的那个 `%Z` 也一样。
+     *       探测，不看平台宏。本版本只支持 glibc，两个成员总是存在；探测不依赖模板参数，
+     *       在 `std::tm` **不带**这两个成员的平台上是编译错误，而不是让 `%z` 与 `%Z` 退化为
+     *       字面量。
      * @note 因此在带 `tm_zone` 的平台上，`%Z` 对任何 `std::tm` 都写得出内容——这正是
      *       @ref time_value_fields<std::tm>::has_zone 恒为 `true` 所声明的，两者不会脱节。
      * @endif
@@ -2671,8 +2679,9 @@ public:
      *       `tm_zone`, `%Z` writes that, or
      *       @ref base_ft<timeio>::s_unknown_zone if `tm_zone` is null or empty. Their
      *       presence is detected with a `requires` expression rather than a platform macro.
-     *       Only on a platform whose `std::tm` lacks `tm_gmtoff` do `%z` and `%Z` degrade to
-     *       literals, and with them a locale's own `%Z` inside `%c` / `%X` / `%r`.
+     *       This release supports glibc only, where both members always exist; the probes do
+     *       not depend on a template parameter, so on a platform whose `std::tm` lacks them
+     *       they are a compile error rather than making `%z` and `%Z` degrade to literals.
      * @note So on a platform with `tm_zone`, `%Z` produces content for every `std::tm` -- which
      *       is exactly what @ref time_value_fields<std::tm>::has_zone being unconditionally
      *       `true` claims, leaving no gap between the two.
