@@ -40,6 +40,15 @@
 
 - 读写 `file_device` 在读与写之间切换时先定位一次，满足 C 标准对同一流读写切换的要求。
   此前依赖 glibc 的宽容，在 MSVC CRT 上写入会失败。
+- `file_device::close()` 检查 `fclose()` 的返回值：冲刷成功之后关闭本身仍可能失败（如
+  close(2) 报 EIO），此前这类失败被删除器静默丢弃，现在抛出 `device_error`。两者都失败时
+  报告先发生的冲刷失败；无论哪种情况，文件都已关闭。析构函数的行为不变。
+- `mem_device` 的约束补上 `Traits::char_type` 与分配器 `value_type` 必须是 `CharT` 两项
+  （`std::basic_string` 的要求），错误的组合在用户代码处被拒绝，而不是在 `<string>` 内部
+  报错。合法代码不受影响。
+- 注释更正：`locale` 拷贝赋值不是两阶段加锁；与 `cerr` 共用 stderr 的是
+  `fprintf(stderr, ...)` 而非 `printf`；`tm_gmtoff` / `tm_zone` 的探测在缺少这两个成员的
+  平台上是编译错误而非退化为字面量。
 
 ### [1.0.2] - 2026-10-26
 
@@ -142,6 +151,19 @@ have no release line of their own.
 - A read-write `file_device` seeks once when switching between reading and
   writing, as C requires of a stream used both ways. It used to rely on glibc
   tolerating the omission; on the MSVC CRT the write failed.
+- `file_device::close()` checks `fclose()`'s result: a close can fail on its
+  own after a successful flush (EIO from close(2), say), and that failure,
+  which the deleter used to discard silently, now throws `device_error`. When
+  both fail, the earlier flush failure is the one reported; either way the
+  file is closed. The destructor is unchanged.
+- `mem_device`'s constraint now also requires `Traits::char_type` and the
+  allocator's `value_type` to be `CharT` (as `std::basic_string` does), so a
+  wrong combination is rejected at the user's code rather than inside
+  `<string>`. Valid code is unaffected.
+- Comment corrections: `locale` copy assignment is not two-phase locking; the
+  writer sharing stderr with `cerr` is `fprintf(stderr, ...)`, not `printf`;
+  the `tm_gmtoff` / `tm_zone` probes are a compile error, not a degradation to
+  literals, on a platform lacking those members.
 
 ### [1.0.2] - 2026-10-26
 
