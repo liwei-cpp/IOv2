@@ -51,7 +51,9 @@
 - 注释更正：`locale` 拷贝赋值不是两阶段加锁；与 `cerr` 共用 stderr 的是
   `fprintf(stderr, ...)` 而非 `printf`；`tm_gmtoff` / `tm_zone` 的探测在缺少这两个成员的
   平台上是编译错误而非退化为字面量；`reset()` 不能用来丢掉本行剩余的输入，应改用
-  `clear()` 加 `ignore()`。
+  `clear()` 加 `ignore()`；转换器 `put` 失败时，已交给下层的输出不会撤销，可能留下截断的
+  前缀；`abs_cvt` 的钩子清单补上 `is_eof_impl()`，中文文档不再隐藏这份清单；`messages`
+  按环境变量选语言时，名字原样当目录名，不做 gettext 那样的截短回退。
 
 ### [1.0.2] - 2026-10-26
 
@@ -170,7 +172,12 @@ have no release line of their own.
   writer sharing stderr with `cerr` is `fprintf(stderr, ...)`, not `printf`;
   the `tm_gmtoff` / `tm_zone` probes are a compile error, not a degradation to
   literals, on a platform lacking those members; `reset()` does not discard
-  the rest of a line, use `clear()` followed by `ignore()`.
+  the rest of a line, use `clear()` followed by `ignore()`; a failed converter
+  `put` does not undo output already handed to the layer below and may leave a
+  truncated prefix; the `abs_cvt` hook list now includes `is_eof_impl()` and is
+  no longer hidden in the Chinese documentation; when `messages` picks a
+  language from the environment, names are used verbatim as directory names,
+  without gettext's fallback to shorter names.
 
 ### [1.0.2] - 2026-10-26
 
