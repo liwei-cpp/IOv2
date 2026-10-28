@@ -414,7 +414,9 @@ public:
      * `reset()` 丢掉 `x`），`wcin` 遇到解码错误后已取出、尚未交出的字节，以及此前不同步时
      * 整块预读进缓冲、切到同步后还没交出的字节（可达一整块缓冲）。
      *
-     * 供需要放弃残余输入的场合使用——例如交互程序在出错后丢掉这一行剩下的内容重新提示。
+     * 供需要放弃已缓冲但未消费的输入的场合使用。它**不能**用来丢掉本行剩余的内容：同步模式下
+     * 它只丢掉偷看的那个字符，不同步模式下则可能连预读进来的后续几行一起丢掉；提取失败后要
+     * 丢掉本行剩余，请用 `clear()` 加 `ignore(std::numeric_limits<std::ptrdiff_t>::max(), '\n')`。
      * 它**不是**出错后的必经之路：解码失败后 `clear()` 即可继续，解码器跳过坏序列的首字节、
      * 从下一个字节接着解码（块读与逐字符读跳过的一样多），`switch_code()` 也随之可用。
      * 例外是输入在一个字符中间到达 EOF：那半个字符留在缓冲里、无法完成转换，此后每次
@@ -448,8 +450,11 @@ public:
      * read ahead into the buffer and the switch to synchronized has not handed out yet (up to
      * a whole buffer).
      *
-     * For the cases that want to abandon the pending input -- an interactive program
-     * discarding the rest of a line after an error before prompting again. It is **not**
+     * For the cases that want to abandon input that was buffered but not yet consumed. It
+     * does **not** discard the rest of a line: in synchronized mode it drops only the peeked
+     * character, and in unsynchronized mode it may drop following lines read ahead as well;
+     * to discard the rest of a line after a failed extraction, use `clear()` followed by
+     * `ignore(std::numeric_limits<std::ptrdiff_t>::max(), '\n')`. It is **not**
      * the required step after a failure: after a decode failure `clear()` is enough to
      * carry on -- the decoder skips the first byte of the bad sequence and decodes on from
      * the next one (block and character-at-a-time reads skip the same), and `switch_code()`
