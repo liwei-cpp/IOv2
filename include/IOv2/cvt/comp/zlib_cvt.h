@@ -749,13 +749,16 @@ private:
     {
         if (BT::m_io_status == io_status::output)
         {
-            // Invariant: bos() either allocates m_strm and leaves m_io_status as
-            // input/output, or restores neutral and taints the converter on failure.
-            // Reaching here with m_io_status == output therefore implies m_strm is
-            // a fully-initialized zlib stream; if the converter were tainted,
-            // BT::flush() would throw before flush_impl() dereferences m_strm.
-            assert(m_strm);
-            BT::flush();
+            if constexpr (cvt_cpt::support_put<KernelType>)
+            {
+                // Invariant: bos() either allocates m_strm and leaves m_io_status as
+                // input/output, or restores neutral and taints the converter on failure.
+                // Reaching here with m_io_status == output therefore implies m_strm is
+                // a fully-initialized zlib stream; if the converter were tainted,
+                // BT::flush() would throw before flush_impl() dereferences m_strm.
+                assert(m_strm);
+                BT::flush();
+            }
         }
         else if (BT::m_io_status == io_status::neutral)
             throw cvt_error("zlib_cvt::main_cont_beg fail: bos() has not been called before main_cont_beg");
@@ -1154,30 +1157,33 @@ private:
 
         if (BT::m_io_status == io_status::output)
         {
-            std::array<external_type, CHUNK> local_buf{};
-            deflate_guard g(m_strm);  // calls deflateEnd + resets m_strm on scope exit
-            m_strm->next_in = nullptr;
-            m_strm->avail_in = 0;
-            while (true)
+            if constexpr (cvt_cpt::support_put<KernelType>)
             {
-                m_strm->next_out = reinterpret_cast<unsigned char*>(local_buf.data()); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
-                m_strm->avail_out = CHUNK;
-                auto ret = deflate(m_strm.get(), Z_FINISH);
-                zerr("zlib_cvt::close_stream fail", ret);
-                const std::size_t written = CHUNK - m_strm->avail_out;
-                if (written > 0)
-                    BT::kernel_put(local_buf.data(), written);
-                if (ret == Z_STREAM_END)
-                    break;
-                // Z_FINISH must reach Z_STREAM_END in finite iterations.
-                // If deflate returned Z_OK and did not even fill CHUNK
-                // (avail_out > 0), it is claiming "no more output right
-                // now" without declaring end-of-stream.  Since we feed
-                // no input on this path, the next iteration will hit
-                // the exact same state and loop forever.  Surface the
-                // inconsistency instead.
-                if (m_strm->avail_out > 0)
-                    throw cvt_error("zlib_cvt::close_stream fail: Z_FINISH returned without stream end");
+                std::array<external_type, CHUNK> local_buf{};
+                deflate_guard g(m_strm);  // calls deflateEnd + resets m_strm on scope exit
+                m_strm->next_in = nullptr;
+                m_strm->avail_in = 0;
+                while (true)
+                {
+                    m_strm->next_out = reinterpret_cast<unsigned char*>(local_buf.data()); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
+                    m_strm->avail_out = CHUNK;
+                    auto ret = deflate(m_strm.get(), Z_FINISH);
+                    zerr("zlib_cvt::close_stream fail", ret);
+                    const std::size_t written = CHUNK - m_strm->avail_out;
+                    if (written > 0)
+                        BT::kernel_put(local_buf.data(), written);
+                    if (ret == Z_STREAM_END)
+                        break;
+                    // Z_FINISH must reach Z_STREAM_END in finite iterations.
+                    // If deflate returned Z_OK and did not even fill CHUNK
+                    // (avail_out > 0), it is claiming "no more output right
+                    // now" without declaring end-of-stream.  Since we feed
+                    // no input on this path, the next iteration will hit
+                    // the exact same state and loop forever.  Surface the
+                    // inconsistency instead.
+                    if (m_strm->avail_out > 0)
+                        throw cvt_error("zlib_cvt::close_stream fail: Z_FINISH returned without stream end");
+                }
             }
         }
         else if (BT::m_io_status == io_status::input)
