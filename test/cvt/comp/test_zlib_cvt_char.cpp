@@ -6,8 +6,10 @@
 #include <IOv2/cvt/cvt_concepts.h>
 #include <IOv2/cvt/root_cvt.h>
 #include <IOv2/cvt/runtime_cvt.h>
+#include <IOv2/device/file_device.h>
 #include <IOv2/device/mem_device.h>
 
+#include <support/file_guard.h>
 #include <support/injectable_device.h>
 
 #include <gtest/gtest.h>
@@ -761,4 +763,30 @@ TEST(ZlibCvt, BosItselfThrowsWhenTheHeaderReadFails)
 
     Comp::zlib_cvt obj{rb_root_cvt{std::move(dev)}, 6};
     EXPECT_ANY_THROW((void)obj.bos());
+}
+
+// Over a read-only device the converter's output paths must not be instantiated:
+// main_cont_beg_impl() and close_stream() used to call BT::flush() and
+// BT::kernel_put() unconditionally, so this did not compile.
+TEST(ZlibCvt, InflatesFromAReadOnlyFileDevice)
+{
+    std::string compressed;
+    {
+        Comp::zlib_cvt obj{rb_root_cvt{mem_device<char>{}}, 9};
+        EXPECT_EQ(obj.bos(), io_status::output);
+        obj.main_cont_beg();
+        obj.put(s_e_lit.data(), kSize);
+        auto [dev, err] = obj.detach();
+        EXPECT_FALSE(err);
+        compressed = dev.str();
+    }
+
+    file_guard g("zlib_read_only.z", compressed);
+    Comp::zlib_cvt obj{rb_root_cvt{ifile_device<char>("zlib_read_only.z")}, 0};
+    EXPECT_EQ(obj.bos(), io_status::input);
+    obj.main_cont_beg();
+
+    std::string out_buf(4200, '\0');
+    EXPECT_EQ(obj.get(out_buf.data(), 4200), kSize);
+    EXPECT_EQ(out_buf.substr(0, kSize), s_e_lit);
 }
