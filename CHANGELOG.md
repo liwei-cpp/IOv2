@@ -24,9 +24,12 @@
 - `mem_device` 的约束补上 `Traits::char_type` 与分配器 `value_type` 必须是 `CharT` 两项
   （`std::basic_string` 的要求），错误的组合在用户代码处被拒绝，而不是在 `<string>` 内部
   报错。合法代码不受影响。
+- `zlib_cvt` 可以叠在只读设备（如 `ifile_device`）上使用：此前两处写路径的调用未按设备
+  能力分支，这样的组合编译不过。
 - 注释更正：`locale` 拷贝赋值不是两阶段加锁；与 `cerr` 共用 stderr 的是
   `fprintf(stderr, ...)` 而非 `printf`；`tm_gmtoff` / `tm_zone` 的探测在缺少这两个成员的
-  平台上是编译错误而非退化为字面量（本版本只支持 glibc，两个成员总是存在）。
+  平台上是编译错误而非退化为字面量（本版本只支持 glibc，两个成员总是存在）；`reset()`
+  不能用来丢掉本行剩余的输入，应改用 `clear()` 加 `ignore()`。
 
 ### [1.0.2] - 2026-10-26
 
@@ -106,10 +109,13 @@ have no release line of their own.
 - `mem_device`'s constraint now also requires `Traits::char_type` and the allocator's
   `value_type` to be `CharT` (as `std::basic_string` does), so a wrong combination is rejected
   at the user's code rather than inside `<string>`. Valid code is unaffected.
+- `zlib_cvt` can sit on a read-only device (such as `ifile_device`): two write-path calls
+  were not branched on the device's capability, so that combination did not compile.
 - Comment corrections: `locale` copy assignment is not two-phase locking; the writer sharing
   stderr with `cerr` is `fprintf(stderr, ...)`, not `printf`; the `tm_gmtoff` / `tm_zone`
   probes are a compile error, not a degradation to literals, on a platform lacking those
-  members (this release supports glibc only, where both always exist).
+  members (this release supports glibc only, where both always exist); `reset()` does not
+  discard the rest of a line, use `clear()` followed by `ignore()`.
 
 ### [1.0.2] - 2026-10-26
 
