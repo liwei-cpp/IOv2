@@ -648,6 +648,10 @@ private:
      * 然后是 `LC_ALL`、`LC_MESSAGES`、`LANG`（均视为单一语言名称，镜像 gettext 的行为），
      * 返回第一个可用的语言字符串。
      *
+     * 与 gettext 不同，每个语言名都原样用作目录名：不会像 gettext 那样依次退到去掉编码、
+     * modifier 和地区的名字（`zh_CN.UTF-8` → `zh_CN` → `zh`），在 "C" locale 下也照样读取
+     * `LANGUAGE`。需要回退时，把各个名字依次写进 `LANGUAGE`，例如 `zh_CN.UTF-8:zh_CN:zh`。
+     *
      * @note `std::getenv` 在与 `setenv()`/`putenv()` 并发执行时不是线程安全的——
      *       无论是返回的指针还是其所指向的字节，都可能在读取过程中被另一线程置为无效——
      *       而 C++ 和 POSIX 均不提供可移植的线程安全环境变量读取方式，
@@ -669,6 +673,11 @@ private:
      * environment variables `LANGUAGE` (`:` -separated list), then `LC_ALL`,
      * `LC_MESSAGES`, and `LANG` (each treated as a single locale name, mirroring
      * gettext), and returns the first available one.
+     *
+     * Unlike gettext, each name is used verbatim as a directory name: there is no
+     * fallback to the name without its codeset, modifier and territory
+     * (`zh_CN.UTF-8` → `zh_CN` → `zh`), and `LANGUAGE` is read under the "C" locale
+     * too. To get a fallback, list the names in `LANGUAGE`, e.g. `zh_CN.UTF-8:zh_CN:zh`.
      *
      * @note `std::getenv` is not thread-safe against concurrent `setenv()`/`putenv()` calls —
      *       the returned pointer and the bytes it addresses may be invalidated mid-read —
@@ -707,8 +716,9 @@ private:
 
         if (p_lang.empty())
         {
-            // Environment fallback (mirrors gettext): LANGUAGE, then
-            // LC_ALL / LC_MESSAGES / LANG. std::getenv is NOT synchronised
+            // Environment fallback in gettext's order: LANGUAGE, then
+            // LC_ALL / LC_MESSAGES / LANG; names are used verbatim (see the
+            // doc comment above for how this differs from gettext). std::getenv is NOT synchronised
             // against a concurrent setenv()/putenv() on another thread — the
             // returned pointer and the bytes it addresses may be invalidated
             // mid-read — and neither C++ nor POSIX offers a portable
