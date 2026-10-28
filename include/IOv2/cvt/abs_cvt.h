@@ -679,6 +679,7 @@ namespace IOv2
      *         before base"): this layer must drain pending data into the
      *         lower layer before the lower layer is torn down — otherwise the
      *         drained data has nowhere to go.
+     * @endif
      *
      * @par 可选钩子 / Optional Hooks
      * @lang{ZH}
@@ -765,6 +766,11 @@ namespace IOv2
      *   `m_io_status` 之前调用，用于执行派生层的前置条件检查或状态调整。此时切换
      *   尚未发生，`m_io_status` 仍为切换前的值。允许抛出异常；调用方直接透传，
      *   不设置污染标志（状态未变，一致性可保证）。
+     *
+     * - **`is_eof_impl() -> bool`**
+     *   由 `abs_cvt::is_eof` 调用（仅当 `KernelType` 支持 get），取代默认的 `kernel_is_eof()`；
+     *   `abs_cvt` 自己有待报的 get 错误时直接返回 false，不调用它。派生层若还收着要交出的东西
+     *   （如待报的错误），应实现它。返回类型须为 `bool`，否则不会被识别。
      * @endif
      *
      * @lang{EN}
@@ -878,7 +884,12 @@ namespace IOv2
      *   point of invocation the switch has not yet occurred and `m_io_status` still
      *   reflects the previous mode. May throw; the caller propagates the exception
      *   directly without setting the taint flag (state is still consistent).
-     * @endif
+     *
+     * - **`is_eof_impl() -> bool`**
+     *   Called by `abs_cvt::is_eof` (only when `KernelType` supports get) in place of the
+     *   default `kernel_is_eof()`; not called while `abs_cvt` holds a pending get error of
+     *   its own. A derived layer that still holds something to hand out (a pending error,
+     *   say) provides it. The hook must return `bool`, or it is not detected.
      *
      * @par Exception Safety / Tainted State
      * Output streaming cannot in general offer the strong exception
@@ -900,10 +911,12 @@ namespace IOv2
      *   - Derived classes MUST NOT call `cvt_writer::commit()` themselves;
      *     `abs_cvt::put` is the sole committer on the success path. Any
      *     exception thrown out of `put_main` taints the converter, and
-     *     uncommitted buffer contents are dropped at writer destruction.
-     *     This is a deliberate semantic change from the old
-     *     "commit-the-prefix-then-throw" pattern: encoding errors discard
-     *     the in-progress batch instead of producing a partial commit.
+     *     whatever the writer still stages is dropped at writer destruction.
+     *     Output already handed to the kernel stays there: the root_cvt and
+     *     mem_device writers write at `put_buf` (their `commit()` is empty),
+     *     and the generic writer pushes its staged prefix down when its
+     *     buffer fills. A failed `put` can therefore leave a truncated
+     *     prefix downstream; the taint flag only stops further use.
      *   - Derived classes MAY call `assert_not_tainted()` at the entry of
      *     positioning, IO-direction switching, or any other operation whose
      *     correctness depends on a known-good kernel state.
@@ -1722,9 +1735,9 @@ namespace IOv2
                     self.put_main(writer, to, to_size);
                     // commit() is the sole responsibility of abs_cvt::put: derived
                     // put_main implementations must NOT call writer.commit() themselves.
-                    // If put_main throws, this commit is skipped and any uncommitted
-                    // buffer contents are dropped at writer destruction; the catch
-                    // below taints the converter.
+                    // If put_main throws, this commit is skipped and what the writer
+                    // still stages is dropped at writer destruction (output already
+                    // handed to the kernel stays); the catch below taints the converter.
                     writer.commit();
                 }
             }
