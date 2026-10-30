@@ -1,0 +1,212 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=11"/>
+<meta name="generator" content="Doxygen 1.15.0"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>IOv2: IOv2::io_traits&lt; TChar, TChar[N]&gt; 模板结构体 参考</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<script type="text/javascript" src="clipboard.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<script type="text/javascript" src="cookie.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr id="projectrow">
+  <td id="projectalign">
+   <div id="projectname">IOv2
+   </div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 制作者 Doxygen 1.15.0 -->
+<script type="text/javascript">
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+</script>
+<script type="text/javascript">
+$(function() { codefold.init(); });
+</script>
+<script type="text/javascript" src="menudata.js"></script>
+<script type="text/javascript" src="menu.js"></script>
+<script type="text/javascript">
+$(function() {
+  initMenu('',true,false,'search.php','搜索',true);
+  $(function() { init_search(); });
+});
+</script>
+<div id="main-nav"></div>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+$(function(){initNavTree('structIOv2_1_1io__traits_3_01TChar_00_01TChar_0fN_0e_4.html','','structIOv2_1_1io__traits_3_01TChar_00_01TChar_0fN_0e_4-members'); });
+</script>
+<div id="container">
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">载入中...</div>
+<div class="SRStatus" id="Searching">搜索中...</div>
+<div class="SRStatus" id="NoMatches">未找到</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="header">
+  <div class="headertitle"><div class="title">IOv2::io_traits&lt; TChar, TChar[N]&gt; 模板结构体 参考</div></div>
+</div><!--header-->
+<div class="contents">
+
+<p>将一个以空白分隔的 token 提取到定长字符数组。  
+ <a href="#details">更多...</a></p>
+
+<p><code>#include &lt;<a class="el" href="char__and__str_8h_source.html">char_and_str.h</a>&gt;</code></p>
+<table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 id="header-pub-static-methods" class="groupheader"><a id="pub-static-methods" name="pub-static-methods"></a>
+静态 Public 成员函数</h2></td></tr>
+<tr class="memitem:a5f362e7cb9df5e7800e6705c88882223" id="r_a5f362e7cb9df5e7800e6705c88882223"><td class="memTemplParams" colspan="2">template&lt;typename TIter, std::sentinel_for&lt; TIter &gt; TSent&gt; <br />
+requires (std::is_same_v&lt;TChar, typename TIter::value_type&gt;)</td></tr>
+<tr class="memitem:a5f362e7cb9df5e7800e6705c88882223 template"><td class="memItemLeft" align="right" valign="top">static TIter&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a5f362e7cb9df5e7800e6705c88882223">sread</a> (TIter iter, TSent iter_end, <a class="el" href="classIOv2_1_1ios__base.html">ios_base</a>&lt; TChar &gt; &amp;io, const <a class="el" href="classIOv2_1_1locale.html">locale</a>&lt; TChar &gt; &amp;loc, TChar *c)</td></tr>
+<tr class="memdesc:a5f362e7cb9df5e7800e6705c88882223"><td class="mdescLeft">&#160;</td><td class="mdescRight">以 <span class="tt">N</span> 为容量调用 <span class="tt"><a class="el" href="namespaceIOv2.html#a029604d0757616cabc08f51da3c55c15" title="把一个以空白分隔的词读进调用方给的定容缓冲区——三个定长数组特化共用的提取点。">istream_extract</a></span>。  <br /></td></tr>
+</table>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">详细描述</h2>
+<div class="textblock"><div class="compoundTemplParams">template&lt;typename TChar, std::size_t N&gt;<br />
+struct IOv2::io_traits&lt; TChar, TChar[N]&gt;</div><p>将一个以空白分隔的 token 提取到定长字符数组。 </p>
+<dl class="section note"><dt>注解</dt><dd><b>本库不提供向裸指针（<span class="tt">TChar*</span>）提取的 <span class="tt"><a class="el" href="#a5f362e7cb9df5e7800e6705c88882223" title="以 N 为容量调用 istream_extract。">sread</a></span>，<span class="tt">is &gt;&gt; ptr</span> 无法编译。</b> 这与 C++20 起的 <span class="tt">std::istream</span> 一致（P0487R1 删除了 <span class="tt">operator&gt;&gt;(basic_istream&amp;, charT*)</span>， 只保留数组引用形式）。理由是内存安全：目标是裸指针时库无从得知缓冲区容量， C++17 及更早的"`width == 0` 即无上界"会让 <span class="tt">is &gt;&gt; ptr</span> 一路写到遇见空白为止， 输入受攻击者控制时即为可利用的缓冲区溢出。 </dd>
+<dd>
+本重载安全的原因是上界 <span class="tt">N</span> 来自**类型**而非流状态：至多读入 <span class="tt">width == 0 ? N - 1 : min(width, N) - 1</span> 个字符，再加一个终止符。<span class="tt">width == 0</span>（默认值） 是「不设宽度」而非「宽度为零」，故上界退回 <span class="tt">N</span>——把 0 代进 <span class="tt">min</span> 会得到无意义的结果。 因此 <span class="tt"><a class="el" href="namespaceIOv2.html#aedf6b0c58c8061128becb490433aecf3" title="构造设置字段宽度的操纵符。">setw()</a></span> 在这里只能把边界**收紧**， 永远不可能放宽；即便携带了来自上一次操作的陈旧 <span class="tt">width</span>（算术提取、<span class="tt"><a class="el" href="namespaceIOv2.html#a5daa554d89e541dc2a33c3ece4c02535">get_money</a></span>、 <span class="tt"><a class="el" href="namespaceIOv2.html#af07ff1562a8d2f2453ffc25c02316ef7" title="构造按 fmt 解析时间并写入 *tmb 的操纵符。">get_time</a></span> 等都不消费 <span class="tt">width</span>，与标准一致），也绝不会越过 <span class="tt">N</span>。 </dd>
+<dd>
+需要运行期确定容量的缓冲区，请提取到 <span class="tt">std::basic_string</span>（自动增长），或改用 非格式化的 <span class="tt">istream::read(s, n)</span> / <span class="tt">get(s, n)</span>，二者都显式接收容量。 </dd></dl>
+<dl class="tparams"><dt>模板参数</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">TChar</td><td>流的字符类型。 </td></tr>
+    <tr><td class="paramname">N</td><td>目标数组的长度，含终止符。 </td></tr>
+  </table>
+  </dd>
+</dl>
+</div><a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">成员函数说明</h2>
+<a id="a5f362e7cb9df5e7800e6705c88882223" name="a5f362e7cb9df5e7800e6705c88882223"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5f362e7cb9df5e7800e6705c88882223">&#9670;&#160;</a></span>sread()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename TChar, std::size_t N&gt; </div>
+<div class="memtemplate">
+template&lt;typename TIter, std::sentinel_for&lt; TIter &gt; TSent&gt; <br />
+requires (std::is_same_v&lt;TChar, typename TIter::value_type&gt;)</div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">TIter <a class="el" href="structIOv2_1_1io__traits.html">IOv2::io_traits</a>&lt; TChar, TChar[N]&gt;::sread </td>
+          <td>(</td>
+          <td class="paramtype">TIter</td>          <td class="paramname"><span class="paramname"><em>iter</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">TSent</td>          <td class="paramname"><span class="paramname"><em>iter_end</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classIOv2_1_1ios__base.html">ios_base</a>&lt; TChar &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>io</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="classIOv2_1_1locale.html">locale</a>&lt; TChar &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>loc</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">TChar *</td>          <td class="paramname"><span class="paramname"><em>c</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel static">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>以 <span class="tt">N</span> 为容量调用 <span class="tt"><a class="el" href="namespaceIOv2.html#a029604d0757616cabc08f51da3c55c15" title="把一个以空白分隔的词读进调用方给的定容缓冲区——三个定长数组特化共用的提取点。">istream_extract</a></span>。 </p>
+<p>与标准一致，<span class="tt">width()</span> 在这里被消费；它只能把上界从 <span class="tt">N</span> 收紧，不能放宽。 </p><dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">iter</td><td>输入迭代器。 </td></tr>
+    <tr><td class="paramname">iter_end</td><td>输入哨位。 </td></tr>
+    <tr><td class="paramname">io</td><td>提供 <span class="tt">width()</span> 的流。 </td></tr>
+    <tr><td class="paramname">loc</td><td>提供 <span class="tt"><a class="el" href="classIOv2_1_1ctype.html">ctype</a>&lt;TChar&gt;</span> facet 的 locale。 </td></tr>
+    <tr><td class="paramname">c</td><td>目标缓冲区。 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd>指向最后一个被消费字符之后的输入迭代器。 </dd></dl>
+<dl class="exception"><dt>异常</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname"><a class="el" href="structIOv2_1_1stream__error.html">stream_error</a></td><td>若 locale 中没有 <span class="tt"><a class="el" href="classIOv2_1_1ctype.html">ctype</a>&lt;TChar&gt;</span> facet，或未提取到任何字符—— <span class="tt">N == 1</span> 时必然如此，因为这个缓冲区只放得下终止符。**只要本函数被调用**，无论 哪种情形终止符都已写入；哨兵失败时本函数不被调用，数组保持原样，详见 <span class="tt"><a class="el" href="namespaceIOv2.html#a029604d0757616cabc08f51da3c55c15" title="把一个以空白分隔的词读进调用方给的定容缓冲区——三个定长数组特化共用的提取点。">istream_extract</a></span> 的 <span class="tt">@warning</span>。 </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<hr/>该结构体的文档由以下文件生成:<ul>
+<li>include/IOv2/io/traits/<a class="el" href="char__and__str_8h_source.html">char_and_str.h</a></li>
+</ul>
+</div><!-- contents -->
+</div><!-- doc-content -->
+<div id="page-nav" class="page-nav-panel">
+<div id="page-nav-resize-handle"></div>
+<div id="page-nav-tree">
+<div id="page-nav-contents">
+</div><!-- page-nav-contents -->
+</div><!-- page-nav-tree -->
+</div><!-- page-nav -->
+</div><!-- container -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><a href="namespaceIOv2.html">IOv2</a></li><li class="navelem"><a href="structIOv2_1_1io__traits_3_01TChar_00_01TChar_0fN_0e_4.html">io_traits&lt; TChar, TChar[N]&gt;</a></li>
+    <li class="footer">制作者 <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.15.0 </li>
+  </ul>
+</div>
+</body>
+</html>

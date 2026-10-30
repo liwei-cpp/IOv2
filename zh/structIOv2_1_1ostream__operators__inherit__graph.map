@@ -1,0 +1,29 @@
+<map id="IOv2::ostream_operators&lt; TChar &gt;" name="IOv2::ostream_operators&lt; TChar &gt;">
+<area shape="rect" id="Node000001" title="为输出流提供各类插入操作的混入（mix&#45;in）基类。" alt="" coords="5,220,188,265"/>
+<area shape="rect" id="Node000002" href="$classIOv2_1_1stdout__api.html" title=" " alt="" coords="250,5,421,50"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="116,205,165,136,198,99,234,67,269,49,265,52,237,71,201,103,169,139,121,208"/>
+<area shape="rect" id="Node000004" href="$classIOv2_1_1stdout__api.html" title=" " alt="" coords="254,81,416,126"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="133,208,180,171,234,136,263,125,259,128,237,141,183,175,136,211"/>
+<area shape="rect" id="Node000007" href="$classIOv2_1_1stdout__api.html" title=" " alt="" coords="238,151,432,195"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="189,213,258,194,254,198,192,217"/>
+<area shape="rect" id="Node000009" href="$classIOv2_1_1stdout__api.html" title=" " alt="" coords="244,220,427,265"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="202,240,246,241,241,244,204,245"/>
+<area shape="rect" id="Node000012" href="$classIOv2_1_1iostream.html" title="双向字符流：把一条 iochannel 与一个 locale 组合成带格式化的输入输出接口。" alt="" coords="241,289,430,334"/>
+<area shape="poly" id="edge11_Node000001_Node000012" title=" " alt="" coords="190,267,258,288,253,290,191,272"/>
+<area shape="rect" id="Node000013" href="$classIOv2_1_1ostream.html" title="字符输出流：把一条 ochannel 与一个 locale 组合成带格式化的输出接口。" alt="" coords="243,359,428,403"/>
+<area shape="poly" id="edge12_Node000001_Node000013" title=" " alt="" coords="135,272,183,309,237,344,264,358,258,358,234,349,180,314,134,278"/>
+<area shape="rect" id="Node000014" href="$classIOv2_1_1stdout__api.html" title="标准输出流（cout / cerr / clog 及三个宽流）的实现模板。" alt="" coords="236,428,435,473"/>
+<area shape="poly" id="edge13_Node000001_Node000014" title=" " alt="" coords="118,275,168,346,200,382,237,413,258,428,253,427,234,418,197,386,164,349,117,280"/>
+<area shape="rect" id="Node000003" href="$classIOv2_1_1cout__t.html" title="标准输出流 cout（char）的类型。" alt="" coords="488,8,588,36"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="436,23,491,22,486,25,438,27"/>
+<area shape="rect" id="Node000005" href="$classIOv2_1_1cerr__t.html" title="标准错误流 cerr（char）的类型。" alt="" coords="490,60,586,88"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="431,87,492,80,487,82,433,92"/>
+<area shape="rect" id="Node000006" href="$classIOv2_1_1clog__t.html" title="标准日志流 clog（char）的类型。" alt="" coords="489,112,587,140"/>
+<area shape="poly" id="edge5_Node000004_Node000006" title=" " alt="" coords="431,112,491,120,486,122,433,117"/>
+<area shape="rect" id="Node000008" href="$classIOv2_1_1wcout__t.html" title="宽字符标准输出流 wcout（wchar_t）的类型。" alt="" coords="483,164,593,192"/>
+<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="447,173,485,176,480,178,448,179"/>
+<area shape="rect" id="Node000010" href="$classIOv2_1_1wcerr__t.html" title="宽字符标准错误流 wcerr（wchar_t）的类型。" alt="" coords="484,224,592,252"/>
+<area shape="poly" id="edge9_Node000009_Node000010" title=" " alt="" coords="442,238,487,239,482,240,443,243"/>
+<area shape="rect" id="Node000011" href="$classIOv2_1_1wclog__t.html" title="宽字符标准日志流 wclog（wchar_t）的类型。" alt="" coords="484,276,593,304"/>
+<area shape="poly" id="edge10_Node000009_Node000011" title=" " alt="" coords="442,265,486,277,480,278,442,270"/>
+</map>

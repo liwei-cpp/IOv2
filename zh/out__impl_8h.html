@@ -1,0 +1,199 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=11"/>
+<meta name="generator" content="Doxygen 1.15.0"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>IOv2: include/IOv2/io/objects/out_impl.h 文件参考</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<script type="text/javascript" src="clipboard.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<script type="text/javascript" src="cookie.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr id="projectrow">
+  <td id="projectalign">
+   <div id="projectname">IOv2
+   </div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 制作者 Doxygen 1.15.0 -->
+<script type="text/javascript">
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+</script>
+<script type="text/javascript">
+$(function() { codefold.init(); });
+</script>
+<script type="text/javascript" src="menudata.js"></script>
+<script type="text/javascript" src="menu.js"></script>
+<script type="text/javascript">
+$(function() {
+  initMenu('',true,false,'search.php','搜索',true);
+  $(function() { init_search(); });
+});
+</script>
+<div id="main-nav"></div>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+$(function(){initNavTree('out__impl_8h.html','',''); });
+</script>
+<div id="container">
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">载入中...</div>
+<div class="SRStatus" id="Searching">搜索中...</div>
+<div class="SRStatus" id="NoMatches">未找到</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="header">
+  <div class="headertitle"><div class="title">out_impl.h 文件参考</div></div>
+</div><!--header-->
+<div class="contents">
+<div class="textblock"><code>#include &lt;<a class="el" href="copyable__atomic_8h_source.html">IOv2/common/copyable_atomic.h</a>&gt;</code><br />
+<code>#include &lt;<a class="el" href="iov2__export_8h_source.html">IOv2/common/iov2_export.h</a>&gt;</code><br />
+<code>#include &lt;<a class="el" href="sing__temp_8h_source.html">IOv2/common/sing_temp.h</a>&gt;</code><br />
+<code>#include &lt;<a class="el" href="code__cvt_8h_source.html">IOv2/cvt/code_cvt.h</a>&gt;</code><br />
+<code>#include &lt;<a class="el" href="code__cvt__stdio_8h_source.html">IOv2/cvt/code_cvt_stdio.h</a>&gt;</code><br />
+<code>#include &lt;<a class="el" href="cvt__concepts_8h_source.html">IOv2/cvt/cvt_concepts.h</a>&gt;</code><br />
+<code>#include &lt;<a class="el" href="device__concepts_8h_source.html">IOv2/device/device_concepts.h</a>&gt;</code><br />
+<code>#include &lt;<a class="el" href="std__device_8h_source.html">IOv2/device/std_device.h</a>&gt;</code><br />
+<code>#include &lt;<a class="el" href="io__base_8h_source.html">IOv2/io/io_base.h</a>&gt;</code><br />
+<code>#include &lt;<a class="el" href="iochannel_8h_source.html">IOv2/io/iochannel.h</a>&gt;</code><br />
+<code>#include &lt;<a class="el" href="iochannel__iterator_8h_source.html">IOv2/io/iochannel_iterator.h</a>&gt;</code><br />
+<code>#include &lt;<a class="el" href="ostream__operators_8h_source.html">IOv2/io/utilities/ostream_operators.h</a>&gt;</code><br />
+<code>#include &lt;<a class="el" href="stream__common__operators_8h_source.html">IOv2/io/utilities/stream_common_operators.h</a>&gt;</code><br />
+<code>#include &lt;<a class="el" href="locale_8h_source.html">IOv2/locale/locale.h</a>&gt;</code><br />
+<code>#include &lt;clocale&gt;</code><br />
+<code>#include &lt;exception&gt;</code><br />
+<code>#include &lt;mutex&gt;</code><br />
+<code>#include &lt;string&gt;</code><br />
+<code>#include &lt;type_traits&gt;</code><br />
+<code>#include &lt;utility&gt;</code><br />
+</div><div class="textblock"><div class="dynheader">
+out_impl.h 的引用(Include)关系图:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="out__impl_8h__incl.svg" width="6854" height="822"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+</div><div class="textblock"><div class="dynheader">
+此图展示该文件被哪些文件直接或间接地引用了:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="out__impl_8h__dep__incl.svg" width="242" height="242"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+</div>
+<p><a href="out__impl_8h_source.html">浏览该文件的源代码.</a></p>
+<table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 id="header-nested-classes" class="groupheader"><a id="nested-classes" name="nested-classes"></a>
+类</h2></td></tr>
+<tr class="memitem:IOv2_3A_3Astdout_5Fapi_3C_20TDevice_2C_20TChar_20_3E" id="r_IOv2_3A_3Astdout_5Fapi_3C_20TDevice_2C_20TChar_20_3E"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1stdout__api.html">IOv2::stdout_api&lt; TDevice, TChar &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">标准输出流（<span class="tt"><a class="el" href="namespaceIOv2.html#a192db1b11b81d628e595c6541ee23a43" title="标准输出流对象（char），写 fd 1。">cout</a></span> / <span class="tt"><a class="el" href="namespaceIOv2.html#a7d5991e896f831d9d1792b0a94e60693" title="标准错误流对象（char），写 fd 2。">cerr</a></span> / <span class="tt"><a class="el" href="namespaceIOv2.html#a4d6ecc231623bfd54edbcebab9c258a7" title="标准日志流对象（char），写 fd 2。">clog</a></span> 及三个宽流）的实现模板。  <a href="classIOv2_1_1stdout__api.html#details">更多...</a><br /></td></tr>
+<tr class="memitem:IOv2_3A_3Acout_5Ft" id="r_IOv2_3A_3Acout_5Ft"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1cout__t.html">IOv2::cout_t</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">标准输出流 <span class="tt"><a class="el" href="namespaceIOv2.html#a192db1b11b81d628e595c6541ee23a43" title="标准输出流对象（char），写 fd 1。">cout</a></span>（<span class="tt">char</span>）的类型。  <a href="classIOv2_1_1cout__t.html#details">更多...</a><br /></td></tr>
+<tr class="memitem:IOv2_3A_3Acerr_5Ft" id="r_IOv2_3A_3Acerr_5Ft"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1cerr__t.html">IOv2::cerr_t</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">标准错误流 <span class="tt"><a class="el" href="namespaceIOv2.html#a7d5991e896f831d9d1792b0a94e60693" title="标准错误流对象（char），写 fd 2。">cerr</a></span>（<span class="tt">char</span>）的类型。  <a href="classIOv2_1_1cerr__t.html#details">更多...</a><br /></td></tr>
+<tr class="memitem:IOv2_3A_3Aclog_5Ft" id="r_IOv2_3A_3Aclog_5Ft"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1clog__t.html">IOv2::clog_t</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">标准日志流 <span class="tt"><a class="el" href="namespaceIOv2.html#a4d6ecc231623bfd54edbcebab9c258a7" title="标准日志流对象（char），写 fd 2。">clog</a></span>（<span class="tt">char</span>）的类型。  <a href="classIOv2_1_1clog__t.html#details">更多...</a><br /></td></tr>
+<tr class="memitem:IOv2_3A_3Awcout_5Ft" id="r_IOv2_3A_3Awcout_5Ft"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1wcout__t.html">IOv2::wcout_t</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">宽字符标准输出流 <span class="tt"><a class="el" href="namespaceIOv2.html#a17b93b3e50cd1c907add59d2740a7d9e" title="宽字符标准输出流对象（wchar_t），写 fd 1。">wcout</a></span>（<span class="tt">wchar_t</span>）的类型。  <a href="classIOv2_1_1wcout__t.html#details">更多...</a><br /></td></tr>
+<tr class="memitem:IOv2_3A_3Awcerr_5Ft" id="r_IOv2_3A_3Awcerr_5Ft"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1wcerr__t.html">IOv2::wcerr_t</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">宽字符标准错误流 <span class="tt"><a class="el" href="namespaceIOv2.html#a70e165d49a23fd66e12a3cf4b1b8027b" title="宽字符标准错误流对象（wchar_t），写 fd 2。">wcerr</a></span>（<span class="tt">wchar_t</span>）的类型。  <a href="classIOv2_1_1wcerr__t.html#details">更多...</a><br /></td></tr>
+<tr class="memitem:IOv2_3A_3Awclog_5Ft" id="r_IOv2_3A_3Awclog_5Ft"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1wclog__t.html">IOv2::wclog_t</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">宽字符标准日志流 <span class="tt"><a class="el" href="namespaceIOv2.html#ac811744c491ec66dd971c98ce9a53f91" title="宽字符标准日志流对象（wchar_t），写 fd 2。">wclog</a></span>（<span class="tt">wchar_t</span>）的类型。  <a href="classIOv2_1_1wclog__t.html#details">更多...</a><br /></td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 id="header-namespaces" class="groupheader"><a id="namespaces" name="namespaces"></a>
+命名空间</h2></td></tr>
+<tr class="memitem:IOv2" id="r_IOv2"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html">IOv2</a></td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 id="header-var-members" class="groupheader"><a id="var-members" name="var-members"></a>
+变量</h2></td></tr>
+<tr class="memitem:a192db1b11b81d628e595c6541ee23a43" id="r_a192db1b11b81d628e595c6541ee23a43"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classIOv2_1_1cout__t.html">cout_t</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a192db1b11b81d628e595c6541ee23a43">IOv2::cout</a> = _cout_init.get()</td></tr>
+<tr class="memdesc:a192db1b11b81d628e595c6541ee23a43"><td class="mdescLeft">&#160;</td><td class="mdescRight">标准输出流对象（<span class="tt">char</span>），写 fd 1。  <br /></td></tr>
+<tr class="memitem:a7d5991e896f831d9d1792b0a94e60693" id="r_a7d5991e896f831d9d1792b0a94e60693"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classIOv2_1_1cerr__t.html">cerr_t</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a7d5991e896f831d9d1792b0a94e60693">IOv2::cerr</a> = _cerr_init.get()</td></tr>
+<tr class="memdesc:a7d5991e896f831d9d1792b0a94e60693"><td class="mdescLeft">&#160;</td><td class="mdescRight">标准错误流对象（<span class="tt">char</span>），写 fd 2。  <br /></td></tr>
+<tr class="memitem:a4d6ecc231623bfd54edbcebab9c258a7" id="r_a4d6ecc231623bfd54edbcebab9c258a7"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classIOv2_1_1clog__t.html">clog_t</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a4d6ecc231623bfd54edbcebab9c258a7">IOv2::clog</a> = _clog_init.get()</td></tr>
+<tr class="memdesc:a4d6ecc231623bfd54edbcebab9c258a7"><td class="mdescLeft">&#160;</td><td class="mdescRight">标准日志流对象（<span class="tt">char</span>），写 fd 2。  <br /></td></tr>
+<tr class="memitem:a17b93b3e50cd1c907add59d2740a7d9e" id="r_a17b93b3e50cd1c907add59d2740a7d9e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classIOv2_1_1wcout__t.html">wcout_t</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a17b93b3e50cd1c907add59d2740a7d9e">IOv2::wcout</a> = _wcout_init.get()</td></tr>
+<tr class="memdesc:a17b93b3e50cd1c907add59d2740a7d9e"><td class="mdescLeft">&#160;</td><td class="mdescRight">宽字符标准输出流对象（<span class="tt">wchar_t</span>），写 fd 1。  <br /></td></tr>
+<tr class="memitem:a70e165d49a23fd66e12a3cf4b1b8027b" id="r_a70e165d49a23fd66e12a3cf4b1b8027b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classIOv2_1_1wcerr__t.html">wcerr_t</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a70e165d49a23fd66e12a3cf4b1b8027b">IOv2::wcerr</a> = _wcerr_init.get()</td></tr>
+<tr class="memdesc:a70e165d49a23fd66e12a3cf4b1b8027b"><td class="mdescLeft">&#160;</td><td class="mdescRight">宽字符标准错误流对象（<span class="tt">wchar_t</span>），写 fd 2。  <br /></td></tr>
+<tr class="memitem:ac811744c491ec66dd971c98ce9a53f91" id="r_ac811744c491ec66dd971c98ce9a53f91"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classIOv2_1_1wclog__t.html">wclog_t</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#ac811744c491ec66dd971c98ce9a53f91">IOv2::wclog</a> = _wclog_init.get()</td></tr>
+<tr class="memdesc:ac811744c491ec66dd971c98ce9a53f91"><td class="mdescLeft">&#160;</td><td class="mdescRight">宽字符标准日志流对象（<span class="tt">wchar_t</span>），写 fd 2。  <br /></td></tr>
+</table>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">详细描述</h2>
+<div class="textblock"><p>定义标准输出流的实现模板 <span class="tt">stdout_api</span>，以及六个标准输出流对象：<span class="tt">cout</span> / <span class="tt">cerr</span> / <span class="tt">clog</span> （<span class="tt">char</span>）与 <span class="tt">wcout</span> / <span class="tt">wcerr</span> / <span class="tt">wclog</span>（<span class="tt">wchar_t</span>）。</p>
+<p><span class="tt">stdout_api</span> 不由 <span class="tt">ostream</span> 派生，而是同样把一条 <span class="tt">ochannel</span>（其下依次是转换器管线与固定 fd 的设备 <span class="tt">std_output_device</span> 或 <span class="tt">std_error_device</span>）与一个 <span class="tt">locale</span> 组合起来， 对外接口来自 <span class="tt">ios_state</span>（状态位与异常掩码）、<span class="tt">out_tie_target</span>（tie 刷新用的多态 <span class="tt">try_flush()</span>）、 <span class="tt">ostream_operators</span>（输出操作）与 <span class="tt">std_stream_common_operators</span>（<span class="tt">tell()</span> / <span class="tt">locale()</span> 等）四个 基类。与 <span class="tt">ostream</span> 的差别都来自「设备是固定 fd 的进程级单例」：多了 <span class="tt">sync_with_stdio()</span> / <span class="tt">synced_with_stdio()</span>、<span class="tt">reset()</span> 与（宽流）<span class="tt">code()</span> / <span class="tt">switch_code()</span>，换设备的 <span class="tt">detach()</span> / <span class="tt">attach()</span> 则被 <span class="tt">= delete</span>。</p>
+<p>六个流对象经 <span class="tt">sing_temp</span> 成为进程级单例，退出钩子先让本流此后的插入都按同步处理、再 <span class="tt">try_flush()</span>， 不析构——与 <span class="tt">std::cout</span> 一样，退出阶段既有引用仍然有效。<span class="tt">try_flush()</span> 会先沿本流的 tie 链逐级 往下刷，因此本流 tie 链上的每个流都必须活到退出钩子之后（见 <span class="tt">tie()</span>）。<span class="tt">cerr</span> / <span class="tt">wcerr</span> 构造时另外 <span class="tt">tie()</span> 到 <span class="tt">cout</span> / <span class="tt">wcout</span> 并置 <span class="tt">ios_defs::unitbuf</span>，三个 <span class="tt">char</span> 流与三个宽流共用 fd 1 / fd 2。</p>
+<dl class="section warning"><dt>警告</dt><dd>**退出时的刷新是「尽力而为」的**：钩子走 <span class="tt">out_tie_target::try_flush()</span>，以 <span class="tt">try_to_lock</span> 至多试三次取本流的 <span class="tt">io_mutex()</span>，取不到就放弃，那一批已缓冲的字节 丢掉。这是有意的取舍——若改成阻塞取锁，另一个线程持锁不放（在用户的 <span class="tt">io_traits::swrite</span> 里等网络、等一个本该由正在退出的线程唤醒的条件变量，或 <span class="tt">tie</span> 成环）就会让 <span class="tt">exit()</span> 永不返回。处于失败态（<span class="tt">eofbit</span> 除外）的流退出时也不刷：钩子走的是流级 <span class="tt">flush()</span>，它对失败态什么也不做（<span class="tt">std::cout</span> 相同）；失败后仍想要缓冲里的字节，先 <span class="tt">clear()</span> 再 <span class="tt">flush()</span>。这些字节可能含失败的那次 插入已进缓冲的前缀：插入失败只保证置位，不保证它一个字节也没写出（见 <span class="tt"><a class="el" href="root__cvt_8h.html">root_cvt.h</a></span> 的 <span class="tt">dput_buffer</span>）。要确保某一批输出一定到达 设备，请在退出前自己 <span class="tt">flush()</span>，那时还有调用栈可以报告失败。</dd></dl>
+<dl class="section note"><dt>注解</dt><dd>上面说的「退出时」只指 <span class="tt">exit()</span>（含 <span class="tt">main</span> 返回）：钩子是经 <span class="tt">__cxa_atexit</span> 登记的静态 析构。<span class="tt">std::quick_exit</span>、<span class="tt">_exit</span>、未捕获的信号与 <span class="tt">std::abort</span> **一概不跑钩子**，本流 缓冲里的字节全部丢失；同步模式下已交给 stdio 的字节也一并丢失，因为这些路径同样不 冲刷 <span class="tt">FILE</span> 缓冲——与 <span class="tt">std::cout</span> 在这些路径上的行为逐字节相同（实测）。要在这类路径 之前保住输出，请自己 <span class="tt">flush()</span>，并在 stdout 不是 tty 时再 <span class="tt">fflush(stdout)</span>（或 <span class="tt">setvbuf(stdout, nullptr, _IONBF, 0)</span>）。</dd>
+<dd>
+**晚于退出钩子的插入**：头文件模式下，比本库更早登记的 <span class="tt">atexit</span> 函数与更早构造的 静态对象的析构在钩子之后才执行。钩子先让本流此后的插入都按同步处理（钩子之后再 <span class="tt">sync_with_stdio(false)</span> 也不改变这一点），这些插入结束时就把字节交给 stdio 并冲刷 stdio 的缓冲，不会因为钩子已经跑过而留在本流缓冲里丢掉；另一线程里的插入可能结束在 glibc 退出时最后一次冲刷 stdio 之后，自己冲刷也就不依赖那一次。它们按同步模式的规则报告 失败：默认只置状态位，<span class="tt">exceptions()</span> 掩码含该位时抛出。<span class="tt">synced_with_stdio()</span> 与 <span class="tt">sync_with_stdio()</span> 的返回值仍按用户设定的模式报告；钩子没能交出的字节（取不到锁、 或流处于失败态），之后 <span class="tt">clear()</span> 再 <span class="tt">sync_with_stdio(true)</span> 仍会交给 stdio。 共享库模式下钩子本就最后执行。</dd>
+<dd>
+**「退出阶段仍可用」只覆盖本库自己的东西**：流对象、它们的 locale 与 facet，以及 facet 触到的进程级数据（<span class="tt">timeio</span> 的时区树、<span class="tt">messages</span> 的文本域表）都不在退出时析构。 用户经 <span class="tt">locale(loc)</span> 装进来的自定义 facet 若持有会在退出时析构的全局量，<span class="tt">main</span> 返回后 另一线程的一次插入、或更早构造的静态对象析构里的一次插入，仍会读到已销毁的对象—— 这一层本库无从保证，与 <span class="tt">std::cout</span> 相同。</dd>
+<dd>
+**三个宽流在字节层与 stdio 同步**：它们自己把字符编码成字节，再以 <span class="tt">fwrite</span> 交给 <span class="tt">stdout</span> / <span class="tt">stderr</span>，所以 <span class="tt">FILE</span> 是字节定向的。因此 <span class="tt">cout</span>、<span class="tt">wcout</span> 与 <span class="tt">printf</span> / <span class="tt">fputs</span> 等字节函数可以任意交错；但**不能**与 <span class="tt">wprintf</span> / <span class="tt">fputwc</span> 等宽字符函数混用于 同一个 <span class="tt">FILE</span>（C11 7.21.2 禁止混用两种定向）：先用宽字符函数，此后本库的窄流与宽流 插入都失败并置 <span class="tt">devfailbit</span>；先用本库的流，此后 <span class="tt">wprintf</span> 返回 -1、输出静默丢失。 这与 <span class="tt">std::wcout</span> 相反：libstdc++ 的 <span class="tt">std::wcout</span> 经 <span class="tt">putwc</span> 写，与 <span class="tt">wprintf</span> 相容， 却在先写之后让 <span class="tt">printf</span> 与 <span class="tt">std::cout</span> 失败（实测）。</dd>
+<dd>
+**宽流不接受状态依赖的编码**（如 ISO-2022-JP）：环境变量指向这样的 locale 时，宽流改用 <span class="tt">"C"</span>；<span class="tt">switch_code()</span> 切换到这样的编码会失败。移位状态只记在每个宽流自己的转换器里， 而 <span class="tt">wcerr</span> 与 <span class="tt">wclog</span>（连同 <span class="tt">cerr</span>、<span class="tt">fprintf(stderr, ...)</span>）共用 stderr 这一个 fd，交错输出无法可靠地 解码。见 <span class="tt"><a class="el" href="code__cvt__stdio_8h.html">cvt/code_cvt_stdio.h</a></span>。</dd>
+<dd>
+**与 <span class="tt">printf</span> 混写时的锁序**：这些流写出时先持本流的 <span class="tt">io_mutex()</span>，再取 <span class="tt">stdout</span> / <span class="tt">stderr</span> 的 <span class="tt">FILE</span> 锁。要用 <span class="tt">flockfile</span> 把 <span class="tt">printf</span> 与本库的输出圈成一段，须先用 <span class="tt"><a class="el" href="structIOv2_1_1sync.html" title="对流的 I/O 互斥量进行 RAII 加锁的辅助类。">IOv2::sync</a></span> 锁住要写的流、再 <span class="tt">flockfile</span>；先 <span class="tt">flockfile</span> 再写本库的流会死锁。写法见 <span class="tt"><a class="el" href="io__base_8h.html">io/io_base.h</a></span> 的 <span class="tt"><a class="el" href="structIOv2_1_1sync.html" title="对流的 I/O 互斥量进行 RAII 加锁的辅助类。">IOv2::sync</a></span>。</dd>
+<dd>
+一般不直接包含本头文件，而是包含 <span class="tt"><a class="el" href="objects_8h.html">IOv2/io/objects/objects.h</a></span>：入口那里还有一次切换全部 八个标准流的 <span class="tt">sync_with_stdio()</span> 与 <span class="tt">endl</span> / <span class="tt">ends</span> / <span class="tt">flush</span> 等操纵符，并说明了本系列 头文件不带来哪些能力。 </dd></dl>
+</div></div><!-- contents -->
+</div><!-- doc-content -->
+<div id="page-nav" class="page-nav-panel">
+<div id="page-nav-resize-handle"></div>
+<div id="page-nav-tree">
+<div id="page-nav-contents">
+</div><!-- page-nav-contents -->
+</div><!-- page-nav-tree -->
+</div><!-- page-nav -->
+</div><!-- container -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><a href="dir_d44c64559bbebec7f509842c48db8b23.html">include</a></li><li class="navelem"><a href="dir_1157f564aec2b3a7d6bde4eba89ab805.html">IOv2</a></li><li class="navelem"><a href="dir_e6325c10be556c0ae106bae233ca0d0f.html">io</a></li><li class="navelem"><a href="dir_f21ae676d18879298caf471a64897373.html">objects</a></li><li class="navelem"><a href="out__impl_8h.html">out_impl.h</a></li>
+    <li class="footer">制作者 <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.15.0 </li>
+  </ul>
+</div>
+</body>
+</html>

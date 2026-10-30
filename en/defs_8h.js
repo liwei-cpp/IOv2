@@ -1,0 +1,11 @@
+var defs_8h =
+[
+    [ "IOv2::io_error", "structIOv2_1_1io__error.html", null ],
+    [ "IOv2::device_error", "structIOv2_1_1device__error.html", null ],
+    [ "IOv2::dput_error", "structIOv2_1_1dput__error.html", "structIOv2_1_1dput__error" ],
+    [ "IOv2::cvt_error", "structIOv2_1_1cvt__error.html", null ],
+    [ "IOv2::eof_error", "structIOv2_1_1eof__error.html", "structIOv2_1_1eof__error" ],
+    [ "IOv2::stream_error", "structIOv2_1_1stream__error.html", null ],
+    [ "IOV2_NO_UNIQUE_ADDRESS", "defs_8h.html#a3482615b1cb13b5e16a3bd02ee6f2452", null ],
+    [ "IOv2::SIMD_PADDING_BYTES", "namespaceIOv2.html#adfa291d8e790bb70003432fc31001f0a", null ]
+];

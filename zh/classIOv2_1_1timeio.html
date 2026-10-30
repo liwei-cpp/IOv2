@@ -1,0 +1,1564 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=11"/>
+<meta name="generator" content="Doxygen 1.15.0"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>IOv2: IOv2::timeio&lt; CharT &gt; 模板类 参考</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<script type="text/javascript" src="clipboard.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<script type="text/javascript" src="cookie.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr id="projectrow">
+  <td id="projectalign">
+   <div id="projectname">IOv2
+   </div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 制作者 Doxygen 1.15.0 -->
+<script type="text/javascript">
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+</script>
+<script type="text/javascript">
+$(function() { codefold.init(); });
+</script>
+<script type="text/javascript" src="menudata.js"></script>
+<script type="text/javascript" src="menu.js"></script>
+<script type="text/javascript">
+$(function() {
+  initMenu('',true,false,'search.php','搜索',true);
+  $(function() { init_search(); });
+});
+</script>
+<div id="main-nav"></div>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+$(function(){initNavTree('classIOv2_1_1timeio.html','','classIOv2_1_1timeio-members'); });
+</script>
+<div id="container">
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">载入中...</div>
+<div class="SRStatus" id="Searching">搜索中...</div>
+<div class="SRStatus" id="NoMatches">未找到</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="header">
+  <div class="headertitle"><div class="title">IOv2::timeio&lt; CharT &gt; 模板类 参考</div></div>
+</div><!--header-->
+<div class="contents">
+
+<p>时间 I/O facet，提供日期/时间的格式化输出与 locale 感知解析。  
+ <a href="#details">更多...</a></p>
+
+<p><code>#include &lt;<a class="el" href="timeio_8h_source.html">timeio.h</a>&gt;</code></p>
+<table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 id="header-pub-types" class="groupheader"><a id="pub-types" name="pub-types"></a>
+Public 类型</h2></td></tr>
+<tr class="memitem:ad3d3f57bae042e6a757945080110daee" id="r_ad3d3f57bae042e6a757945080110daee"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad3d3f57bae042e6a757945080110daee">create_rules</a></td></tr>
+<tr class="memitem:ae958d44166dec8f3447e4e91921ab679" id="r_ae958d44166dec8f3447e4e91921ab679"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ae958d44166dec8f3447e4e91921ab679">char_type</a> = CharT</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
+Public 成员函数</h2></td></tr>
+<tr class="memitem:ac5816f17fe55a3f53bfb852867256a2e" id="r_ac5816f17fe55a3f53bfb852867256a2e"><td class="memTemplParams" colspan="2">template&lt;shared_ptr_to&lt; <a class="el" href="classIOv2_1_1timeio__conf.html">timeio_conf</a>&lt; CharT &gt; &gt; TConfPtr, shared_ptr_to&lt; <a class="el" href="classIOv2_1_1ctype.html">ctype</a>&lt; CharT &gt; &gt; TCtypePtr&gt; </td></tr>
+<tr class="memitem:ac5816f17fe55a3f53bfb852867256a2e template"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ac5816f17fe55a3f53bfb852867256a2e">timeio</a> (TConfPtr p_obj, TCtypePtr p_ctype)</td></tr>
+<tr class="memdesc:ac5816f17fe55a3f53bfb852867256a2e"><td class="mdescLeft">&#160;</td><td class="mdescRight">构造函数，从 locale 配置和 ctype facet 初始化。  <br /></td></tr>
+<tr class="memitem:a0e06eef584682da1387b1e85ae79dc67" id="r_a0e06eef584682da1387b1e85ae79dc67"><td class="memTemplParams" colspan="2">template&lt;shared_ptr_to&lt; <a class="el" href="classIOv2_1_1timeio__conf.html">timeio_conf</a>&lt; CharT &gt; &gt; TConfPtr&gt; </td></tr>
+<tr class="memitem:a0e06eef584682da1387b1e85ae79dc67 template"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a0e06eef584682da1387b1e85ae79dc67">timeio</a> (TConfPtr p_obj)</td></tr>
+<tr class="memdesc:a0e06eef584682da1387b1e85ae79dc67"><td class="mdescLeft">&#160;</td><td class="mdescRight">构造函数，从 locale 配置初始化。  <br /></td></tr>
+<tr class="memitem:a4434ddd6edf11eb1c9c48f2fe9e7be18" id="r_a4434ddd6edf11eb1c9c48f2fe9e7be18"><td class="memItemLeft" align="right" valign="top">const std::array&lt; std::basic_string&lt; CharT &gt;, 7 &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a4434ddd6edf11eb1c9c48f2fe9e7be18">day_names</a> () const noexcept</td></tr>
+<tr class="memdesc:a4434ddd6edf11eb1c9c48f2fe9e7be18"><td class="mdescLeft">&#160;</td><td class="mdescRight">返回星期全称数组（索引 0 为星期日，索引 6 为星期六）。    <br /></td></tr>
+<tr class="memitem:afa12e2abfc08bc875cf68962616d8574" id="r_afa12e2abfc08bc875cf68962616d8574"><td class="memItemLeft" align="right" valign="top">const std::array&lt; std::basic_string&lt; CharT &gt;, 7 &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#afa12e2abfc08bc875cf68962616d8574">abbr_day_names</a> () const noexcept</td></tr>
+<tr class="memdesc:afa12e2abfc08bc875cf68962616d8574"><td class="mdescLeft">&#160;</td><td class="mdescRight">返回星期缩写数组（索引 0 为星期日，索引 6 为星期六）。    <br /></td></tr>
+<tr class="memitem:a98b709fb74dfa341a52abbe4ac2ebae6" id="r_a98b709fb74dfa341a52abbe4ac2ebae6"><td class="memItemLeft" align="right" valign="top">const std::array&lt; std::basic_string&lt; CharT &gt;, 12 &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a98b709fb74dfa341a52abbe4ac2ebae6">month_names</a> () const noexcept</td></tr>
+<tr class="memdesc:a98b709fb74dfa341a52abbe4ac2ebae6"><td class="mdescLeft">&#160;</td><td class="mdescRight">返回月份全称数组（索引 0 为一月，索引 11 为十二月）。    <br /></td></tr>
+<tr class="memitem:ac59952b50260b4d8346a47ec24a69472" id="r_ac59952b50260b4d8346a47ec24a69472"><td class="memItemLeft" align="right" valign="top">const std::array&lt; std::basic_string&lt; CharT &gt;, 12 &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ac59952b50260b4d8346a47ec24a69472">abbr_month_names</a> () const noexcept</td></tr>
+<tr class="memdesc:ac59952b50260b4d8346a47ec24a69472"><td class="mdescLeft">&#160;</td><td class="mdescRight">返回月份缩写数组（索引 0 为一月，索引 11 为十二月）。    <br /></td></tr>
+<tr class="memitem:a97a72d26d6a6597472c54893c3f28e28" id="r_a97a72d26d6a6597472c54893c3f28e28"><td class="memItemLeft" align="right" valign="top">const std::array&lt; std::basic_string&lt; CharT &gt;, 100 &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a97a72d26d6a6597472c54893c3f28e28">alt_digit_names</a> () const noexcept</td></tr>
+<tr class="memdesc:a97a72d26d6a6597472c54893c3f28e28"><td class="mdescLeft">&#160;</td><td class="mdescRight">返回 locale 定义的替代数字字符串数组（最多 100 项）。    <br /></td></tr>
+<tr class="memitem:af5107da98050465b12271cee525c44b0" id="r_af5107da98050465b12271cee525c44b0"><td class="memItemLeft" align="right" valign="top">const std::basic_string&lt; CharT &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af5107da98050465b12271cee525c44b0">am_name</a> () const noexcept</td></tr>
+<tr class="memdesc:af5107da98050465b12271cee525c44b0"><td class="mdescLeft">&#160;</td><td class="mdescRight">返回 AM 时段字符串。    <br /></td></tr>
+<tr class="memitem:a7ff0088a2bfe1c31dc6795f0c2ae479e" id="r_a7ff0088a2bfe1c31dc6795f0c2ae479e"><td class="memItemLeft" align="right" valign="top">const std::basic_string&lt; CharT &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a7ff0088a2bfe1c31dc6795f0c2ae479e">pm_name</a> () const noexcept</td></tr>
+<tr class="memdesc:a7ff0088a2bfe1c31dc6795f0c2ae479e"><td class="mdescLeft">&#160;</td><td class="mdescRight">返回 PM 时段字符串。    <br /></td></tr>
+<tr class="memitem:a163a7b4a7a35472989ff02552582f3fe" id="r_a163a7b4a7a35472989ff02552582f3fe"><td class="memItemLeft" align="right" valign="top">const std::basic_string&lt; CharT &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a163a7b4a7a35472989ff02552582f3fe">date_format</a> () const noexcept</td></tr>
+<tr class="memdesc:a163a7b4a7a35472989ff02552582f3fe"><td class="mdescLeft">&#160;</td><td class="mdescRight">返回 locale 日期格式串（对应 <span class="tt">x</span>）。    <br /></td></tr>
+<tr class="memitem:aec17daff53f65b7521a7555e30d2e3c8" id="r_aec17daff53f65b7521a7555e30d2e3c8"><td class="memItemLeft" align="right" valign="top">const std::basic_string&lt; CharT &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aec17daff53f65b7521a7555e30d2e3c8">era_date_format</a> () const noexcept</td></tr>
+<tr class="memdesc:aec17daff53f65b7521a7555e30d2e3c8"><td class="mdescLeft">&#160;</td><td class="mdescRight">返回 locale 纪元修饰日期格式串（对应 <span class="tt">Ex</span>）。    <br /></td></tr>
+<tr class="memitem:aa9b6b80864732e3d66e62c2c124d6788" id="r_aa9b6b80864732e3d66e62c2c124d6788"><td class="memItemLeft" align="right" valign="top">const std::basic_string&lt; CharT &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa9b6b80864732e3d66e62c2c124d6788">time_format</a> () const noexcept</td></tr>
+<tr class="memdesc:aa9b6b80864732e3d66e62c2c124d6788"><td class="mdescLeft">&#160;</td><td class="mdescRight">返回 locale 时间格式串（对应 <span class="tt">X</span>）。    <br /></td></tr>
+<tr class="memitem:a3219811c8846db957a163f554bb681ad" id="r_a3219811c8846db957a163f554bb681ad"><td class="memItemLeft" align="right" valign="top">const std::basic_string&lt; CharT &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a3219811c8846db957a163f554bb681ad">era_time_format</a> () const noexcept</td></tr>
+<tr class="memdesc:a3219811c8846db957a163f554bb681ad"><td class="mdescLeft">&#160;</td><td class="mdescRight">返回 locale 纪元修饰时间格式串（对应 <span class="tt">EX</span>）。    <br /></td></tr>
+<tr class="memitem:a9190f80566e1b9808cd25b09bd72ced9" id="r_a9190f80566e1b9808cd25b09bd72ced9"><td class="memItemLeft" align="right" valign="top">const std::basic_string&lt; CharT &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a9190f80566e1b9808cd25b09bd72ced9">date_time_format</a> () const noexcept</td></tr>
+<tr class="memdesc:a9190f80566e1b9808cd25b09bd72ced9"><td class="mdescLeft">&#160;</td><td class="mdescRight">返回 locale 日期时间格式串（对应 <span class="tt">c</span>）。    <br /></td></tr>
+<tr class="memitem:aa242a20c1745b9345e4c17b7009c7540" id="r_aa242a20c1745b9345e4c17b7009c7540"><td class="memItemLeft" align="right" valign="top">const std::basic_string&lt; CharT &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa242a20c1745b9345e4c17b7009c7540">era_date_time_format</a> () const noexcept</td></tr>
+<tr class="memdesc:aa242a20c1745b9345e4c17b7009c7540"><td class="mdescLeft">&#160;</td><td class="mdescRight">返回 locale 纪元修饰日期时间格式串（对应 <span class="tt">Ec</span>）。    <br /></td></tr>
+<tr class="memitem:a767b4d4c884ef1ddcf49d723c61b6092" id="r_a767b4d4c884ef1ddcf49d723c61b6092"><td class="memItemLeft" align="right" valign="top">const std::basic_string&lt; CharT &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a767b4d4c884ef1ddcf49d723c61b6092">am_pm_format</a> () const noexcept</td></tr>
+<tr class="memdesc:a767b4d4c884ef1ddcf49d723c61b6092"><td class="mdescLeft">&#160;</td><td class="mdescRight">返回 AM/PM 时间格式串（对应 <span class="tt">r</span>）。    <br /></td></tr>
+<tr class="memitem:ad3e1a51a4214ef95df90d9a79134bdd7" id="r_ad3e1a51a4214ef95df90d9a79134bdd7"><td class="memTemplParams" colspan="2">template&lt;typename TVal&gt; </td></tr>
+<tr class="memitem:ad3e1a51a4214ef95df90d9a79134bdd7 template"><td class="memItemLeft" align="right" valign="top">std::basic_string&lt; CharT &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad3e1a51a4214ef95df90d9a79134bdd7">expand_format</a> (std::basic_string_view&lt; CharT &gt; fmt) const</td></tr>
+<tr class="memdesc:ad3e1a51a4214ef95df90d9a79134bdd7"><td class="mdescLeft">&#160;</td><td class="mdescRight">返回某个类型的值在某个格式串下**实际会写出**的那个格式串：复合说明符逐层展开， 该类型供不出的说明符连同一侧分隔符摘掉。  <br /></td></tr>
+<tr class="memitem:accf3ec4f215e0ccdb32bb8824c011feb" id="r_accf3ec4f215e0ccdb32bb8824c011feb"><td class="memTemplParams" colspan="2">template&lt;typename TVal&gt; </td></tr>
+<tr class="memitem:accf3ec4f215e0ccdb32bb8824c011feb template"><td class="memItemLeft" align="right" valign="top">std::basic_string&lt; CharT &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#accf3ec4f215e0ccdb32bb8824c011feb">expand_format</a> (char format, char modifier=0) const</td></tr>
+<tr class="memdesc:accf3ec4f215e0ccdb32bb8824c011feb"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="#ad3e1a51a4214ef95df90d9a79134bdd7">expand_format</a> 的单字符形式：给出一个说明符，返回它展开、过滤后的样子。  <br /></td></tr>
+<tr class="memitem:ad618c365696d2db2d4206cd82e231e81" id="r_ad618c365696d2db2d4206cd82e231e81"><td class="memTemplParams" colspan="2">template&lt;typename OutIt, typename TVal&gt; </td></tr>
+<tr class="memitem:ad618c365696d2db2d4206cd82e231e81 template"><td class="memItemLeft" align="right" valign="top">OutIt&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad618c365696d2db2d4206cd82e231e81">put</a> (OutIt out, const TVal &amp;t, char format, char modifier=0) const</td></tr>
+<tr class="memdesc:ad618c365696d2db2d4206cd82e231e81"><td class="mdescLeft">&#160;</td><td class="mdescRight">按单个格式字符（可带修饰符）格式化时间值。  <br /></td></tr>
+<tr class="memitem:a81c846fd0fdfc2f5466bb58b6367e597" id="r_a81c846fd0fdfc2f5466bb58b6367e597"><td class="memTemplParams" colspan="2">template&lt;typename OutIt, typename Duration, typename TimeZonePtr&gt; </td></tr>
+<tr class="memitem:a81c846fd0fdfc2f5466bb58b6367e597 template"><td class="memItemLeft" align="right" valign="top">OutIt&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a81c846fd0fdfc2f5466bb58b6367e597">put</a> (OutIt out, const std::chrono::zoned_time&lt; Duration, TimeZonePtr &gt; &amp;t, std::basic_string_view&lt; CharT &gt; fmt) const</td></tr>
+<tr class="memdesc:a81c846fd0fdfc2f5466bb58b6367e597"><td class="mdescLeft">&#160;</td><td class="mdescRight">将 <span class="tt">std::chrono::zoned_time</span> 按格式串格式化到输出迭代器。  <br /></td></tr>
+<tr class="memitem:a9e892b9c99b9a39f012e79472ae0b1ca" id="r_a9e892b9c99b9a39f012e79472ae0b1ca"><td class="memTemplParams" colspan="2">template&lt;typename OutIt, typename Duration&gt; </td></tr>
+<tr class="memitem:a9e892b9c99b9a39f012e79472ae0b1ca template"><td class="memItemLeft" align="right" valign="top">OutIt&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a9e892b9c99b9a39f012e79472ae0b1ca">put</a> (OutIt out, const std::chrono::sys_time&lt; Duration &gt; &amp;t, std::basic_string_view&lt; CharT &gt; fmt) const</td></tr>
+<tr class="memdesc:a9e892b9c99b9a39f012e79472ae0b1ca"><td class="mdescLeft">&#160;</td><td class="mdescRight">将 <span class="tt">std::chrono::sys_time</span> 按格式串格式化到输出迭代器。  <br /></td></tr>
+<tr class="memitem:a784b0671a34029f863a276809ee9156a" id="r_a784b0671a34029f863a276809ee9156a"><td class="memTemplParams" colspan="2">template&lt;typename OutIt, typename Duration&gt; </td></tr>
+<tr class="memitem:a784b0671a34029f863a276809ee9156a template"><td class="memItemLeft" align="right" valign="top">OutIt&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a784b0671a34029f863a276809ee9156a">put</a> (OutIt out, const std::chrono::local_time&lt; Duration &gt; &amp;t, std::chrono::seconds offset, std::basic_string_view&lt; CharT &gt; fmt) const</td></tr>
+<tr class="memdesc:a784b0671a34029f863a276809ee9156a"><td class="mdescLeft">&#160;</td><td class="mdescRight">将 <span class="tt">std::chrono::local_time</span> 连同一个已知的 UTC 偏移格式化到输出迭代器。  <br /></td></tr>
+<tr class="memitem:a371a698286c9016ce20350f8c414c145" id="r_a371a698286c9016ce20350f8c414c145"><td class="memTemplParams" colspan="2">template&lt;typename OutIt&gt; </td></tr>
+<tr class="memitem:a371a698286c9016ce20350f8c414c145 template"><td class="memItemLeft" align="right" valign="top">OutIt&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a371a698286c9016ce20350f8c414c145">put</a> (OutIt out, const std::chrono::year_month_day &amp;t, std::basic_string_view&lt; CharT &gt; fmt) const</td></tr>
+<tr class="memdesc:a371a698286c9016ce20350f8c414c145"><td class="mdescLeft">&#160;</td><td class="mdescRight">将 <span class="tt">std::chrono::year_month_day</span> 按格式串格式化到输出迭代器。  <br /></td></tr>
+<tr class="memitem:a31e0f3a801e599d628a82e77fccab21a" id="r_a31e0f3a801e599d628a82e77fccab21a"><td class="memTemplParams" colspan="2">template&lt;typename OutIt, typename TDuration&gt; </td></tr>
+<tr class="memitem:a31e0f3a801e599d628a82e77fccab21a template"><td class="memItemLeft" align="right" valign="top">OutIt&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a31e0f3a801e599d628a82e77fccab21a">put</a> (OutIt out, const std::chrono::hh_mm_ss&lt; TDuration &gt; &amp;t, std::basic_string_view&lt; CharT &gt; fmt) const</td></tr>
+<tr class="memdesc:a31e0f3a801e599d628a82e77fccab21a"><td class="mdescLeft">&#160;</td><td class="mdescRight">将 <span class="tt">std::chrono::hh_mm_ss</span> 按格式串格式化到输出迭代器。  <br /></td></tr>
+<tr class="memitem:adf3576bc96604725f3c6c22fe9df5741" id="r_adf3576bc96604725f3c6c22fe9df5741"><td class="memTemplParams" colspan="2">template&lt;typename OutIt&gt; </td></tr>
+<tr class="memitem:adf3576bc96604725f3c6c22fe9df5741 template"><td class="memItemLeft" align="right" valign="top">OutIt&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#adf3576bc96604725f3c6c22fe9df5741">put</a> (OutIt out, const std::tm &amp;t, std::basic_string_view&lt; CharT &gt; fmt) const</td></tr>
+<tr class="memdesc:adf3576bc96604725f3c6c22fe9df5741"><td class="mdescLeft">&#160;</td><td class="mdescRight">将 <span class="tt">std::tm</span> 按格式串格式化到输出迭代器。  <br /></td></tr>
+<tr class="memitem:a6b8a2fb3640218fb2e03c99ac89846f0" id="r_a6b8a2fb3640218fb2e03c99ac89846f0"><td class="memTemplParams" colspan="2">template&lt;typename TIter, std::sentinel_for&lt; TIter &gt; TSent, bool HaveDate, bool HaveTime, <a class="el" href="namespaceIOv2.html#ae5c45ed29b875d3d35e686974d847b1e">tz_level</a> TzLevel&gt; <br />
+requires (steppable_back&lt;TIter&gt; || is_ichannel_iterator&lt;TIter&gt;)</td></tr>
+<tr class="memitem:a6b8a2fb3640218fb2e03c99ac89846f0 template"><td class="memItemLeft" align="right" valign="top">TIter&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a6b8a2fb3640218fb2e03c99ac89846f0">get</a> (TIter beg, TSent end, <a class="el" href="structIOv2_1_1time__parse__context.html">time_parse_context</a>&lt; <a class="el" href="#ae958d44166dec8f3447e4e91921ab679">char_type</a>, HaveDate, HaveTime, TzLevel &gt; &amp;ctx, char format, char modifier=0) const</td></tr>
+<tr class="memdesc:a6b8a2fb3640218fb2e03c99ac89846f0"><td class="mdescLeft">&#160;</td><td class="mdescRight">按单个格式字符（可带修饰符）从输入范围中解析时间字段。  <br /></td></tr>
+<tr class="memitem:a0006ff70a1db94b1551ab7d6e3ad480b" id="r_a0006ff70a1db94b1551ab7d6e3ad480b"><td class="memTemplParams" colspan="2">template&lt;typename TIter, std::sentinel_for&lt; TIter &gt; TSent, bool HaveDate, bool HaveTime, <a class="el" href="namespaceIOv2.html#ae5c45ed29b875d3d35e686974d847b1e">tz_level</a> TzLevel&gt; <br />
+requires (steppable_back&lt;TIter&gt; || is_ichannel_iterator&lt;TIter&gt;)</td></tr>
+<tr class="memitem:a0006ff70a1db94b1551ab7d6e3ad480b template"><td class="memItemLeft" align="right" valign="top">TIter&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a0006ff70a1db94b1551ab7d6e3ad480b">get</a> (TIter rp, TSent rp_end, <a class="el" href="structIOv2_1_1time__parse__context.html">time_parse_context</a>&lt; <a class="el" href="#ae958d44166dec8f3447e4e91921ab679">char_type</a>, HaveDate, HaveTime, TzLevel &gt; &amp;ctx, std::basic_string_view&lt; CharT &gt; _fmt) const</td></tr>
+<tr class="memdesc:a0006ff70a1db94b1551ab7d6e3ad480b"><td class="mdescLeft">&#160;</td><td class="mdescRight">按格式串从输入范围中解析时间字段，将结果累积到 <span class="tt">ctx</span>。  <br /></td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 id="header-pub-static-methods" class="groupheader"><a id="pub-static-methods" name="pub-static-methods"></a>
+静态 Public 成员函数</h2></td></tr>
+<tr class="memitem:acf4fe26afec0b0881cf296a25f10ad25" id="r_acf4fe26afec0b0881cf296a25f10ad25"><td class="memItemLeft" align="right" valign="top">static bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#acf4fe26afec0b0881cf296a25f10ad25">contains_specifier</a> (std::basic_string_view&lt; CharT &gt; fmt, char format, char modifier=0)</td></tr>
+<tr class="memdesc:acf4fe26afec0b0881cf296a25f10ad25"><td class="mdescLeft">&#160;</td><td class="mdescRight">判断格式串里有没有某个说明符。  <br /></td></tr>
+</table>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">详细描述</h2>
+<div class="textblock"><div class="compoundTemplParams">template&lt;typename CharT&gt;<br />
+class IOv2::timeio&lt; CharT &gt;</div><p>时间 I/O facet，提供日期/时间的格式化输出与 locale 感知解析。 </p>
+<p><span class="tt"><a class="el" href="classIOv2_1_1timeio.html" title="时间 I/O facet，提供日期/时间的格式化输出与 locale 感知解析。">timeio</a></span> 实现了 <span class="tt">strftime</span>/<span class="tt">strptime</span> 风格的日期时间格式化与解析， 支持完整的格式说明符集合（包括 <span class="tt">E</span>/<span class="tt">O</span> 修饰符与纪元扩展）。 从 <span class="tt"><a class="el" href="classIOv2_1_1timeio__conf.html">timeio_conf</a>&lt;CharT&gt;</span> 加载 locale 数据（星期/月份名称、格式串、 替代数字、纪元条目），可选与 <span class="tt"><a class="el" href="classIOv2_1_1ctype.html">ctype</a>&lt;CharT&gt;</span> 配合使用以支持 locale 感知的空白字符识别。</p>
+<p>**格式化**（<span class="tt"><a class="el" href="#ad618c365696d2db2d4206cd82e231e81" title="按单个格式字符（可带修饰符）格式化时间值。">put</a></span>）：接受 <span class="tt">std::chrono::year_month_day</span>、 <span class="tt">std::chrono::hh_mm_ss</span>、<span class="tt">std::chrono::zoned_time</span>、<span class="tt">std::chrono::sys_time</span>、 <span class="tt">std::chrono::local_time</span> 加一个偏移，或 <span class="tt">std::tm</span>， 将其按指定格式串写入输出迭代器。</p>
+<p>**解析**（<span class="tt"><a class="el" href="#a6b8a2fb3640218fb2e03c99ac89846f0" title="按单个格式字符（可带修饰符）从输入范围中解析时间字段。">get</a></span>）：从输入迭代器按指定格式串解析时间字段， 将结果累积到 <span class="tt"><a class="el" href="structIOv2_1_1time__parse__context.html" title="timeio::get() 的聚合解析上下文。">time_parse_context</a></span> 中；解析完成后通过转换运算符 提取 <span class="tt">year_month_day</span>、<span class="tt">hh_mm_ss</span>、<span class="tt">local_time</span>、<span class="tt">sys_time</span> 或 <span class="tt">zoned_time</span>。</p>
+<p><b>说明符与值不匹配时退化为字面量。</b> 每种值类型只携带一部分信息：<span class="tt">year_month_day</span> 只有日期，<span class="tt">hh_mm_ss</span> 只有时间。时区则分三档（见 <span class="tt"><a class="el" href="namespaceIOv2.html#ae5c45ed29b875d3d35e686974d847b1e" title="解析上下文所携带的时区信息档位。">tz_level</a></span>）：<span class="tt">year_month_day</span> 与 <span class="tt">hh_mm_ss</span> 一档都没有；<span class="tt">std::tm</span>、<span class="tt">sys_time</span>、<span class="tt">local_time</span> 只带得动偏移和缩写； 只有 <span class="tt">zoned_time</span> 带得动区域身份。当格式串里出现该值无法提供的说明符时，它不构成错误， 而是被当作字面量处理——<span class="tt"><a class="el" href="#ad618c365696d2db2d4206cd82e231e81" title="按单个格式字符（可带修饰符）格式化时间值。">put</a></span> 原样写出 <span class="tt">%</span> + 修饰符 + 说明符字符，<span class="tt"><a class="el" href="#a6b8a2fb3640218fb2e03c99ac89846f0" title="按单个格式字符（可带修饰符）从输入范围中解析时间字段。">get</a></span> 则要求输入中出现 同样的字面量。退化这一步两侧对称，因此**因退化而写出的字面量**总能被同一格式串的 <span class="tt"><a class="el" href="#a6b8a2fb3640218fb2e03c99ac89846f0" title="按单个格式字符（可带修饰符）从输入范围中解析时间字段。">get</a></span> 读回：</p>
+<table class="markdownTable">
+<tr class="markdownTableHead">
+<th class="markdownTableHeadNone">值类型  </th><th class="markdownTableHeadNone">时区档  </th><th class="markdownTableHeadNone">格式串  </th><th class="markdownTableHeadNone"><span class="tt"><a class="el" href="#ad618c365696d2db2d4206cd82e231e81" title="按单个格式字符（可带修饰符）格式化时间值。">put</a></span> 输出  </th><th class="markdownTableHeadNone"><span class="tt"><a class="el" href="#a6b8a2fb3640218fb2e03c99ac89846f0" title="按单个格式字符（可带修饰符）从输入范围中解析时间字段。">get</a></span> 接受的输入  </th></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><span class="tt">year_month_day</span>  </td><td class="markdownTableBodyNone">无  </td><td class="markdownTableBodyNone"><span class="tt">Y-m-d</span>  </td><td class="markdownTableBodyNone"><span class="tt">2020-05-17</span>  </td><td class="markdownTableBodyNone"><span class="tt">2020-05-17</span>  </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone"><span class="tt">year_month_day</span>  </td><td class="markdownTableBodyNone">无  </td><td class="markdownTableBodyNone"><span class="tt">H:M</span>  </td><td class="markdownTableBodyNone"><span class="tt">H:M</span>  </td><td class="markdownTableBodyNone">字面量 <span class="tt">H:M</span>  </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><span class="tt">hh_mm_ss</span>  </td><td class="markdownTableBodyNone">无  </td><td class="markdownTableBodyNone"><span class="tt">Y-m-d</span>  </td><td class="markdownTableBodyNone"><span class="tt">Y-m-d</span>  </td><td class="markdownTableBodyNone">字面量 <span class="tt">Y-m-d</span>  </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone"><span class="tt">year_month_day</span>、<span class="tt">hh_mm_ss</span>  </td><td class="markdownTableBodyNone">无  </td><td class="markdownTableBodyNone"><span class="tt">z</span>、<span class="tt">Z</span>  </td><td class="markdownTableBodyNone"><span class="tt">z</span>、<span class="tt">Z</span>  </td><td class="markdownTableBodyNone">字面量 <span class="tt">z</span>、<span class="tt">Z</span>  </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><span class="tt">std::tm</span>  </td><td class="markdownTableBodyNone">区域  </td><td class="markdownTableBodyNone"><span class="tt">z</span>  </td><td class="markdownTableBodyNone">由 <span class="tt">tm_gmtoff</span> 算得，如 <span class="tt">+0800</span>；钳到 <span class="tt">±23:59:59</span>  </td><td class="markdownTableBodyNone"><span class="tt">+0800</span>  </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone"><span class="tt">std::tm</span>  </td><td class="markdownTableBodyNone">区域  </td><td class="markdownTableBodyNone"><span class="tt">Z</span>  </td><td class="markdownTableBodyNone"><span class="tt">tm_zone</span>；为空则写 <span class="tt">UNKNOWN</span>  </td><td class="markdownTableBodyNone">时区名或缩写、<span class="tt">UNKNOWN</span>  </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><span class="tt">sys_time</span>  </td><td class="markdownTableBodyNone">偏移  </td><td class="markdownTableBodyNone"><span class="tt">z</span>、<span class="tt">Z</span>  </td><td class="markdownTableBodyNone"><span class="tt">+0000</span>、<span class="tt">UTC</span>  </td><td class="markdownTableBodyNone">同上  </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone"><span class="tt">local_time</span> + 偏移  </td><td class="markdownTableBodyNone">偏移  </td><td class="markdownTableBodyNone"><span class="tt">z</span>、<span class="tt">Z</span>  </td><td class="markdownTableBodyNone"><span class="tt">±hhmm</span>、退化为 <span class="tt">Z</span>  </td><td class="markdownTableBodyNone">同上  </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><span class="tt">zoned_time</span>  </td><td class="markdownTableBodyNone">区域  </td><td class="markdownTableBodyNone"><span class="tt">z</span>、<span class="tt">Z</span>  </td><td class="markdownTableBodyNone"><span class="tt">+0800</span>、<span class="tt">Asia/Shanghai</span>  </td><td class="markdownTableBodyNone">时区名，不收字面量  </td></tr>
+</table>
+<p><span class="tt"><a class="el" href="#a6b8a2fb3640218fb2e03c99ac89846f0" title="按单个格式字符（可带修饰符）从输入范围中解析时间字段。">get</a></span> 侧的档位由 <span class="tt"><a class="el" href="structIOv2_1_1time__parse__context.html" title="timeio::get() 的聚合解析上下文。">time_parse_context</a></span> 的 <span class="tt">TzLevel</span> 模板参数给出，对应上表"时区档"一列： 低于该档的说明符退化为字面量，达到该档的说明符真的解析。<span class="tt">std::tm</span> 那两行填的是本平台的档： 它随两个扩展成员的有无而定，两个都有是"区域"，只有 <span class="tt">tm_gmtoff</span> 是"偏移"，都没有是"无"。 本版本只支持 glibc，两个成员都有，因此总是"区域"；后两档留待移植，眼下的探测在缺少成员的 平台上会编译失败。</p>
+<p>能否供出 <span class="tt">Z</span> 只看值类型，不看运行期取值：带 <span class="tt">tm_zone</span> 成员的平台上，<span class="tt">std::tm</span> 的 <span class="tt">Z</span> 对**任何**取值都写得出内容——有名字写名字，<span class="tt">tm_zone</span> 为空指针或空串则写 base_ft&lt;timeio&gt;::s_unknown_zone（`UNKNOWN`）。该记号也在时区前缀树里注册， 因此写得出就读得回。真正没有时区概念的类型（<span class="tt">local_time</span>、<span class="tt">year_month_day</span>、 <span class="tt">hh_mm_ss</span>）的 <span class="tt">Z</span> 才退化为字面量。</p>
+<p>为使退化仍然对称，<span class="tt"><a class="el" href="namespaceIOv2.html#ae5c45ed29b875d3d35e686974d847b1ea7a86c157ee9713c34fbd7a1ee40f0c5a" title="解析 z 的 UTC 偏移；Z 仍按字面量处理。">tz_level::offset</a></span> 档的 <span class="tt">Z</span> 在时区数据库里匹配不到时会退回"要求输入中
+出现字面量 `%Z`"，于是 put 退化写出的内容照样读得回；这条退路只在输入真是那两个字符时 才走得通，而那正是 put 没有时区可写的情形，因此不会让任何本该记录的时区丢掉。 <span class="tt"><a class="el" href="namespaceIOv2.html#ae5c45ed29b875d3d35e686974d847b1eaa84e5f25e7f6d5de9b82ce3f64d1b8fa" title="在 offset 之上再解析 Z，得到区域身份与缩写。">tz_level::zone</a></span> 档不这样做：那一档的 <span class="tt">Z</span> 决定用哪个时区，且 put 在该档从不退化，故匹配不到即失败。</p>
+<dl class="section note"><dt>注解</dt><dd>解析到的区名、缩写与 <span class="tt">UNKNOWN</span> 都会写回 <span class="tt">std::tm::tm_zone</span>（<span class="tt">UNKNOWN</span> 写空串）， 于是 <span class="tt">Z</span> 在 <span class="tt">std::tm</span> 上也是往返闭合的。细节与理由见 <span class="tt">convert_to(std::tm&amp;)</span>。</dd></dl>
+<dl class="section warning"><dt>警告</dt><dd>上面那句"读得回来"只管**退化**这条规则，不是说两侧取值域处处相同。已知的例外是 **年份**：<span class="tt"><a class="el" href="#ad618c365696d2db2d4206cd82e231e81" title="按单个格式字符（可带修饰符）格式化时间值。">put</a></span> 为与 <span class="tt">std::format</span> 一致，负年份带 <span class="tt">-</span>、大于 9999 的年份写四位以上；而 <span class="tt">Y</span> / <span class="tt">G</span> / <span class="tt">C</span> 的解析侧**只收 0..9999 且不带符号**（与 <span class="tt">std::chrono::from_stream("Y")</span> 和 POSIX <span class="tt">strptime</span> 一致）。于是年 10000、32767、 −32767 都是 <span class="tt"><a class="el" href="#ad618c365696d2db2d4206cd82e231e81" title="按单个格式字符（可带修饰符）格式化时间值。">put</a></span> 成功、同格式串 <span class="tt"><a class="el" href="#a6b8a2fb3640218fb2e03c99ac89846f0" title="按单个格式字符（可带修饰符）从输入范围中解析时间字段。">get</a></span> 得 <span class="tt">strfailbit</span>（<span class="tt">*tmb</span> 一字节不改），年 0..9999 才真的往返。这是有意的取舍，理由见 <span class="tt">do_get</span> 里 <span class="tt">Y</span> 分支上的整段注释。</dd>
+<dd>
+时区上与 <span class="tt">std::get_time</span> / <span class="tt">std::put_time</span> 的分歧在**取值域**，不在退化：本库的 <span class="tt">Z</span> 接受时区数据库认识的任何名字或缩写；libstdc++ 比对的是一张硬编码 14 条的表， 只认标准时缩写。于是 <span class="tt"><a class="el" href="namespaceIOv2.html#af07ff1562a8d2f2453ffc25c02316ef7" title="构造按 fmt 解析时间并写入 *tmb 的操纵符。">get_time</a>(&amp;tm, "Y-m-d Z")</span> 读 <span class="tt">2020-05-17 PST</span> 两边都成功， 读 <span class="tt">2020-05-17 UTC</span>、<span class="tt">2020-05-17 PDT</span> 或 <span class="tt">2020-05-17 America/Los_Angeles</span> 只有本库成功， 读 <span class="tt">2020-05-17 XYZ</span> 两边都失败。作为交换，本库的失败是原子的：整次提取失败时目标对象 完全不被改写，而 <span class="tt"><a class="el" href="namespacestd.html">std</a></span> 会留下已写入一半的 <span class="tt">std::tm</span>。</dd></dl>
+<dl class="section note"><dt>注解</dt><dd>格式串来自 locale 数据库（<span class="tt">nl_langinfo</span>），其中的自引用（如 <span class="tt">D_T_FMT == "c"</span>） 在构造时即被拒绝：构造函数检查这些复合格式串构成的图是否有环，有环则抛 <span class="tt"><a class="el" href="structIOv2_1_1io__error.html">io_error</a></span>。因此 <span class="tt"><a class="el" href="#ad618c365696d2db2d4206cd82e231e81" title="按单个格式字符（可带修饰符）格式化时间值。">put</a></span> / <span class="tt"><a class="el" href="#a6b8a2fb3640218fb2e03c99ac89846f0" title="按单个格式字符（可带修饰符）从输入范围中解析时间字段。">get</a></span> / <span class="tt"><a class="el" href="#ad3e1a51a4214ef95df90d9a79134bdd7" title="返回某个类型的值在某个格式串下**实际会写出**的那个格式串：复合说明符逐层展开， 该类型供不出的说明符连同一侧分隔符摘掉。">expand_format</a></span> 的递归展开总是有界的。 参见 <span class="tt">validate_format_recursion</span>。</dd></dl>
+<dl class="tparams"><dt>模板参数</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">CharT</td><td>字符类型（<span class="tt">char</span>、<span class="tt">wchar_t</span>、<span class="tt">char8_t</span>、<span class="tt">char32_t</span>）。 </td></tr>
+  </table>
+  </dd>
+</dl>
+</div><a name="doc-typedef-members" id="doc-typedef-members"></a><h2 id="header-doc-typedef-members" class="groupheader">成员类型定义说明</h2>
+<a id="ae958d44166dec8f3447e4e91921ab679" name="ae958d44166dec8f3447e4e91921ab679"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae958d44166dec8f3447e4e91921ab679">&#9670;&#160;</a></span>char_type</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename CharT&gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname">using <a class="el" href="classIOv2_1_1timeio.html">IOv2::timeio</a>&lt; CharT &gt;::char_type = CharT</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ad3d3f57bae042e6a757945080110daee" name="ad3d3f57bae042e6a757945080110daee"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad3d3f57bae042e6a757945080110daee">&#9670;&#160;</a></span>create_rules</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename CharT&gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname">using <a class="el" href="classIOv2_1_1timeio.html">IOv2::timeio</a>&lt; CharT &gt;::create_rules</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<b>初始值:</b><div class="fragment"><div class="line"> </div>
+<div class="line">        <a class="code hl_struct" href="structIOv2_1_1facet__create__rule.html">facet_create_rule&lt;facet_create_pack&lt;timeio_conf&lt;CharT&gt;</a>, <a class="code hl_class" href="classIOv2_1_1ctype.html">ctype&lt;CharT&gt;</a>&gt;,</div>
+<div class="line">                          <a class="code hl_class" href="classIOv2_1_1timeio__conf.html">timeio_conf&lt;CharT&gt;</a>&gt;</div>
+<div class="ttc" id="aclassIOv2_1_1ctype_html"><div class="ttname"><a href="classIOv2_1_1ctype.html">IOv2::ctype</a></div><div class="ttdef"><b>定义</b> ctype.h:68</div></div>
+<div class="ttc" id="aclassIOv2_1_1timeio__conf_html"><div class="ttname"><a href="classIOv2_1_1timeio__conf.html">IOv2::timeio_conf</a></div><div class="ttdef"><b>定义</b> timeio_details.h:746</div></div>
+<div class="ttc" id="astructIOv2_1_1facet__create__rule_html"><div class="ttname"><a href="structIOv2_1_1facet__create__rule.html">IOv2::facet_create_rule</a></div><div class="ttdef"><b>定义</b> facet_common.h:330</div></div>
+</div><!-- fragment -->
+</div>
+</div>
+<a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">构造及析构函数说明</h2>
+<a id="ac5816f17fe55a3f53bfb852867256a2e" name="ac5816f17fe55a3f53bfb852867256a2e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac5816f17fe55a3f53bfb852867256a2e">&#9670;&#160;</a></span>timeio() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename CharT&gt; </div>
+<div class="memtemplate">
+template&lt;shared_ptr_to&lt; <a class="el" href="classIOv2_1_1timeio__conf.html">timeio_conf</a>&lt; CharT &gt; &gt; TConfPtr, shared_ptr_to&lt; <a class="el" href="classIOv2_1_1ctype.html">ctype</a>&lt; CharT &gt; &gt; TCtypePtr&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classIOv2_1_1timeio.html">IOv2::timeio</a>&lt; CharT &gt;::timeio </td>
+          <td>(</td>
+          <td class="paramtype">TConfPtr</td>          <td class="paramname"><span class="paramname"><em>p_obj</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">TCtypePtr</td>          <td class="paramname"><span class="paramname"><em>p_ctype</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>构造函数，从 locale 配置和 ctype facet 初始化。 </p>
+<p>先委托给单参数构造函数完成 locale 数据加载，再保存 <span class="tt"><a class="el" href="classIOv2_1_1ctype.html">ctype</a></span> 指针用于 locale 感知的空白字符识别（<span class="tt">is_space</span>）。 </p><dl class="tparams"><dt>模板参数</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">TConfPtr</td><td>指向 <span class="tt"><a class="el" href="classIOv2_1_1timeio__conf.html">timeio_conf</a>&lt;CharT&gt;</span> 的 <span class="tt">shared_ptr</span> 类型。 </td></tr>
+    <tr><td class="paramname">TCtypePtr</td><td>指向 <span class="tt"><a class="el" href="classIOv2_1_1ctype.html">ctype</a>&lt;CharT&gt;</span> 的 <span class="tt">shared_ptr</span> 类型。 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">p_obj</td><td>locale 配置对象（不得为空）。 </td></tr>
+    <tr><td class="paramname">p_ctype</td><td>ctype facet（不得为空）。 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="exception"><dt>异常</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname"><a class="el" href="structIOv2_1_1io__error.html">io_error</a></td><td>若任一指针为空。 </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a0e06eef584682da1387b1e85ae79dc67" name="a0e06eef584682da1387b1e85ae79dc67"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0e06eef584682da1387b1e85ae79dc67">&#9670;&#160;</a></span>timeio() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename CharT&gt; </div>
+<div class="memtemplate">
+template&lt;shared_ptr_to&lt; <a class="el" href="classIOv2_1_1timeio__conf.html">timeio_conf</a>&lt; CharT &gt; &gt; TConfPtr&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classIOv2_1_1timeio.html">IOv2::timeio</a>&lt; CharT &gt;::timeio </td>
+          <td>(</td>
+          <td class="paramtype">TConfPtr</td>          <td class="paramname"><span class="paramname"><em>p_obj</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>构造函数，从 locale 配置初始化。 </p>
+<p>从 <span class="tt"><a class="el" href="classIOv2_1_1timeio__conf.html">timeio_conf</a>&lt;CharT&gt;</span> 复制所有 locale 数据（名称、格式串、纪元条目等）， 验证名称表的唯一性与复合格式串的非自引用性，并构建用于高效解析的前缀树 （星期、月份、AM/PM、纪元名称、替代数字）。若未提供 ctype，空白字符识别 使用基础 ASCII 判断。 </p><dl class="tparams"><dt>模板参数</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">TConfPtr</td><td>指向 <span class="tt"><a class="el" href="classIOv2_1_1timeio__conf.html">timeio_conf</a>&lt;CharT&gt;</span> 的 <span class="tt">shared_ptr</span> 类型。 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">p_obj</td><td>locale 配置对象（不得为空）。 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="exception"><dt>异常</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname"><a class="el" href="structIOv2_1_1io__error.html">io_error</a></td><td>若指针为空、locale 名称表存在重复/空条目，或复合 格式串自引用（见 <span class="tt">validate_format_recursion</span>）。 </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">成员函数说明</h2>
+<a id="afa12e2abfc08bc875cf68962616d8574" name="afa12e2abfc08bc875cf68962616d8574"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afa12e2abfc08bc875cf68962616d8574">&#9670;&#160;</a></span>abbr_day_names()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename CharT&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">const std::array&lt; std::basic_string&lt; CharT &gt;, 7 &gt; &amp; <a class="el" href="classIOv2_1_1timeio.html">IOv2::timeio</a>&lt; CharT &gt;::abbr_day_names </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel noexcept">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>返回星期缩写数组（索引 0 为星期日，索引 6 为星期六）。   </p>
+
+</div>
+</div>
+<a id="ac59952b50260b4d8346a47ec24a69472" name="ac59952b50260b4d8346a47ec24a69472"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac59952b50260b4d8346a47ec24a69472">&#9670;&#160;</a></span>abbr_month_names()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename CharT&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">const std::array&lt; std::basic_string&lt; CharT &gt;, 12 &gt; &amp; <a class="el" href="classIOv2_1_1timeio.html">IOv2::timeio</a>&lt; CharT &gt;::abbr_month_names </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel noexcept">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>返回月份缩写数组（索引 0 为一月，索引 11 为十二月）。   </p>
+
+</div>
+</div>
+<a id="a97a72d26d6a6597472c54893c3f28e28" name="a97a72d26d6a6597472c54893c3f28e28"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a97a72d26d6a6597472c54893c3f28e28">&#9670;&#160;</a></span>alt_digit_names()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename CharT&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">const std::array&lt; std::basic_string&lt; CharT &gt;, 100 &gt; &amp; <a class="el" href="classIOv2_1_1timeio.html">IOv2::timeio</a>&lt; CharT &gt;::alt_digit_names </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel noexcept">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>返回 locale 定义的替代数字字符串数组（最多 100 项）。   </p>
+
+</div>
+</div>
+<a id="af5107da98050465b12271cee525c44b0" name="af5107da98050465b12271cee525c44b0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af5107da98050465b12271cee525c44b0">&#9670;&#160;</a></span>am_name()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename CharT&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">const std::basic_string&lt; CharT &gt; &amp; <a class="el" href="classIOv2_1_1timeio.html">IOv2::timeio</a>&lt; CharT &gt;::am_name </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel noexcept">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>返回 AM 时段字符串。   </p>
+
+</div>
+</div>
+<a id="a767b4d4c884ef1ddcf49d723c61b6092" name="a767b4d4c884ef1ddcf49d723c61b6092"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a767b4d4c884ef1ddcf49d723c61b6092">&#9670;&#160;</a></span>am_pm_format()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename CharT&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">const std::basic_string&lt; CharT &gt; &amp; <a class="el" href="classIOv2_1_1timeio.html">IOv2::timeio</a>&lt; CharT &gt;::am_pm_format </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel noexcept">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>返回 AM/PM 时间格式串（对应 <span class="tt">r</span>）。   </p>
+
+</div>
+</div>
+<a id="acf4fe26afec0b0881cf296a25f10ad25" name="acf4fe26afec0b0881cf296a25f10ad25"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#acf4fe26afec0b0881cf296a25f10ad25">&#9670;&#160;</a></span>contains_specifier()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename CharT&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool <a class="el" href="classIOv2_1_1timeio.html">IOv2::timeio</a>&lt; CharT &gt;::contains_specifier </td>
+          <td>(</td>
+          <td class="paramtype">std::basic_string_view&lt; CharT &gt;</td>          <td class="paramname"><span class="paramname"><em>fmt</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">char</td>          <td class="paramname"><span class="paramname"><em>format</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">char</td>          <td class="paramname"><span class="paramname"><em>modifier</em></span><span class="paramdefsep"> = </span><span class="paramdefval">0</span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel static">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>判断格式串里有没有某个说明符。 </p>
+<p><a class="el" href="#ad3e1a51a4214ef95df90d9a79134bdd7">expand_format</a> 交回来的串通常还要再问一句「里面到底有没有 <span class="tt">Z</span>」，好决定要不要 自己在末尾补一个。这一问不能用 <span class="tt">fmt.find("Z")</span> 回答：<span class="tt">"%Z"</span> 是一个字面 <span class="tt">%</span> 加一个 字面 <span class="tt">Z</span>，<span class="tt">find</span> 却会报告找到了。判据是那个 <span class="tt">%</span> 前面连着几个 <span class="tt">%</span>——连自己算上是奇数才 真的起了一个说明符。本函数按 put 解析格式串的同一套走法扫一遍，把这件事做对。</p>
+<div class="fragment"><div class="line"><span class="keyword">auto</span> fmt = obj.expand_format&lt;T&gt;(<span class="stringliteral">&quot;%c&quot;</span>);</div>
+<div class="line"><span class="keywordflow">if</span> (!<a class="code hl_function" href="#acf4fe26afec0b0881cf296a25f10ad25">timeio&lt;char&gt;::contains_specifier</a>(fmt, <span class="charliteral">&#39;Z&#39;</span>))</div>
+<div class="line">    fmt += <span class="stringliteral">&quot; %Z&quot;</span>;</div>
+<div class="ttc" id="aclassIOv2_1_1timeio_html_acf4fe26afec0b0881cf296a25f10ad25"><div class="ttname"><a href="#acf4fe26afec0b0881cf296a25f10ad25">IOv2::timeio::contains_specifier</a></div><div class="ttdeci">static bool contains_specifier(std::basic_string_view&lt; CharT &gt; fmt, char format, char modifier=0)</div><div class="ttdoc">判断格式串里有没有某个说明符。</div><div class="ttdef"><b>定义</b> timeio.h:2311</div></div>
+</div><!-- fragment --><dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">fmt</td><td>要检查的格式串。 </td></tr>
+    <tr><td class="paramname">format</td><td>说明符字符。 </td></tr>
+    <tr><td class="paramname">modifier</td><td><span class="tt">E</span> / <span class="tt">O</span> 修饰符，<span class="tt">0</span> 表示要找不带修饰符的那个。 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd>若 <code class="param">fmt</code> 里确实有这个说明符则返回 <span class="tt">true</span>。 </dd></dl>
+
+</div>
+</div>
+<a id="a163a7b4a7a35472989ff02552582f3fe" name="a163a7b4a7a35472989ff02552582f3fe"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a163a7b4a7a35472989ff02552582f3fe">&#9670;&#160;</a></span>date_format()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename CharT&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">const std::basic_string&lt; CharT &gt; &amp; <a class="el" href="classIOv2_1_1timeio.html">IOv2::timeio</a>&lt; CharT &gt;::date_format </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel noexcept">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>返回 locale 日期格式串（对应 <span class="tt">x</span>）。   </p>
+
+</div>
+</div>
+<a id="a9190f80566e1b9808cd25b09bd72ced9" name="a9190f80566e1b9808cd25b09bd72ced9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9190f80566e1b9808cd25b09bd72ced9">&#9670;&#160;</a></span>date_time_format()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename CharT&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">const std::basic_string&lt; CharT &gt; &amp; <a class="el" href="classIOv2_1_1timeio.html">IOv2::timeio</a>&lt; CharT &gt;::date_time_format </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel noexcept">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>返回 locale 日期时间格式串（对应 <span class="tt">c</span>）。   </p>
+
+</div>
+</div>
+<a id="a4434ddd6edf11eb1c9c48f2fe9e7be18" name="a4434ddd6edf11eb1c9c48f2fe9e7be18"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4434ddd6edf11eb1c9c48f2fe9e7be18">&#9670;&#160;</a></span>day_names()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename CharT&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">const std::array&lt; std::basic_string&lt; CharT &gt;, 7 &gt; &amp; <a class="el" href="classIOv2_1_1timeio.html">IOv2::timeio</a>&lt; CharT &gt;::day_names </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel noexcept">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>返回星期全称数组（索引 0 为星期日，索引 6 为星期六）。   </p>
+
+</div>
+</div>
+<a id="aec17daff53f65b7521a7555e30d2e3c8" name="aec17daff53f65b7521a7555e30d2e3c8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aec17daff53f65b7521a7555e30d2e3c8">&#9670;&#160;</a></span>era_date_format()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename CharT&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">const std::basic_string&lt; CharT &gt; &amp; <a class="el" href="classIOv2_1_1timeio.html">IOv2::timeio</a>&lt; CharT &gt;::era_date_format </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel noexcept">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>返回 locale 纪元修饰日期格式串（对应 <span class="tt">Ex</span>）。   </p>
+
+</div>
+</div>
+<a id="aa242a20c1745b9345e4c17b7009c7540" name="aa242a20c1745b9345e4c17b7009c7540"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa242a20c1745b9345e4c17b7009c7540">&#9670;&#160;</a></span>era_date_time_format()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename CharT&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">const std::basic_string&lt; CharT &gt; &amp; <a class="el" href="classIOv2_1_1timeio.html">IOv2::timeio</a>&lt; CharT &gt;::era_date_time_format </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel noexcept">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>返回 locale 纪元修饰日期时间格式串（对应 <span class="tt">Ec</span>）。   </p>
+
+</div>
+</div>
+<a id="a3219811c8846db957a163f554bb681ad" name="a3219811c8846db957a163f554bb681ad"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3219811c8846db957a163f554bb681ad">&#9670;&#160;</a></span>era_time_format()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename CharT&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">const std::basic_string&lt; CharT &gt; &amp; <a class="el" href="classIOv2_1_1timeio.html">IOv2::timeio</a>&lt; CharT &gt;::era_time_format </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel noexcept">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>返回 locale 纪元修饰时间格式串（对应 <span class="tt">EX</span>）。   </p>
+
+</div>
+</div>
+<a id="accf3ec4f215e0ccdb32bb8824c011feb" name="accf3ec4f215e0ccdb32bb8824c011feb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#accf3ec4f215e0ccdb32bb8824c011feb">&#9670;&#160;</a></span>expand_format() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename CharT&gt; </div>
+<div class="memtemplate">
+template&lt;typename TVal&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::basic_string&lt; CharT &gt; <a class="el" href="classIOv2_1_1timeio.html">IOv2::timeio</a>&lt; CharT &gt;::expand_format </td>
+          <td>(</td>
+          <td class="paramtype">char</td>          <td class="paramname"><span class="paramname"><em>format</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">char</td>          <td class="paramname"><span class="paramname"><em>modifier</em></span><span class="paramdefsep"> = </span><span class="paramdefval">0</span>&#160;) const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p><a class="el" href="#ad3e1a51a4214ef95df90d9a79134bdd7">expand_format</a> 的单字符形式：给出一个说明符，返回它展开、过滤后的样子。 </p>
+<p>把 <span class="tt">format</span>（以及可选的 <span class="tt">modifier</span>）组合为 <span class="tt">%[modifier]format</span> 后委托给 <span class="tt"><a class="el" href="#ad3e1a51a4214ef95df90d9a79134bdd7" title="返回某个类型的值在某个格式串下**实际会写出**的那个格式串：复合说明符逐层展开， 该类型供不出的说明符连同一侧分隔符摘掉。">expand_format</a>&lt;TVal&gt;(fmt)</span>，与单字符形式的 <span class="tt"><a class="el" href="#ad618c365696d2db2d4206cd82e231e81" title="按单个格式字符（可带修饰符）格式化时间值。">put</a></span> 一一对应。供不出时返回空串。 </p><dl class="tparams"><dt>模板参数</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">TVal</td><td>时间值类型，见 time_value_fields。 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">format</td><td>说明符字符。 </td></tr>
+    <tr><td class="paramname">modifier</td><td><span class="tt">E</span> / <span class="tt">O</span> 修饰符，<span class="tt">0</span> 表示没有。 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd>展开并过滤后的格式串。 </dd></dl>
+
+</div>
+</div>
+<a id="ad3e1a51a4214ef95df90d9a79134bdd7" name="ad3e1a51a4214ef95df90d9a79134bdd7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad3e1a51a4214ef95df90d9a79134bdd7">&#9670;&#160;</a></span>expand_format() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename CharT&gt; </div>
+<div class="memtemplate">
+template&lt;typename TVal&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::basic_string&lt; CharT &gt; <a class="el" href="classIOv2_1_1timeio.html">IOv2::timeio</a>&lt; CharT &gt;::expand_format </td>
+          <td>(</td>
+          <td class="paramtype">std::basic_string_view&lt; CharT &gt;</td>          <td class="paramname"><span class="paramname"><em>fmt</em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>返回某个类型的值在某个格式串下**实际会写出**的那个格式串：复合说明符逐层展开， 该类型供不出的说明符连同一侧分隔符摘掉。 </p>
+<p>两件事一起做，因为它们回答的是同一个问题——「我写下这个格式串，到底会得到什么」。</p>
+<p>**展开**：<span class="tt">c</span> / <span class="tt">x</span> / <span class="tt">X</span> / <span class="tt">r</span>（含 <span class="tt">Ec</span> / <span class="tt">Ex</span> / <span class="tt">EX</span>）代表的是 locale 数据里的 一串格式，写下它们的人不知道自己实际会得到哪些字段；固定复合 <span class="tt">D</span> / <span class="tt">F</span> / <span class="tt">T</span> / <span class="tt">R</span> 同理。本函数把它们替换为各自的内容并继续展开，直到只剩基本说明符。</p>
+<p>**过滤**：本库对值供不出的说明符采取**退化**策略——原样写出 <span class="tt">%</span> 和说明符字符，put 与 get 两侧对称（见类说明）。退化不置失败位，所以给 <span class="tt">year_month_day</span> 写 <span class="tt">c</span> 会得到一串 <span class="tt">H:M:S</span>，给 <span class="tt">local_time</span> 写 <span class="tt">c</span> 会在 en_US 得到一个字面 <span class="tt">Z</span>，而这些都要等看见输出 才发现。本函数只看 <span class="tt">TVal</span> 这个**类型**：它决定了能供出哪几类字段——日期、星期、时分秒、 UTC 偏移、区域身份，见 time_value_fields——正如它决定了 <span class="tt"><a class="el" href="#ad618c365696d2db2d4206cd82e231e81" title="按单个格式字符（可带修饰符）格式化时间值。">put</a></span> / <span class="tt"><a class="el" href="#a6b8a2fb3640218fb2e03c99ac89846f0" title="按单个格式字符（可带修饰符）从输入范围中解析时间字段。">get</a></span> 走哪一条路。 逐个说明符按 put 的同一张表判断，供不出的摘掉；不在本库支持集内的说明符（如 <span class="tt">Q</span>） 以及非法的修饰符组合（如 <span class="tt">Oc</span>）落在同一条规则里。既然只用得上类型，本函数就不收值参数， 手上没有现成对象时也能调。</p>
+<p>摘的时候连一侧分隔符一起摘，否则留下孤立标点：<span class="tt">"T Z"</span> 摘成 <span class="tt">"T"</span> 而不是 <span class="tt">"T "</span>， <span class="tt">"T (Z)"</span> 摘成 <span class="tt">"T"</span> 而不是 <span class="tt">"T ()"</span>。规则是：说明符前面有分隔符就摘前面的， 只有它位于串首时才摘后面的；分隔符指**空白，加至多一个 ASCII 标点**；摘掉的标点是 左括号（<span class="tt">(</span> <span class="tt">[</span> <span class="tt">{</span>）时，紧跟说明符的那个右括号一并摘掉。非 ASCII 字符一律不当分隔符 ——<span class="tt">"S秒 Z"</span> 只摘那个空格，不会把「秒」当分隔符吃掉，代价是 <span class="tt">"r፡Z"</span> 这类用多字节 标点分隔的会留下一个 <span class="tt">፡</span>。</p>
+<div class="fragment"><div class="line"><span class="comment">// en_US 的 %c 是 &quot;%a %d %b %Y %r %Z&quot;，%r 又是 &quot;%I:%M:%S %p&quot;</span></div>
+<div class="line"><span class="keyword">using </span>T = std::chrono::local_time&lt;std::chrono::seconds&gt;;</div>
+<div class="line"><span class="keyword">auto</span> fmt = obj.expand_format&lt;T&gt;(<span class="stringliteral">&quot;%c&quot;</span>);  <span class="comment">// &quot;%a %d %b %Y %I:%M:%S %p&quot;，%Z 已摘掉</span></div>
+<div class="line">obj.put(out, t, <a class="code hl_enumvalue" href="namespaceIOv2.html#ae5c45ed29b875d3d35e686974d847b1ea7a86c157ee9713c34fbd7a1ee40f0c5a">offset</a>, fmt);</div>
+<div class="ttc" id="anamespaceIOv2_html_ae5c45ed29b875d3d35e686974d847b1ea7a86c157ee9713c34fbd7a1ee40f0c5a"><div class="ttname"><a href="namespaceIOv2.html#ae5c45ed29b875d3d35e686974d847b1ea7a86c157ee9713c34fbd7a1ee40f0c5a">IOv2::tz_level::offset</a></div><div class="ttdeci">@ offset</div><div class="ttdoc">解析 z 的 UTC 偏移；Z 仍按字面量处理。</div><div class="ttdef"><b>定义</b> timeio.h:742</div></div>
+</div><!-- fragment --><dl class="section note"><dt>注解</dt><dd>判据是类型，不是值，而 put 侧与之严丝合缝：<span class="tt">std::tm</span> 只要平台上带 <span class="tt">tm_zone</span> 字段 就算供得出 <span class="tt">Z</span>，而 put 对这样的 <span class="tt">tm</span> 也确实总写得出内容——<span class="tt">tm_zone</span> 为空时写 base_ft&lt;timeio&gt;::s_unknown_zone。因此保留下来的说明符 put 一定供得出， 没有"表说供得出、运行期却退化"的缝隙。 </dd>
+<dd>
+<span class="tt">EY</span> **不展开**：纪元格式取决于年份落在哪个纪元，是值相关的，静态展不开。它照样 参与过滤，供不出就摘掉。 </dd>
+<dd>
+供不出的复合说明符整个摘掉，不展开：给 <span class="tt">hh_mm_ss</span> 写 <span class="tt">c</span>，得到的是空串，而不是 一串摘剩下的标点。 </dd>
+<dd>
+落单的 <span class="tt">%</span>（其后没有说明符）原样保留，与 put 的处理一致。 </dd>
+<dd>
+自引用的复合格式串（如 <span class="tt">D_T_FMT</span> 里含 <span class="tt">c</span>）在构造时就被拒绝，所以这里的展开 不会无限递归。</dd></dl>
+<dl class="tparams"><dt>模板参数</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">TVal</td><td>时间值类型（<span class="tt">year_month_day</span>、<span class="tt">hh_mm_ss</span>、<span class="tt">sys_time</span>、<span class="tt">local_time</span>、 <span class="tt">zoned_time</span> 或 <span class="tt">std::tm</span>），与 <span class="tt"><a class="el" href="#ad618c365696d2db2d4206cd82e231e81" title="按单个格式字符（可带修饰符）格式化时间值。">put</a></span> 接受的相同。 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">fmt</td><td>格式串。 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd>展开并过滤后的格式串。 </dd></dl>
+
+</div>
+</div>
+<a id="a6b8a2fb3640218fb2e03c99ac89846f0" name="a6b8a2fb3640218fb2e03c99ac89846f0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6b8a2fb3640218fb2e03c99ac89846f0">&#9670;&#160;</a></span>get() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename CharT&gt; </div>
+<div class="memtemplate">
+template&lt;typename TIter, std::sentinel_for&lt; TIter &gt; TSent, bool HaveDate, bool HaveTime, <a class="el" href="namespaceIOv2.html#ae5c45ed29b875d3d35e686974d847b1e">tz_level</a> TzLevel&gt; <br />
+requires (steppable_back&lt;TIter&gt; || is_ichannel_iterator&lt;TIter&gt;)</div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">TIter <a class="el" href="classIOv2_1_1timeio.html">IOv2::timeio</a>&lt; CharT &gt;::get </td>
+          <td>(</td>
+          <td class="paramtype">TIter</td>          <td class="paramname"><span class="paramname"><em>beg</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">TSent</td>          <td class="paramname"><span class="paramname"><em>end</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structIOv2_1_1time__parse__context.html">time_parse_context</a>&lt; <a class="el" href="#ae958d44166dec8f3447e4e91921ab679">char_type</a>, HaveDate, HaveTime, TzLevel &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>ctx</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">char</td>          <td class="paramname"><span class="paramname"><em>format</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">char</td>          <td class="paramname"><span class="paramname"><em>modifier</em></span><span class="paramdefsep"> = </span><span class="paramdefval">0</span>&#160;) const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>按单个格式字符（可带修饰符）从输入范围中解析时间字段。 </p>
+<p>将 <span class="tt">format</span> 与可选的 <span class="tt">modifier</span> 组合为 <span class="tt">%[modifier]format</span> 格式串后 委托给 <span class="tt">get(beg, end, ctx, fmt)</span>。 </p><dl class="tparams"><dt>模板参数</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">TIter</td><td>双向迭代器或 <span class="tt"><a class="el" href="classIOv2_1_1ichannel__iterator.html" title="输入通道迭代器（单遍输入迭代器）。">ichannel_iterator</a></span> 类型。 </td></tr>
+    <tr><td class="paramname">TSent</td><td>哨兵类型。 </td></tr>
+    <tr><td class="paramname">HaveDate</td><td>是否解析日期字段。 </td></tr>
+    <tr><td class="paramname">HaveTime</td><td>是否解析时间字段。 </td></tr>
+    <tr><td class="paramname">TzLevel</td><td>解析哪一档时区字段，见 tz_level。 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">beg</td><td>输入范围起始迭代器。 </td></tr>
+    <tr><td class="paramname">end</td><td>输入范围结束哨兵。 </td></tr>
+    <tr><td class="paramname">ctx</td><td>累积解析结果的上下文（in/out）。 </td></tr>
+    <tr><td class="paramname">format</td><td>格式字符（如 <span class="tt">'Y'</span>、<span class="tt">'m'</span>、<span class="tt">'d'</span>）。 </td></tr>
+    <tr><td class="paramname">modifier</td><td>可选修饰符（<span class="tt">'E'</span>、<span class="tt">'O'</span> 或 <span class="tt">0</span> 表示无修饰符）。 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd>指向未被消费的第一个字符的迭代器。 </dd></dl>
+<dl class="exception"><dt>异常</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname"><a class="el" href="structIOv2_1_1stream__error.html">stream_error</a></td><td>若解析失败。 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section note"><dt>注解</dt><dd>上下文无法接收的说明符不构成错误，会转而要求输入中出现 <span class="tt">%</span> + 修饰符 + 说明符字符这一字面量；详见 <span class="tt"><a class="el" href="classIOv2_1_1timeio.html" title="时间 I/O facet，提供日期/时间的格式化输出与 locale 感知解析。">timeio</a></span> 的类说明。 </dd></dl>
+
+</div>
+</div>
+<a id="a0006ff70a1db94b1551ab7d6e3ad480b" name="a0006ff70a1db94b1551ab7d6e3ad480b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0006ff70a1db94b1551ab7d6e3ad480b">&#9670;&#160;</a></span>get() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename CharT&gt; </div>
+<div class="memtemplate">
+template&lt;typename TIter, std::sentinel_for&lt; TIter &gt; TSent, bool HaveDate, bool HaveTime, <a class="el" href="namespaceIOv2.html#ae5c45ed29b875d3d35e686974d847b1e">tz_level</a> TzLevel&gt; <br />
+requires (steppable_back&lt;TIter&gt; || is_ichannel_iterator&lt;TIter&gt;)</div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">TIter <a class="el" href="classIOv2_1_1timeio.html">IOv2::timeio</a>&lt; CharT &gt;::get </td>
+          <td>(</td>
+          <td class="paramtype">TIter</td>          <td class="paramname"><span class="paramname"><em>rp</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">TSent</td>          <td class="paramname"><span class="paramname"><em>rp_end</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structIOv2_1_1time__parse__context.html">time_parse_context</a>&lt; <a class="el" href="#ae958d44166dec8f3447e4e91921ab679">char_type</a>, HaveDate, HaveTime, TzLevel &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>ctx</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::basic_string_view&lt; CharT &gt;</td>          <td class="paramname"><span class="paramname"><em>_fmt</em></span>&#160;) const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>按格式串从输入范围中解析时间字段，将结果累积到 <span class="tt">ctx</span>。 </p>
+<p>各格式说明符与 POSIX <span class="tt">strptime</span> / <span class="tt">std::chrono::from_stream</span> 的语义一致。 复合说明符（<span class="tt">c</span>、<span class="tt">x</span>、<span class="tt">X</span>、<span class="tt">r</span>、<span class="tt">EY</span>）会将 locale 提供的格式串 展开后递归处理，详见 <span class="tt">do_get</span> 中关于递归的说明。 </p><dl class="tparams"><dt>模板参数</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">TIter</td><td>双向迭代器或 <span class="tt"><a class="el" href="classIOv2_1_1ichannel__iterator.html" title="输入通道迭代器（单遍输入迭代器）。">ichannel_iterator</a></span> 类型。 </td></tr>
+    <tr><td class="paramname">TSent</td><td>哨兵类型。 </td></tr>
+    <tr><td class="paramname">HaveDate</td><td>是否解析日期字段。 </td></tr>
+    <tr><td class="paramname">HaveTime</td><td>是否解析时间字段。 </td></tr>
+    <tr><td class="paramname">TzLevel</td><td>解析哪一档时区字段，见 tz_level。 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">rp</td><td>输入范围起始迭代器。 </td></tr>
+    <tr><td class="paramname">rp_end</td><td>输入范围结束哨兵。 </td></tr>
+    <tr><td class="paramname">ctx</td><td>累积解析结果的上下文（in/out）。 </td></tr>
+    <tr><td class="paramname">_fmt</td><td>格式串（<span class="tt">strptime</span> 风格）。 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd>指向未被消费的第一个字符的迭代器。 </dd></dl>
+<dl class="exception"><dt>异常</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname"><a class="el" href="structIOv2_1_1stream__error.html">stream_error</a></td><td>若解析失败（格式不匹配或字段值超出范围）。 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section note"><dt>注解</dt><dd>上下文无法接收的说明符不构成错误，会转而要求输入中出现 <span class="tt">%</span> + 修饰符 + 说明符字符这一字面量；详见 <span class="tt"><a class="el" href="classIOv2_1_1timeio.html" title="时间 I/O facet，提供日期/时间的格式化输出与 locale 感知解析。">timeio</a></span> 的类说明。 </dd>
+<dd>
+若 locale 没有 AM/PM 名称（de_DE、hy_AM 等），<span class="tt">p</span> 匹配空串：不消费字符、 不设上下午标志，也不算失败——与写侧 <span class="tt">p</span> 什么都不写对称。 </dd></dl>
+
+</div>
+</div>
+<a id="a98b709fb74dfa341a52abbe4ac2ebae6" name="a98b709fb74dfa341a52abbe4ac2ebae6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a98b709fb74dfa341a52abbe4ac2ebae6">&#9670;&#160;</a></span>month_names()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename CharT&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">const std::array&lt; std::basic_string&lt; CharT &gt;, 12 &gt; &amp; <a class="el" href="classIOv2_1_1timeio.html">IOv2::timeio</a>&lt; CharT &gt;::month_names </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel noexcept">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>返回月份全称数组（索引 0 为一月，索引 11 为十二月）。   </p>
+
+</div>
+</div>
+<a id="a7ff0088a2bfe1c31dc6795f0c2ae479e" name="a7ff0088a2bfe1c31dc6795f0c2ae479e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7ff0088a2bfe1c31dc6795f0c2ae479e">&#9670;&#160;</a></span>pm_name()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename CharT&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">const std::basic_string&lt; CharT &gt; &amp; <a class="el" href="classIOv2_1_1timeio.html">IOv2::timeio</a>&lt; CharT &gt;::pm_name </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel noexcept">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>返回 PM 时段字符串。   </p>
+
+</div>
+</div>
+<a id="a31e0f3a801e599d628a82e77fccab21a" name="a31e0f3a801e599d628a82e77fccab21a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a31e0f3a801e599d628a82e77fccab21a">&#9670;&#160;</a></span>put() <span class="overload">[1/7]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename CharT&gt; </div>
+<div class="memtemplate">
+template&lt;typename OutIt, typename TDuration&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">OutIt <a class="el" href="classIOv2_1_1timeio.html">IOv2::timeio</a>&lt; CharT &gt;::put </td>
+          <td>(</td>
+          <td class="paramtype">OutIt</td>          <td class="paramname"><span class="paramname"><em>out</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::chrono::hh_mm_ss&lt; TDuration &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>t</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::basic_string_view&lt; CharT &gt;</td>          <td class="paramname"><span class="paramname"><em>fmt</em></span>&#160;) const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>将 <span class="tt">std::chrono::hh_mm_ss</span> 按格式串格式化到输出迭代器。 </p>
+<p>输入时间必须在 <span class="tt">[00:00:00, 23:59:59]</span> 范围内（不支持闰秒）。 </p><dl class="tparams"><dt>模板参数</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">OutIt</td><td>输出迭代器类型。 </td></tr>
+    <tr><td class="paramname">TDuration</td><td><span class="tt">hh_mm_ss</span> 的时间精度类型。 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">out</td><td>输出迭代器。 </td></tr>
+    <tr><td class="paramname">t</td><td>要格式化的一天中的时间。 </td></tr>
+    <tr><td class="paramname">fmt</td><td>格式串（<span class="tt">strftime</span> 风格）。 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd>写入后的输出迭代器。 </dd></dl>
+<dl class="exception"><dt>异常</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname"><a class="el" href="structIOv2_1_1stream__error.html">stream_error</a></td><td>若 <span class="tt">t</span> 超出有效时间范围（负数或 ≥ 24 小时）。 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section note"><dt>注解</dt><dd>值无法提供的说明符不构成错误，会原样写出 <span class="tt">%</span> + 修饰符 + 说明符字符； 详见 <span class="tt"><a class="el" href="classIOv2_1_1timeio.html" title="时间 I/O facet，提供日期/时间的格式化输出与 locale 感知解析。">timeio</a></span> 的类说明。 </dd></dl>
+
+</div>
+</div>
+<a id="a784b0671a34029f863a276809ee9156a" name="a784b0671a34029f863a276809ee9156a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a784b0671a34029f863a276809ee9156a">&#9670;&#160;</a></span>put() <span class="overload">[2/7]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename CharT&gt; </div>
+<div class="memtemplate">
+template&lt;typename OutIt, typename Duration&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">OutIt <a class="el" href="classIOv2_1_1timeio.html">IOv2::timeio</a>&lt; CharT &gt;::put </td>
+          <td>(</td>
+          <td class="paramtype">OutIt</td>          <td class="paramname"><span class="paramname"><em>out</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::chrono::local_time&lt; Duration &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>t</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::chrono::seconds</td>          <td class="paramname"><span class="paramname"><em>offset</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::basic_string_view&lt; CharT &gt;</td>          <td class="paramname"><span class="paramname"><em>fmt</em></span>&#160;) const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>将 <span class="tt">std::chrono::local_time</span> 连同一个已知的 UTC 偏移格式化到输出迭代器。 </p>
+<p>这是 <a class="el" href="namespaceIOv2.html#ae5c45ed29b875d3d35e686974d847b1ea7a86c157ee9713c34fbd7a1ee40f0c5a" title="解析 z 的 UTC 偏移；Z 仍按字面量处理。">tz_level::offset</a> 那一档在 put 侧的对应物：墙上时间加偏移，没有区域身份。 <span class="tt">z</span> 写 <code class="param">offset；`Z`</code> 无内容可写，按未知说明符原样透传。<span class="tt">c</span> / <span class="tt">X</span> / <span class="tt">r</span> 用 locale 自己那一份格式串，本机 890 个 locale 里有 185 个的 <span class="tt">c</span> 自带 <span class="tt">Z</span>，此时那个 <span class="tt">Z</span> 同样退化为字面量。要一份不含时区字段的格式串，把它交给 expand_format。</p>
+<p>因为多了 <code class="param">offset</code> 这个参数，单字符形式的 <span class="tt"><a class="el" href="#ad618c365696d2db2d4206cd82e231e81" title="按单个格式字符（可带修饰符）格式化时间值。">put</a>(out, t, 'z')</span> 到不了这个重载。 </p><dl class="tparams"><dt>模板参数</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">OutIt</td><td>输出迭代器类型。 </td></tr>
+    <tr><td class="paramname">Duration</td><td>时间点的精度类型。 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">out</td><td>输出迭代器。 </td></tr>
+    <tr><td class="paramname">t</td><td>要格式化的墙上时间。 </td></tr>
+    <tr><td class="paramname">offset</td><td><code class="param">t</code> 相对 UTC 的偏移。<span class="tt">z</span> 只能写 <span class="tt">±hhmm</span>，因此超出 <span class="tt">(-24h, +24h)</span> 的值 会被静默钳到 <span class="tt">±23:59:59</span>，且秒被截到分钟；两者都不置失败位。 </td></tr>
+    <tr><td class="paramname">fmt</td><td>格式串（<span class="tt">strftime</span> 风格）。 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd>写入后的输出迭代器。 </dd></dl>
+<dl class="exception"><dt>异常</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname"><a class="el" href="structIOv2_1_1stream__error.html">stream_error</a></td><td>若 <code class="param">t</code> 的日期超出范围。 </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a9e892b9c99b9a39f012e79472ae0b1ca" name="a9e892b9c99b9a39f012e79472ae0b1ca"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9e892b9c99b9a39f012e79472ae0b1ca">&#9670;&#160;</a></span>put() <span class="overload">[3/7]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename CharT&gt; </div>
+<div class="memtemplate">
+template&lt;typename OutIt, typename Duration&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">OutIt <a class="el" href="classIOv2_1_1timeio.html">IOv2::timeio</a>&lt; CharT &gt;::put </td>
+          <td>(</td>
+          <td class="paramtype">OutIt</td>          <td class="paramname"><span class="paramname"><em>out</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::chrono::sys_time&lt; Duration &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>t</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::basic_string_view&lt; CharT &gt;</td>          <td class="paramname"><span class="paramname"><em>fmt</em></span>&#160;) const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>将 <span class="tt">std::chrono::sys_time</span> 按格式串格式化到输出迭代器。 </p>
+<p>一个 <span class="tt">sys_time</span> 就是 UTC 下的一个瞬间，没有区域身份，所以按 UTC 展示：<span class="tt">z</span> 写 <span class="tt">+0000</span>，<span class="tt">Z</span> 写 <span class="tt">UTC</span>。要按某个区域展示，先构造 <span class="tt">zoned_time</span>。 </p><dl class="tparams"><dt>模板参数</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">OutIt</td><td>输出迭代器类型。 </td></tr>
+    <tr><td class="paramname">Duration</td><td>时间点的精度类型。 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">out</td><td>输出迭代器。 </td></tr>
+    <tr><td class="paramname">t</td><td>要格式化的时间点。 </td></tr>
+    <tr><td class="paramname">fmt</td><td>格式串（<span class="tt">strftime</span> 风格）。 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd>写入后的输出迭代器。 </dd></dl>
+<dl class="exception"><dt>异常</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname"><a class="el" href="structIOv2_1_1stream__error.html">stream_error</a></td><td>若 <code class="param">t</code> 的日期超出范围。 </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a371a698286c9016ce20350f8c414c145" name="a371a698286c9016ce20350f8c414c145"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a371a698286c9016ce20350f8c414c145">&#9670;&#160;</a></span>put() <span class="overload">[4/7]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename CharT&gt; </div>
+<div class="memtemplate">
+template&lt;typename OutIt&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">OutIt <a class="el" href="classIOv2_1_1timeio.html">IOv2::timeio</a>&lt; CharT &gt;::put </td>
+          <td>(</td>
+          <td class="paramtype">OutIt</td>          <td class="paramname"><span class="paramname"><em>out</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::chrono::year_month_day &amp;</td>          <td class="paramname"><span class="paramname"><em>t</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::basic_string_view&lt; CharT &gt;</td>          <td class="paramname"><span class="paramname"><em>fmt</em></span>&#160;) const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>将 <span class="tt">std::chrono::year_month_day</span> 按格式串格式化到输出迭代器。 </p>
+<dl class="tparams"><dt>模板参数</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">OutIt</td><td>输出迭代器类型。 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">out</td><td>输出迭代器。 </td></tr>
+    <tr><td class="paramname">t</td><td>要格式化的日历日期（必须是有效日期）。 </td></tr>
+    <tr><td class="paramname">fmt</td><td>格式串（<span class="tt">strftime</span> 风格）。 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd>写入后的输出迭代器。 </dd></dl>
+<dl class="exception"><dt>异常</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname"><a class="el" href="structIOv2_1_1stream__error.html">stream_error</a></td><td>若 <span class="tt">t</span> 不是有效的日历日期。 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section note"><dt>注解</dt><dd>值无法提供的说明符不构成错误，会原样写出 <span class="tt">%</span> + 修饰符 + 说明符字符； 详见 <span class="tt"><a class="el" href="classIOv2_1_1timeio.html" title="时间 I/O facet，提供日期/时间的格式化输出与 locale 感知解析。">timeio</a></span> 的类说明。 </dd></dl>
+
+</div>
+</div>
+<a id="a81c846fd0fdfc2f5466bb58b6367e597" name="a81c846fd0fdfc2f5466bb58b6367e597"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a81c846fd0fdfc2f5466bb58b6367e597">&#9670;&#160;</a></span>put() <span class="overload">[5/7]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename CharT&gt; </div>
+<div class="memtemplate">
+template&lt;typename OutIt, typename Duration, typename TimeZonePtr&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">OutIt <a class="el" href="classIOv2_1_1timeio.html">IOv2::timeio</a>&lt; CharT &gt;::put </td>
+          <td>(</td>
+          <td class="paramtype">OutIt</td>          <td class="paramname"><span class="paramname"><em>out</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::chrono::zoned_time&lt; Duration, TimeZonePtr &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>t</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::basic_string_view&lt; CharT &gt;</td>          <td class="paramname"><span class="paramname"><em>fmt</em></span>&#160;) const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>将 <span class="tt">std::chrono::zoned_time</span> 按格式串格式化到输出迭代器。 </p>
+<dl class="tparams"><dt>模板参数</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">OutIt</td><td>输出迭代器类型。 </td></tr>
+    <tr><td class="paramname">Duration</td><td><span class="tt">zoned_time</span> 的时间精度类型。 </td></tr>
+    <tr><td class="paramname">TimeZonePtr</td><td><span class="tt">zoned_time</span> 的时区指针类型。 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">out</td><td>输出迭代器。 </td></tr>
+    <tr><td class="paramname">t</td><td>要格式化的带时区时间点。 </td></tr>
+    <tr><td class="paramname">fmt</td><td>格式串（<span class="tt">strftime</span> 风格）。 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd>写入后的输出迭代器。 </dd></dl>
+<dl class="exception"><dt>异常</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname"><a class="el" href="structIOv2_1_1stream__error.html">stream_error</a></td><td>若 <span class="tt">zoned_time</span> 的日期超出范围。 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section note"><dt>注解</dt><dd>值无法提供的说明符不构成错误，会原样写出 <span class="tt">%</span> + 修饰符 + 说明符字符； 详见 <span class="tt"><a class="el" href="classIOv2_1_1timeio.html" title="时间 I/O facet，提供日期/时间的格式化输出与 locale 感知解析。">timeio</a></span> 的类说明。 </dd></dl>
+
+</div>
+</div>
+<a id="adf3576bc96604725f3c6c22fe9df5741" name="adf3576bc96604725f3c6c22fe9df5741"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adf3576bc96604725f3c6c22fe9df5741">&#9670;&#160;</a></span>put() <span class="overload">[6/7]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename CharT&gt; </div>
+<div class="memtemplate">
+template&lt;typename OutIt&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">OutIt <a class="el" href="classIOv2_1_1timeio.html">IOv2::timeio</a>&lt; CharT &gt;::put </td>
+          <td>(</td>
+          <td class="paramtype">OutIt</td>          <td class="paramname"><span class="paramname"><em>out</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::tm &amp;</td>          <td class="paramname"><span class="paramname"><em>t</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::basic_string_view&lt; CharT &gt;</td>          <td class="paramname"><span class="paramname"><em>fmt</em></span>&#160;) const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>将 <span class="tt">std::tm</span> 按格式串格式化到输出迭代器。 </p>
+<p>在格式化前对 <span class="tt">std::tm</span> 的日期与时刻字段进行范围验证，并拒绝闰秒（<span class="tt">tm_sec == 60</span>）。 具体检查项：月份 [0,11]、日期 [1,31]、时 [0,23]、分/秒 [0,59]， 以及年份需在 <span class="tt">std::chrono::year</span> 的有效范围内，且日期组合需构成有效日历日期。 <span class="tt">tm_gmtoff</span> **不在检查之列**：它只在 <span class="tt">z</span> 处按该说明符的取值域钳位，不会让本函数抛出。 </p><dl class="tparams"><dt>模板参数</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">OutIt</td><td>输出迭代器类型。 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">out</td><td>输出迭代器。 </td></tr>
+    <tr><td class="paramname">t</td><td>要格式化的 <span class="tt">std::tm</span> 结构体。 </td></tr>
+    <tr><td class="paramname">fmt</td><td>格式串（<span class="tt">strftime</span> 风格）。 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd>写入后的输出迭代器。 </dd></dl>
+<dl class="exception"><dt>异常</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname"><a class="el" href="structIOv2_1_1stream__error.html">stream_error</a></td><td>若任何字段超出范围或日期组合无效。 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section note"><dt>注解</dt><dd>值无法提供的说明符不构成错误，会原样写出 <span class="tt">%</span> + 修饰符 + 说明符字符； 详见 <span class="tt"><a class="el" href="classIOv2_1_1timeio.html" title="时间 I/O facet，提供日期/时间的格式化输出与 locale 感知解析。">timeio</a></span> 的类说明。 </dd>
+<dd>
+<b>时区取自扩展成员。</b> 当前平台的 <span class="tt">std::tm</span> 带 <span class="tt">tm_gmtoff</span> 时（POSIX.1-2024 起 是标准成员，glibc / BSD / macOS 一直都有），<span class="tt">z</span> 写它的值；带 <span class="tt">tm_zone</span> 时 <span class="tt">Z</span> 写它，<span class="tt">tm_zone</span> 为空指针或空串则写 base_ft&lt;timeio&gt;::s_unknown_zone。成员的有无用 <span class="tt">requires</span> 表达式 探测，不看平台宏。本版本只支持 glibc，两个成员总是存在；探测不依赖模板参数， 在 <span class="tt">std::tm</span> **不带**这两个成员的平台上是编译错误，而不是让 <span class="tt">z</span> 与 <span class="tt">Z</span> 退化为 字面量。 </dd>
+<dd>
+因此在带 <span class="tt">tm_zone</span> 的平台上，<span class="tt">Z</span> 对任何 <span class="tt">std::tm</span> 都写得出内容——这正是 <a class="el" href="structIOv2_1_1time__value__fields_3_01std_1_1tm_01_4.html#a1daf8689acb69c5b87fd3fd1cceb1f20">time_value_fields&lt;std::tm&gt;::has_zone</a> 恒为 <span class="tt">true</span> 所声明的，两者不会脱节。 </dd></dl>
+
+</div>
+</div>
+<a id="ad618c365696d2db2d4206cd82e231e81" name="ad618c365696d2db2d4206cd82e231e81"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad618c365696d2db2d4206cd82e231e81">&#9670;&#160;</a></span>put() <span class="overload">[7/7]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename CharT&gt; </div>
+<div class="memtemplate">
+template&lt;typename OutIt, typename TVal&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">OutIt <a class="el" href="classIOv2_1_1timeio.html">IOv2::timeio</a>&lt; CharT &gt;::put </td>
+          <td>(</td>
+          <td class="paramtype">OutIt</td>          <td class="paramname"><span class="paramname"><em>out</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const TVal &amp;</td>          <td class="paramname"><span class="paramname"><em>t</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">char</td>          <td class="paramname"><span class="paramname"><em>format</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">char</td>          <td class="paramname"><span class="paramname"><em>modifier</em></span><span class="paramdefsep"> = </span><span class="paramdefval">0</span>&#160;) const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>按单个格式字符（可带修饰符）格式化时间值。 </p>
+<p>将 <span class="tt">format</span>（以及可选的 <span class="tt">modifier</span>）组合为 <span class="tt">%[modifier]format</span> 格式串后 委托给 <span class="tt">put(out, t, fmt)</span>。 </p><dl class="tparams"><dt>模板参数</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">OutIt</td><td>输出迭代器类型。 </td></tr>
+    <tr><td class="paramname">TVal</td><td>时间值类型（<span class="tt">year_month_day</span>、<span class="tt">hh_mm_ss</span>、<span class="tt">zoned_time</span> 或 <span class="tt">std::tm</span>）。 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">out</td><td>输出迭代器。 </td></tr>
+    <tr><td class="paramname">t</td><td>要格式化的时间值。 </td></tr>
+    <tr><td class="paramname">format</td><td>格式字符（如 <span class="tt">'Y'</span>、<span class="tt">'m'</span>、<span class="tt">'d'</span>）。 </td></tr>
+    <tr><td class="paramname">modifier</td><td>可选修饰符（<span class="tt">'E'</span>、<span class="tt">'O'</span> 或 <span class="tt">0</span> 表示无修饰符）。 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd>写入后的输出迭代器。 </dd></dl>
+<dl class="section note"><dt>注解</dt><dd>值无法提供的说明符不构成错误，会原样写出 <span class="tt">%</span> + 修饰符 + 说明符字符； 详见 <span class="tt"><a class="el" href="classIOv2_1_1timeio.html" title="时间 I/O facet，提供日期/时间的格式化输出与 locale 感知解析。">timeio</a></span> 的类说明。 </dd></dl>
+
+</div>
+</div>
+<a id="aa9b6b80864732e3d66e62c2c124d6788" name="aa9b6b80864732e3d66e62c2c124d6788"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa9b6b80864732e3d66e62c2c124d6788">&#9670;&#160;</a></span>time_format()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename CharT&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">const std::basic_string&lt; CharT &gt; &amp; <a class="el" href="classIOv2_1_1timeio.html">IOv2::timeio</a>&lt; CharT &gt;::time_format </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel noexcept">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>返回 locale 时间格式串（对应 <span class="tt">X</span>）。   </p>
+
+</div>
+</div>
+<hr/>该类的文档由以下文件生成:<ul>
+<li>include/IOv2/facet/<a class="el" href="timeio_8h_source.html">timeio.h</a></li>
+</ul>
+</div><!-- contents -->
+</div><!-- doc-content -->
+<div id="page-nav" class="page-nav-panel">
+<div id="page-nav-resize-handle"></div>
+<div id="page-nav-tree">
+<div id="page-nav-contents">
+</div><!-- page-nav-contents -->
+</div><!-- page-nav-tree -->
+</div><!-- page-nav -->
+</div><!-- container -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><a href="namespaceIOv2.html">IOv2</a></li><li class="navelem"><a href="classIOv2_1_1timeio.html">timeio</a></li>
+    <li class="footer">制作者 <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.15.0 </li>
+  </ul>
+</div>
+</body>
+</html>

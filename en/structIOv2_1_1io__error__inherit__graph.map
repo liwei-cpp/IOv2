@@ -1,0 +1,17 @@
+<map id="IOv2::io_error" name="IOv2::io_error">
+<area shape="rect" id="Node000001" title=" " alt="" coords="192,109,301,137"/>
+<area shape="rect" id="Node000003" href="$structIOv2_1_1cvt__error.html" title=" " alt="" coords="362,5,479,33"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="273,97,307,70,348,44,378,32,373,35,350,48,310,74,276,102"/>
+<area shape="rect" id="Node000004" href="$structIOv2_1_1device__error.html" title=" " alt="" coords="350,57,491,85"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="309,102,374,85,369,87,311,107"/>
+<area shape="rect" id="Node000006" href="$structIOv2_1_1eof__error.html" title=" " alt="" coords="362,109,480,137"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="316,121,364,123,358,124,317,126"/>
+<area shape="rect" id="Node000007" href="$structIOv2_1_1stream__error.html" title=" " alt="" coords="349,161,492,189"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="310,139,374,161,369,161,310,145"/>
+<area shape="rect" id="Node000008" href="$classIOv2_1_1sync__error.html" title="How sync_with_stdio() reports failure: which standard streams did not switch, and why." alt="" coords="357,213,484,241"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="275,144,310,172,350,198,378,213,373,212,348,203,307,176,273,149"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,109,144,137"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="159,121,194,122,189,124,160,126"/>
+<area shape="rect" id="Node000005" href="$structIOv2_1_1dput__error.html" title=" " alt="" coords="540,57,667,85"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="506,69,543,71,537,72,507,74"/>
+</map>

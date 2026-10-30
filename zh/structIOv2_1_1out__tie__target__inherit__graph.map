@@ -1,0 +1,25 @@
+<map id="IOv2::out_tie_target&lt; T &gt;" name="IOv2::out_tie_target&lt; T &gt;">
+<area shape="rect" id="Node000001" title="承载多态 try_flush() 的 CRTP 基类：对具体流类型 T 的向下转型集中于此。" alt="" coords="176,126,364,154"/>
+<area shape="rect" id="Node000003" href="$classIOv2_1_1stdout__api.html" title=" " alt="" coords="424,5,595,50"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="312,116,411,68,458,49,453,52,413,73,314,121"/>
+<area shape="rect" id="Node000005" href="$classIOv2_1_1stdout__api.html" title=" " alt="" coords="428,83,590,127"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="378,121,430,116,425,118,380,126"/>
+<area shape="rect" id="Node000008" href="$classIOv2_1_1stdout__api.html" title=" " alt="" coords="412,152,606,197"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="379,153,414,160,409,161,380,158"/>
+<area shape="rect" id="Node000010" href="$classIOv2_1_1stdout__api.html" title=" " alt="" coords="418,221,601,266"/>
+<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="312,159,413,207,444,221,439,221,411,211,311,164"/>
+<area shape="rect" id="Node000002" href="$classIOv2_1_1tie__target.html" title="承载多态 try_flush() 接口的抽象基类。" alt="" coords="5,126,128,154"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="142,137,178,138,173,141,144,142"/>
+<area shape="rect" id="Node000004" href="$classIOv2_1_1cout__t.html" title="标准输出流 cout（char）的类型。" alt="" coords="660,8,759,36"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="610,22,662,23,657,24,611,28"/>
+<area shape="rect" id="Node000006" href="$classIOv2_1_1cerr__t.html" title="标准错误流 cerr（char）的类型。" alt="" coords="661,60,758,88"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="605,88,663,81,658,82,607,93"/>
+<area shape="rect" id="Node000007" href="$classIOv2_1_1clog__t.html" title="标准日志流 clog（char）的类型。" alt="" coords="660,112,759,140"/>
+<area shape="poly" id="edge6_Node000005_Node000007" title=" " alt="" coords="606,113,663,121,658,121,606,118"/>
+<area shape="rect" id="Node000009" href="$classIOv2_1_1wcout__t.html" title="宽字符标准输出流 wcout（wchar_t）的类型。" alt="" coords="654,164,765,192"/>
+<area shape="poly" id="edge8_Node000008_Node000009" title=" " alt="" coords="622,174,657,177,651,177,622,179"/>
+<area shape="rect" id="Node000011" href="$classIOv2_1_1wcerr__t.html" title="宽字符标准错误流 wcerr（wchar_t）的类型。" alt="" coords="656,224,763,252"/>
+<area shape="poly" id="edge10_Node000010_Node000011" title=" " alt="" coords="616,238,658,240,653,240,617,243"/>
+<area shape="rect" id="Node000012" href="$classIOv2_1_1wclog__t.html" title="宽字符标准日志流 wclog（wchar_t）的类型。" alt="" coords="655,276,764,304"/>
+<area shape="poly" id="edge11_Node000010_Node000012" title=" " alt="" coords="616,266,657,278,652,277,616,271"/>
+</map>

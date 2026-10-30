@@ -1,0 +1,129 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=11"/>
+<meta name="generator" content="Doxygen 1.15.0"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>IOv2: IOv2::dev_cpt::support_put 概念参考</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<script type="text/javascript" src="clipboard.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<script type="text/javascript" src="cookie.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr id="projectrow">
+  <td id="projectalign">
+   <div id="projectname">IOv2
+   </div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 制作者 Doxygen 1.15.0 -->
+<script type="text/javascript">
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+</script>
+<script type="text/javascript">
+$(function() { codefold.init(); });
+</script>
+<script type="text/javascript" src="menudata.js"></script>
+<script type="text/javascript" src="menu.js"></script>
+<script type="text/javascript">
+$(function() {
+  initMenu('',true,false,'search.php','搜索',true);
+  $(function() { init_search(); });
+});
+</script>
+<div id="main-nav"></div>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+$(function(){initNavTree('conceptIOv2_1_1dev__cpt_1_1support__put.html','',''); });
+</script>
+<div id="container">
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">载入中...</div>
+<div class="SRStatus" id="Searching">搜索中...</div>
+<div class="SRStatus" id="NoMatches">未找到</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="header">
+  <div class="headertitle"><div class="title">IOv2::dev_cpt::support_put 概念参考</div></div>
+</div><!--header-->
+<div class="contents">
+
+<p>设备支持写入操作的概念。  
+<a href="#details">更多...</a></p>
+
+<p><code>#include &lt;<a class="el" href="device__concepts_8h_source.html">device_concepts.h</a>&gt;</code></p>
+<h2 id="header-conceptdef" class="groupheader">概念定义</h2>
+<div class="fragment"><div class="line"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt;</div>
+<div class="line"><span class="keyword">concept </span><a class="code hl_concept" href="conceptIOv2_1_1dev__cpt_1_1support__put.html">IOv2::dev_cpt::support_put</a> =  <span class="keyword">requires</span>(T a)</div>
+<div class="line">            {</div>
+<div class="line">                { a.dput(std::declval&lt;const typename T::char_type*&gt;(), std::declval&lt;std::size_t&gt;()) } -&gt; std::same_as&lt;void&gt;;</div>
+<div class="line">                { a.dflush() } -&gt; std::same_as&lt;void&gt;;</div>
+<div class="line">            }</div>
+<div class="ttc" id="aconceptIOv2_1_1dev__cpt_1_1support__put_html"><div class="ttname"><a href="conceptIOv2_1_1dev__cpt_1_1support__put.html">IOv2::dev_cpt::support_put</a></div><div class="ttdoc">设备支持写入操作的概念。</div><div class="ttdef"><b>定义</b> device_concepts.h:95</div></div>
+</div><!-- fragment --><a name="details" id="details"></a><h2 id="header-details" class="groupheader">详细描述</h2>
+<div class="textblock"><p>设备支持写入操作的概念。 </p>
+<p>要求设备提供写入数据（dput）和刷新缓冲区（dflush）的接口。 </p><dl class="section note"><dt>注解</dt><dd><span class="tt">dflush()</span> 冲刷的是**设备自身**的内部缓冲，上层不会代劳：流的正常销毁只把转换器 的缓冲经 <span class="tt">dput()</span> 推给设备，<span class="tt">detach()</span> 也只把仍打开的设备交还调用方。因此自带 内部缓冲的设备必须在自己的析构里完成这次冲刷。 </dd>
+<dd>
+<span class="tt">dput()</span> 失败时用异常类型说明「已有多少字符被下层接收」：写到一半失败抛 <span class="tt">dput_error</span> 并带出已接收的个数；一个字符也没有接收（例如写之前的参数检查失败）抛普通的 <span class="tt">device_error</span>。<span class="tt">root_cvt</span> 依此只保留未被接收的部分，恢复后恰好写出一次； 详见 <span class="tt">dput_error</span>。 </dd></dl>
+<dl class="tparams"><dt>模板参数</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">T</td><td>要检查的设备类型。 </td></tr>
+  </table>
+  </dd>
+</dl>
+</div></div><!-- contents -->
+</div><!-- doc-content -->
+</div><!-- container -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><a href="namespaceIOv2.html">IOv2</a></li><li class="navelem"><a href="namespaceIOv2_1_1dev__cpt.html">dev_cpt</a></li><li class="navelem"><a href="conceptIOv2_1_1dev__cpt_1_1support__put.html">support_put</a></li>
+    <li class="footer">制作者 <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.15.0 </li>
+  </ul>
+</div>
+</body>
+</html>

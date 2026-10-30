@@ -1,0 +1,162 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=11"/>
+<meta name="generator" content="Doxygen 1.15.0"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>IOv2: include/IOv2/io/traits/traits_base.h 源文件</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<script type="text/javascript" src="clipboard.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<script type="text/javascript" src="cookie.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr id="projectrow">
+  <td id="projectalign">
+   <div id="projectname">IOv2
+   </div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 制作者 Doxygen 1.15.0 -->
+<script type="text/javascript">
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+</script>
+<script type="text/javascript">
+$(function() { codefold.init(); });
+</script>
+<script type="text/javascript" src="menudata.js"></script>
+<script type="text/javascript" src="menu.js"></script>
+<script type="text/javascript">
+$(function() {
+  initMenu('',true,false,'search.php','搜索',true);
+  $(function() { init_search(); });
+});
+</script>
+<div id="main-nav"></div>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+$(function(){initNavTree('traits__base_8h_source.html','',''); });
+</script>
+<div id="container">
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">载入中...</div>
+<div class="SRStatus" id="Searching">搜索中...</div>
+<div class="SRStatus" id="NoMatches">未找到</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="header">
+  <div class="headertitle"><div class="title">traits_base.h</div></div>
+</div><!--header-->
+<div class="contents">
+<a href="traits__base_8h.html">浏览该文件的文档.</a><div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span><span class="comment">// SPDX-FileCopyrightText: 2026 liwei &lt;liwei.cpp@gmail.com&gt;</span></div>
+<div class="line"><a id="l00002" name="l00002"></a><span class="lineno">    2</span><span class="comment">// SPDX-License-Identifier: MIT</span></div>
+<div class="line"><a id="l00003" name="l00003"></a><span class="lineno">    3</span></div>
+<div class="line"><a id="l00320" name="l00320"></a><span class="lineno">  320</span><span class="preprocessor">#pragma once</span></div>
+<div class="line"><a id="l00321" name="l00321"></a><span class="lineno">  321</span> </div>
+<div class="line"><a id="l00322" name="l00322"></a><span class="lineno">  322</span><span class="preprocessor">#include &lt;iterator&gt;</span></div>
+<div class="line"><a id="l00323" name="l00323"></a><span class="lineno">  323</span><span class="preprocessor">#include &lt;type_traits&gt;</span></div>
+<div class="line"><a id="l00324" name="l00324"></a><span class="lineno">  324</span> </div>
+<div class="line"><a id="l00325" name="l00325"></a><span class="lineno">  325</span><span class="keyword">namespace </span><a class="code hl_namespace" href="namespaceIOv2.html">IOv2</a></div>
+<div class="line"><a id="l00326" name="l00326"></a><span class="lineno">  326</span>{</div>
+<div class="line"><a id="l00327" name="l00327"></a><span class="lineno">  327</span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> TChar&gt; <span class="keyword">class </span><a class="code hl_class" href="classIOv2_1_1ios__base.html">ios_base</a>;</div>
+<div class="line"><a id="l00328" name="l00328"></a><span class="lineno">  328</span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> TChar&gt; <span class="keyword">class </span><a class="code hl_class" href="classIOv2_1_1locale.html">locale</a>;</div>
+<div class="line"><a id="l00329" name="l00329"></a><span class="lineno">  329</span></div>
+<div class="line"><a id="l00423" name="l00423"></a><span class="lineno">  423</span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> TIter, <span class="keyword">typename</span> TChar&gt;</div>
+<div class="line"><a id="l00424" name="l00424"></a><span class="lineno"><a class="line" href="conceptIOv2_1_1char__sink__for.html">  424</a></span><span class="keyword">concept </span><a class="code hl_concept" href="conceptIOv2_1_1char__sink__for.html">char_sink_for</a> =</div>
+<div class="line"><a id="l00425" name="l00425"></a><span class="lineno">  425</span>    std::output_iterator&lt;TIter, const TChar&amp;&gt;</div>
+<div class="line"><a id="l00426" name="l00426"></a><span class="lineno">  426</span>    &amp;&amp; (!<span class="keyword">requires</span> { <span class="keyword">typename</span> std::iter_value_t&lt;TIter&gt;; }</div>
+<div class="line"><a id="l00427" name="l00427"></a><span class="lineno">  427</span>        || std::is_void_v&lt;std::iter_value_t&lt;TIter&gt;&gt;</div>
+<div class="line"><a id="l00428" name="l00428"></a><span class="lineno">  428</span>        || std::is_same_v&lt;TChar, std::iter_value_t&lt;TIter&gt;&gt;);</div>
+<div class="line"><a id="l00429" name="l00429"></a><span class="lineno">  429</span></div>
+<div class="line"><a id="l00440" name="l00440"></a><span class="lineno">  440</span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> TChar, <span class="keyword">typename</span> T&gt;</div>
+<div class="line"><a id="l00441" name="l00441"></a><span class="lineno"><a class="line" href="structIOv2_1_1io__traits.html">  441</a></span><span class="keyword">struct </span><a class="code hl_struct" href="structIOv2_1_1io__traits.html">io_traits</a>;</div>
+<div class="line"><a id="l00442" name="l00442"></a><span class="lineno">  442</span></div>
+<div class="line"><a id="l00453" name="l00453"></a><span class="lineno">  453</span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> TChar, <span class="keyword">typename</span> T&gt;</div>
+<div class="foldopen" id="foldopen00454" data-start="{" data-end="};">
+<div class="line"><a id="l00454" name="l00454"></a><span class="lineno"><a class="line" href="structIOv2_1_1parse__context__type.html">  454</a></span><span class="keyword">struct </span><a class="code hl_struct" href="structIOv2_1_1parse__context__type.html">parse_context_type</a></div>
+<div class="line"><a id="l00455" name="l00455"></a><span class="lineno">  455</span>{</div>
+<div class="line"><a id="l00456" name="l00456"></a><span class="lineno"><a class="line" href="structIOv2_1_1parse__context__type.html#aeb5a783976e847acf5e27dddd3a4322e">  456</a></span>    <span class="keyword">using </span><a class="code hl_typedef" href="structIOv2_1_1parse__context__type.html#aeb5a783976e847acf5e27dddd3a4322e">type</a> = T;</div>
+<div class="line"><a id="l00457" name="l00457"></a><span class="lineno">  457</span>};</div>
+</div>
+<div class="line"><a id="l00458" name="l00458"></a><span class="lineno">  458</span></div>
+<div class="line"><a id="l00482" name="l00482"></a><span class="lineno">  482</span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> TIter, <span class="keyword">typename</span> TSent, <span class="keyword">typename</span> TChar, <span class="keyword">typename</span> T&gt;</div>
+<div class="foldopen" id="foldopen00483" data-start="{" data-end="}">
+<div class="line"><a id="l00483" name="l00483"></a><span class="lineno"><a class="line" href="namespaceIOv2.html#a1763163fddd1f034efced69911ebb6ca">  483</a></span>TIter <a class="code hl_function" href="namespaceIOv2.html#a1763163fddd1f034efced69911ebb6ca">compose_read</a>(TIter it, TSent end, <a class="code hl_class" href="classIOv2_1_1ios__base.html">ios_base&lt;TChar&gt;</a>&amp; io, <span class="keyword">const</span> <a class="code hl_class" href="classIOv2_1_1locale.html">locale&lt;TChar&gt;</a>&amp; loc, T&amp; value)</div>
+<div class="line"><a id="l00484" name="l00484"></a><span class="lineno">  484</span>{</div>
+<div class="line"><a id="l00485" name="l00485"></a><span class="lineno">  485</span>    <span class="keywordflow">return</span> <a class="code hl_struct" href="structIOv2_1_1io__traits.html">io_traits&lt;TChar, std::remove_const_t&lt;T&gt;</a>&gt;::sread(it, end, io, loc, value);</div>
+<div class="line"><a id="l00486" name="l00486"></a><span class="lineno">  486</span>}</div>
+</div>
+<div class="line"><a id="l00487" name="l00487"></a><span class="lineno">  487</span></div>
+<div class="line"><a id="l00512" name="l00512"></a><span class="lineno">  512</span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> TIter, <span class="keyword">typename</span> TChar, <span class="keyword">typename</span> T&gt;</div>
+<div class="foldopen" id="foldopen00513" data-start="{" data-end="}">
+<div class="line"><a id="l00513" name="l00513"></a><span class="lineno"><a class="line" href="namespaceIOv2.html#ad98de1ddb09f7e05aeb060c558673aef">  513</a></span>TIter <a class="code hl_function" href="namespaceIOv2.html#ad98de1ddb09f7e05aeb060c558673aef">compose_write</a>(TIter it, <a class="code hl_class" href="classIOv2_1_1ios__base.html">ios_base&lt;TChar&gt;</a>&amp; io, <span class="keyword">const</span> <a class="code hl_class" href="classIOv2_1_1locale.html">locale&lt;TChar&gt;</a>&amp; loc, <span class="keyword">const</span> T&amp; value)</div>
+<div class="line"><a id="l00514" name="l00514"></a><span class="lineno">  514</span>{</div>
+<div class="line"><a id="l00515" name="l00515"></a><span class="lineno">  515</span>    <span class="keywordflow">return</span> <a class="code hl_struct" href="structIOv2_1_1io__traits.html">io_traits&lt;TChar, std::decay_t&lt;T&gt;</a>&gt;::swrite(it, io, loc, value);</div>
+<div class="line"><a id="l00516" name="l00516"></a><span class="lineno">  516</span>}</div>
+</div>
+<div class="line"><a id="l00517" name="l00517"></a><span class="lineno">  517</span> </div>
+<div class="line"><a id="l00518" name="l00518"></a><span class="lineno">  518</span>}</div>
+<div class="ttc" id="aclassIOv2_1_1ios__base_html"><div class="ttname"><a href="classIOv2_1_1ios__base.html">IOv2::ios_base</a></div><div class="ttdoc">所有流的格式化状态基类。</div><div class="ttdef"><b>定义</b> io_base.h:232</div></div>
+<div class="ttc" id="aclassIOv2_1_1locale_html"><div class="ttname"><a href="classIOv2_1_1locale.html">IOv2::locale</a></div><div class="ttdoc">管理一组 facet 的本地化对象。</div><div class="ttdef"><b>定义</b> locale.h:177</div></div>
+<div class="ttc" id="aconceptIOv2_1_1char__sink__for_html"><div class="ttname"><a href="conceptIOv2_1_1char__sink__for.html">IOv2::char_sink_for</a></div><div class="ttdoc">TIter 能否作为字符类型为 TChar 的**输出**迭代器使用——插入侧扩展点的迭代器约束。</div><div class="ttdef"><b>定义</b> traits_base.h:424</div></div>
+<div class="ttc" id="anamespaceIOv2_html"><div class="ttname"><a href="namespaceIOv2.html">IOv2</a></div><div class="ttdef"><b>定义</b> clocale_wrapper.h:23</div></div>
+<div class="ttc" id="anamespaceIOv2_html_a1763163fddd1f034efced69911ebb6ca"><div class="ttname"><a href="namespaceIOv2.html#a1763163fddd1f034efced69911ebb6ca">IOv2::compose_read</a></div><div class="ttdeci">TIter compose_read(TIter it, TSent end, ios_base&lt; TChar &gt; &amp;io, const locale&lt; TChar &gt; &amp;loc, T &amp;value)</div><div class="ttdoc">在一个迭代器形式的 sread 里提取一个成分：调用 io_traits&lt;TChar, T&gt;::sread，TChar 与 T 由实参推导。</div><div class="ttdef"><b>定义</b> traits_base.h:483</div></div>
+<div class="ttc" id="anamespaceIOv2_html_ad98de1ddb09f7e05aeb060c558673aef"><div class="ttname"><a href="namespaceIOv2.html#ad98de1ddb09f7e05aeb060c558673aef">IOv2::compose_write</a></div><div class="ttdeci">TIter compose_write(TIter it, ios_base&lt; TChar &gt; &amp;io, const locale&lt; TChar &gt; &amp;loc, const T &amp;value)</div><div class="ttdoc">在一个迭代器形式的 swrite 里写出一个成分：调用 io_traits&lt;TChar, std::decay_t&lt;T&gt;&gt;::swrite， TChar 与 T 由实参推导。</div><div class="ttdef"><b>定义</b> traits_base.h:513</div></div>
+<div class="ttc" id="astructIOv2_1_1io__traits_html"><div class="ttname"><a href="structIOv2_1_1io__traits.html">IOv2::io_traits</a></div><div class="ttdoc">把 TChar 流的读写逻辑接到类型 T 上的扩展点。主模板故意不定义；见本文件头部。</div><div class="ttdef"><b>定义</b> traits_base.h:441</div></div>
+<div class="ttc" id="astructIOv2_1_1parse__context__type_html"><div class="ttname"><a href="structIOv2_1_1parse__context__type.html">IOv2::parse_context_type</a></div><div class="ttdoc">提取 T 时实际解析进的中转类型；主模板为恒等映射。见本文件头部&quot;解析上下文&quot;。</div><div class="ttdef"><b>定义</b> traits_base.h:455</div></div>
+<div class="ttc" id="astructIOv2_1_1parse__context__type_html_aeb5a783976e847acf5e27dddd3a4322e"><div class="ttname"><a href="structIOv2_1_1parse__context__type.html#aeb5a783976e847acf5e27dddd3a4322e">IOv2::parse_context_type::type</a></div><div class="ttdeci">T type</div><div class="ttdef"><b>定义</b> traits_base.h:456</div></div>
+</div><!-- fragment --></div><!-- contents -->
+</div><!-- doc-content -->
+</div><!-- container -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><a href="dir_d44c64559bbebec7f509842c48db8b23.html">include</a></li><li class="navelem"><a href="dir_1157f564aec2b3a7d6bde4eba89ab805.html">IOv2</a></li><li class="navelem"><a href="dir_e6325c10be556c0ae106bae233ca0d0f.html">io</a></li><li class="navelem"><a href="dir_3b32b973eea3f549e04ac645eba714a9.html">traits</a></li><li class="navelem"><a href="traits__base_8h.html">traits_base.h</a></li>
+    <li class="footer">制作者 <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.15.0 </li>
+  </ul>
+</div>
+</body>
+</html>

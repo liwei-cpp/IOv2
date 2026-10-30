@@ -1,0 +1,134 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=11"/>
+<meta name="generator" content="Doxygen 1.15.0"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>IOv2: IOv2::char_sink_for 概念参考</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<script type="text/javascript" src="clipboard.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<script type="text/javascript" src="cookie.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr id="projectrow">
+  <td id="projectalign">
+   <div id="projectname">IOv2
+   </div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 制作者 Doxygen 1.15.0 -->
+<script type="text/javascript">
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+</script>
+<script type="text/javascript">
+$(function() { codefold.init(); });
+</script>
+<script type="text/javascript" src="menudata.js"></script>
+<script type="text/javascript" src="menu.js"></script>
+<script type="text/javascript">
+$(function() {
+  initMenu('',true,false,'search.php','搜索',true);
+  $(function() { init_search(); });
+});
+</script>
+<div id="main-nav"></div>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+$(function(){initNavTree('conceptIOv2_1_1char__sink__for.html','',''); });
+</script>
+<div id="container">
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">载入中...</div>
+<div class="SRStatus" id="Searching">搜索中...</div>
+<div class="SRStatus" id="NoMatches">未找到</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="header">
+  <div class="headertitle"><div class="title">IOv2::char_sink_for 概念参考</div></div>
+</div><!--header-->
+<div class="contents">
+
+<p><span class="tt">TIter</span> 能否作为字符类型为 <span class="tt">TChar</span> 的**输出**迭代器使用——插入侧扩展点的迭代器约束。  
+<a href="#details">更多...</a></p>
+
+<p><code>#include &lt;<a class="el" href="traits__base_8h_source.html">traits_base.h</a>&gt;</code></p>
+<h2 id="header-conceptdef" class="groupheader">概念定义</h2>
+<div class="fragment"><div class="line"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> TIter, <span class="keyword">typename</span> TChar&gt;</div>
+<div class="line"><span class="keyword">concept </span><a class="code hl_concept" href="conceptIOv2_1_1char__sink__for.html">IOv2::char_sink_for</a> = </div>
+<div class="line">    std::output_iterator&lt;TIter, const TChar&amp;&gt;</div>
+<div class="line">    &amp;&amp; (!<span class="keyword">requires</span> { <span class="keyword">typename</span> std::iter_value_t&lt;TIter&gt;; }</div>
+<div class="line">        || std::is_void_v&lt;std::iter_value_t&lt;TIter&gt;&gt;</div>
+<div class="line">        || std::is_same_v&lt;TChar, std::iter_value_t&lt;TIter&gt;&gt;)</div>
+<div class="ttc" id="aconceptIOv2_1_1char__sink__for_html"><div class="ttname"><a href="conceptIOv2_1_1char__sink__for.html">IOv2::char_sink_for</a></div><div class="ttdoc">TIter 能否作为字符类型为 TChar 的**输出**迭代器使用——插入侧扩展点的迭代器约束。</div><div class="ttdef"><b>定义</b> traits_base.h:424</div></div>
+</div><!-- fragment --><a name="details" id="details"></a><h2 id="header-details" class="groupheader">详细描述</h2>
+<div class="textblock"><p><span class="tt">TIter</span> 能否作为字符类型为 <span class="tt">TChar</span> 的**输出**迭代器使用——插入侧扩展点的迭代器约束。 </p>
+<p>本文件头部说明了这条约束为何不能省：迭代器是函数模板形参而不是类型的一部分，显式限定的 手写调用能把宽键配窄汇，本概念把 <span class="tt">TIter</span> 拴回键的 <span class="tt">TChar</span>。</p>
+<p>第一个合取项照搬 <span class="tt">&lt;format&gt;</span>：标准的 <span class="tt">format_to</span> 一族用的正是 <span class="tt">std::output_iterator&lt;Out, const charT&amp;&gt;</span>，查的是"能不能把一个 `TChar` 左值写进去"这一 真正需要的性质。它有意不查成员 <span class="tt">value_type</span>——C++20 起标准的输出适配器一律把它定成 <span class="tt">void</span>， 概念本身也不要求它存在。</p>
+<p>第二个合取项是本库在标准之上多加的一道守卫：迭代器**若**报得出字符类型，就必须与 <span class="tt">TChar</span> 一致。它查的是 <span class="tt">std::iter_value_t&lt;TIter&gt;</span> 而不是成员 <span class="tt">TIter::value_type</span>，这样才拦得住 <span class="tt">wchar_t buf[64]</span> 配 <span class="tt">TChar == char</span> 这种手写汇；<span class="tt">std::format_to</span> 在同一位置是放行的， 此处比标准严。</p>
+<dl class="section note"><dt>注解</dt><dd>三个析取项里的前两个都需要，但它们各自覆盖的形状与直觉相反。标准的输出适配器 （<span class="tt">back_insert_iterator</span> / <span class="tt">front_insert_iterator</span> / <span class="tt">insert_iterator</span> / <span class="tt">ostream_iterator</span> / <span class="tt">ochannel_iterator</span>）虽然都声明了**成员** <span class="tt">value_type = void</span>， 它们的 <span class="tt">std::iter_value_t</span> 却是 <b>ill-formed</b> 而不是 <span class="tt">void</span>，因此**全部**由 <span class="tt">!requires</span> 那一项兜住——这也正是本合取项查 <span class="tt">iter_value_t</span> 而不查成员的用处所在。 <span class="tt">is_void_v</span> 那一项**够不到任何标准适配器**，它覆盖的是显式特化了 <span class="tt">std::iterator_traits&lt;I&gt;</span> 并把其 <span class="tt">value_type</span> 定成 <span class="tt">void</span> 的类型；这种形状实测可达， 故该析取项不是死代码。 </dd></dl>
+<dl class="section warning"><dt>警告</dt><dd>对**报不出**字符类型的汇（<span class="tt">iter_value_t</span> ill-formed 或为 <span class="tt">void</span>），无从可查， 只剩可写性这一关。于是宽窄错配会经隐式转换静默通过：窄 facet 写进 <span class="tt">std::wstring</span> 得到的是"把字节当字符"的伪宽串，宽 facet 写进 <span class="tt">std::string</span> 则逐码元截断。两者都 不是 UB、不越界、不崩溃，只是字符损坏，且 ASCII 部分看着正常。这与标准的行为一致 （<span class="tt">std::format_to</span>、<span class="tt">std::copy</span> 到 <span class="tt">back_inserter</span> 皆然）。 </dd>
+<dd>
+本概念**不检查容量**，插入侧整条链路也不带哨位：写出多少由 <span class="tt">width()</span> 决定，而不由汇 决定。因此把固定容量的汇（例如 <span class="tt">char buf[8]</span>）配上大于它的 <span class="tt">width()</span>，写出会越过 缓冲区末尾——**容量由调用方保证**。这与标准的输出迭代器约定一致 （<span class="tt">std::format_to</span>、<span class="tt">std::num_put::put</span> 同样越界；<span class="tt">&lt;format&gt;</span> 另给 <span class="tt">format_to_n</span> 作为有界形式）。与提取侧拒绝裸指针（见 <span class="tt">io_traits&lt;TChar, TChar[N]&gt;</span> 的说明）**不矛盾**： 那里的长度来自输入数据，可被攻击者左右；这里的长度来自调用方自己设的流状态。</dd></dl>
+<dl class="tparams"><dt>模板参数</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">TIter</td><td>待检测的输出迭代器类型 </td></tr>
+    <tr><td class="paramname">TChar</td><td>流的字符类型 </td></tr>
+  </table>
+  </dd>
+</dl>
+</div></div><!-- contents -->
+</div><!-- doc-content -->
+</div><!-- container -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><a href="namespaceIOv2.html">IOv2</a></li><li class="navelem"><a href="conceptIOv2_1_1char__sink__for.html">char_sink_for</a></li>
+    <li class="footer">制作者 <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.15.0 </li>
+  </ul>
+</div>
+</body>
+</html>

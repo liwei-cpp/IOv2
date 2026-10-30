@@ -1,0 +1,10 @@
+<map id="IOv2::ft_basic&lt; timeio&lt; CharT &gt; &gt;" name="IOv2::ft_basic&lt; timeio&lt; CharT &gt; &gt;">
+<area shape="rect" id="Node000001" title="Base class template specialization for the timeio facet." alt="" coords="11,200,178,245"/>
+<area shape="rect" id="Node000002" href="$classIOv2_1_1base__ft_3_01timeio_01_4.html" title="The intermediate base specialization for timeio, holding its character&#45;type&#45;independent time&#45;zone dat..." alt="" coords="5,123,184,151"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="96,164,97,200,92,199,93,168"/>
+<area shape="rect" id="Node000003" href="$structIOv2_1_1abs__ft.html" title=" " alt="" coords="45,14,144,42"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="88,55,91,123,86,122,85,60"/>
+<area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="104,55,103,123,98,122,101,59"/>
+<area shape="rect" id="Node000004" href="$classIOv2_1_1prefix__tree.html" title=" " alt="" coords="168,5,338,50"/>
+<area shape="poly" id="edge4_Node000002_Node000004" title=" " alt="" coords="207,61,116,125,112,120,210,57"/>
+</map>

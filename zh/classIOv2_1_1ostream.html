@@ -1,0 +1,866 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=11"/>
+<meta name="generator" content="Doxygen 1.15.0"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>IOv2: IOv2::ostream&lt; TDevice, TChar &gt; 模板类 参考</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<script type="text/javascript" src="clipboard.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<script type="text/javascript" src="cookie.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr id="projectrow">
+  <td id="projectalign">
+   <div id="projectname">IOv2
+   </div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 制作者 Doxygen 1.15.0 -->
+<script type="text/javascript">
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+</script>
+<script type="text/javascript">
+$(function() { codefold.init(); });
+</script>
+<script type="text/javascript" src="menudata.js"></script>
+<script type="text/javascript" src="menu.js"></script>
+<script type="text/javascript">
+$(function() {
+  initMenu('',true,false,'search.php','搜索',true);
+  $(function() { init_search(); });
+});
+</script>
+<div id="main-nav"></div>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+$(function(){initNavTree('classIOv2_1_1ostream.html','','classIOv2_1_1ostream-members'); });
+</script>
+<div id="container">
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">载入中...</div>
+<div class="SRStatus" id="Searching">搜索中...</div>
+<div class="SRStatus" id="NoMatches">未找到</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="header">
+  <div class="headertitle"><div class="title">IOv2::ostream&lt; TDevice, TChar &gt; 模板类 参考</div></div>
+</div><!--header-->
+<div class="contents">
+
+<p>字符输出流：把一条 <span class="tt"><a class="el" href="structIOv2_1_1ochannel.html" title="只写通道：仅支持输出。">ochannel</a></span> 与一个 locale 组合成带格式化的输出接口。  
+ <a href="#details">更多...</a></p>
+
+<p><code>#include &lt;<a class="el" href="ostream_8h_source.html">ostream.h</a>&gt;</code></p>
+<div class="dynheader">
+类 IOv2::ostream&lt; TDevice, TChar &gt; 继承关系图:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="classIOv2_1_1ostream__inherit__graph.svg" width="710" height="228"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<center><span class="legend">[<a target="top" href="graph_legend.html">图例</a>]</span></center></div>
+<div class="dynheader">
+IOv2::ostream&lt; TDevice, TChar &gt; 的协作图:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="classIOv2_1_1ostream__coll__graph.svg" width="1038" height="375"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<center><span class="legend">[<a target="top" href="graph_legend.html">图例</a>]</span></center></div>
+<table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 id="header-pub-types" class="groupheader"><a id="pub-types" name="pub-types"></a>
+Public 类型</h2></td></tr>
+<tr class="memitem:af55b093158db6dbf89d43bc5fb3f4ae3" id="r_af55b093158db6dbf89d43bc5fb3f4ae3"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af55b093158db6dbf89d43bc5fb3f4ae3">device_type</a> = TDevice</td></tr>
+<tr class="memitem:aacccd6567413c13b66a49d266a1d699f" id="r_aacccd6567413c13b66a49d266a1d699f"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aacccd6567413c13b66a49d266a1d699f">char_type</a> = TChar</td></tr>
+<tr class="memitem:a1ea6b3f5e0e2999822c06b625088ac61" id="r_a1ea6b3f5e0e2999822c06b625088ac61"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a1ea6b3f5e0e2999822c06b625088ac61">out_sentry_type</a> = <a class="el" href="structIOv2_1_1out__sentry.html">out_sentry</a>&lt;<a class="el" href="#ae8d60232d536b11b58b6db7550088e2f">ostream</a>&lt;TDevice, TChar&gt;, false&gt;</td></tr>
+<tr class="memitem:ad6182bf85c95d506af0476e7ffe5ff0d" id="r_ad6182bf85c95d506af0476e7ffe5ff0d"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad6182bf85c95d506af0476e7ffe5ff0d">out_iter_type</a> = <a class="el" href="classIOv2_1_1ochannel__iterator.html">ochannel_iterator</a>&lt;<a class="el" href="structIOv2_1_1ochannel.html">ochannel</a>&lt;TDevice, TChar&gt;&gt;</td></tr>
+<tr class="inherit_header pub_types_classIOv2_1_1ios__base"><td colspan="2" onclick="javascript:dynsection.toggleInherit('pub_types_classIOv2_1_1ios__base')"><span class="dynarrow"><span class="arrowhead closed"></span></span>Public 类型 继承自 <a class="el" href="classIOv2_1_1ios__base.html">IOv2::ios_base&lt; TChar &gt;</a></td></tr>
+<tr class="memitem:a54104c455ab7f72dbaebef7b293e3ff0 inherit pub_types_classIOv2_1_1ios__base" id="r_a54104c455ab7f72dbaebef7b293e3ff0"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ios__base.html#a54104c455ab7f72dbaebef7b293e3ff0">event_callback</a> = std::function&lt;std::shared_ptr&lt;void&gt;(const <a class="el" href="classIOv2_1_1locale.html">locale</a>&lt;TChar&gt;&amp;, std::shared_ptr&lt;void&gt;)&gt;</td></tr>
+<tr class="memdesc:a54104c455ab7f72dbaebef7b293e3ff0 inherit pub_types_classIOv2_1_1ios__base"><td class="mdescLeft">&#160;</td><td class="mdescRight">本地化变更回调的类型。  <br /></td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
+Public 成员函数</h2></td></tr>
+<tr class="memitem:ae8d60232d536b11b58b6db7550088e2f" id="r_ae8d60232d536b11b58b6db7550088e2f"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ae8d60232d536b11b58b6db7550088e2f">ostream</a> ()</td></tr>
+<tr class="memdesc:ae8d60232d536b11b58b6db7550088e2f"><td class="mdescLeft">&#160;</td><td class="mdescRight">以默认构造的设备建立流。  <br /></td></tr>
+<tr class="memitem:a25b072c7076c7b07c006ee1e627cb469" id="r_a25b072c7076c7b07c006ee1e627cb469"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a25b072c7076c7b07c006ee1e627cb469">ostream</a> (TDevice dev)</td></tr>
+<tr class="memdesc:a25b072c7076c7b07c006ee1e627cb469"><td class="mdescLeft">&#160;</td><td class="mdescRight">以 <code class="param">dev</code> 建立流。  <br /></td></tr>
+<tr class="memitem:adc73495fa723ec8ad0fb16dc3794b23f" id="r_adc73495fa723ec8ad0fb16dc3794b23f"><td class="memTemplParams" colspan="2">template&lt;cvt_creator TCreator&gt; <br />
+requires (std::is_same_v&lt; typename decltype(<a class="el" href="structIOv2_1_1ochannel.html">ochannel</a>{std::declval&lt;TDevice&gt;(), std::declval&lt;const TCreator&amp;&gt;()})<a class="el" href="#aacccd6567413c13b66a49d266a1d699f">::char_type</a>, TChar&gt;)</td></tr>
+<tr class="memitem:adc73495fa723ec8ad0fb16dc3794b23f template"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#adc73495fa723ec8ad0fb16dc3794b23f">ostream</a> (TDevice dev, const TCreator &amp;creator)</td></tr>
+<tr class="memdesc:adc73495fa723ec8ad0fb16dc3794b23f"><td class="mdescLeft">&#160;</td><td class="mdescRight">以 <code class="param">dev</code> 建立流，并由 <code class="param">creator</code> 构造转换器。  <br /></td></tr>
+<tr class="memitem:a895ac02c791c9b74624139f4d478f485" id="r_a895ac02c791c9b74624139f4d478f485"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a895ac02c791c9b74624139f4d478f485">ostream</a> (TDevice dev, <a class="el" href="classIOv2_1_1locale.html">IOv2::locale</a>&lt; <a class="el" href="#aacccd6567413c13b66a49d266a1d699f">char_type</a> &gt; loc)</td></tr>
+<tr class="memdesc:a895ac02c791c9b74624139f4d478f485"><td class="mdescLeft">&#160;</td><td class="mdescRight">以 <code class="param">dev</code> 建立流，并装入 locale <code class="param">loc。</code>  <br /></td></tr>
+<tr class="memitem:a7a778c3ef8fa976a5d6349bafc6b8054" id="r_a7a778c3ef8fa976a5d6349bafc6b8054"><td class="memTemplParams" colspan="2">template&lt;cvt_creator TCreator&gt; <br />
+requires (std::is_same_v&lt; typename decltype(<a class="el" href="structIOv2_1_1ochannel.html">ochannel</a>{std::declval&lt;TDevice&gt;(), std::declval&lt;const TCreator&amp;&gt;()})<a class="el" href="#aacccd6567413c13b66a49d266a1d699f">::char_type</a>, TChar&gt;)</td></tr>
+<tr class="memitem:a7a778c3ef8fa976a5d6349bafc6b8054 template"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a7a778c3ef8fa976a5d6349bafc6b8054">ostream</a> (TDevice dev, const TCreator &amp;creator, <a class="el" href="classIOv2_1_1locale.html">IOv2::locale</a>&lt; <a class="el" href="#aacccd6567413c13b66a49d266a1d699f">char_type</a> &gt; loc)</td></tr>
+<tr class="memdesc:a7a778c3ef8fa976a5d6349bafc6b8054"><td class="mdescLeft">&#160;</td><td class="mdescRight">以 <code class="param">dev</code> 建立流，由 <code class="param">creator</code> 构造转换器，并装入 locale <code class="param">loc。</code>  <br /></td></tr>
+<tr class="memitem:a11c965ddd5ad533bda653c1e66091089" id="r_a11c965ddd5ad533bda653c1e66091089"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a11c965ddd5ad533bda653c1e66091089">ostream</a> (const ostream &amp;other)</td></tr>
+<tr class="memdesc:a11c965ddd5ad533bda653c1e66091089"><td class="mdescLeft">&#160;</td><td class="mdescRight">拷贝构造、移动构造与移动赋值。  <br /></td></tr>
+<tr class="memitem:a6eee2a77d44a99f580159387c21c9f88" id="r_a6eee2a77d44a99f580159387c21c9f88"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a6eee2a77d44a99f580159387c21c9f88">ostream</a> (ostream &amp;&amp;) noexcept=default</td></tr>
+<tr class="memitem:a32122831011d6c9444b20916a3538e1a" id="r_a32122831011d6c9444b20916a3538e1a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="#ae8d60232d536b11b58b6db7550088e2f">ostream</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a32122831011d6c9444b20916a3538e1a">operator=</a> (<a class="el" href="#ae8d60232d536b11b58b6db7550088e2f">ostream</a> &amp;&amp;other) noexcept</td></tr>
+<tr class="memitem:a0d183e120255e1a3a877c2b9a46fdc43" id="r_a0d183e120255e1a3a877c2b9a46fdc43"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a0d183e120255e1a3a877c2b9a46fdc43">~ostream</a> () override=default</td></tr>
+<tr class="memdesc:a0d183e120255e1a3a877c2b9a46fdc43"><td class="mdescLeft">&#160;</td><td class="mdescRight">析构函数。  <br /></td></tr>
+<tr class="memitem:a759c299b66162084a495219656b85a53" id="r_a759c299b66162084a495219656b85a53"><td class="memItemLeft" align="right" valign="top"><a class="el" href="#ae8d60232d536b11b58b6db7550088e2f">ostream</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a759c299b66162084a495219656b85a53">operator=</a> (const <a class="el" href="#ae8d60232d536b11b58b6db7550088e2f">ostream</a> &amp;other)</td></tr>
+<tr class="memdesc:a759c299b66162084a495219656b85a53"><td class="mdescLeft">&#160;</td><td class="mdescRight">拷贝赋值；提供强异常保证：先整体拷进临时对象（可能抛出，此时目标尚未被触碰）， 再以全程 noexcept 的移动赋值提交。move-only 内核（如 <span class="tt"><a class="el" href="namespaceIOv2.html#afdd0a0edccc60c3d8b0faed66aebb426" title="读写文件设备的类型别名。">file_device</a></span>）上的拷贝必然 抛出，故自赋值也要先挡掉。  <br /></td></tr>
+<tr class="inherit_header pub_methods_structIOv2_1_1ios__state"><td colspan="2" onclick="javascript:dynsection.toggleInherit('pub_methods_structIOv2_1_1ios__state')"><span class="dynarrow"><span class="arrowhead closed"></span></span>Public 成员函数 继承自 <a class="el" href="structIOv2_1_1ios__state.html">IOv2::ios_state&lt; TChar &gt;</a></td></tr>
+<tr class="memitem:a1316a157ac90de8eb32c987f5745b4a0 inherit pub_methods_structIOv2_1_1ios__state" id="r_a1316a157ac90de8eb32c987f5745b4a0"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2_1_1ios__defs.html#a5b7f3020b857174b3b649d1553388cd0">ios_defs::iostate</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1ios__state.html#a1316a157ac90de8eb32c987f5745b4a0">rdstate</a> () const noexcept</td></tr>
+<tr class="memdesc:a1316a157ac90de8eb32c987f5745b4a0 inherit pub_methods_structIOv2_1_1ios__state"><td class="mdescLeft">&#160;</td><td class="mdescRight">返回当前的流状态位。  <br /></td></tr>
+<tr class="memitem:a2a1039058a73bbc8e230da8517356e01 inherit pub_methods_structIOv2_1_1ios__state" id="r_a2a1039058a73bbc8e230da8517356e01"><td class="memTemplParams" colspan="2">template&lt;bool ignore_exception_mask = false&gt; </td></tr>
+<tr class="memitem:a2a1039058a73bbc8e230da8517356e01 inherit pub_methods_structIOv2_1_1ios__state template"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1ios__state.html#a2a1039058a73bbc8e230da8517356e01">clear</a> (<a class="el" href="namespaceIOv2_1_1ios__defs.html#a5b7f3020b857174b3b649d1553388cd0">ios_defs::iostate</a> s=<a class="el" href="namespaceIOv2_1_1ios__defs.html#a5b7f3020b857174b3b649d1553388cd0a91dccc56f5591abd6101250f7b878c34">ios_defs::goodbit</a>) noexcept(ignore_exception_mask)</td></tr>
+<tr class="memdesc:a2a1039058a73bbc8e230da8517356e01 inherit pub_methods_structIOv2_1_1ios__state"><td class="mdescLeft">&#160;</td><td class="mdescRight">将流状态位设置为 <span class="tt">s</span>，并按需触发异常。  <br /></td></tr>
+<tr class="memitem:acb97e0d4db4b6713c9ac12de2f5a68f9 inherit pub_methods_structIOv2_1_1ios__state" id="r_acb97e0d4db4b6713c9ac12de2f5a68f9"><td class="memTemplParams" colspan="2">template&lt;bool ignore_exception_mask = false&gt; </td></tr>
+<tr class="memitem:acb97e0d4db4b6713c9ac12de2f5a68f9 inherit pub_methods_structIOv2_1_1ios__state template"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1ios__state.html#acb97e0d4db4b6713c9ac12de2f5a68f9">setstate</a> (<a class="el" href="namespaceIOv2_1_1ios__defs.html#a5b7f3020b857174b3b649d1553388cd0">ios_defs::iostate</a> s) noexcept(ignore_exception_mask)</td></tr>
+<tr class="memdesc:acb97e0d4db4b6713c9ac12de2f5a68f9 inherit pub_methods_structIOv2_1_1ios__state"><td class="mdescLeft">&#160;</td><td class="mdescRight">在现有状态位的基础上附加 <span class="tt">s</span>（按位或），并可能触发异常。  <br /></td></tr>
+<tr class="memitem:ac7c9e5f64b677f1f4ed005edfbcab528 inherit pub_methods_structIOv2_1_1ios__state" id="r_ac7c9e5f64b677f1f4ed005edfbcab528"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1ios__state.html#ac7c9e5f64b677f1f4ed005edfbcab528">unset_state</a> (<a class="el" href="namespaceIOv2_1_1ios__defs.html#a5b7f3020b857174b3b649d1553388cd0">ios_defs::iostate</a> s)</td></tr>
+<tr class="memitem:a6f5c54ae196eaba0426e8417c8f03004 inherit pub_methods_structIOv2_1_1ios__state" id="r_a6f5c54ae196eaba0426e8417c8f03004"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1ios__state.html#a6f5c54ae196eaba0426e8417c8f03004">good</a> () const noexcept</td></tr>
+<tr class="memdesc:a6f5c54ae196eaba0426e8417c8f03004 inherit pub_methods_structIOv2_1_1ios__state"><td class="mdescLeft">&#160;</td><td class="mdescRight">是否无任何错误（状态位全为 0）。    <br /></td></tr>
+<tr class="memitem:a3b0e217ad0436005c073ea635b3ff1a3 inherit pub_methods_structIOv2_1_1ios__state" id="r_a3b0e217ad0436005c073ea635b3ff1a3"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1ios__state.html#a3b0e217ad0436005c073ea635b3ff1a3">dev_fail</a> () const noexcept</td></tr>
+<tr class="memdesc:a3b0e217ad0436005c073ea635b3ff1a3 inherit pub_methods_structIOv2_1_1ios__state"><td class="mdescLeft">&#160;</td><td class="mdescRight">是否置位了设备失败位。    <br /></td></tr>
+<tr class="memitem:a1609fd25faaedbb0c113904663755d30 inherit pub_methods_structIOv2_1_1ios__state" id="r_a1609fd25faaedbb0c113904663755d30"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1ios__state.html#a1609fd25faaedbb0c113904663755d30">cvt_fail</a> () const noexcept</td></tr>
+<tr class="memdesc:a1609fd25faaedbb0c113904663755d30 inherit pub_methods_structIOv2_1_1ios__state"><td class="mdescLeft">&#160;</td><td class="mdescRight">是否置位了转换失败位。    <br /></td></tr>
+<tr class="memitem:a499f16019963a4829a1bcc86142d88a7 inherit pub_methods_structIOv2_1_1ios__state" id="r_a499f16019963a4829a1bcc86142d88a7"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1ios__state.html#a499f16019963a4829a1bcc86142d88a7">str_fail</a> () const noexcept</td></tr>
+<tr class="memdesc:a499f16019963a4829a1bcc86142d88a7 inherit pub_methods_structIOv2_1_1ios__state"><td class="mdescLeft">&#160;</td><td class="mdescRight">是否置位了流失败位。    <br /></td></tr>
+<tr class="memitem:aaa59c6107a1158ad6e7e79931af324c4 inherit pub_methods_structIOv2_1_1ios__state" id="r_aaa59c6107a1158ad6e7e79931af324c4"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1ios__state.html#aaa59c6107a1158ad6e7e79931af324c4">other_fail</a> () const noexcept</td></tr>
+<tr class="memdesc:aaa59c6107a1158ad6e7e79931af324c4 inherit pub_methods_structIOv2_1_1ios__state"><td class="mdescLeft">&#160;</td><td class="mdescRight">是否置位了其他失败位。    <br /></td></tr>
+<tr class="memitem:a5b6ce75dd2a485a2d9ec9312472ae16d inherit pub_methods_structIOv2_1_1ios__state" id="r_a5b6ce75dd2a485a2d9ec9312472ae16d"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1ios__state.html#a5b6ce75dd2a485a2d9ec9312472ae16d">eof</a> () const noexcept</td></tr>
+<tr class="memdesc:a5b6ce75dd2a485a2d9ec9312472ae16d inherit pub_methods_structIOv2_1_1ios__state"><td class="mdescLeft">&#160;</td><td class="mdescRight">是否已到达文件/输入末尾（<span class="tt">eofbit</span> 置位）。    <br /></td></tr>
+<tr class="memitem:ab6670c16a0c9f00b594ab81fcb90811c inherit pub_methods_structIOv2_1_1ios__state" id="r_ab6670c16a0c9f00b594ab81fcb90811c"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1ios__state.html#ab6670c16a0c9f00b594ab81fcb90811c">operator bool</a> () const noexcept</td></tr>
+<tr class="memdesc:ab6670c16a0c9f00b594ab81fcb90811c inherit pub_methods_structIOv2_1_1ios__state"><td class="mdescLeft">&#160;</td><td class="mdescRight">布尔转换：当流仍可用时为 <span class="tt">true</span>。  <br /></td></tr>
+<tr class="memitem:a7ebd6d63fd33e959b75692516a735a24 inherit pub_methods_structIOv2_1_1ios__state" id="r_a7ebd6d63fd33e959b75692516a735a24"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2_1_1ios__defs.html#a5b7f3020b857174b3b649d1553388cd0">ios_defs::iostate</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1ios__state.html#a7ebd6d63fd33e959b75692516a735a24">exceptions</a> () const</td></tr>
+<tr class="memdesc:a7ebd6d63fd33e959b75692516a735a24 inherit pub_methods_structIOv2_1_1ios__state"><td class="mdescLeft">&#160;</td><td class="mdescRight">返回当前的异常掩码。    <br /></td></tr>
+<tr class="memitem:abd56424315d04441c7b7d89ee3811b79 inherit pub_methods_structIOv2_1_1ios__state" id="r_abd56424315d04441c7b7d89ee3811b79"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1ios__state.html#abd56424315d04441c7b7d89ee3811b79">exceptions</a> (<a class="el" href="namespaceIOv2_1_1ios__defs.html#a5b7f3020b857174b3b649d1553388cd0">ios_defs::iostate</a> e)</td></tr>
+<tr class="memdesc:abd56424315d04441c7b7d89ee3811b79 inherit pub_methods_structIOv2_1_1ios__state"><td class="mdescLeft">&#160;</td><td class="mdescRight">设置异常掩码，指定哪些状态位应触发异常。  <br /></td></tr>
+<tr class="memitem:a18f27537027937aa00c2719966f1ff3d inherit pub_methods_structIOv2_1_1ios__state" id="r_a18f27537027937aa00c2719966f1ff3d"><td class="memTemplParams" colspan="2">template&lt;bool ignore_exception_mask = false&gt; </td></tr>
+<tr class="memitem:a18f27537027937aa00c2719966f1ff3d inherit pub_methods_structIOv2_1_1ios__state template"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1ios__state.html#a18f27537027937aa00c2719966f1ff3d">handle_exception</a> (const std::exception_ptr &amp;ex, bool at_eof=false) noexcept(ignore_exception_mask)</td></tr>
+<tr class="memdesc:a18f27537027937aa00c2719966f1ff3d inherit pub_methods_structIOv2_1_1ios__state"><td class="mdescLeft">&#160;</td><td class="mdescRight">捕获并归类一个异常，将其转换为对应的失败状态位。  <br /></td></tr>
+<tr class="inherit_header pub_methods_classIOv2_1_1ios__base"><td colspan="2" onclick="javascript:dynsection.toggleInherit('pub_methods_classIOv2_1_1ios__base')"><span class="dynarrow"><span class="arrowhead closed"></span></span>Public 成员函数 继承自 <a class="el" href="classIOv2_1_1ios__base.html">IOv2::ios_base&lt; TChar &gt;</a></td></tr>
+<tr class="memitem:a12f1da1653653548185e97a1d9cfb8c2 inherit pub_methods_classIOv2_1_1ios__base" id="r_a12f1da1653653548185e97a1d9cfb8c2"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ios__base.html#a12f1da1653653548185e97a1d9cfb8c2">ios_base</a> ()=default</td></tr>
+<tr class="memdesc:a12f1da1653653548185e97a1d9cfb8c2 inherit pub_methods_classIOv2_1_1ios__base"><td class="mdescLeft">&#160;</td><td class="mdescRight">默认构造，使用默认的格式化状态。    <br /></td></tr>
+<tr class="memitem:a5e440cf78f9006be4dab370229c05484 inherit pub_methods_classIOv2_1_1ios__base" id="r_a5e440cf78f9006be4dab370229c05484"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ios__base.html#a5e440cf78f9006be4dab370229c05484">ios_base</a> (const ios_base &amp;)=default</td></tr>
+<tr class="memdesc:a5e440cf78f9006be4dab370229c05484 inherit pub_methods_classIOv2_1_1ios__base"><td class="mdescLeft">&#160;</td><td class="mdescRight">拷贝/移动构造与赋值。  <br /></td></tr>
+<tr class="memitem:a3dcd18008e3a47386676c073be535268 inherit pub_methods_classIOv2_1_1ios__base" id="r_a3dcd18008e3a47386676c073be535268"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ios__base.html#a3dcd18008e3a47386676c073be535268">ios_base</a> (ios_base &amp;&amp;)=default</td></tr>
+<tr class="memitem:a6a36467c2a28f2dc953b3bf8ba27ae9b inherit pub_methods_classIOv2_1_1ios__base" id="r_a6a36467c2a28f2dc953b3bf8ba27ae9b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classIOv2_1_1ios__base.html#a12f1da1653653548185e97a1d9cfb8c2">ios_base</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ios__base.html#a6a36467c2a28f2dc953b3bf8ba27ae9b">operator=</a> (const <a class="el" href="classIOv2_1_1ios__base.html#a12f1da1653653548185e97a1d9cfb8c2">ios_base</a> &amp;)=default</td></tr>
+<tr class="memitem:abdda3e4b1fb79636b2a54081a3d953e2 inherit pub_methods_classIOv2_1_1ios__base" id="r_abdda3e4b1fb79636b2a54081a3d953e2"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classIOv2_1_1ios__base.html#a12f1da1653653548185e97a1d9cfb8c2">ios_base</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ios__base.html#abdda3e4b1fb79636b2a54081a3d953e2">operator=</a> (<a class="el" href="classIOv2_1_1ios__base.html#a12f1da1653653548185e97a1d9cfb8c2">ios_base</a> &amp;&amp;)=default</td></tr>
+<tr class="memitem:aaa00e2b50de3ad0dd02b960ff7f175c6 inherit pub_methods_classIOv2_1_1ios__base" id="r_aaa00e2b50de3ad0dd02b960ff7f175c6"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ios__base.html#aaa00e2b50de3ad0dd02b960ff7f175c6">~ios_base</a> ()=default</td></tr>
+<tr class="memitem:a7f9bdc8dcc7554a06f405b670987d0cc inherit pub_methods_classIOv2_1_1ios__base" id="r_a7f9bdc8dcc7554a06f405b670987d0cc"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2_1_1ios__defs.html#ab481a81684565d362fa248a573b6fc4c">ios_defs::fmtflags</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ios__base.html#a7f9bdc8dcc7554a06f405b670987d0cc">flags</a> () const noexcept</td></tr>
+<tr class="memdesc:a7f9bdc8dcc7554a06f405b670987d0cc inherit pub_methods_classIOv2_1_1ios__base"><td class="mdescLeft">&#160;</td><td class="mdescRight">返回当前的格式化标志。    <br /></td></tr>
+<tr class="memitem:afe78f4d407033b9e03890346437cb874 inherit pub_methods_classIOv2_1_1ios__base" id="r_afe78f4d407033b9e03890346437cb874"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2_1_1ios__defs.html#ab481a81684565d362fa248a573b6fc4c">ios_defs::fmtflags</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ios__base.html#afe78f4d407033b9e03890346437cb874">flags</a> (<a class="el" href="namespaceIOv2_1_1ios__defs.html#ab481a81684565d362fa248a573b6fc4c">ios_defs::fmtflags</a> fmtfl) noexcept</td></tr>
+<tr class="memdesc:afe78f4d407033b9e03890346437cb874 inherit pub_methods_classIOv2_1_1ios__base"><td class="mdescLeft">&#160;</td><td class="mdescRight">将格式化标志整体替换为 <span class="tt">fmtfl</span>。  <br /></td></tr>
+<tr class="memitem:a8af55ceb8d97c2f54d1a67a9b58b44e5 inherit pub_methods_classIOv2_1_1ios__base" id="r_a8af55ceb8d97c2f54d1a67a9b58b44e5"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2_1_1ios__defs.html#ab481a81684565d362fa248a573b6fc4c">ios_defs::fmtflags</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ios__base.html#a8af55ceb8d97c2f54d1a67a9b58b44e5">setf</a> (<a class="el" href="namespaceIOv2_1_1ios__defs.html#ab481a81684565d362fa248a573b6fc4c">ios_defs::fmtflags</a> fmtfl) noexcept</td></tr>
+<tr class="memdesc:a8af55ceb8d97c2f54d1a67a9b58b44e5 inherit pub_methods_classIOv2_1_1ios__base"><td class="mdescLeft">&#160;</td><td class="mdescRight">置位 <span class="tt">fmtfl</span> 中的标志（按位或）。  <br /></td></tr>
+<tr class="memitem:a0d2e11d0d955ab7d16c2f1a32dcf8572 inherit pub_methods_classIOv2_1_1ios__base" id="r_a0d2e11d0d955ab7d16c2f1a32dcf8572"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2_1_1ios__defs.html#ab481a81684565d362fa248a573b6fc4c">ios_defs::fmtflags</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ios__base.html#a0d2e11d0d955ab7d16c2f1a32dcf8572">setf</a> (<a class="el" href="namespaceIOv2_1_1ios__defs.html#ab481a81684565d362fa248a573b6fc4c">ios_defs::fmtflags</a> fmtfl, <a class="el" href="namespaceIOv2_1_1ios__defs.html#ab481a81684565d362fa248a573b6fc4c">ios_defs::fmtflags</a> msk) noexcept</td></tr>
+<tr class="memdesc:a0d2e11d0d955ab7d16c2f1a32dcf8572 inherit pub_methods_classIOv2_1_1ios__base"><td class="mdescLeft">&#160;</td><td class="mdescRight">在掩码 <span class="tt">msk</span> 限定的位域内，将标志设置为 <span class="tt">fmtfl</span>。  <br /></td></tr>
+<tr class="memitem:aa412c9acd21edffe57c0db469146e698 inherit pub_methods_classIOv2_1_1ios__base" id="r_aa412c9acd21edffe57c0db469146e698"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ios__base.html#aa412c9acd21edffe57c0db469146e698">unsetf</a> (<a class="el" href="namespaceIOv2_1_1ios__defs.html#ab481a81684565d362fa248a573b6fc4c">ios_defs::fmtflags</a> msk) noexcept</td></tr>
+<tr class="memdesc:aa412c9acd21edffe57c0db469146e698 inherit pub_methods_classIOv2_1_1ios__base"><td class="mdescLeft">&#160;</td><td class="mdescRight">清除 <span class="tt">msk</span> 中的标志。  <br /></td></tr>
+<tr class="memitem:afb5aa7d4133c75f1f6b07b741ec183b6 inherit pub_methods_classIOv2_1_1ios__base" id="r_afb5aa7d4133c75f1f6b07b741ec183b6"><td class="memItemLeft" align="right" valign="top">std::uint8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ios__base.html#afb5aa7d4133c75f1f6b07b741ec183b6">precision</a> () const noexcept</td></tr>
+<tr class="memdesc:afb5aa7d4133c75f1f6b07b741ec183b6 inherit pub_methods_classIOv2_1_1ios__base"><td class="mdescLeft">&#160;</td><td class="mdescRight">返回当前的浮点精度。  <br /></td></tr>
+<tr class="memitem:ad24d30e38c2e9f4368c41a479c4a5d4f inherit pub_methods_classIOv2_1_1ios__base" id="r_ad24d30e38c2e9f4368c41a479c4a5d4f"><td class="memItemLeft" align="right" valign="top">std::uint8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ios__base.html#ad24d30e38c2e9f4368c41a479c4a5d4f">precision</a> (std::ptrdiff_t prec)</td></tr>
+<tr class="memdesc:ad24d30e38c2e9f4368c41a479c4a5d4f inherit pub_methods_classIOv2_1_1ios__base"><td class="mdescLeft">&#160;</td><td class="mdescRight">将浮点精度设置为 <code class="param">prec</code> 并返回旧值。  <br /></td></tr>
+<tr class="memitem:ac21ec6e7b13133a50c66229883589829 inherit pub_methods_classIOv2_1_1ios__base" id="r_ac21ec6e7b13133a50c66229883589829"><td class="memItemLeft" align="right" valign="top">std::size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ios__base.html#ac21ec6e7b13133a50c66229883589829">width</a> () const noexcept</td></tr>
+<tr class="memdesc:ac21ec6e7b13133a50c66229883589829 inherit pub_methods_classIOv2_1_1ios__base"><td class="mdescLeft">&#160;</td><td class="mdescRight">返回当前的字段宽度。  <br /></td></tr>
+<tr class="memitem:a2796dbca8df71c2cc30b51617ba4d32f inherit pub_methods_classIOv2_1_1ios__base" id="r_a2796dbca8df71c2cc30b51617ba4d32f"><td class="memItemLeft" align="right" valign="top">std::size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ios__base.html#a2796dbca8df71c2cc30b51617ba4d32f">width</a> (std::ptrdiff_t wide)</td></tr>
+<tr class="memdesc:a2796dbca8df71c2cc30b51617ba4d32f inherit pub_methods_classIOv2_1_1ios__base"><td class="mdescLeft">&#160;</td><td class="mdescRight">将字段宽度设置为 <code class="param">wide</code> 并返回旧值。  <br /></td></tr>
+<tr class="memitem:a98af22a53536d499fb53b7e33089fc27 inherit pub_methods_classIOv2_1_1ios__base" id="r_a98af22a53536d499fb53b7e33089fc27"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ios__base.html#a98af22a53536d499fb53b7e33089fc27">width_guard</a> ()</td></tr>
+<tr class="memdesc:a98af22a53536d499fb53b7e33089fc27 inherit pub_methods_classIOv2_1_1ios__base"><td class="mdescLeft">&#160;</td><td class="mdescRight">返回一个作用域守卫，其析构会把字段宽度**消费掉**（置 0）。  <br /></td></tr>
+<tr class="memitem:a07a854a549fe07ddd93a62830565576e inherit pub_methods_classIOv2_1_1ios__base" id="r_a07a854a549fe07ddd93a62830565576e"><td class="memItemLeft" align="right" valign="top">TChar&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ios__base.html#a07a854a549fe07ddd93a62830565576e">fill</a> () const noexcept</td></tr>
+<tr class="memdesc:a07a854a549fe07ddd93a62830565576e inherit pub_methods_classIOv2_1_1ios__base"><td class="mdescLeft">&#160;</td><td class="mdescRight">获取/设置填充字符。  <br /></td></tr>
+<tr class="memitem:ad14928bf3021ad315d1919d5cef3b684 inherit pub_methods_classIOv2_1_1ios__base" id="r_ad14928bf3021ad315d1919d5cef3b684"><td class="memItemLeft" align="right" valign="top">TChar&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ios__base.html#ad14928bf3021ad315d1919d5cef3b684">fill</a> (TChar ch) noexcept</td></tr>
+<tr class="memitem:aeb0f9c59e27969ee23f8d20d51c9c68b inherit pub_methods_classIOv2_1_1ios__base" id="r_aeb0f9c59e27969ee23f8d20d51c9c68b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classIOv2_1_1copyable__mutex.html">copyable_mutex</a>&lt; std::recursive_mutex &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ios__base.html#aeb0f9c59e27969ee23f8d20d51c9c68b">io_mutex</a> () const noexcept</td></tr>
+<tr class="memdesc:aeb0f9c59e27969ee23f8d20d51c9c68b inherit pub_methods_classIOv2_1_1ios__base"><td class="mdescLeft">&#160;</td><td class="mdescRight">返回本流的对象锁。  <br /></td></tr>
+<tr class="memitem:aa17d153d5505a4a33686791f67bf66a7 inherit pub_methods_classIOv2_1_1ios__base" id="r_aa17d153d5505a4a33686791f67bf66a7"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; void &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ios__base.html#aa17d153d5505a4a33686791f67bf66a7">set_pword</a> (std::size_t id, std::shared_ptr&lt; void &gt; pword)</td></tr>
+<tr class="memdesc:aa17d153d5505a4a33686791f67bf66a7 inherit pub_methods_classIOv2_1_1ios__base"><td class="mdescLeft">&#160;</td><td class="mdescRight">设置 id 对应的 pword（per-stream 用户数据）条目。  <br /></td></tr>
+<tr class="memitem:a0a1ad1a56d0255d7f784a9f1e4711544 inherit pub_methods_classIOv2_1_1ios__base" id="r_a0a1ad1a56d0255d7f784a9f1e4711544"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; void &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ios__base.html#a0a1ad1a56d0255d7f784a9f1e4711544">get_pword</a> (std::size_t id) const</td></tr>
+<tr class="memdesc:a0a1ad1a56d0255d7f784a9f1e4711544 inherit pub_methods_classIOv2_1_1ios__base"><td class="mdescLeft">&#160;</td><td class="mdescRight">获取 id 对应的 pword 条目。  <br /></td></tr>
+<tr class="memitem:ad1679548c7bf75b798c5acb0bcdbb293 inherit pub_methods_classIOv2_1_1ios__base" id="r_ad1679548c7bf75b798c5acb0bcdbb293"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ios__base.html#ad1679548c7bf75b798c5acb0bcdbb293">register_callback</a> (<a class="el" href="classIOv2_1_1ios__base.html#a54104c455ab7f72dbaebef7b293e3ff0">event_callback</a> fn, std::size_t id)</td></tr>
+<tr class="memdesc:ad1679548c7bf75b798c5acb0bcdbb293 inherit pub_methods_classIOv2_1_1ios__base"><td class="mdescLeft">&#160;</td><td class="mdescRight">注册一个本地化变更回调。  <br /></td></tr>
+<tr class="inherit_header pub_methods_structIOv2_1_1out__tie__target"><td colspan="2" onclick="javascript:dynsection.toggleInherit('pub_methods_structIOv2_1_1out__tie__target')"><span class="dynarrow"><span class="arrowhead closed"></span></span>Public 成员函数 继承自 <a class="el" href="structIOv2_1_1out__tie__target.html">IOv2::out_tie_target&lt; ostream&lt; TDevice, TChar &gt; &gt;</a></td></tr>
+<tr class="memitem:a671cc712b8a6be1811ef0cb34c2d70c5 inherit pub_methods_structIOv2_1_1out__tie__target" id="r_a671cc712b8a6be1811ef0cb34c2d70c5"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1out__tie__target.html#a671cc712b8a6be1811ef0cb34c2d70c5">try_flush</a> () noexcept final</td></tr>
+<tr class="memitem:a0dba48b6118164f3ddf159ec199ea96f inherit pub_methods_structIOv2_1_1out__tie__target" id="r_a0dba48b6118164f3ddf159ec199ea96f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classIOv2_1_1tie__target.html#a60de2227fe2a61ccd5e60982d06ed488">tie_target</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1out__tie__target.html#a0dba48b6118164f3ddf159ec199ea96f">tied_to</a> () const noexcept final</td></tr>
+<tr class="memdesc:a0dba48b6118164f3ddf159ec199ea96f inherit pub_methods_structIOv2_1_1out__tie__target"><td class="mdescLeft">&#160;</td><td class="mdescRight">本流 tie 到的目标，即 <span class="tt">tie()</span> 的取值；见 <span class="tt"><a class="el" href="classIOv2_1_1tie__target.html#a803409c8f768b95ead7bb877af51af21" title="本节点在 tie 图上的出边：本流 tie 到的目标；不带出边的节点返回 nullptr。">tie_target::tied_to()</a></span>。    <br /></td></tr>
+<tr class="inherit_header pub_methods_classIOv2_1_1tie__target"><td colspan="2" onclick="javascript:dynsection.toggleInherit('pub_methods_classIOv2_1_1tie__target')"><span class="dynarrow"><span class="arrowhead closed"></span></span>Public 成员函数 继承自 <a class="el" href="classIOv2_1_1tie__target.html">IOv2::tie_target</a></td></tr>
+<tr class="memitem:a345ecc4fb2ab275da6acbee1f4d32a10 inherit pub_methods_classIOv2_1_1tie__target" id="r_a345ecc4fb2ab275da6acbee1f4d32a10"><td class="memItemLeft" align="right" valign="top">virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1tie__target.html#a345ecc4fb2ab275da6acbee1f4d32a10">~tie_target</a> ()=default</td></tr>
+<tr class="inherit_header pub_methods_structIOv2_1_1ostream__operators"><td colspan="2" onclick="javascript:dynsection.toggleInherit('pub_methods_structIOv2_1_1ostream__operators')"><span class="dynarrow"><span class="arrowhead closed"></span></span>Public 成员函数 继承自 <a class="el" href="structIOv2_1_1ostream__operators.html">IOv2::ostream_operators&lt; TChar &gt;</a></td></tr>
+<tr class="memitem:a9150e283c8b68aa30b9a706bccf98626 inherit pub_methods_structIOv2_1_1ostream__operators" id="r_a9150e283c8b68aa30b9a706bccf98626"><td class="memTemplParams" colspan="2">template&lt;typename TSelf&gt; </td></tr>
+<tr class="memitem:a9150e283c8b68aa30b9a706bccf98626 inherit pub_methods_structIOv2_1_1ostream__operators template"><td class="memItemLeft" align="right" valign="top">TSelf &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1ostream__operators.html#a9150e283c8b68aa30b9a706bccf98626">put</a> (this TSelf &amp;self, TChar c, bool force_flush=false)</td></tr>
+<tr class="memdesc:a9150e283c8b68aa30b9a706bccf98626 inherit pub_methods_structIOv2_1_1ostream__operators"><td class="mdescLeft">&#160;</td><td class="mdescRight">向流写入单个字符。  <br /></td></tr>
+<tr class="memitem:abdecda15f9e5bd4998cf91ec849ffcf6 inherit pub_methods_structIOv2_1_1ostream__operators" id="r_abdecda15f9e5bd4998cf91ec849ffcf6"><td class="memTemplParams" colspan="2">template&lt;typename TSelf&gt; </td></tr>
+<tr class="memitem:abdecda15f9e5bd4998cf91ec849ffcf6 inherit pub_methods_structIOv2_1_1ostream__operators template"><td class="memItemLeft" align="right" valign="top">TSelf &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1ostream__operators.html#abdecda15f9e5bd4998cf91ec849ffcf6">write</a> (this TSelf &amp;self, const TChar *s, std::ptrdiff_t n)</td></tr>
+<tr class="memdesc:abdecda15f9e5bd4998cf91ec849ffcf6 inherit pub_methods_structIOv2_1_1ostream__operators"><td class="mdescLeft">&#160;</td><td class="mdescRight">向流写入 <span class="tt">n</span> 个字符。  <br /></td></tr>
+<tr class="memitem:af91de8151c29e3bf4f395880c995d5f3 inherit pub_methods_structIOv2_1_1ostream__operators" id="r_af91de8151c29e3bf4f395880c995d5f3"><td class="memTemplParams" colspan="2">template&lt;typename TSelf&gt; </td></tr>
+<tr class="memitem:af91de8151c29e3bf4f395880c995d5f3 inherit pub_methods_structIOv2_1_1ostream__operators template"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1ostream__operators.html#af91de8151c29e3bf4f395880c995d5f3">flush</a> (this TSelf &amp;self)</td></tr>
+<tr class="inherit_header pub_methods_structIOv2_1_1basic__stream__common__operators"><td colspan="2" onclick="javascript:dynsection.toggleInherit('pub_methods_structIOv2_1_1basic__stream__common__operators')"><span class="dynarrow"><span class="arrowhead closed"></span></span>Public 成员函数 继承自 <a class="el" href="structIOv2_1_1basic__stream__common__operators.html">IOv2::basic_stream_common_operators&lt; false &gt;</a></td></tr>
+<tr class="memitem:a8e83cb3c266f6d39fd01521a85779937 inherit pub_methods_structIOv2_1_1basic__stream__common__operators" id="r_a8e83cb3c266f6d39fd01521a85779937"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1basic__stream__common__operators.html#a8e83cb3c266f6d39fd01521a85779937">basic_stream_common_operators</a> ()=default</td></tr>
+<tr class="memitem:a2d491260d0ea7eeaa8922b0c0054ca5d inherit pub_methods_structIOv2_1_1basic__stream__common__operators" id="r_a2d491260d0ea7eeaa8922b0c0054ca5d"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1basic__stream__common__operators.html#a2d491260d0ea7eeaa8922b0c0054ca5d">basic_stream_common_operators</a> (const basic_stream_common_operators &amp;) noexcept</td></tr>
+<tr class="memitem:ac635e02a45f5eb7853416c329f29abcb inherit pub_methods_structIOv2_1_1basic__stream__common__operators" id="r_ac635e02a45f5eb7853416c329f29abcb"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1basic__stream__common__operators.html#ac635e02a45f5eb7853416c329f29abcb">basic_stream_common_operators</a> (basic_stream_common_operators &amp;&amp;other) noexcept</td></tr>
+<tr class="memitem:af2d8446367c9872147a633048699d45c inherit pub_methods_structIOv2_1_1basic__stream__common__operators" id="r_af2d8446367c9872147a633048699d45c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structIOv2_1_1basic__stream__common__operators.html#a8e83cb3c266f6d39fd01521a85779937">basic_stream_common_operators</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1basic__stream__common__operators.html#af2d8446367c9872147a633048699d45c">operator=</a> (const <a class="el" href="structIOv2_1_1basic__stream__common__operators.html#a8e83cb3c266f6d39fd01521a85779937">basic_stream_common_operators</a> &amp;) noexcept</td></tr>
+<tr class="memitem:aecfe51e6e758dd47b002089e6c896d72 inherit pub_methods_structIOv2_1_1basic__stream__common__operators" id="r_aecfe51e6e758dd47b002089e6c896d72"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structIOv2_1_1basic__stream__common__operators.html#a8e83cb3c266f6d39fd01521a85779937">basic_stream_common_operators</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1basic__stream__common__operators.html#aecfe51e6e758dd47b002089e6c896d72">operator=</a> (<a class="el" href="structIOv2_1_1basic__stream__common__operators.html#a8e83cb3c266f6d39fd01521a85779937">basic_stream_common_operators</a> &amp;&amp;other) noexcept</td></tr>
+<tr class="memitem:a20dbf298b1b6983c0059a57c7b359803 inherit pub_methods_structIOv2_1_1basic__stream__common__operators" id="r_a20dbf298b1b6983c0059a57c7b359803"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1basic__stream__common__operators.html#a20dbf298b1b6983c0059a57c7b359803">~basic_stream_common_operators</a> ()=default</td></tr>
+<tr class="memitem:aca31a565fc1e4f17d040aafe8c5fcbe9 inherit pub_methods_structIOv2_1_1basic__stream__common__operators" id="r_aca31a565fc1e4f17d040aafe8c5fcbe9"><td class="memItemLeft" align="right" valign="top">std::optional&lt; std::size_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1basic__stream__common__operators.html#aca31a565fc1e4f17d040aafe8c5fcbe9">tell</a> (this auto &amp;self)</td></tr>
+<tr class="memdesc:aca31a565fc1e4f17d040aafe8c5fcbe9 inherit pub_methods_structIOv2_1_1basic__stream__common__operators"><td class="mdescLeft">&#160;</td><td class="mdescRight">返回底层流的当前位置。  <br /></td></tr>
+<tr class="memitem:a0495f240360422649dc92de184df9b02 inherit pub_methods_structIOv2_1_1basic__stream__common__operators" id="r_a0495f240360422649dc92de184df9b02"><td class="memItemLeft" align="right" valign="top">auto &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1basic__stream__common__operators.html#a0495f240360422649dc92de184df9b02">seek</a> (this auto &amp;self, std::size_t pos)</td></tr>
+<tr class="memdesc:a0495f240360422649dc92de184df9b02 inherit pub_methods_structIOv2_1_1basic__stream__common__operators"><td class="mdescLeft">&#160;</td><td class="mdescRight">从头（起始处）定位到绝对位置 <span class="tt">pos</span>。  <br /></td></tr>
+<tr class="memitem:a643d41802554e80f2e187c7a3babdf1a inherit pub_methods_structIOv2_1_1basic__stream__common__operators" id="r_a643d41802554e80f2e187c7a3babdf1a"><td class="memItemLeft" align="right" valign="top">auto &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1basic__stream__common__operators.html#a643d41802554e80f2e187c7a3babdf1a">rseek</a> (this auto &amp;self, std::size_t pos)</td></tr>
+<tr class="memdesc:a643d41802554e80f2e187c7a3babdf1a inherit pub_methods_structIOv2_1_1basic__stream__common__operators"><td class="mdescLeft">&#160;</td><td class="mdescRight">从尾（末尾处）定位到位置 <span class="tt">pos</span>。  <br /></td></tr>
+<tr class="memitem:aa36ce196177d2725970206a937868dbd inherit pub_methods_structIOv2_1_1basic__stream__common__operators" id="r_aa36ce196177d2725970206a937868dbd"><td class="memItemLeft" align="right" valign="top">auto &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1basic__stream__common__operators.html#aa36ce196177d2725970206a937868dbd">device</a> (this auto &amp;self)</td></tr>
+<tr class="memdesc:aa36ce196177d2725970206a937868dbd inherit pub_methods_structIOv2_1_1basic__stream__common__operators"><td class="mdescLeft">&#160;</td><td class="mdescRight">返回底层设备的引用。  <br /></td></tr>
+<tr class="memitem:ab3da4333bc909c38f7eea55a758b192a inherit pub_methods_structIOv2_1_1basic__stream__common__operators" id="r_ab3da4333bc909c38f7eea55a758b192a"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1basic__stream__common__operators.html#ab3da4333bc909c38f7eea55a758b192a">detach</a> (this auto &amp;self) noexcept</td></tr>
+<tr class="memdesc:ab3da4333bc909c38f7eea55a758b192a inherit pub_methods_structIOv2_1_1basic__stream__common__operators"><td class="mdescLeft">&#160;</td><td class="mdescRight">分离并取回底层设备（连同分离期间捕获的错误）。  <br /></td></tr>
+<tr class="memitem:acb5b751b3f356c33cf35d2f810a840f8 inherit pub_methods_structIOv2_1_1basic__stream__common__operators" id="r_acb5b751b3f356c33cf35d2f810a840f8"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1basic__stream__common__operators.html#acb5b751b3f356c33cf35d2f810a840f8">attach</a> (this TSelf &amp;self, typename TSelf::device_type &amp;&amp;dev=typename TSelf::device_type{})</td></tr>
+<tr class="memitem:a0a9dc7beab11e4c2260855dd00b7175a inherit pub_methods_structIOv2_1_1basic__stream__common__operators" id="r_a0a9dc7beab11e4c2260855dd00b7175a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1basic__stream__common__operators.html#a0a9dc7beab11e4c2260855dd00b7175a">adjust</a> (this auto &amp;self, const <a class="el" href="structIOv2_1_1cvt__behavior.html">cvt_behavior</a> &amp;acc)</td></tr>
+<tr class="memdesc:a0a9dc7beab11e4c2260855dd00b7175a inherit pub_methods_structIOv2_1_1basic__stream__common__operators"><td class="mdescLeft">&#160;</td><td class="mdescRight">调整底层编码转换的行为。  <br /></td></tr>
+<tr class="memitem:a1d62400a35d2ec955143b27b80ba1219 inherit pub_methods_structIOv2_1_1basic__stream__common__operators" id="r_a1d62400a35d2ec955143b27b80ba1219"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1basic__stream__common__operators.html#a1d62400a35d2ec955143b27b80ba1219">retrieve</a> (this auto &amp;self, <a class="el" href="structIOv2_1_1cvt__status.html">cvt_status</a> &amp;acc)</td></tr>
+<tr class="memdesc:a1d62400a35d2ec955143b27b80ba1219 inherit pub_methods_structIOv2_1_1basic__stream__common__operators"><td class="mdescLeft">&#160;</td><td class="mdescRight">取回底层编码转换的当前状态。  <br /></td></tr>
+<tr class="memitem:a2edc7c1ef8819b3d750df00d960f5f0d inherit pub_methods_structIOv2_1_1basic__stream__common__operators" id="r_a2edc7c1ef8819b3d750df00d960f5f0d"><td class="memItemLeft" align="right" valign="top">const auto &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1basic__stream__common__operators.html#a2edc7c1ef8819b3d750df00d960f5f0d">locale</a> (this const auto &amp;self)</td></tr>
+<tr class="memdesc:a2edc7c1ef8819b3d750df00d960f5f0d inherit pub_methods_structIOv2_1_1basic__stream__common__operators"><td class="mdescLeft">&#160;</td><td class="mdescRight">返回本流当前使用的 locale（getter）。  <br /></td></tr>
+<tr class="memitem:ac45786328e08cebc56b8cf26b3163bfc inherit pub_methods_structIOv2_1_1basic__stream__common__operators" id="r_ac45786328e08cebc56b8cf26b3163bfc"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1basic__stream__common__operators.html#ac45786328e08cebc56b8cf26b3163bfc">locale</a> (this auto &amp;self, <a class="el" href="classIOv2_1_1locale.html">IOv2::locale</a>&lt; TChar &gt; loc)</td></tr>
+<tr class="memdesc:ac45786328e08cebc56b8cf26b3163bfc inherit pub_methods_structIOv2_1_1basic__stream__common__operators"><td class="mdescLeft">&#160;</td><td class="mdescRight">设置本流使用的 locale，并返回先前的 locale。  <br /></td></tr>
+<tr class="memitem:a3c482fdf6c32e5147e021f5c61eb0565 inherit pub_methods_structIOv2_1_1basic__stream__common__operators" id="r_a3c482fdf6c32e5147e021f5c61eb0565"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classIOv2_1_1tie__target.html">tie_target</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1basic__stream__common__operators.html#a3c482fdf6c32e5147e021f5c61eb0565">tie</a> (this TSelf &amp;self, <a class="el" href="classIOv2_1_1tie__target.html">tie_target</a> *str)</td></tr>
+<tr class="memdesc:a3c482fdf6c32e5147e021f5c61eb0565 inherit pub_methods_structIOv2_1_1basic__stream__common__operators"><td class="mdescLeft">&#160;</td><td class="mdescRight">设置本流所绑定（tie）的输出流，并返回先前绑定的流。  <br /></td></tr>
+<tr class="memitem:a0443902e15946d144d8af79d7dfca0dc inherit pub_methods_structIOv2_1_1basic__stream__common__operators" id="r_a0443902e15946d144d8af79d7dfca0dc"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classIOv2_1_1tie__target.html">tie_target</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1basic__stream__common__operators.html#a0443902e15946d144d8af79d7dfca0dc">tie</a> (this const auto &amp;self)</td></tr>
+<tr class="memdesc:a0443902e15946d144d8af79d7dfca0dc inherit pub_methods_structIOv2_1_1basic__stream__common__operators"><td class="mdescLeft">&#160;</td><td class="mdescRight">返回本流当前所绑定（tie）的输出流（getter）。  <br /></td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
+Public 属性</h2></td></tr>
+<tr class="memitem:a7b1cc274343a0a6fd13e3cd4dfd23003" id="r_a7b1cc274343a0a6fd13e3cd4dfd23003"><td class="memItemLeft" align="right" valign="top">friend&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a7b1cc274343a0a6fd13e3cd4dfd23003">out_sentry_type</a></td></tr>
+<tr class="memitem:aea28bd372d9d715e311daa2024a9ba6a" id="r_aea28bd372d9d715e311daa2024a9ba6a"><td class="memItemLeft" align="right" valign="top">friend&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aea28bd372d9d715e311daa2024a9ba6a">out_tie_target&lt; ostream&lt; TDevice, TChar &gt; &gt;</a></td></tr>
+<tr class="memitem:ae08589a85ac84dfbcaca362d1cc9f202" id="r_ae08589a85ac84dfbcaca362d1cc9f202"><td class="memItemLeft" align="right" valign="top">friend&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ae08589a85ac84dfbcaca362d1cc9f202">ostream_operators&lt; TChar &gt;</a></td></tr>
+<tr class="memitem:adce6eada755e31f927c93b919207275b" id="r_adce6eada755e31f927c93b919207275b"><td class="memItemLeft" align="right" valign="top">friend&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#adce6eada755e31f927c93b919207275b">stream_common_operators</a></td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 id="header-inherited" class="groupheader"><a id="inherited" name="inherited"></a>
+额外继承的成员函数</h2></td></tr>
+<tr class="inherit_header pub_static_methods_classIOv2_1_1ios__base"><td colspan="2" onclick="javascript:dynsection.toggleInherit('pub_static_methods_classIOv2_1_1ios__base')"><span class="dynarrow"><span class="arrowhead closed"></span></span>静态 Public 成员函数 继承自 <a class="el" href="classIOv2_1_1ios__base.html">IOv2::ios_base&lt; TChar &gt;</a></td></tr>
+<tr class="memitem:a894ac1efd7ea420d6133cc6a2d6d481e inherit pub_static_methods_classIOv2_1_1ios__base" id="r_a894ac1efd7ea420d6133cc6a2d6d481e"><td class="memItemLeft" align="right" valign="top">static std::size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ios__base.html#a894ac1efd7ea420d6133cc6a2d6d481e">xalloc</a> ()</td></tr>
+<tr class="memdesc:a894ac1efd7ea420d6133cc6a2d6d481e inherit pub_static_methods_classIOv2_1_1ios__base"><td class="mdescLeft">&#160;</td><td class="mdescRight">分配一个进程内唯一的存储索引。  <br /></td></tr>
+<tr class="inherit_header pro_methods_classIOv2_1_1ios__base"><td colspan="2" onclick="javascript:dynsection.toggleInherit('pro_methods_classIOv2_1_1ios__base')"><span class="dynarrow"><span class="arrowhead closed"></span></span>Protected 成员函数 继承自 <a class="el" href="classIOv2_1_1ios__base.html">IOv2::ios_base&lt; TChar &gt;</a></td></tr>
+<tr class="memitem:a2a323cb01f2656a4e4ce3217e844e967 inherit pro_methods_classIOv2_1_1ios__base" id="r_a2a323cb01f2656a4e4ce3217e844e967"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ios__base.html#a2a323cb01f2656a4e4ce3217e844e967">access_callbacks</a> (const <a class="el" href="classIOv2_1_1locale.html">locale</a>&lt; TChar &gt; &amp;new_loc)</td></tr>
+<tr class="memdesc:a2a323cb01f2656a4e4ce3217e844e967 inherit pro_methods_classIOv2_1_1ios__base"><td class="mdescLeft">&#160;</td><td class="mdescRight">依次调用所有已注册的本地化变更回调。  <br /></td></tr>
+<tr class="inherit_header pro_methods_classIOv2_1_1tie__target"><td colspan="2" onclick="javascript:dynsection.toggleInherit('pro_methods_classIOv2_1_1tie__target')"><span class="dynarrow"><span class="arrowhead closed"></span></span>Protected 成员函数 继承自 <a class="el" href="classIOv2_1_1tie__target.html">IOv2::tie_target</a></td></tr>
+<tr class="memitem:a60de2227fe2a61ccd5e60982d06ed488 inherit pro_methods_classIOv2_1_1tie__target" id="r_a60de2227fe2a61ccd5e60982d06ed488"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1tie__target.html#a60de2227fe2a61ccd5e60982d06ed488">tie_target</a> ()=default</td></tr>
+<tr class="memitem:aaa62a2354a173c43e767423a2559e517 inherit pro_methods_classIOv2_1_1tie__target" id="r_aaa62a2354a173c43e767423a2559e517"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1tie__target.html#aaa62a2354a173c43e767423a2559e517">tie_target</a> (const tie_target &amp;)=default</td></tr>
+<tr class="memitem:ac3b4c12998636692247fcda7b17e44d1 inherit pro_methods_classIOv2_1_1tie__target" id="r_ac3b4c12998636692247fcda7b17e44d1"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classIOv2_1_1tie__target.html#a60de2227fe2a61ccd5e60982d06ed488">tie_target</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1tie__target.html#ac3b4c12998636692247fcda7b17e44d1">operator=</a> (const <a class="el" href="classIOv2_1_1tie__target.html#a60de2227fe2a61ccd5e60982d06ed488">tie_target</a> &amp;)=default</td></tr>
+<tr class="memitem:a3caf7f668fb0a68fabc7aff871b88038 inherit pro_methods_classIOv2_1_1tie__target" id="r_a3caf7f668fb0a68fabc7aff871b88038"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1tie__target.html#a3caf7f668fb0a68fabc7aff871b88038">tie_target</a> (tie_target &amp;&amp;)=default</td></tr>
+<tr class="memitem:a97be466625ea5cb43a35feb49be8f34c inherit pro_methods_classIOv2_1_1tie__target" id="r_a97be466625ea5cb43a35feb49be8f34c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classIOv2_1_1tie__target.html#a60de2227fe2a61ccd5e60982d06ed488">tie_target</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1tie__target.html#a97be466625ea5cb43a35feb49be8f34c">operator=</a> (<a class="el" href="classIOv2_1_1tie__target.html#a60de2227fe2a61ccd5e60982d06ed488">tie_target</a> &amp;&amp;)=default</td></tr>
+<tr class="inherit_header pro_methods_structIOv2_1_1basic__stream__common__operators"><td colspan="2" onclick="javascript:dynsection.toggleInherit('pro_methods_structIOv2_1_1basic__stream__common__operators')"><span class="dynarrow"><span class="arrowhead closed"></span></span>Protected 成员函数 继承自 <a class="el" href="structIOv2_1_1basic__stream__common__operators.html">IOv2::basic_stream_common_operators&lt; false &gt;</a></td></tr>
+<tr class="memitem:ad48c6673031f958c98217ed33122352c inherit pro_methods_structIOv2_1_1basic__stream__common__operators" id="r_ad48c6673031f958c98217ed33122352c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1basic__stream__common__operators.html#ad48c6673031f958c98217ed33122352c">adjust</a> (this auto &amp;self, const <a class="el" href="structIOv2_1_1cvt__behavior.html">cvt_behavior</a> &amp;acc)</td></tr>
+<tr class="memdesc:ad48c6673031f958c98217ed33122352c inherit pro_methods_structIOv2_1_1basic__stream__common__operators"><td class="mdescLeft">&#160;</td><td class="mdescRight">标准流上的 <span class="tt"><a class="el" href="structIOv2_1_1basic__stream__common__operators.html#a0a9dc7beab11e4c2260855dd00b7175a">adjust</a></span>：与上面的公开版本相同，但受保护。  <br /></td></tr>
+<tr class="inherit_header pro_attribs_classIOv2_1_1ios__base"><td colspan="2" onclick="javascript:dynsection.toggleInherit('pro_attribs_classIOv2_1_1ios__base')"><span class="dynarrow"><span class="arrowhead closed"></span></span>Protected 属性 继承自 <a class="el" href="classIOv2_1_1ios__base.html">IOv2::ios_base&lt; TChar &gt;</a></td></tr>
+<tr class="memitem:a6e84f85d85b0ec531c21404ad795fd9b inherit pro_attribs_classIOv2_1_1ios__base" id="r_a6e84f85d85b0ec531c21404ad795fd9b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classIOv2_1_1copyable__atomic.html">copyable_atomic</a>&lt; std::uint16_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ios__base.html#a6e84f85d85b0ec531c21404ad795fd9b">m_flags</a> {<a class="el" href="namespaceIOv2_1_1ios__defs.html#ab481a81684565d362fa248a573b6fc4ca490c8140a8c70c0331de1a8e8aa8a762">ios_defs::skipws</a> | <a class="el" href="namespaceIOv2_1_1ios__defs.html#ab481a81684565d362fa248a573b6fc4cad08d4ff3b5596f98796af5ebc3e3df6f">ios_defs::dec</a>}</td></tr>
+<tr class="memdesc:a6e84f85d85b0ec531c21404ad795fd9b inherit pro_attribs_classIOv2_1_1ios__base"><td class="mdescLeft">&#160;</td><td class="mdescRight">格式化标志；默认置位 <span class="tt"><a class="el" href="group__ios__manipulators.html#ga6b290176f6af940b273b44362c620cf8" title="置位 skipws：输入时跳过前导空白。">skipws</a> | <a class="el" href="group__ios__manipulators.html#ga7ed460951db2dc78322b31b9eb096dd4" title="在 basefield 内设置 dec：整数以十进制表示。">dec</a></span>。    <br /></td></tr>
+<tr class="memitem:acde5e32929a1700b0969e1da4a7ef0a9 inherit pro_attribs_classIOv2_1_1ios__base" id="r_acde5e32929a1700b0969e1da4a7ef0a9"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classIOv2_1_1copyable__atomic.html">copyable_atomic</a>&lt; std::uint8_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ios__base.html#acde5e32929a1700b0969e1da4a7ef0a9">m_precision</a> {6}</td></tr>
+<tr class="memdesc:acde5e32929a1700b0969e1da4a7ef0a9 inherit pro_attribs_classIOv2_1_1ios__base"><td class="mdescLeft">&#160;</td><td class="mdescRight">浮点精度，默认 6。    <br /></td></tr>
+<tr class="memitem:a586cba3ed15f6dba0c8bc55a0fd0d9ac inherit pro_attribs_classIOv2_1_1ios__base" id="r_a586cba3ed15f6dba0c8bc55a0fd0d9ac"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classIOv2_1_1copyable__atomic.html">copyable_atomic</a>&lt; std::size_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ios__base.html#a586cba3ed15f6dba0c8bc55a0fd0d9ac">m_width</a> {0}</td></tr>
+<tr class="memdesc:a586cba3ed15f6dba0c8bc55a0fd0d9ac inherit pro_attribs_classIOv2_1_1ios__base"><td class="mdescLeft">&#160;</td><td class="mdescRight">字段宽度，默认 0（不填充）。    <br /></td></tr>
+<tr class="memitem:addcbee9bd77937bc86be006dc3ba6207 inherit pro_attribs_classIOv2_1_1ios__base" id="r_addcbee9bd77937bc86be006dc3ba6207"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classIOv2_1_1copyable__atomic.html">copyable_atomic</a>&lt; TChar &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ios__base.html#addcbee9bd77937bc86be006dc3ba6207">m_fill</a> {(TChar)' '}</td></tr>
+<tr class="memdesc:addcbee9bd77937bc86be006dc3ba6207 inherit pro_attribs_classIOv2_1_1ios__base"><td class="mdescLeft">&#160;</td><td class="mdescRight">默认填充字符。  <br /></td></tr>
+<tr class="memitem:ad85e04e2b06caf7847eb22fbf6ea8a91 inherit pro_attribs_classIOv2_1_1ios__base" id="r_ad85e04e2b06caf7847eb22fbf6ea8a91"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classIOv2_1_1copyable__mutex.html">copyable_mutex</a>&lt; std::recursive_mutex &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ios__base.html#ad85e04e2b06caf7847eb22fbf6ea8a91">m_io_mutex</a></td></tr>
+<tr class="memdesc:ad85e04e2b06caf7847eb22fbf6ea8a91 inherit pro_attribs_classIOv2_1_1ios__base"><td class="mdescLeft">&#160;</td><td class="mdescRight">本流的对象锁；串行化本流的全部操作，包括下面两个容器的访问。<span class="tt">mutable</span> 是因为 <span class="tt"><a class="el" href="classIOv2_1_1ios__base.html#a0a1ad1a56d0255d7f784a9f1e4711544" title="获取 id 对应的 pword 条目。">get_pword()</a></span> 等只读接口也要加锁。详见 <span class="tt"><a class="el" href="classIOv2_1_1ios__base.html#aeb0f9c59e27969ee23f8d20d51c9c68b" title="返回本流的对象锁。">io_mutex()</a></span>。    <br /></td></tr>
+<tr class="memitem:a4be8d1bbfc7ab070e36f53dc258df333 inherit pro_attribs_classIOv2_1_1ios__base" id="r_a4be8d1bbfc7ab070e36f53dc258df333"><td class="memItemLeft" align="right" valign="top">std::unordered_map&lt; std::size_t, std::shared_ptr&lt; void &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ios__base.html#a4be8d1bbfc7ab070e36f53dc258df333">m_pwords</a></td></tr>
+<tr class="memdesc:a4be8d1bbfc7ab070e36f53dc258df333 inherit pro_attribs_classIOv2_1_1ios__base"><td class="mdescLeft">&#160;</td><td class="mdescRight">按 id 索引的 per-stream 用户数据存储。由 <span class="tt"><a class="el" href="classIOv2_1_1ios__base.html#ad85e04e2b06caf7847eb22fbf6ea8a91" title="本流的对象锁；串行化本流的全部操作，包括下面两个容器的访问。mutable 是因为 get_pword() 等只读接口也要加锁。详见 io_mutex()。">m_io_mutex</a></span> 保护。    <br /></td></tr>
+<tr class="memitem:ade14c267914982e9b2e3eeb4d86a7c7b inherit pro_attribs_classIOv2_1_1ios__base" id="r_ade14c267914982e9b2e3eeb4d86a7c7b"><td class="memItemLeft" align="right" valign="top">std::forward_list&lt; std::pair&lt; <a class="el" href="classIOv2_1_1ios__base.html#a54104c455ab7f72dbaebef7b293e3ff0">event_callback</a>, std::size_t &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ios__base.html#ade14c267914982e9b2e3eeb4d86a7c7b">m_callbacks</a></td></tr>
+<tr class="memdesc:ade14c267914982e9b2e3eeb4d86a7c7b inherit pro_attribs_classIOv2_1_1ios__base"><td class="mdescLeft">&#160;</td><td class="mdescRight">已注册的本地化变更回调及其关联 id（前插，后注册者先调用）。由 <span class="tt"><a class="el" href="classIOv2_1_1ios__base.html#ad85e04e2b06caf7847eb22fbf6ea8a91" title="本流的对象锁；串行化本流的全部操作，包括下面两个容器的访问。mutable 是因为 get_pword() 等只读接口也要加锁。详见 io_mutex()。">m_io_mutex</a></span> 保护。    <br /></td></tr>
+</table>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">详细描述</h2>
+<div class="textblock"><div class="compoundTemplParams">template&lt;io_device TDevice, typename TChar&gt;<br />
+requires dev_cpt::support_put&lt;TDevice&gt;<br />
+class IOv2::ostream&lt; TDevice, TChar &gt;</div><p>字符输出流：把一条 <span class="tt"><a class="el" href="structIOv2_1_1ochannel.html" title="只写通道：仅支持输出。">ochannel</a></span> 与一个 locale 组合成带格式化的输出接口。 </p>
+<p>对外接口大多来自基类——<span class="tt"><a class="el" href="structIOv2_1_1ios__state.html" title="在格式化状态之上，管理流状态位及其关联异常的组件。">ios_state</a></span> 提供状态位与异常掩码，<span class="tt"><a class="el" href="structIOv2_1_1ostream__operators.html" title="为输出流提供各类插入操作的混入（mix-in）基类。">ostream_operators</a></span> 提供输出操作， <span class="tt"><a class="el" href="structIOv2_1_1out__tie__target.html" title="承载多态 try_flush() 的 CRTP 基类：对具体流类型 T 的向下转型集中于此。">out_tie_target</a></span> 携带 tie 刷新用的多态 <span class="tt"><a class="el" href="structIOv2_1_1out__tie__target.html#a671cc712b8a6be1811ef0cb34c2d70c5">try_flush()</a></span>，<span class="tt"><a class="el" href="#adce6eada755e31f927c93b919207275b">stream_common_operators</a></span> 提供 <span class="tt"><a class="el" href="structIOv2_1_1basic__stream__common__operators.html#aca31a565fc1e4f17d040aafe8c5fcbe9">tell()</a></span>/ <span class="tt"><a class="el" href="structIOv2_1_1basic__stream__common__operators.html#acb5b751b3f356c33cf35d2f810a840f8">attach()</a></span>/<span class="tt"><a class="el" href="structIOv2_1_1basic__stream__common__operators.html#ab3da4333bc909c38f7eea55a758b192a">detach()</a></span>/<span class="tt"><a class="el" href="structIOv2_1_1basic__stream__common__operators.html#a2edc7c1ef8819b3d750df00d960f5f0d">locale()</a></span> 等。本类自身只持有两个成员，且按**分层顺序**声明： <span class="tt">m_channel</span> 在前、<span class="tt">m_locale</span> 在后。</p>
+<p><a class="el" href="namespaceIOv2.html">IOv2</a> 的输出路径自上而下是流 → 通道 → 转换器管线 → 设备；locale 位于最上层，只参与格式化与 解析，不参与字符搬运。声明顺序与这条分层一致，于是析构自上而下，<span class="tt">~root_cvt</span> 把残留缓冲冲刷进 设备这一步始终作用在一个仍然完整的下层上。</p>
+<dl class="section note"><dt>注解</dt><dd>这条顺序同时规定了依赖方向：**下层不得访问上层**。通道及其以下不得引用 locale—— 析构期的那次冲刷跑在 <span class="tt">m_locale</span> 之后，那时 locale 已经不存在。反向依赖（流读取 locale）则始终成立。</dd></dl>
+<dl class="tparams"><dt>模板参数</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">TDevice</td><td>底层设备类型，须满足 <span class="tt"><a class="el" href="conceptIOv2_1_1io__device.html" title="I/O 设备的统一概念。">io_device</a></span> 且支持写入。 </td></tr>
+    <tr><td class="paramname">TChar</td><td>字符类型。 </td></tr>
+  </table>
+  </dd>
+</dl>
+</div><a name="doc-typedef-members" id="doc-typedef-members"></a><h2 id="header-doc-typedef-members" class="groupheader">成员类型定义说明</h2>
+<a id="aacccd6567413c13b66a49d266a1d699f" name="aacccd6567413c13b66a49d266a1d699f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aacccd6567413c13b66a49d266a1d699f">&#9670;&#160;</a></span>char_type</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;io_device TDevice, typename TChar&gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname">using <a class="el" href="classIOv2_1_1ostream.html">IOv2::ostream</a>&lt; TDevice, TChar &gt;::char_type = TChar</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>本流的字符类型，即**转换管线产出的**字符类型，未必是设备的。   </p>
+
+</div>
+</div>
+<a id="af55b093158db6dbf89d43bc5fb3f4ae3" name="af55b093158db6dbf89d43bc5fb3f4ae3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af55b093158db6dbf89d43bc5fb3f4ae3">&#9670;&#160;</a></span>device_type</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;io_device TDevice, typename TChar&gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname">using <a class="el" href="classIOv2_1_1ostream.html">IOv2::ostream</a>&lt; TDevice, TChar &gt;::device_type = TDevice</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>底层设备类型，即模板实参 <code class="param">TDevice。</code>   </p>
+
+</div>
+</div>
+<a id="ad6182bf85c95d506af0476e7ffe5ff0d" name="ad6182bf85c95d506af0476e7ffe5ff0d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad6182bf85c95d506af0476e7ffe5ff0d">&#9670;&#160;</a></span>out_iter_type</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;io_device TDevice, typename TChar&gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname">using <a class="el" href="classIOv2_1_1ostream.html">IOv2::ostream</a>&lt; TDevice, TChar &gt;::out_iter_type = <a class="el" href="classIOv2_1_1ochannel__iterator.html">ochannel_iterator</a>&lt;<a class="el" href="structIOv2_1_1ochannel.html">ochannel</a>&lt;TDevice, TChar&gt;&gt;</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>写入本流所用的输出迭代器类型，扩展点的迭代器形式 <span class="tt">swrite</span> 即以它写出字符。   </p>
+
+</div>
+</div>
+<a id="a1ea6b3f5e0e2999822c06b625088ac61" name="a1ea6b3f5e0e2999822c06b625088ac61"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1ea6b3f5e0e2999822c06b625088ac61">&#9670;&#160;</a></span>out_sentry_type</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;io_device TDevice, typename TChar&gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname">using <a class="el" href="classIOv2_1_1ostream.html">IOv2::ostream</a>&lt; TDevice, TChar &gt;::out_sentry_type = <a class="el" href="structIOv2_1_1out__sentry.html">out_sentry</a>&lt;<a class="el" href="#ae8d60232d536b11b58b6db7550088e2f">ostream</a>&lt;TDevice, TChar&gt;, false&gt;</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>本流的输出哨兵类型。哨兵在每次格式化输出前检查流状态、按需刷新 tie 目标、（追加模式下） 定位到末尾，并在析构时按构造实参 <span class="tt">is_unit_buf</span> 决定是否自动刷新——<span class="tt"><a class="el" href="namespaceIOv2.html#a7929840205374feca6b505f968e57ff5">endl</a></span> 的强制刷新即经 <span class="tt"><a class="el" href="structIOv2_1_1ostream__operators.html#a9150e283c8b68aa30b9a706bccf98626" title="向流写入单个字符。">put()</a></span> 的 <span class="tt">force_flush</span> 走这条路。模板实参 <span class="tt">false</span> 表示本流是单向的，无须先切换方向； 第三个实参取默认的 <span class="tt">false</span>，即本流不是标准流。   </p>
+
+</div>
+</div>
+<a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">构造及析构函数说明</h2>
+<a id="ae8d60232d536b11b58b6db7550088e2f" name="ae8d60232d536b11b58b6db7550088e2f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae8d60232d536b11b58b6db7550088e2f">&#9670;&#160;</a></span>ostream() <span class="overload">[1/7]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;io_device TDevice, typename TChar&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classIOv2_1_1ostream.html">IOv2::ostream</a>&lt; TDevice, TChar &gt;::ostream </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>以默认构造的设备建立流。 </p>
+<p>供"先默认构造、之后 `attach()` 装设备"这一用法。</p>
+<dl class="section warning"><dt>警告</dt><dd><b>构造流可能抛出异常，且异常不会被转成失败位。</b> 建流要初始化转换器，而这一步 会向设备询问流起点；设备若尚未就绪（例如默认构造的 <span class="tt"><a class="el" href="namespaceIOv2.html#afdd0a0edccc60c3d8b0faed66aebb426" title="读写文件设备的类型别名。">file_device</a></span> 对应一个未打开 的文件），询问就会抛出 <span class="tt"><a class="el" href="structIOv2_1_1device__error.html">device_error</a></span>。异常来自成员初始化列表，C++ 规定它必然向 外传播——构造函数 function-try-block 的处理器执行到末尾时会自动重抛，其中也不允许 <span class="tt">return</span>——而且此时流对象尚未诞生，也就无处安放状态位。本库其余的操作（包括 <span class="tt"><a class="el" href="structIOv2_1_1basic__stream__common__operators.html#acb5b751b3f356c33cf35d2f810a840f8">attach()</a></span>）都把异常转为状态位，唯独构造不能，调用方需要自行 <span class="tt">try</span>。 </dd></dl>
+<dl class="section note"><dt>注解</dt><dd>设备本身可用时（如 <span class="tt"><a class="el" href="classIOv2_1_1mem__device.html" title="一个在内存中进行 I/O 操作的设备。">mem_device</a></span>）默认构造不会抛，得到的是一个可直接使用的空流。 </dd>
+<dd>
+本重载要求 <span class="tt">TDevice::char_type</span> 与 <span class="tt">TChar</span> 一致：不带转换器时转换管线不改变字符 类型。约束为何落在构造函数上而不是推导指引上，见带 locale 的重载。 </dd></dl>
+<dl class="exception"><dt>异常</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname"><a class="el" href="structIOv2_1_1device__error.html">device_error</a></td><td>若设备无法完成转换器初始化所需的查询。 </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a25b072c7076c7b07c006ee1e627cb469" name="a25b072c7076c7b07c006ee1e627cb469"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a25b072c7076c7b07c006ee1e627cb469">&#9670;&#160;</a></span>ostream() <span class="overload">[2/7]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;io_device TDevice, typename TChar&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classIOv2_1_1ostream.html">IOv2::ostream</a>&lt; TDevice, TChar &gt;::ostream </td>
+          <td>(</td>
+          <td class="paramtype">TDevice</td>          <td class="paramname"><span class="paramname"><em>dev</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>以 <code class="param">dev</code> 建立流。 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">dev</td><td>底层设备。 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="exception"><dt>异常</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname"><a class="el" href="structIOv2_1_1device__error.html">device_error</a></td><td>若设备无法完成转换器初始化所需的查询；理由见默认构造函数。 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section note"><dt>注解</dt><dd>字符类型的约束与默认构造函数相同。 </dd></dl>
+
+</div>
+</div>
+<a id="adc73495fa723ec8ad0fb16dc3794b23f" name="adc73495fa723ec8ad0fb16dc3794b23f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adc73495fa723ec8ad0fb16dc3794b23f">&#9670;&#160;</a></span>ostream() <span class="overload">[3/7]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;io_device TDevice, typename TChar&gt; </div>
+<div class="memtemplate">
+template&lt;cvt_creator TCreator&gt; <br />
+requires (std::is_same_v&lt; typename decltype(<a class="el" href="structIOv2_1_1ochannel.html">ochannel</a>{std::declval&lt;TDevice&gt;(), std::declval&lt;const TCreator&amp;&gt;()})<a class="el" href="#aacccd6567413c13b66a49d266a1d699f">::char_type</a>, TChar&gt;)</div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classIOv2_1_1ostream.html">IOv2::ostream</a>&lt; TDevice, TChar &gt;::ostream </td>
+          <td>(</td>
+          <td class="paramtype">TDevice</td>          <td class="paramname"><span class="paramname"><em>dev</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const TCreator &amp;</td>          <td class="paramname"><span class="paramname"><em>creator</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>以 <code class="param">dev</code> 建立流，并由 <code class="param">creator</code> 构造转换器。 </p>
+<dl class="tparams"><dt>模板参数</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">TCreator</td><td>转换器创建器类型。 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">dev</td><td>底层设备。 </td></tr>
+    <tr><td class="paramname">creator</td><td>转换器创建器。 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="exception"><dt>异常</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname"><a class="el" href="structIOv2_1_1device__error.html">device_error</a></td><td>若设备无法完成转换器初始化所需的查询；理由见默认构造函数。 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section note"><dt>注解</dt><dd>本重载要求**转换管线产出的** <span class="tt"><a class="el" href="#aacccd6567413c13b66a49d266a1d699f">char_type</a></span> 与 <span class="tt">TChar</span> 一致；写法与理由见同时带 creator 与 locale 的那个重载。 </dd></dl>
+
+</div>
+</div>
+<a id="a895ac02c791c9b74624139f4d478f485" name="a895ac02c791c9b74624139f4d478f485"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a895ac02c791c9b74624139f4d478f485">&#9670;&#160;</a></span>ostream() <span class="overload">[4/7]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;io_device TDevice, typename TChar&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classIOv2_1_1ostream.html">IOv2::ostream</a>&lt; TDevice, TChar &gt;::ostream </td>
+          <td>(</td>
+          <td class="paramtype">TDevice</td>          <td class="paramname"><span class="paramname"><em>dev</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classIOv2_1_1locale.html">IOv2::locale</a>&lt; <a class="el" href="#aacccd6567413c13b66a49d266a1d699f">char_type</a> &gt;</td>          <td class="paramname"><span class="paramname"><em>loc</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>以 <code class="param">dev</code> 建立流，并装入 locale <code class="param">loc。</code> </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">dev</td><td>底层设备。 </td></tr>
+    <tr><td class="paramname">loc</td><td>本流的 locale。 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="exception"><dt>异常</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname"><a class="el" href="structIOv2_1_1device__error.html">device_error</a></td><td>若设备无法完成转换器初始化所需的查询；理由见默认构造函数。 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section note"><dt>注解</dt><dd>本重载要求 <code class="param">loc</code> 的字符类型与设备的 <span class="tt"><a class="el" href="#aacccd6567413c13b66a49d266a1d699f">char_type</a></span> 一致。约束落在**构造函数**上而不是 只落在推导指引上：构造函数生成的隐式推导指引会继承它的约束，故 CTAD 与显式写出 模板实参这两条路径同时被挡住；只约束推导指引则挡不住后者，不匹配的组合会一路走到 转换器内部才失败。 </dd></dl>
+
+</div>
+</div>
+<a id="a7a778c3ef8fa976a5d6349bafc6b8054" name="a7a778c3ef8fa976a5d6349bafc6b8054"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7a778c3ef8fa976a5d6349bafc6b8054">&#9670;&#160;</a></span>ostream() <span class="overload">[5/7]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;io_device TDevice, typename TChar&gt; </div>
+<div class="memtemplate">
+template&lt;cvt_creator TCreator&gt; <br />
+requires (std::is_same_v&lt; typename decltype(<a class="el" href="structIOv2_1_1ochannel.html">ochannel</a>{std::declval&lt;TDevice&gt;(), std::declval&lt;const TCreator&amp;&gt;()})<a class="el" href="#aacccd6567413c13b66a49d266a1d699f">::char_type</a>, TChar&gt;)</div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classIOv2_1_1ostream.html">IOv2::ostream</a>&lt; TDevice, TChar &gt;::ostream </td>
+          <td>(</td>
+          <td class="paramtype">TDevice</td>          <td class="paramname"><span class="paramname"><em>dev</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const TCreator &amp;</td>          <td class="paramname"><span class="paramname"><em>creator</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classIOv2_1_1locale.html">IOv2::locale</a>&lt; <a class="el" href="#aacccd6567413c13b66a49d266a1d699f">char_type</a> &gt;</td>          <td class="paramname"><span class="paramname"><em>loc</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>以 <code class="param">dev</code> 建立流，由 <code class="param">creator</code> 构造转换器，并装入 locale <code class="param">loc。</code> </p>
+<dl class="tparams"><dt>模板参数</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">TCreator</td><td>转换器创建器类型。 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">dev</td><td>底层设备。 </td></tr>
+    <tr><td class="paramname">creator</td><td>转换器创建器。 </td></tr>
+    <tr><td class="paramname">loc</td><td>本流的 locale。 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="exception"><dt>异常</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname"><a class="el" href="structIOv2_1_1device__error.html">device_error</a></td><td>若设备无法完成转换器初始化所需的查询；理由见默认构造函数。 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section note"><dt>注解</dt><dd>本重载要求 <code class="param">loc</code> 的字符类型与**转换管线产出的** <span class="tt"><a class="el" href="#aacccd6567413c13b66a49d266a1d699f">char_type</a></span> 一致——那未必是设备的 字符类型，例如 char 设备配上编码转换器即产出 wchar_t 流。约束为何落在构造函数上， 见只带 locale 的那个重载。 </dd></dl>
+
+</div>
+</div>
+<a id="a11c965ddd5ad533bda653c1e66091089" name="a11c965ddd5ad533bda653c1e66091089"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a11c965ddd5ad533bda653c1e66091089">&#9670;&#160;</a></span>ostream() <span class="overload">[6/7]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;io_device TDevice, typename TChar&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classIOv2_1_1ostream.html">IOv2::ostream</a>&lt; TDevice, TChar &gt;::ostream </td>
+          <td>(</td>
+          <td class="paramtype">const ostream&lt; TDevice, TChar &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>other</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>拷贝构造、移动构造与移动赋值。 </p>
+<dl class="section warning"><dt>警告</dt><dd>拷贝构造全程持有**源流**的 <span class="tt"><a class="el" href="classIOv2_1_1ios__base.html#aeb0f9c59e27969ee23f8d20d51c9c68b" title="返回本流的对象锁。">io_mutex()</a></span>，移动赋值全程持有**目标流**的 <span class="tt"><a class="el" href="classIOv2_1_1ios__base.html#aeb0f9c59e27969ee23f8d20d51c9c68b" title="返回本流的对象锁。">io_mutex()</a></span>；移动构造不加锁，且移动会把源流置于移后状态。仍由调用方负责的是： 不得在其它线程仍可能使用某流时销毁它、或把它作为移动的源。并发契约详见 <span class="tt">operator=(const <a class="el" href="classIOv2_1_1ostream.html" title="字符输出流：把一条 ochannel 与一个 locale 组合成带格式化的输出接口。">ostream</a>&amp;)</span>。 </dd></dl>
+<dl class="section note"><dt>注解</dt><dd>移动赋值的 <span class="tt">noexcept</span> 是有意为之：拷贝赋值的强异常保证依赖它（见其中的 <span class="tt">static_assert</span>）。 </dd>
+<dd>
+<b>赋值会先冲刷目标自己的待刷字节，且不看状态位。</b> <span class="tt">m_channel</span> 的赋值是 <span class="tt"><a class="el" href="classIOv2_1_1runtime__cvt.html">runtime_cvt</a></span> 内部 <span class="tt">unique_ptr</span> 的换手，目标**原来**的整条管线随之析构： <span class="tt">~root_cvt</span> 把缓冲里的待刷字节 <span class="tt">dput()</span> 给原来的设备，设备自己的析构再做收尾冲刷 （<span class="tt"><a class="el" href="classIOv2_1_1std__device.html" title="封装标准 I/O 文件描述符的设备。">std_device</a></span> 即 <span class="tt">fflush</span>，见其析构函数），两处的异常都被吞掉。好处是"整体替换设备" 不伴随目标待刷数据的静默丢弃；代价是与析构、<span class="tt"><a class="el" href="structIOv2_1_1basic__stream__common__operators.html#ab3da4333bc909c38f7eea55a758b192a">detach()</a></span> 一样绕开了 <span class="tt"><a class="el" href="namespaceIOv2.html#ad6174b7289d2487b638d51cda9b9fe9a">flush()</a></span> 的 失败态守卫。详见 <span class="tt"><a class="el" href="structIOv2_1_1ostream__operators.html#af91de8151c29e3bf4f395880c995d5f3">ostream_operators::flush</a></span> 上的 <span class="tt">@warning</span>。 </dd></dl>
+
+</div>
+</div>
+<a id="a6eee2a77d44a99f580159387c21c9f88" name="a6eee2a77d44a99f580159387c21c9f88"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6eee2a77d44a99f580159387c21c9f88">&#9670;&#160;</a></span>ostream() <span class="overload">[7/7]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;io_device TDevice, typename TChar&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classIOv2_1_1ostream.html">IOv2::ostream</a>&lt; TDevice, TChar &gt;::ostream </td>
+          <td>(</td>
+          <td class="paramtype">ostream&lt; TDevice, TChar &gt; &amp;&amp;</td>          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel default">default</span><span class="mlabel noexcept">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a0d183e120255e1a3a877c2b9a46fdc43" name="a0d183e120255e1a3a877c2b9a46fdc43"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0d183e120255e1a3a877c2b9a46fdc43">&#9670;&#160;</a></span>~ostream()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;io_device TDevice, typename TChar&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classIOv2_1_1ostream.html">IOv2::ostream</a>&lt; TDevice, TChar &gt;::~<a class="el" href="#ae8d60232d536b11b58b6db7550088e2f">ostream</a> </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel override">override</span><span class="mlabel default">default</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>析构函数。 </p>
+<dl class="section note"><dt>注解</dt><dd>本身无事可做，但销毁 <span class="tt">m_channel</span> 会经 <span class="tt">~root_cvt</span> 把转换器缓冲里的待刷字节 <span class="tt">dput</span> 给设备（**不**调设备的 <span class="tt">dflush()</span>）。这次冲刷**不看状态位**：即便流已置 失败位、即便 <span class="tt"><a class="el" href="namespaceIOv2.html#ad6174b7289d2487b638d51cda9b9fe9a">flush()</a></span> 刚刚因此被拒，字节仍会写出去。冲刷失败时异常被 <span class="tt">~root_cvt</span> 的 catch-all 吞掉——不 <span class="tt">terminate</span>、不抛、不置位，数据静默丢失。 完整说明见 <span class="tt"><a class="el" href="structIOv2_1_1ostream__operators.html#af91de8151c29e3bf4f395880c995d5f3">ostream_operators::flush</a></span> 上的 <span class="tt">@warning</span>（含与 <span class="tt">std::ofstream</span> 的对照）。 </dd></dl>
+
+</div>
+</div>
+<a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">成员函数说明</h2>
+<a id="a759c299b66162084a495219656b85a53" name="a759c299b66162084a495219656b85a53"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a759c299b66162084a495219656b85a53">&#9670;&#160;</a></span>operator=() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;io_device TDevice, typename TChar&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="#ae8d60232d536b11b58b6db7550088e2f">ostream</a> &amp; <a class="el" href="classIOv2_1_1ostream.html">IOv2::ostream</a>&lt; TDevice, TChar &gt;::operator= </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="#ae8d60232d536b11b58b6db7550088e2f">ostream</a>&lt; TDevice, TChar &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>other</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>拷贝赋值；提供强异常保证：先整体拷进临时对象（可能抛出，此时目标尚未被触碰）， 再以全程 noexcept 的移动赋值提交。move-only 内核（如 <span class="tt"><a class="el" href="namespaceIOv2.html#afdd0a0edccc60c3d8b0faed66aebb426" title="读写文件设备的类型别名。">file_device</a></span>）上的拷贝必然 抛出，故自赋值也要先挡掉。 </p>
+<dl class="section warning"><dt>警告</dt><dd>赋值整体替换 <span class="tt">m_channel</span>（内含转换器管线，设备即由其持有）与 <span class="tt">m_locale</span> （内含两张哈希表），与 <span class="tt"><a class="el" href="structIOv2_1_1basic__stream__common__operators.html#ab3da4333bc909c38f7eea55a758b192a">detach()</a></span>/<span class="tt"><a class="el" href="structIOv2_1_1basic__stream__common__operators.html#acb5b751b3f356c33cf35d2f810a840f8">attach()</a></span> 同属生命周期操作，区别在于它涉及 **两个**操作数。两个操作数都受 <span class="tt"><a class="el" href="classIOv2_1_1ios__base.html#aeb0f9c59e27969ee23f8d20d51c9c68b" title="返回本流的对象锁。">io_mutex()</a></span> 保护：拷贝构造持有源流的锁读出副本， 随后的移动赋值持有目标流的锁完成替换。两把锁**先后获取、互不重叠**，因此任一 线程在任一时刻至多持有一把流锁。仍由调用方负责的是：不得在其它线程仍可能使用 某流时销毁它、或把它作为移动的源。另需注意，赋值由此参与调用方自身的锁定序—— <span class="tt">sync(P); X = Q;</span> 与 <span class="tt">sync(Q); Y = P;</span> 反向配对仍会死锁，这与 <span class="tt"><a class="el" href="structIOv2_1_1sync.html" title="对流的 I/O 互斥量进行 RAII 加锁的辅助类。">sync</a></span> 一贯的 表述一致。 </dd></dl>
+
+</div>
+</div>
+<a id="a32122831011d6c9444b20916a3538e1a" name="a32122831011d6c9444b20916a3538e1a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a32122831011d6c9444b20916a3538e1a">&#9670;&#160;</a></span>operator=() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;io_device TDevice, typename TChar&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="#ae8d60232d536b11b58b6db7550088e2f">ostream</a> &amp; <a class="el" href="classIOv2_1_1ostream.html">IOv2::ostream</a>&lt; TDevice, TChar &gt;::operator= </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="#ae8d60232d536b11b58b6db7550088e2f">ostream</a>&lt; TDevice, TChar &gt; &amp;&amp;</td>          <td class="paramname"><span class="paramname"><em>other</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel noexcept">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">类成员变量说明</h2>
+<a id="ae08589a85ac84dfbcaca362d1cc9f202" name="ae08589a85ac84dfbcaca362d1cc9f202"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae08589a85ac84dfbcaca362d1cc9f202">&#9670;&#160;</a></span>ostream_operators&lt; TChar &gt;</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;io_device TDevice, typename TChar&gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname">friend <a class="el" href="classIOv2_1_1ostream.html">IOv2::ostream</a>&lt; TDevice, TChar &gt;<a class="el" href="structIOv2_1_1ostream__operators.html">::ostream_operators</a>&lt; TChar &gt;</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a7b1cc274343a0a6fd13e3cd4dfd23003" name="a7b1cc274343a0a6fd13e3cd4dfd23003"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7b1cc274343a0a6fd13e3cd4dfd23003">&#9670;&#160;</a></span>out_sentry_type</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;io_device TDevice, typename TChar&gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname">friend <a class="el" href="classIOv2_1_1ostream.html">IOv2::ostream</a>&lt; TDevice, TChar &gt;::out_sentry_type</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="aea28bd372d9d715e311daa2024a9ba6a" name="aea28bd372d9d715e311daa2024a9ba6a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aea28bd372d9d715e311daa2024a9ba6a">&#9670;&#160;</a></span>out_tie_target&lt; ostream&lt; TDevice, TChar &gt; &gt;</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;io_device TDevice, typename TChar&gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname">friend <a class="el" href="classIOv2_1_1ostream.html">IOv2::ostream</a>&lt; TDevice, TChar &gt;<a class="el" href="structIOv2_1_1out__tie__target.html">::out_tie_target</a>&lt; <a class="el" href="#ae8d60232d536b11b58b6db7550088e2f">ostream</a>&lt; TDevice, TChar &gt; &gt;</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="adce6eada755e31f927c93b919207275b" name="adce6eada755e31f927c93b919207275b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adce6eada755e31f927c93b919207275b">&#9670;&#160;</a></span>stream_common_operators</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;io_device TDevice, typename TChar&gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname">friend <a class="el" href="classIOv2_1_1ostream.html">IOv2::ostream</a>&lt; TDevice, TChar &gt;::stream_common_operators</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<hr/>该类的文档由以下文件生成:<ul>
+<li>include/IOv2/io/<a class="el" href="ostream_8h_source.html">ostream.h</a></li>
+</ul>
+</div><!-- contents -->
+</div><!-- doc-content -->
+<div id="page-nav" class="page-nav-panel">
+<div id="page-nav-resize-handle"></div>
+<div id="page-nav-tree">
+<div id="page-nav-contents">
+</div><!-- page-nav-contents -->
+</div><!-- page-nav-tree -->
+</div><!-- page-nav -->
+</div><!-- container -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><a href="namespaceIOv2.html">IOv2</a></li><li class="navelem"><a href="classIOv2_1_1ostream.html">ostream</a></li>
+    <li class="footer">制作者 <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.15.0 </li>
+  </ul>
+</div>
+</body>
+</html>

@@ -1,0 +1,5 @@
+<map id="类继承关系图" name="类继承关系图">
+<area shape="rect" id="Node000000" href="$classIOv2_1_1sing__temp.html" title=" " alt="" coords="5,5,165,50"/>
+<area shape="rect" id="Node000001" href="$classIOv2_1_1ori__facet__buf.html" title="基础 facet 与 messages facet 的进程级缓存 / 驻留（interning）单例。" alt="" coords="213,14,357,42"/>
+<area shape="poly" id="edge120_Node000000_Node000001" title=" " alt="" coords="180,25,215,27,210,28,180,30"/>
+</map>

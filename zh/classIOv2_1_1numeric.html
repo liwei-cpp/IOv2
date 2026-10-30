@@ -1,0 +1,934 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=11"/>
+<meta name="generator" content="Doxygen 1.15.0"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>IOv2: IOv2::numeric&lt; CharT &gt; 模板类 参考</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<script type="text/javascript" src="clipboard.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<script type="text/javascript" src="cookie.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr id="projectrow">
+  <td id="projectalign">
+   <div id="projectname">IOv2
+   </div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 制作者 Doxygen 1.15.0 -->
+<script type="text/javascript">
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+</script>
+<script type="text/javascript">
+$(function() { codefold.init(); });
+</script>
+<script type="text/javascript" src="menudata.js"></script>
+<script type="text/javascript" src="menu.js"></script>
+<script type="text/javascript">
+$(function() {
+  initMenu('',true,false,'search.php','搜索',true);
+  $(function() { init_search(); });
+});
+</script>
+<div id="main-nav"></div>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+$(function(){initNavTree('classIOv2_1_1numeric.html','','classIOv2_1_1numeric-members'); });
+</script>
+<div id="container">
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">载入中...</div>
+<div class="SRStatus" id="Searching">搜索中...</div>
+<div class="SRStatus" id="NoMatches">未找到</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="header">
+  <div class="headertitle"><div class="title">IOv2::numeric&lt; CharT &gt; 模板类 参考</div></div>
+</div><!--header-->
+<div class="contents">
+
+<p>基于 locale 的数值格式化与解析 facet。  
+ <a href="#details">更多...</a></p>
+
+<p><code>#include &lt;<a class="el" href="numeric_8h_source.html">numeric.h</a>&gt;</code></p>
+<table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 id="header-pub-types" class="groupheader"><a id="pub-types" name="pub-types"></a>
+Public 类型</h2></td></tr>
+<tr class="memitem:aac5e6157eef62bb5017c49d844300325" id="r_aac5e6157eef62bb5017c49d844300325"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aac5e6157eef62bb5017c49d844300325">create_rules</a> = <a class="el" href="structIOv2_1_1facet__create__rule.html">facet_create_rule</a>&lt;<a class="el" href="structIOv2_1_1facet__create__pack.html">facet_create_pack</a>&lt;<a class="el" href="classIOv2_1_1numeric__conf.html">numeric_conf</a>&lt;CharT&gt;, <a class="el" href="classIOv2_1_1ctype.html">ctype</a>&lt;CharT&gt;&gt;&gt;</td></tr>
+<tr class="memdesc:aac5e6157eef62bb5017c49d844300325"><td class="mdescLeft">&#160;</td><td class="mdescRight">关联的配置对象创建规则类型。  <br /></td></tr>
+<tr class="memitem:a579ea870110575c2c24a2c285d51738b" id="r_a579ea870110575c2c24a2c285d51738b"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a579ea870110575c2c24a2c285d51738b">char_type</a> = CharT</td></tr>
+<tr class="memdesc:a579ea870110575c2c24a2c285d51738b"><td class="mdescLeft">&#160;</td><td class="mdescRight">字符类型。  <br /></td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
+Public 成员函数</h2></td></tr>
+<tr class="memitem:a5d8b0fb6b7b52822b432ab7b6d2fa730" id="r_a5d8b0fb6b7b52822b432ab7b6d2fa730"><td class="memTemplParams" colspan="2">template&lt;shared_ptr_to&lt; <a class="el" href="classIOv2_1_1numeric__conf.html">numeric_conf</a>&lt; CharT &gt; &gt; TConfPtr, shared_ptr_to&lt; <a class="el" href="classIOv2_1_1ctype.html">ctype</a>&lt; CharT &gt; &gt; TCtypePtr&gt; </td></tr>
+<tr class="memitem:a5d8b0fb6b7b52822b432ab7b6d2fa730 template"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a5d8b0fb6b7b52822b432ab7b6d2fa730">numeric</a> (TConfPtr p_obj, TCtypePtr p_ctype)</td></tr>
+<tr class="memdesc:a5d8b0fb6b7b52822b432ab7b6d2fa730"><td class="mdescLeft">&#160;</td><td class="mdescRight">构造函数，初始化所有 locale 相关参数并预先扩宽输入/输出原子字符集。  <br /></td></tr>
+<tr class="memitem:a48b1bd5a9b7eeb4321cf1b741d60d39a" id="r_a48b1bd5a9b7eeb4321cf1b741d60d39a"><td class="memItemLeft" align="right" valign="top">CharT&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a48b1bd5a9b7eeb4321cf1b741d60d39a">decimal_point</a> () const noexcept</td></tr>
+<tr class="memdesc:a48b1bd5a9b7eeb4321cf1b741d60d39a"><td class="mdescLeft">&#160;</td><td class="mdescRight">返回此 locale 的小数点字符。  <br /></td></tr>
+<tr class="memitem:a8a1edfa5cc9ea1fa930bfa5d595fc2d9" id="r_a8a1edfa5cc9ea1fa930bfa5d595fc2d9"><td class="memItemLeft" align="right" valign="top">CharT&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a8a1edfa5cc9ea1fa930bfa5d595fc2d9">thousands_sep</a> () const noexcept</td></tr>
+<tr class="memdesc:a8a1edfa5cc9ea1fa930bfa5d595fc2d9"><td class="mdescLeft">&#160;</td><td class="mdescRight">返回此 locale 的千位分隔符字符。  <br /></td></tr>
+<tr class="memitem:ab242e2f518fa0eae4e26c9a3dedf131e" id="r_ab242e2f518fa0eae4e26c9a3dedf131e"><td class="memItemLeft" align="right" valign="top">const std::basic_string&lt; CharT &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ab242e2f518fa0eae4e26c9a3dedf131e">truename</a> () const noexcept</td></tr>
+<tr class="memdesc:ab242e2f518fa0eae4e26c9a3dedf131e"><td class="mdescLeft">&#160;</td><td class="mdescRight">返回此 locale 中 <span class="tt">true</span> 的文本表示。  <br /></td></tr>
+<tr class="memitem:abdfd011695bffc29ea70f069f02014a2" id="r_abdfd011695bffc29ea70f069f02014a2"><td class="memItemLeft" align="right" valign="top">const std::basic_string&lt; CharT &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#abdfd011695bffc29ea70f069f02014a2">falsename</a> () const noexcept</td></tr>
+<tr class="memdesc:abdfd011695bffc29ea70f069f02014a2"><td class="mdescLeft">&#160;</td><td class="mdescRight">返回此 locale 中 <span class="tt">false</span> 的文本表示。  <br /></td></tr>
+<tr class="memitem:a283a6dbaca89d1551b9064e13768bfe3" id="r_a283a6dbaca89d1551b9064e13768bfe3"><td class="memItemLeft" align="right" valign="top">const std::vector&lt; uint8_t &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a283a6dbaca89d1551b9064e13768bfe3">grouping</a> () const noexcept</td></tr>
+<tr class="memdesc:a283a6dbaca89d1551b9064e13768bfe3"><td class="mdescLeft">&#160;</td><td class="mdescRight">返回数字分组规则（内部规范化格式）。  <br /></td></tr>
+<tr class="memitem:adf36e36e70b9a9dba53eab76beb2e186" id="r_adf36e36e70b9a9dba53eab76beb2e186"><td class="memTemplParams" colspan="2">template&lt;typename TIter&gt; </td></tr>
+<tr class="memitem:adf36e36e70b9a9dba53eab76beb2e186 template"><td class="memItemLeft" align="right" valign="top">TIter&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#adf36e36e70b9a9dba53eab76beb2e186">put</a> (TIter s, <a class="el" href="classIOv2_1_1ios__base.html">ios_base</a>&lt; <a class="el" href="#a579ea870110575c2c24a2c285d51738b">char_type</a> &gt; &amp;io, bool v) const</td></tr>
+<tr class="memdesc:adf36e36e70b9a9dba53eab76beb2e186"><td class="mdescLeft">&#160;</td><td class="mdescRight">将布尔值格式化并写入输出迭代器。  <br /></td></tr>
+<tr class="memitem:af3fb09968382b178f2063aa1beea6524" id="r_af3fb09968382b178f2063aa1beea6524"><td class="memTemplParams" colspan="2">template&lt;typename TIter, typename TValue&gt; <br />
+requires (std::is_integral_v&lt;TValue&gt; &amp;&amp; (!std::is_same_v&lt;TValue, bool&gt;))</td></tr>
+<tr class="memitem:af3fb09968382b178f2063aa1beea6524 template"><td class="memItemLeft" align="right" valign="top">TIter&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af3fb09968382b178f2063aa1beea6524">put</a> (TIter s, <a class="el" href="classIOv2_1_1ios__base.html">ios_base</a>&lt; <a class="el" href="#a579ea870110575c2c24a2c285d51738b">char_type</a> &gt; &amp;io, TValue v) const</td></tr>
+<tr class="memdesc:af3fb09968382b178f2063aa1beea6524"><td class="mdescLeft">&#160;</td><td class="mdescRight">将整数值格式化并写入输出迭代器，委托给 <span class="tt">insert_int</span>。  <br /></td></tr>
+<tr class="memitem:a372ff29b8b863fd23e7bad055f4bb40f" id="r_a372ff29b8b863fd23e7bad055f4bb40f"><td class="memTemplParams" colspan="2">template&lt;typename TIter, typename TValue&gt; <br />
+requires (std::is_floating_point_v&lt;TValue&gt;)</td></tr>
+<tr class="memitem:a372ff29b8b863fd23e7bad055f4bb40f template"><td class="memItemLeft" align="right" valign="top">TIter&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a372ff29b8b863fd23e7bad055f4bb40f">put</a> (TIter s, <a class="el" href="classIOv2_1_1ios__base.html">ios_base</a>&lt; <a class="el" href="#a579ea870110575c2c24a2c285d51738b">char_type</a> &gt; &amp;io, TValue v) const</td></tr>
+<tr class="memdesc:a372ff29b8b863fd23e7bad055f4bb40f"><td class="mdescLeft">&#160;</td><td class="mdescRight">将浮点值格式化并写入输出迭代器，委托给 <span class="tt">insert_float</span>。  <br /></td></tr>
+<tr class="memitem:a1ed14126018cc7b43486b7bf4845e672" id="r_a1ed14126018cc7b43486b7bf4845e672"><td class="memTemplParams" colspan="2">template&lt;typename TIter&gt; </td></tr>
+<tr class="memitem:a1ed14126018cc7b43486b7bf4845e672 template"><td class="memItemLeft" align="right" valign="top">TIter&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a1ed14126018cc7b43486b7bf4845e672">put</a> (TIter s, <a class="el" href="classIOv2_1_1ios__base.html">ios_base</a>&lt; <a class="el" href="#a579ea870110575c2c24a2c285d51738b">char_type</a> &gt; &amp;io, const void *v) const</td></tr>
+<tr class="memdesc:a1ed14126018cc7b43486b7bf4845e672"><td class="mdescLeft">&#160;</td><td class="mdescRight">将指针值以十六进制格式化并写入输出迭代器。  <br /></td></tr>
+<tr class="memitem:a1cfdb444940e9b6319c6effcd1ba1aae" id="r_a1cfdb444940e9b6319c6effcd1ba1aae"><td class="memTemplParams" colspan="2">template&lt;typename TIter, std::sentinel_for&lt; TIter &gt; TSent&gt; </td></tr>
+<tr class="memitem:a1cfdb444940e9b6319c6effcd1ba1aae template"><td class="memItemLeft" align="right" valign="top">TIter&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a1cfdb444940e9b6319c6effcd1ba1aae">get</a> (TIter beg, TSent end, <a class="el" href="classIOv2_1_1ios__base.html">ios_base</a>&lt; <a class="el" href="#a579ea870110575c2c24a2c285d51738b">char_type</a> &gt; &amp;io, bool &amp;v) const</td></tr>
+<tr class="memdesc:a1cfdb444940e9b6319c6effcd1ba1aae"><td class="mdescLeft">&#160;</td><td class="mdescRight">从字符流中解析布尔值。  <br /></td></tr>
+<tr class="memitem:a92db1c052315ba4fbceb3309ccefbe05" id="r_a92db1c052315ba4fbceb3309ccefbe05"><td class="memTemplParams" colspan="2">template&lt;typename TIter, std::sentinel_for&lt; TIter &gt; TSent, typename TValue&gt; <br />
+requires (std::is_integral_v&lt;TValue&gt; &amp;&amp; (!std::is_same_v&lt;TValue, bool&gt;))</td></tr>
+<tr class="memitem:a92db1c052315ba4fbceb3309ccefbe05 template"><td class="memItemLeft" align="right" valign="top">TIter&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a92db1c052315ba4fbceb3309ccefbe05">get</a> (TIter beg, TSent end, <a class="el" href="classIOv2_1_1ios__base.html">ios_base</a>&lt; <a class="el" href="#a579ea870110575c2c24a2c285d51738b">char_type</a> &gt; &amp;io, TValue &amp;v) const</td></tr>
+<tr class="memdesc:a92db1c052315ba4fbceb3309ccefbe05"><td class="mdescLeft">&#160;</td><td class="mdescRight">从字符流中解析整数值，委托给 <span class="tt">extract_int</span>。  <br /></td></tr>
+<tr class="memitem:abd3a8c59777608c85948b6ced30e4ff4" id="r_abd3a8c59777608c85948b6ced30e4ff4"><td class="memTemplParams" colspan="2">template&lt;typename TIter, std::sentinel_for&lt; TIter &gt; TSent&gt; </td></tr>
+<tr class="memitem:abd3a8c59777608c85948b6ced30e4ff4 template"><td class="memItemLeft" align="right" valign="top">TIter&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#abd3a8c59777608c85948b6ced30e4ff4">get</a> (TIter beg, TSent end, <a class="el" href="classIOv2_1_1ios__base.html">ios_base</a>&lt; <a class="el" href="#a579ea870110575c2c24a2c285d51738b">char_type</a> &gt; &amp;io, void *&amp;v) const</td></tr>
+<tr class="memdesc:abd3a8c59777608c85948b6ced30e4ff4"><td class="mdescLeft">&#160;</td><td class="mdescRight">从字符流中解析指针地址（十六进制整数）。  <br /></td></tr>
+<tr class="memitem:a088435051506d35a01ce1071799bb62b" id="r_a088435051506d35a01ce1071799bb62b"><td class="memTemplParams" colspan="2">template&lt;typename TIter, std::sentinel_for&lt; TIter &gt; TSent, typename TValue&gt; <br />
+requires (std::is_floating_point_v&lt;TValue&gt;)</td></tr>
+<tr class="memitem:a088435051506d35a01ce1071799bb62b template"><td class="memItemLeft" align="right" valign="top">TIter&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a088435051506d35a01ce1071799bb62b">get</a> (TIter beg, TSent end, <a class="el" href="classIOv2_1_1ios__base.html">ios_base</a>&lt; <a class="el" href="#a579ea870110575c2c24a2c285d51738b">char_type</a> &gt; &amp;io, TValue &amp;v) const</td></tr>
+<tr class="memdesc:a088435051506d35a01ce1071799bb62b"><td class="mdescLeft">&#160;</td><td class="mdescRight">从字符流中解析浮点值。  <br /></td></tr>
+</table>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">详细描述</h2>
+<div class="textblock"><div class="compoundTemplParams">template&lt;typename CharT&gt;<br />
+class IOv2::numeric&lt; CharT &gt;</div><p>基于 locale 的数值格式化与解析 facet。 </p>
+<p>封装了 <span class="tt"><a class="el" href="classIOv2_1_1numeric__conf.html">numeric_conf</a>&lt;CharT&gt;</span> 提供的 locale 参数（小数点、千位分隔符、分组规则、布尔名称） 和 <span class="tt"><a class="el" href="classIOv2_1_1ctype.html">ctype</a>&lt;CharT&gt;</span> 提供的字符扩宽能力，通过 <span class="tt"><a class="el" href="#adf36e36e70b9a9dba53eab76beb2e186" title="将布尔值格式化并写入输出迭代器。">put()</a></span> 系列重载将数值格式化为字符序列， 通过 <span class="tt"><a class="el" href="#a1cfdb444940e9b6319c6effcd1ba1aae" title="从字符流中解析布尔值。">get()</a></span> 系列重载从字符流中解析数值。</p>
+<dl class="tparams"><dt>模板参数</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">CharT</td><td>字符类型。 </td></tr>
+  </table>
+  </dd>
+</dl>
+</div><a name="doc-typedef-members" id="doc-typedef-members"></a><h2 id="header-doc-typedef-members" class="groupheader">成员类型定义说明</h2>
+<a id="a579ea870110575c2c24a2c285d51738b" name="a579ea870110575c2c24a2c285d51738b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a579ea870110575c2c24a2c285d51738b">&#9670;&#160;</a></span>char_type</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename CharT&gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname">using <a class="el" href="classIOv2_1_1numeric.html">IOv2::numeric</a>&lt; CharT &gt;::char_type = CharT</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>字符类型。 </p>
+
+</div>
+</div>
+<a id="aac5e6157eef62bb5017c49d844300325" name="aac5e6157eef62bb5017c49d844300325"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aac5e6157eef62bb5017c49d844300325">&#9670;&#160;</a></span>create_rules</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename CharT&gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname">using <a class="el" href="classIOv2_1_1numeric.html">IOv2::numeric</a>&lt; CharT &gt;::create_rules = <a class="el" href="structIOv2_1_1facet__create__rule.html">facet_create_rule</a>&lt;<a class="el" href="structIOv2_1_1facet__create__pack.html">facet_create_pack</a>&lt;<a class="el" href="classIOv2_1_1numeric__conf.html">numeric_conf</a>&lt;CharT&gt;, <a class="el" href="classIOv2_1_1ctype.html">ctype</a>&lt;CharT&gt;&gt;&gt;</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>关联的配置对象创建规则类型。 </p>
+
+</div>
+</div>
+<a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">构造及析构函数说明</h2>
+<a id="a5d8b0fb6b7b52822b432ab7b6d2fa730" name="a5d8b0fb6b7b52822b432ab7b6d2fa730"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5d8b0fb6b7b52822b432ab7b6d2fa730">&#9670;&#160;</a></span>numeric()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename CharT&gt; </div>
+<div class="memtemplate">
+template&lt;shared_ptr_to&lt; <a class="el" href="classIOv2_1_1numeric__conf.html">numeric_conf</a>&lt; CharT &gt; &gt; TConfPtr, shared_ptr_to&lt; <a class="el" href="classIOv2_1_1ctype.html">ctype</a>&lt; CharT &gt; &gt; TCtypePtr&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classIOv2_1_1numeric.html">IOv2::numeric</a>&lt; CharT &gt;::numeric </td>
+          <td>(</td>
+          <td class="paramtype">TConfPtr</td>          <td class="paramname"><span class="paramname"><em>p_obj</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">TCtypePtr</td>          <td class="paramname"><span class="paramname"><em>p_ctype</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>构造函数，初始化所有 locale 相关参数并预先扩宽输入/输出原子字符集。 </p>
+<p>从 <span class="tt"><a class="el" href="classIOv2_1_1numeric__conf.html">numeric_conf</a></span> 中复制小数点、千位分隔符、分组规则和布尔名称， 然后通过 <span class="tt">ctype::widen_seq</span> 与 <span class="tt">ctype::widen</span> 将各原子字符扩宽为目标字符 类型，分别填充 <span class="tt">m_in</span>（用于解析）和 <span class="tt">m_out</span>（用于格式化）。 在 <span class="tt">wchar_t</span> 和 <span class="tt">char32_t</span> 类型下，还会在 debug/sanitizer 构建中断言 扩宽结果的单射性。</p>
+<dl class="tparams"><dt>模板参数</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">TConfPtr</td><td>满足 <span class="tt"><a class="el" href="conceptIOv2_1_1shared__ptr__to.html">shared_ptr_to</a>&lt;<a class="el" href="classIOv2_1_1numeric__conf.html">numeric_conf</a>&lt;CharT&gt;&gt;</span> 约束的共享指针类型。 </td></tr>
+    <tr><td class="paramname">TCtypePtr</td><td>满足 <span class="tt"><a class="el" href="conceptIOv2_1_1shared__ptr__to.html">shared_ptr_to</a>&lt;<a class="el" href="classIOv2_1_1ctype.html">ctype</a>&lt;CharT&gt;&gt;</span> 约束的共享指针类型。 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">p_obj</td><td>指向 <span class="tt"><a class="el" href="classIOv2_1_1numeric__conf.html">numeric_conf</a></span> 配置对象的共享指针，不得为空。 </td></tr>
+    <tr><td class="paramname">p_ctype</td><td>指向 <span class="tt"><a class="el" href="classIOv2_1_1ctype.html">ctype</a></span> 配置对象的共享指针，不得为空。 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="exception"><dt>异常</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname"><a class="el" href="structIOv2_1_1io__error.html">io_error</a></td><td>若任一指针为空。 </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">成员函数说明</h2>
+<a id="a48b1bd5a9b7eeb4321cf1b741d60d39a" name="a48b1bd5a9b7eeb4321cf1b741d60d39a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a48b1bd5a9b7eeb4321cf1b741d60d39a">&#9670;&#160;</a></span>decimal_point()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename CharT&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">CharT <a class="el" href="classIOv2_1_1numeric.html">IOv2::numeric</a>&lt; CharT &gt;::decimal_point </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel noexcept">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>返回此 locale 的小数点字符。 </p>
+<dl class="section return"><dt>返回</dt><dd>小数点字符。 </dd></dl>
+
+</div>
+</div>
+<a id="abdfd011695bffc29ea70f069f02014a2" name="abdfd011695bffc29ea70f069f02014a2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abdfd011695bffc29ea70f069f02014a2">&#9670;&#160;</a></span>falsename()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename CharT&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">const std::basic_string&lt; CharT &gt; &amp; <a class="el" href="classIOv2_1_1numeric.html">IOv2::numeric</a>&lt; CharT &gt;::falsename </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel noexcept">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>返回此 locale 中 <span class="tt">false</span> 的文本表示。 </p>
+<dl class="section return"><dt>返回</dt><dd><span class="tt">false</span> 的文本字符串。 </dd></dl>
+
+</div>
+</div>
+<a id="a1cfdb444940e9b6319c6effcd1ba1aae" name="a1cfdb444940e9b6319c6effcd1ba1aae"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1cfdb444940e9b6319c6effcd1ba1aae">&#9670;&#160;</a></span>get() <span class="overload">[1/4]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename CharT&gt; </div>
+<div class="memtemplate">
+template&lt;typename TIter, std::sentinel_for&lt; TIter &gt; TSent&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">TIter <a class="el" href="classIOv2_1_1numeric.html">IOv2::numeric</a>&lt; CharT &gt;::get </td>
+          <td>(</td>
+          <td class="paramtype">TIter</td>          <td class="paramname"><span class="paramname"><em>beg</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">TSent</td>          <td class="paramname"><span class="paramname"><em>end</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classIOv2_1_1ios__base.html">ios_base</a>&lt; <a class="el" href="#a579ea870110575c2c24a2c285d51738b">char_type</a> &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>io</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool &amp;</td>          <td class="paramname"><span class="paramname"><em>v</em></span>&#160;) const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>从字符流中解析布尔值。 </p>
+<p>若 <span class="tt"><a class="el" href="group__ios__manipulators.html#ga0dc9293a3d364044d765f759e5b46c40" title="置位 boolalpha：布尔值以文本形式表示。">boolalpha</a></span> 标志未设置，则将输入解析为 <span class="tt">long</span>（有效值为 0 或 1）， 超出范围则按 LWG 23 将结果设为 <span class="tt">true</span> 并失败。 若设置了 <span class="tt"><a class="el" href="group__ios__manipulators.html#ga0dc9293a3d364044d765f759e5b46c40" title="置位 boolalpha：布尔值以文本形式表示。">boolalpha</a></span>，则将输入字符与 <span class="tt"><a class="el" href="#ab242e2f518fa0eae4e26c9a3dedf131e" title="返回此 locale 中 true 的文本表示。">truename()</a></span>/<span class="tt"><a class="el" href="#abdfd011695bffc29ea70f069f02014a2" title="返回此 locale 中 false 的文本表示。">falsename()</a></span> 逐字符前缀匹配， 以最长匹配确定结果；若无法确定，则按 LWG 23 将结果设为 <span class="tt">false</span> 并失败。 名字之前的流填充字符先被跳过，除非它就是某个名字的首字符。 解析失败时抛出异常。</p>
+<dl class="tparams"><dt>模板参数</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">TIter</td><td>输入迭代器类型。 </td></tr>
+    <tr><td class="paramname">TSent</td><td>哨兵类型，满足 <span class="tt">std::sentinel_for&lt;TIter&gt;</span>。 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">beg</td><td>输入范围的起始迭代器。 </td></tr>
+    <tr><td class="paramname">end</td><td>输入范围的结束哨兵。 </td></tr>
+    <tr><td class="paramname">io</td><td>提供格式标志与填充字符的流对象。 </td></tr>
+    <tr><td class="paramname">v</td><td>解析成功后写入结果的布尔值引用。 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd>消费输入后的迭代器。 </dd></dl>
+<dl class="exception"><dt>异常</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname"><a class="el" href="structIOv2_1_1stream__error.html">stream_error</a></td><td>若解析失败。 </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a088435051506d35a01ce1071799bb62b" name="a088435051506d35a01ce1071799bb62b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a088435051506d35a01ce1071799bb62b">&#9670;&#160;</a></span>get() <span class="overload">[2/4]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename CharT&gt; </div>
+<div class="memtemplate">
+template&lt;typename TIter, std::sentinel_for&lt; TIter &gt; TSent, typename TValue&gt; <br />
+requires (std::is_floating_point_v&lt;TValue&gt;)</div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">TIter <a class="el" href="classIOv2_1_1numeric.html">IOv2::numeric</a>&lt; CharT &gt;::get </td>
+          <td>(</td>
+          <td class="paramtype">TIter</td>          <td class="paramname"><span class="paramname"><em>beg</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">TSent</td>          <td class="paramname"><span class="paramname"><em>end</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classIOv2_1_1ios__base.html">ios_base</a>&lt; <a class="el" href="#a579ea870110575c2c24a2c285d51738b">char_type</a> &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>io</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">TValue &amp;</td>          <td class="paramname"><span class="paramname"><em>v</em></span>&#160;) const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>从字符流中解析浮点值。 </p>
+<p>先由 <span class="tt">extract_float</span> 将有效字符提取并规范化为 "C" locale 的 ASCII 字符串， 再由 <span class="tt">convert_to_v</span> 将其转换为目标浮点类型。解析失败时抛出异常。</p>
+<dl class="tparams"><dt>模板参数</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">TIter</td><td>输入迭代器类型。 </td></tr>
+    <tr><td class="paramname">TSent</td><td>哨兵类型，满足 <span class="tt">std::sentinel_for&lt;TIter&gt;</span>。 </td></tr>
+    <tr><td class="paramname">TValue</td><td>目标浮点类型。 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">beg</td><td>输入范围的起始迭代器。 </td></tr>
+    <tr><td class="paramname">end</td><td>输入范围的结束哨兵。 </td></tr>
+    <tr><td class="paramname">io</td><td>提供格式标志的流对象。 </td></tr>
+    <tr><td class="paramname">v</td><td>解析成功后写入结果的浮点数引用。 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd>消费输入后的迭代器。 </dd></dl>
+<dl class="exception"><dt>异常</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname"><a class="el" href="structIOv2_1_1stream__error.html">stream_error</a></td><td>若解析失败。 </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a92db1c052315ba4fbceb3309ccefbe05" name="a92db1c052315ba4fbceb3309ccefbe05"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a92db1c052315ba4fbceb3309ccefbe05">&#9670;&#160;</a></span>get() <span class="overload">[3/4]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename CharT&gt; </div>
+<div class="memtemplate">
+template&lt;typename TIter, std::sentinel_for&lt; TIter &gt; TSent, typename TValue&gt; <br />
+requires (std::is_integral_v&lt;TValue&gt; &amp;&amp; (!std::is_same_v&lt;TValue, bool&gt;))</div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">TIter <a class="el" href="classIOv2_1_1numeric.html">IOv2::numeric</a>&lt; CharT &gt;::get </td>
+          <td>(</td>
+          <td class="paramtype">TIter</td>          <td class="paramname"><span class="paramname"><em>beg</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">TSent</td>          <td class="paramname"><span class="paramname"><em>end</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classIOv2_1_1ios__base.html">ios_base</a>&lt; <a class="el" href="#a579ea870110575c2c24a2c285d51738b">char_type</a> &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>io</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">TValue &amp;</td>          <td class="paramname"><span class="paramname"><em>v</em></span>&#160;) const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>从字符流中解析整数值，委托给 <span class="tt">extract_int</span>。 </p>
+<p>解析失败时抛出异常。</p>
+<dl class="tparams"><dt>模板参数</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">TIter</td><td>输入迭代器类型。 </td></tr>
+    <tr><td class="paramname">TSent</td><td>哨兵类型，满足 <span class="tt">std::sentinel_for&lt;TIter&gt;</span>。 </td></tr>
+    <tr><td class="paramname">TValue</td><td>目标整数类型（非 <span class="tt">bool</span>）。 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">beg</td><td>输入范围的起始迭代器。 </td></tr>
+    <tr><td class="paramname">end</td><td>输入范围的结束哨兵。 </td></tr>
+    <tr><td class="paramname">io</td><td>提供格式标志的流对象。 </td></tr>
+    <tr><td class="paramname">v</td><td>解析成功后写入结果的整数引用。 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd>消费输入后的迭代器。 </dd></dl>
+<dl class="exception"><dt>异常</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname"><a class="el" href="structIOv2_1_1stream__error.html">stream_error</a></td><td>若解析失败。 </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="abd3a8c59777608c85948b6ced30e4ff4" name="abd3a8c59777608c85948b6ced30e4ff4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abd3a8c59777608c85948b6ced30e4ff4">&#9670;&#160;</a></span>get() <span class="overload">[4/4]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename CharT&gt; </div>
+<div class="memtemplate">
+template&lt;typename TIter, std::sentinel_for&lt; TIter &gt; TSent&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">TIter <a class="el" href="classIOv2_1_1numeric.html">IOv2::numeric</a>&lt; CharT &gt;::get </td>
+          <td>(</td>
+          <td class="paramtype">TIter</td>          <td class="paramname"><span class="paramname"><em>beg</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">TSent</td>          <td class="paramname"><span class="paramname"><em>end</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classIOv2_1_1ios__base.html">ios_base</a>&lt; <a class="el" href="#a579ea870110575c2c24a2c285d51738b">char_type</a> &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>io</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&amp;</td>          <td class="paramname"><span class="paramname"><em>v</em></span>&#160;) const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>从字符流中解析指针地址（十六进制整数）。 </p>
+<p>临时将流标志设为 <span class="tt"><a class="el" href="group__ios__manipulators.html#ga294fd2715f31cbf89f98b4365b3e88ad" title="在 basefield 内设置 hex：整数以十六进制表示。">hex</a></span>，使用与平台指针大小匹配的无符号整数类型调用 <span class="tt">extract_int</span>， 再将结果转型为 <span class="tt">void*</span>。解析失败时抛出异常。</p>
+<dl class="tparams"><dt>模板参数</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">TIter</td><td>输入迭代器类型。 </td></tr>
+    <tr><td class="paramname">TSent</td><td>哨兵类型，满足 <span class="tt">std::sentinel_for&lt;TIter&gt;</span>。 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">beg</td><td>输入范围的起始迭代器。 </td></tr>
+    <tr><td class="paramname">end</td><td>输入范围的结束哨兵。 </td></tr>
+    <tr><td class="paramname">io</td><td>提供格式标志的流对象。 </td></tr>
+    <tr><td class="paramname">v</td><td>解析成功后写入结果的指针引用。 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd>消费输入后的迭代器。 </dd></dl>
+<dl class="exception"><dt>异常</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname"><a class="el" href="structIOv2_1_1stream__error.html">stream_error</a></td><td>若解析失败。 </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a283a6dbaca89d1551b9064e13768bfe3" name="a283a6dbaca89d1551b9064e13768bfe3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a283a6dbaca89d1551b9064e13768bfe3">&#9670;&#160;</a></span>grouping()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename CharT&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">const std::vector&lt; uint8_t &gt; &amp; <a class="el" href="classIOv2_1_1numeric.html">IOv2::numeric</a>&lt; CharT &gt;::grouping </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel nodiscard">nodiscard</span><span class="mlabel noexcept">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>返回数字分组规则（内部规范化格式）。 </p>
+<p>向量中每个元素表示一个数字组的位数。若向量为空，则表示不进行分组。 </p><dl class="section return"><dt>返回</dt><dd>数字分组规则向量；为空时表示不分组。 </dd></dl>
+
+</div>
+</div>
+<a id="adf36e36e70b9a9dba53eab76beb2e186" name="adf36e36e70b9a9dba53eab76beb2e186"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adf36e36e70b9a9dba53eab76beb2e186">&#9670;&#160;</a></span>put() <span class="overload">[1/4]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename CharT&gt; </div>
+<div class="memtemplate">
+template&lt;typename TIter&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">TIter <a class="el" href="classIOv2_1_1numeric.html">IOv2::numeric</a>&lt; CharT &gt;::put </td>
+          <td>(</td>
+          <td class="paramtype">TIter</td>          <td class="paramname"><span class="paramname"><em>s</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classIOv2_1_1ios__base.html">ios_base</a>&lt; <a class="el" href="#a579ea870110575c2c24a2c285d51738b">char_type</a> &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>io</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool</td>          <td class="paramname"><span class="paramname"><em>v</em></span>&#160;) const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>将布尔值格式化并写入输出迭代器。 </p>
+<p>若 <span class="tt"><a class="el" href="group__ios__manipulators.html#ga0dc9293a3d364044d765f759e5b46c40" title="置位 boolalpha：布尔值以文本形式表示。">boolalpha</a></span> 标志未设置，则以整数（0/1）形式格式化，委托给 <span class="tt">insert_int</span>。 若设置了 <span class="tt"><a class="el" href="group__ios__manipulators.html#ga0dc9293a3d364044d765f759e5b46c40" title="置位 boolalpha：布尔值以文本形式表示。">boolalpha</a></span>，则使用 locale 的 <span class="tt"><a class="el" href="#ab242e2f518fa0eae4e26c9a3dedf131e" title="返回此 locale 中 true 的文本表示。">truename()</a></span>/<span class="tt"><a class="el" href="#abdfd011695bffc29ea70f069f02014a2" title="返回此 locale 中 false 的文本表示。">falsename()</a></span> 文本， 并按 <span class="tt">width()</span> 和对齐方式插入填充字符。</p>
+<dl class="tparams"><dt>模板参数</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">TIter</td><td>输出迭代器类型。 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">s</td><td>输出迭代器，写入格式化结果。 </td></tr>
+    <tr><td class="paramname">io</td><td>提供格式标志、宽度和填充字符的流对象。 </td></tr>
+    <tr><td class="paramname">v</td><td>要格式化的布尔值。 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd>写入结束后的输出迭代器。 </dd></dl>
+
+</div>
+</div>
+<a id="a1ed14126018cc7b43486b7bf4845e672" name="a1ed14126018cc7b43486b7bf4845e672"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1ed14126018cc7b43486b7bf4845e672">&#9670;&#160;</a></span>put() <span class="overload">[2/4]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename CharT&gt; </div>
+<div class="memtemplate">
+template&lt;typename TIter&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">TIter <a class="el" href="classIOv2_1_1numeric.html">IOv2::numeric</a>&lt; CharT &gt;::put </td>
+          <td>(</td>
+          <td class="paramtype">TIter</td>          <td class="paramname"><span class="paramname"><em>s</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classIOv2_1_1ios__base.html">ios_base</a>&lt; <a class="el" href="#a579ea870110575c2c24a2c285d51738b">char_type</a> &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>io</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const void *</td>          <td class="paramname"><span class="paramname"><em>v</em></span>&#160;) const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>将指针值以十六进制格式化并写入输出迭代器。 </p>
+<p>临时将流标志设为 <span class="tt"><a class="el" href="group__ios__manipulators.html#ga294fd2715f31cbf89f98b4365b3e88ad" title="在 basefield 内设置 hex：整数以十六进制表示。">hex</a> | <a class="el" href="group__ios__manipulators.html#ga0ee1d27c5ab91571b93c14c24a052bf4" title="置位 showbase：显示整数的进制前缀。">showbase</a></span>（通过 <span class="tt">fmtflags_guard</span> 保证恢复）， 然后将指针值转型为与平台指针大小匹配的无符号整数类型，委托给 <span class="tt">insert_int</span> 格式化。</p>
+<dl class="tparams"><dt>模板参数</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">TIter</td><td>输出迭代器类型。 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">s</td><td>输出迭代器，写入格式化结果。 </td></tr>
+    <tr><td class="paramname">io</td><td>提供格式标志、宽度和填充字符的流对象。 </td></tr>
+    <tr><td class="paramname">v</td><td>要格式化的指针值。 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd>写入结束后的输出迭代器。 </dd></dl>
+
+</div>
+</div>
+<a id="a372ff29b8b863fd23e7bad055f4bb40f" name="a372ff29b8b863fd23e7bad055f4bb40f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a372ff29b8b863fd23e7bad055f4bb40f">&#9670;&#160;</a></span>put() <span class="overload">[3/4]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename CharT&gt; </div>
+<div class="memtemplate">
+template&lt;typename TIter, typename TValue&gt; <br />
+requires (std::is_floating_point_v&lt;TValue&gt;)</div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">TIter <a class="el" href="classIOv2_1_1numeric.html">IOv2::numeric</a>&lt; CharT &gt;::put </td>
+          <td>(</td>
+          <td class="paramtype">TIter</td>          <td class="paramname"><span class="paramname"><em>s</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classIOv2_1_1ios__base.html">ios_base</a>&lt; <a class="el" href="#a579ea870110575c2c24a2c285d51738b">char_type</a> &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>io</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">TValue</td>          <td class="paramname"><span class="paramname"><em>v</em></span>&#160;) const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>将浮点值格式化并写入输出迭代器，委托给 <span class="tt">insert_float</span>。 </p>
+<p>先加宽到 float_carrier_t 选出的标准浮点类型，再据其选择 <span class="tt">snprintf</span> 修饰符： <span class="tt">long double</span> 用 <span class="tt">'L'</span>，其他用空修饰符。</p>
+<dl class="tparams"><dt>模板参数</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">TIter</td><td>输出迭代器类型。 </td></tr>
+    <tr><td class="paramname">TValue</td><td>浮点类型：<span class="tt">float</span>、<span class="tt">double</span>、<span class="tt">long double</span>，或它们能容纳的扩展浮点类型。 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">s</td><td>输出迭代器，写入格式化结果。 </td></tr>
+    <tr><td class="paramname">io</td><td>提供格式标志、宽度、精度和填充字符的流对象。 </td></tr>
+    <tr><td class="paramname">v</td><td>要格式化的浮点值。 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd>写入结束后的输出迭代器。 </dd></dl>
+
+</div>
+</div>
+<a id="af3fb09968382b178f2063aa1beea6524" name="af3fb09968382b178f2063aa1beea6524"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af3fb09968382b178f2063aa1beea6524">&#9670;&#160;</a></span>put() <span class="overload">[4/4]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename CharT&gt; </div>
+<div class="memtemplate">
+template&lt;typename TIter, typename TValue&gt; <br />
+requires (std::is_integral_v&lt;TValue&gt; &amp;&amp; (!std::is_same_v&lt;TValue, bool&gt;))</div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">TIter <a class="el" href="classIOv2_1_1numeric.html">IOv2::numeric</a>&lt; CharT &gt;::put </td>
+          <td>(</td>
+          <td class="paramtype">TIter</td>          <td class="paramname"><span class="paramname"><em>s</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classIOv2_1_1ios__base.html">ios_base</a>&lt; <a class="el" href="#a579ea870110575c2c24a2c285d51738b">char_type</a> &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>io</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">TValue</td>          <td class="paramname"><span class="paramname"><em>v</em></span>&#160;) const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>将整数值格式化并写入输出迭代器，委托给 <span class="tt">insert_int</span>。 </p>
+<dl class="tparams"><dt>模板参数</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">TIter</td><td>输出迭代器类型。 </td></tr>
+    <tr><td class="paramname">TValue</td><td>整数类型（非 <span class="tt">bool</span>）。 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">s</td><td>输出迭代器，写入格式化结果。 </td></tr>
+    <tr><td class="paramname">io</td><td>提供格式标志、宽度和填充字符的流对象。 </td></tr>
+    <tr><td class="paramname">v</td><td>要格式化的整数值。 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd>写入结束后的输出迭代器。 </dd></dl>
+
+</div>
+</div>
+<a id="a8a1edfa5cc9ea1fa930bfa5d595fc2d9" name="a8a1edfa5cc9ea1fa930bfa5d595fc2d9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8a1edfa5cc9ea1fa930bfa5d595fc2d9">&#9670;&#160;</a></span>thousands_sep()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename CharT&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">CharT <a class="el" href="classIOv2_1_1numeric.html">IOv2::numeric</a>&lt; CharT &gt;::thousands_sep </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel noexcept">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>返回此 locale 的千位分隔符字符。 </p>
+<p>若返回值为 <span class="tt">CharT('\0')</span>，表示不使用分隔符，此时 <span class="tt"><a class="el" href="#a283a6dbaca89d1551b9064e13768bfe3" title="返回数字分组规则（内部规范化格式）。">grouping()</a></span> 必为空。 </p><dl class="section return"><dt>返回</dt><dd>千位分隔符字符，或 <span class="tt">CharT('\0')</span>（不使用分隔符时）。 </dd></dl>
+
+</div>
+</div>
+<a id="ab242e2f518fa0eae4e26c9a3dedf131e" name="ab242e2f518fa0eae4e26c9a3dedf131e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab242e2f518fa0eae4e26c9a3dedf131e">&#9670;&#160;</a></span>truename()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename CharT&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">const std::basic_string&lt; CharT &gt; &amp; <a class="el" href="classIOv2_1_1numeric.html">IOv2::numeric</a>&lt; CharT &gt;::truename </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel noexcept">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>返回此 locale 中 <span class="tt">true</span> 的文本表示。 </p>
+<dl class="section return"><dt>返回</dt><dd><span class="tt">true</span> 的文本字符串。 </dd></dl>
+
+</div>
+</div>
+<hr/>该类的文档由以下文件生成:<ul>
+<li>include/IOv2/facet/<a class="el" href="numeric_8h_source.html">numeric.h</a></li>
+</ul>
+</div><!-- contents -->
+</div><!-- doc-content -->
+<div id="page-nav" class="page-nav-panel">
+<div id="page-nav-resize-handle"></div>
+<div id="page-nav-tree">
+<div id="page-nav-contents">
+</div><!-- page-nav-contents -->
+</div><!-- page-nav-tree -->
+</div><!-- page-nav -->
+</div><!-- container -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><a href="namespaceIOv2.html">IOv2</a></li><li class="navelem"><a href="classIOv2_1_1numeric.html">numeric</a></li>
+    <li class="footer">制作者 <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.15.0 </li>
+  </ul>
+</div>
+</body>
+</html>

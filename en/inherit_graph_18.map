@@ -1,0 +1,102 @@
+<map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
+<area shape="rect" id="Node000000" href="$structIOv2_1_1basic__stream__common__operators.html" title=" " alt="" coords="245,91,462,136"/>
+<area shape="rect" id="Node000001" href="$classIOv2_1_1iostream.html" title="Bidirectional character stream: combines an iochannel and a locale into a formatted input/output inte..." alt="" coords="528,18,717,62"/>
+<area shape="poly" id="edge27_Node000000_Node000001" title=" " alt="" coords="451,84,539,61,535,65,454,89"/>
+<area shape="rect" id="Node000011" href="$classIOv2_1_1istream.html" title="Character input stream: combines an ichannel and a locale into a formatted input interface." alt="" coords="532,87,713,132"/>
+<area shape="poly" id="edge28_Node000000_Node000011" title=" " alt="" coords="476,109,533,109,529,112,479,114"/>
+<area shape="rect" id="Node000034" href="$classIOv2_1_1ostream.html" title="Character output stream: combines an ochannel and a locale into a formatted output interface." alt="" coords="530,156,715,201"/>
+<area shape="poly" id="edge29_Node000000_Node000034" title=" " alt="" coords="461,137,531,155,527,158,463,142"/>
+<area shape="rect" id="Node000006" href="$structIOv2_1_1basic__stream__common__operators.html" title=" " alt="" coords="248,604,458,649"/>
+<area shape="rect" id="Node000003" href="$classIOv2_1_1stdin__api.html" title=" " alt="" coords="541,226,703,270"/>
+<area shape="poly" id="edge30_Node000006_Node000003" title=" " alt="" coords="466,593,468,591,492,552,501,514,499,477,492,439,485,400,483,361,491,321,516,281,542,263,539,267,520,285,496,323,488,362,490,399,497,438,504,476,506,515,497,554,472,594,470,596"/>
+<area shape="rect" id="Node000007" href="$classIOv2_1_1stdin__api.html" title=" " alt="" coords="530,295,715,340"/>
+<area shape="poly" id="edge32_Node000006_Node000007" title=" " alt="" coords="466,592,468,591,488,561,496,532,496,503,492,473,488,443,488,412,496,382,516,350,533,338,530,342,520,354,501,384,493,413,493,443,497,472,501,502,501,533,493,563,472,594,470,596"/>
+<area shape="rect" id="Node000013" href="$classIOv2_1_1stdout__api.html" title=" " alt="" coords="536,604,708,649"/>
+<area shape="poly" id="edge34_Node000006_Node000013" title=" " alt="" coords="473,624,538,626,534,628,475,629"/>
+<area shape="rect" id="Node000017" href="$classIOv2_1_1stdout__api.html" title=" " alt="" coords="541,776,703,821"/>
+<area shape="poly" id="edge36_Node000006_Node000017" title=" " alt="" coords="387,657,447,711,482,738,519,762,545,776,540,776,517,766,479,742,443,715,386,663"/>
+<area shape="rect" id="Node000023" href="$classIOv2_1_1stdout__api.html" title=" " alt="" coords="525,896,719,941"/>
+<area shape="poly" id="edge39_Node000006_Node000023" title=" " alt="" coords="386,658,430,711,472,772,486,804,492,832,500,857,520,882,537,896,531,896,516,886,495,859,487,833,481,806,468,775,426,714,385,663"/>
+<area shape="rect" id="Node000026" href="$classIOv2_1_1stdout__api.html" title=" " alt="" coords="530,1068,714,1113"/>
+<area shape="poly" id="edge41_Node000006_Node000026" title=" " alt="" coords="389,658,434,709,455,740,472,772,486,815,490,853,485,922,483,955,485,987,497,1020,520,1054,534,1069,528,1067,516,1058,492,1022,480,988,477,955,480,922,485,853,481,816,468,775,451,743,430,713,389,663"/>
+<area shape="rect" id="Node000012" href="$classIOv2_1_1stdin__api.html" title="The implementation template behind the standard input streams (cin / wcin)." alt="" coords="527,364,717,409"/>
+<area shape="poly" id="edge44_Node000006_Node000012" title=" " alt="" coords="466,593,468,590,483,570,491,549,492,507,493,464,500,442,516,420,534,408,531,412,520,423,505,444,498,465,497,507,496,550,488,572,472,594,469,596"/>
+<area shape="rect" id="Node000036" href="$classIOv2_1_1stdout__api.html" title="The implementation template behind the standard output streams (cout / cerr / clog and the three wide..." alt="" coords="522,484,722,529"/>
+<area shape="poly" id="edge45_Node000006_Node000036" title=" " alt="" coords="459,596,468,590,483,578,492,565,501,552,516,539,542,528,538,532,520,544,505,556,496,569,487,582,472,594,462,600"/>
+<area shape="rect" id="Node000004" href="$classIOv2_1_1cin__t.html" title="The type of the standard input stream cin (char)." alt="" coords="784,334,875,362"/>
+<area shape="poly" id="edge31_Node000003_Node000004" title=" " alt="" coords="712,274,728,280,773,306,812,334,806,334,770,311,725,285,713,279"/>
+<area shape="rect" id="Node000008" href="$classIOv2_1_1wcin__t.html" title="The type of the wide standard input stream wcin (wchar_t)." alt="" coords="779,470,880,498"/>
+<area shape="poly" id="edge33_Node000007_Node000008" title=" " alt="" coords="719,345,728,350,760,379,787,412,824,470,818,470,783,415,756,382,725,354,719,350"/>
+<area shape="rect" id="Node000014" href="$classIOv2_1_1cout__t.html" title="The type of the standard output stream cout (char)." alt="" coords="780,644,879,671"/>
+<area shape="poly" id="edge35_Node000013_Node000014" title=" " alt="" coords="722,639,782,650,777,651,723,644"/>
+<area shape="rect" id="Node000018" href="$classIOv2_1_1cerr__t.html" title="The type of the standard error stream cerr (char)." alt="" coords="781,756,878,783"/>
+<area shape="poly" id="edge37_Node000017_Node000018" title=" " alt="" coords="718,783,784,775,779,777,719,788"/>
+<area shape="rect" id="Node000020" href="$classIOv2_1_1clog__t.html" title="The type of the standard log stream clog (char)." alt="" coords="780,826,879,854"/>
+<area shape="poly" id="edge38_Node000017_Node000020" title=" " alt="" coords="718,815,783,830,777,831,719,821"/>
+<area shape="rect" id="Node000024" href="$classIOv2_1_1wcout__t.html" title="The type of the wide standard output stream wcout (wchar_t)." alt="" coords="774,936,885,963"/>
+<area shape="poly" id="edge40_Node000023_Node000024" title=" " alt="" coords="735,933,777,941,771,942,735,938"/>
+<area shape="rect" id="Node000027" href="$classIOv2_1_1wcerr__t.html" title="The type of the wide standard error stream wcerr (wchar_t)." alt="" coords="776,1049,883,1077"/>
+<area shape="poly" id="edge42_Node000026_Node000027" title=" " alt="" coords="729,1074,773,1070,778,1070,730,1079"/>
+<area shape="rect" id="Node000029" href="$classIOv2_1_1wclog__t.html" title="The type of the wide standard log stream wclog (wchar_t)." alt="" coords="775,1105,884,1133"/>
+<area shape="poly" id="edge43_Node000026_Node000029" title=" " alt="" coords="730,1103,777,1112,772,1111,729,1108"/>
+<area shape="rect" id="Node000037" href="$classIOv2_1_1ios__base.html" title="Base class holding the formatting state of every stream." alt="" coords="5,373,189,401"/>
+<area shape="rect" id="Node000002" href="$structIOv2_1_1ios__state.html" title="Component that adds the stream state bits and their associated exceptions on top of the formatting st..." alt="" coords="261,373,446,401"/>
+<area shape="poly" id="edge46_Node000037_Node000002" title=" " alt="" coords="203,385,262,385,258,389,206,389"/>
+<area shape="poly" id="edge53_Node000002_Node000001" title=" " alt="" coords="390,362,432,329,451,308,468,285,481,256,487,229,486,177,485,151,488,126,497,100,516,73,533,61,530,65,520,77,502,102,493,127,490,152,491,177,492,229,486,258,472,288,455,312,435,333,394,366"/>
+<area shape="poly" id="edge54_Node000002_Node000011" title=" " alt="" coords="388,362,430,328,468,285,478,266,484,247,488,212,493,178,502,160,516,142,535,130,531,134,520,146,506,163,498,179,493,213,489,248,483,268,472,288,433,332,392,366"/>
+<area shape="poly" id="edge55_Node000002_Node000034" title=" " alt="" coords="385,361,426,327,468,285,482,265,490,247,499,229,516,211,539,200,535,204,520,216,503,232,494,249,486,268,472,289,430,331,389,365"/>
+<area shape="poly" id="edge47_Node000002_Node000003" title=" " alt="" coords="384,362,444,321,517,280,548,269,544,273,519,285,447,326,388,366"/>
+<area shape="poly" id="edge48_Node000002_Node000007" title=" " alt="" coords="423,366,535,339,531,342,426,371"/>
+<area shape="poly" id="edge49_Node000002_Node000013" title=" " alt="" coords="445,405,472,424,488,445,495,467,497,509,498,550,505,570,520,590,539,606,533,606,516,594,500,573,493,551,491,509,490,468,483,448,468,427,446,410"/>
+<area shape="poly" id="edge50_Node000002_Node000017" title=" " alt="" coords="449,405,472,424,488,446,499,468,508,511,505,554,497,595,488,637,486,678,495,720,505,741,520,762,543,782,538,782,516,766,500,744,490,722,481,679,483,636,491,594,500,553,502,511,493,470,483,449,468,427,450,411"/>
+<area shape="poly" id="edge51_Node000002_Node000023" title=" " alt="" coords="450,405,472,424,493,454,506,484,514,513,516,542,510,599,497,655,483,711,477,767,480,796,487,824,500,853,520,882,533,896,528,896,516,886,495,856,482,826,474,797,472,767,478,710,491,654,505,598,511,542,508,514,501,485,488,457,468,427,450,411"/>
+<area shape="poly" id="edge52_Node000002_Node000026" title=" " alt="" coords="450,406,472,424,486,449,496,479,504,555,503,645,497,741,490,837,489,926,497,1001,507,1031,520,1055,533,1069,527,1067,516,1058,502,1033,492,1002,484,927,485,837,491,741,498,644,499,555,491,480,481,451,468,427,451,411"/>
+<area shape="poly" id="edge56_Node000002_Node000012" title=" " alt="" coords="460,384,529,385,524,388,463,389"/>
+<area shape="poly" id="edge57_Node000002_Node000036" title=" " alt="" coords="428,404,471,423,487,435,496,447,505,459,519,470,544,483,539,485,517,474,501,462,492,450,483,439,469,428,429,409"/>
+<area shape="rect" id="Node000010" href="$structIOv2_1_1istream__operators.html" title="Mix&#45;in base that provides the various extraction operations for input streams." alt="" coords="264,230,442,274"/>
+<area shape="poly" id="edge60_Node000010_Node000001" title=" " alt="" coords="454,227,468,216,482,199,489,182,492,146,495,110,502,91,516,73,535,61,532,65,520,77,507,94,500,111,497,147,494,183,486,201,472,219,458,230"/>
+<area shape="poly" id="edge61_Node000010_Node000011" title=" " alt="" coords="455,224,468,215,484,198,492,180,500,161,516,142,539,130,535,134,520,146,504,164,497,182,489,201,472,220,459,228"/>
+<area shape="poly" id="edge58_Node000010_Node000003" title=" " alt="" coords="457,248,543,248,538,251,459,253"/>
+<area shape="poly" id="edge59_Node000010_Node000007" title=" " alt="" coords="457,275,532,294,527,296,459,280"/>
+<area shape="poly" id="edge62_Node000010_Node000012" title=" " alt="" coords="399,281,456,316,519,350,549,363,544,365,517,355,454,321,400,286"/>
+<area shape="rect" id="Node000016" href="$structIOv2_1_1ostream__operators.html" title="Mix&#45;in base that provides the various insertion operations for output streams." alt="" coords="262,535,444,580"/>
+<area shape="poly" id="edge67_Node000016_Node000001" title=" " alt="" coords="452,525,468,509,486,481,498,453,505,425,507,399,502,345,490,292,477,239,473,185,476,158,483,130,496,102,516,73,532,61,529,65,520,77,501,104,488,132,481,159,478,185,483,238,495,291,507,344,513,398,510,426,503,455,491,483,472,513,457,528"/>
+<area shape="poly" id="edge68_Node000016_Node000034" title=" " alt="" coords="451,525,468,509,490,471,498,434,496,398,490,362,484,325,483,288,492,250,516,212,533,200,529,204,520,215,497,252,488,289,489,325,495,361,502,397,503,435,495,473,472,512,455,528"/>
+<area shape="poly" id="edge63_Node000016_Node000013" title=" " alt="" coords="457,582,538,604,533,606,458,587"/>
+<area shape="poly" id="edge64_Node000016_Node000017" title=" " alt="" coords="458,579,472,590,488,612,496,634,497,678,498,721,505,741,520,762,543,781,538,781,516,766,500,744,493,721,492,678,491,635,483,615,468,594,458,585"/>
+<area shape="poly" id="edge65_Node000016_Node000023" title=" " alt="" coords="458,579,472,590,496,628,505,665,504,702,497,738,491,774,489,810,498,846,520,882,534,896,528,896,516,886,493,848,484,810,486,773,492,737,498,701,499,666,491,630,468,594,458,584"/>
+<area shape="poly" id="edge66_Node000016_Node000026" title=" " alt="" coords="458,578,472,590,493,621,507,650,515,680,518,709,512,767,498,824,483,881,477,938,479,966,487,995,500,1025,520,1054,533,1069,528,1067,516,1058,495,1027,482,997,474,967,472,938,478,880,492,823,506,766,512,709,510,681,502,652,489,623,468,594,458,583"/>
+<area shape="poly" id="edge69_Node000016_Node000036" title=" " alt="" coords="459,535,524,524,520,527,461,540"/>
+<area shape="rect" id="Node000019" href="$classIOv2_1_1sing__temp.html" title=" " alt="" coords="525,725,719,753"/>
+<area shape="poly" id="edge70_Node000019_Node000018" title=" " alt="" coords="734,753,783,762,778,763,735,758"/>
+<area shape="rect" id="Node000005" href="$classIOv2_1_1sing__temp.html" title=" " alt="" coords="528,433,716,461"/>
+<area shape="poly" id="edge71_Node000005_Node000004" title=" " alt="" coords="710,425,725,419,774,390,815,360,811,364,777,394,728,424,713,430"/>
+<area shape="rect" id="Node000021" href="$classIOv2_1_1sing__temp.html" title=" " alt="" coords="524,845,720,873"/>
+<area shape="poly" id="edge72_Node000021_Node000020" title=" " alt="" coords="735,846,783,844,777,845,736,851"/>
+<area shape="rect" id="Node000015" href="$classIOv2_1_1sing__temp.html" title=" " alt="" coords="524,673,721,701"/>
+<area shape="poly" id="edge73_Node000015_Node000014" title=" " alt="" coords="735,668,782,664,777,666,737,673"/>
+<area shape="rect" id="Node000028" href="$classIOv2_1_1sing__temp.html" title=" " alt="" coords="520,1017,725,1045"/>
+<area shape="poly" id="edge74_Node000028_Node000027" title=" " alt="" coords="731,1045,778,1055,773,1055,731,1050"/>
+<area shape="rect" id="Node000009" href="$classIOv2_1_1sing__temp.html" title=" " alt="" coords="522,553,722,581"/>
+<area shape="poly" id="edge75_Node000009_Node000008" title=" " alt="" coords="706,546,725,539,769,518,809,497,805,500,771,523,727,544,709,551"/>
+<area shape="rect" id="Node000030" href="$classIOv2_1_1sing__temp.html" title=" " alt="" coords="518,1137,726,1165"/>
+<area shape="poly" id="edge76_Node000030_Node000029" title=" " alt="" coords="730,1131,772,1127,777,1127,731,1137"/>
+<area shape="rect" id="Node000025" href="$classIOv2_1_1sing__temp.html" title=" " alt="" coords="518,965,726,993"/>
+<area shape="poly" id="edge77_Node000025_Node000024" title=" " alt="" coords="739,960,776,957,771,958,740,965"/>
+<area shape="rect" id="Node000031" href="$classIOv2_1_1tie__target.html" title="Abstract base carrying the polymorphic try_flush() interface." alt="" coords="36,248,158,275"/>
+<area shape="rect" id="Node000032" href="$structIOv2_1_1out__tie__target.html" title=" " alt="" coords="270,5,436,67"/>
+<area shape="poly" id="edge78_Node000031_Node000032" title=" " alt="" coords="110,233,159,156,194,114,235,77,271,58,268,62,238,81,198,117,163,159,115,235"/>
+<area shape="rect" id="Node000033" href="$structIOv2_1_1out__tie__target.html" title=" " alt="" coords="237,160,470,205"/>
+<area shape="poly" id="edge80_Node000031_Node000033" title=" " alt="" coords="156,240,236,215,277,204,273,208,237,220,160,244"/>
+<area shape="rect" id="Node000035" href="$structIOv2_1_1out__tie__target.html" title=" " alt="" coords="265,437,442,499"/>
+<area shape="poly" id="edge82_Node000031_Node000035" title=" " alt="" coords="121,284,238,410,279,436,275,438,235,414,122,290"/>
+<area shape="rect" id="Node000022" href="$structIOv2_1_1out__tie__target.html" title="CRTP base carrying the polymorphic try_flush(): the down&#45;cast to the concrete stream type T is locali..." alt="" coords="259,785,448,813"/>
+<area shape="poly" id="edge84_Node000031_Node000022" title=" " alt="" coords="127,283,163,318,191,360,208,404,216,442,216,511,216,580,223,618,239,660,261,698,287,732,338,784,332,785,283,735,256,701,234,663,218,619,211,580,211,511,210,443,203,405,186,363,159,321,129,288"/>
+<area shape="poly" id="edge79_Node000032_Node000001" title=" " alt="" coords="451,35,529,37,525,40,453,40"/>
+<area shape="poly" id="edge81_Node000033_Node000034" title=" " alt="" coords="484,179,531,179,527,182,487,183"/>
+<area shape="poly" id="edge83_Node000035_Node000036" title=" " alt="" coords="456,480,524,491,520,494,457,485"/>
+<area shape="poly" id="edge85_Node000022_Node000013" title=" " alt="" coords="377,771,437,716,476,686,517,659,545,648,540,651,519,664,479,690,441,720,381,775"/>
+<area shape="poly" id="edge86_Node000022_Node000017" title=" " alt="" coords="462,796,543,798,538,800,464,801"/>
+<area shape="poly" id="edge87_Node000022_Node000023" title=" " alt="" coords="392,818,452,850,519,882,551,896,546,896,517,887,450,855,392,823"/>
+<area shape="poly" id="edge88_Node000022_Node000026" title=" " alt="" coords="366,825,389,875,422,937,465,1000,491,1029,520,1054,539,1068,534,1067,516,1058,487,1032,461,1003,417,939,384,878,364,830"/>
+</map>

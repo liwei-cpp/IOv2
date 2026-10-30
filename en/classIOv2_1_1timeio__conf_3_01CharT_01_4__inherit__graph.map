@@ -1,0 +1,12 @@
+<map id="IOv2::timeio_conf&lt; CharT &gt;" name="IOv2::timeio_conf&lt; CharT &gt;">
+<area shape="rect" id="Node000001" title="Locale configuration class for the timeio facet specialised for wide characters (wchar_t / char32_t U..." alt="" coords="116,249,263,294"/>
+<area shape="rect" id="Node000002" href="$classIOv2_1_1ft__basic_3_01timeio_3_01CharT_01_4_01_4.html" title="Base class template specialization for the timeio facet." alt="" coords="11,157,178,201"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="129,210,170,249,164,249,127,214"/>
+<area shape="rect" id="Node000003" href="$classIOv2_1_1base__ft_3_01timeio_01_4.html" title="The intermediate base specialization for timeio, holding its character&#45;type&#45;independent time&#45;zone dat..." alt="" coords="5,81,184,109"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="95,122,97,157,92,155,94,127"/>
+<area shape="rect" id="Node000004" href="$structIOv2_1_1abs__ft.html" title=" " alt="" coords="45,5,144,33"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="86,46,90,81,85,80,85,51"/>
+<area shape="poly" id="edge4_Node000003_Node000004" title=" " alt="" coords="104,46,104,81,99,80,103,51"/>
+<area shape="rect" id="Node000005" href="$classIOv2_1_1ft__basic.html" title=" " alt="" coords="202,157,368,201"/>
+<area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="254,211,213,251,210,247,249,213"/>
+</map>

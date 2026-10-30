@@ -1,0 +1,351 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=11"/>
+<meta name="generator" content="Doxygen 1.15.0"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>IOv2: IOv2::sync&lt; TStream &gt; 模板结构体 参考</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<script type="text/javascript" src="clipboard.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<script type="text/javascript" src="cookie.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr id="projectrow">
+  <td id="projectalign">
+   <div id="projectname">IOv2
+   </div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 制作者 Doxygen 1.15.0 -->
+<script type="text/javascript">
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+</script>
+<script type="text/javascript">
+$(function() { codefold.init(); });
+</script>
+<script type="text/javascript" src="menudata.js"></script>
+<script type="text/javascript" src="menu.js"></script>
+<script type="text/javascript">
+$(function() {
+  initMenu('',true,false,'search.php','搜索',true);
+  $(function() { init_search(); });
+});
+</script>
+<div id="main-nav"></div>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+$(function(){initNavTree('structIOv2_1_1sync.html','','structIOv2_1_1sync-members'); });
+</script>
+<div id="container">
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">载入中...</div>
+<div class="SRStatus" id="Searching">搜索中...</div>
+<div class="SRStatus" id="NoMatches">未找到</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="header">
+  <div class="headertitle"><div class="title">IOv2::sync&lt; TStream &gt; 模板结构体 参考</div></div>
+</div><!--header-->
+<div class="contents">
+
+<p>对流的 I/O 互斥量进行 RAII 加锁的辅助类。  
+ <a href="#details">更多...</a></p>
+
+<p><code>#include &lt;<a class="el" href="io__base_8h_source.html">io_base.h</a>&gt;</code></p>
+<table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
+Public 成员函数</h2></td></tr>
+<tr class="memitem:a978350c010be4d229ec6e26531f4d4cd" id="r_a978350c010be4d229ec6e26531f4d4cd"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a978350c010be4d229ec6e26531f4d4cd">sync</a> (TStream &amp;str)</td></tr>
+<tr class="memdesc:a978350c010be4d229ec6e26531f4d4cd"><td class="mdescLeft">&#160;</td><td class="mdescRight">构造并锁定流的 I/O 互斥量。  <br /></td></tr>
+<tr class="memitem:a95fac1c610b4ebf020300d2a571587f5" id="r_a95fac1c610b4ebf020300d2a571587f5"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a95fac1c610b4ebf020300d2a571587f5">~sync</a> ()</td></tr>
+<tr class="memdesc:a95fac1c610b4ebf020300d2a571587f5"><td class="mdescLeft">&#160;</td><td class="mdescRight">析构并解锁流的 I/O 互斥量。    <br /></td></tr>
+<tr class="memitem:ae7d6a057bff0af1f768794c698ad16a4" id="r_ae7d6a057bff0af1f768794c698ad16a4"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ae7d6a057bff0af1f768794c698ad16a4">sync</a> (const sync &amp;)=delete</td></tr>
+<tr class="memitem:ab57c5f0636a0d26dab66776770f34caa" id="r_ab57c5f0636a0d26dab66776770f34caa"><td class="memItemLeft" align="right" valign="top"><a class="el" href="#a978350c010be4d229ec6e26531f4d4cd">sync</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ab57c5f0636a0d26dab66776770f34caa">operator=</a> (const <a class="el" href="#a978350c010be4d229ec6e26531f4d4cd">sync</a> &amp;)=delete</td></tr>
+<tr class="memitem:a4e54000ac0906e356e32972c7c525e40" id="r_a4e54000ac0906e356e32972c7c525e40"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a4e54000ac0906e356e32972c7c525e40">sync</a> (sync &amp;&amp;)=delete</td></tr>
+<tr class="memitem:abdf00ec0814d68988575af39cb0ef060" id="r_abdf00ec0814d68988575af39cb0ef060"><td class="memItemLeft" align="right" valign="top"><a class="el" href="#a978350c010be4d229ec6e26531f4d4cd">sync</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#abdf00ec0814d68988575af39cb0ef060">operator=</a> (<a class="el" href="#a978350c010be4d229ec6e26531f4d4cd">sync</a> &amp;&amp;)=delete</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
+Public 属性</h2></td></tr>
+<tr class="memitem:a45b81d60d1b72c03f56109e5e305a66d" id="r_a45b81d60d1b72c03f56109e5e305a66d"><td class="memItemLeft" align="right" valign="top">TStream &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a45b81d60d1b72c03f56109e5e305a66d">stream</a></td></tr>
+<tr class="memdesc:a45b81d60d1b72c03f56109e5e305a66d"><td class="mdescLeft">&#160;</td><td class="mdescRight">被加锁的流的引用。    <br /></td></tr>
+</table>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">详细描述</h2>
+<div class="textblock"><div class="compoundTemplParams">template&lt;typename TStream&gt;<br />
+struct IOv2::sync&lt; TStream &gt;</div><p>对流的 I/O 互斥量进行 RAII 加锁的辅助类。 </p>
+<p>构造时锁定 <span class="tt">stream.io_mutex()</span>，析构时解锁，从而在其生命周期内保证对该流的独占访问。 常用于把对同一流的多次 I/O 操作合并为一个原子的临界区。本类不可拷贝。</p>
+<dl class="section warning"><dt>警告</dt><dd><b>持有本类期间对另一个流做 I/O，其锁序由调用方负责。</b> 每次 I/O 都会取该流的 <span class="tt">io_mutex()</span>，于是 <span class="tt">sync(A); B &lt;&lt; 1;</span> 就是同时持有两把流锁；两个线程以相反次序 这么做即为经典的 AB-BA 死锁，与直接用两把 <span class="tt">std::mutex</span> 写错顺序无异。在流锁之间， 库这边保证自己不制造**用户看不见的**加锁边——tie 的刷新一律用不等锁的 <span class="tt">try_flush()</span> （见 <span class="tt"><a class="el" href="structIOv2_1_1basic__stream__common__operators.html#a3c482fdf6c32e5147e021f5c61eb0565">stream_common_operators::tie</a></span>）；流锁与 stdio 的 <span class="tt">FILE</span> 锁之间的那条边见下一条。 用户自己写下的锁序，库无从代劳。 </dd>
+<dd>
+<b>与 stdio 混写时，<span class="tt">FILE</span> 锁要排在流锁之后。</b> 标准流写出时先持本流的 <span class="tt">io_mutex()</span>， 再取 <span class="tt">stdout</span> / <span class="tt">stderr</span> 的 <span class="tt">FILE</span> 锁（<span class="tt">fwrite</span> / <span class="tt">fflush</span>）。要用 <span class="tt">flockfile</span> 把 <span class="tt">printf</span> 与本库的输出圈成一段，必须先用本类锁住要写的每个流，再 <span class="tt">flockfile</span>： <div class="fragment"><div class="line"><a class="code hl_struct" href="structIOv2_1_1sync.html">IOv2::sync</a> guard(<a class="code hl_variable" href="namespaceIOv2.html#a192db1b11b81d628e595c6541ee23a43">IOv2::cout</a>);   <span class="comment">// 先流锁</span></div>
+<div class="line">flockfile(stdout);               <span class="comment">// 再 FILE 锁</span></div>
+<div class="line">std::printf(<span class="stringliteral">&quot;x = &quot;</span>); <a class="code hl_variable" href="namespaceIOv2.html#a192db1b11b81d628e595c6541ee23a43">IOv2::cout</a> &lt;&lt; x;</div>
+<div class="line">funlockfile(stdout);</div>
+<div class="ttc" id="anamespaceIOv2_html_a192db1b11b81d628e595c6541ee23a43"><div class="ttname"><a href="namespaceIOv2.html#a192db1b11b81d628e595c6541ee23a43">IOv2::cout</a></div><div class="ttdeci">cout_t &amp; cout</div><div class="ttdoc">标准输出流对象（char），写 fd 1。</div><div class="ttdef"><b>定义</b> out_impl.h:910</div></div>
+<div class="ttc" id="astructIOv2_1_1sync_html"><div class="ttname"><a href="structIOv2_1_1sync.html">IOv2::sync</a></div><div class="ttdoc">对流的 I/O 互斥量进行 RAII 加锁的辅助类。</div><div class="ttdef"><b>定义</b> io_base.h:1714</div></div>
+</div><!-- fragment --> 两把锁都可重入，块内再写 <span class="tt"><a class="el" href="namespaceIOv2.html#a192db1b11b81d628e595c6541ee23a43" title="标准输出流对象（char），写 fd 1。">cout</a></span>、调 <span class="tt">printf</span> 不会卡住自己；所有写 <span class="tt"><a class="el" href="namespaceIOv2.html#a192db1b11b81d628e595c6541ee23a43" title="标准输出流对象（char），写 fd 1。">cout</a></span> 的线程都是 先流锁后 <span class="tt">FILE</span> 锁，不会成环。顺序反过来——先 <span class="tt">flockfile</span> 再写 <span class="tt"><a class="el" href="namespaceIOv2.html#a192db1b11b81d628e595c6541ee23a43" title="标准输出流对象（char），写 fd 1。">IOv2::cout</a></span>——就会与 另一个直接写 <span class="tt"><a class="el" href="namespaceIOv2.html#a192db1b11b81d628e595c6541ee23a43" title="标准输出流对象（char），写 fd 1。">cout</a></span> 的线程死锁；经 tie 也会：另一个线程只写 <span class="tt"><a class="el" href="namespaceIOv2.html#a7d5991e896f831d9d1792b0a94e60693" title="标准错误流对象（char），写 fd 2。">cerr</a></span>，写前冲刷 <span class="tt"><a class="el" href="namespaceIOv2.html#a192db1b11b81d628e595c6541ee23a43" title="标准输出流对象（char），写 fd 1。">cout</a></span> 时拿到 <span class="tt"><a class="el" href="namespaceIOv2.html#a192db1b11b81d628e595c6541ee23a43" title="标准输出流对象（char），写 fd 1。">cout</a></span> 的锁，随即阻塞在 <span class="tt">FILE</span> 锁上。块内写了同用这个 <span class="tt">FILE</span>、却没有 锁住的流（如 <span class="tt"><a class="el" href="namespaceIOv2.html#a17b93b3e50cd1c907add59d2740a7d9e" title="宽字符标准输出流对象（wchar_t），写 fd 1。">wcout</a></span>）同样可能死锁：要写哪几个流，就把它们都锁上，且所有线程顺序一致。 </dd>
+<dd>
+<b>本类挡不住不取锁的操纵符流形式。</b> <span class="tt"><a class="el" href="io__manip_8h.html">io_manip.h</a></span> 的六个格式状态操纵符 （<span class="tt"><a class="el" href="namespaceIOv2.html#aedf6b0c58c8061128becb490433aecf3" title="构造设置字段宽度的操纵符。">setw</a></span> / <span class="tt"><a class="el" href="namespaceIOv2.html#ae5345dc5ab6f852ab3f472e0407d42ec" title="构造设置填充字符的操纵符；填充字符用于字段宽度大于内容时补齐。">setfill</a></span> / <span class="tt"><a class="el" href="namespaceIOv2.html#a1c1e08a956ef5537e1d56919c570f07e" title="构造设置整数进制的操纵符。">setbase</a></span> / <span class="tt"><a class="el" href="namespaceIOv2.html#aa7959a7eb2a57d40bbc3609cc918b1cf" title="构造设置浮点精度的操纵符。">setprecision</a></span> / <span class="tt"><a class="el" href="namespaceIOv2.html#a12359c2e23bf073039289d583c8de3c4" title="构造置位 mask 中各标志的操纵符（按位或，其余标志不受影响）。">setiosflags</a></span> / <span class="tt"><a class="el" href="namespaceIOv2.html#a61a606925c0ce4b1d34da87049f3e97a" title="构造清除 mask 中各标志的操纵符（其余标志不受影响）。">resetiosflags</a></span>）与本文件里 <span class="tt"><a class="el" href="group__ios__manipulators.html#ga294fd2715f31cbf89f98b4365b3e88ad" title="在 basefield 内设置 hex：整数以十六进制表示。">hex</a></span> / <span class="tt"><a class="el" href="group__ios__manipulators.html#ga583e939dc20bb613178fe3fe2c1eb85b" title="在 adjustfield 内设置 left：左对齐。">left</a></span> / <span class="tt"><a class="el" href="group__ios__manipulators.html#ga0dc9293a3d364044d765f759e5b46c40" title="置位 boolalpha：布尔值以文本形式表示。">boolalpha</a></span> 那类函数指针操纵符， 其运算符重载都**不取 <span class="tt">io_mutex()</span>**，因此不受本类约束：持有 <span class="tt">sync(A)</span> 的线程 仍会被另一个线程的 <span class="tt">A &lt;&lt; setw(5)</span> 插进临界区中间。要把这类操纵符也纳入互斥， **每个访问该流的线程都得自己用 <span class="tt"><a class="el" href="structIOv2_1_1sync.html" title="对流的 I/O 互斥量进行 RAII 加锁的辅助类。">sync</a></span>**。其余操作（插入、提取、<span class="tt"><a class="el" href="namespaceIOv2.html#ad6174b7289d2487b638d51cda9b9fe9a">flush</a></span> / <span class="tt"><a class="el" href="namespaceIOv2.html#a7929840205374feca6b505f968e57ff5">endl</a></span> / <span class="tt"><a class="el" href="namespaceIOv2.html#acf808d12ab0d83facf8beade807de602">ws</a></span>、<span class="tt">seek</span>、<span class="tt">locale(loc)</span> 等）都会取这把锁，单侧 <span class="tt"><a class="el" href="structIOv2_1_1sync.html" title="对流的 I/O 互斥量进行 RAII 加锁的辅助类。">sync</a></span> 即可挡住。</dd></dl>
+<dl class="tparams"><dt>模板参数</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">TStream</td><td>流类型，需提供 <span class="tt">io_mutex()</span> 接口（返回可 lock()/unlock() 的互斥量）。 </td></tr>
+  </table>
+  </dd>
+</dl>
+</div><a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">构造及析构函数说明</h2>
+<a id="a978350c010be4d229ec6e26531f4d4cd" name="a978350c010be4d229ec6e26531f4d4cd"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a978350c010be4d229ec6e26531f4d4cd">&#9670;&#160;</a></span>sync() <span class="overload">[1/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename TStream&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="structIOv2_1_1sync.html">IOv2::sync</a>&lt; TStream &gt;::sync </td>
+          <td>(</td>
+          <td class="paramtype">TStream &amp;</td>          <td class="paramname"><span class="paramname"><em>str</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>构造并锁定流的 I/O 互斥量。 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">str</td><td>要加锁的流。 </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a95fac1c610b4ebf020300d2a571587f5" name="a95fac1c610b4ebf020300d2a571587f5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a95fac1c610b4ebf020300d2a571587f5">&#9670;&#160;</a></span>~sync()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename TStream&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="structIOv2_1_1sync.html">IOv2::sync</a>&lt; TStream &gt;::~<a class="el" href="#a978350c010be4d229ec6e26531f4d4cd">sync</a> </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>析构并解锁流的 I/O 互斥量。   </p>
+
+</div>
+</div>
+<a id="ae7d6a057bff0af1f768794c698ad16a4" name="ae7d6a057bff0af1f768794c698ad16a4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae7d6a057bff0af1f768794c698ad16a4">&#9670;&#160;</a></span>sync() <span class="overload">[2/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename TStream&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="structIOv2_1_1sync.html">IOv2::sync</a>&lt; TStream &gt;::sync </td>
+          <td>(</td>
+          <td class="paramtype">const sync&lt; TStream &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel delete">delete</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a4e54000ac0906e356e32972c7c525e40" name="a4e54000ac0906e356e32972c7c525e40"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4e54000ac0906e356e32972c7c525e40">&#9670;&#160;</a></span>sync() <span class="overload">[3/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename TStream&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="structIOv2_1_1sync.html">IOv2::sync</a>&lt; TStream &gt;::sync </td>
+          <td>(</td>
+          <td class="paramtype">sync&lt; TStream &gt; &amp;&amp;</td>          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel delete">delete</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">成员函数说明</h2>
+<a id="ab57c5f0636a0d26dab66776770f34caa" name="ab57c5f0636a0d26dab66776770f34caa"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab57c5f0636a0d26dab66776770f34caa">&#9670;&#160;</a></span>operator=() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename TStream&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="#a978350c010be4d229ec6e26531f4d4cd">sync</a> &amp; <a class="el" href="structIOv2_1_1sync.html">IOv2::sync</a>&lt; TStream &gt;::operator= </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="#a978350c010be4d229ec6e26531f4d4cd">sync</a>&lt; TStream &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel delete">delete</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="abdf00ec0814d68988575af39cb0ef060" name="abdf00ec0814d68988575af39cb0ef060"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abdf00ec0814d68988575af39cb0ef060">&#9670;&#160;</a></span>operator=() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename TStream&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="#a978350c010be4d229ec6e26531f4d4cd">sync</a> &amp; <a class="el" href="structIOv2_1_1sync.html">IOv2::sync</a>&lt; TStream &gt;::operator= </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="#a978350c010be4d229ec6e26531f4d4cd">sync</a>&lt; TStream &gt; &amp;&amp;</td>          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel delete">delete</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">类成员变量说明</h2>
+<a id="a45b81d60d1b72c03f56109e5e305a66d" name="a45b81d60d1b72c03f56109e5e305a66d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a45b81d60d1b72c03f56109e5e305a66d">&#9670;&#160;</a></span>stream</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename TStream&gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname">TStream&amp; <a class="el" href="structIOv2_1_1sync.html">IOv2::sync</a>&lt; TStream &gt;::stream</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>被加锁的流的引用。   </p>
+
+</div>
+</div>
+<hr/>该结构体的文档由以下文件生成:<ul>
+<li>include/IOv2/io/<a class="el" href="io__base_8h_source.html">io_base.h</a></li>
+</ul>
+</div><!-- contents -->
+</div><!-- doc-content -->
+<div id="page-nav" class="page-nav-panel">
+<div id="page-nav-resize-handle"></div>
+<div id="page-nav-tree">
+<div id="page-nav-contents">
+</div><!-- page-nav-contents -->
+</div><!-- page-nav-tree -->
+</div><!-- page-nav -->
+</div><!-- container -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><a href="namespaceIOv2.html">IOv2</a></li><li class="navelem"><a href="structIOv2_1_1sync.html">sync</a></li>
+    <li class="footer">制作者 <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.15.0 </li>
+  </ul>
+</div>
+</body>
+</html>
