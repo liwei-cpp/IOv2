@@ -31,6 +31,11 @@
   字符串字面量的代码不受影响；只能隐式转换为 `std::string` 的自定义类型不再能直接传入。
 - `file_device` 在所有平台上都以二进制打开文件，Windows 上也不做 `\r\n` 与 `\n` 的转换。
   换行转换将由转换器层提供（#505）。
+- `abs_cvt` 在 BOS 阶段（`bos()` 之后、`main_cont_beg()` 之前）不再换向：显式调用
+  `switch_to_get()` / `switch_to_put()`，或与 `bos()` 所定方向相反的 `get()` / `put()`，
+  都抛出 `cvt_error`，且不污染转换器。此前反向的 `put()` 会把原始字节交给下层，由下层
+  `root_cvt` 自行换向写到流首，两层的方向也随之不一致。`main_cont_beg()` 之后的换向不变；
+  `root_cvt` 本身不读写流头，不受此限。
 
 #### 废弃
 
@@ -145,6 +150,13 @@ have no release line of their own.
 - `file_device` opens files in binary on every platform; on Windows too there is
   no translation between `\r\n` and `\n`. Newline translation is to come from
   the converter layer (#505).
+- `abs_cvt` no longer switches direction in the BOS phase (after `bos()`, before
+  `main_cont_beg()`): an explicit `switch_to_get()` / `switch_to_put()`, or a `get()` /
+  `put()` against the direction `bos()` settled on, throws `cvt_error` and does not taint
+  the converter. A reverse `put()` used to hand raw bytes to the layer below, where
+  `root_cvt` switched on its own and wrote at the stream origin, leaving the two layers
+  disagreeing on the direction. Switching after `main_cont_beg()` is unchanged; `root_cvt`
+  itself reads and writes no header and is not restricted.
 
 #### Deprecated
 
