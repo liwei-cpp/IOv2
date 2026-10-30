@@ -1485,6 +1485,7 @@ namespace IOv2
          * 不经过派生类的 `get_main`，以支持文件头等特殊起始数据的读取。
          * BOS 阶段要求数据完整：若在读取足够字节之前遭遇流末尾，视为格式错误
          * 并抛出异常（与 `get_main` 可返回不足数据不同，BOS 阶段是全有或全无）。
+         * BOS 阶段不换向：`bos()` 定下的方向为 `output` 时抛出异常。
          *
          * 进入主阶段后，若当前 IO 方向不是 `input`，且派生类支持 IO 方向切换，
          * 则自动调用 `switch_to_get()`；否则抛出异常。
@@ -1503,7 +1504,8 @@ namespace IOv2
          * stream-leading data such as file headers. The BOS phase requires complete
          * data: if end-of-stream is reached before enough bytes are available, it is
          * treated as a format error and an exception is thrown (unlike `get_main`,
-         * which may return partial data, the BOS phase is all-or-nothing).
+         * which may return partial data, the BOS phase is all-or-nothing). The BOS
+         * phase does not switch direction: it throws if `bos()` settled on `output`.
          *
          * Once in the main phase, if the current IO direction is not `input` and the
          * derived class supports IO-direction switching, `switch_to_get()` is called
@@ -1531,11 +1533,12 @@ namespace IOv2
          *
          * @throws cvt_error
          * @lang{ZH}
-         * 若 BOS 阶段在读取足够数据之前遭遇流末尾；或主阶段无法切换到 input 方向。
+         * 若 BOS 阶段在读取足够数据之前遭遇流末尾，或 BOS 阶段的方向为 output；
+         * 或主阶段无法切换到 input 方向。
          * @endif
          * @lang{EN}
-         * If the BOS phase encounters end-of-stream before reading enough data; or if
-         * the main phase cannot switch to input direction.
+         * If the BOS phase encounters end-of-stream before reading enough data, or its
+         * direction is output; or if the main phase cannot switch to input direction.
          * @endif
          */
         template <typename Self>
@@ -1560,6 +1563,8 @@ namespace IOv2
 
             if (!self.m_is_bos_done)
             {
+                if (self.m_io_status == io_status::output)
+                    throw cvt_error("abs_cvt::get fail: cannot switch to input mode in the BOS phase");
                 if (to_max == 0) return 0;
 
                 constexpr std::size_t ext_size = sizeof(external_type);
@@ -1628,6 +1633,7 @@ namespace IOv2
          * 不经过派生类的 `put_main`，以支持文件头等特殊起始数据的写入。
          * BOS 阶段以 `sizeof(external_type)` 为单位分块写出完整的 `external_type`
          * 元素；若最后一个单元不足 `sizeof(external_type)` 字节，则以零填充。
+         * BOS 阶段不换向：`bos()` 定下的方向为 `input` 时抛出异常。
          *
          * 进入主阶段后，若当前 IO 方向不是 `output`，且派生类支持 IO 方向切换，
          * 则自动调用 `switch_to_put()`；否则抛出异常。
@@ -1643,7 +1649,8 @@ namespace IOv2
          * writing of stream-leading data such as file headers. The BOS phase writes
          * complete `external_type` units (`sizeof(external_type)` bytes each); if
          * the final unit is smaller than `sizeof(external_type)` bytes, it is
-         * zero-padded.
+         * zero-padded. The BOS phase does not switch direction: it throws if
+         * `bos()` settled on `input`.
          *
          * Once in the main phase, if the current IO direction is not `output` and the
          * derived class supports IO-direction switching, `switch_to_put()` is called
@@ -1662,8 +1669,8 @@ namespace IOv2
          * @lang{EN} Number of elements to write. @endif
          *
          * @throws cvt_error
-         * @lang{ZH} 若主阶段无法切换到 output 方向。 @endif
-         * @lang{EN} If the main phase cannot switch to output direction. @endif
+         * @lang{ZH} 若 BOS 阶段的方向为 input，或主阶段无法切换到 output 方向。 @endif
+         * @lang{EN} If the BOS phase direction is input, or the main phase cannot switch to output direction. @endif
          */
         template <typename Self>
         void put(this Self& self, const internal_type* to, std::size_t to_size)
@@ -1685,6 +1692,8 @@ namespace IOv2
                 else
                     throw cvt_error("abs_cvt::put fail: cannot switch to output mode");
             }
+            if (!self.m_is_bos_done && self.m_io_status == io_status::input)
+                throw cvt_error("abs_cvt::put fail: cannot switch to output mode in the BOS phase");
 
             try
             {
@@ -1909,7 +1918,8 @@ namespace IOv2
          *
          * 若已处于输入模式则立即返回（空操作）；否则先调用 `assert_not_tainted()`，
          * 再调用 `switch_to_get_impl()`（若派生类实现了该 hook），最后切换底层 kernel
-         * 并更新 `m_io_status`。
+         * 并更新 `m_io_status`。在 `bos()` 之后、`main_cont_beg()` 之前需要换向时抛出
+         * `cvt_error`。
          *
          * 仅在 `enable_io_switch` 为 `true` 且 kernel 支持 IO 方向切换时可用。
          * @endif
@@ -1921,6 +1931,7 @@ namespace IOv2
          * Returns immediately if already in input mode (no-op). Otherwise calls
          * `assert_not_tainted()`, then `switch_to_get_impl()` if the derived class
          * implements it, then switches the underlying kernel and updates `m_io_status`.
+         * Throws `cvt_error` if a switch is needed after `bos()` but before `main_cont_beg()`.
          *
          * Only available when `enable_io_switch` is `true` and the kernel supports
          * IO-direction switching.
@@ -1933,6 +1944,8 @@ namespace IOv2
                 return;
 
             self.assert_not_tainted();
+            if (!self.m_is_bos_done && self.m_io_status != io_status::neutral)
+                throw cvt_error("abs_cvt::switch_to_get fail: cannot switch in the BOS phase");
 
             // Note: invoke the derived-layer hook first (e.g. precondition checks), then switch the lower level.
             if constexpr (requires { self.switch_to_get_impl(); })
@@ -1950,6 +1963,7 @@ namespace IOv2
          * 再把取数区里没消费的字节还给下层（定位回 `kernel_tell()`，待报的错误一并丢弃；
          * 下层不能定位时抛出），然后调用 `switch_to_put_impl()`（若派生类实现了该 hook），
          * 最后切换底层 kernel 并更新 `m_io_status`。派生类因此看不到取数区。
+         * 在 `bos()` 之后、`main_cont_beg()` 之前需要换向时抛出 `cvt_error`。
          *
          * 仅在 `enable_io_switch` 为 `true` 且 kernel 支持 IO 方向切换时可用。
          *
@@ -1968,6 +1982,7 @@ namespace IOv2
          * when the layer below cannot be positioned), then calls `switch_to_put_impl()` if the
          * derived class implements it, then switches the underlying kernel and updates
          * `m_io_status`. The derived class therefore never sees the read area.
+         * Throws `cvt_error` if a switch is needed after `bos()` but before `main_cont_beg()`.
          *
          * Only available when `enable_io_switch` is `true` and the kernel supports
          * IO-direction switching.
@@ -1986,6 +2001,8 @@ namespace IOv2
                 return;
 
             self.assert_not_tainted();
+            if (!self.m_is_bos_done && self.m_io_status != io_status::neutral)
+                throw cvt_error("abs_cvt::switch_to_put fail: cannot switch in the BOS phase");
 
             // Hand the read area back first; transparent to the layers above, so the
             // derived-layer hook never has to know about it.
