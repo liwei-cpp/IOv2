@@ -36,6 +36,13 @@
   读 fd 0，终端上一次 `getchar()` 读走的整行本流看不到。随之而来的两处行为变化：到达 EOF
   后 `FILE` 的 EOF 标志是粘性的，`clear()` 之后仍读不到后来的输入，`reset()` 现在为此调用
   `clearerr(stdin)`；同步时本流读剩的字节留在 `FILE` 缓冲里，而不是 fd 上。不同步模式不变。
+- 同步的 `wcin` 回退尚未解码的字节时（如输入末尾只剩半个多字节字符），把它们经
+  `dunget()` 还给 C stdio，`getchar()` 等随后读得到；此前它们留在本流的缓冲里，C stdio 看不到。
+  随之 `reset()` 不再能丢掉末尾的半个字符：它已归 C stdio，须由 C stdio 读走。设备拒绝退回时
+  （不同步，或 Windows）行为不变。
+- `stdin_root_cvt` 不再是模板，也不再派生自 `root_cvt`：它固定建在 `std_input_device` 上，
+  有自己的 `cvt_reader` 特化。写作 `stdin_root_cvt<std_input_device>` 的代码改为
+  `stdin_root_cvt`。
 - `file_device` 的构造函数与 `try_open` 改为接受 `std::filesystem::path`，路径编码由传入的
   类型决定：`char` 字符串按平台的原生窄编码（Windows 上为 ANSI 代码页，与 `fopen` 一致），
   `char8_t` 字符串按 UTF-8，`wchar_t` 字符串在 Windows 上即 UTF-16。传入 `std::string` 与
@@ -170,6 +177,17 @@ have no release line of their own.
   calls `clearerr(stdin)` for that; and bytes the stream leaves unread when
   synchronized wait in the `FILE` buffer rather than on the fd. Unsynchronized
   mode is unchanged.
+- A synchronized `wcin` that rolls back bytes it has not decoded (half a
+  multibyte character at the end of the input, say) hands them back to C stdio
+  through `dunget()`, so `getchar()` and the like read them next; they used to
+  stay in the stream's buffer, out of C stdio's sight. With that, `reset()` can
+  no longer drop a half character at the end: it is C stdio's now, and C stdio
+  has to take it. Where the device refuses (unsynchronized, or Windows) nothing
+  changes.
+- `stdin_root_cvt` is no longer a template and no longer derives from
+  `root_cvt`: it is built on `std_input_device` and has its own `cvt_reader`
+  specialization. Code that writes `stdin_root_cvt<std_input_device>` writes
+  `stdin_root_cvt` instead.
 - `file_device`'s constructor and `try_open` take a `std::filesystem::path`, so
   the path's encoding follows the type passed in: a `char` string is in the
   platform's native narrow encoding (the ANSI code page on Windows, as with

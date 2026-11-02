@@ -159,7 +159,7 @@ public:
      * @endif
      */
     stdin_api()
-        : m_channel(stdin_root_cvt<device_type>{device_type{}, true})
+        : m_channel(stdin_root_cvt{device_type{}, true})
     {}
 
     /**
@@ -180,7 +180,7 @@ public:
      */
     template <cvt_creator TCreator>
     stdin_api(const TCreator& creator)
-        : m_channel(creator.create(stdin_root_cvt<device_type>{device_type{}, true}))
+        : m_channel(creator.create(stdin_root_cvt{device_type{}, true}))
     {}
 
     ~stdin_api() = default;
@@ -410,7 +410,8 @@ public:
      * 设备并重新初始化转换器。`stdin` 是普通文件时也不会回到开头。同步模式不往前多读，
      * 本流尚未读走的字节（例如本行余下的部分，在 `stdin` 的 `FILE` 缓冲或 fd 上）照旧在那里；
      * 但本流已经取出、还没交给调用方的字节同样丢弃：格式化提取探分隔符时偷看的那个字符（`cin >> n` 读 `12x34` 后，
-     * `reset()` 丢掉 `x`），`wcin` 遇到解码错误后已取出、尚未交出的字节，以及此前不同步时
+     * `reset()` 丢掉 `x`），`wcin` 遇到解码错误后已取出、尚未交出的字节（同步时已还给 C stdio
+     * 的除外，见下），以及此前不同步时
      * 整块预读进缓冲、切到同步后还没交出的字节（可达一整块缓冲）。
      *
      * 供需要放弃已缓冲但未消费的输入的场合使用。它**不能**用来丢掉本行剩余的内容：同步模式下
@@ -418,8 +419,10 @@ public:
      * 丢掉本行剩余，请用 `clear()` 加 `ignore(std::numeric_limits<std::ptrdiff_t>::max(), '\n')`。
      * 它**不是**出错后的必经之路：解码失败后 `clear()` 即可继续，解码器跳过坏序列的首字节、
      * 从下一个字节接着解码（块读与逐字符读跳过的一样多），`switch_code()` 也随之可用。
-     * 例外是输入在一个字符中间到达 EOF：那半个字符留在缓冲里、无法完成转换，此后每次
-     * 读取都置 `cvtfailbit`，不会到达 eof——这时须 `reset()`，`clear()` 不够。
+     * 例外是输入在一个字符中间到达 EOF：那半个字符无法完成转换，此后每次读取都置
+     * `cvtfailbit`，不会到达 eof，`clear()` 不够。不同步时（以及 Windows 上）它留在本流的缓冲里，
+     * 须 `reset()` 丢掉；同步时它已经还给 C stdio（见 `stdin_root_cvt`），不再归本流所有，
+     * `reset()` 丢不掉，须由 C stdio 读走（如 `getchar()`）。
      * 不要在一次提取进行中（用户 `io_traits::sread` 里）重入调用：不会崩，但本次提取之后
      * 已缓冲的输入随之丢弃。
      *
@@ -448,7 +451,8 @@ public:
      * of the line, say, in `stdin`'s `FILE` buffer or on the fd) are still there; but bytes
      * this stream has already taken and not yet handed to the caller are dropped too: the character a formatted extraction peeked at while
      * looking for a delimiter (after `cin >> n` reads `12x34`, `reset()` drops the `x`), the
-     * bytes `wcin` had taken past a decoding error, and what an earlier unsynchronized mode
+     * bytes `wcin` had taken past a decoding error (except those already handed back to C
+     * stdio when synchronized, see below), and what an earlier unsynchronized mode
      * read ahead into the buffer and the switch to synchronized has not handed out yet (up to
      * a whole buffer).
      *
@@ -461,9 +465,12 @@ public:
      * carry on -- the decoder skips the first byte of the bad sequence and decodes on from
      * the next one (block and character-at-a-time reads skip the same), and `switch_code()`
      * is available again as well. The exception is input that reaches EOF in the middle of a
-     * character: that half character stays in the buffer and cannot be completed, so every
-     * later read sets `cvtfailbit` and none reaches eof -- `reset()` is needed there,
-     * `clear()` is not enough. Do not re-enter it from inside an extraction (a user
+     * character: that half character cannot be completed, so every later read sets
+     * `cvtfailbit` and none reaches eof, and `clear()` is not enough. Unsynchronized (and on
+     * Windows) it stays in this stream's buffer and `reset()` drops it; synchronized it has
+     * gone back to C stdio (see `stdin_root_cvt`) and is no longer this stream's, so
+     * `reset()` cannot drop it and C stdio has to take it (`getchar()`, say). Do not re-enter
+     * it from inside an extraction (a user
      * `io_traits::sread`): nothing crashes, but the input buffered beyond that extraction
      * is discarded with it.
      *
