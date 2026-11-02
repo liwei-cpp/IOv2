@@ -380,6 +380,66 @@ public:
 
     /**
      * @lang{ZH}
+     * @brief 把 `s[0..n)` 退回给 C stdio，使下一次读取（本设备的 `dget()`，或 `getchar()` 等）
+     * 先按原顺序得到这些字节。
+     *
+     * 要么全部退回、返回 `true`，要么一个也不退、返回 `false`，调用方据此决定字节是否仍由自己
+     * 保管。只有 stdio 模式（见 `stdio_mode()`）可能成功：fd 模式没有与 C stdio 共用的缓冲，
+     * 退回没有意义；切换前 fd 模式探到的字节尚未交出时也拒绝，因为退回的字节与它谁先谁后
+     * 说不清。stdio 模式下退回经 `ungetc`，在 `stdin` 的 `FILE` 锁内从最后一个字节起逐个进行：
+     * POSIX 上标准只保证 1 个字节，多出的部分 glibc 与 BSD 只在内存不足时失败，其它 libc
+     * 可能更早失败，半途失败时已退回的字节被重新读走；Windows 上总是返回 `false`——UCRT
+     * 没有独立的回退区，空间不够时 `ungetc` 可能改写尚未读的字节而照样报告成功，`FILE`
+     * 又不透明、无从事先查询。
+     *
+     * @note `ungetc` 会清除 `FILE` 的 EOF 标志，而标准没有重新置位它的接口：退回失败时字节都
+     *       已撤回，但 EOF 标志可能已被清除。
+     * @param s 要退回的字节。
+     * @param n 字节数；为 0 时什么也不做，返回 `true`。
+     * @return 全部退回为 `true`；没有退回为 `false`。
+     * @throw device_error `s` 为空而 `n` 不为 0。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Hands `s[0..n)` back to C stdio, so the next read (this device's `dget()`, or
+     * `getchar()` and the like) gets those bytes first, in order.
+     *
+     * Either every byte goes back and it returns `true`, or none does and it returns
+     * `false`, which tells the caller whether the bytes are still its to keep. Only stdio
+     * mode (see `stdio_mode()`) can succeed: fd mode shares no buffer with C stdio, so there
+     * is nothing to hand back to, and a byte fd mode probed before a switch and not yet
+     * handed out makes it refuse too, as which of it and the pushed bytes comes first would
+     * be unclear. In stdio mode the bytes go back with `ungetc`, last byte first, under the
+     * lock of `stdin`'s `FILE`: on POSIX the standard guarantees one byte, glibc and BSD fail
+     * beyond that only when out of memory, other C libraries may fail sooner, and the bytes
+     * already pushed are read off again when it fails partway; on Windows it always returns
+     * `false` -- the UCRT keeps no separate pushback area, its `ungetc` may overwrite an
+     * unread byte and still report success when there is no room, and `FILE` is opaque, so
+     * the room cannot be asked for in advance.
+     *
+     * @note `ungetc` clears the `FILE`'s EOF flag, and the standard has no call to set it
+     *       again: after a failed attempt every byte is taken back, but the EOF flag may have
+     *       been cleared.
+     * @param s The bytes to hand back.
+     * @param n The number of bytes; 0 does nothing and returns `true`.
+     * @return `true` if every byte went back; `false` if none did.
+     * @throw device_error If `s` is null while `n` is not 0.
+     * @endif
+     */
+    bool dunget(const char* s, std::size_t n)
+        requires (ID == detail::std_in_fd)
+    {
+        if (n == 0) return true;
+        if (s == nullptr)
+            throw device_error("std_device::dunget fail: null buffer");
+        // fd mode shares no buffer with C stdio; a byte fd mode probed before a switch
+        // must still come first, so the order would be unclear.
+        if (!m_use_stdio || m_c.has_value()) return false;
+        return detail::std_stdin_file_unget(s, n);
+    }
+
+    /**
+     * @lang{ZH}
      * @brief 将数据写入标准输出或标准错误。
      * @param ch 要写入的数据。
      * @param n 要写入的字节数。

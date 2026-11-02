@@ -25,6 +25,9 @@
 - `std_input_device::stdio_mode()`：切换 stdin 的读法。缺省的 fd 模式照旧直接读 fd 0；
   stdio 模式在 `stdin` 的 `FILE` 锁内 `fread`，与 C stdio 共用缓冲，EOF 以 `FILE` 的粘性
   标志为准。
+- `std_input_device::dunget()`：把字节退回给 C stdio，要么全部退回、返回 `true`，要么
+  一个也不退、返回 `false`。只有 stdio 模式可能成功：POSIX 上经 `ungetc` 逐字节退回，
+  Windows 上总是拒绝（UCRT 的 `ungetc` 空间不够时可能改写未读的字节而照样报告成功）。
 
 #### 变更
 
@@ -149,6 +152,11 @@ have no release line of their own.
   mode reads fd 0 directly as before; stdio mode `fread`s under the lock of
   `stdin`'s `FILE`, sharing its buffer with C stdio, and takes EOF from the
   `FILE`'s sticky flag.
+- `std_input_device::dunget()`: hands bytes back to C stdio, either all of them,
+  returning `true`, or none, returning `false`. Only stdio mode can succeed: on
+  POSIX the bytes go back one by one through `ungetc`; on Windows it always
+  refuses (the UCRT's `ungetc` may overwrite an unread byte and still report
+  success when it has no room).
 
 #### Changed
 

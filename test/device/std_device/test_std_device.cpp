@@ -437,6 +437,30 @@ TEST(StdDevice, AByteProbedInFdModeComesFirstAfterTheSwitch)
     EXPECT_EQ(std::string(buf, 2), "yz");
 }
 
+// dunget() refuses the same everywhere: fd mode has no buffer shared with C stdio,
+// and a byte fd mode probed before a switch would make the order unclear. A refusal
+// changes nothing. posix/ and windows/ have what stdio mode does on each platform.
+TEST(StdDevice, UngetRefusesWhereItCannotHandTheBytesBack)
+{
+    pipe_iguard g("xyz");
+    g.close_write();
+    std_input_device d;
+
+    EXPECT_TRUE(d.dunget("a", 0));                 // nothing to hand back
+    EXPECT_THROW(d.dunget(nullptr, 1), device_error);
+    EXPECT_FALSE(d.dunget("a", 1));                // fd mode
+
+    EXPECT_FALSE(d.deof());                        // fd mode: 'x' cached in the device
+    d.stdio_mode(true);
+    EXPECT_FALSE(d.dunget("a", 1));                // the cached byte is still due first
+
+    char buf[3] = {};
+    EXPECT_EQ(d.dget(buf, 3), 1u);
+    EXPECT_EQ(buf[0], 'x');
+    EXPECT_EQ(d.dget(buf, 2), 2u);
+    EXPECT_EQ(std::string(buf, 2), "yz");
+}
+
 TEST(StdDevice, AnOutputDeviceMovesEvenThoughItHoldsNothing)
 {
     std_output_device d1;

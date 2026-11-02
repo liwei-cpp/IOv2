@@ -17,10 +17,13 @@ if(NOT FETCHCONTENT_SOURCE_DIR_GOOGLETEST AND EXISTS "/opt/googletest/CMakeLists
       "GoogleTest source directory")
 endif()
 
-# Same tarball and same hash the Dockerfile verifies.
+# Same tarball and same hash the Dockerfile verifies. SYSTEM makes gtest's headers
+# system headers in the test sources, so a warning a newer compiler finds in them
+# does not trip our -Werror there; ours are still checked in full.
 FetchContent_Declare(googletest
     URL https://github.com/google/googletest/archive/refs/tags/v1.17.0.tar.gz
-    URL_HASH SHA256=65fab701d9829d38cb77c14acdc431d2108bfdbf8979e40eb8ae567edf10b27c)
+    URL_HASH SHA256=65fab701d9829d38cb77c14acdc431d2108bfdbf8979e40eb8ae567edf10b27c
+    SYSTEM)
 
 set(INSTALL_GTEST OFF CACHE BOOL "" FORCE)
 set(BUILD_GMOCK ON CACHE BOOL "" FORCE)
@@ -48,11 +51,14 @@ foreach(_gtest_target IN ITEMS gtest gtest_main gmock gmock_main)
     set_target_properties(${_gtest_target} PROPERTIES
         CXX_STANDARD 23
         CXX_EXTENSIONS OFF)
-    # On MSVC-ABI toolchains gtest adds -W4 -WX to itself, and newer compilers
-    # warn in its sources (clang-cl 21: -Wcharacter-conversion in
-    # gtest-printers.h). Its warnings are upstream's, as above; ours stay -WX.
+    # Newer compilers warn in gtest's own sources (-Wcharacter-conversion in
+    # gtest-printers.h, from clang-cl 21 and Apple clang alike), and on MSVC-ABI
+    # toolchains gtest adds -W4 -WX to itself. Its warnings are upstream's, as
+    # above, so building it is kept quiet; our sources keep -Werror.
     if(MSVC)
-      target_compile_options(${_gtest_target} PRIVATE /WX-)
+      target_compile_options(${_gtest_target} PRIVATE /w)
+    else()
+      target_compile_options(${_gtest_target} PRIVATE -w)
     endif()
   endif()
 endforeach()

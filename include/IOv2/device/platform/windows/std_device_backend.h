@@ -130,4 +130,15 @@ inline bool std_stdin_file_eof()
         throw device_error("std_device::deof fail: ungetc error");
     return false;
 }
+
+// Pushing bytes back is refused. The UCRT keeps no pushback area: ungetc() steps
+// back over what was already read from the current buffer, and at its start it
+// either fails or, with unread bytes there, overwrites the next one and still
+// reports success. Whether there is room cannot be asked -- FILE is opaque --
+// and the deof() probe above is safe only because it pushes back the byte it
+// has just read under the same lock.
+inline bool std_stdin_file_unget(const char*, std::size_t)
+{
+    return false;
+}
 }

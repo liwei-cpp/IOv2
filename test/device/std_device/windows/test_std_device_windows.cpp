@@ -86,3 +86,23 @@ TEST(StdDeviceWindows, ARedirectedCrlfFileReadsBack)
     }
     EXPECT_EQ(got, "a\nb\nc");
 }
+
+// dunget() refuses in stdio mode here: the UCRT's ungetc() has no pushback area of
+// its own and may overwrite an unread byte, and FILE cannot be asked for room.
+// The refusal leaves the stream as it was.
+TEST(StdDeviceWindows, UngetIsRefusedInStdioMode)
+{
+    std::string got;
+    bool handed_back = true;
+    {
+        iguard g("a\nb\nc");
+        std_input_device d;
+        d.stdio_mode(true);
+        char c = 0;
+        got.append(&c, d.dget(&c, 1));
+        handed_back = d.dunget(&c, 1);
+        got += read_all_probing(d);
+    }
+    EXPECT_FALSE(handed_back);
+    EXPECT_EQ(got, "a\nb\nc");
+}
