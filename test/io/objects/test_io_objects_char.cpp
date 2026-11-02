@@ -36,6 +36,7 @@
 #include <cstddef>
 #include <cstdio>
 #include <cstdlib>
+#include <fstream>
 #include <string>
 #include <thread>
 #include <type_traits>
@@ -281,14 +282,14 @@ TEST(IoObjectsChar, UnsyncedIgnoreReturnsOnTheByteItFoundWithoutWaitingForMore)
 }
 
 // What "synchronized" buys is that nothing is read ahead of what the operation
-// needs, so bytes this stream did not consume stay on the fd for C stdio (or
-// anyone else) to read. read(buf, 5) is one read(0, buf, 5), leaving the sixth
-// byte where it was; unsynchronized the same call pulls a whole block into this
-// stream's buffer, and the fd is empty afterwards. Neither loses a byte -- the
-// difference is only where the rest is waiting.
+// needs, so bytes this stream did not consume stay in stdin's FILE for C stdio
+// to read. read(buf, 5) takes five bytes through the FILE, leaving the sixth for
+// getchar(); unsynchronized the same call pulls a whole block off the fd into
+// this stream's buffer, and C stdio finds nothing afterwards. Neither loses a
+// byte -- the difference is only where the rest is waiting.
 TEST(IoObjectsChar, SynchronizedReadsNoFurtherThanTheOperationNeeds)
 {
-    auto sixth_byte_left_on_the_fd = [](bool sync)
+    auto sixth_byte_left_for_stdio = [](bool sync)
     {
         int pipefds[2];
         EXPECT_NE(::pipe(pipefds), -1);
@@ -305,19 +306,65 @@ TEST(IoObjectsChar, SynchronizedReadsNoFurtherThanTheOperationNeeds)
         IOv2::cin.read(buf, 5);
         EXPECT_EQ(std::string(buf, 5), "12345");
 
-        char rest = 0;
-        const ssize_t got = ::read(STDIN_FILENO, &rest, 1);
+        const std::string rest = drain_stdin();
 
         IOv2::cin.sync_with_stdio(old);
         ::dup2(saved_stdin, STDIN_FILENO);
         ::close(saved_stdin);
         ::close(pipefds[0]);
         IOv2::cin.reset();
-        return got == 1 && rest == 'X';
+        return rest == "X";
     };
 
-    EXPECT_TRUE(sixth_byte_left_on_the_fd(true));
-    EXPECT_FALSE(sixth_byte_left_on_the_fd(false));   // buffered into this stream instead
+    EXPECT_TRUE(sixth_byte_left_for_stdio(true));
+    EXPECT_FALSE(sixth_byte_left_for_stdio(false));   // buffered into this stream instead
+}
+
+// The other direction: C stdio reads ahead into the FILE buffer, the whole line on a
+// getchar(). Synchronized cin used to read fd 0 directly and never saw that line;
+// now it reads through the same FILE and picks up where getchar() stopped.
+TEST(IoObjectsChar, SynchronizedCinReadsOnWhereCStdioStopped)
+{
+    pipe_iguard g("x 34\n");
+    g.close_write();
+    stdin_full_buffer b;
+    IOv2::cin.reset();
+    const bool old = IOv2::cin.sync_with_stdio(true);
+
+    EXPECT_EQ(std::getchar(), 'x');
+    int n = 0;
+    IOv2::cin >> n;
+    EXPECT_EQ(n, 34);
+
+    IOv2::cin.sync_with_stdio(old);
+    IOv2::cin.reset();
+}
+
+// Synchronized, the EOF is FILE's sticky flag: clear() leaves it, so input that comes
+// later stays unread; reset() clears it with clearerr(stdin).
+TEST(IoObjectsChar, ResetLetsASynchronizedCinReadOnAfterEof)
+{
+    iguard g("1");
+    IOv2::cin.reset();
+    const bool old = IOv2::cin.sync_with_stdio(true);
+
+    int n = 0;
+    IOv2::cin >> n;
+    EXPECT_EQ(n, 1);
+    EXPECT_TRUE(IOv2::cin.eof());
+
+    { std::ofstream("stdio_input_guard", std::ios::app) << " 2"; }
+    IOv2::cin.clear();
+    IOv2::cin >> n;
+    EXPECT_FALSE(IOv2::cin.good());
+    EXPECT_EQ(n, 1);
+
+    IOv2::cin.reset();
+    IOv2::cin >> n;
+    EXPECT_EQ(n, 2);
+
+    IOv2::cin.sync_with_stdio(old);
+    IOv2::cin.reset();
 }
 
 // Switching back from inside an insertion cuts that insertion in two: what it
@@ -489,7 +536,7 @@ TEST(IoObjectsChar, SwitchingToSynchronizedKeepsTheInputReadAhead)
 
 // adjust(stdin_sync{...}) on the stream is sync_with_stdio: it used to flip the root's
 // flag alone, so the stream still reported synchronized, sync_with_stdio(true) returned
-// early without switching back, and the read below took the whole input off the fd.
+// early without switching back, and the read below took the whole input into the stream.
 TEST(IoObjectsChar, AdjustingWithStdinSyncIsSyncWithStdio)
 {
     int pipefds[2];
@@ -509,9 +556,7 @@ TEST(IoObjectsChar, AdjustingWithStdinSyncIsSyncWithStdio)
     IOv2::cin.read(buf, 5);
     EXPECT_EQ(std::string(buf, 5), "12345");
 
-    char rest = 0;
-    EXPECT_EQ(::read(STDIN_FILENO, &rest, 1), 1);  // synchronized: left on the fd
-    EXPECT_EQ(rest, 'X');
+    EXPECT_EQ(drain_stdin(), "X");                 // synchronized: left for C stdio
 
     ::dup2(saved_stdin, STDIN_FILENO);
     ::close(saved_stdin);
@@ -522,7 +567,7 @@ TEST(IoObjectsChar, AdjustingWithStdinSyncIsSyncWithStdio)
 namespace
 {
     // Runs `op` on a synchronized cin whose fd 0 is a pipe holding `input`, its write end
-    // already closed so no read can block, and returns what `op` left on the fd.
+    // already closed so no read can block, and returns what `op` left for C stdio.
     template <typename Op>
     std::string left_on_stdin(const std::string& input, Op op)
     {
@@ -540,10 +585,7 @@ namespace
         IOv2::cin.sync_with_stdio(true);
         op();
 
-        std::string rest;
-        char buf[64];
-        for (ssize_t n; (n = ::read(STDIN_FILENO, buf, sizeof buf)) > 0; )
-            rest.append(buf, static_cast<std::size_t>(n));
+        const std::string rest = drain_stdin();
         ::dup2(saved_stdin, STDIN_FILENO);
         ::close(saved_stdin);
         IOv2::cin.clear();
@@ -552,7 +594,7 @@ namespace
     }
 }
 
-// Synchronized means each read(0) asks only for what the operation is still short of.
+// Synchronized means each read asks only for what the operation is still short of.
 // get into a buffer it fills, and ignore(n, delim) once it has discarded n, used to peek
 // at one character more -- off the fd and into cin's own buffer, where getchar() never
 // sees it, and on a pipe that has nothing more yet, a wait for input the call does not

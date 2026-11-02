@@ -43,10 +43,12 @@ struct stdin_sync final : cvt_behavior
  * 标准输入流的根转换器：一个带读缓冲的根，同步与否是运行时的开关。
  *
  * 不同步时与 `rb_root_cvt` 完全相同，需要向设备补字节时把缓冲能装的都读进来。同步时只向
- * 设备要调用方还缺的那几个字节，不往前多读——逐字符读就是逐字节读设备。切到同步时缓冲里
- * 已预读的字节照常先交出，交完才按需读，所以切换不丢输入。经 `adjust(stdin_sync{...})`
- * 切换；`root_cvt::get` 与带缓冲根的 `cvt_reader` 在向设备补字节时（缓冲空了，或剩下的
- * 不够本次所需）询问 `read_ahead()`，其它根没有它，不受影响。
+ * 设备要调用方还缺的那几个字节，不往前多读——逐字符读就是逐字节读设备；设备同时切到
+ * stdio 模式（`std_device::stdio_mode()`），经 `stdin` 的 `FILE` 读，与 C stdio 共用缓冲。
+ * 切到同步时缓冲里已预读的字节照常先交出，交完才按需读，所以切换不丢输入。经
+ * `adjust(stdin_sync{...})` 切换；`root_cvt::get` 与带缓冲根的 `cvt_reader` 在向设备补字节时
+ * （缓冲空了，或剩下的不够本次所需）询问 `read_ahead()`，其它根没有它，不受影响。
+ * `attach()` 装入的新设备（`reset()` 与转换器自动恢复装的是缺省构造的设备）按当前模式设置。
  * @endif
  *
  * @lang{EN}
@@ -56,12 +58,15 @@ struct stdin_sync final : cvt_behavior
  * Unsynchronized it is exactly `rb_root_cvt`, reading as much as the buffer can take
  * whenever it has to go to the device. Synchronized, it asks the device only for the bytes
  * the caller is still short of and reads nothing ahead -- a character-at-a-time read reads
- * the device a byte at a time. Bytes already read ahead when it switches to synchronized are
- * handed out first as usual, and only then is reading on demand, so a switch loses no
- * input. The mode is switched through `adjust(stdin_sync{...})`; `root_cvt::get` and the
- * buffered-root `cvt_reader` ask `read_ahead()` whenever they go to the device for more
- * bytes (the buffer is empty, or what is left falls short of the request), and other
- * roots, which have none, are not affected.
+ * the device a byte at a time; the device switches to stdio mode along with it
+ * (`std_device::stdio_mode()`), reading through `stdin`'s `FILE` and sharing its buffer with
+ * C stdio. Bytes already read ahead when it switches to synchronized are handed out first as
+ * usual, and only then is reading on demand, so a switch loses no input. The mode is
+ * switched through `adjust(stdin_sync{...})`; `root_cvt::get` and the buffered-root
+ * `cvt_reader` ask `read_ahead()` whenever they go to the device for more bytes (the buffer
+ * is empty, or what is left falls short of the request), and other roots, which have none,
+ * are not affected. A device installed by `attach()` (`reset()` and a converter's automatic
+ * recovery install a default-constructed one) is set to the current mode.
  * @endif
  *
  * @tparam TDevice
@@ -77,7 +82,26 @@ public:
     explicit stdin_root_cvt(TDevice dev, bool synced)
         : BT(std::move(dev))
         , m_synced(synced)
-    {}
+    {
+        this->device().stdio_mode(synced);
+    }
+
+    /**
+     * @lang{ZH}
+     * 同 `root_cvt::attach`，新设备先设成当前的同步模式再装入。
+     * @endif
+     *
+     * @lang{EN}
+     * As `root_cvt::attach`, with the new device set to the current synchronization mode
+     * before it goes in.
+     * @endif
+     */
+    void attach(TDevice&& dev = TDevice{})
+    {
+        // The move into the base carries the mode, and it happens even when the base throws.
+        dev.stdio_mode(m_synced);
+        BT::attach(std::move(dev));
+    }
 
     /**
      * @lang{ZH}
@@ -99,18 +123,21 @@ public:
 
     /**
      * @lang{ZH}
-     * `stdin_sync` 切换同步与否，只翻标志，不碰缓冲；其余交给基类。
+     * `stdin_sync` 切换同步与否，只翻标志与设备的读法，不碰缓冲；其余交给基类。
      * @endif
      *
      * @lang{EN}
-     * A `stdin_sync` switches synchronization by flipping the flag alone, leaving the buffer
-     * as it is; anything else goes to the base class.
+     * A `stdin_sync` switches synchronization by flipping the flag and the device's read mode
+     * alone, leaving the buffer as it is; anything else goes to the base class.
      * @endif
      */
     void adjust(const cvt_behavior& b)
     {
         if (const auto* s = dynamic_cast<const stdin_sync*>(&b); s)
+        {
             m_synced = s->synced;
+            this->device().stdio_mode(m_synced);
+        }
         BT::adjust(b);
     }
 

@@ -13,6 +13,7 @@
 #include <chrono>
 #include <cstdio>
 #include <cstring>
+#include <fstream>
 #include <string>
 #include <thread>
 #include <type_traits>
@@ -339,6 +340,101 @@ TEST(StdDevice, MoveCarriesTheCachedLookaheadByte)
 #pragma GCC diagnostic pop
 #endif
     EXPECT_TRUE(d3.deof());
+}
+
+TEST(StdDevice, MoveCarriesTheReadMode)
+{
+    std_input_device d1;
+    EXPECT_FALSE(d1.stdio_mode());                 // fd mode by default
+    d1.stdio_mode(true);
+
+    std_input_device d2(std::move(d1));
+    EXPECT_TRUE(d2.stdio_mode());
+    EXPECT_FALSE(d1.stdio_mode());                 // NOLINT(bugprone-use-after-move)
+
+    std_input_device d3;
+    d3 = std::move(d2);
+    EXPECT_TRUE(d3.stdio_mode());
+    EXPECT_FALSE(d2.stdio_mode());                 // NOLINT(bugprone-use-after-move)
+}
+
+// ---------------------------------------------------------------------------
+// stdio mode: stdin read through its FILE, sharing one buffer with C stdio.
+// stdin is made fully buffered where it matters (stdin_full_buffer), so that
+// stdio does read ahead -- what fd mode cannot see.
+// ---------------------------------------------------------------------------
+
+// The first getchar() pulls the whole pipe into the FILE buffer; in fd mode the
+// device would find the fd empty after it.
+TEST(StdDevice, StdioModeSharesTheFileBufferWithCStdio)
+{
+    pipe_iguard g("abcdef");
+    g.close_write();
+    stdin_full_buffer b;
+    std_input_device d;
+    d.stdio_mode(true);
+
+    char buf[2] = {};
+    EXPECT_EQ(std::getchar(), 'a');
+    EXPECT_EQ(d.dget(buf, 2), 2u);
+    EXPECT_EQ(std::string(buf, 2), "bc");
+    EXPECT_EQ(std::getchar(), 'd');
+    EXPECT_EQ(d.dget(buf, 2), 2u);
+    EXPECT_EQ(std::string(buf, 2), "ef");
+    EXPECT_EQ(d.dget(buf, 2), 0u);
+    EXPECT_TRUE(d.deof());
+}
+
+TEST(StdDevice, AStdioModeProbeLeavesTheByteForCStdio)
+{
+    pipe_iguard g("x");
+    stdin_full_buffer b;
+    std_input_device d;
+    d.stdio_mode(true);
+
+    EXPECT_FALSE(d.deof());                        // reads 'x' and pushes it back
+    EXPECT_EQ(std::getchar(), 'x');
+    g.close_write();
+    EXPECT_TRUE(d.deof());
+    EXPECT_TRUE(std::feof(stdin));
+}
+
+// The EOF is FILE's own: input that arrives after it stays unread until
+// clearerr(stdin), whoever reached the end.
+TEST(StdDevice, StdioModeEofIsTheFilesStickyFlag)
+{
+    iguard g("a");
+    std_input_device d;
+    d.stdio_mode(true);
+
+    char c = 0;
+    EXPECT_EQ(d.dget(&c, 1), 1u);
+    EXPECT_EQ(d.dget(&c, 1), 0u);
+    EXPECT_TRUE(d.deof());
+
+    { std::ofstream("stdio_input_guard", std::ios::app) << 'b'; }
+    EXPECT_EQ(d.dget(&c, 1), 0u);
+    std::clearerr(stdin);
+    EXPECT_EQ(d.dget(&c, 1), 1u);
+    EXPECT_EQ(c, 'b');
+}
+
+// A byte fd mode probed before the switch is not in the FILE, so the device
+// still holds it: it comes first, on its own, and only then the FILE is read.
+TEST(StdDevice, AByteProbedInFdModeComesFirstAfterTheSwitch)
+{
+    pipe_iguard g("xyz");
+    g.close_write();
+    std_input_device d;
+    EXPECT_FALSE(d.deof());                        // fd mode: 'x' cached in the device
+
+    d.stdio_mode(true);
+    EXPECT_FALSE(d.deof());                        // the cached byte, not the FILE
+    char buf[3] = {};
+    EXPECT_EQ(d.dget(buf, 3), 1u);
+    EXPECT_EQ(buf[0], 'x');
+    EXPECT_EQ(d.dget(buf, 2), 2u);
+    EXPECT_EQ(std::string(buf, 2), "yz");
 }
 
 TEST(StdDevice, AnOutputDeviceMovesEvenThoughItHoldsNothing)

@@ -46,9 +46,12 @@ namespace IOv2
  *       这类设备时，探测后的 `dget` 只返回缓存的那 1 个字节；fd 还设了 `O_NONBLOCK` 时，`read`
  *       遇 `EAGAIN` 后的等待抛 `device_error`。终端与管道不受影响（实测）。
  *
- * @warning 对于 stdin，此类使用底层的 POSIX `read()`，它会绕过 stdio 缓冲。
- * 请勿在 stdin 上将 `std_input_device` 与 C stdio 函数（`scanf`, `fgets`, `getchar` 等）
- * 混合使用，因为由于缓冲不一致，这可能会导致数据丢失或意外行为。
+ * stdin 有两种读法，由 `stdio_mode()` 切换：缺省的 **fd 模式**直接 `read()` fd 0，绕过 stdio
+ * 缓冲；**stdio 模式**在 `stdin` 的 `FILE` 锁内用 `fread` 读，与 C stdio 共用一份缓冲。标准输入
+ * 流对象经 `sync_with_stdio()` 切换它：同步时用 stdio 模式。
+ *
+ * @warning fd 模式下请勿在 stdin 上将 `std_input_device` 与 C stdio 函数（`scanf`, `fgets`,
+ * `getchar` 等）混合使用：stdio 预读进 `FILE` 缓冲的字节本设备看不到，反之亦然。
  *
  * @tparam ID 文件描述符。必须是 0、1 或 2（POSIX 上即 `STDIN_FILENO`、`STDOUT_FILENO`、
  *         `STDERR_FILENO`）；请用别名 `std_input_device`、`std_output_device`、`std_error_device`。
@@ -78,10 +81,14 @@ namespace IOv2
  *       probe returns only the cached byte, and if the fd also has `O_NONBLOCK`, the wait
  *       after an `EAGAIN` throws `device_error`. Terminals and pipes are unaffected (measured).
  *
- * @warning For stdin, this class uses low-level POSIX read() which bypasses
- * stdio buffering. Do NOT mix usage of std_input_device with C stdio functions
- * (scanf, fgets, getchar, etc.) on stdin, as this may cause data loss or
- * unexpected behavior due to buffering inconsistencies.
+ * Stdin is read in one of two ways, switched by `stdio_mode()`: the default **fd mode**
+ * `read()`s fd 0 directly, bypassing stdio buffering; **stdio mode** reads with `fread` under
+ * the lock of `stdin`'s `FILE`, sharing one buffer with C stdio. The standard input stream
+ * objects switch it through `sync_with_stdio()`: synchronized means stdio mode.
+ *
+ * @warning In fd mode, do NOT mix std_input_device with C stdio functions (scanf, fgets,
+ * getchar, etc.) on stdin: bytes stdio has read ahead into the `FILE` buffer are invisible to
+ * this device, and the other way round.
  *
  * @tparam ID The file descriptor. Must be 0, 1 or 2 (on POSIX, `STDIN_FILENO`, `STDOUT_FILENO`,
  *         `STDERR_FILENO`); use the aliases `std_input_device`, `std_output_device`,
@@ -103,7 +110,7 @@ public:
      * @lang{ZH}
      * @brief 移动构造：接过 `other` 的全部状态，`other` 随之变为惰性。
      *
-     * 搬走的除了 stdin 的 EOF 标记与预读字节，还有「本对象销毁时冲刷该流」这份责任
+     * 搬走的除了 stdin 的 EOF 标记、预读字节与读法（`stdio_mode()`），还有「本对象销毁时冲刷该流」这份责任
      * （见 `m_active`）。被移走的对象析构时不再冲刷：一个流只有一份 stdio 缓冲，
      * 冲刷责任必须唯一，否则先死的那个中转副本会抢先做那次可能失败的 `fflush`、
      * 在析构函数里把错误吞掉，真正的持有者随后什么也报告不了。
@@ -112,7 +119,8 @@ public:
      * @lang{EN}
      * @brief Move construction: takes over everything `other` holds and leaves it inert.
      *
-     * Besides stdin's EOF flag and lookahead byte, this hands over the duty to flush the
+     * Besides stdin's EOF flag, lookahead byte and read mode (`stdio_mode()`), this hands
+     * over the duty to flush the
      * stream when this object dies (see `m_active`). A moved-from object no longer flushes
      * in its destructor: one stream has one stdio buffer, so that duty has to be unique --
      * otherwise whichever intermediate copy dies first takes the one `fflush` that can
@@ -127,8 +135,10 @@ public:
         {
             m_eof_hit = other.m_eof_hit;
             m_c = other.m_c;
+            m_use_stdio = other.m_use_stdio;
             other.m_eof_hit = false;
             other.m_c.reset();
+            other.m_use_stdio = false;
         }
     }
 
@@ -164,6 +174,8 @@ public:
                 other.m_eof_hit = false;
                 m_c = other.m_c;
                 other.m_c.reset();
+                m_use_stdio = other.m_use_stdio;
+                other.m_use_stdio = false;
             }
         }
         return *this;
@@ -198,6 +210,60 @@ public:
 
     /**
      * @lang{ZH}
+     * @brief 切换 stdin 的读法：`true` 为 stdio 模式（经 `stdin` 的 `FILE`），`false` 为 fd 模式
+     * （直接 `read()` fd 0，缺省）。
+     *
+     * stdio 模式下 `dget` 像 `fread` 一样要读满 `n` 个字节或遇到 EOF 才返回，所以调用方只应向它要
+     * 确实需要的字节数（`stdin_root_cvt` 同步时正是如此）；EOF 以 `FILE` 自己的粘性标志为准，
+     * `clearerr(stdin)` 之后可以接着读。
+     *
+     * 切换本身不做 I/O。已缓存的预读字节（fd 模式下 `deof()` 探到的）不论哪种模式都由下一次
+     * `dget()` 先交出；fd 模式记下的 EOF 在切到 stdio 模式时清除。切回 fd 模式时，`FILE` 缓冲里
+     * 尚未读走的字节（包括 stdio 模式下 `deof()` 经 `ungetc` 退回的那个）本设备不再看得到——
+     * 没有可移植的办法把它们取出来。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Switches how stdin is read: `true` for stdio mode (through `stdin`'s `FILE`),
+     * `false` for fd mode (`read()` on fd 0 directly, the default).
+     *
+     * In stdio mode `dget`, like `fread`, returns only once it has read all `n` bytes or met
+     * EOF, so a caller should ask it only for bytes it does need (as `stdin_root_cvt` does when
+     * synchronized); EOF is the `FILE`'s own sticky flag, and reading can go on after a
+     * `clearerr(stdin)`.
+     *
+     * The switch does no I/O. A cached lookahead byte (probed by `deof()` in fd mode) is handed
+     * out first by the next `dget()` in either mode; an EOF recorded in fd mode is cleared on
+     * switching to stdio mode. After switching back to fd mode, bytes not yet read from the
+     * `FILE` buffer (the one `deof()` pushed back with `ungetc` in stdio mode included) are out
+     * of this device's sight -- there is no portable way to take them out.
+     * @endif
+     */
+    void stdio_mode(bool on) noexcept
+        requires (ID == detail::std_in_fd)
+    {
+        if (on && !m_use_stdio)
+            m_eof_hit = false;
+        m_use_stdio = on;
+    }
+
+    /**
+     * @lang{ZH}
+     * @brief 查询 stdin 当前是否为 stdio 模式。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Tells whether stdin is currently in stdio mode.
+     * @endif
+     */
+    [[nodiscard]] bool stdio_mode() const noexcept
+        requires (ID == detail::std_in_fd)
+    {
+        return m_use_stdio;
+    }
+
+    /**
+     * @lang{ZH}
      * @brief 检查标准输入流是否已到达文件末尾（EOF）。
      *
      * 采用**探测式**判断：若尚未确定 EOF、且内部没有已缓存的预读字节，会尝试从设备
@@ -215,6 +281,9 @@ public:
      * @warning 本函数**可能阻塞**：当流上暂时无数据、也尚未到达 EOF 时，它会一直等待，
      *          直到有字节到达或确认 EOF 为止。因此在交互式终端上调用会等待用户输入。
      * @note EOF 是**粘性**的：一旦探测到 EOF，后续调用立即返回 `true`（不再读取）。
+     * @note 上面描述的是 fd 模式。stdio 模式下（见 `stdio_mode()`）在 `FILE` 锁内读 1 个字节再
+     *       `ungetc` 退回，字节留在 `FILE` 里，C stdio 函数接着也能读到；EOF 即 `feof(stdin)`，
+     *       `clearerr(stdin)` 可以清除。
      * @return 如果已到达 EOF，则为 `true`。
      * @throw device_error 如果底层读取或轮询发生错误。
      * @endif
@@ -242,6 +311,10 @@ public:
      *          confirmed. On an interactive terminal it therefore waits for user input.
      * @note EOF is **sticky**: once EOF is detected, subsequent calls return `true`
      *       immediately without reading further.
+     * @note The above describes fd mode. In stdio mode (see `stdio_mode()`) one byte is read
+     *       under the `FILE` lock and pushed back with `ungetc`, so it stays in the `FILE` for
+     *       C stdio functions to read too; EOF is `feof(stdin)`, which `clearerr(stdin)`
+     *       clears.
      * @return `true` if EOF has been reached.
      * @throw device_error If the underlying read or poll fails.
      * @endif
@@ -249,17 +322,7 @@ public:
     [[nodiscard]] bool deof()
         requires (ID == detail::std_in_fd)
     {
-        if (m_eof_hit) return true;
-
-        if (m_c.has_value()) return false;
-        char_type ch = 0;
-        const std::size_t ret = do_get(&ch, 1);
-        if (ret != 0)
-        {
-            m_c = ch;
-            return false;
-        }
-        return m_eof_hit;
+        return m_use_stdio ? stdio_eof() : fd_eof();
     }
 
     /**
@@ -277,6 +340,9 @@ public:
      * @throw device_error 如果发生读取或轮询错误。
      * @note 遇到 EOF 时立即返回 0，符合 POSIX read() 语义。
      *       EOF 是粘性的，后续调用也会继续返回 0。
+     * @note 上面描述的是 fd 模式。stdio 模式下（见 `stdio_mode()`）在 `FILE` 锁内 `fread`，
+     *       读满 `n` 个字节或遇到 EOF 才返回（缓存的预读字节仍先交出、单独返回）；EOF 即
+     *       `feof(stdin)`，`clearerr(stdin)` 之后可以接着读。
      * @endif
      *
      * @lang{EN}
@@ -297,33 +363,19 @@ public:
      * @throw device_error If a read or poll error occurs.
      * @note Returns 0 immediately upon EOF, conforming to POSIX read() semantics.
      *       EOF is sticky, so subsequent calls also continue to return 0.
+     * @note The above describes fd mode. In stdio mode (see `stdio_mode()`) it `fread`s under
+     *       the `FILE` lock and returns only once it has all `n` bytes or meets EOF (a cached
+     *       lookahead byte still comes first, on its own); EOF is `feof(stdin)`, and reading
+     *       can go on after a `clearerr(stdin)`.
      * @endif
      */
     std::size_t dget(char* s, std::size_t n)
         requires (ID == detail::std_in_fd)
     {
-        if (n == 0 || m_eof_hit) return 0;
+        if (n == 0) return 0;
         if (s == nullptr)
             throw device_error("std_device::dget fail: null buffer");
-
-        if (m_c.has_value())
-        {
-            *s = m_c.value();
-            if (n > 1 && detail::std_fd_readable_now(ID))
-            {
-                // Top up with what is already there, so a probe followed by a bulk
-                // read still reads in bulk. Only when data is ready: waiting here
-                // would block on a pipe whose peer sent that one byte, or on a
-                // terminal where the user typed an empty line. If do_get throws,
-                // m_c must still hold the byte so the next dget() redelivers it.
-                const std::size_t got = do_get(s + 1, n - 1);
-                m_c.reset();
-                return 1 + got;
-            }
-            m_c.reset();
-            return 1;
-        }
-        return do_get(s, n);
+        return m_use_stdio ? stdio_get(s, n) : fd_get(s, n);
     }
 
     /**
@@ -388,16 +440,77 @@ public:
     }
 
 private:
-    std::size_t do_get(char* s, std::size_t n)
+    // fd mode keeps its own state: EOF in m_eof_hit, a probed byte in m_c.
+    std::size_t fd_get(char* s, std::size_t n)
+        requires (ID == detail::std_in_fd)
+    {
+        if (m_eof_hit) return 0;
+        if (m_c.has_value())
+        {
+            *s = m_c.value();
+            if (n > 1 && detail::std_fd_readable_now(ID))
+            {
+                // Top up with what is already there, so a probe followed by a bulk
+                // read still reads in bulk. Only when data is ready: waiting here
+                // would block on a pipe whose peer sent that one byte, or on a
+                // terminal where the user typed an empty line. If fd_read throws,
+                // m_c must still hold the byte so the next dget() redelivers it.
+                const std::size_t got = fd_read(s + 1, n - 1);
+                m_c.reset();
+                return 1 + got;
+            }
+            m_c.reset();
+            return 1;
+        }
+        return fd_read(s, n);
+    }
+
+    bool fd_eof()
+        requires (ID == detail::std_in_fd)
+    {
+        if (m_eof_hit) return true;
+        if (m_c.has_value()) return false;
+
+        char_type ch = 0;
+        if (fd_read(&ch, 1) == 0) return true;      // fd_read has set m_eof_hit
+        m_c = ch;
+        return false;
+    }
+
+    std::size_t fd_read(char* s, std::size_t n)
+        requires (ID == detail::std_in_fd)
     {
         const std::size_t ret = detail::std_fd_read(ID, s, n);
         if (ret == 0)
             m_eof_hit = true;
         return ret;
     }
+
+    // stdio mode keeps its state in the FILE: a probed byte goes back with ungetc,
+    // EOF is feof(stdin). m_c here can only be a byte fd mode probed before the
+    // switch; it is still due first, and alone, as fd readiness says nothing now.
+    std::size_t stdio_get(char* s, std::size_t n)
+        requires (ID == detail::std_in_fd)
+    {
+        if (m_c.has_value())
+        {
+            *s = m_c.value();
+            m_c.reset();
+            return 1;
+        }
+        return detail::std_stdin_file_read(s, n);
+    }
+
+    bool stdio_eof()
+        requires (ID == detail::std_in_fd)
+    {
+        if (m_c.has_value()) return false;
+        return detail::std_stdin_file_eof();
+    }
 private:
     IOV2_NO_UNIQUE_ADDRESS std::conditional_t<ID == detail::std_in_fd, bool, std::monostate> m_eof_hit{};
     IOV2_NO_UNIQUE_ADDRESS std::conditional_t<ID == detail::std_in_fd, std::optional<char_type>, std::monostate> m_c;
+    IOV2_NO_UNIQUE_ADDRESS std::conditional_t<ID == detail::std_in_fd, bool, std::monostate> m_use_stdio{}; ///< @lang{ZH} stdin 是否为 stdio 模式（见 `stdio_mode()`）。 @endif @lang{EN} Whether stdin is in stdio mode (see `stdio_mode()`). @endif
     bool m_active = true;   ///< @lang{ZH} 本对象是否仍持有该流的收尾冲刷责任：缺省构造为 true，随移动转交给目标、源对象变 false。析构函数只在为 true 时冲刷（fd 1 / 2）；stdin 上只是状态标记。 @endif @lang{EN} Whether this object still holds the duty to flush the stream when it dies: true on default construction, handed to the target by a move, false on the moved-from object. The destructor flushes (fd 1 / 2) only while it is true; on stdin it is a state marker only. @endif
 };
 
