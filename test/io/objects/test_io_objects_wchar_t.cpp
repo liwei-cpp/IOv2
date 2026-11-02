@@ -43,11 +43,11 @@
 #include <atomic>
 #include <clocale>
 #include <cstddef>
+#include <cstdio>
 #include <cstdlib>
 #include <stdexcept>
 #include <string>
 #include <thread>
-#include <type_traits>
 #include <utility>
 
 #include <fcntl.h>
@@ -296,17 +296,16 @@ namespace
 
     // A root whose attach fails on demand. With it a reset() can taint the converter, and the
     // recovery sync_with_stdio() starts with can fail -- neither can happen to the real wcin,
-    // whose pipeline has no step that fails there.
-    template <typename TDevice>
-    struct failing_root : IOv2::stdin_root_cvt<TDevice>
+    // whose pipeline has no step that fails there. Being a type of its own, it reads through
+    // the generic cvt_reader rather than stdin_root_cvt's; the case only needs attach() to fail.
+    struct failing_root : IOv2::stdin_root_cvt
     {
-        using BT = IOv2::stdin_root_cvt<TDevice>;
-        explicit failing_root(BT&& root) : BT(std::move(root)) {}
-        void attach(TDevice&& dev = TDevice{})
+        explicit failing_root(IOv2::stdin_root_cvt&& root) : stdin_root_cvt(std::move(root)) {}
+        void attach(IOv2::std_input_device&& dev = IOv2::std_input_device{})
         {
             if (g_fail_attach)
                 throw std::runtime_error("failing_root: attach");
-            BT::attach(std::move(dev));
+            stdin_root_cvt::attach(std::move(dev));
         }
     };
 
@@ -316,8 +315,7 @@ namespace
         template <typename TKernel>
         auto create(TKernel&& kernel) const
         {
-            using device = typename std::remove_cvref_t<TKernel>::device_type;
-            return IOv2::code_cvt_stdio{failing_root<device>{std::forward<TKernel>(kernel)},
+            return IOv2::code_cvt_stdio{failing_root{std::forward<TKernel>(kernel)},
                                         std::string("C")};
         }
     };
@@ -805,9 +803,11 @@ TEST(IoObjectsWchar, SwitchCodeRefusesAStateDependentEncoding)
 
 // Input cut off in the middle of a character is a decode failure, not a plain
 // end of input -- but what came before it is still handed out: read() returns
-// the two characters, then the stream reports cvtfailbit. The converter still
-// holds the half character, so clear() does not get past it -- get() and ignore()
-// alike keep failing and never reach eof -- while reset() drops it.
+// the two characters, then the stream reports cvtfailbit. Synchronized, the half
+// character goes back to C stdio, and every read takes it up again, so clear()
+// does not get past it -- get() and ignore() alike keep failing and never reach
+// eof. reset() cannot drop it either, as it is C stdio's now: once getchar() has
+// taken it, wcin reaches eof.
 TEST(IoObjectsWchar, WcinHandsOutWhatCameBeforeACutOffCharacter)
 {
     iguard g("ab\xe6");
@@ -835,6 +835,7 @@ TEST(IoObjectsWchar, WcinHandsOutWhatCameBeforeACutOffCharacter)
 
     IOv2::wcin.clear();
     IOv2::wcin.reset();
+    EXPECT_EQ(std::getchar(), 0xe6);
     wchar_t c = 0;
     EXPECT_FALSE(IOv2::wcin.get(c));
     EXPECT_TRUE(IOv2::wcin.eof());

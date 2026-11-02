@@ -17,6 +17,7 @@
 
 #include <algorithm>
 #include <cstddef>
+#include <cstdio>
 #include <iterator>
 #include <string>
 #include <type_traits>
@@ -780,7 +781,7 @@ TEST(CodeCvtStdio, ASelfMoveChangesNothing)
 // switch to synchronized.
 TEST(CodeCvtStdio, ReadAheadBytesSurviveASwitchToSynchronized)
 {
-    using Root = stdin_root_cvt<std_device<STDIN_FILENO>>;
+    using Root = stdin_root_cvt;
 
     iguard g("ab\xe4\xb8\xad" "cd");
     code_cvt_stdio<Root> obj{Root{std_device<STDIN_FILENO>{}, false}, "zh_CN.UTF-8"};
@@ -797,11 +798,12 @@ TEST(CodeCvtStdio, ReadAheadBytesSurviveASwitchToSynchronized)
     EXPECT_EQ(got, L"b中cd");
 }
 
-// Half a character left at the end of the input stays in the buffer across a switch:
-// every read still reports it, and none reaches eof.
-TEST(CodeCvtStdio, AHalfCharacterAtTheEndSurvivesASyncSwitch)
+// Half a character left at the end of the input is rolled back, and synchronized the
+// root hands it back to C stdio: the read still reports it, and getchar() then gets the
+// two bytes before the end.
+TEST(CodeCvtStdio, AHalfCharacterAtTheEndGoesBackToCStdioWhenSynchronized)
 {
-    using Root = stdin_root_cvt<std_device<STDIN_FILENO>>;
+    using Root = stdin_root_cvt;
 
     iguard g("a\xe4\xb8");
     code_cvt_stdio<Root> obj{Root{std_device<STDIN_FILENO>{}, true}, "zh_CN.UTF-8"};
@@ -809,11 +811,12 @@ TEST(CodeCvtStdio, AHalfCharacterAtTheEndSurvivesASyncSwitch)
     obj.main_cont_beg();
     wchar_t c = 0;
     EXPECT_EQ(obj.get(&c, 1), 1u);
+    EXPECT_EQ(c, L'a');
     EXPECT_THROW(obj.get(&c, 1), cvt_error);
 
-    obj.adjust(stdin_sync{false});
-    EXPECT_THROW(obj.get(&c, 1), cvt_error);
-    EXPECT_FALSE(obj.is_eof());
+    EXPECT_EQ(std::getchar(), 0xe4);
+    EXPECT_EQ(std::getchar(), 0xb8);
+    EXPECT_EQ(std::getchar(), EOF);
 
     code_cvt_access acc;
     obj.retrieve(acc);
