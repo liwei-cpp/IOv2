@@ -17,6 +17,18 @@ namespace
 {
     namespace sys = iov2_test::sys;
 
+    // Reads what is left on stdin through its FILE up to end of file, then clears the
+    // flags. What synchronized input left unread is there for C stdio to take, and once
+    // drained the FILE buffer holds nothing for the next case to find.
+    inline std::string drain_stdin()
+    {
+        std::string rest;
+        for (int c; (c = std::getchar()) != EOF; )
+            rest += static_cast<char>(c);
+        std::clearerr(stdin);
+        return rest;
+    }
+
     // Redirects stdin from a pipe whose write end stays open until close_write().
     // Unlike iguard (a regular file, where poll() always reports ready and read()
     // never waits), this reproduces a stream that has data but has not ended --
@@ -52,6 +64,7 @@ namespace
         ~pipe_iguard()
         {
             close_write();
+            drain_stdin();                         // synchronized input reads through the FILE
             sys::dup2(m_old_stdin, sys::stdin_fd);
             sys::close(m_old_stdin);
             sys::close(m_fds[0]);
@@ -83,7 +96,10 @@ namespace
 
         ~iguard()
         {
-            fflush(stdin);
+            // Reads what is left, a byte a synchronized probe pushed back with ungetc included,
+            // and clears the flags. setvbuf() meeting a pending pushback is undefined, and
+            // glibc 2.41 then frees a pointer into stdin itself on a later read.
+            drain_stdin();
             sys::dup2(m_old_stdin, sys::stdin_fd);
             sys::close(m_old_stdin);
             setvbuf(stdin, nullptr, _IONBF, 0);
@@ -183,4 +199,28 @@ namespace
 
     using stdout_full_buffer = full_buffer<true>;
     using stderr_full_buffer = full_buffer<false>;
+
+    // The input side: stdin fully buffered on a buffer this object owns, as glibc
+    // buffers a stdin that is not a terminal, so that stdio reads ahead of what it
+    // hands out. Handed back to unbuffered mode, flags cleared, before the buffer dies.
+    struct stdin_full_buffer
+    {
+        stdin_full_buffer()
+        {
+            if (std::setvbuf(stdin, m_buffer.data(), _IOFBF, m_buffer.size()) != 0)
+                throw std::runtime_error("Cannot make stdin fully buffered");
+        }
+
+        ~stdin_full_buffer()
+        {
+            std::clearerr(stdin);
+            std::setvbuf(stdin, nullptr, _IONBF, 0);
+        }
+
+        stdin_full_buffer(const stdin_full_buffer&) = delete;
+        stdin_full_buffer& operator=(const stdin_full_buffer&) = delete;
+
+    private:
+        std::array<char, BUFSIZ> m_buffer{};
+    };
 }

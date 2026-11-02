@@ -22,9 +22,17 @@
   macOS 上为 Apple clang。其余各层尚未移植。
 - `IOV2_NO_UNIQUE_ADDRESS`：`[[no_unique_address]]` 的可移植写法。MSVC ABI 忽略标准写法、
   只认 `[[msvc::no_unique_address]]`。
+- `std_input_device::stdio_mode()`：切换 stdin 的读法。缺省的 fd 模式照旧直接读 fd 0；
+  stdio 模式在 `stdin` 的 `FILE` 锁内 `fread`，与 C stdio 共用缓冲，EOF 以 `FILE` 的粘性
+  标志为准。
 
 #### 变更
 
+- 与 C stdio 同步的标准输入流（`cin`、`wcin` 的缺省模式）改经 `stdin` 的 `FILE` 读，与 C
+  stdio 共用缓冲：`getchar()`、`scanf()` 等预读进 `FILE` 的字节本流接着读得到。此前设备直接
+  读 fd 0，终端上一次 `getchar()` 读走的整行本流看不到。随之而来的两处行为变化：到达 EOF
+  后 `FILE` 的 EOF 标志是粘性的，`clear()` 之后仍读不到后来的输入，`reset()` 现在为此调用
+  `clearerr(stdin)`；同步时本流读剩的字节留在 `FILE` 缓冲里，而不是 fd 上。不同步模式不变。
 - `file_device` 的构造函数与 `try_open` 改为接受 `std::filesystem::path`，路径编码由传入的
   类型决定：`char` 字符串按平台的原生窄编码（Windows 上为 ANSI 代码页，与 `fopen` 一致），
   `char8_t` 字符串按 UTF-8，`wchar_t` 字符串在 Windows 上即 UTF-16。传入 `std::string` 与
@@ -137,9 +145,23 @@ have no release line of their own.
 - `IOV2_NO_UNIQUE_ADDRESS`: a portable spelling of `[[no_unique_address]]`. The
   MSVC ABI ignores the standard spelling and honours only
   `[[msvc::no_unique_address]]`.
+- `std_input_device::stdio_mode()`: switches how stdin is read. The default fd
+  mode reads fd 0 directly as before; stdio mode `fread`s under the lock of
+  `stdin`'s `FILE`, sharing its buffer with C stdio, and takes EOF from the
+  `FILE`'s sticky flag.
 
 #### Changed
 
+- A standard input stream synchronized with C stdio (the default mode of `cin`
+  and `wcin`) reads through `stdin`'s `FILE`, sharing its buffer with C stdio:
+  bytes `getchar()`, `scanf()` and the like have read ahead into the `FILE` are
+  there for the stream to read on. The device used to read fd 0 directly, so on a
+  terminal the whole line one `getchar()` took was invisible to the stream. Two
+  behaviour changes come with it: once EOF is reached the `FILE`'s EOF flag is
+  sticky, so after `clear()` later input is still not read, and `reset()` now
+  calls `clearerr(stdin)` for that; and bytes the stream leaves unread when
+  synchronized wait in the `FILE` buffer rather than on the fd. Unsynchronized
+  mode is unchanged.
 - `file_device`'s constructor and `try_open` take a `std::filesystem::path`, so
   the path's encoding follows the type passed in: a `char` string is in the
   platform's native narrow encoding (the ANSI code page on Windows, as with

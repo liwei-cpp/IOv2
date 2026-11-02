@@ -88,6 +88,7 @@
 #include <IOv2/locale/locale.h>
 
 #include <clocale>
+#include <cstdio>
 #include <exception>
 #include <mutex>
 #include <string>
@@ -191,27 +192,28 @@ public:
 public:
     /**
      * @lang{ZH}
-     * @brief 切换本流是否与 C stdio 同步：同步时逐字节读 `stdin`，不同步时自带读缓冲。
+     * @brief 切换本流是否与 C stdio 同步：同步时经 `stdin` 的 `FILE` 按需读、与 C stdio 共用
+     * 缓冲，不同步时直接读 fd 0、自带读缓冲。
      *
-     * 切换只翻根转换器（`stdin_root_cvt`）上的一个标志，不重建 iochannel：缓冲、解码器、设备
-     * 都留在原处，**不丢输入**。切到同步时，非同步模式下已预读进缓冲的字节照常先交出，交完才
-     * 按需逐字节读；切到不同步时，下一次缓冲空了就整块读。因此可以在读过 stdin 之后再切换，
-     * 一次提取进行中（用户 `io_traits::sread` 里）切换也只影响之后向设备要字节的方式。
-     * 与当前模式相同的调用什么也不做，也不取锁，不会等另一线程里阻塞着的读；模式不同时要取
-     * 本流的锁，会等另一线程里正在进行的读结束，若它阻塞在 `read(0)` 上就一直等到有输入。
+     * 切换只翻根转换器（`stdin_root_cvt`）上的一个标志与设备的读法（`std_device::stdio_mode()`），
+     * 不重建 iochannel：缓冲、解码器、设备都留在原处。切到同步时，非同步模式下已预读进缓冲的
+     * 字节照常先交出，交完才按需读，**不丢输入**；切到不同步时，下一次缓冲空了就整块读 fd，
+     * 此前 C stdio 预读进 `FILE` 缓冲、尚未读走的字节本流不再看得到（在已有 I/O 之后切换，
+     * 标准同样只给出实现定义的效果）。一次提取进行中（用户 `io_traits::sread` 里）切换只影响
+     * 之后向设备要字节的方式。与当前模式相同的调用什么也不做，也不取锁，不会等另一线程里
+     * 阻塞着的读；模式不同时要取本流的锁，会等另一线程里正在进行的读结束，若它阻塞着就一直
+     * 等到有输入。
      *
-     * @warning 这里的「同步」只表示**不往前多读、每次 `read(0)` 只要本次操作还缺的字节**
-     *          （格式化提取与 `get` / `getline` 因逐字符探分隔符而逐字节；`getline` 存满缓冲时
-     *          还要多看一个字符，才能判断它是分隔符还是溢出；`read(buf, n)` 按需
-     *          分次读：`cin` 每次至多 2048 字节，`wcin` 按还缺的字符数要字节，多字节文本会分成
-     *          多次越来越小的 `read`），不是与 C stdio 共享缓冲：本流的设备
-     *          直接用 POSIX `read()`，绕过 `stdin` 的 `FILE` 缓冲（见 `device/std_device.h`
-     *          的类级 `@warning`）。因此与 `std::cin` 不同：(1) 格式化提取探到的分隔符留在本流
+     * @warning 同步时**不往前多读，每次只向 `FILE` 要本次操作还缺的字节**（格式化提取与
+     *          `get` / `getline` 因逐字符探分隔符而逐字节；`getline` 存满缓冲时还要多看一个字符，
+     *          才能判断它是分隔符还是溢出；`read(buf, n)` 按需分次读：`cin` 每次至多 2048 字节，
+     *          `wcin` 按还缺的字符数要字节），C stdio 预读进 `FILE` 的字节本流接着读得到，
+     *          反之亦然。但与 `std::cin` 仍有两处不同：(1) 格式化提取探到的分隔符留在本流
      *          的读缓冲里，`getchar()` / `fgets()` 看不到它、拿到的是它之后的字节，而
-     *          `cin.get()` 能把它取回；(2) 反过来，终端上一次 `getchar()` 会让 stdio 读走整行，
-     *          本流随后只能看见下一行；(3) `cin` 与 `wcin` 也各有自己的读缓冲，一方探过的字节
-     *          另一方看不到。三种形态都**不丢字节**，只是跨边界不可见。请勿在 `stdin` 上混用
-     *          本流与 C stdio 函数或另一条标准输入流。
+     *          `cin.get()` 能把它取回；(2) `cin` 与 `wcin` 各有自己的读缓冲，一方探过的字节
+     *          另一方看不到。两种形态都**不丢字节**，只是跨边界不可见。到达 EOF 后 `FILE` 的
+     *          EOF 标志是粘性的：`clear()` 之后仍读不到后来的输入，需 `reset()` 或
+     *          `clearerr(stdin)`。
      *
      * 查询当前状态请用 `synced_with_stdio()`：本函数的无参形式等于 `sync_with_stdio(true)`，
      * 会真的切换。
@@ -227,40 +229,39 @@ public:
      * @endif
      *
      * @lang{EN}
-     * @brief Switches whether this stream is synchronized with C stdio: synchronized
-     * reads `stdin` byte by byte, unsynchronized reads through its own buffer.
+     * @brief Switches whether this stream is synchronized with C stdio: synchronized reads
+     * on demand through `stdin`'s `FILE`, sharing its buffer with C stdio; unsynchronized
+     * reads fd 0 directly through its own buffer.
      *
-     * Switching flips one flag on the root converter (`stdin_root_cvt`) and does not rebuild
-     * the iochannel: buffers, decoder and device all stay, and **no input is lost**. Switching
-     * to synchronized hands out first, as usual, the bytes an unsynchronized stream had read
-     * ahead into its buffer, and only then reads byte by byte on demand; switching to
-     * unsynchronized reads a whole buffer the next time it runs empty. It may therefore be
-     * switched after stdin has been read, and switching in the middle of an extraction (inside
-     * a user `io_traits::sread`) only changes how the device is asked for bytes from then on.
-     * A call asking for the current mode does nothing and takes no lock, so it does not wait
-     * for a read blocked in another thread; one asking for the other mode takes this stream's
-     * lock and waits for a read under way in another thread, which, blocked in `read(0)`, ends
-     * only when input arrives.
+     * Switching flips one flag on the root converter (`stdin_root_cvt`) and the device's read
+     * mode (`std_device::stdio_mode()`), and does not rebuild the iochannel: buffers, decoder
+     * and device all stay. Switching to synchronized hands out first, as usual, the bytes an
+     * unsynchronized stream had read ahead into its buffer, and only then reads on demand, so
+     * **no input is lost**; switching to unsynchronized reads a whole buffer off the fd the
+     * next time it runs empty, and bytes C stdio had read ahead into the `FILE` buffer and
+     * nobody has read yet are then out of this stream's sight (after I/O has taken place, the
+     * standard too leaves such a switch implementation-defined). Switching in the middle of an
+     * extraction (inside a user `io_traits::sread`) only changes how the device is asked for
+     * bytes from then on. A call asking for the current mode does nothing and takes no lock,
+     * so it does not wait for a read blocked in another thread; one asking for the other mode
+     * takes this stream's lock and waits for a read under way in another thread, which, if
+     * blocked, ends only when input arrives.
      *
-     * @warning "Synchronized" here means **no reading ahead: each `read(0)` asks for just what
+     * @warning Synchronized, **nothing is read ahead: each read asks the `FILE` for just what
      *          the current operation is still short of** (formatted extraction and `get` /
      *          `getline` go byte by byte because they probe for the delimiter one character at
      *          a time; with its buffer full, `getline` still looks at one more character to
      *          tell a delimiter from an overflow; `read(buf, n)` reads in as many steps as it
-     *          takes: `cin` at most 2048
-     *          bytes at a time, `wcin` asking for as many bytes as it is short of characters,
-     *          so multibyte text takes a run of ever smaller `read`s), not sharing a buffer with C
-     *          stdio: this stream's device calls POSIX `read()`
-     *          directly and bypasses the `FILE` buffer of `stdin` (see the class-level
-     *          `@warning` in `device/std_device.h`). Unlike `std::cin`, therefore: (1) the
-     *          delimiter a formatted extraction peeks at stays in this stream's read buffer,
-     *          where `getchar()` / `fgets()` never see it -- they get the byte after it --
-     *          while `cin.get()` returns it; (2) conversely, on a terminal one `getchar()`
-     *          lets stdio read the whole line, after which this stream only sees the next
-     *          one; (3) `cin` and `wcin` have separate read buffers as well, so a byte one of
-     *          them peeked at is invisible to the other. **No byte is lost** in any of the
-     *          three; they are only invisible across the boundary. Do not mix this stream
-     *          with C stdio functions, or with the other standard input stream, on `stdin`.
+     *          takes: `cin` at most 2048 bytes at a time, `wcin` asking for as many bytes as it
+     *          is short of characters), and bytes C stdio has read ahead into the `FILE` are
+     *          there for this stream to read on, and the other way round. Two differences from
+     *          `std::cin` remain: (1) the delimiter a formatted extraction peeks at stays in
+     *          this stream's read buffer, where `getchar()` / `fgets()` never see it -- they
+     *          get the byte after it -- while `cin.get()` returns it; (2) `cin` and `wcin` have
+     *          separate read buffers, so a byte one of them peeked at is invisible to the
+     *          other. **No byte is lost** in either; it is only invisible across the boundary.
+     *          Once EOF is reached, the `FILE`'s EOF flag is sticky: after `clear()` later input
+     *          is still not read, which takes `reset()` or `clearerr(stdin)`.
      *
      * To ask for the current state use `synced_with_stdio()`: with no argument this one means
      * `sync_with_stdio(true)` and does switch.
@@ -407,8 +408,8 @@ public:
      * @lang{ZH}
      * @brief 在同一 fd 上继续：清状态位与异常掩码，丢弃已缓冲但未消费的输入，重新附接
      * 设备并重新初始化转换器。`stdin` 是普通文件时也不会回到开头。同步模式不往前多读，
-     * fd 上尚未读的字节（例如本行余下的部分）照旧在那里；但已从 fd 取出、还没交给调用方的
-     * 字节同样丢弃：格式化提取探分隔符时偷看的那个字符（`cin >> n` 读 `12x34` 后，
+     * 本流尚未读走的字节（例如本行余下的部分，在 `stdin` 的 `FILE` 缓冲或 fd 上）照旧在那里；
+     * 但本流已经取出、还没交给调用方的字节同样丢弃：格式化提取探分隔符时偷看的那个字符（`cin >> n` 读 `12x34` 后，
      * `reset()` 丢掉 `x`），`wcin` 遇到解码错误后已取出、尚未交出的字节，以及此前不同步时
      * 整块预读进缓冲、切到同步后还没交出的字节（可达一整块缓冲）。
      *
@@ -421,6 +422,9 @@ public:
      * 读取都置 `cvtfailbit`，不会到达 eof——这时须 `reset()`，`clear()` 不够。
      * 不要在一次提取进行中（用户 `io_traits::sread` 里）重入调用：不会崩，但本次提取之后
      * 已缓冲的输入随之丢弃。
+     *
+     * 到达过的 EOF 也一并忘掉，之后可以接着读：不同步时它记在设备里，随重新附接清掉；同步时
+     * 它是 `stdin` 的 `FILE` 上的粘性标志，本函数为此调用 `clearerr(stdin)`（同时清掉错误标志）。
      *
      * 复位的范围只有状态位、异常掩码，以及缓冲与转换器的内部状态。格式状态（含 `skipws`）、
      * `width()`、`precision()`、`fill()`、locale、`sync_with_stdio()`、`tie()` 与
@@ -440,9 +444,9 @@ public:
      * @brief Carries on on the same fd: clears the state bits and the exception mask,
      * drops input that was buffered but not yet consumed, reattaches the device and
      * re-initializes the converter. A `stdin` that is a regular file does not rewind.
-     * Synchronized mode reads nothing ahead, so bytes not yet read from the fd (the rest of
-     * the line, say) are still there; but bytes already taken off the fd and not yet handed
-     * to the caller are dropped too: the character a formatted extraction peeked at while
+     * Synchronized mode reads nothing ahead, so bytes this stream has not yet read (the rest
+     * of the line, say, in `stdin`'s `FILE` buffer or on the fd) are still there; but bytes
+     * this stream has already taken and not yet handed to the caller are dropped too: the character a formatted extraction peeked at while
      * looking for a delimiter (after `cin >> n` reads `12x34`, `reset()` drops the `x`), the
      * bytes `wcin` had taken past a decoding error, and what an earlier unsynchronized mode
      * read ahead into the buffer and the switch to synchronized has not handed out yet (up to
@@ -462,6 +466,11 @@ public:
      * `clear()` is not enough. Do not re-enter it from inside an extraction (a user
      * `io_traits::sread`): nothing crashes, but the input buffered beyond that extraction
      * is discarded with it.
+     *
+     * An EOF reached is forgotten as well, so reading can go on: unsynchronized it is kept
+     * in the device and goes with the reattach; synchronized it is the sticky flag on
+     * `stdin`'s `FILE`, for which this function calls `clearerr(stdin)` (clearing the error
+     * flag along with it).
      *
      * What is reset is the state bits, the exception mask, and the internal state of the
      * buffer and the converter -- nothing else. The format flags (`skipws` among them),
@@ -495,6 +504,10 @@ public:
 
         try { m_channel.attach(); }
         catch (...) { this->handle_exception(std::current_exception()); }
+
+        // Synchronized, the EOF is FILE's sticky flag rather than the device's.
+        if (m_sync_with_stdio.load())
+            std::clearerr(stdin);
 
         if (detached.second) this->handle_exception(detached.second);
     }

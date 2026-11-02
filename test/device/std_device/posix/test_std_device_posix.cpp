@@ -44,7 +44,7 @@ TEST(StdDevicePosix, GetRetriesReadAndPollAfterSignalInterrupts)
     sigemptyset(&action.sa_mask);   // unqualified: a macro on macOS
     ASSERT_EQ(::sigaction(SIGUSR1, &action, &old_action), 0);
 
-    const auto run_interrupted_read = [](bool non_blocking)
+    const auto run_interrupted_read = [](bool non_blocking, bool stdio)
     {
         int pipefds[2];
         ASSERT_NE(::pipe(pipefds), -1);
@@ -71,6 +71,7 @@ TEST(StdDevicePosix, GetRetriesReadAndPollAfterSignalInterrupts)
         });
 
         std_input_device d;
+        d.stdio_mode(stdio);
         char ch = 0;
         std::size_t got = 0;
         bool threw = false;
@@ -78,10 +79,11 @@ TEST(StdDevicePosix, GetRetriesReadAndPollAfterSignalInterrupts)
         catch (const device_error&) { threw = true; }
 
         interrupter.join();
+        ::close(pipefds[1]);
+        drain_stdin();                         // stdio mode leaves FILE's flags behind
         ::dup2(saved_stdin, STDIN_FILENO);
         ::close(saved_stdin);
         ::close(pipefds[0]);
-        ::close(pipefds[1]);
 
         EXPECT_FALSE(threw);
         EXPECT_EQ(signal_result, 0);
@@ -90,8 +92,11 @@ TEST(StdDevicePosix, GetRetriesReadAndPollAfterSignalInterrupts)
         EXPECT_EQ(ch, 'x');
     };
 
-    run_interrupted_read(false); // interrupts blocking read()
-    run_interrupted_read(true);  // interrupts poll() after EAGAIN
+    for (const bool stdio : {false, true})
+    {
+        run_interrupted_read(false, stdio); // interrupts blocking read()
+        run_interrupted_read(true, stdio);  // interrupts poll() after EAGAIN
+    }
 
     EXPECT_EQ(::sigaction(SIGUSR1, &old_action, nullptr), 0);
 }
@@ -100,49 +105,56 @@ TEST(StdDevicePosix, GetRetriesReadAndPollAfterSignalInterrupts)
 // A non-blocking stdin.  dget() must wait for the data it was asked for rather
 // than report a short read, and must recognise the writer hanging up as EOF --
 // which is why this needs a pipe: a regular file is always ready and never ends
-// mid-stream.
+// mid-stream.  Both read modes: stdio mode meets the EAGAIN as a FILE error.
 // ---------------------------------------------------------------------------
 
 TEST(StdDevicePosix, GetWaitsOnANonBlockingStdinAndSeesTheHangup)
 {
-    int pipefds[2];
-    ASSERT_NE(::pipe(pipefds), -1);
-
-    const int saved_stdin = ::dup(STDIN_FILENO);
-    ::dup2(pipefds[0], STDIN_FILENO);
-    const int flags = ::fcntl(STDIN_FILENO, F_GETFL, 0);
-    ::fcntl(STDIN_FILENO, F_SETFL, flags | O_NONBLOCK);
-
-    std_input_device d;
-    char buf[5] = {};
-
-    // The data arrives after the read has already started.
-    std::thread t([&]
+    const auto run_non_blocking_read = [](bool stdio)
     {
-        std::this_thread::sleep_for(std::chrono::milliseconds(50));
-        (void)::write(pipefds[1], "hello", 5);
-    });
+        int pipefds[2];
+        ASSERT_NE(::pipe(pipefds), -1);
 
-    EXPECT_EQ(d.dget(buf, 5), 5u);
-    EXPECT_EQ(std::memcmp(buf, "hello", 5), 0);
-    t.join();
+        const int saved_stdin = ::dup(STDIN_FILENO);
+        ::dup2(pipefds[0], STDIN_FILENO);
+        const int flags = ::fcntl(STDIN_FILENO, F_GETFL, 0);
+        ::fcntl(STDIN_FILENO, F_SETFL, flags | O_NONBLOCK);
 
-    // Close the write end only after dget() is waiting in poll().  If it were
-    // closed first, read() would return 0 directly and the POLLHUP path would
-    // never be exercised.
-    std::thread closer([write_fd = pipefds[1]]
-    {
-        std::this_thread::sleep_for(std::chrono::milliseconds(50));
-        ::close(write_fd);
-    });
-    EXPECT_EQ(d.dget(buf, 1), 0u);
-    EXPECT_TRUE(d.deof());
-    closer.join();
-    pipefds[1] = -1;
+        std_input_device d;
+        d.stdio_mode(stdio);
+        char buf[5] = {};
 
-    ::dup2(saved_stdin, STDIN_FILENO);
-    ::close(saved_stdin);
-    ::close(pipefds[0]);
+        // The data arrives after the read has already started.
+        std::thread t([&]
+        {
+            std::this_thread::sleep_for(std::chrono::milliseconds(50));
+            (void)::write(pipefds[1], "hello", 5);
+        });
+
+        EXPECT_EQ(d.dget(buf, 5), 5u);
+        EXPECT_EQ(std::memcmp(buf, "hello", 5), 0);
+        t.join();
+
+        // Close the write end only after dget() is waiting in poll().  If it were
+        // closed first, read() would return 0 directly and the POLLHUP path would
+        // never be exercised.
+        std::thread closer([write_fd = pipefds[1]]
+        {
+            std::this_thread::sleep_for(std::chrono::milliseconds(50));
+            ::close(write_fd);
+        });
+        EXPECT_EQ(d.dget(buf, 1), 0u);
+        EXPECT_TRUE(d.deof());
+        closer.join();
+
+        drain_stdin();                         // clears the EOF stdio mode left on the FILE
+        ::dup2(saved_stdin, STDIN_FILENO);
+        ::close(saved_stdin);
+        ::close(pipefds[0]);
+    };
+
+    run_non_blocking_read(false);
+    run_non_blocking_read(true);
 }
 
 // ---------------------------------------------------------------------------

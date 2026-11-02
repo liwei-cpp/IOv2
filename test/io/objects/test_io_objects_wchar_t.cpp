@@ -219,7 +219,7 @@ TEST(IoObjectsWchar, SwitchingToSynchronizedKeepsTheInputReadAhead)
 }
 
 // adjust(stdin_sync{...}) on wcin is sync_with_stdio, as on cin: the stream's own query
-// follows, and switching back is a real switch that leaves the rest on the fd.
+// follows, and switching back is a real switch that leaves the rest for C stdio.
 TEST(IoObjectsWchar, AdjustingWithStdinSyncIsSyncWithStdio)
 {
     int pipefds[2];
@@ -239,9 +239,7 @@ TEST(IoObjectsWchar, AdjustingWithStdinSyncIsSyncWithStdio)
     IOv2::wcin.read(buf, 5);
     EXPECT_EQ(std::wstring(buf, 5), L"12345");
 
-    char rest = 0;
-    EXPECT_EQ(::read(STDIN_FILENO, &rest, 1), 1);   // synchronized: left on the fd
-    EXPECT_EQ(rest, 'X');
+    EXPECT_EQ(drain_stdin(), "X");                  // synchronized: left for C stdio
 
     ::dup2(saved_stdin, STDIN_FILENO);
     ::close(saved_stdin);
@@ -252,7 +250,7 @@ TEST(IoObjectsWchar, AdjustingWithStdinSyncIsSyncWithStdio)
 namespace
 {
     // Runs `op` on a synchronized wcin whose fd 0 is a pipe holding `input`, its write end
-    // already closed so no read can block, and returns what `op` left on the fd. ASCII
+    // already closed so no read can block, and returns what `op` left for C stdio. ASCII
     // input only: one byte per character under every locale the suite runs in.
     template <typename Op>
     std::string left_on_stdin(const std::string& input, Op op)
@@ -271,10 +269,7 @@ namespace
         IOv2::wcin.sync_with_stdio(true);
         op();
 
-        std::string rest;
-        char buf[64];
-        for (ssize_t n; (n = ::read(STDIN_FILENO, buf, sizeof buf)) > 0; )
-            rest.append(buf, static_cast<std::size_t>(n));
+        const std::string rest = drain_stdin();
         ::dup2(saved_stdin, STDIN_FILENO);
         ::close(saved_stdin);
         IOv2::wcin.clear();
@@ -360,10 +355,7 @@ TEST(IoObjectsWchar, ASwitchWhoseRecoveryFailsKeepsTheMode)
 
     wchar_t c = 0;
     in.get(c);                                     // recovers now, and reads synchronized
-    std::string rest;
-    char buf[16];
-    for (ssize_t n; (n = ::read(STDIN_FILENO, buf, sizeof buf)) > 0; )
-        rest.append(buf, static_cast<std::size_t>(n));
+    const std::string rest = drain_stdin();
     ::dup2(saved_stdin, STDIN_FILENO);
     ::close(saved_stdin);
 
