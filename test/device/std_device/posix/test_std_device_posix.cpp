@@ -24,6 +24,7 @@
 #include <cstdio>
 #include <cstring>
 #include <pthread.h>
+#include <string>
 #include <thread>
 #include <utility>
 
@@ -155,6 +156,69 @@ TEST(StdDevicePosix, GetWaitsOnANonBlockingStdinAndSeesTheHangup)
 
     run_non_blocking_read(false);
     run_non_blocking_read(true);
+}
+
+// ---------------------------------------------------------------------------
+// dunget() in stdio mode.  POSIX C libraries push back more than the one byte
+// the standard guarantees (glibc and BSD grow the area on demand), so these
+// succeed here; Windows refuses, see windows/.
+// ---------------------------------------------------------------------------
+
+TEST(StdDevicePosix, UngetHandsTheBytesBackToCStdioInOrder)
+{
+    pipe_iguard g("abc");
+    g.close_write();
+    stdin_full_buffer b;
+    std_input_device d;
+    d.stdio_mode(true);
+
+    char buf[2] = {};
+    ASSERT_EQ(d.dget(buf, 2), 2u);
+    EXPECT_TRUE(d.dunget(buf, 2));
+    EXPECT_EQ(std::getchar(), 'a');
+    ASSERT_EQ(d.dget(buf, 2), 2u);
+    EXPECT_EQ(std::string(buf, 2), "bc");
+}
+
+// Past glibc's first 128-byte pushback area, so it has to grow, and with 0xFF in
+// it: as a signed char that byte is EOF, which ungetc() would refuse.
+TEST(StdDevicePosix, UngetHandsBackABlockWithEveryByteValue)
+{
+    pipe_iguard g("tail");
+    g.close_write();
+    std_input_device d;
+    d.stdio_mode(true);
+
+    std::string block;
+    for (int i = 0; i < 300; ++i)
+        block += static_cast<char>(255 - i % 256);
+    ASSERT_TRUE(d.dunget(block.data(), block.size()));
+
+    std::string got(block.size() + 4, '\0');
+    std::size_t total = 0;
+    for (std::size_t r; total < got.size() && (r = d.dget(got.data() + total, got.size() - total)) != 0; )
+        total += r;
+    EXPECT_EQ(total, got.size());
+    EXPECT_EQ(got, block + "tail");
+}
+
+// The bytes pushed back are read even after the end was reached: ungetc() clears
+// the EOF flag. Once they are gone, the end is met again.
+TEST(StdDevicePosix, UngetAfterEofMakesTheBytesReadable)
+{
+    pipe_iguard g("");
+    g.close_write();
+    std_input_device d;
+    d.stdio_mode(true);
+
+    char c = 0;
+    ASSERT_EQ(d.dget(&c, 1), 0u);
+    EXPECT_TRUE(d.dunget("z", 1));
+    EXPECT_FALSE(d.deof());
+    ASSERT_EQ(d.dget(&c, 1), 1u);
+    EXPECT_EQ(c, 'z');
+    EXPECT_EQ(d.dget(&c, 1), 0u);
+    EXPECT_TRUE(d.deof());
 }
 
 // ---------------------------------------------------------------------------

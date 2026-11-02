@@ -140,4 +140,26 @@ inline bool std_stdin_file_eof()
         throw device_error("std_device::deof fail: ungetc error");
     return false;
 }
+
+// Pushes s[0..n) back into stdin's FILE, last byte first, so the next read gets
+// them in order. Beyond one byte ungetc() may fail (glibc and BSD only when out
+// of memory, musl past a small reserve); then the bytes already pushed are read
+// off again and false comes back. ungetc() clears the EOF flag and there is no
+// call to set it again, so a failed attempt may leave that flag cleared.
+inline bool std_stdin_file_unget(const char* s, std::size_t n)
+{
+    assert((s != nullptr) && (n != 0));
+
+    stdin_file_lock guard;
+    for (std::size_t pushed = 0; pushed < n; ++pushed)
+    {
+        if (std::ungetc(static_cast<unsigned char>(s[n - 1 - pushed]), stdin) == EOF)
+        {
+            while (pushed-- != 0)
+                (void)getc_unlocked(stdin);
+            return false;
+        }
+    }
+    return true;
+}
 }
