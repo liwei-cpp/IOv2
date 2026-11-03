@@ -784,7 +784,8 @@ TEST(CodeCvtStdio, ReadAheadBytesSurviveASwitchToSynchronized)
     using Root = stdin_root_cvt;
 
     iguard g("ab\xe4\xb8\xad" "cd");
-    code_cvt_stdio<Root> obj{Root{std_device<STDIN_FILENO>{}, false}, "zh_CN.UTF-8"};
+    code_cvt_stdio<Root> obj{Root{}, "zh_CN.UTF-8"};
+    obj.adjust(stdin_sync{false});              // the state is shared: switched back below
     EXPECT_EQ(obj.bos(), io_status::input);
     obj.main_cont_beg();
     wchar_t c = 0;
@@ -806,7 +807,7 @@ TEST(CodeCvtStdio, AHalfCharacterAtTheEndGoesBackToCStdioWhenSynchronized)
     using Root = stdin_root_cvt;
 
     iguard g("a\xe4\xb8");
-    code_cvt_stdio<Root> obj{Root{std_device<STDIN_FILENO>{}, true}, "zh_CN.UTF-8"};
+    code_cvt_stdio<Root> obj{Root{}, "zh_CN.UTF-8"};
     EXPECT_EQ(obj.bos(), io_status::input);
     obj.main_cont_beg();
     wchar_t c = 0;

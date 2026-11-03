@@ -70,7 +70,6 @@
  * @endif
  */
 #pragma once
-#include <IOv2/common/copyable_atomic.h>
 #include <IOv2/common/iov2_export.h>
 #include <IOv2/common/sing_temp.h>
 #include <IOv2/cvt/code_cvt.h>
@@ -212,7 +211,7 @@ public:
      */
     stdin_api()
         : ios_state<TChar>(&detail::stdin_io_mutex())
-        , m_channel(stdin_root_cvt{device_type{}, true})
+        , m_channel(stdin_root_cvt{})
     {}
 
     /**
@@ -234,7 +233,7 @@ public:
     template <cvt_creator TCreator>
     stdin_api(const TCreator& creator)
         : ios_state<TChar>(&detail::stdin_io_mutex())
-        , m_channel(creator.create(stdin_root_cvt{device_type{}, true}))
+        , m_channel(creator.create(stdin_root_cvt{}))
     {}
 
     ~stdin_api() = default;
@@ -249,8 +248,10 @@ public:
      * @brief 切换本流是否与 C stdio 同步：同步时经 `stdin` 的 `FILE` 按需读、与 C stdio 共用
      * 缓冲，不同步时直接读 fd 0、自带读缓冲。
      *
-     * 切换只翻根转换器（`stdin_root_cvt`）上的一个标志与设备的读法（`std_device::stdio_mode()`），
-     * 不重建 iochannel：缓冲、解码器、设备都留在原处。切到同步时，非同步模式下已预读进缓冲的
+     * 同步标志只有一份，所有标准输入流共用（在 `detail::stdin_shared_imp` 里，见
+     * `stdin_root_cvt`）：切换一个流就切换了全部，`cin`、`wcin` 的 `synced_with_stdio()` 总是一致。
+     * 切换只翻这个标志与设备的读法（`std_device::stdio_mode()`），不重建 iochannel：缓冲、解码器、
+     * 设备都留在原处。切到同步时，非同步模式下已预读进缓冲的
      * 字节照常先交出，交完才按需读，**不丢输入**；切到不同步时，下一次缓冲空了就整块读 fd，
      * 此前 C stdio 预读进 `FILE` 缓冲、尚未读走的字节本流不再看得到（在已有 I/O 之后切换，
      * 标准同样只给出实现定义的效果）。一次提取进行中（用户 `io_traits::sread` 里）切换只影响
@@ -264,8 +265,9 @@ public:
      *          `wcin` 按还缺的字符数要字节），C stdio 预读进 `FILE` 的字节本流接着读得到，
      *          反之亦然。但与 `std::cin` 仍有两处不同：(1) 格式化提取探到的分隔符留在本流
      *          的读缓冲里，`getchar()` / `fgets()` 看不到它、拿到的是它之后的字节，而
-     *          `cin.get()` 能把它取回；(2) `cin` 与 `wcin` 各有自己的读缓冲，一方探过的字节
-     *          另一方看不到。两种形态都**不丢字节**，只是跨边界不可见。到达 EOF 后 `FILE` 的
+     *          `cin.get()` 能把它取回；(2) `cin` 与 `wcin` 偷看的字符各自留在自己的读缓冲里，
+     *          一方探过的字符另一方看不到（二者底下的字节缓冲是共用的）。两种形态都**不丢字节**，
+     *          只是跨边界不可见。到达 EOF 后 `FILE` 的
      *          EOF 标志是粘性的：`clear()` 之后仍读不到后来的输入，需 `reset()` 或
      *          `clearerr(stdin)`。
      *
@@ -274,9 +276,9 @@ public:
      *
      * 失败按本库统一的方式报告：置状态位，`exceptions()` 掩码含该位时才抛出。翻标志本身不会
      * 失败；（`wchar_t`）只有转换器已 tainted 时先做的自动恢复可能失败，此时标志未动、
-     * 本次没有切换。这依赖根之上的每一层都先做完自己的事再往下传：根是最后一站，它翻转之后
-     * 不再有可失败的步骤。自定义的层若先把行为传给下层、之后才抛出，根已切换而本流的查询值
-     * 未变；此后切回原模式的调用会在开头就返回，这一失配不会自行恢复。
+     * 本次没有切换，失败只记在本流上（别的标准输入流什么也没发生，也就没有可报告的）。这依赖
+     * 根之上的每一层都先做完自己的事再往下传：根是最后一站，它翻转之后不再有可失败的步骤。
+     * 自定义的层若先把行为传给下层、之后才抛出，切换已经生效，本流却报告失败。
      *
      * @param sync `true` 为同步（默认），`false` 为自带缓冲。
      * @return 调用前的同步状态；失败时同步状态未改变，返回的就是当前状态。
@@ -287,9 +289,11 @@ public:
      * on demand through `stdin`'s `FILE`, sharing its buffer with C stdio; unsynchronized
      * reads fd 0 directly through its own buffer.
      *
-     * Switching flips one flag on the root converter (`stdin_root_cvt`) and the device's read
-     * mode (`std_device::stdio_mode()`), and does not rebuild the iochannel: buffers, decoder
-     * and device all stay. Switching to synchronized hands out first, as usual, the bytes an
+     * There is one synchronization flag, shared by every standard input stream (it lives in
+     * `detail::stdin_shared_imp`; see `stdin_root_cvt`): switching one stream switches them all,
+     * and `cin` and `wcin` always agree on `synced_with_stdio()`. Switching flips that flag and
+     * the device's read mode (`std_device::stdio_mode()`) alone, and does not rebuild the
+     * iochannel: buffers, decoder and device all stay. Switching to synchronized hands out first, as usual, the bytes an
      * unsynchronized stream had read ahead into its buffer, and only then reads on demand, so
      * **no input is lost**; switching to unsynchronized reads a whole buffer off the fd the
      * next time it runs empty, and bytes C stdio had read ahead into the `FILE` buffer and
@@ -311,9 +315,10 @@ public:
      *          there for this stream to read on, and the other way round. Two differences from
      *          `std::cin` remain: (1) the delimiter a formatted extraction peeks at stays in
      *          this stream's read buffer, where `getchar()` / `fgets()` never see it -- they
-     *          get the byte after it -- while `cin.get()` returns it; (2) `cin` and `wcin` have
-     *          separate read buffers, so a byte one of them peeked at is invisible to the
-     *          other. **No byte is lost** in either; it is only invisible across the boundary.
+     *          get the byte after it -- while `cin.get()` returns it; (2) a character `cin` or
+     *          `wcin` peeked at stays in that stream's own read buffer, invisible to the other
+     *          (the byte buffer below them is shared). **No byte is lost** in either; it is only
+     *          invisible across the boundary.
      *          Once EOF is reached, the `FILE`'s EOF flag is sticky: after `clear()` later input
      *          is still not read, which takes `reset()` or `clearerr(stdin)`.
      *
@@ -323,12 +328,12 @@ public:
      * A failure is reported the way this library reports every other one: a state bit is
      * set, and it throws only when the `exceptions()` mask includes that bit. Flipping the flag
      * cannot fail; (`wchar_t`) only the automatic recovery of a tainted converter, done first,
-     * can, and then the flag is untouched and nothing is switched. This relies on every layer
-     * above the root finishing its own work before passing the behavior down: the root is the
-     * last stop, and once it has flipped nothing that can fail follows. A custom layer that
-     * passes it down first and throws afterwards leaves the root switched while this stream
-     * still reports the old mode; a later call asking for the old mode then returns at once,
-     * so the mismatch does not heal on its own.
+     * can, and then the flag is untouched and nothing is switched, and the failure is recorded
+     * on this stream alone (nothing happened to the other standard input streams, so there is
+     * nothing to report on them). This relies on every layer above the root finishing its own
+     * work before passing the behavior down: the root is the last stop, and once it has
+     * flipped nothing that can fail follows. A custom layer that passes it down first and
+     * throws afterwards leaves the switch in effect while this stream reports a failure.
      *
      * @param sync `true` for synchronized (the default), `false` for own buffering.
      * @return The synchronization state before the call; on failure the state is unchanged,
@@ -338,24 +343,23 @@ public:
     bool sync_with_stdio(bool sync = true)
     {
         // Nothing to switch: return before the lock, which a blocked read may hold for long.
-        if (m_sync_with_stdio.load() == sync)
+        if (detail::stdin_shared_imp.synced() == sync)
             return sync;
 
         std::lock_guard guard(this->io_mutex());
-        auto old_sync_state = m_sync_with_stdio.load();
+        const bool old_sync_state = detail::stdin_shared_imp.synced();
         if (old_sync_state == sync)
             return old_sync_state;
 
-        // Only the root's flag flips: buffers, decoder and device all stay. A tainted wide
+        // Only the shared flag flips, which the root does at the end of the adjust, for every
+        // standard input stream: buffers, decoder and device all stay. A tainted wide
         // converter recovers first, and that can fail -- before the flag is touched.
         // m_channel's adjust, not this stream's: that one comes back here.
         try {
             m_channel.adjust(stdin_sync{sync});
         } catch (...) {
             this->handle_exception(std::current_exception());
-            return old_sync_state;
         }
-        m_sync_with_stdio.store(sync);
         return old_sync_state;
     }
 
@@ -380,7 +384,7 @@ public:
      */
     [[nodiscard]] bool synced_with_stdio() const noexcept
     {
-        return m_sync_with_stdio.load();
+        return detail::stdin_shared_imp.synced();
     }
 
     /**
@@ -468,6 +472,9 @@ public:
      * 的除外，见下），以及此前不同步时
      * 整块预读进缓冲、切到同步后还没交出的字节（可达一整块缓冲）。
      *
+     * 字节缓冲与设备由所有标准输入流共用（见 `stdin_root_cvt`）：丢掉的已预读字节对 `cin`、
+     * `wcin` 都丢掉，`wcin.reset()` 也会丢掉 `cin` 预读的字节；各流偷看到的字符则只丢本流的。
+     *
      * 供需要放弃已缓冲但未消费的输入的场合使用。它**不能**用来丢掉本行剩余的内容：同步模式下
      * 它只丢掉偷看的那个字符，不同步模式下则可能连预读进来的后续几行一起丢掉；提取失败后要
      * 丢掉本行剩余，请用 `clear()` 加 `ignore(std::numeric_limits<std::ptrdiff_t>::max(), '\n')`。
@@ -509,6 +516,11 @@ public:
      * stdio when synchronized, see below), and what an earlier unsynchronized mode
      * read ahead into the buffer and the switch to synchronized has not handed out yet (up to
      * a whole buffer).
+     *
+     * The byte buffer and the device are shared by every standard input stream (see
+     * `stdin_root_cvt`): bytes read ahead that this drops are dropped for `cin` and `wcin`
+     * alike, so `wcin.reset()` drops what `cin` read ahead too; a character a stream peeked at
+     * is dropped from that stream only.
      *
      * For the cases that want to abandon input that was buffered but not yet consumed. It
      * does **not** discard the rest of a line: in synchronized mode it drops only the peeked
@@ -567,7 +579,7 @@ public:
         catch (...) { this->handle_exception(std::current_exception()); }
 
         // Synchronized, the EOF is FILE's sticky flag rather than the device's.
-        if (m_sync_with_stdio.load())
+        if (detail::stdin_shared_imp.synced())
             std::clearerr(stdin);
 
         if (detached.second) this->handle_exception(detached.second);
@@ -713,28 +725,6 @@ private:
      * @endif
      */
     IOv2::locale<char_type>                 m_locale;
-
-    /**
-     * @lang{ZH}
-     * @brief 本流当前是否与 C stdio 同步，供 `synced_with_stdio()` 查询。
-     *
-     * 为 true 时逐字节读 `stdin`，为 false 时自带读缓冲；真正决定怎么读的是根转换器
-     * `stdin_root_cvt` 上的标志，`sync_with_stdio` 两者一起改，本标志只供查询。写入在
-     * `io_mutex()` 之下，原子量只为让 `synced_with_stdio()` 与全库其它查询函数一样无锁读取。
-     * @endif
-     *
-     * @lang{EN}
-     * @brief Whether this stream is currently synchronized with C stdio, for
-     * `synced_with_stdio()` to report.
-     *
-     * When true this stream reads `stdin` byte by byte, when false through its own buffer;
-     * what decides how it reads is the flag on the root converter `stdin_root_cvt`, which
-     * `sync_with_stdio` changes along with this one, kept here for queries only. Writes happen
-     * under `io_mutex()`; the atomic is only so that `synced_with_stdio()` reads lock-free like
-     * the library's other query functions.
-     * @endif
-     */
-    copyable_atomic<bool> m_sync_with_stdio{true};
 };
 
 /**
