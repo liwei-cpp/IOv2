@@ -133,6 +133,64 @@ inline copyable_mutex<std::recursive_mutex>& stdin_io_mutex()
 
 /**
  * @lang{ZH}
+ * @brief 标准输入流的哨兵：在 `in_sentry` 之外，操作结束时把偷看、压回的字符退回下层。
+ *
+ * 析构时调用流的 `hand_back_peeked()`。每个读操作都构造哨兵，读取都在它的作用域内，所以
+ * 操作结束时流的读缓冲里没有留下字符，C stdio 与另一个标准输入流接着读得到它们。构造失败时
+ * 析构不执行，字符留在读缓冲里，本流下次照样先读到。
+ * @tparam TStream 标准输入流类型。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief The sentry of the standard input streams: on top of `in_sentry`, it hands the
+ * characters peeked at or put back to the layer below when the operation ends.
+ *
+ * Its destructor calls the stream's `hand_back_peeked()`. Every read operation builds a sentry
+ * and reads within its scope, so when an operation ends nothing is left in the stream's read
+ * buffer, and C stdio and the other standard input stream read on from there. When
+ * construction fails the destructor does not run, and the characters stay in the read buffer
+ * for this stream to read first as usual.
+ * @tparam TStream The standard input stream type.
+ * @endif
+ */
+template <typename TStream>
+class stdin_in_sentry
+{
+public:
+    /// @lang{ZH} 见 `in_sentry` 的构造函数，调用方的要求也相同。 @endif @lang{EN} See the constructor of `in_sentry`, which places the same demands on the caller. @endif
+    stdin_in_sentry(TStream& is, bool noskip)
+        : m_is(is), m_sentry(is, noskip)
+    {}
+
+    ~stdin_in_sentry() { m_is.hand_back_peeked(); }
+
+    stdin_in_sentry(const stdin_in_sentry&) = delete;
+    stdin_in_sentry& operator=(const stdin_in_sentry&) = delete;
+    stdin_in_sentry(stdin_in_sentry&&) = delete;
+    stdin_in_sentry& operator=(stdin_in_sentry&&) = delete;
+
+private:
+    TStream& m_is;
+    in_sentry<TStream, false> m_sentry;
+};
+
+/**
+ * @lang{ZH}
+ * @brief `is_in_sentry_impl` 的偏特化：`stdin_in_sentry` 也是输入哨兵。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief Partial specialization of `is_in_sentry_impl`: `stdin_in_sentry` is an input sentry too.
+ * @endif
+ */
+template <typename TStream>
+struct is_in_sentry_impl<stdin_in_sentry<TStream>>
+{
+    constexpr static bool value = true;
+};
+
+/**
+ * @lang{ZH}
  * @brief 标准输入流（`cin` / `wcin`）的实现模板。
  *
  * 把一条 `ichannel`（其下是转换器管线与根转换器 `stdin_root_cvt`，最底层是 fd 0 上的
@@ -194,9 +252,10 @@ class stdin_api : public ios_state<TChar>
 public:
     using device_type = TDevice;
     using char_type = TChar;
-    using in_sentry_type = in_sentry<stdin_api, false>;
+    using in_sentry_type = stdin_in_sentry<stdin_api>;
     using in_iter_type = ichannel_iterator<ichannel<device_type, char_type>>;
     friend in_sentry_type;
+    friend in_sentry<stdin_api, false>;
 
 public:
     /**
@@ -263,11 +322,12 @@ public:
      *          `get` / `getline` 因逐字符探分隔符而逐字节；`getline` 存满缓冲时还要多看一个字符，
      *          才能判断它是分隔符还是溢出；`read(buf, n)` 按需分次读：`cin` 每次至多 2048 字节，
      *          `wcin` 按还缺的字符数要字节），C stdio 预读进 `FILE` 的字节本流接着读得到，
-     *          反之亦然。但与 `std::cin` 仍有两处不同：(1) 格式化提取探到的分隔符留在本流
-     *          的读缓冲里，`getchar()` / `fgets()` 看不到它、拿到的是它之后的字节，而
-     *          `cin.get()` 能把它取回；(2) `cin` 与 `wcin` 偷看的字符各自留在自己的读缓冲里，
-     *          一方探过的字符另一方看不到（二者底下的字节缓冲是共用的）。两种形态都**不丢字节**，
-     *          只是跨边界不可见。到达 EOF 后 `FILE` 的
+     *          反之亦然。`cin` 每次操作结束时把偷看、压回的字符退回下层，格式化提取探到的分隔符
+     *          `getchar()` / `fgets()` 接着读得到，`wcin` 也读得到。退回是尽力而为的，失败不
+     *          报告：`FILE` 不收时（不同步，Windows，或字节缓冲里还有字节）字符进共用的字节
+     *          缓冲，C stdio 看不到而 `wcin` 读得到；内存不足时留在 `cin` 的读缓冲里。
+     *          与 `std::cin` 仍有一处不同：`wcin` 偷看的字符留在它自己的读缓冲里，C stdio 与
+     *          `cin` 看不到。这些情形都**不丢字节**，只是跨边界不可见。到达 EOF 后 `FILE` 的
      *          EOF 标志是粘性的：`clear()` 之后仍读不到后来的输入，需 `reset()` 或
      *          `clearerr(stdin)`。
      *
@@ -312,13 +372,16 @@ public:
      *          tell a delimiter from an overflow; `read(buf, n)` reads in as many steps as it
      *          takes: `cin` at most 2048 bytes at a time, `wcin` asking for as many bytes as it
      *          is short of characters), and bytes C stdio has read ahead into the `FILE` are
-     *          there for this stream to read on, and the other way round. Two differences from
-     *          `std::cin` remain: (1) the delimiter a formatted extraction peeks at stays in
-     *          this stream's read buffer, where `getchar()` / `fgets()` never see it -- they
-     *          get the byte after it -- while `cin.get()` returns it; (2) a character `cin` or
-     *          `wcin` peeked at stays in that stream's own read buffer, invisible to the other
-     *          (the byte buffer below them is shared). **No byte is lost** in either; it is only
-     *          invisible across the boundary.
+     *          there for this stream to read on, and the other way round. When an operation
+     *          ends, `cin` hands the characters it peeked at or had put back to the layer below,
+     *          so `getchar()` / `fgets()` read on from the delimiter a formatted extraction
+     *          peeked at, and so does `wcin`. Handing back is best effort and a failure is not
+     *          reported: where the `FILE` does not take them (unsynchronized, on Windows, or with
+     *          bytes still in the byte buffer) they go into the shared byte buffer, out of C
+     *          stdio's sight but there for `wcin`; out of memory, they stay in `cin`'s read
+     *          buffer. One difference from `std::cin` remains: a character `wcin` peeked at
+     *          stays in its own read buffer, invisible to C stdio and `cin`. **No byte is lost**
+     *          in any of these; it is only invisible across the boundary.
      *          Once EOF is reached, the `FILE`'s EOF flag is sticky: after `clear()` later input
      *          is still not read, which takes `reset()` or `clearerr(stdin)`.
      *
@@ -467,16 +530,18 @@ public:
      * @brief 在同一 fd 上继续：清状态位与异常掩码，丢弃已缓冲但未消费的输入，重新附接
      * 设备并重新初始化转换器。`stdin` 是普通文件时也不会回到开头。同步模式不往前多读，
      * 本流尚未读走的字节（例如本行余下的部分，在 `stdin` 的 `FILE` 缓冲或 fd 上）照旧在那里；
-     * 但本流已经取出、还没交给调用方的字节同样丢弃：格式化提取探分隔符时偷看的那个字符（`cin >> n` 读 `12x34` 后，
+     * 但本流已经取出、还没交给调用方的字节同样丢弃：`wcin` 格式化提取探分隔符时偷看的那个字符（`wcin >> n` 读 `12x34` 后，
      * `reset()` 丢掉 `x`），`wcin` 遇到解码错误后已取出、尚未交出的字节（同步时已还给 C stdio
-     * 的除外，见下），以及此前不同步时
-     * 整块预读进缓冲、切到同步后还没交出的字节（可达一整块缓冲）。
+     * 的除外，见下），退回时进了字节缓冲的字符，以及此前不同步时
+     * 整块预读进缓冲、切到同步后还没交出的字节（可达一整块缓冲）。`cin` 偷看的字符在操作结束时
+     * 已经退回：同步时它归 C stdio，`reset()` 丢不掉（`cin >> n` 读 `12x34` 后，`x` 仍在
+     * `FILE` 里）；不同步时它在字节缓冲里，随缓冲丢弃。
      *
      * 字节缓冲与设备由所有标准输入流共用（见 `stdin_root_cvt`）：丢掉的已预读字节对 `cin`、
-     * `wcin` 都丢掉，`wcin.reset()` 也会丢掉 `cin` 预读的字节；各流偷看到的字符则只丢本流的。
+     * `wcin` 都丢掉，`wcin.reset()` 也会丢掉 `cin` 预读的字节；`wcin` 偷看到的字符则只丢本流的。
      *
      * 供需要放弃已缓冲但未消费的输入的场合使用。它**不能**用来丢掉本行剩余的内容：同步模式下
-     * 它只丢掉偷看的那个字符，不同步模式下则可能连预读进来的后续几行一起丢掉；提取失败后要
+     * 它至多丢掉偷看的那个字符，不同步模式下则可能连预读进来的后续几行一起丢掉；提取失败后要
      * 丢掉本行剩余，请用 `clear()` 加 `ignore(std::numeric_limits<std::ptrdiff_t>::max(), '\n')`。
      * 它**不是**出错后的必经之路：解码失败后 `clear()` 即可继续，解码器跳过坏序列的首字节、
      * 从下一个字节接着解码（块读与逐字符读跳过的一样多），`switch_code()` 也随之可用。
@@ -510,20 +575,24 @@ public:
      * re-initializes the converter. A `stdin` that is a regular file does not rewind.
      * Synchronized mode reads nothing ahead, so bytes this stream has not yet read (the rest
      * of the line, say, in `stdin`'s `FILE` buffer or on the fd) are still there; but bytes
-     * this stream has already taken and not yet handed to the caller are dropped too: the character a formatted extraction peeked at while
-     * looking for a delimiter (after `cin >> n` reads `12x34`, `reset()` drops the `x`), the
+     * this stream has already taken and not yet handed to the caller are dropped too: the character a formatted extraction on `wcin` peeked at while
+     * looking for a delimiter (after `wcin >> n` reads `12x34`, `reset()` drops the `x`), the
      * bytes `wcin` had taken past a decoding error (except those already handed back to C
-     * stdio when synchronized, see below), and what an earlier unsynchronized mode
+     * stdio when synchronized, see below), characters that went into the byte buffer when
+     * handed back, and what an earlier unsynchronized mode
      * read ahead into the buffer and the switch to synchronized has not handed out yet (up to
-     * a whole buffer).
+     * a whole buffer). A character `cin` peeked at has been handed back by the end of the
+     * operation: synchronized it is C stdio's, so `reset()` cannot drop it (after `cin >> n`
+     * reads `12x34` the `x` is still in the `FILE`); unsynchronized it is in the byte buffer
+     * and goes with it.
      *
      * The byte buffer and the device are shared by every standard input stream (see
      * `stdin_root_cvt`): bytes read ahead that this drops are dropped for `cin` and `wcin`
-     * alike, so `wcin.reset()` drops what `cin` read ahead too; a character a stream peeked at
+     * alike, so `wcin.reset()` drops what `cin` read ahead too; a character `wcin` peeked at
      * is dropped from that stream only.
      *
      * For the cases that want to abandon input that was buffered but not yet consumed. It
-     * does **not** discard the rest of a line: in synchronized mode it drops only the peeked
+     * does **not** discard the rest of a line: in synchronized mode it drops at most the peeked
      * character, and in unsynchronized mode it may drop following lines read ahead as well;
      * to discard the rest of a line after a failed extraction, use `clear()` followed by
      * `ignore(std::numeric_limits<std::ptrdiff_t>::max(), '\n')`. It is **not**
@@ -704,6 +773,63 @@ public:
 private:
     /**
      * @lang{ZH}
+     * @brief 接手退回字符的转换器类型：标准流管线的最外层。`cin` 是根转换器本身，`wcin` 是根
+     * 之上的解码层。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief The type of the converter that takes characters handed back: the outermost layer
+     * of a standard stream's pipeline. On `cin` that is the root itself, on `wcin` the decoding
+     * layer above it.
+     * @endif
+     */
+    using hand_back_cvt = std::conditional_t<std::is_same_v<TChar, char>,
+                                             stdin_root_cvt,
+                                             code_cvt_stdio<stdin_root_cvt>>;
+
+    /**
+     * @lang{ZH}
+     * @brief 把读缓冲里偷看、压回的字符退回转换器（`hand_back_cvt::unget()`）。目前只有 `cin`
+     * 退回。
+     *
+     * 尽力而为：没有 `m_cvt`，或退回失败时，字符留在读缓冲里，本流下次照样先读到，只是别人
+     * 看不到。这种失败**不报告**：此时操作已经成功，置位会让 `if (cin >> x)` 为假，`clear()`
+     * 加 `ignore()` 反而丢掉这些字符。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Hands the characters peeked at or put back in the read buffer to the converter
+     * (`hand_back_cvt::unget()`). Only `cin` hands back for now.
+     *
+     * Best effort: without `m_cvt`, or when handing back fails, the characters stay in the read
+     * buffer, and this stream still reads them first, only nobody else sees them. Such a failure
+     * is **not reported**: the operation has succeeded by then, so a state bit would make
+     * `if (cin >> x)` false, and `clear()` plus `ignore()` would then discard these characters.
+     * @endif
+     */
+    void hand_back_peeked() noexcept
+    {
+        if constexpr (std::is_same_v<TChar, char>)
+        {
+            if (m_cvt == nullptr) return;
+            try
+            {
+                m_channel.hand_back([this](auto first, auto last)
+                {
+                    m_cvt->unget(first, last);
+                    return true;
+                });
+            }
+            catch (...) // NOLINT(bugprone-empty-catch)
+            {
+                // Best effort, see above: the characters are still in the read buffer.
+            }
+        }
+    }
+
+private:
+    /**
+     * @lang{ZH}
      * @brief 本流的输入通道：转换器管线、根转换器 `stdin_root_cvt` 与 fd 0 上的设备。
      * @endif
      *
@@ -725,6 +851,27 @@ private:
      * @endif
      */
     IOv2::locale<char_type>                 m_locale;
+
+    /**
+     * @lang{ZH}
+     * @brief 接手退回字符的转换器，构造时取一次。管线不是 `hand_back_cvt`（自定义创建器构造的
+     * 流）时为空，本流不退回。
+     *
+     * 转换器在 `runtime_cvt` 指向的堆上，`attach`、`detach`、`adjust` 都不换掉它，本流又不可
+     * 拷贝、不可移动，所以这个指针一直有效。须声明在 `m_channel` 之后。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief The converter that takes characters handed back, found once at construction. Null
+     * when the pipeline is not a `hand_back_cvt` (a stream built with a custom creator), and this
+     * stream then does not hand back.
+     *
+     * The converter lives on the heap behind `runtime_cvt`, `attach`, `detach` and `adjust` do not
+     * replace it, and this stream is neither copyable nor movable, so the pointer stays valid. It
+     * must be declared after `m_channel`.
+     * @endif
+     */
+    hand_back_cvt*                          m_cvt = m_channel.template cvt_target<hand_back_cvt>();
 };
 
 /**

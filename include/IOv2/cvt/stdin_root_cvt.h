@@ -22,8 +22,10 @@
 
 #include <algorithm>
 #include <atomic>
+#include <concepts>
 #include <cstddef>
 #include <exception>
+#include <iterator>
 #include <utility>
 #include <vector>
 
@@ -146,15 +148,15 @@ public:
 
     /**
      * @lang{ZH}
-     * 读取至多 `to_max` 个字节。缓冲里有字节（不同步时预读的，或回退时设备没收回的）就只交出
-     * 这些，不再向设备要，可能短读。缓冲空了才去读设备：同步时不预读，直接读进 `to`，至多
+     * 读取至多 `to_max` 个字节。缓冲里有字节（不同步时预读的，或回退、退回时设备没收下的）就只
+     * 交出这些，不再向设备要，可能短读。缓冲空了才去读设备：同步时不预读，直接读进 `to`，至多
      * `to_max` 个，不经缓冲；不同步时先补满整个缓冲，再从中交出。
      * @endif
      *
      * @lang{EN}
      * Reads up to `to_max` bytes. While the buffer holds bytes (read ahead unsynchronized, or
-     * rolled back and refused by the device) it hands out only those and does not go to the
-     * device, so the read may be short. Only with the buffer empty does it read the device:
+     * rolled back or handed back and refused by the device) it hands out only those and does
+     * not go to the device, so the read may be short. Only with the buffer empty does it read the device:
      * synchronized, nothing is read ahead, so it reads up to `to_max` bytes straight into
      * `to`, bypassing the buffer; unsynchronized, it fills the whole buffer first and hands
      * out from there.
@@ -164,6 +166,7 @@ public:
     {
         if (m_cur == m_end)
         {
+            restore_size();
             if (synced()) return m_device.dget(to, to_max);
             m_end = m_device.dget(m_buffer.data(), s_buffer_length);
             m_cur = 0;
@@ -201,6 +204,7 @@ public:
         if (to_max > s_buffer_length)
             throw cvt_error("cvt_reader::get_buf fail, read size too large");
 
+        if (m_cur == m_end) restore_size();
         char* const buf = m_buffer.data();
         const std::size_t remain = m_end - m_cur;
         if (remain < to_max)
@@ -264,6 +268,82 @@ public:
             m_cur = m_end = 0;
     }
 
+    /**
+     * @lang{ZH}
+     * 接手上层退回的字节 `[first, last)`，使它们成为下一次读取最先得到的字节。
+     *
+     * 缓冲为空时先试 `dunget()`，设备收下就交给了 C stdio。设备拒绝时（fd 模式，或 Windows），
+     * 或缓冲里还有字节时（它们在流中排在退回的字节之后，只还退回的字节会颠倒顺序），字节进
+     * 缓冲，放在剩余字节的前面；此时 C stdio 看不到它们，但所有标准输入流都读得到。
+     *
+     * 退回的通常是刚读走的字节，写回游标之前的位置即可，不移动任何数据。前面放不下时，剩余
+     * 字节移到缓冲末尾，把空闲空间都留在前面，之后的退回不再移动；总空间也不够就成倍扩容，
+     * 没有上限：这些字节本来就占着上层的内存，设上限也省不下什么。扩大的缓冲读空后恢复原来
+     * 的大小。
+     * @endif
+     *
+     * @lang{EN}
+     * Takes the bytes `[first, last)` handed back from above, so that the next read gets them
+     * first.
+     *
+     * With the buffer empty it tries `dunget()` first, and the bytes the device takes are C
+     * stdio's. If the device refuses (fd mode, or Windows), or the buffer still holds bytes
+     * (those come after the ones handed back, so giving the device only these would turn the
+     * order around), the bytes go into the buffer in front of what is left there; C stdio does
+     * not see them then, but every standard input stream reads them.
+     *
+     * What comes back is usually what was just read, which goes back in front of the cursor
+     * with nothing moved. When there is no room in front, what is left moves to the end of the
+     * buffer, leaving all the free space in front so that later calls move nothing; when the
+     * buffer as a whole is too small it doubles, without a limit: the bytes already occupy
+     * memory above, so a limit would save nothing. A grown buffer returns to its usual size
+     * once drained.
+     * @endif
+     * @throws std::bad_alloc @lang{ZH} 扩容失败；此时缓冲、设备与 `FILE` 都没有改变。 @endif
+     *                        @lang{EN} Growing failed; the buffer, the device and the `FILE` are then unchanged. @endif
+     */
+    template <std::bidirectional_iterator It>
+        requires std::same_as<std::iter_value_t<It>, char>
+    void unget(It first, It last)
+    {
+        if (first == last) return;
+        if (m_cur == m_end && m_device.dunget(first, last)) return;
+
+        const auto n = static_cast<std::size_t>(std::distance(first, last));
+        if (n > m_cur) make_room(n);
+        m_cur -= n;
+        std::copy(first, last, m_buffer.data() + m_cur);
+    }
+
+private:
+    // Moves what is left to the very end, so that at least n bytes fit in front of it and
+    // later calls find room too. A larger buffer is built before anything changes, so a
+    // bad_alloc leaves the state as it was.
+    void make_room(std::size_t n)
+    {
+        const std::size_t remain = m_end - m_cur;
+        char* const buf = m_buffer.data();
+        if (n + remain > m_buffer.size())
+        {
+            std::vector<char> larger(std::max(n + remain, m_buffer.size() * 2));
+            std::copy(buf + m_cur, buf + m_end, larger.data() + larger.size() - remain);
+            m_buffer.swap(larger);
+        }
+        else
+            std::copy_backward(buf + m_cur, buf + m_end, buf + m_buffer.size());
+        m_end = m_buffer.size();
+        m_cur = m_end - remain;
+    }
+
+    // Gives back what unget() grew the buffer by; only for a buffer with nothing left in it.
+    void restore_size()
+    {
+        if (m_buffer.size() == s_buffer_length) return;
+        m_cur = m_end = 0;
+        m_buffer.resize(s_buffer_length);
+        m_buffer.shrink_to_fit();
+    }
+
 private:
     std_input_device m_device;
     std::vector<char> m_buffer;    ///< @lang{ZH} 读缓冲；未交出的字节在 `[m_cur, m_end)`。 @endif @lang{EN} The read buffer; bytes not yet handed out are in `[m_cur, m_end)`. @endif
@@ -320,6 +400,9 @@ inline stdin_root_cvt_imp& stdin_shared_imp = _stdin_imp_init.get();
  * 缓冲里剩下的字节整体经 `std_device::dunget()` 还给设备，同步时 C stdio 随后也读得到；设备
  * 拒绝时（fd 模式，或 Windows），字节照旧留在缓冲里。
  *
+ * 流把偷看、压回的字符经 `unget()` 交回来时同样先试 `dunget()`，设备拒绝或缓冲里还有字节时
+ * 放进缓冲，见 `stdin_root_cvt_imp::unget()`。
+ *
  * 只用于输入：没有写、定位与换向，`bos()` 总是输入方向。不派生自 `root_cvt`。
  * @endif
  *
@@ -352,6 +435,10 @@ inline stdin_root_cvt_imp& stdin_shared_imp = _stdin_imp_init.get();
  * buffer goes back to the device as a whole through `std_device::dunget()`, so that C stdio
  * reads it next when synchronized; if the device refuses (fd mode, or Windows), the bytes
  * stay in the buffer as before.
+ *
+ * A stream handing back what it peeked at or had put back through `unget()` goes to
+ * `dunget()` first as well, and the bytes go into the buffer if the device refuses or the
+ * buffer still holds bytes; see `stdin_root_cvt_imp::unget()`.
  *
  * Input only: no writing, positioning or switching, and `bos()` always settles on input. It
  * does not derive from `root_cvt`.
@@ -419,6 +506,14 @@ public:
     std::size_t get(internal_type* to, std::size_t to_max)
     {
         return detail::stdin_shared_imp.get(to, to_max);
+    }
+
+    /// @lang{ZH} 见 `stdin_root_cvt_imp::unget()`。 @endif @lang{EN} See `stdin_root_cvt_imp::unget()`. @endif
+    template <std::bidirectional_iterator It>
+        requires std::same_as<std::iter_value_t<It>, char>
+    void unget(It first, It last)
+    {
+        detail::stdin_shared_imp.unget(first, last);
     }
 };
 
