@@ -21,6 +21,7 @@
 #include <cerrno>
 #include <cstddef>
 #include <cstdio>
+#include <iterator>
 #include <limits>
 
 #include <poll.h>
@@ -141,24 +142,28 @@ inline bool std_stdin_file_eof()
     return false;
 }
 
-// Pushes s[0..n) back into stdin's FILE, last byte first, so the next read gets
-// them in order. Beyond one byte ungetc() may fail (glibc and BSD only when out
-// of memory, musl past a small reserve); then the bytes already pushed are read
-// off again and false comes back. ungetc() clears the EOF flag and there is no
-// call to set it again, so a failed attempt may leave that flag cleared.
-inline bool std_stdin_file_unget(const char* s, std::size_t n)
+// Pushes [first, last) back into stdin's FILE, last byte first, so the next read
+// gets them in order. Beyond one byte ungetc() may fail (glibc and BSD only when
+// out of memory, musl past a small reserve); then the bytes already pushed are
+// read off again and false comes back. ungetc() clears the EOF flag and there is
+// no call to set it again, so a failed attempt may leave that flag cleared.
+template <std::bidirectional_iterator It>
+bool std_stdin_file_unget(It first, It last)
 {
-    assert((s != nullptr) && (n != 0));
+    assert(first != last);
 
     stdin_file_lock guard;
-    for (std::size_t pushed = 0; pushed < n; ++pushed)
+    std::size_t pushed = 0;
+    while (last != first)
     {
-        if (std::ungetc(static_cast<unsigned char>(s[n - 1 - pushed]), stdin) == EOF)
+        --last;
+        if (std::ungetc(static_cast<unsigned char>(*last), stdin) == EOF)
         {
             while (pushed-- != 0)
                 (void)getc_unlocked(stdin);
             return false;
         }
+        ++pushed;
     }
     return true;
 }

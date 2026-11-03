@@ -477,6 +477,55 @@ public:
             switch_to_get();
         m_read_buf.push_back(ch);
     }
+
+    /**
+     * @lang{ZH}
+     * @brief 把读缓冲区里尚未消费的字符交给 @p f，由它决定是否接手。
+     *
+     * 以 `f(first, last)` 调用 @p f，`[first, last)` 按**流中的顺序**列出读缓冲区里的字符
+     * （第一个就是下一次读取会返回的字符），不发生拷贝。@p f 返回 `true` 表示已全部接手，
+     * 读缓冲区随即清空；返回 `false` 表示不接手，读缓冲区保持原样。
+     *
+     * 用途：标准输入把偷看、压回的字符还给底层（C stdio 或共享输入源），使其他读者也能读到。
+     * @tparam F 可以 `(const_reverse_iterator, const_reverse_iterator)` 调用、返回值可转为 `bool`。
+     * @param f 接手字符的回调。迭代器只在调用期间有效，@p f 不得经本通道读写。
+     * @note @p f 抛出异常时读缓冲区保持原样，异常照常传出。
+     * @note 读缓冲区为空时不调用 @p f。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Offers the read buffer's not-yet-consumed characters to @p f, which decides
+     * whether to take them.
+     *
+     * Calls `f(first, last)`, where `[first, last)` lists the read buffer's characters **in
+     * stream order** (the first one is what the next read would return), without copying. When
+     * @p f returns `true` it has taken them all and the read buffer is cleared; when it returns
+     * `false` it has declined and the read buffer is left as it is.
+     *
+     * Purpose: standard input hands its peeked and put-back characters back to the layer below
+     * (C stdio or the shared input source), so other readers can see them.
+     * @tparam F Callable with `(const_reverse_iterator, const_reverse_iterator)`, returning
+     *         something convertible to `bool`.
+     * @param f The callback that takes the characters. The iterators are valid only during the
+     *          call, and @p f must not read or write through this channel.
+     * @note If @p f throws, the read buffer is left as it is and the exception propagates.
+     * @note @p f is not called when the read buffer is empty.
+     * @endif
+     */
+    template <typename F>
+        requires (IsIn &&
+                  std::is_convertible_v<
+                      std::invoke_result_t<F,
+                                           typename std::basic_string<char_type>::const_reverse_iterator,
+                                           typename std::basic_string<char_type>::const_reverse_iterator>,
+                      bool>)
+    void hand_back(F&& f)
+    {
+        if (m_read_buf.empty()) return;
+        // m_read_buf is a stack whose back() is the next char, so reverse order is stream order.
+        if (std::forward<F>(f)(m_read_buf.crbegin(), m_read_buf.crend()))
+            m_read_buf.clear();
+    }
     /**
      * @lang{ZH} @} @endif
      * @lang{EN} @} @endif
@@ -903,6 +952,35 @@ public:
     void retrieve(cvt_status& acc) const
     {
         m_cvt.retrieve(acc);
+    }
+
+    /**
+     * @lang{ZH}
+     * @brief 取出底层转换器管线最外层的内核，转发 `runtime_cvt::target()`。
+     * @tparam KernelType 期望的内核类型，须与管线最外层的类型精确一致。
+     * @return 类型一致时返回指向该内核的指针，否则（包括管线为空）返回空指针。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Hands out the outermost kernel of the underlying converter pipeline; forwards to
+     * `runtime_cvt::target()`.
+     * @tparam KernelType The expected kernel type; it must match the pipeline's outermost type
+     *         exactly.
+     * @return A pointer to that kernel when the type matches, otherwise (including an empty
+     *         pipeline) a null pointer.
+     * @endif
+     */
+    template <typename KernelType>
+    KernelType* cvt_target() noexcept
+    {
+        return m_cvt.template target<KernelType>();
+    }
+
+    /// @lang{ZH} `cvt_target()` 的 const 版本。 @endif @lang{EN} The const overload of `cvt_target()`. @endif
+    template <typename KernelType>
+    const KernelType* cvt_target() const noexcept
+    {
+        return m_cvt.template target<KernelType>();
     }
     /**
      * @lang{ZH} @} @endif

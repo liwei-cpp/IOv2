@@ -213,3 +213,61 @@ TEST(RuntimeCvt, SwitchToPutIsANoopWhenAlreadyWriting)
     EXPECT_EQ(obj.bos(), io_status::output);
     EXPECT_NO_THROW(obj.switch_to_put());
 }
+
+// target() hands out the outermost kernel itself, not a copy: a change made
+// through the pointer shows up in what the runtime_cvt then reads.
+TEST(RuntimeCvt, TargetHandsOutTheOutermostKernel)
+{
+    runtime_cvt obj(rb_root_cvt{mem_device(std::string("abc"))});
+    auto* kernel = obj.target<rb_root_cvt<mem_device<char>>>();
+    ASSERT_NE(kernel, nullptr);
+    EXPECT_EQ(&kernel->device(), &obj.device());
+
+    const auto& cobj = obj;
+    EXPECT_EQ(cobj.target<rb_root_cvt<mem_device<char>>>(), kernel);
+
+    kernel->attach(mem_device(std::string("xyz")));
+    (void)obj.bos();
+    obj.main_cont_beg();
+    char buf[3] = {};
+    EXPECT_EQ(obj.get(buf, 3), 3);
+    EXPECT_EQ(std::string(buf, 3), "xyz");
+}
+
+// The match is exact: a kernel wrapping the requested one, or one of a sibling
+// type, does not count.
+TEST(RuntimeCvt, TargetIsNullForAnotherKernelType)
+{
+    runtime_cvt zobj(ZCvt{rb_root_cvt{mem_device("")}, 6});
+    EXPECT_EQ(zobj.target<rb_root_cvt<mem_device<char>>>(), nullptr);
+    EXPECT_NE(zobj.target<ZCvt>(), nullptr);
+
+    runtime_cvt obj(rb_root_cvt{mem_device("")});
+    EXPECT_EQ(obj.target<no_rb_root_cvt<mem_device<char>>>(), nullptr);
+}
+
+TEST(RuntimeCvt, TargetIsNullOnAMovedFromInstance)
+{
+    using RT = runtime_cvt<mem_device<char>, char>;
+
+    RT src(rb_root_cvt{mem_device("")});
+    RT dst = std::move(src);
+    EXPECT_EQ(src.target<rb_root_cvt<mem_device<char>>>(), nullptr);
+    EXPECT_NE(dst.target<rb_root_cvt<mem_device<char>>>(), nullptr);
+}
+
+namespace
+{
+    template <typename RT, typename KernelType>
+    concept can_target = requires(RT& r) { r.template target<KernelType>(); };
+}
+
+// A kernel over another device or of another internal type can never be held,
+// so asking for one is rejected at compile time rather than answered with null.
+TEST(RuntimeCvt, TargetRejectsAnImpossibleKernelTypeAtCompileTime)
+{
+    using RT = runtime_cvt<mem_device<char>, char>;
+    static_assert(can_target<RT, rb_root_cvt<mem_device<char>>>);
+    static_assert(!can_target<RT, rb_root_cvt<mem_device<char32_t>>>);
+    static_assert(!can_target<RT, int>);
+}

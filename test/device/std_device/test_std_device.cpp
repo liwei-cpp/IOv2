@@ -446,13 +446,17 @@ TEST(StdDevice, UngetRefusesWhereItCannotHandTheBytesBack)
     g.close_write();
     std_input_device d;
 
+    const std::string a = "a";
     EXPECT_TRUE(d.dunget("a", 0));                 // nothing to hand back
+    EXPECT_TRUE(d.dunget(a.end(), a.end()));
     EXPECT_THROW(d.dunget(nullptr, 1), device_error);
     EXPECT_FALSE(d.dunget("a", 1));                // fd mode
+    EXPECT_FALSE(d.dunget(a.begin(), a.end()));
 
     EXPECT_FALSE(d.deof());                        // fd mode: 'x' cached in the device
     d.stdio_mode(true);
     EXPECT_FALSE(d.dunget("a", 1));                // the cached byte is still due first
+    EXPECT_FALSE(d.dunget(a.begin(), a.end()));
 
     char buf[3] = {};
     EXPECT_EQ(d.dget(buf, 3), 1u);

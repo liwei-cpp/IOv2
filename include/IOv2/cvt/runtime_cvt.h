@@ -446,6 +446,10 @@ public:
         }
     }
 
+    /// @lang{ZH} 包装着的转换器内核，供 `runtime_cvt::target()` 取出。 @endif @lang{EN} The wrapped converter kernel, for `runtime_cvt::target()` to hand out. @endif
+    KernelType& kernel() noexcept { return m_kernel; }
+    const KernelType& kernel() const noexcept { return m_kernel; }
+
 private:
     KernelType m_kernel;
     io_status m_io_status; ///< 追踪当前 I/O 方向，用于 switch_to_get/switch_to_put 的幂等检查。
@@ -713,6 +717,47 @@ public:
     {
         if (!m_ptr) std::rethrow_exception(detail::runtime_cvt_null_err);
         return m_ptr->switch_to_put();
+    }
+
+    /**
+     * @lang{ZH}
+     * 若本对象包装的转换器恰是 `KernelType`，返回指向它的指针，否则（或本对象为空）返回空指针，
+     * 与 `std::function::target` 相仿。只认精确类型：包装的是 `KernelType` 的派生类时同样返回
+     * 空指针。指针在本对象被赋值、析构之前有效；移动本对象不改变它所指的转换器。
+     *
+     * `KernelType` 须是设备与内部字符类型都与本对象一致的转换器，否则编译报错，而不是悄悄
+     * 返回空指针。
+     * @endif
+     *
+     * @lang{EN}
+     * If the converter this object wraps is exactly a `KernelType`, returns a pointer to it, and
+     * a null pointer otherwise (or when this object is empty), much like
+     * `std::function::target`. Only the exact type matches: a converter derived from
+     * `KernelType` gives a null pointer too. The pointer stays valid until this object is
+     * assigned to or destroyed; moving this object does not change the converter it points to.
+     *
+     * `KernelType` must be a converter with this object's device and internal character
+     * types; anything else is a compile error rather than a silent null pointer.
+     * @endif
+     */
+    template <typename KernelType>
+        requires (io_converter<KernelType> &&
+                  std::is_same_v<typename KernelType::device_type, TDevice> &&
+                  std::is_same_v<typename KernelType::internal_type, TInt>)
+    KernelType* target() noexcept
+    {
+        auto* imp = dynamic_cast<runtime_cvt_imp<KernelType>*>(m_ptr.get());
+        return imp != nullptr ? &imp->kernel() : nullptr;
+    }
+
+    template <typename KernelType>
+        requires (io_converter<KernelType> &&
+                  std::is_same_v<typename KernelType::device_type, TDevice> &&
+                  std::is_same_v<typename KernelType::internal_type, TInt>)
+    const KernelType* target() const noexcept
+    {
+        const auto* imp = dynamic_cast<const runtime_cvt_imp<KernelType>*>(m_ptr.get());
+        return imp != nullptr ? &imp->kernel() : nullptr;
     }
 private:
     std::unique_ptr<abs_runtime_cvt_imp<TDevice, TInt>> m_ptr;

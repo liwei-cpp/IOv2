@@ -539,6 +539,78 @@ TEST(Channel, PutbackReplacesTheCharacterTheNextReadWillSee)
     helper(obj2);
 }
 
+// hand_back lists the buffered characters in the order reads would return
+// them: the latest put-back first, the peeked character last.
+TEST(Channel, HandBackOffersTheBufferedCharactersInStreamOrder)
+{
+    using namespace IOv2;
+
+    auto helper = [](auto& obj)
+    {
+        EXPECT_EQ(obj.getc(), 'a');
+        obj.putbackc('x');
+        obj.putbackc('y');
+
+        std::string offered;
+        obj.hand_back([&](auto first, auto last) { offered.assign(first, last); return true; });
+        EXPECT_EQ(offered, "yxa");
+
+        // Taken: the next read goes past them, to the converter.
+        EXPECT_EQ(obj.bumpc(), 'b');
+    };
+
+    iochannel obj1{mem_device{"abc"}};
+    helper(obj1);
+
+    ichannel obj2{mem_device{"abc"}};
+    helper(obj2);
+}
+
+TEST(Channel, HandBackKeepsTheBufferWhenDeclinedOrOnAThrow)
+{
+    using namespace IOv2;
+
+    ichannel obj{mem_device{"abc"}};
+    EXPECT_EQ(obj.getc(), 'a');
+    obj.putbackc('x');
+
+    obj.hand_back([](auto, auto) { return false; });
+    EXPECT_THROW(obj.hand_back([](auto, auto) -> bool { throw stream_error("declined"); }),
+                 stream_error);
+
+    EXPECT_EQ(obj.bumpc(), 'x');
+    EXPECT_EQ(obj.bumpc(), 'a');
+    EXPECT_EQ(obj.bumpc(), 'b');
+}
+
+TEST(Channel, HandBackSkipsTheCallbackWhenNothingIsBuffered)
+{
+    using namespace IOv2;
+
+    ichannel obj{mem_device{"abc"}};
+    bool called = false;
+    obj.hand_back([&](auto, auto) { called = true; return true; });
+    EXPECT_FALSE(called);
+
+    EXPECT_EQ(obj.bumpc(), 'a');
+    obj.hand_back([&](auto, auto) { called = true; return true; });
+    EXPECT_FALSE(called);
+}
+
+TEST(Channel, CvtTargetForwardsToTheConverterPipeline)
+{
+    using namespace IOv2;
+
+    ichannel obj{mem_device{"abc"}};
+    auto* root = obj.cvt_target<rb_root_cvt<mem_device<char>>>();
+    ASSERT_NE(root, nullptr);
+    EXPECT_EQ(&root->device(), &obj.device());
+    EXPECT_EQ(obj.cvt_target<no_rb_root_cvt<mem_device<char>>>(), nullptr);
+
+    const auto& cobj = obj;
+    EXPECT_EQ(cobj.cvt_target<rb_root_cvt<mem_device<char>>>(), root);
+}
+
 TEST(Channel, PutcAndPutnAdvanceThePutPosition)
 {
     using namespace IOv2;
