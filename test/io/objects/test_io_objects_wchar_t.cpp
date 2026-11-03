@@ -321,6 +321,27 @@ TEST(IoObjectsWchar, UnsynchronizedCinAndWcinReadOneBuffer)
     IOv2::wcin.reset();
 }
 
+// A character cin peeked at does not stay with cin, in either mode: wcin reads it next.
+TEST(IoObjectsWchar, WhatCinPeekedAtIsThereForWcin)
+{
+    for (const bool sync : {true, false})
+    {
+        pipe_iguard g("ab");
+        g.close_write();
+        IOv2::cin.reset();
+        IOv2::wcin.reset();
+        IOv2::cin.sync_with_stdio(sync);
+
+        EXPECT_EQ(IOv2::cin.peek(), 'a');
+        EXPECT_EQ(IOv2::wcin.get(), L'a');
+        EXPECT_EQ(IOv2::cin.get(), 'b');
+
+        IOv2::cin.sync_with_stdio(true);
+        IOv2::cin.reset();
+        IOv2::wcin.reset();
+    }
+}
+
 // reset() drops what the shared buffer holds, so it drops it for both streams.
 TEST(IoObjectsWchar, ResetOnOneStreamDropsTheSharedReadAhead)
 {

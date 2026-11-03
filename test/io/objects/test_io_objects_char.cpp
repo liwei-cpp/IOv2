@@ -341,6 +341,141 @@ TEST(IoObjectsChar, SynchronizedCinReadsOnWhereCStdioStopped)
     IOv2::cin.reset();
 }
 
+// What a formatted extraction peeked at to find the end of the number goes back to C stdio.
+// It is not cin's any more, so reset() does not drop it.
+TEST(IoObjectsChar, SynchronizedCinHandsThePeekedDelimiterBackToCStdio)
+{
+    pipe_iguard g("12x34y\n");
+    g.close_write();
+    stdin_full_buffer b;
+    IOv2::cin.reset();
+    const bool old = IOv2::cin.sync_with_stdio(true);
+
+    int n = 0;
+    IOv2::cin >> n;
+    EXPECT_EQ(n, 12);
+    EXPECT_EQ(std::getchar(), 'x');
+    IOv2::cin >> n;
+    EXPECT_EQ(n, 34);
+    IOv2::cin.reset();
+    EXPECT_EQ(std::getchar(), 'y');
+
+    IOv2::cin.sync_with_stdio(old);
+    IOv2::cin.reset();
+}
+
+// peek() and putback() leave the character with C stdio too, in stream order.
+TEST(IoObjectsChar, SynchronizedPeekAndPutbackAreVisibleToCStdio)
+{
+    pipe_iguard g("abc");
+    g.close_write();
+    stdin_full_buffer b;
+    IOv2::cin.reset();
+    const bool old = IOv2::cin.sync_with_stdio(true);
+
+    EXPECT_EQ(IOv2::cin.peek(), 'a');
+    EXPECT_EQ(std::getchar(), 'a');
+
+    IOv2::cin.putback('2');
+    IOv2::cin.putback('1');
+    EXPECT_EQ(std::getchar(), '1');
+    EXPECT_EQ(std::getchar(), '2');
+    EXPECT_EQ(IOv2::cin.get(), 'b');
+
+    IOv2::cin.sync_with_stdio(old);
+    IOv2::cin.reset();
+}
+
+// Bytes read ahead before the switch come after the one handed back, so it cannot go to C
+// stdio on its own: the shared buffer takes it, in front of them.
+TEST(IoObjectsChar, HandedBackBytesStayAheadOfWhatTheBufferStillHolds)
+{
+    pipe_iguard g("abcd");
+    g.close_write();
+    IOv2::cin.reset();
+    const bool old = IOv2::cin.sync_with_stdio(false);
+
+    EXPECT_EQ(IOv2::cin.get(), 'a');               // "bcd" is read ahead into the buffer
+    IOv2::cin.sync_with_stdio(true);
+    IOv2::cin.putback('z');
+
+    char buf[4] = {};
+    IOv2::cin.read(buf, 4);
+    EXPECT_EQ(std::string(buf, 4), "zbcd");
+
+    IOv2::cin.sync_with_stdio(old);
+    IOv2::cin.reset();
+}
+
+// Unsynchronized, nothing goes to C stdio and the buffer takes it all, growing past its usual
+// size with bytes still in it. It keeps the order, and reading on works once it has drained.
+TEST(IoObjectsChar, UnsynchronizedPutbackGrowsTheBufferAndKeepsTheOrder)
+{
+    pipe_iguard g("abc");
+    IOv2::cin.reset();
+    const bool old = IOv2::cin.sync_with_stdio(false);
+
+    EXPECT_EQ(IOv2::cin.get(), 'a');
+    std::string pushed;
+    for (int i = 0; i < 5000; ++i)
+    {
+        pushed += static_cast<char>('0' + i % 10);
+        IOv2::cin.putback(pushed.back());
+    }
+
+    std::string got(pushed.size() + 2, '\0');
+    IOv2::cin.read(got.data(), static_cast<std::ptrdiff_t>(got.size()));
+    EXPECT_EQ(got, std::string(pushed.rbegin(), pushed.rend()) + "bc");
+
+    g.feed("de");
+    g.close_write();
+    EXPECT_EQ(IOv2::cin.get(), 'd');
+    EXPECT_EQ(IOv2::cin.get(), 'e');
+
+    IOv2::cin.sync_with_stdio(old);
+    IOv2::cin.reset();
+}
+
+namespace
+{
+    // A root of another type, so the pipeline is not the lone stdin_root_cvt the stream looks
+    // for: its characters need not be bytes, and it hands nothing back.
+    struct other_root : IOv2::stdin_root_cvt
+    {
+        explicit other_root(IOv2::stdin_root_cvt&& root) : stdin_root_cvt(std::move(root)) {}
+    };
+
+    struct other_root_creator
+    {
+        using category = IOv2::CvtCreatorCategory;
+        template <typename TKernel>
+        auto create(TKernel&& kernel) const { return other_root{std::forward<TKernel>(kernel)}; }
+    };
+
+    class other_cin : public IOv2::stdin_api<IOv2::std_input_device, char>
+    {
+    public:
+        other_cin() : stdin_api(other_root_creator{}) {}
+    };
+}
+
+TEST(IoObjectsChar, ACustomPipelineKeepsThePeekedCharacterToItself)
+{
+    pipe_iguard g("xy");
+    g.close_write();
+    stdin_full_buffer b;
+    IOv2::cin.reset();
+    const bool old = IOv2::cin.sync_with_stdio(true);
+
+    other_cin in;
+    EXPECT_EQ(in.peek(), 'x');
+    EXPECT_EQ(std::getchar(), 'y');
+    EXPECT_EQ(in.get(), 'x');
+
+    IOv2::cin.sync_with_stdio(old);
+    IOv2::cin.reset();
+}
+
 // Synchronized, the EOF is FILE's sticky flag: clear() leaves it, so input that comes
 // later stays unread; reset() clears it with clearerr(stdin).
 TEST(IoObjectsChar, ResetLetsASynchronizedCinReadOnAfterEof)
@@ -675,12 +810,13 @@ TEST(IoObjectsChar, SynchronizedGetlineLooksAtOneMoreOnlyToDecide)
     EXPECT_TRUE(good);
     EXPECT_EQ(std::string(b), "ab");
 
+    // The character it looked at to find the overflow goes back, even though the call fails.
     bool failed = false;
     EXPECT_EQ(left_on_stdin("abcd\n", [&] {
                   IOv2::cin.get<IOv2::cons_sep, IOv2::app_zt>(b, 3);
                   failed = IOv2::cin.str_fail();
               }),
-              "d\n");
+              "cd\n");
     EXPECT_TRUE(failed);
 
     EXPECT_EQ(left_on_stdin("\nx", [&] {
