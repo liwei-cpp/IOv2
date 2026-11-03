@@ -185,6 +185,51 @@ class ios_base<void>
     inline static std::atomic<std::size_t> s_top = 0;
 };
 
+namespace detail
+{
+/**
+ * @lang{ZH}
+ * @brief 流的对象锁：默认用自带的一把，构造时也可以改用外部的一把，让几个流共用。
+ *
+ * 外部锁由调用方提供并负责生存期，须不短于本对象。拷贝与移动构造出的对象总用自带的锁，
+ * 赋值时双方各自保留原来的锁——两个独立的流不应在用户不知情时共用一把锁，与
+ * `copyable_mutex` 只造新锁、不转交锁的语义一致。取锁只是一次间接访问，没有分支。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief A stream's object lock: its own by default, or, given at construction, an external
+ * one, so that several streams share it.
+ *
+ * The caller provides the external lock and keeps it alive at least as long as this object.
+ * Copy and move construction always give the new object its own lock, and assignment leaves
+ * each side with the lock it had -- two independent streams should not share a lock without
+ * the user knowing, which matches `copyable_mutex` making fresh locks and never handing one
+ * over. Getting the lock is one indirection, with no branch.
+ * @endif
+ */
+class io_lock
+{
+public:
+    using mutex_type = copyable_mutex<std::recursive_mutex>;
+
+    explicit io_lock(mutex_type* external = nullptr) noexcept
+        : m_use(external != nullptr ? external : &m_own) {}
+
+    io_lock(const io_lock&) noexcept : m_use(&m_own) {}
+    io_lock(io_lock&&) noexcept : m_use(&m_own) {}
+    // Each side keeps the lock it had, so self-assignment has nothing to guard against.
+    io_lock& operator=(const io_lock&) noexcept { return *this; } // NOLINT(bugprone-unhandled-self-assignment)
+    io_lock& operator=(io_lock&&) noexcept { return *this; }
+    ~io_lock() = default;
+
+    [[nodiscard]] mutex_type& get() const noexcept { return *m_use; }
+
+private:
+    mutable mutex_type m_own;
+    mutex_type* m_use;
+};
+}
+
 /**
  * @lang{ZH}
  * @brief 所有流的格式化状态基类。
@@ -197,7 +242,7 @@ class ios_base<void>
  * @note 本类不涉及流状态位（good/eof/fail），那些由派生自本类的 `ios_state` 负责。
  *       这个方向是有意的：facet（如 `numeric`）拿到的是 `ios_base&`，只应看见格式化标志，
  *       看不见流状态。
- * @note 本类同时持有**本流的对象锁** `m_io_mutex`（经 `io_mutex()` 暴露）。它并非只服务于
+ * @note 本类同时持有**本流的对象锁**（经 `io_mutex()` 暴露；可在构造时换成与别的流共用的外部锁）。它并非只服务于
  *       格式化状态——各具体流类的全部操作都以它作为临界区。锁放在这里而非各流类里的理由，
  *       见 `io_mutex()`。
  *
@@ -218,7 +263,8 @@ class ios_base<void>
  * handled by `ios_state`, which derives from this class. The direction is
  * deliberate: a facet (`numeric`, say) is handed an `ios_base&` and should see the
  * formatting flags, not the stream state.
- * @note This class also owns **the stream's object lock** `m_io_mutex` (exposed through
+ * @note This class also owns **the stream's object lock** (exposed through `io_mutex()`; an
+ * external one shared with other streams may take its place at construction; see
  * `io_mutex()`). That lock is not confined to the formatting state -- every operation of the
  * concrete stream classes uses it as its critical section. See `io_mutex()` for why it lives
  * here rather than in each stream class.
@@ -253,10 +299,24 @@ public:
 
 public:
     /**
-     * @lang{ZH} @brief 默认构造，使用默认的格式化状态。 @endif
-     * @lang{EN} @brief Default constructor, with the default formatting state. @endif
+     * @lang{ZH}
+     * @brief 以默认的格式化状态构造；对象锁为 `external`，为空（缺省）时用本流自带的锁。
+     *
+     * 传入外部锁，供共用底层资源的几个流共用一把锁（如 `cin` 与 `wcin`）。`external` 的
+     * 生存期须不短于本流；拷贝或移动出的流不沿用它，用自己的锁。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Constructs with the default formatting state; the object lock is `external`, or
+     * the stream's own when that is null (the default).
+     *
+     * An external lock lets streams over a shared resource share one lock (`cin` and `wcin`,
+     * say). `external` must live at least as long as this stream; a stream copied or moved
+     * from it does not take it over but uses its own lock.
+     * @endif
      */
-    ios_base() = default;
+    explicit ios_base(detail::io_lock::mutex_type* external = nullptr)
+        : m_io_lock(external) {}
 
     /**
      * @lang{ZH}
@@ -609,7 +669,9 @@ public:
      *       `flockfile(stdout)` 里写 `IOv2::cout`，会与另一个直接写 `IOv2::cout` 的线程互相等待而
      *       死锁。要把 `printf` 与本库的输出圈成一段，先用 `IOv2::sync` 锁住要写的流，再
      *       `flockfile`，写法见 `IOv2::sync`。
-     * @return 本流 `m_io_mutex` 的引用。
+     * @note 这把锁可能与别的流共用：构造时传入外部锁的几个流（如 `cin` 与 `wcin`）用的是同一把，
+     *       一个流的操作会等另一个流正在进行的操作结束。锁是递归的，同一线程先后锁它们不会自锁。
+     * @return 本流对象锁的引用：自带的那把，或构造时传入的外部锁。
      * @endif
      *
      * @lang{EN}
@@ -640,10 +702,15 @@ public:
      *       simply writes `IOv2::cout`, each waiting for the other's lock. To keep `printf` and
      *       this library's output together, lock the streams to be written with `IOv2::sync`
      *       first, then `flockfile`; see `IOv2::sync` for how.
-     * @return A reference to this stream's `m_io_mutex`.
+     * @note The lock may be shared with other streams: streams given an external lock at
+     *       construction (`cin` and `wcin`, say) use the same one, so an operation on one waits
+     *       for an operation under way on another. It is recursive, so one thread locking them in
+     *       turn does not deadlock itself.
+     * @return A reference to this stream's object lock: its own, or the external one given at
+     *         construction.
      * @endif
      */
-    copyable_mutex<std::recursive_mutex>& io_mutex() const noexcept { return m_io_mutex; }
+    copyable_mutex<std::recursive_mutex>& io_mutex() const noexcept { return m_io_lock.get(); }
 
     /**
      * @lang{ZH}
@@ -668,7 +735,7 @@ public:
      */
     std::shared_ptr<void> set_pword(std::size_t id, std::shared_ptr<void> pword)
     {
-        std::lock_guard guard(m_io_mutex);
+        std::lock_guard guard(io_mutex());
         if (auto it = m_pwords.find(id); it == m_pwords.end())
         {
             if (pword) m_pwords.emplace(id, std::move(pword));
@@ -698,7 +765,7 @@ public:
      */
     std::shared_ptr<void> get_pword(std::size_t id) const
     {
-        std::lock_guard guard(m_io_mutex);
+        std::lock_guard guard(io_mutex());
         auto it = m_pwords.find(id);
         if (it != m_pwords.end()) return it->second;
         return nullptr;
@@ -726,7 +793,7 @@ public:
      */
     void register_callback(event_callback fn, std::size_t id)
     {
-        std::lock_guard guard(m_io_mutex);
+        std::lock_guard guard(io_mutex());
         m_callbacks.push_front({std::move(fn), id});
     }
 
@@ -763,7 +830,7 @@ protected:
      */
     void access_callbacks(const locale<TChar>& new_loc)
     {
-        std::lock_guard guard(m_io_mutex);
+        std::lock_guard guard(io_mutex());
         std::exception_ptr throw_exception = nullptr;
 
         for (const auto& [cb, id] : m_callbacks)
@@ -831,10 +898,10 @@ protected:
      */
     copyable_atomic<TChar>              m_fill{(TChar)' '};
 
-    mutable copyable_mutex<std::recursive_mutex> m_io_mutex;                 ///< @lang{ZH} 本流的对象锁；串行化本流的全部操作，包括下面两个容器的访问。`mutable` 是因为 `get_pword()` 等只读接口也要加锁。详见 `io_mutex()`。 @endif @lang{EN} This stream's object lock; serializes all of the stream's operations, including access to the two containers below. `mutable` because read-only entry points such as `get_pword()` must lock too. See `io_mutex()`. @endif
+    detail::io_lock m_io_lock;                                               ///< @lang{ZH} 本流的对象锁（自带的，或构造时传入的外部锁）；串行化本流的全部操作，包括下面两个容器的访问。`get_pword()` 等只读接口也要加锁，`io_lock::get()` 因此是 `const` 的。详见 `io_mutex()`。 @endif @lang{EN} This stream's object lock (its own, or an external one given at construction); serializes all of the stream's operations, including access to the two containers below. Read-only entry points such as `get_pword()` must lock too, hence `io_lock::get()` is `const`. See `io_mutex()`. @endif
 
-    std::unordered_map<std::size_t, std::shared_ptr<void>> m_pwords;              ///< @lang{ZH} 按 id 索引的 per-stream 用户数据存储。由 `m_io_mutex` 保护。 @endif @lang{EN} Per-stream user-data storage indexed by id. Guarded by `m_io_mutex`. @endif
-    std::forward_list<std::pair<event_callback, std::size_t>> m_callbacks;        ///< @lang{ZH} 已注册的本地化变更回调及其关联 id（前插，后注册者先调用）。由 `m_io_mutex` 保护。 @endif @lang{EN} Registered locale-change callbacks with their associated ids (prepended; last registered runs first). Guarded by `m_io_mutex`. @endif
+    std::unordered_map<std::size_t, std::shared_ptr<void>> m_pwords;              ///< @lang{ZH} 按 id 索引的 per-stream 用户数据存储。由 `io_mutex()` 保护。 @endif @lang{EN} Per-stream user-data storage indexed by id. Guarded by `io_mutex()`. @endif
+    std::forward_list<std::pair<event_callback, std::size_t>> m_callbacks;        ///< @lang{ZH} 已注册的本地化变更回调及其关联 id（前插，后注册者先调用）。由 `io_mutex()` 保护。 @endif @lang{EN} Registered locale-change callbacks with their associated ids (prepended; last registered runs first). Guarded by `io_mutex()`. @endif
     // NOLINTEND(cppcoreguidelines-non-private-member-variables-in-classes)
 };
 
@@ -905,6 +972,9 @@ protected:
 template <typename TChar>
 struct ios_state : public ios_base<TChar>
 {
+    /// @lang{ZH} 同 `ios_base`：可传入与别的流共用的外部锁。 @endif @lang{EN} As `ios_base`: an external lock shared with other streams may be given. @endif
+    using ios_base<TChar>::ios_base;
+
     /**
      * @lang{ZH}
      * @brief 返回当前的流状态位。
@@ -1309,7 +1379,7 @@ struct ios_state : public ios_base<TChar>
     }
 
 private:
-    ios_defs::iostate  m_exception = ios_defs::goodbit;      ///< @lang{ZH} 异常掩码：哪些状态位应触发异常。由 `ios_base::m_io_mutex` 保护。 @endif @lang{EN} Exception mask: which state bits should throw. Guarded by `ios_base::m_io_mutex`. @endif
+    ios_defs::iostate  m_exception = ios_defs::goodbit;      ///< @lang{ZH} 异常掩码：哪些状态位应触发异常。由 `ios_base::io_mutex()` 保护。 @endif @lang{EN} Exception mask: which state bits should throw. Guarded by `ios_base::io_mutex()`. @endif
     copyable_atomic<std::uint8_t> m_stream_state{ios_defs::goodbit};   ///< @lang{ZH} 当前流状态位。原子量，使 `rdstate()` 及 `good()`/`eof()`/`operator bool` 等热路径无锁读取；其**写**仍与其余成员一同在 `io_mutex()` 下完成，故不变式不受影响。 @endif @lang{EN} Current stream state bits. Atomic so that `rdstate()` -- and the hot `good()`/`eof()`/`operator bool` built on it -- reads lock-free; **writes** still happen under `io_mutex()` together with the other members, so the invariant is unaffected. @endif
     std::exception_ptr m_exp_dev_fail = std::exception_ptr{};    ///< @lang{ZH} 设备失败类别保存的原始异常。 @endif @lang{EN} Original exception saved for the device-failure category. @endif
     std::exception_ptr m_exp_cvt_fail = std::exception_ptr{};    ///< @lang{ZH} 转换失败类别保存的原始异常。 @endif @lang{EN} Original exception saved for the conversion-failure category. @endif

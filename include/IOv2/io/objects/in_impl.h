@@ -97,6 +97,41 @@
 
 namespace IOv2
 {
+namespace detail
+{
+/**
+ * @lang{ZH}
+ * @brief 标准输入流共用的对象锁：每个 `stdin_api`（`cin`、`wcin`）都以它作为 `io_mutex()`。
+ *
+ * 它们读的是同一个 fd 0，共用一把锁，一个流的操作会等另一个流正在进行的操作结束。
+ * 永不析构，与 `cin`、`wcin` 本身一样（二者在退出时不析构，退出过程中仍可能被使用）。
+ * 与八个标准流同理，「一份」的前提是单一模块，或所有模块都用 `IOV2_SHARED`；见
+ * `IOv2/io/objects/objects.h` 的 `@note`。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief The object lock the standard input streams share: every `stdin_api` (`cin`, `wcin`)
+ * has it as its `io_mutex()`.
+ *
+ * They read the same fd 0, so they share a lock, and an operation on one waits for an
+ * operation under way on another. It is never destroyed, like `cin` and `wcin` themselves
+ * (they are not destroyed at exit and may still be used while the program exits). As with
+ * the eight standard streams, "one" rests on a single module, or every module built with
+ * `IOV2_SHARED`; see the `@note` in `IOv2/io/objects/objects.h`.
+ * @endif
+ */
+#if defined(IOV2_SHARED)
+IOV2_API copyable_mutex<std::recursive_mutex>& stdin_io_mutex();   // defined in iov2_objects.cpp
+#else
+inline copyable_mutex<std::recursive_mutex>& stdin_io_mutex()
+{
+    // Never deleted on purpose: see above.
+    static auto* const m = new copyable_mutex<std::recursive_mutex>(); // NOLINT(cppcoreguidelines-owning-memory)
+    return *m;
+}
+#endif
+}
+
 /**
  * @lang{ZH}
  * @brief 标准输入流（`cin` / `wcin`）的实现模板。
@@ -108,6 +143,13 @@ namespace IOv2
  * `switch_code()`，`adjust()` 截下 `stdin_sync`，`detach()` / `attach()` 被删除。
  *
  * 不可复制；具体的流类型（`cin_t`、`wcin_t`）同时派生自 `sing_temp`，作为进程级单例使用。
+ *
+ * @note 所有标准输入流共用一把对象锁（`detail::stdin_io_mutex()`）：`cin` 与 `wcin` 读同一个
+ *       fd 0，一个流的操作会等另一个流正在进行的操作结束，两个线程分别用它们也不会交错。锁是
+ *       递归的，同一线程在一次操作里再用另一个流不会自锁。但由此多出一种死锁：线程 A 在 `cin`
+ *       的一次提取里（如用户的 `io_traits::sread` 中）写 `wcout`，同时线程 B 在 `wcout` 的一次
+ *       插入里读 `wcin`——A 持输入锁等 `wcout`，B 持 `wcout` 等输入锁。在一个流的操作里使用
+ *       另一个标准流时请留意。
  *
  * @tparam TDevice 设备类型，必须是 `std_input_device`。
  * @tparam TChar 字符类型（`char` 或 `wchar_t`）。
@@ -126,6 +168,16 @@ namespace IOv2
  *
  * Not copyable; the concrete stream types (`cin_t`, `wcin_t`) also derive from `sing_temp`
  * and are used as process-wide singletons.
+ *
+ * @note All standard input streams share one object lock (`detail::stdin_io_mutex()`): `cin`
+ *       and `wcin` read the same fd 0, so an operation on one waits for an operation under way
+ *       on the other, and two threads using them do not interleave. The lock is recursive, so
+ *       one thread using the other stream inside an operation does not deadlock itself. It
+ *       does add one deadlock: thread A, inside an extraction on `cin` (in a user
+ *       `io_traits::sread`, say), writes `wcout`, while thread B, inside an insertion on
+ *       `wcout`, reads `wcin` -- A holds the input lock waiting for `wcout`, B holds `wcout`
+ *       waiting for the input lock. Take care when one standard stream is used inside an
+ *       operation on another.
  *
  * @tparam TDevice The device type; must be `std_input_device`.
  * @tparam TChar The character type (`char` or `wchar_t`).
@@ -159,7 +211,8 @@ public:
      * @endif
      */
     stdin_api()
-        : m_channel(stdin_root_cvt{device_type{}, true})
+        : ios_state<TChar>(&detail::stdin_io_mutex())
+        , m_channel(stdin_root_cvt{device_type{}, true})
     {}
 
     /**
@@ -180,7 +233,8 @@ public:
      */
     template <cvt_creator TCreator>
     stdin_api(const TCreator& creator)
-        : m_channel(creator.create(stdin_root_cvt{device_type{}, true}))
+        : ios_state<TChar>(&detail::stdin_io_mutex())
+        , m_channel(creator.create(stdin_root_cvt{device_type{}, true}))
     {}
 
     ~stdin_api() = default;
