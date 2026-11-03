@@ -37,6 +37,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <fstream>
+#include <mutex>
 #include <string>
 #include <thread>
 #include <type_traits>
@@ -688,6 +689,32 @@ TEST(IoObjectsChar, SynchronizedGetlineLooksAtOneMoreOnlyToDecide)
               }),
               "x");
     EXPECT_TRUE(good);
+}
+
+// cin and wcin read the same fd 0 and share one object lock, so two threads using them do not
+// interleave; the output streams keep their own. Held through cin, the lock keeps another
+// thread out of wcin -- and, the control, not out of cout.
+TEST(IoObjectsChar, CinAndWcinShareOneLock)
+{
+    EXPECT_EQ(&IOv2::cin.io_mutex(), &IOv2::wcin.io_mutex());
+    EXPECT_NE(&IOv2::cin.io_mutex(), &IOv2::cout.io_mutex());
+    EXPECT_NE(&IOv2::wcin.io_mutex(), &IOv2::wcout.io_mutex());
+
+    bool wcin_taken = true;
+    bool cout_taken = false;
+    {
+        IOv2::sync hold(IOv2::cin);
+        std::thread other([&]
+        {
+            std::unique_lock w(IOv2::wcin.io_mutex(), std::try_to_lock);
+            wcin_taken = w.owns_lock();
+            std::unique_lock c(IOv2::cout.io_mutex(), std::try_to_lock);
+            cout_taken = c.owns_lock();
+        });
+        other.join();
+    }
+    EXPECT_FALSE(wcin_taken);
+    EXPECT_TRUE(cout_taken);
 }
 
 // tie()'s cycle check walks through a standard stream too. os and cout have different

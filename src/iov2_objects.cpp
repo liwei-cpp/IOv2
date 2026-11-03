@@ -188,6 +188,24 @@ IOV2_API copyable_mutex<std::mutex>& tie_graph_mutex()
 
 /**
  * @lang{ZH}
+ * 标准输入流共用的对象锁：shared 模式下的唯一定义点，理由同上——`cin` 与 `wcin` 无论在哪个
+ * 模块里加锁，取到的都是这一把。永不析构，与 `cin`、`wcin` 一样。详见 in_impl.h。
+ * @endif
+ * @lang{EN}
+ * The object lock the standard input streams share: its single definition point in shared
+ * mode, for the reason above -- whichever module locks `cin` or `wcin` gets this one lock.
+ * Never destroyed, like `cin` and `wcin`. See in_impl.h.
+ * @endif
+ */
+IOV2_API copyable_mutex<std::recursive_mutex>& detail::stdin_io_mutex()
+{
+    // Never deleted on purpose: see above.
+    static auto* const m = new copyable_mutex<std::recursive_mutex>(); // NOLINT(cppcoreguidelines-owning-memory)
+    return *m;
+}
+
+/**
+ * @lang{ZH}
  * `copyable_mutex` 的 fork 记录与回调登记：shared 模式下的唯一定义点，理由同上——全进程
  * 只有一份代数，`.so` 与可执行文件里内联的加锁代码比较的是同一个值，回调也只登记一次。
  * @endif

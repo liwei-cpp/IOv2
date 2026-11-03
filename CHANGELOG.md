@@ -28,6 +28,9 @@
 - `std_input_device::dunget()`：把字节退回给 C stdio，要么全部退回、返回 `true`，要么
   一个也不退、返回 `false`。只有 stdio 模式可能成功：POSIX 上经 `ungetc` 逐字节退回，
   Windows 上总是拒绝（UCRT 的 `ungetc` 空间不够时可能改写未读的字节而照样报告成功）。
+- `ios_base` 与 `ios_state` 的构造函数可以接受一把外部的对象锁（缺省为空，用流自带的锁），
+  供共用底层资源的几个流共用一把 `io_mutex()`。拷贝或移动出的流用自己的锁，赋值不改变
+  双方各自用的锁。
 
 #### 变更
 
@@ -43,6 +46,10 @@
 - `stdin_root_cvt` 不再是模板，也不再派生自 `root_cvt`：它固定建在 `std_input_device` 上，
   有自己的 `cvt_reader` 特化。写作 `stdin_root_cvt<std_input_device>` 的代码改为
   `stdin_root_cvt`。
+- `cin` 与 `wcin` 共用一把对象锁：二者读同一个 fd 0，一个流的操作会等另一个流正在进行的
+  操作结束，两个线程分别使用它们不再交错。锁是递归的，同一线程在一次操作里再用另一个流
+  不会自锁；但线程 A 在 `cin` 的一次提取里写 `wcout`、同时线程 B 在 `wcout` 的一次插入里
+  读 `wcin`，会互相等待而死锁。
 - `file_device` 的构造函数与 `try_open` 改为接受 `std::filesystem::path`，路径编码由传入的
   类型决定：`char` 字符串按平台的原生窄编码（Windows 上为 ANSI 代码页，与 `fopen` 一致），
   `char8_t` 字符串按 UTF-8，`wchar_t` 字符串在 Windows 上即 UTF-16。传入 `std::string` 与
@@ -164,6 +171,10 @@ have no release line of their own.
   POSIX the bytes go back one by one through `ungetc`; on Windows it always
   refuses (the UCRT's `ungetc` may overwrite an unread byte and still report
   success when it has no room).
+- The constructors of `ios_base` and `ios_state` accept an external object lock
+  (null by default, meaning the stream's own), so that streams over a shared
+  resource can share one `io_mutex()`. A stream copied or moved from another uses
+  its own lock, and assignment leaves each side with the lock it had.
 
 #### Changed
 
@@ -188,6 +199,12 @@ have no release line of their own.
   `root_cvt`: it is built on `std_input_device` and has its own `cvt_reader`
   specialization. Code that writes `stdin_root_cvt<std_input_device>` writes
   `stdin_root_cvt` instead.
+- `cin` and `wcin` share one object lock: they read the same fd 0, so an
+  operation on one waits for an operation under way on the other, and two threads
+  using them no longer interleave. The lock is recursive, so one thread using the
+  other stream inside an operation does not deadlock itself; but thread A writing
+  `wcout` inside an extraction on `cin` while thread B reads `wcin` inside an
+  insertion on `wcout` deadlocks, each waiting for the other.
 - `file_device`'s constructor and `try_open` take a `std::filesystem::path`, so
   the path's encoding follows the type passed in: a `char` string is in the
   platform's native narrow encoding (the ANSI code page on Windows, as with
