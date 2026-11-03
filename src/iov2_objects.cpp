@@ -15,7 +15,8 @@
  * （[basic.start.dynamic]/3.1，ordered）：
  *   - `s_ori_facet_buf` 必须最先——每个流的 `locale` 成员都经它解析；
  *   - `cout` / `wcout` 必须先于绑定到它们的流（`cerr`/`cin` tie `cout`，
- *     `wcerr`/`wcin` tie `wcout`）。
+ *     `wcerr`/`wcin` tie `wcout`）；
+ *   - `detail::stdin_shared_imp` 必须先于 `cin` / `wcin`——它们的根转换器都经它读。
  *
  * 构建示例（Linux，按需替换第三方依赖与路径）：
  * @code
@@ -44,7 +45,9 @@
  *   - `s_ori_facet_buf` must come first -- every stream's `locale` member resolves
  *     through it;
  *   - `cout` / `wcout` must precede the streams that tie to them (`cerr`/`cin` tie
- *     `cout`, `wcerr`/`wcin` tie `wcout`).
+ *     `cout`, `wcerr`/`wcin` tie `wcout`);
+ *   - `detail::stdin_shared_imp` must precede `cin` / `wcin` -- their root converters
+ *     all read through it.
  *
  * Build example (Linux; substitute third-party deps/paths as needed):
  * @code
@@ -159,6 +162,9 @@ IOV2_API wcerr_t&    wcerr = _wcerr_init.get();
 
 static wclog_t::init _wclog_init;
 IOV2_API wclog_t&    wclog = _wclog_init.get();
+
+static detail::stdin_root_cvt_imp::init _stdin_imp_init;
+IOV2_API detail::stdin_root_cvt_imp& detail::stdin_shared_imp = _stdin_imp_init.get();
 
 static cin_t::init _cin_init;
 IOV2_API cin_t&    cin = _cin_init.get();

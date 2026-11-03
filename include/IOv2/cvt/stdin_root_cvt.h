@@ -14,11 +14,14 @@
  */
 #pragma once
 #include <IOv2/common/defs.h>
+#include <IOv2/common/iov2_export.h>
+#include <IOv2/common/sing_temp.h>
 #include <IOv2/cvt/abs_cvt.h>
 #include <IOv2/cvt/cvt_concepts.h>
 #include <IOv2/device/std_device.h>
 
 #include <algorithm>
+#include <atomic>
 #include <cstddef>
 #include <exception>
 #include <utility>
@@ -41,87 +44,55 @@ struct stdin_sync final : cvt_behavior
     bool synced; ///< 为 `true` 时同步 / Synchronized when `true`.
 };
 
+namespace detail
+{
 /**
  * @lang{ZH}
- * 标准输入流的根转换器：建在 fd 0 的 `std_input_device` 上，带读缓冲，同步与否是运行时的开关。
+ * `stdin_root_cvt` 背后真正干活的部分：持有设备、读缓冲与是否同步，并实现全部读取逻辑。
+ * 它是单例（`stdin_shared_imp`），`stdin_root_cvt` 只是放进转换器管线里的句柄，把调用转给它；
+ * 于是所有标准输入流（`cin`、`wcin`）读同一块缓冲、同一个设备，同步与否也随之一致。
  *
- * 不同步时，需要向设备补字节就把缓冲能装的都读进来，设备直接读 fd 0。同步时只向设备要
- * 调用方还缺的那几个字节，不往前多读——逐字符读就是逐字节读设备；设备同时切到 stdio 模式
- * （`std_device::stdio_mode()`），经 `stdin` 的 `FILE` 读，与 C stdio 共用缓冲。切到同步时
- * 缓冲里已预读的字节照常先交出，交完才按需读，所以切换不丢输入。经 `adjust(stdin_sync{...})`
- * 切换；`attach()` 装入的新设备（`reset()` 与转换器自动恢复装的是缺省构造的设备）按当前模式
- * 设置。
- *
- * 上层转换器经 `cvt_reader` 回退尚未解码的字节时（如 `wcin` 读到输入末尾只剩半个多字节字符），
- * 缓冲里剩下的字节整体经 `std_device::dunget()` 还给设备，同步时 C stdio 随后也读得到；设备
- * 拒绝时（fd 模式，或 Windows），字节照旧留在缓冲里。
- *
- * 只用于输入：没有写、定位与换向，`bos()` 总是输入方向。不派生自 `root_cvt`。
+ * 不可拷贝、不可移动，由 `sing_temp` 构造、永不析构。操作由使用它的流的对象锁（`cin`、`wcin`
+ * 共用的那一把）串行化；`synced()` 另可不加锁调用，供 `synced_with_stdio()` 查询。
  * @endif
  *
  * @lang{EN}
- * The root converter of the standard input streams: built on the `std_input_device` on fd 0,
- * with a read buffer, and whether it is synchronized is a runtime switch.
+ * The part that does the work behind `stdin_root_cvt`: it holds the device, the read buffer
+ * and whether it is synchronized, and implements all the reading. It is a singleton
+ * (`stdin_shared_imp`), and `stdin_root_cvt` is only the handle that goes into a converter
+ * pipeline and passes calls on to it; so every standard input stream (`cin`, `wcin`) reads
+ * the same buffer and the same device, and they agree on the synchronization as well.
  *
- * Unsynchronized, it reads as much as the buffer can take whenever it has to go to the
- * device, and the device reads fd 0 directly. Synchronized, it asks the device only for the
- * bytes the caller is still short of and reads nothing ahead -- a character-at-a-time read
- * reads the device a byte at a time; the device switches to stdio mode along with it
- * (`std_device::stdio_mode()`), reading through `stdin`'s `FILE` and sharing its buffer with
- * C stdio. Bytes already read ahead when it switches to synchronized are handed out first as
- * usual, and only then is reading on demand, so a switch loses no input. The mode is
- * switched through `adjust(stdin_sync{...})`; a device installed by `attach()` (`reset()`
- * and a converter's automatic recovery install a default-constructed one) is set to the
- * current mode.
- *
- * When a converter above rolls back bytes it has not decoded through `cvt_reader` (`wcin`
- * left with half a multibyte character at the end of the input, say), what is left in the
- * buffer goes back to the device as a whole through `std_device::dunget()`, so that C stdio
- * reads it next when synchronized; if the device refuses (fd mode, or Windows), the bytes
- * stay in the buffer as before.
- *
- * Input only: no writing, positioning or switching, and `bos()` always settles on input. It
- * does not derive from `root_cvt`.
+ * Neither copyable nor movable; `sing_temp` builds it and it is never destroyed. The streams
+ * using it serialize its operations with their object lock (the one `cin` and `wcin` share);
+ * `synced()` may also be called without it, for `synced_with_stdio()`.
  * @endif
  */
-class stdin_root_cvt
+class stdin_root_cvt_imp : public sing_temp<stdin_root_cvt_imp>
 {
-    template <io_converter KernelType>
-    friend class cvt_reader;
+    friend sing_temp<stdin_root_cvt_imp>;
+
+    // Built once by sing_temp, synchronized like a fresh cin, and never destroyed at exit,
+    // like cin and wcin, which may still read through it while the program exits.
+    stdin_root_cvt_imp()
+        : sing_temp<stdin_root_cvt_imp>([](stdin_root_cvt_imp*) noexcept {})
+        , m_buffer(s_buffer_length)
+        , m_synced(true)
+    {
+        m_device.stdio_mode(true);
+    }
 
 public:
     /// @lang{ZH} 读缓冲的字节容量。 @endif @lang{EN} Byte capacity of the read buffer. @endif
     constexpr static std::size_t s_buffer_length = 2048;
 
-    using device_type = std_input_device;
-    using internal_type = char;
-    using external_type = char;
+    stdin_root_cvt_imp(const stdin_root_cvt_imp&) = delete;
+    stdin_root_cvt_imp& operator=(const stdin_root_cvt_imp&) = delete;
+    stdin_root_cvt_imp(stdin_root_cvt_imp&&) = delete;
+    stdin_root_cvt_imp& operator=(stdin_root_cvt_imp&&) = delete;
+    ~stdin_root_cvt_imp() = default;
 
-    /**
-     * @lang{ZH}
-     * 接管设备，并把它设成 `synced` 对应的读法。
-     * @endif
-     *
-     * @lang{EN}
-     * Takes over the device and sets it to the read mode `synced` stands for.
-     * @endif
-     */
-    explicit stdin_root_cvt(device_type dev, bool synced)
-        : m_device(std::move(dev))
-        , m_buffer(s_buffer_length)
-        , m_synced(synced)
-    {
-        m_device.stdio_mode(synced);
-    }
-
-    /// @lang{ZH} 移动后，源对象只能析构或被赋值。 @endif @lang{EN} A moved-from object may only be destroyed or assigned to. @endif
-    stdin_root_cvt(stdin_root_cvt&&) noexcept = default;
-    stdin_root_cvt& operator=(stdin_root_cvt&&) noexcept = default;
-    stdin_root_cvt(const stdin_root_cvt&) = delete;
-    stdin_root_cvt& operator=(const stdin_root_cvt&) = delete;
-    ~stdin_root_cvt() = default;
-
-    device_type& device() noexcept { return m_device; }
+    std_input_device& device() noexcept { return m_device; }
 
     /**
      * @lang{ZH}
@@ -133,7 +104,7 @@ public:
      * not yet handed out are dropped with it.
      * @endif
      */
-    std::pair<device_type, std::exception_ptr> detach() noexcept
+    std::pair<std_input_device, std::exception_ptr> detach() noexcept
     {
         m_cur = m_end = 0;
         return {std::move(m_device), nullptr};
@@ -149,40 +120,22 @@ public:
      * emptied.
      * @endif
      */
-    void attach(device_type&& dev = device_type{})
+    void attach(std_input_device&& dev)
     {
-        dev.stdio_mode(m_synced);
+        dev.stdio_mode(synced());
         m_device = std::move(dev);
-        m_buffer.resize(s_buffer_length);
         m_cur = m_end = 0;
     }
 
-    /// @lang{ZH} 总是输入方向。 @endif @lang{EN} Always input. @endif
-    io_status bos() noexcept { return io_status::input; }
-
-    /// @lang{ZH} stdin 不可定位，没有要记下的流首位置。 @endif @lang{EN} stdin cannot be repositioned, so there is no stream origin to record. @endif
-    void main_cont_beg() noexcept {}
-
-    /**
-     * @lang{ZH}
-     * `stdin_sync` 切换同步与否，只翻标志与设备的读法，不碰缓冲；其余行为策略不起作用。
-     * @endif
-     *
-     * @lang{EN}
-     * A `stdin_sync` switches synchronization by flipping the flag and the device's read mode
-     * alone, leaving the buffer as it is; other behavior policies have no effect.
-     * @endif
-     */
-    void adjust(const cvt_behavior& b)
+    /// @lang{ZH} 切换同步与否：只翻标志与设备的读法，不碰缓冲。 @endif @lang{EN} Switches synchronization: flips the flag and the device's read mode alone, leaving the buffer as it is. @endif
+    void synchronize(bool s)
     {
-        if (const auto* s = dynamic_cast<const stdin_sync*>(&b); s)
-        {
-            m_synced = s->synced;
-            m_device.stdio_mode(m_synced);
-        }
+        m_synced.store(s);
+        m_device.stdio_mode(s);
     }
 
-    void retrieve(cvt_status&) const {}
+    /// @lang{ZH} 当前是否同步；不必持锁。 @endif @lang{EN} Whether it is synchronized now; no lock needed. @endif
+    [[nodiscard]] bool synced() const noexcept { return m_synced.load(); }
 
     /// @lang{ZH} 缓冲里还有字节就不是末尾，否则问设备。 @endif @lang{EN} Not at the end while the buffer holds bytes; otherwise the device decides. @endif
     bool is_eof()
@@ -207,11 +160,11 @@ public:
      * out from there.
      * @endif
      */
-    std::size_t get(internal_type* to, std::size_t to_max)
+    std::size_t get(char* to, std::size_t to_max)
     {
         if (m_cur == m_end)
         {
-            if (m_synced) return m_device.dget(to, to_max);
+            if (synced()) return m_device.dget(to, to_max);
             m_end = m_device.dget(m_buffer.data(), s_buffer_length);
             m_cur = 0;
         }
@@ -221,32 +174,271 @@ public:
         return res;
     }
 
+    /**
+     * @lang{ZH}
+     * 供 `cvt_reader` 用：取 `to_max` 个字节，缓冲里不够时向设备补——剩下的字节先移到开头，
+     * 不同步时补满缓冲，同步时只补还缺的。字节留在缓冲里，供调用方原地解码、必要时回退。
+     * `Saturate` 为 `false` 时返回（指针，实际数量），可能少于 `to_max`；为 `true` 时要求恰好
+     * `to_max` 个，返回指针，读满之前到达末尾则抛出。
+     * @endif
+     *
+     * @lang{EN}
+     * For `cvt_reader`: takes `to_max` bytes, refilling from the device when the buffer falls
+     * short -- what is left moves to the front, and the refill fills the buffer unsynchronized
+     * and covers only the shortfall synchronized. The bytes stay in the buffer, for the caller
+     * to decode in place and roll back if need be. With `Saturate` false it returns (pointer,
+     * count), possibly fewer than `to_max`; with `Saturate` true it requires exactly `to_max`,
+     * returns the pointer, and throws if the end comes first.
+     * @endif
+     * @throws cvt_error @lang{ZH} `to_max` 为 0 或超过 `s_buffer_length`；`Saturate` 时读满前到达末尾。 @endif
+     *                   @lang{EN} `to_max` is 0 or exceeds `s_buffer_length`; with `Saturate`, the end comes first. @endif
+     */
+    template <bool Saturate = false>
+    auto get_buf(std::size_t to_max)
+    {
+        if (to_max == 0)
+            throw cvt_error("cvt_reader::get_buf fail, read size cannot be zero");
+        if (to_max > s_buffer_length)
+            throw cvt_error("cvt_reader::get_buf fail, read size too large");
+
+        char* const buf = m_buffer.data();
+        const std::size_t remain = m_end - m_cur;
+        if (remain < to_max)
+        {
+            std::copy(buf + m_cur, buf + m_end, buf);
+            m_cur = 0;
+            m_end = remain;
+            const std::size_t room = s_buffer_length - remain;
+            const std::size_t want = synced() ? std::min(to_max - remain, room) : room;
+            m_end += m_device.dget(buf + m_end, want);
+        }
+
+        if constexpr (Saturate)
+        {
+            while (m_end < m_cur + to_max)
+            {
+                const std::size_t got = m_device.dget(buf + m_end, m_cur + to_max - m_end);
+                if (got == 0)
+                    throw cvt_error("get_buf<Saturate> fail: meet eos");
+                m_end += got;
+            }
+            const char* res = buf + m_cur;
+            m_cur += to_max;
+            return res;
+        }
+        else
+        {
+            const std::size_t len = std::min(m_end - m_cur, to_max);
+            std::pair<const char*, std::size_t> res{buf + m_cur, len};
+            m_cur += len;
+            return res;
+        }
+    }
+
+    /**
+     * @lang{ZH}
+     * 供 `cvt_reader` 用：把读取游标后退 `len` 个字节，再把缓冲里剩下的全部字节经 `dunget()`
+     * 整体还给设备——只还回退的那几个，排在它们后面的字节就会先被读到。设备拒绝时（fd 模式，
+     * 或 Windows）字节留在缓冲里，下一次读取照旧先交出它们。
+     * @endif
+     *
+     * @lang{EN}
+     * For `cvt_reader`: moves the read cursor back by `len` bytes, then hands everything left
+     * in the buffer back to the device through `dunget()` as a whole -- handing back only the
+     * rolled-back bytes would let the bytes behind them be read first. If the device refuses
+     * (fd mode, or Windows), the bytes stay in the buffer and the next read hands them out
+     * first as before.
+     * @endif
+     * @throws cvt_error @lang{ZH} `len` 为 0 或超过已交出的字节数。 @endif
+     *                   @lang{EN} `len` is 0 or exceeds the bytes handed out. @endif
+     */
+    void rollback(std::size_t len)
+    {
+        if (len == 0)
+            throw cvt_error("cvt_reader::rollback fail, length cannot be zero");
+        if (len > m_cur)
+            throw cvt_error("cvt_reader::rollback fail, rollback length too large");
+
+        m_cur -= len;
+        if (m_device.dunget(m_buffer.data() + m_cur, m_end - m_cur))
+            m_cur = m_end = 0;
+    }
+
 private:
-    device_type m_device;
+    std_input_device m_device;
     std::vector<char> m_buffer;    ///< @lang{ZH} 读缓冲；未交出的字节在 `[m_cur, m_end)`。 @endif @lang{EN} The read buffer; bytes not yet handed out are in `[m_cur, m_end)`. @endif
     std::size_t m_cur = 0;
     std::size_t m_end = 0;
-    bool m_synced;                 ///< @lang{ZH} 为 `true` 时同步：不预读，设备为 stdio 模式。 @endif @lang{EN} Synchronized when `true`: nothing read ahead, the device in stdio mode. @endif
+    std::atomic<bool> m_synced;    ///< @lang{ZH} 为 `true` 时同步：不预读，设备为 stdio 模式。 @endif @lang{EN} Synchronized when `true`: nothing read ahead, the device in stdio mode. @endif
 };
 
 /**
  * @lang{ZH}
- * `stdin_root_cvt` 的 `cvt_reader`：直接在根的缓冲里读，按同步与否决定向设备要多少，并且
- * 回退时把缓冲里剩下的字节还给设备。
+ * 唯一的那个 `stdin_root_cvt_imp`，所有 `stdin_root_cvt` 句柄都经它工作。与 `cin` 一样由
+ * `sing_temp` 在静态初始化时构造、永不析构，访问它只是读一个引用。`IOV2_SHARED` 下是
+ * `libiov2.so` 里唯一一份（定义在 `iov2_objects.cpp`），头文件模式下是本程序内的 `inline`
+ * 变量；须在 `cin`、`wcin` 之前初始化，本头文件被 `in_impl.h` 先于它们包含即保证这一点。
  * @endif
  *
  * @lang{EN}
- * The `cvt_reader` of `stdin_root_cvt`: it reads in the root's own buffer, asks the device
- * for as much as the synchronization calls for, and on a rollback hands what is left in the
- * buffer back to the device.
+ * The one `stdin_root_cvt_imp`, through which every `stdin_root_cvt` handle works. Like
+ * `cin`, `sing_temp` builds it during static initialization and never destroys it, so
+ * reaching it is reading a reference. Under `IOV2_SHARED` it is the single copy inside
+ * `libiov2.so` (defined in `iov2_objects.cpp`); in header-only mode it is an `inline`
+ * variable of this program. It must be initialized before `cin` and `wcin`, which
+ * `in_impl.h` ensures by including this header before defining them.
+ * @endif
+ */
+#if defined(IOV2_SHARED)
+extern IOV2_API stdin_root_cvt_imp& stdin_shared_imp;   // defined in iov2_objects.cpp
+#else
+/// @cond INTERNAL
+inline stdin_root_cvt_imp::init _stdin_imp_init;
+/// @endcond
+inline stdin_root_cvt_imp& stdin_shared_imp = _stdin_imp_init.get();
+#endif
+}
+
+/**
+ * @lang{ZH}
+ * 标准输入流的根转换器：建在 fd 0 的 `std_input_device` 上，带读缓冲，同步与否是运行时的开关。
+ *
+ * 本类只是句柄，不存状态：设备、缓冲与同步标志都在唯一的 `detail::stdin_shared_imp` 里，
+ * 读取逻辑也在那里实现，所有标准输入流（`cin`、`wcin`）都经它工作。于是它们读同一块缓冲：
+ * 不同步时一个流预读的字节另一个流接着读得到；同步与否也只有一份，切换一个就切换了全部；
+ * `reset()` 或转换器的自动恢复（二者都重新装入设备）丢掉的已预读字节，对所有标准输入流都
+ * 丢掉。这些操作由 `cin`、`wcin` 共用的对象锁串行化。
+ *
+ * 不同步时，需要向设备补字节就把缓冲能装的都读进来，设备直接读 fd 0。同步时只向设备要
+ * 调用方还缺的那几个字节，不往前多读——逐字符读就是逐字节读设备；设备同时切到 stdio 模式
+ * （`std_device::stdio_mode()`），经 `stdin` 的 `FILE` 读，与 C stdio 共用缓冲。切到同步时
+ * 缓冲里已预读的字节照常先交出，交完才按需读，所以切换不丢输入。经 `adjust(stdin_sync{...})`
+ * 切换；`attach()` 装入的新设备（`reset()` 与转换器自动恢复装的是缺省构造的设备）按当前模式
+ * 设置。
+ *
+ * 上层转换器经 `cvt_reader` 回退尚未解码的字节时（如 `wcin` 读到输入末尾只剩半个多字节字符），
+ * 缓冲里剩下的字节整体经 `std_device::dunget()` 还给设备，同步时 C stdio 随后也读得到；设备
+ * 拒绝时（fd 模式，或 Windows），字节照旧留在缓冲里。
+ *
+ * 只用于输入：没有写、定位与换向，`bos()` 总是输入方向。不派生自 `root_cvt`。
+ * @endif
+ *
+ * @lang{EN}
+ * The root converter of the standard input streams: built on the `std_input_device` on fd 0,
+ * with a read buffer, and whether it is synchronized is a runtime switch.
+ *
+ * This class is only a handle and holds no state: the device, the buffer and the
+ * synchronization flag live in the one `detail::stdin_shared_imp`, which implements the
+ * reading as well, and every standard input stream (`cin`, `wcin`) works through it. So they
+ * read one buffer: unsynchronized, bytes one stream read ahead are there for the other to read
+ * on; there is one synchronization setting, so switching one switches them all; and bytes read
+ * ahead that `reset()` or a converter's automatic recovery drops (both install a device
+ * again) are dropped for every standard input stream. The object lock `cin` and `wcin` share
+ * serializes these operations.
+ *
+ * Unsynchronized, it reads as much as the buffer can take whenever it has to go to the
+ * device, and the device reads fd 0 directly. Synchronized, it asks the device only for the
+ * bytes the caller is still short of and reads nothing ahead -- a character-at-a-time read
+ * reads the device a byte at a time; the device switches to stdio mode along with it
+ * (`std_device::stdio_mode()`), reading through `stdin`'s `FILE` and sharing its buffer with
+ * C stdio. Bytes already read ahead when it switches to synchronized are handed out first as
+ * usual, and only then is reading on demand, so a switch loses no input. The mode is
+ * switched through `adjust(stdin_sync{...})`; a device installed by `attach()` (`reset()`
+ * and a converter's automatic recovery install a default-constructed one) is set to the
+ * current mode.
+ *
+ * When a converter above rolls back bytes it has not decoded through `cvt_reader` (`wcin`
+ * left with half a multibyte character at the end of the input, say), what is left in the
+ * buffer goes back to the device as a whole through `std_device::dunget()`, so that C stdio
+ * reads it next when synchronized; if the device refuses (fd mode, or Windows), the bytes
+ * stay in the buffer as before.
+ *
+ * Input only: no writing, positioning or switching, and `bos()` always settles on input. It
+ * does not derive from `root_cvt`.
+ * @endif
+ */
+class stdin_root_cvt
+{
+public:
+    using device_type = std_input_device;
+    using internal_type = char;
+    using external_type = char;
+
+    /// @lang{ZH} 句柄不存状态，所有操作都转给 `detail::stdin_shared_imp`。 @endif @lang{EN} The handle holds no state; every operation goes to `detail::stdin_shared_imp`. @endif
+    stdin_root_cvt() noexcept = default;
+
+    stdin_root_cvt(stdin_root_cvt&&) noexcept = default;
+    stdin_root_cvt& operator=(stdin_root_cvt&&) noexcept = default;
+    stdin_root_cvt(const stdin_root_cvt&) = delete;
+    stdin_root_cvt& operator=(const stdin_root_cvt&) = delete;
+    ~stdin_root_cvt() = default;
+
+    device_type& device() noexcept { return detail::stdin_shared_imp.device(); }
+
+    /// @lang{ZH} 见 `stdin_root_cvt_imp::detach()`：共享的缓冲随之清空，所有标准输入流都受影响。 @endif @lang{EN} See `stdin_root_cvt_imp::detach()`: the shared buffer is emptied, for every standard input stream. @endif
+    std::pair<device_type, std::exception_ptr> detach() noexcept
+    {
+        return detail::stdin_shared_imp.detach();
+    }
+
+    /// @lang{ZH} 见 `stdin_root_cvt_imp::attach()`。 @endif @lang{EN} See `stdin_root_cvt_imp::attach()`. @endif
+    void attach(device_type&& dev = device_type{})
+    {
+        detail::stdin_shared_imp.attach(std::move(dev));
+    }
+
+    /// @lang{ZH} 总是输入方向。 @endif @lang{EN} Always input. @endif
+    io_status bos() noexcept { return io_status::input; }
+
+    /// @lang{ZH} stdin 不可定位，没有要记下的流首位置。 @endif @lang{EN} stdin cannot be repositioned, so there is no stream origin to record. @endif
+    void main_cont_beg() noexcept {}
+
+    /**
+     * @lang{ZH}
+     * `stdin_sync` 切换同步与否（`stdin_root_cvt_imp::synchronize()`），所有标准输入流随之一起
+     * 切换；其余行为策略不起作用。
+     * @endif
+     *
+     * @lang{EN}
+     * A `stdin_sync` switches synchronization (`stdin_root_cvt_imp::synchronize()`), for every
+     * standard input stream at once; other behavior policies have no effect.
+     * @endif
+     */
+    void adjust(const cvt_behavior& b)
+    {
+        if (const auto* s = dynamic_cast<const stdin_sync*>(&b); s)
+            detail::stdin_shared_imp.synchronize(s->synced);
+    }
+
+    void retrieve(cvt_status&) const {}
+
+    /// @lang{ZH} 见 `stdin_root_cvt_imp::is_eof()`。 @endif @lang{EN} See `stdin_root_cvt_imp::is_eof()`. @endif
+    bool is_eof() { return detail::stdin_shared_imp.is_eof(); }
+
+    /// @lang{ZH} 见 `stdin_root_cvt_imp::get()`。 @endif @lang{EN} See `stdin_root_cvt_imp::get()`. @endif
+    std::size_t get(internal_type* to, std::size_t to_max)
+    {
+        return detail::stdin_shared_imp.get(to, to_max);
+    }
+};
+
+/**
+ * @lang{ZH}
+ * `stdin_root_cvt` 的 `cvt_reader`：直接在 `stdin_root_cvt_imp` 的缓冲里读，`get_buf()` 与
+ * `rollback()` 都转给它。
+ * @endif
+ *
+ * @lang{EN}
+ * The `cvt_reader` of `stdin_root_cvt`: it reads in the buffer of `stdin_root_cvt_imp`, and
+ * `get_buf()` and `rollback()` both go to it.
  * @endif
  */
 template <>
 class cvt_reader<stdin_root_cvt>
 {
 public:
-    explicit cvt_reader(stdin_root_cvt& kernel, std::vector<char>&, std::size_t&, std::size_t&)
-        : m_kernel(kernel) {}
+    // The handle holds no state, so there is nothing to keep of it.
+    explicit cvt_reader(stdin_root_cvt&, std::vector<char>&, std::size_t&, std::size_t&) noexcept {}
 
     cvt_reader(const cvt_reader&) = delete;
     cvt_reader& operator=(const cvt_reader&) = delete;
@@ -257,98 +449,17 @@ public:
     /// @lang{ZH} 空操作：缓冲由根管理。 @endif @lang{EN} No-op: the root manages the buffer. @endif
     void reset(std::size_t) {}
 
-    /**
-     * @lang{ZH}
-     * 取 `to_max` 个字节，缓冲里不够时向设备补：剩下的字节先移到开头，不同步时补满缓冲，
-     * 同步时只补还缺的。字节留在根的缓冲里，供调用方原地解码、必要时回退。`Saturate` 为
-     * `false` 时返回（指针，实际数量），可能少于 `to_max`；为 `true` 时要求恰好 `to_max` 个，
-     * 返回指针，读满之前到达末尾则抛出。
-     * @endif
-     *
-     * @lang{EN}
-     * Takes `to_max` bytes, refilling from the device when the buffer falls short: what is
-     * left moves to the front, and the refill fills the buffer unsynchronized and covers only
-     * the shortfall synchronized. The bytes stay in the root's buffer, for the caller to
-     * decode in place and roll back if need be. With `Saturate` false it returns (pointer,
-     * count), possibly fewer than `to_max`; with `Saturate` true it requires exactly
-     * `to_max`, returns the pointer, and throws if the end comes first.
-     * @endif
-     * @throws cvt_error @lang{ZH} `to_max` 为 0 或超过 `s_buffer_length`；`Saturate` 时读满前到达末尾。 @endif
-     *                   @lang{EN} `to_max` is 0 or exceeds `s_buffer_length`; with `Saturate`, the end comes first. @endif
-     */
+    /// @lang{ZH} 见 `stdin_root_cvt_imp::get_buf()`。 @endif @lang{EN} See `stdin_root_cvt_imp::get_buf()`. @endif
     template <bool Saturate = false>
     auto get_buf(std::size_t to_max)
     {
-        if (to_max == 0)
-            throw cvt_error("cvt_reader::get_buf fail, read size cannot be zero");
-        if (to_max > stdin_root_cvt::s_buffer_length)
-            throw cvt_error("cvt_reader::get_buf fail, read size too large");
-
-        auto& k = m_kernel;
-        char* const buf = k.m_buffer.data();
-        const std::size_t remain = k.m_end - k.m_cur;
-        if (remain < to_max)
-        {
-            std::copy(buf + k.m_cur, buf + k.m_end, buf);
-            k.m_cur = 0;
-            k.m_end = remain;
-            const std::size_t room = stdin_root_cvt::s_buffer_length - remain;
-            const std::size_t want = k.m_synced ? std::min(to_max - remain, room) : room;
-            k.m_end += k.m_device.dget(buf + k.m_end, want);
-        }
-
-        if constexpr (Saturate)
-        {
-            while (k.m_end < k.m_cur + to_max)
-            {
-                const std::size_t got = k.m_device.dget(buf + k.m_end, k.m_cur + to_max - k.m_end);
-                if (got == 0)
-                    throw cvt_error("get_buf<Saturate> fail: meet eos");
-                k.m_end += got;
-            }
-            const char* res = buf + k.m_cur;
-            k.m_cur += to_max;
-            return res;
-        }
-        else
-        {
-            const std::size_t len = std::min(k.m_end - k.m_cur, to_max);
-            std::pair<const char*, std::size_t> res{buf + k.m_cur, len};
-            k.m_cur += len;
-            return res;
-        }
+        return detail::stdin_shared_imp.get_buf<Saturate>(to_max);
     }
 
-    /**
-     * @lang{ZH}
-     * 把读取游标后退 `len` 个字节，再把缓冲里剩下的全部字节经 `dunget()` 整体还给设备——
-     * 只还回退的那几个，排在它们后面的字节就会先被读到。设备拒绝时（fd 模式，或 Windows）
-     * 字节留在缓冲里，下一次读取照旧先交出它们。
-     * @endif
-     *
-     * @lang{EN}
-     * Moves the read cursor back by `len` bytes, then hands everything left in the buffer back
-     * to the device through `dunget()` as a whole -- handing back only the rolled-back bytes
-     * would let the bytes behind them be read first. If the device refuses (fd mode, or
-     * Windows), the bytes stay in the buffer and the next read hands them out first as before.
-     * @endif
-     * @throws cvt_error @lang{ZH} `len` 为 0 或超过已交出的字节数。 @endif
-     *                   @lang{EN} `len` is 0 or exceeds the bytes handed out. @endif
-     */
+    /// @lang{ZH} 见 `stdin_root_cvt_imp::rollback()`。 @endif @lang{EN} See `stdin_root_cvt_imp::rollback()`. @endif
     void rollback(std::size_t len)
     {
-        if (len == 0)
-            throw cvt_error("cvt_reader::rollback fail, length cannot be zero");
-        auto& k = m_kernel;
-        if (len > k.m_cur)
-            throw cvt_error("cvt_reader::rollback fail, rollback length too large");
-
-        k.m_cur -= len;
-        if (k.m_device.dunget(k.m_buffer.data() + k.m_cur, k.m_end - k.m_cur))
-            k.m_cur = k.m_end = 0;
+        detail::stdin_shared_imp.rollback(len);
     }
-
-private:
-    stdin_root_cvt& m_kernel;
 };
 }

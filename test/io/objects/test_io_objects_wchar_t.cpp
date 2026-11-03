@@ -290,6 +290,55 @@ TEST(IoObjectsWchar, SynchronizedGetAndIgnoreReadNoFurtherThanTheyConsume)
     EXPECT_EQ(left_on_stdin("ab\ncd", [] { IOv2::wcin.ignore(1, L'\n'); }), "b\ncd");
 }
 
+// cin and wcin share their input state, the synchronization included: switching one
+// switches both, and the other stream reports it.
+TEST(IoObjectsWchar, CinAndWcinSwitchTogether)
+{
+    ASSERT_TRUE(IOv2::cin.synced_with_stdio());
+    EXPECT_TRUE(IOv2::cin.sync_with_stdio(false));
+    EXPECT_FALSE(IOv2::wcin.synced_with_stdio());
+
+    EXPECT_FALSE(IOv2::wcin.sync_with_stdio(true));
+    EXPECT_TRUE(IOv2::cin.synced_with_stdio());
+}
+
+// Unsynchronized, a stream reads a whole block ahead. The buffer is shared, so what cin read
+// ahead is there for wcin, in order; each used to see only its own block.
+TEST(IoObjectsWchar, UnsynchronizedCinAndWcinReadOneBuffer)
+{
+    pipe_iguard g("abc");
+    g.close_write();
+    IOv2::cin.reset();
+    IOv2::wcin.reset();
+    IOv2::cin.sync_with_stdio(false);
+
+    EXPECT_EQ(IOv2::cin.get(), 'a');
+    EXPECT_EQ(IOv2::wcin.get(), L'b');
+    EXPECT_EQ(IOv2::cin.get(), 'c');
+
+    IOv2::cin.sync_with_stdio(true);
+    IOv2::cin.reset();
+    IOv2::wcin.reset();
+}
+
+// reset() drops what the shared buffer holds, so it drops it for both streams.
+TEST(IoObjectsWchar, ResetOnOneStreamDropsTheSharedReadAhead)
+{
+    pipe_iguard g("abc");
+    g.close_write();
+    IOv2::cin.reset();
+    IOv2::wcin.reset();
+    IOv2::cin.sync_with_stdio(false);
+
+    EXPECT_EQ(IOv2::cin.get(), 'a');                // "bc" is read ahead into the buffer
+    IOv2::wcin.reset();
+    EXPECT_FALSE(IOv2::cin.get().has_value());      // dropped, and the pipe has no more
+
+    IOv2::cin.sync_with_stdio(true);
+    IOv2::cin.reset();
+    IOv2::wcin.reset();
+}
+
 namespace
 {
     bool g_fail_attach = false;

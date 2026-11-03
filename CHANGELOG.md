@@ -43,13 +43,18 @@
   `dunget()` 还给 C stdio，`getchar()` 等随后读得到；此前它们留在本流的缓冲里，C stdio 看不到。
   随之 `reset()` 不再能丢掉末尾的半个字符：它已归 C stdio，须由 C stdio 读走。设备拒绝退回时
   （不同步，或 Windows）行为不变。
-- `stdin_root_cvt` 不再是模板，也不再派生自 `root_cvt`：它固定建在 `std_input_device` 上，
-  有自己的 `cvt_reader` 特化。写作 `stdin_root_cvt<std_input_device>` 的代码改为
-  `stdin_root_cvt`。
+- `stdin_root_cvt` 不再是模板，也不再派生自 `root_cvt`：它是不存状态的句柄，构造时不带
+  参数，设备、缓冲与同步标志都在唯一的共享对象里，有自己的 `cvt_reader` 特化。写作
+  `stdin_root_cvt<std_input_device>{dev, synced}` 的代码改为 `stdin_root_cvt{}`，同步与否经
+  `adjust(stdin_sync{...})` 设置。
 - `cin` 与 `wcin` 共用一把对象锁：二者读同一个 fd 0，一个流的操作会等另一个流正在进行的
   操作结束，两个线程分别使用它们不再交错。锁是递归的，同一线程在一次操作里再用另一个流
   不会自锁；但线程 A 在 `cin` 的一次提取里写 `wcout`、同时线程 B 在 `wcout` 的一次插入里
   读 `wcin`，会互相等待而死锁。
+- `cin` 与 `wcin` 共用输入缓冲与同步状态：不同步时一个流预读的字节另一个流接着读得到，
+  此前同一段输入分到哪个流不确定；切换其中一个的 `sync_with_stdio()` 就切换了二者，
+  `synced_with_stdio()` 总是一致。随之，`reset()` 与 `wcin` 转换器的自动恢复丢掉的已预读
+  字节对二者都丢掉。
 - `file_device` 的构造函数与 `try_open` 改为接受 `std::filesystem::path`，路径编码由传入的
   类型决定：`char` 字符串按平台的原生窄编码（Windows 上为 ANSI 代码页，与 `fopen` 一致），
   `char8_t` 字符串按 UTF-8，`wchar_t` 字符串在 Windows 上即 UTF-16。传入 `std::string` 与
@@ -196,15 +201,23 @@ have no release line of their own.
   has to take it. Where the device refuses (unsynchronized, or Windows) nothing
   changes.
 - `stdin_root_cvt` is no longer a template and no longer derives from
-  `root_cvt`: it is built on `std_input_device` and has its own `cvt_reader`
-  specialization. Code that writes `stdin_root_cvt<std_input_device>` writes
-  `stdin_root_cvt` instead.
+  `root_cvt`: it is a stateless handle constructed without arguments, the device,
+  the buffer and the synchronization flag living in one shared object, and it has
+  its own `cvt_reader` specialization. Code that writes
+  `stdin_root_cvt<std_input_device>{dev, synced}` writes `stdin_root_cvt{}`
+  instead, and sets the synchronization through `adjust(stdin_sync{...})`.
 - `cin` and `wcin` share one object lock: they read the same fd 0, so an
   operation on one waits for an operation under way on the other, and two threads
   using them no longer interleave. The lock is recursive, so one thread using the
   other stream inside an operation does not deadlock itself; but thread A writing
   `wcout` inside an extraction on `cin` while thread B reads `wcin` inside an
   insertion on `wcout` deadlocks, each waiting for the other.
+- `cin` and `wcin` share their input buffer and synchronization: unsynchronized,
+  bytes one stream read ahead are there for the other to read on, where it used
+  to be unpredictable which stream a stretch of input went to; switching
+  `sync_with_stdio()` on either switches both, and `synced_with_stdio()` always
+  agrees. With that, bytes read ahead that `reset()` or the automatic recovery of
+  `wcin`'s converter drops are dropped for both.
 - `file_device`'s constructor and `try_open` take a `std::filesystem::path`, so
   the path's encoding follows the type passed in: a `char` string is in the
   platform's native narrow encoding (the ANSI code page on Windows, as with
