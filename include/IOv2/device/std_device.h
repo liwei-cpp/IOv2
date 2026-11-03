@@ -18,7 +18,9 @@
 #include <IOv2/device/platform/std_device_backend.h>
 
 #include <cstddef>
+#include <concepts>
 #include <cstdio>
+#include <iterator>
 #include <optional>
 #include <type_traits>
 #include <utility>
@@ -432,10 +434,42 @@ public:
         if (n == 0) return true;
         if (s == nullptr)
             throw device_error("std_device::dunget fail: null buffer");
+        return dunget(s, s + n);
+    }
+
+    /**
+     * @lang{ZH}
+     * @brief `dunget(s, n)` 的迭代器形式：把 `[first, last)` 退回给 C stdio。
+     *
+     * 语义与 `dunget(s, n)` 完全相同，只是字节由一对双向迭代器给出，调用方不必先把它们拷贝到
+     * 一段连续内存里（例如按反向迭代器给出栈里的字节）。
+     * @tparam It 双向迭代器，值类型为 `char`。
+     * @param first 第一个要退回的字节，也就是之后最先读到的字节。
+     * @param last 末尾。区间为空时什么也不做，返回 `true`。
+     * @return 全部退回为 `true`；没有退回为 `false`。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief The iterator form of `dunget(s, n)`: hands `[first, last)` back to C stdio.
+     *
+     * Same semantics as `dunget(s, n)`; the bytes just come as a pair of bidirectional
+     * iterators, so the caller need not copy them into contiguous memory first (e.g. bytes of a
+     * stack given through reverse iterators).
+     * @tparam It A bidirectional iterator whose value type is `char`.
+     * @param first The first byte to hand back, which is also the first to be read afterwards.
+     * @param last The end. An empty range does nothing and returns `true`.
+     * @return `true` if every byte went back; `false` if none did.
+     * @endif
+     */
+    template <std::bidirectional_iterator It>
+        requires (ID == detail::std_in_fd && std::same_as<std::iter_value_t<It>, char>)
+    bool dunget(It first, It last)
+    {
+        if (first == last) return true;
         // fd mode shares no buffer with C stdio; a byte fd mode probed before a switch
         // must still come first, so the order would be unclear.
         if (!m_use_stdio || m_c.has_value()) return false;
-        return detail::std_stdin_file_unget(s, n);
+        return detail::std_stdin_file_unget(first, last);
     }
 
     /**

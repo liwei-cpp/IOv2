@@ -28,6 +28,12 @@
 - `std_input_device::dunget()`：把字节退回给 C stdio，要么全部退回、返回 `true`，要么
   一个也不退、返回 `false`。只有 stdio 模式可能成功：POSIX 上经 `ungetc` 逐字节退回，
   Windows 上总是拒绝（UCRT 的 `ungetc` 空间不够时可能改写未读的字节而照样报告成功）。
+  字节可以用指针加长度给出，也可以用一对双向迭代器给出。
+- `runtime_cvt::target<T>()`：类型与管线最外层精确一致时返回指向该转换器的指针，否则返回
+  空指针，类似 `std::function::target`；`T` 的设备类型或内部字符类型不对时编译报错。
+  `ichannel` 等通道经 `cvt_target<T>()` 转发。
+- 输入通道的 `hand_back(f)`：把读缓冲里偷看、压回而未消费的字符按流中顺序交给 `f`，
+  不拷贝；`f` 返回 `true` 时清空读缓冲，返回 `false` 或抛出异常时读缓冲不变。
 - `ios_base` 与 `ios_state` 的构造函数可以接受一把外部的对象锁（缺省为空，用流自带的锁），
   供共用底层资源的几个流共用一把 `io_mutex()`。拷贝或移动出的流用自己的锁，赋值不改变
   双方各自用的锁。
@@ -175,7 +181,17 @@ have no release line of their own.
   returning `true`, or none, returning `false`. Only stdio mode can succeed: on
   POSIX the bytes go back one by one through `ungetc`; on Windows it always
   refuses (the UCRT's `ungetc` may overwrite an unread byte and still report
-  success when it has no room).
+  success when it has no room). The bytes come either as a pointer and a length
+  or as a pair of bidirectional iterators.
+- `runtime_cvt::target<T>()`: a pointer to the outermost converter of the
+  pipeline when its type is exactly `T`, a null pointer otherwise, much like
+  `std::function::target`; a `T` with the wrong device or internal character
+  type is a compile error. Channels such as `ichannel` forward it as
+  `cvt_target<T>()`.
+- `hand_back(f)` on input channels: offers the characters peeked or put back but
+  not yet consumed to `f`, in stream order and without copying; the read buffer
+  is cleared when `f` returns `true` and left as it is when `f` returns `false`
+  or throws.
 - The constructors of `ios_base` and `ios_state` accept an external object lock
   (null by default, meaning the stream's own), so that streams over a shared
   resource can share one `io_mutex()`. A stream copied or moved from another uses

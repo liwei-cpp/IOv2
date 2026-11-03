@@ -23,6 +23,7 @@
 #include <csignal>
 #include <cstdio>
 #include <cstring>
+#include <list>
 #include <pthread.h>
 #include <string>
 #include <thread>
@@ -178,6 +179,28 @@ TEST(StdDevicePosix, UngetHandsTheBytesBackToCStdioInOrder)
     EXPECT_EQ(std::getchar(), 'a');
     ASSERT_EQ(d.dget(buf, 2), 2u);
     EXPECT_EQ(std::string(buf, 2), "bc");
+}
+
+// The iterator form takes any bidirectional range: here the reverse of a stack
+// kept with its next byte at the back, as ichannel keeps its read buffer, and a
+// non-contiguous list.
+TEST(StdDevicePosix, UngetTakesTheBytesAsAnIteratorRange)
+{
+    pipe_iguard g("tail");
+    g.close_write();
+    std_input_device d;
+    d.stdio_mode(true);
+
+    const std::list<char> later{'1', '2'};
+    ASSERT_TRUE(d.dunget(later.begin(), later.end()));
+    const std::string stack = "cba";
+    ASSERT_TRUE(d.dunget(stack.crbegin(), stack.crend()));
+
+    char buf[9] = {};
+    std::size_t total = 0;
+    for (std::size_t r; total < sizeof(buf) && (r = d.dget(buf + total, sizeof(buf) - total)) != 0; )
+        total += r;
+    EXPECT_EQ(std::string(buf, total), "abc12tail");
 }
 
 // Past glibc's first 128-byte pushback area, so it has to grow, and with 0xFF in

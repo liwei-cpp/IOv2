@@ -41,6 +41,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstdio>
+#include <iterator>
 
 #include <io.h>
 
@@ -137,7 +138,8 @@ inline bool std_stdin_file_eof()
 // reports success. Whether there is room cannot be asked -- FILE is opaque --
 // and the deof() probe above is safe only because it pushes back the byte it
 // has just read under the same lock.
-inline bool std_stdin_file_unget(const char*, std::size_t)
+template <std::bidirectional_iterator It>
+bool std_stdin_file_unget(It, It)
 {
     return false;
 }
