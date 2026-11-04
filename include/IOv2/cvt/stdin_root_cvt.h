@@ -556,5 +556,24 @@ public:
     {
         detail::stdin_shared_imp.rollback(len);
     }
+
+    /**
+     * @lang{ZH}
+     * 见 `stdin_root_cvt_imp::unget()`。只有本特化提供：字节都在根里，不用 `abs_cvt` 的取数区，
+     * 退回的字节不会排到取数区里的字节之后。
+     * @endif
+     *
+     * @lang{EN}
+     * See `stdin_root_cvt_imp::unget()`. Only this specialization offers it: the bytes are all
+     * in the root, none in the read area of `abs_cvt`, so what is handed back cannot end up
+     * behind bytes in that read area.
+     * @endif
+     */
+    template <std::bidirectional_iterator It>
+        requires std::same_as<std::iter_value_t<It>, char>
+    void unget(It first, It last)
+    {
+        detail::stdin_shared_imp.unget(first, last);
+    }
 };
 }

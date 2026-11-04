@@ -61,11 +61,13 @@
   此前同一段输入分到哪个流不确定；切换其中一个的 `sync_with_stdio()` 就切换了二者，
   `synced_with_stdio()` 总是一致。随之，`reset()` 与 `wcin` 转换器的自动恢复丢掉的已预读
   字节对二者都丢掉。
-- `cin` 每次读操作结束时把偷看、压回的字符退回下层：`cin >> n` 探到的分隔符、`peek()`、
-  `putback()` 的字符，`getchar()` 等与 `wcin` 接着读得到；此前它们留在 `cin` 自己的读缓冲里，
-  别人看不到。随之 `reset()` 在同步时不再能丢掉偷看的字符，它已归 C stdio。`FILE` 不收时
-  （不同步，Windows，或字节缓冲里还有字节）字符进共用的字节缓冲，C stdio 看不到。退回是尽力
-  而为的，失败不报告，字符留在读缓冲里，本流照样先读到。自定义创建器构造的流不退回。
+- `cin` 与 `wcin` 每次读操作结束时把偷看、压回的字符退回下层：`cin >> n` 探到的分隔符、
+  `peek()`、`putback()` 的字符，`getchar()` 等与另一个流接着读得到；此前它们留在本流自己的读
+  缓冲里，别人看不到。`wcin` 的字符重新编码成字节退回，同一字符有多种字节表示的编码可能换成
+  另一种表示；之后 `switch_code()` 切换了编码，这些字节按新编码解码。随之 `reset()` 在同步时
+  不再能丢掉偷看的字符，它已归 C stdio。`FILE` 不收时（不同步，Windows，或字节缓冲里还有
+  字节）字节进共用的字节缓冲，C stdio 看不到。退回是尽力而为的，失败不报告，字符留在读缓冲
+  里，本流照样先读到。自定义创建器构造的流不退回。
 - `file_device` 的构造函数与 `try_open` 改为接受 `std::filesystem::path`，路径编码由传入的
   类型决定：`char` 字符串按平台的原生窄编码（Windows 上为 ANSI 代码页，与 `fopen` 一致），
   `char8_t` 字符串按 UTF-8，`wchar_t` 字符串在 Windows 上即 UTF-16。传入 `std::string` 与
@@ -239,13 +241,16 @@ have no release line of their own.
   `sync_with_stdio()` on either switches both, and `synced_with_stdio()` always
   agrees. With that, bytes read ahead that `reset()` or the automatic recovery of
   `wcin`'s converter drops are dropped for both.
-- When a read operation ends, `cin` hands the characters it peeked at or had put
-  back to the layer below: the delimiter `cin >> n` looked at and the characters
-  of `peek()` and `putback()` are there for `getchar()` and the like and for
-  `wcin` to read next; they used to stay in `cin`'s own read buffer, out of
-  everyone else's sight. With that, a synchronized `reset()` can no longer drop a
-  peeked character, as it is C stdio's now. Where the `FILE` does not take them
-  (unsynchronized, on Windows, or with bytes still in the byte buffer) they go
+- When a read operation ends, `cin` and `wcin` hand the characters they peeked at
+  or had put back to the layer below: the delimiter `cin >> n` looked at and the
+  characters of `peek()` and `putback()` are there for `getchar()` and the like and
+  for the other stream to read next; they used to stay in the stream's own read
+  buffer, out of everyone else's sight. `wcin`'s characters go back encoded into
+  bytes again, so an encoding with several byte forms for one character may come
+  back in another form, and after a `switch_code()` the bytes decode by the new
+  encoding. With that, a synchronized `reset()` can no longer drop a peeked
+  character, as it is C stdio's now. Where the `FILE` does not take them
+  (unsynchronized, on Windows, or with bytes still in the byte buffer) the bytes go
   into the shared byte buffer, out of C stdio's sight. Handing back is best effort:
   a failure is not reported, and the characters stay in the read buffer for this
   stream to read first. A stream built with a custom creator does not hand back.
