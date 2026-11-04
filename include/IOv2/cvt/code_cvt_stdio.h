@@ -29,6 +29,9 @@
 #include <IOv2/cvt/code_cvt.h>
 #include <IOv2/device/std_device.h>
 
+#include <concepts>
+#include <cstddef>
+#include <iterator>
 #include <string>
 #include <type_traits>
 #include <utility>
@@ -239,6 +242,59 @@ public:
     {
         if (this->is_tainted()) recover();
         BT::flush();
+    }
+
+    /**
+     * @lang{ZH}
+     * @brief 接手上层退回的字符 `[first, last)`：重新编码成字节，经下层的 `cvt_reader::unget()`
+     * 交给下层。
+     *
+     * 下一次读取解码这些字节，先得到这些字符。要么全部退回，要么什么也不做：全部编码成功才
+     * 交给下层，失败时抛出，下层与本层的状态都不变。只有 `cvt_reader` 提供 `unget()` 的下层
+     * （`stdin_root_cvt`）才可用。
+     *
+     * @note 退回的是重新编码的结果：同一字符有多种字节表示的编码（CP932、Big5-HKSCS 的重复
+     *       码位）可能换成另一种表示。之后若 `adjust()` 切换了编码，这些字节按新编码解码。
+     * @throws cvt_error 转换器 tainted、编码转换状态不在初始状态，或有字符无法编码。
+     * @throws std::bad_alloc 内存不足。
+     * @endif
+     * @lang{EN}
+     * @brief Takes the characters `[first, last)` handed back from above: encodes them again and
+     * passes the bytes to the layer below through its `cvt_reader::unget()`.
+     *
+     * The next read decodes those bytes and gets these characters first. It is all or nothing:
+     * the layer below gets the bytes only once every character is encoded, and a failure throws
+     * with that layer and this one unchanged. Available only over a layer whose `cvt_reader`
+     * offers `unget()` (`stdin_root_cvt`).
+     *
+     * @note What goes back is the result of encoding again: an encoding with several byte forms
+     *       for one character (the duplicate code points of CP932 and Big5-HKSCS) may come back
+     *       in another form. Should `adjust()` switch the encoding afterwards, the bytes decode
+     *       by the new one.
+     * @throws cvt_error The converter is tainted, the encoding conversion state is not initial,
+     *         or a character cannot be encoded.
+     * @throws std::bad_alloc Out of memory.
+     * @endif
+     */
+    template <std::bidirectional_iterator It>
+        requires (std::same_as<std::iter_value_t<It>, wchar_t> &&
+                  requires (cvt_reader<KernelType>& r, char* p) { r.unget(p, p); })
+    void unget(It first, It last)
+    {
+        if (this->is_tainted() || !this->m_cvt_kernel.is_init_state())
+            throw cvt_error("code_cvt_stdio::unget fail: invalid state");
+
+        const auto n = static_cast<std::size_t>(std::distance(first, last));
+        std::string bytes(n * this->m_cvt_kernel.epc(), '\0');
+        char* to = bytes.data();
+        char* const to_end = to + bytes.size();
+        for (; first != last; ++first)
+        {
+            if (!this->m_cvt_kernel.out_helper(*first, to, to_end))
+                throw cvt_error("code_cvt_stdio::unget fail: cannot encode");
+        }
+
+        BT::kernel_reader().unget(bytes.data(), to);
     }
 
 public:

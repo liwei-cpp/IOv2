@@ -2140,6 +2140,24 @@ namespace IOv2
             m_kernel.put(from, from_size);
         }
 
+        /**
+         * @lang{ZH}
+         * 构造一个读下层的 `cvt_reader`，与 `get()` 传给 `get_main()` 的等价：它的状态都在本类里。
+         * 供派生层在 `get()` 之外使用某种下层的 `cvt_reader` 特有的操作。
+         * @endif
+         *
+         * @lang{EN}
+         * Builds a `cvt_reader` on the layer below, equivalent to the one `get()` passes to
+         * `get_main()`, as its state all lives in this class. For a derived layer to use, outside
+         * `get()`, an operation only the `cvt_reader` of a particular layer below offers.
+         * @endif
+         */
+        cvt_reader<KernelType> kernel_reader()
+            requires (cvt_cpt::support_get<KernelType>)
+        {
+            return cvt_reader<KernelType>(m_kernel, m_tmp_io_buffer, m_rd_cur, m_rd_end);
+        }
+
         [[nodiscard]] std::size_t kernel_tell() const
             requires (cvt_cpt::support_positioning<KernelType>)
         {

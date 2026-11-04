@@ -342,6 +342,114 @@ TEST(IoObjectsWchar, WhatCinPeekedAtIsThereForWcin)
     }
 }
 
+// And the other way round: what wcin peeked at goes back as bytes, for cin to read.
+TEST(IoObjectsWchar, WhatWcinPeekedAtIsThereForCin)
+{
+    for (const bool sync : {true, false})
+    {
+        pipe_iguard g("ab");
+        g.close_write();
+        IOv2::cin.reset();
+        IOv2::wcin.reset();
+        IOv2::cin.sync_with_stdio(sync);
+
+        EXPECT_EQ(IOv2::wcin.peek(), L'a');
+        EXPECT_EQ(IOv2::cin.get(), 'a');
+        EXPECT_EQ(IOv2::wcin.get(), L'b');
+
+        IOv2::cin.sync_with_stdio(true);
+        IOv2::cin.reset();
+        IOv2::wcin.reset();
+    }
+}
+
+// What a formatted extraction peeked at goes back to C stdio, as on cin. It is not wcin's any
+// more, so reset() does not drop it.
+TEST(IoObjectsWchar, SynchronizedWcinHandsThePeekedDelimiterBackToCStdio)
+{
+    pipe_iguard g("12x34y\n");
+    g.close_write();
+    stdin_full_buffer b;
+    IOv2::wcin.reset();
+
+    int n = 0;
+    IOv2::wcin >> n;
+    EXPECT_EQ(n, 12);
+    EXPECT_EQ(std::getchar(), 'x');
+    IOv2::wcin >> n;
+    EXPECT_EQ(n, 34);
+    IOv2::wcin.reset();
+    EXPECT_EQ(std::getchar(), 'y');
+
+    IOv2::wcin.reset();
+}
+
+// A character goes back as the bytes of the current encoding, however many that takes, and
+// characters put back one after another keep their order.
+TEST(IoObjectsWchar, SynchronizedWcinHandsBackAMultibyteCharacterAsItsBytes)
+{
+    pipe_iguard g("\xc3\xa9z");
+    g.close_write();
+    stdin_full_buffer b;
+    IOv2::wcin.reset();
+    const std::string old = IOv2::wcin.switch_code("zh_CN.UTF-8");
+
+    EXPECT_EQ(IOv2::wcin.peek(), L'é');
+    EXPECT_EQ(std::getchar(), 0xc3);
+    EXPECT_EQ(std::getchar(), 0xa9);
+
+    IOv2::wcin.putback(L'b');
+    IOv2::wcin.putback(L'中');
+    EXPECT_EQ(std::getchar(), 0xe4);
+    EXPECT_EQ(std::getchar(), 0xb8);
+    EXPECT_EQ(std::getchar(), 0xad);
+    EXPECT_EQ(IOv2::wcin.get(), L'b');
+    EXPECT_EQ(IOv2::wcin.get(), L'z');
+
+    IOv2::wcin.reset();
+    IOv2::wcin.switch_code(old);
+}
+
+// Unsynchronized the bytes wait in the shared buffer, and wcin decodes them back.
+TEST(IoObjectsWchar, UnsynchronizedWcinReadsBackWhatItHandedBack)
+{
+    pipe_iguard g("\xc3\xa9z");
+    g.close_write();
+    IOv2::wcin.reset();
+    const std::string old = IOv2::wcin.switch_code("zh_CN.UTF-8");
+    IOv2::wcin.sync_with_stdio(false);
+
+    EXPECT_EQ(IOv2::wcin.peek(), L'é');
+    EXPECT_EQ(IOv2::wcin.get(), L'é');
+    IOv2::wcin.putback(L'中');
+    EXPECT_EQ(IOv2::wcin.get(), L'中');
+    EXPECT_EQ(IOv2::wcin.get(), L'z');
+
+    IOv2::wcin.sync_with_stdio(true);
+    IOv2::wcin.reset();
+    IOv2::wcin.switch_code(old);
+}
+
+// A character the encoding cannot express has no bytes to go back as. It stays in wcin's read
+// buffer, which is not reported as a failure, and wcin still reads it first.
+TEST(IoObjectsWchar, ACharacterThatCannotBeEncodedStaysWithWcin)
+{
+    pipe_iguard g("ab");
+    g.close_write();
+    stdin_full_buffer b;
+    IOv2::wcin.reset();
+    const std::string old = IOv2::wcin.switch_code("C");
+
+    IOv2::wcin.putback(L'中');
+    EXPECT_TRUE(IOv2::wcin.good());
+    EXPECT_EQ(std::getchar(), 'a');
+    EXPECT_EQ(IOv2::wcin.get(), L'中');
+    EXPECT_EQ(IOv2::wcin.get(), L'b');
+
+    IOv2::wcin.reset();
+    IOv2::wcin.switch_code(old);
+}
+
 // reset() drops what the shared buffer holds, so it drops it for both streams.
 TEST(IoObjectsWchar, ResetOnOneStreamDropsTheSharedReadAhead)
 {
