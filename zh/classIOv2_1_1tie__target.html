@@ -1,0 +1,360 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=11"/>
+<meta name="generator" content="Doxygen 1.15.0"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>IOv2: IOv2::tie_target类 参考</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<script type="text/javascript" src="clipboard.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<script type="text/javascript" src="cookie.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr id="projectrow">
+  <td id="projectalign">
+   <div id="projectname">IOv2
+   </div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 制作者 Doxygen 1.15.0 -->
+<script type="text/javascript">
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+</script>
+<script type="text/javascript">
+$(function() { codefold.init(); });
+</script>
+<script type="text/javascript" src="menudata.js"></script>
+<script type="text/javascript" src="menu.js"></script>
+<script type="text/javascript">
+$(function() {
+  initMenu('',true,false,'search.php','搜索',true);
+  $(function() { init_search(); });
+});
+</script>
+<div id="main-nav"></div>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+$(function(){initNavTree('classIOv2_1_1tie__target.html','','classIOv2_1_1tie__target-members'); });
+</script>
+<div id="container">
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">载入中...</div>
+<div class="SRStatus" id="Searching">搜索中...</div>
+<div class="SRStatus" id="NoMatches">未找到</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="header">
+  <div class="headertitle"><div class="title">IOv2::tie_target类 参考<span class="mlabels"><span class="mlabel abstract">abstract</span></span></div></div>
+</div><!--header-->
+<div class="contents">
+
+<p>承载多态 <span class="tt"><a class="el" href="#aca5f7a6668cb213ab95c100d80c6560d" title="尽力刷新本流及其下游 tie 链的纯虚接口；由 out_tie_target&lt;T&gt; 实现。">try_flush()</a></span> 接口的抽象基类。  
+ <a href="#details">更多...</a></p>
+
+<p><code>#include &lt;<a class="el" href="ostream__operators_8h_source.html">ostream_operators.h</a>&gt;</code></p>
+<div class="dynheader">
+类 IOv2::tie_target 继承关系图:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="classIOv2_1_1tie__target__inherit__graph.svg" width="820" height="531"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<center><span class="legend">[<a target="top" href="graph_legend.html">图例</a>]</span></center></div>
+<table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
+Public 成员函数</h2></td></tr>
+<tr class="memitem:a345ecc4fb2ab275da6acbee1f4d32a10" id="r_a345ecc4fb2ab275da6acbee1f4d32a10"><td class="memItemLeft" align="right" valign="top">virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a345ecc4fb2ab275da6acbee1f4d32a10">~tie_target</a> ()=default</td></tr>
+<tr class="memitem:aca5f7a6668cb213ab95c100d80c6560d" id="r_aca5f7a6668cb213ab95c100d80c6560d"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aca5f7a6668cb213ab95c100d80c6560d">try_flush</a> () noexcept=0</td></tr>
+<tr class="memdesc:aca5f7a6668cb213ab95c100d80c6560d"><td class="mdescLeft">&#160;</td><td class="mdescRight">尽力刷新本流及其下游 tie 链的纯虚接口；由 <span class="tt"><a class="el" href="structIOv2_1_1out__tie__target.html" title="承载多态 try_flush() 的 CRTP 基类：对具体流类型 T 的向下转型集中于此。">out_tie_target</a>&lt;T&gt;</span> 实现。  <br /></td></tr>
+<tr class="memitem:a803409c8f768b95ead7bb877af51af21" id="r_a803409c8f768b95ead7bb877af51af21"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="#a60de2227fe2a61ccd5e60982d06ed488">tie_target</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a803409c8f768b95ead7bb877af51af21">tied_to</a> () const noexcept</td></tr>
+<tr class="memdesc:a803409c8f768b95ead7bb877af51af21"><td class="mdescLeft">&#160;</td><td class="mdescRight">本节点在 tie 图上的出边：本流 tie 到的目标；不带出边的节点返回 <span class="tt">nullptr</span>。  <br /></td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 id="header-pro-methods" class="groupheader"><a id="pro-methods" name="pro-methods"></a>
+Protected 成员函数</h2></td></tr>
+<tr class="memitem:a60de2227fe2a61ccd5e60982d06ed488" id="r_a60de2227fe2a61ccd5e60982d06ed488"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a60de2227fe2a61ccd5e60982d06ed488">tie_target</a> ()=default</td></tr>
+<tr class="memitem:aaa62a2354a173c43e767423a2559e517" id="r_aaa62a2354a173c43e767423a2559e517"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aaa62a2354a173c43e767423a2559e517">tie_target</a> (const tie_target &amp;)=default</td></tr>
+<tr class="memitem:ac3b4c12998636692247fcda7b17e44d1" id="r_ac3b4c12998636692247fcda7b17e44d1"><td class="memItemLeft" align="right" valign="top"><a class="el" href="#a60de2227fe2a61ccd5e60982d06ed488">tie_target</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ac3b4c12998636692247fcda7b17e44d1">operator=</a> (const <a class="el" href="#a60de2227fe2a61ccd5e60982d06ed488">tie_target</a> &amp;)=default</td></tr>
+<tr class="memitem:a3caf7f668fb0a68fabc7aff871b88038" id="r_a3caf7f668fb0a68fabc7aff871b88038"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a3caf7f668fb0a68fabc7aff871b88038">tie_target</a> (tie_target &amp;&amp;)=default</td></tr>
+<tr class="memitem:a97be466625ea5cb43a35feb49be8f34c" id="r_a97be466625ea5cb43a35feb49be8f34c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="#a60de2227fe2a61ccd5e60982d06ed488">tie_target</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a97be466625ea5cb43a35feb49be8f34c">operator=</a> (<a class="el" href="#a60de2227fe2a61ccd5e60982d06ed488">tie_target</a> &amp;&amp;)=default</td></tr>
+</table>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">详细描述</h2>
+<div class="textblock"><p>承载多态 <span class="tt"><a class="el" href="#aca5f7a6668cb213ab95c100d80c6560d" title="尽力刷新本流及其下游 tie 链的纯虚接口；由 out_tie_target&lt;T&gt; 实现。">try_flush()</a></span> 接口的抽象基类。 </p>
+<p>提供纯虚的 <span class="tt"><a class="el" href="#aca5f7a6668cb213ab95c100d80c6560d" title="尽力刷新本流及其下游 tie 链的纯虚接口；由 out_tie_target&lt;T&gt; 实现。">try_flush()</a></span>，使得可通过基类指针以类型无关的方式刷新任意 tie 目标；输出流的 实现由 CRTP 派生类 <span class="tt"><a class="el" href="structIOv2_1_1out__tie__target.html" title="承载多态 try_flush() 的 CRTP 基类：对具体流类型 T 的向下转型集中于此。">out_tie_target</a>&lt;T&gt;</span> 给出。</p>
+<dl class="section warning"><dt>警告</dt><dd><b>用户不得派生本类。</b> 本类只供 <span class="tt"><a class="el" href="structIOv2_1_1out__tie__target.html" title="承载多态 try_flush() 的 CRTP 基类：对具体流类型 T 的向下转型集中于此。">out_tie_target</a>&lt;T&gt;</span> 实现（构造函数为 <span class="tt">protected</span> 只为此），tie 目标应当是本库的一条输出流；派生本类不对应任何合理的用法。它的两个 虚函数还各有调用方看不见的约束：<span class="tt"><a class="el" href="#aca5f7a6668cb213ab95c100d80c6560d" title="尽力刷新本流及其下游 tie 链的纯虚接口；由 out_tie_target&lt;T&gt; 实现。">try_flush()</a></span> 在发起方持有自己的流锁时被调用， <span class="tt"><a class="el" href="#a803409c8f768b95ead7bb877af51af21" title="本节点在 tie 图上的出边：本流 tie 到的目标；不带出边的节点返回 nullptr。">tied_to()</a></span> 在持有进程级 <span class="tt"><a class="el" href="namespaceIOv2.html#a1c90f61114b32e3ec4f5817bceecb42f" title="返回保护整张 tie 图的进程级全局锁。">tie_graph_mutex()</a></span> 时被调用。自定义实现若在其中阻塞地 取锁或调用 <span class="tt">tie()</span>，就会死锁，或对非递归锁重复加锁（未定义行为）。 </dd></dl>
+</div><a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">构造及析构函数说明</h2>
+<a id="a345ecc4fb2ab275da6acbee1f4d32a10" name="a345ecc4fb2ab275da6acbee1f4d32a10"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a345ecc4fb2ab275da6acbee1f4d32a10">&#9670;&#160;</a></span>~tie_target()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual IOv2::tie_target::~tie_target </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel virtual">virtual</span><span class="mlabel default">default</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a60de2227fe2a61ccd5e60982d06ed488" name="a60de2227fe2a61ccd5e60982d06ed488"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a60de2227fe2a61ccd5e60982d06ed488">&#9670;&#160;</a></span>tie_target() <span class="overload">[1/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">IOv2::tie_target::tie_target </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel protected">protected</span><span class="mlabel default">default</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="aaa62a2354a173c43e767423a2559e517" name="aaa62a2354a173c43e767423a2559e517"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aaa62a2354a173c43e767423a2559e517">&#9670;&#160;</a></span>tie_target() <span class="overload">[2/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">IOv2::tie_target::tie_target </td>
+          <td>(</td>
+          <td class="paramtype">const tie_target &amp;</td>          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel protected">protected</span><span class="mlabel default">default</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a3caf7f668fb0a68fabc7aff871b88038" name="a3caf7f668fb0a68fabc7aff871b88038"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3caf7f668fb0a68fabc7aff871b88038">&#9670;&#160;</a></span>tie_target() <span class="overload">[3/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">IOv2::tie_target::tie_target </td>
+          <td>(</td>
+          <td class="paramtype">tie_target &amp;&amp;</td>          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel protected">protected</span><span class="mlabel default">default</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">成员函数说明</h2>
+<a id="ac3b4c12998636692247fcda7b17e44d1" name="ac3b4c12998636692247fcda7b17e44d1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac3b4c12998636692247fcda7b17e44d1">&#9670;&#160;</a></span>operator=() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="#a60de2227fe2a61ccd5e60982d06ed488">tie_target</a> &amp; IOv2::tie_target::operator= </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="#a60de2227fe2a61ccd5e60982d06ed488">tie_target</a> &amp;</td>          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel protected">protected</span><span class="mlabel default">default</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a97be466625ea5cb43a35feb49be8f34c" name="a97be466625ea5cb43a35feb49be8f34c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a97be466625ea5cb43a35feb49be8f34c">&#9670;&#160;</a></span>operator=() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="#a60de2227fe2a61ccd5e60982d06ed488">tie_target</a> &amp; IOv2::tie_target::operator= </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="#a60de2227fe2a61ccd5e60982d06ed488">tie_target</a> &amp;&amp;</td>          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel protected">protected</span><span class="mlabel default">default</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a803409c8f768b95ead7bb877af51af21" name="a803409c8f768b95ead7bb877af51af21"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a803409c8f768b95ead7bb877af51af21">&#9670;&#160;</a></span>tied_to()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual <a class="el" href="#a60de2227fe2a61ccd5e60982d06ed488">tie_target</a> * IOv2::tie_target::tied_to </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel nodiscard">nodiscard</span><span class="mlabel virtual">virtual</span><span class="mlabel noexcept">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>本节点在 tie 图上的出边：本流 tie 到的目标；不带出边的节点返回 <span class="tt">nullptr</span>。 </p>
+<p>供 <span class="tt">basic_stream_common_operators::check_tie</span> 判环、<span class="tt"><a class="el" href="structIOv2_1_1out__tie__target.html#a671cc712b8a6be1811ef0cb34c2d70c5">out_tie_target::try_flush()</a></span> 逐级刷新 时沿链遍历。经虚函数而不是交叉转换取出边：普通流与标准流的公共基类是 <span class="tt"><a class="el" href="structIOv2_1_1basic__stream__common__operators.html" title="为输入流与输出流提供公共操作的混入（mix-in）基类。">basic_stream_common_operators</a></span> 的两个不同实例化，<span class="tt">dynamic_cast</span> 到其中一个，链会在另一种 流处断开，经过它的环就查不出来，刷新也传不过去。<span class="tt">check_tie</span> 在持有进程级 <span class="tt"><a class="el" href="namespaceIOv2.html#a1c90f61114b32e3ec4f5817bceecb42f" title="返回保护整张 tie 图的进程级全局锁。">tie_graph_mutex()</a></span> 时调用它，<span class="tt"><a class="el" href="#aca5f7a6668cb213ab95c100d80c6560d" title="尽力刷新本流及其下游 tie 链的纯虚接口；由 out_tie_target&lt;T&gt; 实现。">try_flush()</a></span> 则不持该锁；<span class="tt"><a class="el" href="structIOv2_1_1out__tie__target.html" title="承载多态 try_flush() 的 CRTP 基类：对具体流类型 T 的向下转型集中于此。">out_tie_target</a></span> 的实现只做原子读， 故为 <span class="tt">noexcept</span>。 缺省返回 <span class="tt">nullptr</span>，即不带出边的节点。 </p>
+
+<p>被 <a class="el" href="structIOv2_1_1out__tie__target.html#a0dba48b6118164f3ddf159ec199ea96f">IOv2::out_tie_target&lt; T &gt;</a>, <a class="el" href="structIOv2_1_1out__tie__target.html#a0dba48b6118164f3ddf159ec199ea96f">IOv2::out_tie_target&lt; iostream&lt; TDevice, TChar &gt; &gt;</a>, <a class="el" href="structIOv2_1_1out__tie__target.html#a0dba48b6118164f3ddf159ec199ea96f">IOv2::out_tie_target&lt; ostream&lt; TDevice, TChar &gt; &gt;</a> , 以及 <a class="el" href="structIOv2_1_1out__tie__target.html#a0dba48b6118164f3ddf159ec199ea96f">IOv2::out_tie_target&lt; stdout_api&lt; TDevice, TChar &gt; &gt;</a> 重载.</p>
+
+</div>
+</div>
+<a id="aca5f7a6668cb213ab95c100d80c6560d" name="aca5f7a6668cb213ab95c100d80c6560d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aca5f7a6668cb213ab95c100d80c6560d">&#9670;&#160;</a></span>try_flush()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual void IOv2::tie_target::try_flush </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel pure-virtual">pure virtual</span><span class="mlabel noexcept">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>尽力刷新本流及其下游 tie 链的纯虚接口；由 <span class="tt"><a class="el" href="structIOv2_1_1out__tie__target.html" title="承载多态 try_flush() 的 CRTP 基类：对具体流类型 T 的向下转型集中于此。">out_tie_target</a>&lt;T&gt;</span> 实现。 </p>
+<dl class="section warning"><dt>警告</dt><dd><b>实现必须非阻塞。</b> 哨兵在持有自己流的锁时调用本函数，而这条加锁边对用户不可见， 他无从把它纳入自己的锁序；实现若改用阻塞的 <span class="tt">lock()</span>，AB-BA 死锁立即回归。取锁 失败时必须直接返回，不得等待，也不留任何补偿——tie 因此是尽力而为，不是保证。 这只管流锁：取到锁之后，标准流的刷新（<span class="tt">fflush</span>）仍可能等 stdio 的 <span class="tt">FILE</span> 锁，那条 加锁边按「先流锁、后 <span class="tt">FILE</span> 锁」处理，见 <span class="tt"><a class="el" href="structIOv2_1_1sync.html" title="对流的 I/O 互斥量进行 RAII 加锁的辅助类。">IOv2::sync</a></span> 的第二条 <span class="tt">@warning</span>。 </dd>
+<dd>
+<b>实现必须自行吞掉刷新过程中的一切异常，故声明为 <span class="tt">noexcept</span>。</b> 本函数的调用点 位于哨兵构造函数中，而哨兵构造在**发起方**流的 <span class="tt">try</span> 块内（见 <span class="tt"><a class="el" href="ostream__operators_8h.html">ostream_operators.h</a></span> 的插入运算符）；异常一旦逸出，就会被那里的 <span class="tt">catch</span> 交给 <b>发起方**的 <span class="tt">handle_exception</span>，于是本流（tie 目标）的失败被记成发起方的失败： 发起方会拿到一个描述**别人的</b> iochannel 的 <span class="tt"><a class="el" href="structIOv2_1_1cvt__error.html">cvt_error</a></span>，并按异常类型置上自己 从未发生过的 <span class="tt">cvtfailbit</span>。<span class="tt">noexcept</span> 把"失败只记在 tie 目标身上"这条归属规则 变成编译期约束，而不再依赖每个调用点自觉包一层 <span class="tt">catch (...)</span>。 </dd></dl>
+
+<p>在 <a class="el" href="structIOv2_1_1out__tie__target.html#a671cc712b8a6be1811ef0cb34c2d70c5">IOv2::out_tie_target&lt; T &gt;</a>, <a class="el" href="structIOv2_1_1out__tie__target.html#a671cc712b8a6be1811ef0cb34c2d70c5">IOv2::out_tie_target&lt; iostream&lt; TDevice, TChar &gt; &gt;</a>, <a class="el" href="structIOv2_1_1out__tie__target.html#a671cc712b8a6be1811ef0cb34c2d70c5">IOv2::out_tie_target&lt; ostream&lt; TDevice, TChar &gt; &gt;</a> , 以及 <a class="el" href="structIOv2_1_1out__tie__target.html#a671cc712b8a6be1811ef0cb34c2d70c5">IOv2::out_tie_target&lt; stdout_api&lt; TDevice, TChar &gt; &gt;</a> 内被实现.</p>
+
+</div>
+</div>
+<hr/>该类的文档由以下文件生成:<ul>
+<li>include/IOv2/io/utilities/<a class="el" href="ostream__operators_8h_source.html">ostream_operators.h</a></li>
+</ul>
+</div><!-- contents -->
+</div><!-- doc-content -->
+<div id="page-nav" class="page-nav-panel">
+<div id="page-nav-resize-handle"></div>
+<div id="page-nav-tree">
+<div id="page-nav-contents">
+</div><!-- page-nav-contents -->
+</div><!-- page-nav-tree -->
+</div><!-- page-nav -->
+</div><!-- container -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><a href="namespaceIOv2.html">IOv2</a></li><li class="navelem"><a href="classIOv2_1_1tie__target.html">tie_target</a></li>
+    <li class="footer">制作者 <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.15.0 </li>
+  </ul>
+</div>
+</body>
+</html>

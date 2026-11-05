@@ -1,0 +1,7 @@
+<map id="IOv2::detail::maker_probe&lt; TPct &gt;" name="IOv2::detail::maker_probe&lt; TPct &gt;">
+<area shape="rect" id="Node000001" title="Inherits both the specialization under test and the tag, so a member of that name appears once in eac..." alt="" coords="17,98,163,143"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,14,55,42"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="48,52,78,97,73,98,46,57"/>
+<area shape="rect" id="Node000003" href="$structIOv2_1_1detail_1_1maker__probe__tag.html" title="Tag for the name probe; its own member of that name is what maker_probe collides with...." alt="" coords="79,5,224,50"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="130,62,106,100,102,96,126,64"/>
+</map>

@@ -1,0 +1,338 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=11"/>
+<meta name="generator" content="Doxygen 1.15.0"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>IOv2: IOv2::out_sentry&lt; TStream, involve_input, is_std &gt; 模板结构体 参考</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<script type="text/javascript" src="clipboard.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<script type="text/javascript" src="cookie.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr id="projectrow">
+  <td id="projectalign">
+   <div id="projectname">IOv2
+   </div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 制作者 Doxygen 1.15.0 -->
+<script type="text/javascript">
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+</script>
+<script type="text/javascript">
+$(function() { codefold.init(); });
+</script>
+<script type="text/javascript" src="menudata.js"></script>
+<script type="text/javascript" src="menu.js"></script>
+<script type="text/javascript">
+$(function() {
+  initMenu('',true,false,'search.php','搜索',true);
+  $(function() { init_search(); });
+});
+</script>
+<div id="main-nav"></div>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+$(function(){initNavTree('structIOv2_1_1out__sentry.html','','structIOv2_1_1out__sentry-members'); });
+</script>
+<div id="container">
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">载入中...</div>
+<div class="SRStatus" id="Searching">搜索中...</div>
+<div class="SRStatus" id="NoMatches">未找到</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="header">
+  <div class="headertitle"><div class="title">IOv2::out_sentry&lt; TStream, involve_input, is_std &gt; 模板结构体 参考</div></div>
+</div><!--header-->
+<div class="contents">
+
+<p>输出操作的 RAII 哨兵：在每次插入操作的入口统一完成前置准备与末尾自动刷新。  
+ <a href="#details">更多...</a></p>
+
+<p><code>#include &lt;<a class="el" href="ostream__operators_8h_source.html">ostream_operators.h</a>&gt;</code></p>
+<table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
+Public 成员函数</h2></td></tr>
+<tr class="memitem:a3eb4d56f578ad5fa94bc205280262b2f" id="r_a3eb4d56f578ad5fa94bc205280262b2f"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a3eb4d56f578ad5fa94bc205280262b2f">out_sentry</a> (TStream &amp;os, bool is_unit_buf, bool is_app_mode)</td></tr>
+<tr class="memdesc:a3eb4d56f578ad5fa94bc205280262b2f"><td class="mdescLeft">&#160;</td><td class="mdescRight">构造输出哨兵：校验流、刷新关联流，并按需切换读写方向 / 定位到末尾。  <br /></td></tr>
+<tr class="memitem:ad034c9b260a8fdfe6382273a9708c603" id="r_ad034c9b260a8fdfe6382273a9708c603"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad034c9b260a8fdfe6382273a9708c603">~out_sentry</a> () noexcept(false)</td></tr>
+<tr class="memdesc:ad034c9b260a8fdfe6382273a9708c603"><td class="mdescLeft">&#160;</td><td class="mdescRight">析构时对 unitbuf / 与 stdio 同步的流执行自动刷新，并按异常掩码决定是否上报失败。  <br /></td></tr>
+<tr class="memitem:a11c184c273efe80b8f3c8e4dedc47395" id="r_a11c184c273efe80b8f3c8e4dedc47395"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a11c184c273efe80b8f3c8e4dedc47395">out_sentry</a> (const out_sentry &amp;)=delete</td></tr>
+<tr class="memitem:a285ce1110a764cd9478985da52a18f1e" id="r_a285ce1110a764cd9478985da52a18f1e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="#a3eb4d56f578ad5fa94bc205280262b2f">out_sentry</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a285ce1110a764cd9478985da52a18f1e">operator=</a> (const <a class="el" href="#a3eb4d56f578ad5fa94bc205280262b2f">out_sentry</a> &amp;)=delete</td></tr>
+<tr class="memitem:a463ef8f90f554015e1b887a92fe9c376" id="r_a463ef8f90f554015e1b887a92fe9c376"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a463ef8f90f554015e1b887a92fe9c376">out_sentry</a> (out_sentry &amp;&amp;)=delete</td></tr>
+<tr class="memitem:a71f1d7ae9886eea7107b7c52d3f3420f" id="r_a71f1d7ae9886eea7107b7c52d3f3420f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="#a3eb4d56f578ad5fa94bc205280262b2f">out_sentry</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a71f1d7ae9886eea7107b7c52d3f3420f">operator=</a> (<a class="el" href="#a3eb4d56f578ad5fa94bc205280262b2f">out_sentry</a> &amp;&amp;)=delete</td></tr>
+</table>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">详细描述</h2>
+<div class="textblock"><div class="compoundTemplParams">template&lt;typename TStream, bool involve_input, bool is_std = false&gt;<br />
+struct IOv2::out_sentry&lt; TStream, involve_input, is_std &gt;</div><p>输出操作的 RAII 哨兵：在每次插入操作的入口统一完成前置准备与末尾自动刷新。 </p>
+<p>哨兵负责校验流的有效性、刷新关联（tie）流，并在需要时切换读写方向、 （追加模式下）定位到末尾；析构时对 unitbuf / 与 stdio 同步的流执行自动刷新。 哨兵不可拷贝、不可移动。 </p><dl class="tparams"><dt>模板参数</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">TStream</td><td>关联的输出流类型。 </td></tr>
+    <tr><td class="paramname">involve_input</td><td>若为 <span class="tt">true</span>，表示该流同时支持输入，构造时会将底层缓冲区 切换到写入模式（<span class="tt">switch_to_put</span>）。 </td></tr>
+    <tr><td class="paramname">is_std</td><td>若为 <span class="tt">true</span>，表示这是标准流：读取其 <span class="tt">m_sync_with_stdio</span> 与 <span class="tt">m_exited</span> 以决定析构刷新， 且不执行追加模式的末尾定位。 </td></tr>
+  </table>
+  </dd>
+</dl>
+</div><a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">构造及析构函数说明</h2>
+<a id="a3eb4d56f578ad5fa94bc205280262b2f" name="a3eb4d56f578ad5fa94bc205280262b2f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3eb4d56f578ad5fa94bc205280262b2f">&#9670;&#160;</a></span>out_sentry() <span class="overload">[1/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename TStream, bool involve_input, bool is_std = false&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="structIOv2_1_1out__sentry.html">IOv2::out_sentry</a>&lt; TStream, involve_input, is_std &gt;::out_sentry </td>
+          <td>(</td>
+          <td class="paramtype">TStream &amp;</td>          <td class="paramname"><span class="paramname"><em>os</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool</td>          <td class="paramname"><span class="paramname"><em>is_unit_buf</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool</td>          <td class="paramname"><span class="paramname"><em>is_app_mode</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>构造输出哨兵：校验流、刷新关联流，并按需切换读写方向 / 定位到末尾。 </p>
+<dl class="section warning"><dt>警告</dt><dd><b>调用方必须已经持有 <span class="tt">os.io_mutex()</span>，必须有自己的 <span class="tt">catch</span>，且锁要持到那个 <span class="tt">catch</span> 之后。</b> 哨兵自己不加锁：它在 <span class="tt">try</span> 块末尾就析构了，而 <span class="tt">catch</span> 里的 <span class="tt">handle_exception</span> 需要在锁内更新流状态，才能让成功路径与失败路径对同一把 <span class="tt">io_mutex()</span> 的可见性保持一致；析构中的 unitbuf/stdio 刷新同样依赖那把仍被持有的锁。 把异常留给外层的 <span class="tt">catch</span>（例如运算符那层）**不够**：栈展开会先析构本地的锁守卫，置位 就落到解锁之后了。锁因此必须是调用方的局部变量，而不是哨兵的成员。</dd></dl>
+<p>关联流的刷新走 <span class="tt"><a class="el" href="classIOv2_1_1tie__target.html#aca5f7a6668cb213ab95c100d80c6560d" title="尽力刷新本流及其下游 tie 链的纯虚接口；由 out_tie_target&lt;T&gt; 实现。">tie_target::try_flush()</a></span>，取不到对方的锁就跳过，绝不阻塞；它还会沿 tie 链 逐级往下刷（见 <span class="tt"><a class="el" href="structIOv2_1_1out__tie__target.html#a671cc712b8a6be1811ef0cb34c2d70c5">out_tie_target::try_flush()</a></span>），每一级同样不阻塞。本线程因此可以安全地在 持有本流锁的状态下发起它：tie 这条用户看不见的加锁边永远不会成为等待边，死锁只可能由用户 自己能定序的锁构成。 </p><dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">os</td><td>要操作的输出流。 </td></tr>
+    <tr><td class="paramname">is_unit_buf</td><td>是否为 unitbuf 流（决定析构时是否自动刷新并对设备 <span class="tt">dflush</span>）。 </td></tr>
+    <tr><td class="paramname">is_app_mode</td><td>是否为追加模式；非标准流在追加模式下会在构造时定位到末尾。 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="exception"><dt>异常</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname"><a class="el" href="structIOv2_1_1stream__error.html">stream_error</a></td><td>若流无效。 </td></tr>
+    <tr><td class="paramname"><a class="el" href="structIOv2_1_1cvt__error.html">cvt_error</a></td><td>若追加模式下无法定位到末尾（追加模式要求定长、与状态无关的编码）。   </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="ad034c9b260a8fdfe6382273a9708c603" name="ad034c9b260a8fdfe6382273a9708c603"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad034c9b260a8fdfe6382273a9708c603">&#9670;&#160;</a></span>~out_sentry()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename TStream, bool involve_input, bool is_std = false&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="structIOv2_1_1out__sentry.html">IOv2::out_sentry</a>&lt; TStream, involve_input, is_std &gt;::~<a class="el" href="#a3eb4d56f578ad5fa94bc205280262b2f">out_sentry</a> </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>析构时对 unitbuf / 与 stdio 同步的流执行自动刷新，并按异常掩码决定是否上报失败。 </p>
+<p>对设置了 unitbuf 或与 stdio 同步的流，析构会把缓冲区 <span class="tt"><a class="el" href="namespaceIOv2.html#ad6174b7289d2487b638d51cda9b9fe9a">flush()</a></span> 出去（unitbuf 时再对设备 <span class="tt">dflush()</span>）。标准流的退出钩子跑过之后同样如此，并且总是再 <span class="tt">dflush()</span>：这次插入可能结束在 glibc 退出时最后一次冲刷 stdio 之后，交给 stdio 的字节不再有人冲刷。刷新失败经 <span class="tt">handle_exception</span> 上报：按类别置 <span class="tt">devfailbit</span>/<span class="tt">cvtfailbit</span>/<span class="tt">strfailbit</span>，并在该位处于 异常掩码时抛出。无失败位入掩码时（默认）只置位不抛。</p>
+<p>若析构发生在栈展开期间，则仍尝试刷新但**只置位、绝不抛出**，以免触发 <span class="tt">std::terminate</span>； 该判定由 <span class="tt">handle_exception</span> 自身完成。为使正常退出路径的通知得以传播，本析构声明为 <span class="tt">noexcept(false)</span>。 </p>
+
+</div>
+</div>
+<a id="a11c184c273efe80b8f3c8e4dedc47395" name="a11c184c273efe80b8f3c8e4dedc47395"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a11c184c273efe80b8f3c8e4dedc47395">&#9670;&#160;</a></span>out_sentry() <span class="overload">[2/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename TStream, bool involve_input, bool is_std = false&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="structIOv2_1_1out__sentry.html">IOv2::out_sentry</a>&lt; TStream, involve_input, is_std &gt;::out_sentry </td>
+          <td>(</td>
+          <td class="paramtype">const out_sentry&lt; TStream, involve_input, is_std &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel delete">delete</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a463ef8f90f554015e1b887a92fe9c376" name="a463ef8f90f554015e1b887a92fe9c376"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a463ef8f90f554015e1b887a92fe9c376">&#9670;&#160;</a></span>out_sentry() <span class="overload">[3/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename TStream, bool involve_input, bool is_std = false&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="structIOv2_1_1out__sentry.html">IOv2::out_sentry</a>&lt; TStream, involve_input, is_std &gt;::out_sentry </td>
+          <td>(</td>
+          <td class="paramtype">out_sentry&lt; TStream, involve_input, is_std &gt; &amp;&amp;</td>          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel delete">delete</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">成员函数说明</h2>
+<a id="a285ce1110a764cd9478985da52a18f1e" name="a285ce1110a764cd9478985da52a18f1e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a285ce1110a764cd9478985da52a18f1e">&#9670;&#160;</a></span>operator=() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename TStream, bool involve_input, bool is_std = false&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="#a3eb4d56f578ad5fa94bc205280262b2f">out_sentry</a> &amp; <a class="el" href="structIOv2_1_1out__sentry.html">IOv2::out_sentry</a>&lt; TStream, involve_input, is_std &gt;::operator= </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="#a3eb4d56f578ad5fa94bc205280262b2f">out_sentry</a>&lt; TStream, involve_input, is_std &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel delete">delete</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a71f1d7ae9886eea7107b7c52d3f3420f" name="a71f1d7ae9886eea7107b7c52d3f3420f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a71f1d7ae9886eea7107b7c52d3f3420f">&#9670;&#160;</a></span>operator=() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename TStream, bool involve_input, bool is_std = false&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="#a3eb4d56f578ad5fa94bc205280262b2f">out_sentry</a> &amp; <a class="el" href="structIOv2_1_1out__sentry.html">IOv2::out_sentry</a>&lt; TStream, involve_input, is_std &gt;::operator= </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="#a3eb4d56f578ad5fa94bc205280262b2f">out_sentry</a>&lt; TStream, involve_input, is_std &gt; &amp;&amp;</td>          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel delete">delete</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<hr/>该结构体的文档由以下文件生成:<ul>
+<li>include/IOv2/io/utilities/<a class="el" href="ostream__operators_8h_source.html">ostream_operators.h</a></li>
+</ul>
+</div><!-- contents -->
+</div><!-- doc-content -->
+<div id="page-nav" class="page-nav-panel">
+<div id="page-nav-resize-handle"></div>
+<div id="page-nav-tree">
+<div id="page-nav-contents">
+</div><!-- page-nav-contents -->
+</div><!-- page-nav-tree -->
+</div><!-- page-nav -->
+</div><!-- container -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><a href="namespaceIOv2.html">IOv2</a></li><li class="navelem"><a href="structIOv2_1_1out__sentry.html">out_sentry</a></li>
+    <li class="footer">制作者 <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.15.0 </li>
+  </ul>
+</div>
+</body>
+</html>

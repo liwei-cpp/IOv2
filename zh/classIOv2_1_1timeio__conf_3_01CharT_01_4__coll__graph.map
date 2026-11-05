@@ -1,0 +1,14 @@
+<map id="IOv2::timeio_conf&lt; CharT &gt;" name="IOv2::timeio_conf&lt; CharT &gt;">
+<area shape="rect" id="Node000001" title="timeio facet 的宽字符（wchar_t / char32_t UTF&#45;32）locale 配置类。" alt="" coords="116,294,263,339"/>
+<area shape="rect" id="Node000002" href="$classIOv2_1_1ft__basic_3_01timeio_3_01CharT_01_4_01_4.html" title="timeio facet 的基类模板特化。" alt="" coords="11,200,178,245"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="129,253,170,293,164,294,127,258"/>
+<area shape="rect" id="Node000003" href="$classIOv2_1_1base__ft_3_01timeio_01_4.html" title="timeio 的中间基类特化，持有与字符类型无关的时区数据。" alt="" coords="5,123,184,151"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="95,164,97,200,92,199,94,169"/>
+<area shape="rect" id="Node000004" href="$structIOv2_1_1abs__ft.html" title=" " alt="" coords="45,14,144,42"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="87,55,91,123,86,122,86,60"/>
+<area shape="poly" id="edge4_Node000003_Node000004" title=" " alt="" coords="103,55,103,123,98,122,102,60"/>
+<area shape="rect" id="Node000005" href="$classIOv2_1_1prefix__tree.html" title=" " alt="" coords="168,5,338,50"/>
+<area shape="poly" id="edge5_Node000003_Node000005" title=" " alt="" coords="207,61,116,124,112,120,210,57"/>
+<area shape="rect" id="Node000006" href="$classIOv2_1_1ft__basic.html" title=" " alt="" coords="202,200,368,245"/>
+<area shape="poly" id="edge6_Node000001_Node000006" title=" " alt="" coords="254,255,213,296,210,291,249,257"/>
+</map>

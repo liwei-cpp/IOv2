@@ -1,0 +1,182 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=11"/>
+<meta name="generator" content="Doxygen 1.15.0"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>IOv2: include/IOv2/facet/timeio_details.h 文件参考</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<script type="text/javascript" src="clipboard.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<script type="text/javascript" src="cookie.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr id="projectrow">
+  <td id="projectalign">
+   <div id="projectname">IOv2
+   </div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 制作者 Doxygen 1.15.0 -->
+<script type="text/javascript">
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+</script>
+<script type="text/javascript">
+$(function() { codefold.init(); });
+</script>
+<script type="text/javascript" src="menudata.js"></script>
+<script type="text/javascript" src="menu.js"></script>
+<script type="text/javascript">
+$(function() {
+  initMenu('',true,false,'search.php','搜索',true);
+  $(function() { init_search(); });
+});
+</script>
+<div id="main-nav"></div>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+$(function(){initNavTree('timeio__details_8h.html','',''); });
+</script>
+<div id="container">
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">载入中...</div>
+<div class="SRStatus" id="Searching">搜索中...</div>
+<div class="SRStatus" id="NoMatches">未找到</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="header">
+  <div class="headertitle"><div class="title">timeio_details.h 文件参考</div></div>
+</div><!--header-->
+<div class="contents">
+<div class="textblock"><code>#include &lt;<a class="el" href="clocale__wrapper_8h_source.html">IOv2/common/clocale_wrapper.h</a>&gt;</code><br />
+<code>#include &lt;<a class="el" href="defs_8h_source.html">IOv2/common/defs.h</a>&gt;</code><br />
+<code>#include &lt;<a class="el" href="metafunctions_8h_source.html">IOv2/common/metafunctions.h</a>&gt;</code><br />
+<code>#include &lt;<a class="el" href="prefix__tree_8h_source.html">IOv2/common/prefix_tree.h</a>&gt;</code><br />
+<code>#include &lt;<a class="el" href="cvt__facilities_8h_source.html">IOv2/cvt/cvt_facilities.h</a>&gt;</code><br />
+<code>#include &lt;<a class="el" href="facet__common_8h_source.html">IOv2/facet/facet_common.h</a>&gt;</code><br />
+<code>#include &lt;<a class="el" href="facet__helper_8h_source.html">IOv2/facet/facet_helper.h</a>&gt;</code><br />
+<code>#include &lt;array&gt;</code><br />
+<code>#include &lt;chrono&gt;</code><br />
+<code>#include &lt;cstddef&gt;</code><br />
+<code>#include &lt;cstdint&gt;</code><br />
+<code>#include &lt;cstring&gt;</code><br />
+<code>#include &lt;cwchar&gt;</code><br />
+<code>#include &lt;limits&gt;</code><br />
+<code>#include &lt;map&gt;</code><br />
+<code>#include &lt;optional&gt;</code><br />
+<code>#include &lt;string&gt;</code><br />
+<code>#include &lt;string_view&gt;</code><br />
+<code>#include &lt;type_traits&gt;</code><br />
+<code>#include &lt;utility&gt;</code><br />
+<code>#include &lt;vector&gt;</code><br />
+<code>#include &lt;langinfo.h&gt;</code><br />
+</div><div class="textblock"><div class="dynheader">
+timeio_details.h 的引用(Include)关系图:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="timeio__details_8h__incl.svg" width="4947" height="636"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+</div><div class="textblock"><div class="dynheader">
+此图展示该文件被哪些文件直接或间接地引用了:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="timeio__details_8h__dep__incl.svg" width="1448" height="704"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+</div>
+<p><a href="timeio__details_8h_source.html">浏览该文件的源代码.</a></p>
+<table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 id="header-nested-classes" class="groupheader"><a id="nested-classes" name="nested-classes"></a>
+类</h2></td></tr>
+<tr class="memitem:IOv2_3A_3Azone_5Fref" id="r_IOv2_3A_3Azone_5Fref"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1zone__ref.html">IOv2::zone_ref</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">时区前缀树的值：<span class="tt">Z</span> 匹配到的那串文本，加上它在 tzdb 里的身份。  <a href="structIOv2_1_1zone__ref.html#details">更多...</a><br /></td></tr>
+<tr class="memitem:IOv2_3A_3Abase_5Fft_3C_20timeio_20_3E" id="r_IOv2_3A_3Abase_5Fft_3C_20timeio_20_3E"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1base__ft_3_01timeio_01_4.html">IOv2::base_ft&lt; timeio &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight"><span class="tt"><a class="el" href="classIOv2_1_1timeio.html" title="时间 I/O facet，提供日期/时间的格式化输出与 locale 感知解析。">timeio</a></span> 的中间基类特化，持有与字符类型无关的时区数据。  <a href="classIOv2_1_1base__ft_3_01timeio_01_4.html#details">更多...</a><br /></td></tr>
+<tr class="memitem:IOv2_3A_3Aft_5Fbasic_3C_20timeio_3C_20CharT_20_3E_20_3E" id="r_IOv2_3A_3Aft_5Fbasic_3C_20timeio_3C_20CharT_20_3E_20_3E"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ft__basic_3_01timeio_3_01CharT_01_4_01_4.html">IOv2::ft_basic&lt; timeio&lt; CharT &gt; &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight"><span class="tt"><a class="el" href="classIOv2_1_1timeio.html" title="时间 I/O facet，提供日期/时间的格式化输出与 locale 感知解析。">timeio</a></span> facet 的基类模板特化。  <a href="classIOv2_1_1ft__basic_3_01timeio_3_01CharT_01_4_01_4.html#details">更多...</a><br /></td></tr>
+<tr class="memitem:IOv2_3A_3Aft_5Fbasic_3C_20timeio_3C_20CharT_20_3E_20_3E_3A_3Aera_5Fentry" id="r_IOv2_3A_3Aft_5Fbasic_3C_20timeio_3C_20CharT_20_3E_20_3E_3A_3Aera_5Fentry"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1ft__basic_3_01timeio_3_01CharT_01_4_01_4_1_1era__entry.html">IOv2::ft_basic&lt; timeio&lt; CharT &gt; &gt;::era_entry</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">表示一个日历纪元（calendar era）的条目。  <a href="structIOv2_1_1ft__basic_3_01timeio_3_01CharT_01_4_01_4_1_1era__entry.html#details">更多...</a><br /></td></tr>
+<tr class="memitem:IOv2_3A_3Atimeio_5Fconf_3C_20char_20_3E" id="r_IOv2_3A_3Atimeio_5Fconf_3C_20char_20_3E"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1timeio__conf_3_01char_01_4.html">IOv2::timeio_conf&lt; char &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight"><span class="tt"><a class="el" href="classIOv2_1_1timeio.html" title="时间 I/O facet，提供日期/时间的格式化输出与 locale 感知解析。">timeio</a></span> facet 的 <span class="tt">char</span> 字符类型 locale 配置类。  <a href="classIOv2_1_1timeio__conf_3_01char_01_4.html#details">更多...</a><br /></td></tr>
+<tr class="memitem:IOv2_3A_3Atimeio_5Fconf_3C_20CharT_20_3E" id="r_IOv2_3A_3Atimeio_5Fconf_3C_20CharT_20_3E"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1timeio__conf_3_01CharT_01_4.html">IOv2::timeio_conf&lt; CharT &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight"><span class="tt"><a class="el" href="classIOv2_1_1timeio.html" title="时间 I/O facet，提供日期/时间的格式化输出与 locale 感知解析。">timeio</a></span> facet 的宽字符（<span class="tt">wchar_t</span> / <span class="tt">char32_t</span> UTF-32）locale 配置类。  <a href="classIOv2_1_1timeio__conf_3_01CharT_01_4.html#details">更多...</a><br /></td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 id="header-namespaces" class="groupheader"><a id="namespaces" name="namespaces"></a>
+命名空间</h2></td></tr>
+<tr class="memitem:IOv2" id="r_IOv2"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html">IOv2</a></td></tr>
+<tr class="memitem:IOv2_3A_3ATimeioHelper" id="r_IOv2_3A_3ATimeioHelper"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2_1_1TimeioHelper.html">IOv2::TimeioHelper</a></td></tr>
+<tr class="memdesc:namespaceIOv2_1_1TimeioHelper"><td class="mdescLeft">&#160;</td><td class="mdescRight">供 <span class="tt"><a class="el" href="classIOv2_1_1timeio.html" title="时间 I/O facet，提供日期/时间的格式化输出与 locale 感知解析。">timeio</a></span> 内部使用的辅助工具命名空间。 <br /></td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 id="header-func-members" class="groupheader"><a id="func-members" name="func-members"></a>
+函数</h2></td></tr>
+<tr class="memitem:af7d9621c4084306932a1c951cbeeed44" id="r_af7d9621c4084306932a1c951cbeeed44"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2_1_1TimeioHelper.html#af7d9621c4084306932a1c951cbeeed44">IOv2::TimeioHelper::era_small_or_equal</a> (int from_year, uint8_t from_month, uint8_t from_day, int to_year, uint8_t to_month, uint8_t to_day)</td></tr>
+<tr class="memdesc:af7d9621c4084306932a1c951cbeeed44"><td class="mdescLeft">&#160;</td><td class="mdescRight">比较两个完整日期（年、月、日）的前后关系。  <br /></td></tr>
+<tr class="memitem:a5e3e1278d545348466f4b059dc06a381" id="r_a5e3e1278d545348466f4b059dc06a381"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2_1_1TimeioHelper.html#a5e3e1278d545348466f4b059dc06a381">IOv2::TimeioHelper::era_small_or_equal</a> (int from_year, uint8_t from_month, int to_year, uint8_t to_month)</td></tr>
+<tr class="memdesc:a5e3e1278d545348466f4b059dc06a381"><td class="mdescLeft">&#160;</td><td class="mdescRight">比较两个年月组合（不含日）的前后关系。  <br /></td></tr>
+</table>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">详细描述</h2>
+<div class="textblock"><p><span class="tt">timeio</span> facet 的实现细节，包含：</p><ul>
+<li><span class="tt">base_ft&lt;timeio&gt;</span>：不带字符类型的中间基类特化，持有所有字符类型共用的时区前缀树；</li>
+<li><span class="tt">ft_basic&lt;timeio&lt;CharT&gt;&gt;</span>：<span class="tt">timeio</span> 的基类模板特化，持有 facet 类型标识；</li>
+<li><span class="tt">TimeioHelper</span>：日历纪元日期比较的辅助工具函数；</li>
+<li><span class="tt">timeio_conf&lt;CharT&gt;</span>：各字符类型（<span class="tt">char</span>、<span class="tt">wchar_t</span>/<span class="tt">char32_t</span>、<span class="tt">char8_t</span>）的 locale 配置类，负责从系统 locale（通过 <span class="tt">nl_langinfo</span>）或 C/POSIX 硬编码默认值 中加载日期/时间格式串、星期/月份名称、AM/PM 字符串、替代数字及纪元数据。 </li>
+</ul>
+</div></div><!-- contents -->
+</div><!-- doc-content -->
+<div id="page-nav" class="page-nav-panel">
+<div id="page-nav-resize-handle"></div>
+<div id="page-nav-tree">
+<div id="page-nav-contents">
+</div><!-- page-nav-contents -->
+</div><!-- page-nav-tree -->
+</div><!-- page-nav -->
+</div><!-- container -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><a href="dir_d44c64559bbebec7f509842c48db8b23.html">include</a></li><li class="navelem"><a href="dir_1157f564aec2b3a7d6bde4eba89ab805.html">IOv2</a></li><li class="navelem"><a href="dir_86635f995fd9ec725e3aec943495dac7.html">facet</a></li><li class="navelem"><a href="timeio__details_8h.html">timeio_details.h</a></li>
+    <li class="footer">制作者 <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.15.0 </li>
+  </ul>
+</div>
+</body>
+</html>

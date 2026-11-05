@@ -1,0 +1,132 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=11"/>
+<meta name="generator" content="Doxygen 1.15.0"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>IOv2: IOv2::time_value_fields&lt; TVal &gt; 模板结构体 参考</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<script type="text/javascript" src="clipboard.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<script type="text/javascript" src="cookie.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr id="projectrow">
+  <td id="projectalign">
+   <div id="projectname">IOv2
+   </div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 制作者 Doxygen 1.15.0 -->
+<script type="text/javascript">
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+</script>
+<script type="text/javascript">
+$(function() { codefold.init(); });
+</script>
+<script type="text/javascript" src="menudata.js"></script>
+<script type="text/javascript" src="menu.js"></script>
+<script type="text/javascript">
+$(function() {
+  initMenu('',true,false,'search.php','搜索',true);
+  $(function() { init_search(); });
+});
+</script>
+<div id="main-nav"></div>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+$(function(){initNavTree('structIOv2_1_1time__value__fields.html','',''); });
+</script>
+<div id="container">
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">载入中...</div>
+<div class="SRStatus" id="Searching">搜索中...</div>
+<div class="SRStatus" id="NoMatches">未找到</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="header">
+  <div class="headertitle"><div class="title">IOv2::time_value_fields&lt; TVal &gt; 模板结构体 参考</div></div>
+</div><!--header-->
+<div class="contents">
+
+<p>某个时间值类型能供出哪几类字段——<span class="tt"><a class="el" href="classIOv2_1_1timeio.html#ad3e1a51a4214ef95df90d9a79134bdd7" title="返回某个类型的值在某个格式串下**实际会写出**的那个格式串：复合说明符逐层展开， 该类型供不出的说明符连同一侧分隔符摘掉。">timeio::expand_format</a></span> 据此裁剪格式串。  
+ <a href="#details">更多...</a></p>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">详细描述</h2>
+<div class="textblock"><div class="compoundTemplParams">template&lt;typename TVal&gt;<br />
+struct IOv2::time_value_fields&lt; TVal &gt;</div><p>某个时间值类型能供出哪几类字段——<span class="tt"><a class="el" href="classIOv2_1_1timeio.html#ad3e1a51a4214ef95df90d9a79134bdd7" title="返回某个类型的值在某个格式串下**实际会写出**的那个格式串：复合说明符逐层展开， 该类型供不出的说明符连同一侧分隔符摘掉。">timeio::expand_format</a></span> 据此裁剪格式串。 </p>
+<p>每种类型一个特化，四个标志位对应 <span class="tt"><a class="el" href="classIOv2_1_1timeio.html#ad618c365696d2db2d4206cd82e231e81" title="按单个格式字符（可带修饰符）格式化时间值。">timeio::put</a></span> 传给 <span class="tt">do_put</span> 的那几个指针：日期 （<span class="tt">ymd</span> 与随之而来的 <span class="tt">wd</span>）、时分秒（<span class="tt">hms</span>）、UTC 偏移（<span class="tt">zi</span>）、区域身份（<span class="tt">tz</span> 或非空的 <span class="tt">zi-&gt;abbrev</span>）。<span class="tt">put</span> 对供不出的说明符原样退化，本表把同一件事提前到编译期，好让 <span class="tt">expand_format</span> 不必真去格式化一遍就知道该摘掉谁。</p>
+<p>主模板**不定义**：不在 <span class="tt">put</span> 支持范围内的类型在此报错，而不是悄悄按「什么都供不出」处理。</p>
+<dl class="section note"><dt>注解</dt><dd>星期不单独占一位：<span class="tt">put</span> 只要给得出 <span class="tt">ymd</span> 就一并给得出 <span class="tt">wd</span>，两者从不分家。 </dd>
+<dd>
+本表的 <span class="tt">has_offset</span> / <span class="tt">has_zone</span> 与 get 侧的 <a class="el" href="namespaceIOv2.html#ae5c45ed29b875d3d35e686974d847b1e">tz_level</a> 是同一个判据的两侧： 两者皆假 → <span class="tt"><a class="el" href="namespaceIOv2.html#ae5c45ed29b875d3d35e686974d847b1ea334c4a4c42fdb79d7ebc3e73b517e6f8" title="不携带时区字段，z 与 Z 都按字面量处理。">tz_level::none</a></span>，只有 <span class="tt">has_offset</span> → <span class="tt"><a class="el" href="namespaceIOv2.html#ae5c45ed29b875d3d35e686974d847b1ea7a86c157ee9713c34fbd7a1ee40f0c5a" title="解析 z 的 UTC 偏移；Z 仍按字面量处理。">tz_level::offset</a></span>，两者皆真 → <span class="tt"><a class="el" href="namespaceIOv2.html#ae5c45ed29b875d3d35e686974d847b1eaa84e5f25e7f6d5de9b82ce3f64d1b8fa" title="在 offset 之上再解析 Z，得到区域身份与缩写。">tz_level::zone</a></span>。put 摘掉的说明符，get 恰好按字面量匹配，往返因此闭合。 </dd></dl>
+<dl class="tparams"><dt>模板参数</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">TVal</td><td>时间值类型。 </td></tr>
+  </table>
+  </dd>
+</dl>
+</div><hr/>该结构体的文档由以下文件生成:<ul>
+<li>include/IOv2/facet/<a class="el" href="timeio_8h_source.html">timeio.h</a></li>
+</ul>
+</div><!-- contents -->
+</div><!-- doc-content -->
+<div id="page-nav" class="page-nav-panel">
+<div id="page-nav-resize-handle"></div>
+<div id="page-nav-tree">
+<div id="page-nav-contents">
+</div><!-- page-nav-contents -->
+</div><!-- page-nav-tree -->
+</div><!-- page-nav -->
+</div><!-- container -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><a href="namespaceIOv2.html">IOv2</a></li><li class="navelem"><a href="structIOv2_1_1time__value__fields.html">time_value_fields</a></li>
+    <li class="footer">制作者 <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.15.0 </li>
+  </ul>
+</div>
+</body>
+</html>

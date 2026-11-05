@@ -1,0 +1,136 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=11"/>
+<meta name="generator" content="Doxygen 1.15.0"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>IOv2: IOv2::ostream_type 概念参考</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<script type="text/javascript" src="clipboard.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<script type="text/javascript" src="cookie.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr id="projectrow">
+  <td id="projectalign">
+   <div id="projectname">IOv2
+   </div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 制作者 Doxygen 1.15.0 -->
+<script type="text/javascript">
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+</script>
+<script type="text/javascript">
+$(function() { codefold.init(); });
+</script>
+<script type="text/javascript" src="menudata.js"></script>
+<script type="text/javascript" src="menu.js"></script>
+<script type="text/javascript">
+$(function() {
+  initMenu('',true,false,'search.php','搜索',true);
+  $(function() { init_search(); });
+});
+</script>
+<div id="main-nav"></div>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+$(function(){initNavTree('conceptIOv2_1_1ostream__type.html','',''); });
+</script>
+<div id="container">
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">载入中...</div>
+<div class="SRStatus" id="Searching">搜索中...</div>
+<div class="SRStatus" id="NoMatches">未找到</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="header">
+  <div class="headertitle"><div class="title">IOv2::ostream_type 概念参考</div></div>
+</div><!--header-->
+<div class="contents">
+
+<p>输出流类型的概念。  
+<a href="#details">更多...</a></p>
+
+<p><code>#include &lt;<a class="el" href="ostream__operators_8h_source.html">ostream_operators.h</a>&gt;</code></p>
+<h2 id="header-conceptdef" class="groupheader">概念定义</h2>
+<div class="fragment"><div class="line"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt;</div>
+<div class="line"><span class="keyword">concept </span><a class="code hl_concept" href="conceptIOv2_1_1ostream__type.html">IOv2::ostream_type</a> = </div>
+<div class="line">    <span class="keyword">requires</span> (T a)</div>
+<div class="line">    {</div>
+<div class="line">        <span class="keyword">typename</span> T::out_sentry_type;</div>
+<div class="line">        <span class="keyword">typename</span> T::out_iter_type;</div>
+<div class="line">        <span class="keyword">typename</span> T::char_type;</div>
+<div class="line">        { a.locale() } -&gt; std::same_as&lt;const locale&lt;typename T::char_type&gt;&amp;&gt;;</div>
+<div class="line">    } &amp;&amp;</div>
+<div class="line">    is_out_sentry&lt;typename T::out_sentry_type&gt; &amp;&amp;</div>
+<div class="line">    std::derived_from&lt;T, ios_base&lt;typename T::char_type&gt;&gt; &amp;&amp;</div>
+<div class="line">    std::derived_from&lt;T, ios_state&lt;typename T::char_type&gt;&gt; &amp;&amp;</div>
+<div class="line">    std::derived_from&lt;T, ostream_operators&lt;typename T::char_type&gt;&gt;</div>
+<div class="ttc" id="aconceptIOv2_1_1ostream__type_html"><div class="ttname"><a href="conceptIOv2_1_1ostream__type.html">IOv2::ostream_type</a></div><div class="ttdoc">输出流类型的概念。</div><div class="ttdef"><b>定义</b> ostream_operators.h:561</div></div>
+</div><!-- fragment --><a name="details" id="details"></a><h2 id="header-details" class="groupheader">详细描述</h2>
+<div class="textblock"><p>输出流类型的概念。 </p>
+<p>一个类型要成为输出流，必须提供 <span class="tt">out_sentry_type</span>、<span class="tt">out_iter_type</span> 与 <span class="tt">char_type</span> 类型、 可返回其 locale，且其 <span class="tt">out_sentry_type</span> 满足 <span class="tt">is_out_sentry</span>；同时它必须派生自 <span class="tt">ios_state&lt;char_type&gt;</span> 与 <span class="tt">ostream_operators&lt;char_type&gt;</span>。 </p><dl class="section note"><dt>注解</dt><dd><span class="tt">ios_state</span> 与 <span class="tt">ios_base</span> 两条是必需的，不只是描述性的：本概念约束下的代码会直接调用 <span class="tt">handle_exception()</span> 与 <span class="tt">operator bool</span>；而带有两个 <span class="tt">ios_base</span> 子对象的类型在这里就被 拒掉，不必拖到后面某个 <span class="tt">io_mutex()</span> 调用才报二义。 </dd>
+<dd>
+<span class="tt">out_iter_type</span> 必须是 <span class="tt">o_iter()</span> 的返回类型（<span class="tt">o_iter()</span> 的返回类型就写成它，因此两者 不会漂移）。之所以要把这个**类型**公开出来，是因为 <span class="tt">o_iter()</span> 本身是私有的，而命名概念 无法调用它；公开类型不等于公开对象——<span class="tt">ochannel_iterator</span> 只能由 <span class="tt">TChannel&amp;</span> 构造。 </dd></dl>
+<dl class="tparams"><dt>模板参数</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">T</td><td>待检测的类型。 </td></tr>
+  </table>
+  </dd>
+</dl>
+</div></div><!-- contents -->
+</div><!-- doc-content -->
+</div><!-- container -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><a href="namespaceIOv2.html">IOv2</a></li><li class="navelem"><a href="conceptIOv2_1_1ostream__type.html">ostream_type</a></li>
+    <li class="footer">制作者 <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.15.0 </li>
+  </ul>
+</div>
+</body>
+</html>
