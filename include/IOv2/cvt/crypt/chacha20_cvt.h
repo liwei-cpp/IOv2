@@ -40,7 +40,6 @@
 #include <string_view>
 #include <type_traits>
 #include <utility>
-#include <vector>
 
 #include <botan/auto_rng.h>
 #include <botan/hash.h>
@@ -407,7 +406,6 @@ private:
         const std::size_t iv_len = m_cipher->default_iv_length();
         if (iv_len == 0)
             throw cvt_error("chacha20_cvt::bos fail: cipher reports zero IV length");
-        std::vector<external_type> iv_buf(iv_len);
 
         if (BT::m_io_status == io_status::input)
         {
@@ -428,13 +426,19 @@ private:
         {
             if constexpr (cvt_cpt::support_put<KernelType>)
             {
+                auto writer = BT::kernel_writer();
+                writer.reset(iv_len);
+                auto* iv = writer.put_buf(iv_len);
+                put_buf_guard guard{writer, iv_len};
+
                 Botan::AutoSeeded_RNG rng;
-                rng.randomize(reinterpret_cast<uint8_t*>(iv_buf.data()), iv_len); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
+                rng.randomize(reinterpret_cast<uint8_t*>(iv), iv_len); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
 
                 m_cipher->set_key(m_key);
-                m_cipher->set_iv(reinterpret_cast<const uint8_t*>(iv_buf.data()), iv_len); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
+                m_cipher->set_iv(reinterpret_cast<const uint8_t*>(iv), iv_len); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
 
-                BT::kernel_put(iv_buf.data(), iv_len);
+                guard.used(iv_len);
+                writer.commit();
             }
             else
                 throw cvt_error("chacha20_cvt::bos fail: output mode but kernel does not support put");

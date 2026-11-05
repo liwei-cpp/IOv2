@@ -2009,7 +2009,7 @@ public:
      * @lang{ZH} 要绑定的 root_cvt 内核引用。 @endif
      * @lang{EN} Reference to the root_cvt kernel to bind to. @endif
      */
-    explicit cvt_writer(KernelType& kernel, std::vector<char_type>&)
+    explicit cvt_writer(KernelType& kernel, std::vector<char_type>&, std::size_t&)
         : m_kernel(kernel) {}
 
     cvt_writer(const cvt_writer&) = delete;
@@ -2020,27 +2020,24 @@ public:
 
     /**
      * @lang{ZH}
-     * 设置每次 put_buf() 调用允许写入的最大字符数。
-     * 必须在首次调用 put_buf() 之前调用，以通知写入器本次转换步骤的最大输出量。
+     * 检查 root_cvt 的缓冲能否容纳 `buf_size` 个字符。缓冲大小是固定的，这里没有要调整的东西。
      * @endif
      *
      * @lang{EN}
-     * Sets the maximum number of characters that each put_buf() call may write.
-     * Must be called before the first put_buf() to inform the writer of the maximum
-     * output size for this conversion step.
+     * Checks that the buffer of root_cvt can hold `buf_size` characters. Its size is fixed, so
+     * there is nothing to adjust here.
      * @endif
      *
      * @param buf_size
-     * @lang{ZH} 允许的最大写入字符数，不得超过 s_buffer_length。 @endif
-     * @lang{EN} Maximum number of characters allowed per write; must not exceed s_buffer_length. @endif
+     * @lang{ZH} 缓冲区至少应有的字符数，不得超过 s_buffer_length。 @endif
+     * @lang{EN} The least number of characters the buffer must hold; must not exceed s_buffer_length. @endif
      * @throws cvt_error
      * @lang{ZH} buf_size 超过 s_buffer_length 时抛出。 @endif
      * @lang{EN} Thrown when buf_size exceeds s_buffer_length. @endif
      */
     void reset(std::size_t buf_size)
     {
-        m_buf_size = buf_size;
-        if (m_buf_size > KernelType::s_buffer_length)
+        if (buf_size > KernelType::s_buffer_length)
             throw cvt_error("cvt_writer::reset fail: buf_size exceeds buffer capacity");
     }
 
@@ -2060,21 +2057,21 @@ public:
      * @endif
      *
      * @param len
-     * @lang{ZH} 要写入的字符数，不得超过 reset() 设置的 buf_size。 @endif
-     * @lang{EN} Number of characters to write; must not exceed the buf_size set by reset(). @endif
+     * @lang{ZH} 要写入的字符数，不得超过 s_buffer_length。 @endif
+     * @lang{EN} Number of characters to write; must not exceed s_buffer_length. @endif
      * @return
      * @lang{ZH} 可写入 len 个字符的缓冲区指针。 @endif
      * @lang{EN} Pointer into the buffer where len characters may be written. @endif
      * @throws cvt_error
-     * @lang{ZH} len 为 0、len 超过 buf_size、或 io_status 不为 output 且无法切换时抛出。 @endif
-     * @lang{EN} Thrown when len is 0, len exceeds buf_size, or io_status is not output
+     * @lang{ZH} len 为 0、len 超过 s_buffer_length、或 io_status 不为 output 且无法切换时抛出。 @endif
+     * @lang{EN} Thrown when len is 0, len exceeds s_buffer_length, or io_status is not output
      *           and cannot be switched. @endif
      */
     char_type* put_buf(std::size_t len)
     {
         if (len == 0)
             throw cvt_error("cvt_writer::put_buf fail, write size cannot be zero");
-        if (len > m_buf_size)
+        if (len > KernelType::s_buffer_length)
             throw cvt_error("cvt_writer::put_buf fail, write size too large");
 
         if constexpr (dev_cpt::support_get<device_type>)
@@ -2144,9 +2141,6 @@ public:
 
 private:
     KernelType& m_kernel;
-    /** @lang{ZH} reset() 设置的每次 put_buf() 最大写入字符数。 @endif
-     *  @lang{EN} Maximum characters per put_buf() call, set by reset(). @endif */
-    std::size_t m_buf_size = 0;
 };
 
 /**
@@ -2309,7 +2303,7 @@ public:
      * @lang{ZH} 要绑定的 root_cvt 内核引用。 @endif
      * @lang{EN} Reference to the root_cvt kernel to bind to. @endif
      */
-    explicit cvt_writer(KernelType& kernel, std::vector<char_type>&)
+    explicit cvt_writer(KernelType& kernel, std::vector<char_type>&, std::size_t&)
         : m_kernel(kernel) {}
 
     cvt_writer(const cvt_writer&) = delete;

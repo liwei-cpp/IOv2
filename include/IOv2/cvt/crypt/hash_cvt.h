@@ -36,6 +36,7 @@
 #include <IOv2/cvt/abs_cvt.h>
 #include <IOv2/cvt/cvt_concepts.h>
 
+#include <algorithm>
 #include <concepts>
 #include <cstddef>
 #include <cstdint>
@@ -510,7 +511,7 @@ private:
                     // emitting corrupted output.
                     try
                     {
-                        BT::kernel_put(reinterpret_cast<const external_type*>(&delim), 1); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
+                        put_output(reinterpret_cast<const external_type*>(&delim), 1); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
                     }
                     catch (...)
                     {
@@ -603,7 +604,7 @@ private:
         // This provides strong exception safety: if put() fails, state is unchanged
         // and the operation can be retried.
         //
-        // Intentional: a failure inside `BT::kernel_put(...)` is the kernel's
+        // Intentional: a failure inside `put_output(...)` is the kernel's
         // own concern — the kernel layer must taint itself per the abs_cvt
         // contract. hash_cvt deliberately does NOT mirror that taint upward,
         // because (a) hash_cvt's own invariants remain intact on a kernel-side
@@ -621,18 +622,18 @@ private:
         switch (m_out_fmt)
         {
         case hash_fmt::binary:
-            BT::kernel_put(reinterpret_cast<const external_type*>(digest.data()), digest.size()); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
+            put_output(reinterpret_cast<const external_type*>(digest.data()), digest.size()); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
             break;
         case hash_fmt::upper_hex:
             {
                 std::string hex_string = Botan::hex_encode(digest);
-                BT::kernel_put(reinterpret_cast<const external_type*>(hex_string.data()), hex_string.size()); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
+                put_output(reinterpret_cast<const external_type*>(hex_string.data()), hex_string.size()); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
             }
             break;
         case hash_fmt::lower_hex:
             {
                 std::string hex_string = Botan::hex_encode(digest, false);
-                BT::kernel_put(reinterpret_cast<const external_type*>(hex_string.data()), hex_string.size()); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
+                put_output(reinterpret_cast<const external_type*>(hex_string.data()), hex_string.size()); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
             }
             break;
         default:
@@ -651,6 +652,16 @@ private:
             throw;
         }
     }
+
+    /// @lang{ZH} 把 `[from, from + len)` 写给下层。摘要由 Botan 产生，只能拷贝。 @endif @lang{EN} Writes `[from, from + len)` to the layer below. A digest comes from Botan, so copying is all there is. @endif
+    void put_output(const external_type* from, std::size_t len)
+    {
+        auto writer = BT::kernel_writer();
+        writer.reset(len);
+        std::copy_n(from, len, writer.put_buf(len));
+        writer.commit();
+    }
+
 private:
     std::unique_ptr<Botan::HashFunction> m_hash;
     bool         m_has_main_cont{false};

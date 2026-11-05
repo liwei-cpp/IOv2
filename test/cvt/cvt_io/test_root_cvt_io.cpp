@@ -3,6 +3,7 @@
 
 #include <IOv2/common/defs.h>
 #include <IOv2/cvt/abs_cvt.h>
+#include <IOv2/cvt/code_cvt.h>
 #include <IOv2/cvt/crypt/vigenere_cvt.h>
 #include <IOv2/cvt/cvt_concepts.h>
 #include <IOv2/cvt/root_cvt.h>
@@ -282,7 +283,8 @@ namespace
         obj.main_cont_beg();
         {
             std::vector<typename T::internal_type> buf;
-            cvt_writer<T>                          writer(obj, buf);
+            std::size_t                            staged = 0;
+            cvt_writer<T>                          writer(obj, buf, staged);
             writer.reset(1024);
 
             auto        ptr = writer.put_buf(3);
@@ -313,7 +315,8 @@ namespace
         obj.main_cont_beg();
         {
             std::vector<typename T::internal_type> buf;
-            cvt_writer<T>                          writer(obj, buf);
+            std::size_t                            staged = 0;
+            cvt_writer<T>                          writer(obj, buf, staged);
             writer.reset(1024);
 
             auto        ptr = writer.put_buf(5);
@@ -346,7 +349,8 @@ namespace
         obj.main_cont_beg();
         {
             std::vector<typename T::internal_type> buf;
-            cvt_writer<T>                          writer(obj, buf);
+            std::size_t                            staged = 0;
+            cvt_writer<T>                          writer(obj, buf, staged);
             writer.reset(10);
 
             std::size_t cur     = 0;
@@ -563,7 +567,8 @@ TEST(CvtIo, WriterRejectsAResetLargerThanTheRootBuffer)
 {
     auto              obj = opened_writer();
     std::vector<char> buf;
-    cvt_writer<StrWrtCvt> writer(obj, buf);
+    std::size_t       staged = 0;
+    cvt_writer<StrWrtCvt> writer(obj, buf, staged);
     EXPECT_THROW(writer.reset(StrWrtCvt::s_buffer_length + 1), cvt_error);
 }
 
@@ -571,25 +576,28 @@ TEST(CvtIo, WriterRejectsAZeroLengthReservation)
 {
     auto              obj = opened_writer();
     std::vector<char> buf;
-    cvt_writer<StrWrtCvt> writer(obj, buf);
+    std::size_t       staged = 0;
+    cvt_writer<StrWrtCvt> writer(obj, buf, staged);
     writer.reset(10);
     EXPECT_THROW((void)writer.put_buf(0), cvt_error);
 }
 
-TEST(CvtIo, WriterRejectsAReservationLargerThanItsStagingBuffer)
+TEST(CvtIo, WriterRejectsAReservationLargerThanTheRootBuffer)
 {
     auto              obj = opened_writer();
     std::vector<char> buf;
-    cvt_writer<StrWrtCvt> writer(obj, buf);
+    std::size_t       staged = 0;
+    cvt_writer<StrWrtCvt> writer(obj, buf, staged);
     writer.reset(5);
-    EXPECT_THROW((void)writer.put_buf(6), cvt_error);
+    EXPECT_THROW((void)writer.put_buf(StrWrtCvt::s_buffer_length + 1), cvt_error);
 }
 
 TEST(CvtIo, WriterRejectsAZeroLengthRollback)
 {
     auto              obj = opened_writer();
     std::vector<char> buf;
-    cvt_writer<StrWrtCvt> writer(obj, buf);
+    std::size_t       staged = 0;
+    cvt_writer<StrWrtCvt> writer(obj, buf, staged);
     writer.reset(10);
     auto ptr = writer.put_buf(5);
     std::copy_n("hello", 5, ptr);
@@ -600,7 +608,8 @@ TEST(CvtIo, WriterRejectsARollbackPastWhatWasReserved)
 {
     auto              obj = opened_writer();
     std::vector<char> buf;
-    cvt_writer<StrWrtCvt> writer(obj, buf);
+    std::size_t       staged = 0;
+    cvt_writer<StrWrtCvt> writer(obj, buf, staged);
     writer.reset(10);
     auto ptr = writer.put_buf(5);
     std::copy_n("hello", 5, ptr);
@@ -622,7 +631,8 @@ TEST(CvtIo, PutBufGuardRollsBackTheUnusedTailOnAMemDevice)
     obj.main_cont_beg();
     {
         std::vector<char>         buf;
-        cvt_writer<decltype(obj)> writer(obj, buf);
+        std::size_t               staged = 0;
+        cvt_writer<decltype(obj)> writer(obj, buf, staged);
         writer.reset(1024);
 
         auto ptr = writer.put_buf(3);
@@ -668,7 +678,8 @@ TEST(CvtIo, PutBufGuardRejectsUsingMoreThanWasReserved)
     obj.main_cont_beg();
     {
         std::vector<char>         buf;
-        cvt_writer<decltype(obj)> writer(obj, buf);
+        std::size_t               staged = 0;
+        cvt_writer<decltype(obj)> writer(obj, buf, staged);
         writer.reset(1024);
 
         auto ptr = writer.put_buf(3);
@@ -697,7 +708,8 @@ TEST(CvtIo, PutBufGuardRollsBackTheUnusedTailOnAPlainDevice)
     obj.main_cont_beg();
     {
         std::vector<char>     buf;
-        cvt_writer<StrWrtCvt> writer(obj, buf);
+        std::size_t           staged = 0;
+        cvt_writer<StrWrtCvt> writer(obj, buf, staged);
         writer.reset(64);
 
         auto ptr = writer.put_buf(3);
@@ -733,7 +745,8 @@ TEST(CvtIo, PutBufGuardSwallowsAThrowingRollback)
     obj.main_cont_beg();
     {
         std::vector<char>         buf;
-        cvt_writer<decltype(obj)> writer(obj, buf);
+        std::size_t               staged = 0;
+        cvt_writer<decltype(obj)> writer(obj, buf, staged);
         writer.reset(1024);
         auto ptr = writer.put_buf(2);
         std::copy_n("hi", 2, ptr);
@@ -858,7 +871,8 @@ TEST(CvtIo, BaseWriterRejectsAZeroLengthReservation)
 {
     auto                 k = opened_vigenere_writer();
     std::vector<char>    buf;
-    cvt_writer<VigCvtT>  writer(k, buf);
+    std::size_t          staged = 0;
+    cvt_writer<VigCvtT>  writer(k, buf, staged);
     writer.reset(10);
     EXPECT_THROW((void)writer.put_buf(0), cvt_error);
 }
@@ -867,7 +881,8 @@ TEST(CvtIo, BaseWriterRejectsAReservationLargerThanItsStagingBuffer)
 {
     auto                 k = opened_vigenere_writer();
     std::vector<char>    buf;
-    cvt_writer<VigCvtT>  writer(k, buf);
+    std::size_t          staged = 0;
+    cvt_writer<VigCvtT>  writer(k, buf, staged);
     writer.reset(5);
     EXPECT_THROW((void)writer.put_buf(6), cvt_error);
 }
@@ -876,7 +891,8 @@ TEST(CvtIo, BaseWriterRejectsAZeroLengthRollback)
 {
     auto                 k = opened_vigenere_writer();
     std::vector<char>    buf;
-    cvt_writer<VigCvtT>  writer(k, buf);
+    std::size_t          staged = 0;
+    cvt_writer<VigCvtT>  writer(k, buf, staged);
     writer.reset(10);
     writer.put_buf(5);
     EXPECT_THROW(writer.rollback(0), cvt_error);
@@ -886,7 +902,8 @@ TEST(CvtIo, BaseWriterRejectsARollbackPastWhatWasReserved)
 {
     auto                 k = opened_vigenere_writer();
     std::vector<char>    buf;
-    cvt_writer<VigCvtT>  writer(k, buf);
+    std::size_t          staged = 0;
+    cvt_writer<VigCvtT>  writer(k, buf, staged);
     writer.reset(10);
     writer.put_buf(5);
     EXPECT_THROW(writer.rollback(100), cvt_error);
@@ -899,7 +916,8 @@ TEST(CvtIo, BaseWriterFlushesBeforeReuseAndRollsBackTheUnusedTail)
 {
     auto                k = opened_vigenere_writer();
     std::vector<char>   buf;
-    cvt_writer<VigCvtT> writer(k, buf);
+    std::size_t         staged = 0;
+    cvt_writer<VigCvtT> writer(k, buf, staged);
     writer.reset(5);
 
     auto* first = writer.put_buf(4);
@@ -916,6 +934,133 @@ TEST(CvtIo, BaseWriterFlushesBeforeReuseAndRollsBackTheUnusedTail)
     for (std::size_t i = 0; i < expected.size(); ++i)
         expected[i] = static_cast<char>(expected[i] + key[i % key.size()]);
     EXPECT_EQ(k.device().str(), expected);
+}
+
+// A writer keeps nothing of its own: what is staged lives in the state it was built on, so one
+// writer can stage and another commit, as abs_cvt::put and a put_main reaching for
+// kernel_writer() would. reset() only makes room, and what is staged stays.
+TEST(CvtIo, BaseWritersOnTheSameStateAreEquivalent)
+{
+    auto              k = opened_vigenere_writer();
+    std::vector<char> buf;
+    std::size_t       staged = 0;
+    {
+        cvt_writer<VigCvtT> writer(k, buf, staged);
+        writer.reset(5);
+        std::copy_n("abc", 3, writer.put_buf(3));
+    }
+    EXPECT_EQ(staged, 3u);
+    {
+        cvt_writer<VigCvtT> writer(k, buf, staged);
+        writer.reset(1);
+        EXPECT_EQ(staged, 3u);
+        EXPECT_GE(buf.size(), 5u);
+        writer.commit();
+    }
+    EXPECT_EQ(staged, 0u);
+    k.flush();
+    EXPECT_EQ(k.device().str().size(), 3u);
+}
+
+// After a failed write there is no telling how much went out, so nothing stays staged for a
+// retry to write twice, whether commit() was asked for or put_buf() needed the room.
+TEST(CvtIo, ACommitThatFailsLeavesNothingStaged)
+{
+    VigCvtT k{VigKernelT{mem_device<char>{"hello"}}, "key"};
+    k.bos();                                       // reading, and put cannot switch in the BOS phase
+
+    std::vector<char>   buf;
+    std::size_t         staged = 0;
+    cvt_writer<VigCvtT> writer(k, buf, staged);
+    writer.reset(4);
+
+    (void)writer.put_buf(3);
+    EXPECT_THROW(writer.commit(), cvt_error);
+    EXPECT_EQ(staged, 0u);
+
+    (void)writer.put_buf(3);
+    EXPECT_THROW((void)writer.put_buf(2), cvt_error);
+    EXPECT_EQ(staged, 0u);
+}
+
+namespace
+{
+    // What a derived layer reaches, opened up.
+    struct vig_probe : VigCvtT
+    {
+        using VigCvtT::VigCvtT;
+        using VigCvtT::kernel_reader;
+        using VigCvtT::kernel_writer;
+    };
+
+    // A layer that stages and can fail halfway: in the "C" locale a CJK character has no bytes.
+    struct code_probe : code_cvt<VigCvtT, wchar_t>
+    {
+        using base = code_cvt<VigCvtT, wchar_t>;
+        explicit code_probe(VigCvtT kernel) : base(std::move(kernel), std::string("C")) {}
+        using base::kernel_writer;
+    };
+}
+
+// Changing direction is switch_to_get() and switch_to_put()'s job, so asking for the wrong end
+// is a mistake to report, in a release build too.
+TEST(CvtIo, KernelReaderAndWriterCheckTheDirection)
+{
+    vig_probe in{VigKernelT{mem_device<char>{"hello"}}, "key"};
+    EXPECT_EQ(in.bos(), io_status::input);
+    in.main_cont_beg();
+    EXPECT_NO_THROW((void)in.kernel_reader());
+    EXPECT_THROW((void)in.kernel_writer(), cvt_error);
+
+    vig_probe out{VigKernelT{mem_device<char>{""}}, "key"};
+    EXPECT_EQ(out.bos(), io_status::output);
+    out.main_cont_beg();
+    EXPECT_NO_THROW((void)out.kernel_writer());
+    EXPECT_THROW((void)out.kernel_reader(), cvt_error);
+}
+
+// The two directions share one pair of cursors. A read area that has drained ends wherever the
+// reading stopped, and in the write direction the end is the staged length: left there, what
+// was read would go out again ahead of the new data.
+TEST(CvtIo, WritingAfterADrainedReadAreaStagesOnlyWhatIsWritten)
+{
+    using StackedT = Crypt::Classic::vigenere_cvt<VigCvtT>;
+
+    StackedT obj{VigCvtT{VigKernelT{mem_device<char>{"abcdef"}}, "key"}, "key"};
+    EXPECT_EQ(obj.bos(), io_status::input);
+    obj.main_cont_beg();
+
+    char        buf[6] = {};
+    std::size_t total  = 0;
+    while (total < 6)
+    {
+        const std::size_t got = obj.get(buf + total, 6 - total);
+        ASSERT_NE(got, 0u);
+        total += got;
+    }
+
+    obj.put("z", 1);
+    auto [dev, err] = obj.detach();
+    EXPECT_EQ(dev.str().size(), 7u);
+}
+
+// What a put left staged when put_main threw must not go out with the next write: closing the
+// stream writes through the same state, and a tainted converter still closes.
+TEST(CvtIo, AFailedPutDropsWhatItStaged)
+{
+    code_probe obj{VigCvtT{VigKernelT{mem_device<char>{""}}, "key"}};
+    EXPECT_EQ(obj.bos(), io_status::output);
+    obj.main_cont_beg();
+
+    EXPECT_THROW(obj.put(L"a中", 2), cvt_error);
+
+    auto writer = obj.kernel_writer();
+    writer.reset(3);
+    std::copy_n("end", 3, writer.put_buf(3));
+    writer.commit();
+
+    auto [dev, err] = obj.detach();
+    EXPECT_EQ(dev.str().size(), 3u);
 }
 
 TEST(CvtIo, RetrieveOnAFreshConverterSucceeds)

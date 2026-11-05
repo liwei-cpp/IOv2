@@ -331,7 +331,7 @@ namespace IOv2
      * 空间不足或显式调用 `commit()` 时才批量写入 kernel，从而减少对 kernel 的
      * 调用次数。
      *
-     * 内部维护 `m_prev_len`，记录已填充但尚未刷出到 kernel 的数据字节数。
+     * 已填充但尚未刷出到 kernel 的数据长度保存在外部（`abs_cvt` 里），本类不存状态。
      *
      * 该类不可复制也不可移动，设计用于在转换过程中作为短生命周期的辅助对象使用。
      * @endif
@@ -344,8 +344,8 @@ namespace IOv2
      * the buffer is full or `commit()` is called explicitly, reducing the number of
      * kernel write calls.
      *
-     * The internal `m_prev_len` field tracks the amount of data that has been
-     * placed in the buffer but not yet flushed to the kernel.
+     * The amount of data placed in the buffer but not yet flushed to the kernel is kept
+     * outside, in `abs_cvt`; this class holds no state.
      *
      * The class is neither copyable nor movable and is designed as a short-lived
      * helper object used during conversion.
@@ -368,15 +368,16 @@ namespace IOv2
          * @lang{ZH}
          * 构造函数。
          *
-         * `cvt_writer` 不拥有 kernel 和 buffer 的所有权，调用方须保证二者在
-         * `cvt_writer` 生命周期内有效。
+         * `cvt_writer` 不拥有 kernel、buffer 和 `end_pos` 的所有权，调用方须保证三者在
+         * `cvt_writer` 生命周期内有效。它自己不存状态，同一组引用构造出的 `cvt_writer` 都等价。
          * @endif
          *
          * @lang{EN}
          * Constructor.
          *
-         * `cvt_writer` does not own the kernel or buffer; the caller must ensure
-         * both remain valid for the lifetime of this object.
+         * `cvt_writer` does not own the kernel, the buffer or `end_pos`; the caller must
+         * ensure all three remain valid for the lifetime of this object. It holds no state of
+         * its own, so every `cvt_writer` built on the same references is equivalent.
          * @endif
          *
          * @param kernel
@@ -386,10 +387,15 @@ namespace IOv2
          * @param buffer
          * @lang{ZH} 对外部提供的缓冲区的引用，用于暂存待写入 kernel 的数据。 @endif
          * @lang{EN} Reference to an externally provided buffer used to stage data before writing to the kernel. @endif
+         *
+         * @param end_pos
+         * @lang{ZH} 对暂存长度的引用：`buffer` 的 `[0, end_pos)` 是已填充、尚未写入 kernel 的数据。 @endif
+         * @lang{EN} Reference to the staged length: `[0, end_pos)` of `buffer` is filled but not yet written to the kernel. @endif
          */
-        explicit cvt_writer(KernelType& kernel, std::vector<char_type>& buffer)
+        explicit cvt_writer(KernelType& kernel, std::vector<char_type>& buffer, std::size_t& end_pos)
             : m_kernel(kernel)
-            , m_buffer(buffer) {}
+            , m_buffer(buffer)
+            , m_end_pos(end_pos) {}
 
         cvt_writer(const cvt_writer&) = delete;
         cvt_writer& operator=(const cvt_writer&) = delete;
@@ -399,28 +405,21 @@ namespace IOv2
 
         /**
          * @lang{ZH}
-         * 重置缓冲区大小并清空积累的数据。
-         *
-         * 调用后缓冲区大小被设置为 `buf_size`，`m_prev_len` 归零，先前积累但
-         * 尚未刷出的所有数据将被丢弃（不写入 kernel）。
+         * 保证缓冲区至少能容纳 `buf_size` 个元素，已暂存的数据不受影响。
          * @endif
          *
          * @lang{EN}
-         * Resize the buffer and discard any accumulated unflushed data.
-         *
-         * After the call the buffer capacity is set to `buf_size` and `m_prev_len`
-         * is reset to zero. Any previously accumulated but unflushed data is
-         * discarded without being written to the kernel.
+         * Ensures the buffer holds at least `buf_size` elements; data already staged stays.
          * @endif
          *
          * @param buf_size
-         * @lang{ZH} 新的缓冲区元素个数。 @endif
-         * @lang{EN} New buffer capacity in number of elements. @endif
+         * @lang{ZH} 缓冲区至少应有的元素个数。 @endif
+         * @lang{EN} The least number of elements the buffer must hold. @endif
          */
         void reset(std::size_t buf_size)
         {
-            m_buffer.resize(buf_size);
-            m_prev_len = 0;
+            if (m_buffer.size() < buf_size)
+                m_buffer.resize(buf_size);
         }
 
         /**
@@ -464,16 +463,11 @@ namespace IOv2
             if (len > m_buffer.size())
                 throw cvt_error("cvt_writer::put_buf fail, write size too large");
 
-            std::size_t remain = m_buffer.size() - m_prev_len;
-            if (remain < len)
-            {
-                m_kernel.put(m_buffer.data(), m_prev_len);
-                remain = m_buffer.size();
-                m_prev_len = 0;
-            }
+            if (m_buffer.size() - m_end_pos < len)
+                commit();
 
-            auto res = m_buffer.data() + m_prev_len;
-            m_prev_len += len;
+            auto res = m_buffer.data() + m_end_pos;
+            m_end_pos += len;
             return res;
         }
 
@@ -481,57 +475,56 @@ namespace IOv2
          * @lang{ZH}
          * 回退已写入缓冲区但尚未 commit 的数据。
          *
-         * 将 `m_prev_len` 向前缩减 `len` 个元素，使这部分槽位可被重新使用。
+         * 将暂存长度向前缩减 `len` 个元素，使这部分槽位可被重新使用。
          * 仅用于回退尚未刷出到 kernel 的数据；已刷出的数据无法回退。
          * @endif
          *
          * @lang{EN}
          * Roll back data that has been written into the buffer but not yet committed.
          *
-         * Reduces `m_prev_len` by `len` elements, freeing those slots for reuse.
+         * Reduces the staged length by `len` elements, freeing those slots for reuse.
          * Only data that has not yet been flushed to the kernel can be rolled back;
          * data already flushed cannot be undone.
          * @endif
          *
          * @param len
-         * @lang{ZH} 要回退的元素数量，不得为零，且不得超过 `m_prev_len`。 @endif
+         * @lang{ZH} 要回退的元素数量，不得为零，且不得超过暂存长度。 @endif
          * @lang{EN} Number of elements to roll back; must not be zero and must not
-         * exceed `m_prev_len`. @endif
+         * exceed the staged length. @endif
          *
          * @throws cvt_error
-         * @lang{ZH} 若 `len` 为零，或 `len` 超过 `m_prev_len`。 @endif
-         * @lang{EN} If `len` is zero, or if `len` exceeds `m_prev_len`. @endif
+         * @lang{ZH} 若 `len` 为零，或 `len` 超过暂存长度。 @endif
+         * @lang{EN} If `len` is zero, or if `len` exceeds the staged length. @endif
          */
         void rollback(std::size_t len)
         {
             if (len == 0)
                 throw cvt_error("cvt_writer::rollback fail, length cannot be zero");
-            if (len > m_prev_len)
+            if (len > m_end_pos)
                 throw cvt_error("cvt_writer::rollback fail, rollback length too large");
-            m_prev_len -= len;
+            m_end_pos -= len;
         }
 
         /**
          * @lang{ZH}
          * 将缓冲区中所有尚未刷出的数据强制写入 kernel。
          *
-         * 调用后 `m_prev_len` 归零。若缓冲区为空，则不执行任何 kernel 写操作。
+         * 无论 kernel 写入成败，暂存长度都归零：失败时这批数据已不知写出了多少，留着重试
+         * 只会写重。若缓冲区为空，则不执行任何 kernel 写操作。
          * @endif
          *
          * @lang{EN}
          * Flush all buffered data that has not yet been written to the kernel.
          *
-         * After the call `m_prev_len` is reset to zero. If the buffer is empty no
-         * kernel write is performed.
+         * The staged length goes to zero whether or not the kernel write succeeds: after a
+         * failure there is no telling how much of it went out, and keeping it for a retry would
+         * only write it twice. If the buffer is empty no kernel write is performed.
          * @endif
          */
         void commit()
         {
-            if (m_prev_len != 0)
-            {
-                m_kernel.put(m_buffer.data(), m_prev_len);
-                m_prev_len = 0;
-            }
+            if (m_end_pos != 0)
+                m_kernel.put(m_buffer.data(), std::exchange(m_end_pos, 0));
         }
 
     private:
@@ -543,9 +536,9 @@ namespace IOv2
          *  @lang{EN} Reference to the external buffer that stages data to be written to the kernel. @endif */
         std::vector<char_type>& m_buffer;
 
-        /** @lang{ZH} 缓冲区中已填充但尚未刷出到 kernel 的元素数量。 @endif
-         *  @lang{EN} Number of elements that have been placed in the buffer but not yet flushed to the kernel. @endif */
-        std::size_t m_prev_len = 0;
+        /** @lang{ZH} 对暂存长度的引用：缓冲区中已填充但尚未刷出到 kernel 的元素数量。 @endif
+         *  @lang{EN} Reference to the staged length: the number of elements placed in the buffer but not yet flushed to the kernel. @endif */
+        std::size_t& m_end_pos;
     };
 
     template <typename TWriter>
@@ -706,7 +699,8 @@ namespace IOv2
      *
      * - **`put_main(cvt_writer<KernelType>&, const internal_type*, size_t)`**
      *   由 `abs_cvt::put` 在主内容阶段调用，执行编码逻辑。
-     *   禁止自行调用 `cvt_writer::commit()`；commit 由 `abs_cvt::put` 在成功路径统一负责。
+     *   不需要调用 `cvt_writer::commit()`：`abs_cvt::put` 在成功路径上统一提交。在 `put` 之外
+     *   写下层（`bos_impl()`、`flush_impl()`、关闭流时）经 `kernel_writer()`，要自己 `commit()`。
      *   允许抛出异常；调用方会设置污染标志并传播。
      *
      * - **`flush_impl()`**
@@ -805,9 +799,10 @@ namespace IOv2
      *
      * - **`put_main(cvt_writer<KernelType>&, const internal_type*, size_t)`**
      *   Called by `abs_cvt::put` during the main-content phase to perform encoding.
-     *   Must NOT call `cvt_writer::commit()` itself; `abs_cvt::put` is the sole
-     *   committer on the success path. May throw; the caller sets the taint flag
-     *   and rethrows.
+     *   Need not call `cvt_writer::commit()`: `abs_cvt::put` commits on the success
+     *   path. Writing the layer below outside `put` (in `bos_impl()`, `flush_impl()`, or
+     *   when closing the stream) goes through `kernel_writer()` and has to `commit()`
+     *   itself. May throw; the caller sets the taint flag and rethrows.
      *
      * - **`flush_impl()`**
      *   Called by `abs_cvt::flush` before `m_kernel.flush()`, to perform any
@@ -908,11 +903,10 @@ namespace IOv2
      *     undefined, but the underlying byte stream itself is unchanged
      *     and the caller can reseek to recover. `get` does, however,
      *     honour any pre-existing taint via `assert_not_tainted()`.
-     *   - Derived classes MUST NOT call `cvt_writer::commit()` themselves;
-     *     `abs_cvt::put` is the sole committer on the success path. Any
-     *     exception thrown out of `put_main` taints the converter, and
-     *     whatever the writer still stages is dropped at writer destruction.
-     *     Output already handed to the kernel stays there: the root_cvt and
+     *   - `put_main` need not call `cvt_writer::commit()`; `abs_cvt::put`
+     *     commits on the success path. Any exception thrown out of `put_main`
+     *     taints the converter, and `abs_cvt::put` drops whatever is still
+     *     staged. Output already handed to the kernel stays there: the root_cvt and
      *     mem_device writers write at `put_buf` (their `commit()` is empty),
      *     and the generic writer pushes its staged prefix down when its
      *     buffer fills. A failed `put` can therefore leave a truncated
@@ -1011,9 +1005,9 @@ namespace IOv2
             : m_kernel(val.m_kernel)
             , m_io_status(val.m_io_status)
             , m_is_bos_done(val.m_is_bos_done)
-            , m_tmp_io_buffer(val.m_tmp_io_buffer.begin(), val.m_tmp_io_buffer.begin() + val.m_rd_end)
-            , m_rd_cur(val.m_rd_cur)
-            , m_rd_end(val.m_rd_end)
+            , m_tmp_io_buffer(val.m_tmp_io_buffer.begin(), val.m_tmp_io_buffer.begin() + val.m_buf_end)
+            , m_buf_cur(val.m_buf_cur)
+            , m_buf_end(val.m_buf_end)
             , m_is_tainted(val.m_is_tainted)
             , m_get_error(val.m_get_error) {}
 
@@ -1033,14 +1027,14 @@ namespace IOv2
             , m_io_status(val.m_io_status)
             , m_is_bos_done(val.m_is_bos_done)
             , m_tmp_io_buffer(std::move(val.m_tmp_io_buffer))
-            , m_rd_cur(val.m_rd_cur)
-            , m_rd_end(val.m_rd_end)
+            , m_buf_cur(val.m_buf_cur)
+            , m_buf_end(val.m_buf_end)
             , m_is_tainted(val.m_is_tainted)
             , m_get_error(std::move(val.m_get_error))
         {
             val.m_io_status = io_status::neutral;
             val.m_is_bos_done = false;
-            val.m_rd_cur = val.m_rd_end = 0;
+            val.m_buf_cur = val.m_buf_end = 0;
             val.m_is_tainted = false;
             val.m_get_error = nullptr;
         }
@@ -1061,13 +1055,13 @@ namespace IOv2
         {
             if (this != &val)
             {
-                std::vector<external_type> buffer(val.m_tmp_io_buffer.begin(), val.m_tmp_io_buffer.begin() + val.m_rd_end);
+                std::vector<external_type> buffer(val.m_tmp_io_buffer.begin(), val.m_tmp_io_buffer.begin() + val.m_buf_end);
                 m_kernel = val.m_kernel;
                 m_io_status = val.m_io_status;
                 m_is_bos_done = val.m_is_bos_done;
                 m_tmp_io_buffer = std::move(buffer);
-                m_rd_cur = val.m_rd_cur;
-                m_rd_end = val.m_rd_end;
+                m_buf_cur = val.m_buf_cur;
+                m_buf_end = val.m_buf_end;
                 m_is_tainted = val.m_is_tainted;
                 m_get_error = val.m_get_error;
                 // m_reader and m_writer keep pointing to &m_kernel, no change needed
@@ -1095,9 +1089,9 @@ namespace IOv2
                 m_is_bos_done = val.m_is_bos_done;
                 val.m_is_bos_done = false;
                 m_tmp_io_buffer = std::move(val.m_tmp_io_buffer);
-                m_rd_cur = val.m_rd_cur;
-                m_rd_end = val.m_rd_end;
-                val.m_rd_cur = val.m_rd_end = 0;
+                m_buf_cur = val.m_buf_cur;
+                m_buf_end = val.m_buf_end;
+                val.m_buf_cur = val.m_buf_end = 0;
                 m_is_tainted = val.m_is_tainted;
                 val.m_is_tainted = false;
                 m_get_error = std::move(val.m_get_error);
@@ -1195,7 +1189,7 @@ namespace IOv2
             }
 
             auto [dev, inner_err] = self.m_kernel.detach();
-            self.m_rd_cur = self.m_rd_end = 0;
+            self.m_buf_cur = self.m_buf_end = 0;
             self.m_io_status = io_status::neutral;
             self.m_is_bos_done = false;
             self.m_is_tainted = false;
@@ -1259,7 +1253,7 @@ namespace IOv2
             try
             {
                 self.m_kernel.attach(std::move(dev));
-                self.m_rd_cur = self.m_rd_end = 0;
+                self.m_buf_cur = self.m_buf_end = 0;
                 self.m_io_status = io_status::neutral;
                 self.m_is_bos_done = false;
                 self.m_is_tainted = false;
@@ -1559,7 +1553,7 @@ namespace IOv2
             // corrupted the stream cannot then read back a confused image.
             self.assert_not_tainted();
 
-            cvt_reader<KernelType> reader(self.m_kernel, self.m_tmp_io_buffer, self.m_rd_cur, self.m_rd_end);
+            cvt_reader<KernelType> reader(self.m_kernel, self.m_tmp_io_buffer, self.m_buf_cur, self.m_buf_end);
 
             if (!self.m_is_bos_done)
             {
@@ -1697,7 +1691,7 @@ namespace IOv2
 
             try
             {
-                cvt_writer<KernelType> writer(self.m_kernel, self.m_tmp_io_buffer);
+                cvt_writer<KernelType> writer(self.m_kernel, self.m_tmp_io_buffer, self.m_buf_end);
                 if (!self.m_is_bos_done)
                 {
                     if (to_size == 0) return;
@@ -1742,16 +1736,17 @@ namespace IOv2
                     // switch_to_put() was already called above if needed;
                     // m_io_status is guaranteed to be output at this point.
                     self.put_main(writer, to, to_size);
-                    // commit() is the sole responsibility of abs_cvt::put: derived
-                    // put_main implementations must NOT call writer.commit() themselves.
-                    // If put_main throws, this commit is skipped and what the writer
-                    // still stages is dropped at writer destruction (output already
-                    // handed to the kernel stays); the catch below taints the converter.
+                    // If put_main throws, this commit is skipped; the catch below drops what
+                    // is still staged (output already handed to the kernel stays) and taints
+                    // the converter.
                     writer.commit();
                 }
             }
             catch (...)
             {
+                // Left in place, it would go out with whatever is written next, such as what
+                // closing the stream writes.
+                self.m_buf_end = 0;
                 self.m_is_tainted = true;
                 throw;
             }
@@ -1946,6 +1941,7 @@ namespace IOv2
             self.assert_not_tainted();
             if (!self.m_is_bos_done && self.m_io_status != io_status::neutral)
                 throw cvt_error("abs_cvt::switch_to_get fail: cannot switch in the BOS phase");
+            assert(self.m_buf_end == 0);    // put commits before it returns
 
             // Note: invoke the derived-layer hook first (e.g. precondition checks), then switch the lower level.
             if constexpr (requires { self.switch_to_get_impl(); })
@@ -2006,13 +2002,15 @@ namespace IOv2
 
             // Hand the read area back first; transparent to the layers above, so the
             // derived-layer hook never has to know about it.
-            if (self.m_rd_cur != self.m_rd_end || self.m_get_error)
+            if (self.m_buf_cur != self.m_buf_end || self.m_get_error)
             {
                 if constexpr (cvt_cpt::support_positioning<KernelType>)
                     self.kernel_seek(self.kernel_tell());
                 else
                     throw cvt_error("abs_cvt::switch_to_put fail: unread input and kernel does not support positioning");
             }
+            // A drained read area can end anywhere, and m_buf_end is the staged length from here.
+            self.m_buf_cur = self.m_buf_end = 0;
 
             if constexpr (requires { self.switch_to_put_impl(); })
                 self.switch_to_put_impl();
@@ -2126,13 +2124,6 @@ namespace IOv2
          * derived layer's reads, writes and positioning all go through these functions.
          * @endif
          */
-        void kernel_put(const external_type* from, std::size_t from_size)
-            requires (cvt_cpt::support_put<KernelType>)
-        {
-            assert(m_rd_cur == m_rd_end);
-            m_kernel.put(from, from_size);
-        }
-
         /**
          * @lang{ZH}
          * 构造一个读下层的 `cvt_reader`，与 `get()` 传给 `get_main()` 的等价：它的状态都在本类里，
@@ -2147,24 +2138,56 @@ namespace IOv2
          * header in `bos_impl()`, say), or uses an operation only the `cvt_reader` of a
          * particular layer below offers, through this.
          * @endif
+         *
+         * @throws cvt_error
+         * @lang{ZH} 当前不是输入方向：换向归 `switch_to_get()` 管，这里不替它做。 @endif
+         * @lang{EN} The direction is not input: changing it is `switch_to_get()`'s job, not this one's. @endif
          */
         cvt_reader<KernelType> kernel_reader()
             requires (cvt_cpt::support_get<KernelType>)
         {
-            return cvt_reader<KernelType>(m_kernel, m_tmp_io_buffer, m_rd_cur, m_rd_end);
+            if (m_io_status != io_status::input)
+                throw cvt_error("abs_cvt::kernel_reader fail: not in input mode");
+            return cvt_reader<KernelType>(m_kernel, m_tmp_io_buffer, m_buf_cur, m_buf_end);
+        }
+
+        /**
+         * @lang{ZH}
+         * 构造一个写下层的 `cvt_writer`，与 `put()` 传给 `put_main()` 的等价：它的状态都在本类里。
+         * 派生层在 `put_main()` 之外写下层（`bos_impl()`、`flush_impl()`、关闭流时）都经由它，
+         * 写完要自己 `commit()`，因为此时没有 `put()` 替它提交。
+         * @endif
+         *
+         * @lang{EN}
+         * Builds a `cvt_writer` on the layer below, equivalent to the one `put()` passes to
+         * `put_main()`, as its state all lives in this class. A derived layer writes the layer
+         * below outside `put_main()` (in `bos_impl()`, `flush_impl()`, or when closing the
+         * stream) through this, and has to `commit()` itself, as no `put()` will do it.
+         * @endif
+         *
+         * @throws cvt_error
+         * @lang{ZH} 当前不是输出方向：换向归 `switch_to_put()` 管，这里不替它做。 @endif
+         * @lang{EN} The direction is not output: changing it is `switch_to_put()`'s job, not this one's. @endif
+         */
+        cvt_writer<KernelType> kernel_writer()
+            requires (cvt_cpt::support_put<KernelType>)
+        {
+            if (m_io_status != io_status::output)
+                throw cvt_error("abs_cvt::kernel_writer fail: not in output mode");
+            return cvt_writer<KernelType>(m_kernel, m_tmp_io_buffer, m_buf_end);
         }
 
         [[nodiscard]] std::size_t kernel_tell() const
             requires (cvt_cpt::support_positioning<KernelType>)
         {
-            return m_kernel.tell() - (m_rd_end - m_rd_cur);
+            return m_kernel.tell() - (m_buf_end - m_buf_cur);
         }
 
         void kernel_seek(std::size_t pos)
             requires (cvt_cpt::support_positioning<KernelType>)
         {
             m_kernel.seek(pos);
-            m_rd_cur = m_rd_end = 0;
+            m_buf_cur = m_buf_end = 0;
             m_get_error = nullptr;
         }
 
@@ -2172,7 +2195,7 @@ namespace IOv2
             requires (cvt_cpt::support_positioning<KernelType>)
         {
             m_kernel.rseek(pos);
-            m_rd_cur = m_rd_end = 0;
+            m_buf_cur = m_buf_end = 0;
             m_get_error = nullptr;
         }
 
@@ -2180,7 +2203,7 @@ namespace IOv2
         [[nodiscard]] bool kernel_is_eof()
             requires (cvt_cpt::support_get<KernelType>)
         {
-            return m_rd_cur == m_rd_end && m_kernel.is_eof();
+            return m_buf_cur == m_buf_end && m_kernel.is_eof();
         }
 
     private:
@@ -2235,21 +2258,22 @@ namespace IOv2
 
         /** @lang{ZH}
          *  IO 缓冲区，供 `cvt_reader` 和 `cvt_writer` 共用。读方向上未消费的数据跨 `get` 调用保留
-         *  （见 `m_rd_cur`/`m_rd_end`）；切到写方向前由 `switch_to_put()` 清空。
-         *  缓冲区大小由 `reset()` 按需设置。
+         *  （见 `m_buf_cur`/`m_buf_end`）；写方向上的暂存数据不跨 `put` 调用保留，`put` 返回前提交。
+         *  切到写方向时由 `switch_to_put()` 清空。缓冲区大小由 `reset()` 按需设置。
          *  @endif
          *  @lang{EN}
          *  IO buffer shared by `cvt_reader` and `cvt_writer`. In the read direction, unconsumed
-         *  data survives across `get` calls (see `m_rd_cur`/`m_rd_end`); `switch_to_put()` empties
-         *  it before the write direction takes over.
+         *  data survives across `get` calls (see `m_buf_cur`/`m_buf_end`); in the write direction
+         *  staged data does not survive a `put`, which commits it before returning.
+         *  `switch_to_put()` empties it when the write direction takes over.
          *  The buffer is sized on demand by `reset()`.
          *  @endif */
         std::vector<external_type> m_tmp_io_buffer;
 
-        /** @lang{ZH} 取数区的读取游标：`m_tmp_io_buffer` 中 `[m_rd_cur, m_rd_end)` 是已从 kernel 取出、尚未消费的数据。 @endif
-         *  @lang{EN} Read-area cursors: `[m_rd_cur, m_rd_end)` of `m_tmp_io_buffer` is data taken from the kernel but not yet consumed. @endif */
-        std::size_t m_rd_cur = 0;
-        std::size_t m_rd_end = 0;
+        /** @lang{ZH} `m_tmp_io_buffer` 的游标。读方向：`[m_buf_cur, m_buf_end)` 是已从 kernel 取出、尚未消费的数据（取数区）。写方向：`m_buf_cur` 为 0，`[0, m_buf_end)` 是暂存、尚未写入 kernel 的数据。 @endif
+         *  @lang{EN} Cursors of `m_tmp_io_buffer`. Read direction: `[m_buf_cur, m_buf_end)` is data taken from the kernel but not yet consumed (the read area). Write direction: `m_buf_cur` is 0, and `[0, m_buf_end)` is data staged and not yet written to the kernel. @endif */
+        std::size_t m_buf_cur = 0;
+        std::size_t m_buf_end = 0;
 
         /** @lang{ZH}
          *  Tainted 标志：当 `put` 抛出异常时被置为 `true`，表示底层流的字节
