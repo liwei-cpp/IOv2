@@ -632,14 +632,13 @@ private:
                 if (ret != Z_OK) { m_strm.reset(); throw cvt_error("zlib_cvt::bos fail: Cannot initialize zlib."); }
                 inflate_guard zlib_guard(m_strm);
 
-                // Contract: kernel.get() on BOS path guarantees to return exactly the
-                // requested byte count, or throw an exception if insufficient data is
-                // available. The assert below is purely defensive, verifying this
-                // invariant during development. It is intentionally compiled out in
-                // release builds.
+                // get_buf<true> hands out exactly the header, or throws at the end. zlib
+                // takes a pointer to non-const input, hence the copy.
+                auto reader = BT::kernel_reader();
+                reader.reset(zlib_header_size);
                 std::array<external_type, zlib_header_size> header_buf{};
-                [[maybe_unused]] const std::size_t n = BT::kernel_get(header_buf.data(), zlib_header_size);
-                assert(n == zlib_header_size);
+                std::copy_n(reader.template get_buf<true>(zlib_header_size), zlib_header_size,
+                            header_buf.data());
 
                 m_strm->avail_in = zlib_header_size;
                 m_strm->next_in = reinterpret_cast<unsigned char*>(header_buf.data()); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)

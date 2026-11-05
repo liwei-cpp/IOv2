@@ -2235,7 +2235,14 @@ public:
     template <bool Saturate = false>
     auto get_buf(std::size_t to_max)
     {
-        return m_kernel.device().template get_buf<Saturate>(to_max);
+        if constexpr (Saturate)
+        {
+            // Too little input is the device's failure to it, but the end of the stream here.
+            try { return m_kernel.device().template get_buf<true>(to_max); }
+            catch (const device_error&) { throw cvt_error("get_buf<Saturate> fail: meet eos"); }
+        }
+        else
+            return m_kernel.device().template get_buf<false>(to_max);
     }
 
     /**

@@ -2126,13 +2126,6 @@ namespace IOv2
          * derived layer's reads, writes and positioning all go through these functions.
          * @endif
          */
-        std::size_t kernel_get(external_type* to, std::size_t to_max)
-            requires (cvt_cpt::support_get<KernelType>)
-        {
-            assert(m_rd_cur == m_rd_end);
-            return m_kernel.get(to, to_max);
-        }
-
         void kernel_put(const external_type* from, std::size_t from_size)
             requires (cvt_cpt::support_put<KernelType>)
         {
@@ -2142,14 +2135,17 @@ namespace IOv2
 
         /**
          * @lang{ZH}
-         * 构造一个读下层的 `cvt_reader`，与 `get()` 传给 `get_main()` 的等价：它的状态都在本类里。
-         * 供派生层在 `get()` 之外使用某种下层的 `cvt_reader` 特有的操作。
+         * 构造一个读下层的 `cvt_reader`，与 `get()` 传给 `get_main()` 的等价：它的状态都在本类里，
+         * 取数区里没消费的字节照样先读到。派生层在 `get_main()` 之外读下层（如 `bos_impl()` 里读
+         * 流头），或使用某种下层的 `cvt_reader` 特有的操作，都经由它。
          * @endif
          *
          * @lang{EN}
          * Builds a `cvt_reader` on the layer below, equivalent to the one `get()` passes to
-         * `get_main()`, as its state all lives in this class. For a derived layer to use, outside
-         * `get()`, an operation only the `cvt_reader` of a particular layer below offers.
+         * `get_main()`: its state all lives in this class, so unconsumed bytes of the read area
+         * still come first. A derived layer reads the layer below outside `get_main()` (a stream
+         * header in `bos_impl()`, say), or uses an operation only the `cvt_reader` of a
+         * particular layer below offers, through this.
          * @endif
          */
         cvt_reader<KernelType> kernel_reader()

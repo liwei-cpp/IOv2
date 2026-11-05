@@ -74,6 +74,12 @@
   字符串字面量的代码不受影响；只能隐式转换为 `std::string` 的自定义类型不再能直接传入。
 - `file_device` 在所有平台上都以二进制打开文件，Windows 上也不做 `\r\n` 与 `\n` 的转换。
   换行转换将由转换器层提供（#505）。
+- `abs_cvt` 删除受保护的 `kernel_get()`，改由 `kernel_reader()` 取得读下层的 `cvt_reader`：
+  前者跳过取数区里没消费的字节，只有 `assert` 把关。自定义转换器在 `get_main()` 之外读下层
+  时改用 `kernel_reader().get_buf<true>(n)`，先以 `reset(n)` 保证缓冲够大。随之 `zlib_cvt`、
+  `chacha20_cvt` 读流头时遇到短读的设备会读到够为止，流头不完整时抛 `cvt_error`。`mem_device`
+  上的 `cvt_reader::get_buf<true>` 读不满时也改抛 `cvt_error`，与其他 reader 一致，此前是
+  `device_error`。
 - `abs_cvt` 在 BOS 阶段（`bos()` 之后、`main_cont_beg()` 之前）不再换向：显式调用
   `switch_to_get()` / `switch_to_put()`，或与 `bos()` 所定方向相反的 `get()` / `put()`，
   都抛出 `cvt_error`，且不污染转换器。此前反向的 `put()` 会把原始字节交给下层，由下层
@@ -264,6 +270,14 @@ have no release line of their own.
 - `file_device` opens files in binary on every platform; on Windows too there is
   no translation between `\r\n` and `\n`. Newline translation is to come from
   the converter layer (#505).
+- `abs_cvt` drops the protected `kernel_get()` for `kernel_reader()`, which gives a
+  `cvt_reader` on the layer below: the former skips unconsumed bytes of the read
+  area with only an `assert` to stop it. A custom converter reading the layer below
+  outside `get_main()` uses `kernel_reader().get_buf<true>(n)`, after `reset(n)` to
+  make the buffer large enough. With that, `zlib_cvt` and `chacha20_cvt` keep reading
+  a stream header from a device that reads short, and an incomplete header throws
+  `cvt_error`. `cvt_reader::get_buf<true>` on a `mem_device` now throws `cvt_error`
+  too when input runs out, like every other reader, where it threw `device_error`.
 - `abs_cvt` no longer switches direction in the BOS phase (after `bos()`, before
   `main_cont_beg()`): an explicit `switch_to_get()` / `switch_to_put()`, or a `get()` /
   `put()` against the direction `bos()` settled on, throws `cvt_error` and does not taint

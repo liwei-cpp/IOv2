@@ -8,6 +8,8 @@
 #include <IOv2/cvt/runtime_cvt.h>
 #include <IOv2/device/mem_device.h>
 
+#include <support/snatchy_device.h>
+
 #include <botan/secmem.h>
 
 #include <gtest/gtest.h>
@@ -248,6 +250,40 @@ TEST(Chacha20Cvt, TheSameKeyRecoversTheMessage)
 {
     const std::string msg = "Hello, world! This is a test message for ChaCha20.";
     EXPECT_EQ(decrypt_whole(encrypt_whole(msg, "key1"), "key1", msg.size()), msg);
+}
+
+// A device may read short, here a byte at a time: bos() keeps reading until it has the whole
+// IV, over the root that buffers and the one that does not.
+TEST(Chacha20Cvt, BosGathersAnIvThatArrivesInPieces)
+{
+    const std::string msg = "Hello, world!";
+    const std::string enc = encrypt_whole(msg, "key1");
+
+    auto expect_decrypts = [&](auto root)
+    {
+        Crypt::chacha20_cvt obj(std::move(root), "key1");
+        EXPECT_EQ(obj.bos(), io_status::input);
+        obj.main_cont_beg();
+
+        std::string got(msg.size(), '\0');
+        std::size_t total = 0;
+        while (total < got.size())
+        {
+            const std::size_t n = obj.get(got.data() + total, got.size() - total);
+            ASSERT_NE(n, 0u);
+            total += n;
+        }
+        EXPECT_EQ(got, msg);
+    };
+    expect_decrypts(rb_root_cvt{snatchy_device<char, 1>(enc)});
+    expect_decrypts(no_rb_root_cvt{snatchy_device<char, 1>(enc)});
+}
+
+// A stream shorter than the IV cannot be decrypted at all.
+TEST(Chacha20Cvt, BosThrowsOnAnIvCutShort)
+{
+    CharCvt obj(rb_root_cvt{mem_device(std::string("abc"))}, "key1");
+    EXPECT_THROW((void)obj.bos(), cvt_error);
 }
 
 TEST(Chacha20Cvt, ADifferentKeyDoesNotRecoverTheMessage)
