@@ -74,6 +74,13 @@
   字符串字面量的代码不受影响；只能隐式转换为 `std::string` 的自定义类型不再能直接传入。
 - `file_device` 在所有平台上都以二进制打开文件，Windows 上也不做 `\r\n` 与 `\n` 的转换。
   换行转换将由转换器层提供（#505）。
+- `abs_cvt` 删除受保护的 `kernel_put()`，改由 `kernel_writer()` 取得写下层的 `cvt_writer`。
+  自定义转换器在 `put_main()` 之外写下层时（`bos_impl()`、`flush_impl()`、关闭流时）用
+  `reset(n)`、`put_buf(n)` 写入，再自己 `commit()`；`put_main()` 不需要 `commit()`。
+  `kernel_reader()` 与 `kernel_writer()` 在方向不对时抛 `cvt_error`。`cvt_writer` 不再保存
+  状态，构造时多一个暂存长度的引用；`reset()` 只保证缓冲至少这么大，不再丢弃暂存的数据；
+  `commit()` 无论成败都清空暂存。根转换器的 `cvt_writer` 单次 `put_buf()` 的上限改为根缓冲的
+  大小，不再是 `reset()` 给的值。
 - `abs_cvt` 删除受保护的 `kernel_get()`，改由 `kernel_reader()` 取得读下层的 `cvt_reader`：
   前者跳过取数区里没消费的字节，只有 `assert` 把关。自定义转换器在 `get_main()` 之外读下层
   时改用 `kernel_reader().get_buf<true>(n)`，先以 `reset(n)` 保证缓冲够大。随之 `zlib_cvt`、
@@ -270,6 +277,16 @@ have no release line of their own.
 - `file_device` opens files in binary on every platform; on Windows too there is
   no translation between `\r\n` and `\n`. Newline translation is to come from
   the converter layer (#505).
+- `abs_cvt` drops the protected `kernel_put()` for `kernel_writer()`, which gives a
+  `cvt_writer` on the layer below. A custom converter writing the layer below outside
+  `put_main()` (in `bos_impl()`, `flush_impl()`, or when closing the stream) uses
+  `reset(n)` and `put_buf(n)` and then calls `commit()` itself; `put_main()` need not
+  call `commit()`. `kernel_reader()` and `kernel_writer()` throw `cvt_error` in the
+  wrong direction. `cvt_writer` keeps no state any more and takes a reference to the
+  staged length at construction; `reset()` only makes sure the buffer is at least that
+  large and no longer drops staged data; `commit()` empties what is staged whether or
+  not it succeeds. On a root converter the limit of one `put_buf()` is now the size of
+  the root's buffer rather than what `reset()` was given.
 - `abs_cvt` drops the protected `kernel_get()` for `kernel_reader()`, which gives a
   `cvt_reader` on the layer below: the former skips unconsumed bytes of the read
   area with only an `assert` to stop it. A custom converter reading the layer below

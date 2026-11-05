@@ -702,7 +702,10 @@ private:
                     pending_bytes != 0 || pending_bits != 0)
                     throw cvt_error("zlib_cvt::bos fail: zlib has unflushed bytes after header");
 
-                BT::kernel_put(header_buf.data(), zlib_header_size);
+                auto writer = BT::kernel_writer();
+                writer.reset(zlib_header_size);
+                std::copy_n(header_buf.data(), zlib_header_size, writer.put_buf(zlib_header_size));
+                writer.commit();
 
                 m_strm->avail_out = 0;
                 m_strm->next_out = nullptr;
@@ -1001,21 +1004,53 @@ private:
         {
             io_buf_guard buf_guard{*m_strm};
 
-            std::array<external_type, CHUNK> local_buf{};
+            auto writer = BT::kernel_writer();
+            writer.reset(CHUNK);
             m_strm->next_in = nullptr;
             m_strm->avail_in = 0;
             while (true)
             {
-                m_strm->next_out = reinterpret_cast<unsigned char*>(local_buf.data()); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
-                m_strm->avail_out = CHUNK;
-                zerr("zlib_cvt::flush_impl fail", deflate(m_strm.get(), Z_SYNC_FLUSH));
-                const std::size_t written = CHUNK - m_strm->avail_out;
-                if (written > 0)
-                    BT::kernel_put(local_buf.data(), written);
+                deflate_chunk(writer, Z_SYNC_FLUSH, "zlib_cvt::flush_impl fail");
                 if (m_strm->avail_out)
                     break;
             }
         }
+    }
+
+    /**
+     * @lang{ZH}
+     * 让 `deflate` 把至多 `CHUNK` 字节直接写进 `writer` 的缓冲，再提交，没用完的部分退回。
+     * 供 `put_main` 之外写下层的路径使用，那里没有 `abs_cvt::put` 替它提交。
+     * @param writer 写下层的 `cvt_writer`。
+     * @param flush 传给 `deflate` 的刷出模式。
+     * @param what 失败时的报错前缀。
+     * @return `deflate` 的返回值。
+     * @endif
+     *
+     * @lang{EN}
+     * Has `deflate` write up to `CHUNK` bytes straight into the buffer of `writer`, gives the
+     * unused part back and commits. For the paths that write the layer below outside
+     * `put_main`, where no `abs_cvt::put` commits for them.
+     * @param writer The `cvt_writer` on the layer below.
+     * @param flush The flush mode passed to `deflate`.
+     * @param what The prefix of the message on failure.
+     * @return What `deflate` returned.
+     * @endif
+     */
+    int deflate_chunk(cvt_writer<KernelType>& writer, int flush, const char* what)
+        requires (cvt_cpt::support_put<KernelType>)
+    {
+        m_strm->next_out = reinterpret_cast<unsigned char*>(writer.put_buf(CHUNK)); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
+        m_strm->avail_out = CHUNK;
+        int ret = Z_OK;
+        {
+            put_buf_guard guard{writer, static_cast<std::size_t>(CHUNK)};
+            ret = deflate(m_strm.get(), flush);
+            guard.used(static_cast<std::size_t>(CHUNK - m_strm->avail_out));
+            zerr(what, ret);
+        }
+        writer.commit();
+        return ret;
     }
 
     /**
@@ -1158,19 +1193,14 @@ private:
         {
             if constexpr (cvt_cpt::support_put<KernelType>)
             {
-                std::array<external_type, CHUNK> local_buf{};
                 deflate_guard g(m_strm);  // calls deflateEnd + resets m_strm on scope exit
+                auto writer = BT::kernel_writer();
+                writer.reset(CHUNK);
                 m_strm->next_in = nullptr;
                 m_strm->avail_in = 0;
                 while (true)
                 {
-                    m_strm->next_out = reinterpret_cast<unsigned char*>(local_buf.data()); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
-                    m_strm->avail_out = CHUNK;
-                    auto ret = deflate(m_strm.get(), Z_FINISH);
-                    zerr("zlib_cvt::close_stream fail", ret);
-                    const std::size_t written = CHUNK - m_strm->avail_out;
-                    if (written > 0)
-                        BT::kernel_put(local_buf.data(), written);
+                    const int ret = deflate_chunk(writer, Z_FINISH, "zlib_cvt::close_stream fail");
                     if (ret == Z_STREAM_END)
                         break;
                     // Z_FINISH must reach Z_STREAM_END in finite iterations.

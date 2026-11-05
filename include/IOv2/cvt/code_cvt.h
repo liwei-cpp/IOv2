@@ -1517,7 +1517,12 @@ private:
                 const std::size_t count = m_cvt_kernel.unshift(buffer.data(), buffer.size());
 
                 if (count != 0)
-                    BT::kernel_put(buffer.data(), count);
+                {
+                    auto writer = BT::kernel_writer();
+                    writer.reset(count);
+                    std::copy_n(buffer.data(), count, writer.put_buf(count));
+                    writer.commit();
+                }
             }
         }
     }
