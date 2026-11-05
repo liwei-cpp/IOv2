@@ -267,9 +267,8 @@ private:
      * user buffer `to`. The key-offset `m_pos` is incremented after each element.
      * @endif
      *
-     * @param[in,out] reader The buffered reader.
-     * @param[out]    to     The user output buffer.
-     * @param[in]     to_max The maximum number of elements to deliver.
+     * @param[out] to     The user output buffer.
+     * @param[in]  to_max The maximum number of elements to deliver.
      *
      * @return
      * @lang{ZH} `first` 为实际解密并写入用户缓冲的元素数量，`second` 为遇到的错误（无错误为
@@ -283,7 +282,7 @@ private:
      * layer below is carried back as is. @endif
      */
     std::pair<std::size_t, std::exception_ptr>
-    get_main(cvt_reader<KernelType>& reader, internal_type* to, std::size_t to_max) noexcept
+    get_main(internal_type* to, std::size_t to_max) noexcept
         requires (cvt_cpt::support_get<KernelType>)
     {
         std::size_t total_count = 0;
@@ -293,6 +292,7 @@ private:
             if (m_key.empty())
                 throw cvt_error("vigenere_cvt: key not initialized (moved-from object?)");
 
+            auto reader = BT::kernel_reader();
             reader.reset(s_buf_len);
             while (total_count != to_max)
             {
@@ -333,21 +333,21 @@ private:
      * kernel via `writer`. The key-offset `m_pos` is incremented after each element.
      * @endif
      *
-     * @param[in,out] writer  The buffered writer.
-     * @param[in]     to      The user input buffer to encrypt.
-     * @param[in]     to_size The number of `internal_type` elements to encrypt.
+     * @param[in] to      The user input buffer to encrypt.
+     * @param[in] to_size The number of `internal_type` elements to encrypt.
      *
      * @throws cvt_error
      * @lang{ZH} 若密钥为空（已移动走的对象）。 @endif
      * @lang{EN} If the key is empty (moved-from object). @endif
      */
-    void put_main(cvt_writer<KernelType>& writer, const internal_type* to, std::size_t to_size)
+    void put_main(const internal_type* to, std::size_t to_size)
         requires (cvt_cpt::support_put<KernelType>)
     {
         if (to_size == 0) return;
         if (m_key.empty())
             throw cvt_error("vigenere_cvt: key not initialized (moved-from object?)");
 
+        auto writer = BT::kernel_writer();
         writer.reset(s_buf_len);
 
         std::size_t total_count = 0;

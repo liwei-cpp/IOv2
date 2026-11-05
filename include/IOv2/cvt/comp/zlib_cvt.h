@@ -787,7 +787,6 @@ private:
      * already buffers, so single-byte reads do not incur extra syscalls).
      * @endif
      *
-     * @param reader 封装内核读取的缓冲读取辅助对象。 / Buffered read helper wrapping the kernel.
      * @param to     解压结果的输出缓冲区。 / Output buffer for the decompressed data.
      * @param to_max 期望解压的最大元素数量。 / Maximum number of elements to decompress.
      * @return `first` 为实际解压的元素数量，`second` 为遇到的错误（无错误为 `nullptr`）：压缩流被截断、
@@ -802,7 +801,7 @@ private:
      *         whole element go with the error.
      */
     std::pair<std::size_t, std::exception_ptr>
-    get_main(cvt_reader<KernelType>& reader, internal_type* to, std::size_t to_max) noexcept
+    get_main(internal_type* to, std::size_t to_max) noexcept
         requires (cvt_cpt::support_get<KernelType>)
     {
         // Once inflate() has reported Z_STREAM_END on this stream, further
@@ -834,6 +833,7 @@ private:
             // unpredictable expansion ratio - a few compressed bytes could expand
             // to overflow the output buffer. This keeps the code simple and correct.
             // The underlying converter already buffers, so this doesn't cause syscalls.
+            auto reader = BT::kernel_reader();
             reader.reset(1);
 
             auto ret = inflate(m_strm.get(), Z_NO_FLUSH);
@@ -909,13 +909,12 @@ private:
      * always points to the last valid compressed byte.
      * @endif
      *
-     * @param writer  封装内核写入的缓冲写入辅助对象。 / Buffered write helper wrapping the kernel.
      * @param _to     待压缩的源数据缓冲区。 / Source data buffer to compress.
      * @param to_size 待压缩的元素数量。 / Number of elements to compress.
      * @throws cvt_error 若 zlib 报告致命错误或 zlib 未取得进展。
      *                   / If zlib reports a fatal error or zlib makes no progress.
      */
-    void put_main(cvt_writer<KernelType>& writer, const internal_type* _to, std::size_t to_size)
+    void put_main(const internal_type* _to, std::size_t to_size)
         requires (cvt_cpt::support_put<KernelType>)
     {
         constexpr std::size_t max_type_limit = std::numeric_limits<decltype(m_strm->avail_out)>::max();
@@ -923,6 +922,7 @@ private:
 
         auto to = reinterpret_cast<const unsigned char*>(_to); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
 
+        auto writer = BT::kernel_writer();
         writer.reset(CHUNK);
 
         // Ensures m_strm's in/out pointers and counts are cleared on every exit

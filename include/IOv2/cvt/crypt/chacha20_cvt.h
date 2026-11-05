@@ -507,9 +507,8 @@ private:
      * the entire put_main body in a taint-on-throw catch-all (see the output
      * exception-safety notes in `abs_cvt.h`).
      *
-     * @param[in,out] reader The buffered reader.
-     * @param[out]    _to    The user output buffer.
-     * @param[in]     to_max The maximum number of elements to deliver.
+     * @param[out] _to    The user output buffer.
+     * @param[in]  to_max The maximum number of elements to deliver.
      * @return `first` is the number of elements actually decrypted into the user buffer,
      *         `second` the error hit (`nullptr` if none). Every "throw" above travels back
      *         through `second`: when elements were delivered, `abs_cvt::get` hands them over and
@@ -517,7 +516,7 @@ private:
      * @endif
      */
     std::pair<std::size_t, std::exception_ptr>
-    get_main(cvt_reader<KernelType>& reader, internal_type* _to, std::size_t to_max) noexcept
+    get_main(internal_type* _to, std::size_t to_max) noexcept
         requires (cvt_cpt::support_get<KernelType>)
     {
         std::size_t elements_delivered = 0;
@@ -534,6 +533,7 @@ private:
 
             auto* to = reinterpret_cast<uint8_t*>(_to); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
 
+            auto reader = BT::kernel_reader();
             reader.reset(block_size);
 
             while (elements_delivered < to_max)
@@ -637,15 +637,14 @@ private:
      * `put_main` in a taint-on-throw catch-all. See `get_main` for the full rationale.
      * @endif
      *
-     * @param[in,out] writer  The buffered writer.
-     * @param[in]     _to     The user input buffer to encrypt.
-     * @param[in]     to_size The number of `internal_type` elements to encrypt.
+     * @param[in] _to     The user input buffer to encrypt.
+     * @param[in] to_size The number of `internal_type` elements to encrypt.
      *
      * @throws cvt_error
      * @lang{ZH} 若 `m_cipher` 为空（已移动走的对象）。 @endif
      * @lang{EN} If `m_cipher` is null (moved-from object). @endif
      */
-    void put_main(cvt_writer<KernelType>& writer, const internal_type* _to, std::size_t to_size)
+    void put_main(const internal_type* _to, std::size_t to_size)
         requires (cvt_cpt::support_put<KernelType>)
     {
         if (to_size == 0) return;
@@ -657,6 +656,7 @@ private:
 
         const auto* to = reinterpret_cast<const uint8_t*>(_to); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
 
+        auto writer = BT::kernel_writer();
         writer.reset(block_size);
         while (to_size > 0)
         {

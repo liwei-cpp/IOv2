@@ -1151,9 +1151,10 @@ private:
      * in sequence, updating the accumulated character count on success.
      * @endif
      */
-    void put_main(cvt_writer<KernelType>& writer, const internal_type* to, std::size_t to_size)
+    void put_main(const internal_type* to, std::size_t to_size)
         requires (cvt_cpt::support_put<KernelType>)
     {
+        auto writer = BT::kernel_writer();
         writer.reset(s_max_buf_size);
         const std::size_t buf_len = m_cvt_kernel.epc();
         for (std::size_t i = 0; i < to_size; ++i)
@@ -1202,13 +1203,14 @@ private:
      * @endif
      */
     std::pair<std::size_t, std::exception_ptr>
-    get_main(cvt_reader<KernelType>& reader, internal_type* to, std::size_t to_max) noexcept
+    get_main(internal_type* to, std::size_t to_max) noexcept
         requires (cvt_cpt::support_get<KernelType>)
     {
         std::size_t total_size = 0;
         try
         {
             if (to_max == 0) return {0, nullptr};
+            auto reader = BT::kernel_reader();
             reader.reset(s_max_buf_size);
 
             std::size_t prev_rollback = 0;
