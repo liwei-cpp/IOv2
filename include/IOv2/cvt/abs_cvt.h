@@ -591,9 +591,9 @@ namespace IOv2
      * - **可选能力**：通过模板参数和 `requires` 子句按需暴露 flush、定位
      *   (`tell`/`seek`/`rseek`) 和 IO 方向切换能力。
      *
-     * 派生类须实现 `get_main(cvt_reader<KernelType>&, internal_type*, size_t)`
-     * 和/或 `put_main(cvt_writer<KernelType>&, const internal_type*, size_t)`
-     * 来处理主内容阶段的实际转换逻辑。
+     * 派生类须实现 `get_main(internal_type*, size_t)`
+     * 和/或 `put_main(const internal_type*, size_t)`
+     * 来处理主内容阶段的实际转换逻辑，经 `kernel_reader()` / `kernel_writer()` 读写下层。
      *
      * @note 调用顺序：成员函数必须按以下顺序调用：
      *       1. **bos()**：必须首先调用，以建立初始 IO 状态。
@@ -637,9 +637,9 @@ namespace IOv2
      *   and IO-direction switching on demand through template parameters and
      *   `requires` clauses.
      *
-     * Derived classes must implement `get_main(cvt_reader<KernelType>&, internal_type*, size_t)`
-     * and/or `put_main(cvt_writer<KernelType>&, const internal_type*, size_t)` to
-     * handle the actual conversion logic in the main-content phase.
+     * Derived classes must implement `get_main(internal_type*, size_t)` and/or
+     * `put_main(const internal_type*, size_t)` to handle the actual conversion logic in the
+     * main-content phase, reaching the layer below through `kernel_reader()` / `kernel_writer()`.
      *
      * @note Calling sequence: Member functions must be called in the following order:
      *       1. **bos()**: Must be called first to establish the initial IO status.
@@ -685,8 +685,8 @@ namespace IOv2
      * 写 `friend BT` 即可；经由中间层继承的类若有自己的钩子，须 friend 的是 `abs_cvt`
      * 特化而不是它自己的 `BT`。
      *
-     * - **`get_main(cvt_reader<KernelType>&, internal_type*, size_t) noexcept -> std::pair<size_t, std::exception_ptr>`**
-     *   由 `abs_cvt::get` 在主内容阶段调用，执行解码逻辑。
+     * - **`get_main(internal_type*, size_t) noexcept -> std::pair<size_t, std::exception_ptr>`**
+     *   由 `abs_cvt::get` 在主内容阶段调用，执行解码逻辑，经 `kernel_reader()` 读下层。
      *   `first` 为已写入目标缓冲区、确定交付的 `internal_type` 元素个数；`second` 为本次遇到的错误
      *   （无错误为 `nullptr`）。**必须声明为 `noexcept`、返回类型必须恰为该 `pair`**（由 `abs_cvt`
      *   内的 `static_assert` 强制）：函数体用顶层 `try` 包住，`catch` 里返回已交付的个数与
@@ -697,8 +697,8 @@ namespace IOv2
      *   输入、也不经 `second` 报告，让下一次 `get` 重新碰到它：重定位会丢弃待报的错误，
      *   只有这样丢弃才对上层透明。`second` 只用来带回下层抛出、重读未必复现的异常。
      *
-     * - **`put_main(cvt_writer<KernelType>&, const internal_type*, size_t)`**
-     *   由 `abs_cvt::put` 在主内容阶段调用，执行编码逻辑。
+     * - **`put_main(const internal_type*, size_t)`**
+     *   由 `abs_cvt::put` 在主内容阶段调用，执行编码逻辑，经 `kernel_writer()` 写下层。
      *   不需要调用 `cvt_writer::commit()`：`abs_cvt::put` 在成功路径上统一提交。在 `put` 之外
      *   写下层（`bos_impl()`、`flush_impl()`、关闭流时）经 `kernel_writer()`，要自己 `commit()`。
      *   允许抛出异常；调用方会设置污染标志并传播。
@@ -781,8 +781,9 @@ namespace IOv2
      * inheriting through an intermediate layer that has hooks of its own must befriend the
      * `abs_cvt` specialization, not its own `BT`.
      *
-     * - **`get_main(cvt_reader<KernelType>&, internal_type*, size_t) noexcept -> std::pair<size_t, std::exception_ptr>`**
-     *   Called by `abs_cvt::get` during the main-content phase to perform decoding.
+     * - **`get_main(internal_type*, size_t) noexcept -> std::pair<size_t, std::exception_ptr>`**
+     *   Called by `abs_cvt::get` during the main-content phase to perform decoding, reading the
+     *   layer below through `kernel_reader()`.
      *   `first` is the number of `internal_type` elements written to the destination and
      *   delivered for good; `second` is the error this call hit (`nullptr` if none). **It must be
      *   declared `noexcept` and return exactly that `pair`** (enforced by a `static_assert` in
@@ -797,8 +798,9 @@ namespace IOv2
      *   pending error, and only then is dropping it invisible to the layers above. `second`
      *   is for exceptions from the layer below, which reading again need not reproduce.
      *
-     * - **`put_main(cvt_writer<KernelType>&, const internal_type*, size_t)`**
-     *   Called by `abs_cvt::put` during the main-content phase to perform encoding.
+     * - **`put_main(const internal_type*, size_t)`**
+     *   Called by `abs_cvt::put` during the main-content phase to perform encoding, writing the
+     *   layer below through `kernel_writer()`.
      *   Need not call `cvt_writer::commit()`: `abs_cvt::put` commits on the success
      *   path. Writing the layer below outside `put` (in `bos_impl()`, `flush_impl()`, or
      *   when closing the stream) goes through `kernel_writer()` and has to `commit()`
@@ -1537,8 +1539,8 @@ namespace IOv2
          */
         template <typename Self>
         std::size_t get(this Self& self, internal_type* to, std::size_t to_max)
-            requires requires(Self& t, cvt_reader<KernelType>& r, internal_type* data, std::size_t len) {
-                t.get_main(r, data, len);
+            requires requires(Self& t, internal_type* data, std::size_t len) {
+                t.get_main(data, len);
             }
         {
             // An error that get_main() hit after delivering characters was held back so that
@@ -1553,13 +1555,14 @@ namespace IOv2
             // corrupted the stream cannot then read back a confused image.
             self.assert_not_tainted();
 
-            cvt_reader<KernelType> reader(self.m_kernel, self.m_tmp_io_buffer, self.m_buf_cur, self.m_buf_end);
-
             if (!self.m_is_bos_done)
             {
                 if (self.m_io_status == io_status::output)
                     throw cvt_error("abs_cvt::get fail: cannot switch to input mode in the BOS phase");
                 if (to_max == 0) return 0;
+
+                // Not kernel_reader(): the direction may still be neutral here.
+                cvt_reader<KernelType> reader(self.m_kernel, self.m_tmp_io_buffer, self.m_buf_cur, self.m_buf_end);
 
                 constexpr std::size_t ext_size = sizeof(external_type);
 
@@ -1603,12 +1606,12 @@ namespace IOv2
                     else
                         throw cvt_error("abs_cvt::get fail: cannot switch to input mode");
                 }
-                static_assert(std::is_same_v<decltype(self.get_main(reader, to, to_max)),
+                static_assert(std::is_same_v<decltype(self.get_main(to, to_max)),
                                              std::pair<std::size_t, std::exception_ptr>>,
                               "get_main() must return std::pair<std::size_t, std::exception_ptr>");
-                static_assert(noexcept(self.get_main(reader, to, to_max)),
+                static_assert(noexcept(self.get_main(to, to_max)),
                               "get_main() must be noexcept");
-                auto [count, err] = self.get_main(reader, to, to_max);
+                auto [count, err] = self.get_main(to, to_max);
                 if (err)
                 {
                     if (count == 0)
@@ -1668,8 +1671,8 @@ namespace IOv2
          */
         template <typename Self>
         void put(this Self& self, const internal_type* to, std::size_t to_size)
-            requires requires(Self& t, cvt_writer<KernelType>& w, const internal_type* data, std::size_t len) {
-                { t.put_main(w, data, len) } -> std::same_as<void>;
+            requires requires(Self& t, const internal_type* data, std::size_t len) {
+                { t.put_main(data, len) } -> std::same_as<void>;
             }
         {
             self.assert_not_tainted();
@@ -1735,7 +1738,7 @@ namespace IOv2
                 {
                     // switch_to_put() was already called above if needed;
                     // m_io_status is guaranteed to be output at this point.
-                    self.put_main(writer, to, to_size);
+                    self.put_main(to, to_size);
                     // If put_main throws, this commit is skipped; the catch below drops what
                     // is still staged (output already handed to the kernel stays) and taints
                     // the converter.
@@ -1782,8 +1785,8 @@ namespace IOv2
          */
         template <typename Self>
         void flush(this Self& self)
-            requires requires(Self& t, cvt_writer<KernelType>& w, const internal_type* data, std::size_t len) {
-                { t.put_main(w, data, len) } -> std::same_as<void>;
+            requires requires(Self& t, const internal_type* data, std::size_t len) {
+                { t.put_main(data, len) } -> std::same_as<void>;
             }
         {
             if (self.m_io_status != io_status::output)
@@ -2126,17 +2129,17 @@ namespace IOv2
          */
         /**
          * @lang{ZH}
-         * 构造一个读下层的 `cvt_reader`，与 `get()` 传给 `get_main()` 的等价：它的状态都在本类里，
-         * 取数区里没消费的字节照样先读到。派生层在 `get_main()` 之外读下层（如 `bos_impl()` 里读
-         * 流头），或使用某种下层的 `cvt_reader` 特有的操作，都经由它。
+         * 构造一个读下层的 `cvt_reader`。它的状态都在本类里，所以每次构造出的都等价，取数区里没
+         * 消费的字节照样先读到。派生层读下层（`get_main()` 里，或 `bos_impl()` 里读流头），或使用
+         * 某种下层的 `cvt_reader` 特有的操作，都经由它。
          * @endif
          *
          * @lang{EN}
-         * Builds a `cvt_reader` on the layer below, equivalent to the one `get()` passes to
-         * `get_main()`: its state all lives in this class, so unconsumed bytes of the read area
-         * still come first. A derived layer reads the layer below outside `get_main()` (a stream
-         * header in `bos_impl()`, say), or uses an operation only the `cvt_reader` of a
-         * particular layer below offers, through this.
+         * Builds a `cvt_reader` on the layer below. Its state all lives in this class, so every
+         * one built is equivalent, and unconsumed bytes of the read area still come first. A
+         * derived layer reads the layer below (in `get_main()`, or a stream header in
+         * `bos_impl()`), or uses an operation only the `cvt_reader` of a particular layer below
+         * offers, through this.
          * @endif
          *
          * @throws cvt_error
@@ -2153,16 +2156,17 @@ namespace IOv2
 
         /**
          * @lang{ZH}
-         * 构造一个写下层的 `cvt_writer`，与 `put()` 传给 `put_main()` 的等价：它的状态都在本类里。
-         * 派生层在 `put_main()` 之外写下层（`bos_impl()`、`flush_impl()`、关闭流时）都经由它，
-         * 写完要自己 `commit()`，因为此时没有 `put()` 替它提交。
+         * 构造一个写下层的 `cvt_writer`。它的状态都在本类里，所以每次构造出的都等价。派生层写下层
+         * 都经由它：`put_main()` 里写的由 `put()` 提交；在此之外（`bos_impl()`、`flush_impl()`、
+         * 关闭流时）要自己 `commit()`，因为没有 `put()` 替它提交。
          * @endif
          *
          * @lang{EN}
-         * Builds a `cvt_writer` on the layer below, equivalent to the one `put()` passes to
-         * `put_main()`, as its state all lives in this class. A derived layer writes the layer
-         * below outside `put_main()` (in `bos_impl()`, `flush_impl()`, or when closing the
-         * stream) through this, and has to `commit()` itself, as no `put()` will do it.
+         * Builds a `cvt_writer` on the layer below. Its state all lives in this class, so every
+         * one built is equivalent. A derived layer writes the layer below through this: what
+         * `put_main()` writes is committed by `put()`; anywhere else (in `bos_impl()`,
+         * `flush_impl()`, or when closing the stream) it has to `commit()` itself, as no `put()`
+         * will do it.
          * @endif
          *
          * @throws cvt_error

@@ -436,10 +436,6 @@ private:
      * that there is unwritten hash content.
      * @endif
      *
-     * @param writer
-     * @lang{ZH} 内部写入辅助器，本函数中未实际使用。 @endif
-     * @lang{EN} The internal write helper; unused in this function. @endif
-     *
      * @param to
      * @lang{ZH} 用户输入数据缓冲区。 @endif
      * @lang{EN} The user input data buffer. @endif
@@ -452,7 +448,7 @@ private:
      * @lang{ZH} 若 `m_hash` 为空；或 `to_size * sizeof(internal_type)` 发生溢出。 @endif
      * @lang{EN} If `m_hash` is null, or if `to_size * sizeof(internal_type)` overflows. @endif
      */
-    void put_main(cvt_writer<KernelType>& /*writer*/, const internal_type* to, std::size_t to_size)
+    void put_main(const internal_type* to, std::size_t to_size)
     {
         if (to_size == 0) return;
         if (!m_hash)

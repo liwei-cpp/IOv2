@@ -74,6 +74,9 @@
   字符串字面量的代码不受影响；只能隐式转换为 `std::string` 的自定义类型不再能直接传入。
 - `file_device` 在所有平台上都以二进制打开文件，Windows 上也不做 `\r\n` 与 `\n` 的转换。
   换行转换将由转换器层提供（#505）。
+- 转换器的 `get_main()`、`put_main()` 不再接收 `cvt_reader`、`cvt_writer` 参数：签名变为
+  `get_main(internal_type*, size_t)`、`put_main(const internal_type*, size_t)`，函数里需要时经
+  `kernel_reader()`、`kernel_writer()` 取得。自定义转换器要相应修改。
 - `abs_cvt` 删除受保护的 `kernel_put()`，改由 `kernel_writer()` 取得写下层的 `cvt_writer`。
   自定义转换器在 `put_main()` 之外写下层时（`bos_impl()`、`flush_impl()`、关闭流时）用
   `reset(n)`、`put_buf(n)` 写入，再自己 `commit()`；`put_main()` 不需要 `commit()`。
@@ -277,6 +280,10 @@ have no release line of their own.
 - `file_device` opens files in binary on every platform; on Windows too there is
   no translation between `\r\n` and `\n`. Newline translation is to come from
   the converter layer (#505).
+- A converter's `get_main()` and `put_main()` no longer take a `cvt_reader` or
+  `cvt_writer`: the signatures are now `get_main(internal_type*, size_t)` and
+  `put_main(const internal_type*, size_t)`, and the functions get what they need
+  from `kernel_reader()` and `kernel_writer()`. Custom converters have to follow.
 - `abs_cvt` drops the protected `kernel_put()` for `kernel_writer()`, which gives a
   `cvt_writer` on the layer below. A custom converter writing the layer below outside
   `put_main()` (in `bos_impl()`, `flush_impl()`, or when closing the stream) uses

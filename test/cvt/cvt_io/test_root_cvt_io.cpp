@@ -46,8 +46,8 @@ namespace
         // get_main is only invoked after assert_not_tainted() passes; the stub
         // returning 0 is never actually reached in the tainted-state test.
         std::pair<std::size_t, std::exception_ptr>
-                    get_main(cvt_reader<KernelType>&, IT*, std::size_t) noexcept { return {0, nullptr}; }
-        void        put_main(cvt_writer<KernelType>&, const IT*, std::size_t)
+                    get_main(IT*, std::size_t) noexcept { return {0, nullptr}; }
+        void        put_main(const IT*, std::size_t)
         {
             throw cvt_error("failing_put_cvt: simulated failure");
         }
@@ -71,8 +71,8 @@ namespace
 
         void        force_neutral_status() { this->m_io_status = io_status::neutral; }
         std::pair<std::size_t, std::exception_ptr>
-                    get_main(cvt_reader<KernelType>&, IT*, std::size_t) noexcept { return {0, nullptr}; }
-        void        put_main(cvt_writer<KernelType>&, const IT*, std::size_t) {}
+                    get_main(IT*, std::size_t) noexcept { return {0, nullptr}; }
+        void        put_main(const IT*, std::size_t) {}
     };
 
     // Minimal cvt: exposes `char` as internal_type while the kernel uses
@@ -95,8 +95,8 @@ namespace
         explicit wext_char_cvt(KernelType k) : BT(std::move(k)) {}
 
         std::pair<std::size_t, std::exception_ptr>
-                    get_main(cvt_reader<KernelType>&, char*, std::size_t) noexcept { return {0, nullptr}; }
-        void        put_main(cvt_writer<KernelType>&, const char*, std::size_t) {}
+                    get_main(char*, std::size_t) noexcept { return {0, nullptr}; }
+        void        put_main(const char*, std::size_t) {}
     };
 
     // Minimal cvt with io-direction switching disabled
@@ -119,10 +119,11 @@ namespace
         explicit no_switch_cvt(KernelType k) : BT(std::move(k)) {}
 
         std::pair<std::size_t, std::exception_ptr>
-        get_main(cvt_reader<KernelType>& r, IT* to, std::size_t n) noexcept
+        get_main(IT* to, std::size_t n) noexcept
         {
             try
             {
+                auto r          = BT::kernel_reader();
                 auto [ptr, len] = r.get_buf(n);
                 std::copy(ptr, ptr + len, to);
                 return {len, nullptr};
@@ -132,11 +133,11 @@ namespace
                 return {0, std::current_exception()};
             }
         }
-        void put_main(cvt_writer<KernelType>& w, const IT* from, std::size_t n)
+        void put_main(const IT* from, std::size_t n)
         {
+            auto  w   = BT::kernel_writer();
             auto* ptr = w.put_buf(n);
             std::copy(from, from + n, ptr);
-            w.commit();
         }
     };
 
