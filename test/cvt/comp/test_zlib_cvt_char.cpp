@@ -11,6 +11,7 @@
 
 #include <support/file_guard.h>
 #include <support/injectable_device.h>
+#include <support/snatchy_device.h>
 
 #include <gtest/gtest.h>
 
@@ -655,6 +656,49 @@ TEST(ZlibCvt, GetThrowsOnATruncatedStream)
 
     char buf[16] = {};
     EXPECT_THROW((void)obj.get(buf, 16), cvt_error);
+}
+
+// A device may read short, here a byte at a time: bos() keeps reading until it has the whole
+// header, over the root that buffers and the one that does not.
+TEST(ZlibCvt, BosGathersAHeaderThatArrivesInPieces)
+{
+    std::string compressed;
+    {
+        Comp::zlib_cvt comp{rb_root_cvt{mem_device("")}, 6};
+        comp.bos();
+        comp.main_cont_beg();
+        char data[] = "hello";
+        comp.put(data, 5);
+        auto [dev, err] = comp.detach();
+        ASSERT_FALSE(err);
+        compressed = dev.str();
+    }
+
+    auto expect_reads_back = [](auto root)
+    {
+        Comp::zlib_cvt obj{std::move(root), 6};
+        EXPECT_EQ(obj.bos(), io_status::input);
+        obj.main_cont_beg();
+
+        char        buf[5] = {};
+        std::size_t total  = 0;
+        while (total < 5)
+        {
+            const std::size_t got = obj.get(buf + total, 5 - total);
+            ASSERT_NE(got, 0u);
+            total += got;
+        }
+        EXPECT_EQ(std::string(buf, 5), "hello");
+    };
+    expect_reads_back(rb_root_cvt{snatchy_device<char, 1>(compressed)});
+    expect_reads_back(no_rb_root_cvt{snatchy_device<char, 1>(compressed)});
+}
+
+// One byte of the two-byte header is not a shorter header, it is a broken stream.
+TEST(ZlibCvt, BosThrowsOnAHeaderCutShort)
+{
+    Comp::zlib_cvt obj{rb_root_cvt{mem_device(std::string("\x78", 1))}, 6};
+    EXPECT_THROW((void)obj.bos(), cvt_error);
 }
 
 // m_stream_ended latches at Z_STREAM_END: is_eof() reports it, and a further

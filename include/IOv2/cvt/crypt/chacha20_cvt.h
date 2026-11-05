@@ -413,16 +413,13 @@ private:
         {
             if constexpr (cvt_cpt::support_get<KernelType>)
             {
-                // Contract: kernel.get() on BOS path guarantees to return exactly the
-                // requested byte count, or throw an exception if insufficient data is
-                // available. The check below is purely defensive, verifying this
-                // invariant at runtime.
-                const std::size_t n = BT::kernel_get(iv_buf.data(), iv_len);
-                if (n != iv_len)
-                    throw cvt_error("chacha20_cvt::bos fail: incomplete IV read");
+                // get_buf<true> hands out exactly iv_len elements, or throws at the end.
+                auto reader = BT::kernel_reader();
+                reader.reset(iv_len);
+                const auto* iv = reader.template get_buf<true>(iv_len);
 
                 m_cipher->set_key(m_key);
-                m_cipher->set_iv(reinterpret_cast<const uint8_t*>(iv_buf.data()), iv_len); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
+                m_cipher->set_iv(reinterpret_cast<const uint8_t*>(iv), iv_len); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
             }
             else
                 throw cvt_error("chacha20_cvt::bos fail: input mode but kernel does not support get");
