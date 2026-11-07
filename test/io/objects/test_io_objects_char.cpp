@@ -436,45 +436,6 @@ TEST(IoObjectsChar, UnsynchronizedPutbackGrowsTheBufferAndKeepsTheOrder)
     IOv2::cin.reset();
 }
 
-namespace
-{
-    // A root of another type, so the pipeline is not the lone stdin_root_cvt the stream looks
-    // for: its characters need not be bytes, and it hands nothing back.
-    struct other_root : IOv2::stdin_root_cvt
-    {
-        explicit other_root(IOv2::stdin_root_cvt&& root) : stdin_root_cvt(std::move(root)) {}
-    };
-
-    struct other_root_creator
-    {
-        using category = IOv2::CvtCreatorCategory;
-        template <typename TKernel>
-        auto create(TKernel&& kernel) const { return other_root{std::forward<TKernel>(kernel)}; }
-    };
-
-    class other_cin : public IOv2::stdin_api<IOv2::std_input_device, char>
-    {
-    public:
-        other_cin() : stdin_api(other_root_creator{}) {}
-    };
-}
-
-TEST(IoObjectsChar, ACustomPipelineKeepsThePeekedCharacterToItself)
-{
-    pipe_iguard g("xy");
-    g.close_write();
-    stdin_full_buffer b;
-    IOv2::cin.reset();
-    const bool old = IOv2::cin.sync_with_stdio(true);
-
-    other_cin in;
-    EXPECT_EQ(in.peek(), 'x');
-    EXPECT_EQ(std::getchar(), 'y');
-    EXPECT_EQ(in.get(), 'x');
-
-    IOv2::cin.sync_with_stdio(old);
-    IOv2::cin.reset();
-}
 
 // Synchronized, the EOF is FILE's sticky flag: clear() leaves it, so input that comes
 // later stays unread; reset() clears it with clearerr(stdin).

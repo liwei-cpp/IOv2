@@ -260,39 +260,34 @@ public:
 public:
     /**
      * @lang{ZH}
-     * @brief 默认构造：在 fd 0 上建立一条不带额外转换层的输入通道，初始为同步模式。
+     * @brief 窄流的默认构造：在 fd 0 上建立一条只有根转换器的输入通道，初始为同步模式。
      * @endif
      *
      * @lang{EN}
-     * @brief Default constructor: builds an input channel on fd 0 with no extra converter
-     * layer, starting in synchronized mode.
+     * @brief Default constructor of the narrow stream: builds an input channel on fd 0 with the
+     * root converter alone, starting in synchronized mode.
      * @endif
      */
-    stdin_api()
+    stdin_api() requires std::is_same_v<TChar, char>
         : ios_state<TChar>(&detail::stdin_io_mutex())
         , m_channel(stdin_root_cvt{})
     {}
 
     /**
      * @lang{ZH}
-     * @brief 以转换器创建器构造：在 fd 0 的根转换器之上叠加 `creator` 创建的转换层，
-     * 初始为同步模式。
-     * @tparam TCreator 转换器创建器类型。
-     * @param creator 用于在根转换器之上构建转换器管线的创建器（如 `code_cvt_stdio_creator`）。
+     * @brief 宽流的默认构造：在 fd 0 的根转换器之上叠加 `code_cvt_stdio`，以
+     * `initial_locale_name(LC_CTYPE)` 选定的编码解码，初始为同步模式。
      * @endif
      *
      * @lang{EN}
-     * @brief Constructs with a converter creator: stacks the layers `creator` builds on top
-     * of the root converter on fd 0, starting in synchronized mode.
-     * @tparam TCreator The converter-creator type.
-     * @param creator The creator that builds the converter pipeline on top of the root
-     *        converter (such as `code_cvt_stdio_creator`).
+     * @brief Default constructor of the wide stream: stacks `code_cvt_stdio` on the root
+     * converter on fd 0, decoding in the encoding `initial_locale_name(LC_CTYPE)` picks,
+     * starting in synchronized mode.
      * @endif
      */
-    template <cvt_creator TCreator>
-    stdin_api(const TCreator& creator)
+    stdin_api() requires std::is_same_v<TChar, wchar_t>
         : ios_state<TChar>(&detail::stdin_io_mutex())
-        , m_channel(creator.create(stdin_root_cvt{}))
+        , m_channel(code_cvt_stdio_creator(IOv2::initial_locale_name(LC_CTYPE)).create(stdin_root_cvt{}))
     {}
 
     ~stdin_api() = default;
@@ -334,14 +329,11 @@ public:
      * 查询当前状态请用 `synced_with_stdio()`：本函数的无参形式等于 `sync_with_stdio(true)`，
      * 会真的切换。
      *
-     * 失败按本库统一的方式报告：置状态位，`exceptions()` 掩码含该位时才抛出。翻标志本身不会
-     * 失败；（`wchar_t`）只有转换器已 tainted 时先做的自动恢复可能失败，此时标志未动、
-     * 本次没有切换，失败只记在本流上（别的标准输入流什么也没发生，也就没有可报告的）。这依赖
-     * 根之上的每一层都先做完自己的事再往下传：根是最后一站，它翻转之后不再有可失败的步骤。
-     * 自定义的层若先把行为传给下层、之后才抛出，切换已经生效，本流却报告失败。
+     * 切换本身不会失败：翻标志没有可失败的步骤，标准输入流的转换器也不会 tainted。取锁失败时
+     * `std::system_error` 直接传出，不记在状态位上。
      *
      * @param sync `true` 为同步（默认），`false` 为自带缓冲。
-     * @return 调用前的同步状态；失败时同步状态未改变，返回的就是当前状态。
+     * @return 调用前的同步状态。
      * @endif
      *
      * @lang{EN}
@@ -389,19 +381,12 @@ public:
      * To ask for the current state use `synced_with_stdio()`: with no argument this one means
      * `sync_with_stdio(true)` and does switch.
      *
-     * A failure is reported the way this library reports every other one: a state bit is
-     * set, and it throws only when the `exceptions()` mask includes that bit. Flipping the flag
-     * cannot fail; (`wchar_t`) only the automatic recovery of a tainted converter, done first,
-     * can, and then the flag is untouched and nothing is switched, and the failure is recorded
-     * on this stream alone (nothing happened to the other standard input streams, so there is
-     * nothing to report on them). This relies on every layer above the root finishing its own
-     * work before passing the behavior down: the root is the last stop, and once it has
-     * flipped nothing that can fail follows. A custom layer that passes it down first and
-     * throws afterwards leaves the switch in effect while this stream reports a failure.
+     * The switch itself cannot fail: flipping the flag has no step that can, and the converter
+     * of a standard input stream does not get tainted. A `std::system_error` from taking the
+     * lock passes straight through, recorded in no state bit.
      *
      * @param sync `true` for synchronized (the default), `false` for own buffering.
-     * @return The synchronization state before the call; on failure the state is unchanged,
-     *         so that is also the current one.
+     * @return The synchronization state before the call.
      * @endif
      */
     bool sync_with_stdio(bool sync = true)
@@ -416,14 +401,9 @@ public:
             return old_sync_state;
 
         // Only the shared flag flips, which the root does at the end of the adjust, for every
-        // standard input stream: buffers, decoder and device all stay. A tainted wide
-        // converter recovers first, and that can fail -- before the flag is touched.
+        // standard input stream: buffers, decoder and device all stay.
         // m_channel's adjust, not this stream's: that one comes back here.
-        try {
-            m_channel.adjust(stdin_sync{sync});
-        } catch (...) {
-            this->handle_exception(std::current_exception());
-        }
+        m_channel.adjust(stdin_sync{sync});
         return old_sync_state;
     }
 
@@ -560,13 +540,11 @@ public:
      * `switch_code()` 选定的编码都**保持原样**（`std::basic_ios::clear` 同样不动格式状态）；
      * 拿它在单元测试用例之间复位时要留意这一点：上个用例留下的 `noskipws` 不会被清掉。
      *
-     * @note 重新附接这一步在标准流上**没有可失败的操作**：装的是同一 fd 的缺省设备，不分配、
-     *       不做 I/O、不重建 locale（转换状态的「重建」只是 `mbstate_t` 复位）——实测全部八个标准流在
-     *       全部分配失败且 fd 指向 `/dev/full` 时 `reset()` 均 0 次分配、状态位全 0。围住它的
-     *       `handle_exception` 只是兜底：若将来这里真抛了什么，转换器会停在未初始化状态，流不可用，
-     *       须再次 `reset()`，`clear()` 不够。丢弃缓冲这一步在 fd 0 上同样不会失败（stdin 不可定位，
-     *       重定位那步的异常在 `iochannel::detach` 里就被有意吞掉了），置 `devfailbit` 的那条路在这里
-     *       走不到；除输出侧多一步旧设备 `dflush()` 外，形状与 `stdout_api::reset()` 一致。
+     * @note 除取锁外没有可失败的步骤。重新附接装的是同一 fd 的缺省设备，不分配、不做 I/O、不重建 locale
+     *       （转换状态的「重建」只是 `mbstate_t` 复位）——实测全部八个标准流在全部分配失败且 fd 指向
+     *       `/dev/full` 时 `reset()` 均 0 次分配、状态位全 0。丢弃缓冲这一步在 fd 0 上同样不会失败：
+     *       stdin 不可定位，重定位那步的异常在 `iochannel::detach` 里就被有意吞掉了，输入方向也没有
+     *       要写出的东西。`stdout_api::reset()` 则要冲刷旧设备，可能失败。
      * @endif
      *
      * @lang{EN}
@@ -620,18 +598,15 @@ public:
      * resetting between cases has to keep that in mind, as the `noskipws` left behind by
      * the previous case is still set.
      *
-     * @note Reattaching has **nothing that can fail** on a standard stream: it installs a
-     *       default device on the same fd, allocates nothing, does no I/O and rebuilds no
-     *       locale ("rebuilding" the conversion state is an `mbstate_t` reset) -- measured on
-     *       all eight standard streams with every allocation failing and the fd on
-     *       `/dev/full`: zero allocations, no state bit. The `handle_exception` around it is
-     *       only a backstop: should something ever throw there, the converter is left
-     *       uninitialized, the stream is unusable, and another `reset()` is required --
-     *       `clear()` is not enough. Dropping the buffer cannot fail on fd 0 either (stdin is
-     *       not positionable, and the exception from that reposition is swallowed on purpose
-     *       in `iochannel::detach`), so the `devfailbit` path is unreachable here; apart from
-     *       the output side's extra `dflush()` of the old device, the shape is the same as
-     *       `stdout_api::reset()`.
+     * @note Apart from taking the lock, nothing here can fail. Reattaching installs a default
+     *       device on the same fd,
+     *       allocates nothing, does no I/O and rebuilds no locale ("rebuilding" the conversion
+     *       state is an `mbstate_t` reset) -- measured on all eight standard streams with every
+     *       allocation failing and the fd on `/dev/full`: zero allocations, no state bit.
+     *       Dropping the buffer cannot fail on fd 0 either: stdin is not positionable, the
+     *       exception from that reposition is swallowed on purpose in `iochannel::detach`, and
+     *       the input direction has nothing to write out. `stdout_api::reset()`, by contrast,
+     *       flushes the old device and can fail.
      * @endif
      */
     void reset()
@@ -640,16 +615,12 @@ public:
         this->clear();
         this->exceptions(ios_defs::goodbit);
 
-        auto detached = m_channel.detach();
-
-        try { m_channel.attach(); }
-        catch (...) { this->handle_exception(std::current_exception()); }
+        (void)m_channel.detach();
+        m_channel.attach();
 
         // Synchronized, the EOF is FILE's sticky flag rather than the device's.
         if (detail::stdin_shared_imp.synced())
             std::clearerr(stdin);
-
-        if (detached.second) this->handle_exception(detached.second);
     }
 
     /**
@@ -789,8 +760,8 @@ private:
      * @lang{ZH}
      * @brief 把读缓冲里偷看、压回的字符退回转换器（`hand_back_cvt::unget()`）。
      *
-     * 尽力而为：没有 `m_cvt`，或退回失败时，字符留在读缓冲里，本流下次照样先读到，只是别人
-     * 看不到。这种失败**不报告**：此时操作已经成功，置位会让 `if (cin >> x)` 为假，`clear()`
+     * 尽力而为：退回失败时，字符留在读缓冲里，本流下次照样先读到，只是别人看不到。这种失败
+     * **不报告**：此时操作已经成功，置位会让 `if (cin >> x)` 为假，`clear()`
      * 加 `ignore()` 反而丢掉这些字符。
      * @endif
      *
@@ -798,15 +769,14 @@ private:
      * @brief Hands the characters peeked at or put back in the read buffer to the converter
      * (`hand_back_cvt::unget()`).
      *
-     * Best effort: without `m_cvt`, or when handing back fails, the characters stay in the read
-     * buffer, and this stream still reads them first, only nobody else sees them. Such a failure
+     * Best effort: when handing back fails, the characters stay in the read buffer, and this
+     * stream still reads them first, only nobody else sees them. Such a failure
      * is **not reported**: the operation has succeeded by then, so a state bit would make
      * `if (cin >> x)` false, and `clear()` plus `ignore()` would then discard these characters.
      * @endif
      */
     void hand_back_peeked() noexcept
     {
-        if (m_cvt == nullptr) return;
         try
         {
             m_channel.hand_back([this](auto first, auto last)
@@ -848,17 +818,15 @@ private:
 
     /**
      * @lang{ZH}
-     * @brief 接手退回字符的转换器，构造时取一次。管线不是 `hand_back_cvt`（自定义创建器构造的
-     * 流）时为空，本流不退回。
+     * @brief 接手退回字符的转换器，构造时取一次，不为空：管线就是本类的构造函数建的。
      *
      * 转换器在 `runtime_cvt` 指向的堆上，`attach`、`detach`、`adjust` 都不换掉它，本流又不可
      * 拷贝、不可移动，所以这个指针一直有效。须声明在 `m_channel` 之后。
      * @endif
      *
      * @lang{EN}
-     * @brief The converter that takes characters handed back, found once at construction. Null
-     * when the pipeline is not a `hand_back_cvt` (a stream built with a custom creator), and this
-     * stream then does not hand back.
+     * @brief The converter that takes characters handed back, found once at construction. Never
+     * null: the constructors of this class build the pipeline.
      *
      * The converter lives on the heap behind `runtime_cvt`, `attach`, `detach` and `adjust` do not
      * replace it, and this stream is neither copyable nor movable, so the pointer stays valid. It
@@ -950,7 +918,7 @@ class wcin_t : public stdin_api<std_input_device, wchar_t>
 
 private:
     wcin_t()
-        : BT(code_cvt_stdio_creator(IOv2::initial_locale_name(LC_CTYPE)))
+        : BT()
         , sing_temp<wcin_t>([](wcin_t*) noexcept {})   // never destroyed at exit, like std::wcin
     {
         tie(&wcout);
