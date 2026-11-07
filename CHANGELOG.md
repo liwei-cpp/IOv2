@@ -67,7 +67,9 @@
   另一种表示；之后 `switch_code()` 切换了编码，这些字节按新编码解码。随之 `reset()` 在同步时
   不再能丢掉偷看的字符，它已归 C stdio。`FILE` 不收时（不同步，Windows，或字节缓冲里还有
   字节）字节进共用的字节缓冲，C stdio 看不到。退回是尽力而为的，失败不报告，字符留在读缓冲
-  里，本流照样先读到。自定义创建器构造的流不退回。
+  里，本流照样先读到。
+- `stdin_api`、`stdout_api` 删除以转换器创建器构造的构造函数：转换器管线由它们按字符类型
+  自己决定，`char` 流没有转换层，`wchar_t` 流用 `code_cvt_stdio`。
 - `file_device` 的构造函数与 `try_open` 改为接受 `std::filesystem::path`，路径编码由传入的
   类型决定：`char` 字符串按平台的原生窄编码（Windows 上为 ANSI 代码页，与 `fopen` 一致），
   `char8_t` 字符串按 UTF-8，`wchar_t` 字符串在 Windows 上即 UTF-16。传入 `std::string` 与
@@ -269,7 +271,10 @@ have no release line of their own.
   (unsynchronized, on Windows, or with bytes still in the byte buffer) the bytes go
   into the shared byte buffer, out of C stdio's sight. Handing back is best effort:
   a failure is not reported, and the characters stay in the read buffer for this
-  stream to read first. A stream built with a custom creator does not hand back.
+  stream to read first.
+- `stdin_api` and `stdout_api` drop the constructor taking a converter creator: they
+  settle the converter pipeline themselves by character type, with no layer on `char`
+  streams and `code_cvt_stdio` on `wchar_t` streams.
 - `file_device`'s constructor and `try_open` take a `std::filesystem::path`, so
   the path's encoding follows the type passed in: a `char` string is in the
   platform's native narrow encoding (the ANSI code page on Windows, as with

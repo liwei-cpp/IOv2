@@ -45,10 +45,8 @@
 #include <cstddef>
 #include <cstdio>
 #include <cstdlib>
-#include <stdexcept>
 #include <string>
 #include <thread>
-#include <utility>
 
 #include <fcntl.h>
 #include <unistd.h>
@@ -466,80 +464,6 @@ TEST(IoObjectsWchar, ResetOnOneStreamDropsTheSharedReadAhead)
     IOv2::cin.sync_with_stdio(true);
     IOv2::cin.reset();
     IOv2::wcin.reset();
-}
-
-namespace
-{
-    bool g_fail_attach = false;
-
-    // A root whose attach fails on demand. With it a reset() can taint the converter, and the
-    // recovery sync_with_stdio() starts with can fail -- neither can happen to the real wcin,
-    // whose pipeline has no step that fails there. Being a type of its own, it reads through
-    // the generic cvt_reader rather than stdin_root_cvt's; the case only needs attach() to fail.
-    struct failing_root : IOv2::stdin_root_cvt
-    {
-        explicit failing_root(IOv2::stdin_root_cvt&& root) : stdin_root_cvt(std::move(root)) {}
-        void attach(IOv2::std_input_device&& dev = IOv2::std_input_device{})
-        {
-            if (g_fail_attach)
-                throw std::runtime_error("failing_root: attach");
-            stdin_root_cvt::attach(std::move(dev));
-        }
-    };
-
-    struct failing_creator
-    {
-        using category = IOv2::CvtCreatorCategory;
-        template <typename TKernel>
-        auto create(TKernel&& kernel) const
-        {
-            return IOv2::code_cvt_stdio{failing_root{std::forward<TKernel>(kernel)},
-                                        std::string("C")};
-        }
-    };
-
-    class failing_wcin : public IOv2::stdin_api<IOv2::std_device<STDIN_FILENO>, wchar_t>
-    {
-    public:
-        failing_wcin() : stdin_api(failing_creator{}) {}
-    };
-}
-
-// The one failure sync_with_stdio() can have: on a wide stream whose converter is tainted, the
-// recovery it starts with. The flag is then untouched and nothing switches -- the query, the
-// return value and how the root reads all keep the old mode. Only a custom pipeline gets here,
-// so until now only a review probe had run this branch.
-TEST(IoObjectsWchar, ASwitchWhoseRecoveryFailsKeepsTheMode)
-{
-    int pipefds[2];
-    ASSERT_NE(::pipe(pipefds), -1);
-    const int saved_stdin = ::dup(STDIN_FILENO);
-    ::dup2(pipefds[0], STDIN_FILENO);
-    ::close(pipefds[0]);
-    EXPECT_EQ(::write(pipefds[1], "abcdef", 6), 6);
-    ::close(pipefds[1]);                           // no more input: read() cannot block
-
-    failing_wcin in;
-    g_fail_attach = true;
-    in.reset();                                    // the attach fails: the converter is tainted
-    in.clear();
-    const bool before = in.sync_with_stdio(false); // its recovery fails as well
-    const bool failed = !in.good();
-    const bool still_synced = in.synced_with_stdio();
-    g_fail_attach = false;
-    in.clear();
-
-    wchar_t c = 0;
-    in.get(c);                                     // recovers now, and reads synchronized
-    const std::string rest = drain_stdin();
-    ::dup2(saved_stdin, STDIN_FILENO);
-    ::close(saved_stdin);
-
-    EXPECT_TRUE(before);
-    EXPECT_TRUE(failed);
-    EXPECT_TRUE(still_synced);
-    EXPECT_EQ(c, L'a');
-    EXPECT_EQ(rest, "bcdef");                      // one byte taken: the root never switched
 }
 
 TEST(IoObjectsWchar, TheOutputEncodingCanBeSwitchedMidStream)

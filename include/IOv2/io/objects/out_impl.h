@@ -262,36 +262,31 @@ public:
 public:
     /**
      * @lang{ZH}
-     * @brief 默认构造：在本流的 fd 上建立一条不带额外转换层的输出通道，初始为同步模式。
+     * @brief 窄流的默认构造：在本流的 fd 上建立一条不带额外转换层的输出通道，初始为同步模式。
      * @endif
      *
      * @lang{EN}
-     * @brief Default constructor: builds an output channel on this stream's fd with no extra
-     * converter layer, starting in synchronized mode.
+     * @brief Default constructor of the narrow streams: builds an output channel on this
+     * stream's fd with no extra converter layer, starting in synchronized mode.
      * @endif
      */
-    stdout_api()
+    stdout_api() requires std::is_same_v<TChar, char>
         : m_channel(device_type{}) {}
 
     /**
      * @lang{ZH}
-     * @brief 以转换器创建器构造：在本流 fd 上的输出通道里叠加 `creator` 创建的转换层，
-     * 初始为同步模式。
-     * @tparam TCreator 转换器创建器类型。
-     * @param creator 用于构建转换器管线的创建器（如 `code_cvt_stdio_creator`）。
+     * @brief 宽流的默认构造：在本流 fd 上的输出通道里叠加 `code_cvt_stdio`，以
+     * `initial_locale_name(LC_CTYPE)` 选定的编码编码，初始为同步模式。
      * @endif
      *
      * @lang{EN}
-     * @brief Constructs with a converter creator: stacks the layers `creator` builds into the
-     * output channel on this stream's fd, starting in synchronized mode.
-     * @tparam TCreator The converter-creator type.
-     * @param creator The creator that builds the converter pipeline (such as
-     *        `code_cvt_stdio_creator`).
+     * @brief Default constructor of the wide streams: stacks `code_cvt_stdio` into the output
+     * channel on this stream's fd, encoding in the encoding `initial_locale_name(LC_CTYPE)`
+     * picks, starting in synchronized mode.
      * @endif
      */
-    template <cvt_creator TCreator>
-    stdout_api(const TCreator& creator)
-        : m_channel(device_type{}, creator) {}
+    stdout_api() requires std::is_same_v<TChar, wchar_t>
+        : m_channel(device_type{}, code_cvt_stdio_creator(IOv2::initial_locale_name(LC_CTYPE))) {}
 
     ~stdout_api() override = default;
     stdout_api(const stdout_api&) = delete;
@@ -1048,7 +1043,7 @@ class wcout_t : public stdout_api<std_output_device, wchar_t>
 
 private:
     wcout_t()
-        : BT(code_cvt_stdio_creator(IOv2::initial_locale_name(LC_CTYPE)))
+        : BT()
         , sing_temp<wcout_t>([](wcout_t* p) noexcept { p->flush_at_exit(); })
     {}
 };
@@ -1106,7 +1101,7 @@ class wcerr_t : public stdout_api<std_error_device, wchar_t>
 
 private:
     wcerr_t()
-        : BT(code_cvt_stdio_creator(IOv2::initial_locale_name(LC_CTYPE)))
+        : BT()
         , sing_temp<wcerr_t>([](wcerr_t* p) noexcept { p->flush_at_exit(); })
     {
         tie(&wcout);
@@ -1165,7 +1160,7 @@ class wclog_t : public stdout_api<std_error_device, wchar_t>
 
 private:
     wclog_t()
-        : BT(code_cvt_stdio_creator(IOv2::initial_locale_name(LC_CTYPE)))
+        : BT()
         , sing_temp<wclog_t>([](wclog_t* p) noexcept { p->flush_at_exit(); })
     {}
 };

@@ -247,12 +247,11 @@ private:
  * @lang{ZH}
  * @brief 对全部八个标准流对象调用 `sync_with_stdio(sync)`。
  *
- * **八个流一律都会被尝试**：某个流失败不会妨碍其余的切换。每个流的失败先记在它自己的状态位上
- * （输出流是切到同步时把本流缓冲搬进 stdio 缓冲那一步失败；`wcin` 只在转换器已 tainted、
- * 先做的自动恢复失败时才失败），若该流的 `exceptions()` 掩码含该位，它会抛出——本函数把
- * 这些异常收齐，最后抛一个 `sync_error`。默认掩码（`goodbit`）下本函数不抛任何异常，失败
- * 只体现在各流的状态位上：六个输出流一定切换（失败的只是交出积压字节那一步），输入流失败时
- * 保持原模式（见 `stdin_api::sync_with_stdio`）。
+ * **八个流一律都会被尝试**：某个流失败不会妨碍其余的切换。输出流切到同步时把本流缓冲搬进
+ * stdio 缓冲，这一步可能失败：失败先记在该流自己的状态位上，若它的 `exceptions()` 掩码含该位，
+ * 它会抛出——本函数把这些异常收齐，最后抛一个 `sync_error`。默认掩码（`goodbit`）下本函数不抛
+ * 这类异常，失败只体现在各流的状态位上；六个输出流一定切换，失败的只是交出积压字节那一步。
+ * 输入流的切换没有可失败的步骤（见 `stdin_api::sync_with_stdio`）。
  *
  * 随时可调，与并发的读写安全竞争：输入流只翻根转换器上的一个标志，已缓冲的输入不丢
  * （见 `stdin_api::sync_with_stdio`）；输出流切到同步时把本流缓冲搬进 stdio 缓冲
@@ -271,14 +270,13 @@ private:
  * @brief Calls `sync_with_stdio(sync)` on all eight standard stream objects.
  *
  * **All eight streams are attempted**: one that fails cannot keep the others from switching.
- * Each failure is first recorded in that stream's own state bits (on an output stream, the
- * hand-over of its buffer to stdio when switching to synchronized; `wcin` fails only
- * when its converter is tainted and the automatic recovery done first fails), and if that
- * stream's `exceptions()` mask includes the bit it throws -- this function collects those
- * exceptions and finally throws one `sync_error`. Under the default mask (`goodbit`) it
- * throws nothing and the failures show up only as each stream's state bits: the six output
- * streams always switch (what can fail is only the hand-over of their pending bytes), while
- * an input stream that fails keeps its old mode (see `stdin_api::sync_with_stdio`).
+ * An output stream switching to synchronized hands its buffer over to stdio, and that can
+ * fail: the failure is first recorded in that stream's own state bits, and if its
+ * `exceptions()` mask includes the bit it throws -- this function collects those exceptions
+ * and finally throws one `sync_error`. Under the default mask (`goodbit`) it throws no such
+ * exception and the failures show up only as each stream's state bits; the six output streams
+ * always switch, what can fail being only the hand-over of their pending bytes. Switching an
+ * input stream has no step that can fail (see `stdin_api::sync_with_stdio`).
  *
  * It may be called at any time, safe against concurrent reads and writes: an input stream
  * only flips a flag on its root converter and loses none of its buffered input (see
