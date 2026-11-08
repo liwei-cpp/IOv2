@@ -20,6 +20,12 @@
 
 - **设备层可在 Windows 与 macOS 上构建、运行**：Windows 上为 MSVC `cl` 与 clang-cl（x64、x86），
   macOS 上为 Apple clang。其余各层尚未移植。
+- **common 层可在 macOS 与 Windows 上构建、运行**：`clocale_wrapper::name()` 在 macOS 上经
+  `querylocale` 取名字，与 glibc 有两处不同：`"POSIX"` 仍报 `"POSIX"`，不规范化成 `"C"`；
+  `LC_CTYPE=UTF-8` 时以 `""` 构造得到的 `"UTF-8"` 只有 `LC_CTYPE` 类别，不能再用来构造
+  `clocale_wrapper`。Windows 上包装 UCRT 的 `_locale_t`，名字是 CRT 的写法（如
+  `"English_United States.1252"`），`"POSIX"` 不是合法名字；`clocale_user` 让本线程进入
+  per-thread locale 模式后 `setlocale`，只影响本线程，析构时连同模式一起恢复。
 - `IOV2_NO_UNIQUE_ADDRESS`：`[[no_unique_address]]` 的可移植写法。MSVC ABI 忽略标准写法、
   只认 `[[msvc::no_unique_address]]`。
 - `std_input_device::stdio_mode()`：切换 stdin 的读法。缺省的 fd 模式照旧直接读 fd 0；
@@ -195,6 +201,15 @@ have no release line of their own.
 - **The device layer builds and runs on Windows and macOS**: MSVC `cl` and
   clang-cl (x64, x86) on Windows, Apple clang on macOS. The other layers are not
   ported yet.
+- **The common layer builds and runs on macOS and Windows**: on macOS
+  `clocale_wrapper::name()` gets the name from `querylocale`, which differs from glibc in
+  two ways: `"POSIX"` comes back as `"POSIX"`, not normalized to `"C"`; and the `"UTF-8"`
+  a wrapper built from `""` gets under `LC_CTYPE=UTF-8` has an `LC_CTYPE` category alone,
+  so it cannot build a `clocale_wrapper` again. On Windows the wrapper holds a UCRT
+  `_locale_t`, names are spelled the CRT's way (`"English_United States.1252"`, say) and
+  `"POSIX"` is not one; `clocale_user` puts the thread in per-thread locale mode and calls
+  `setlocale`, which affects that thread alone, and restores the mode along with the
+  locale.
 - `IOV2_NO_UNIQUE_ADDRESS`: a portable spelling of `[[no_unique_address]]`. The
   MSVC ABI ignores the standard spelling and honours only
   `[[msvc::no_unique_address]]`.
