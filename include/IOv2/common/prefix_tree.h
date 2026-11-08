@@ -100,14 +100,9 @@ namespace IOv2
  * @endcode
  * @endif
  */
-template <typename CharT, typename TValue>
+template <unordered_key CharT, std::equality_comparable TValue>
 class prefix_tree
 {
-    // [NOTE] Prevents confusing compile errors
-    static_assert(std::equality_comparable<CharT>, "CharT must be equality comparable");
-    static_assert(std::equality_comparable<TValue>, "TValue must be equality comparable");
-    static_assert(requires { std::hash<CharT>{}; }, "CharT must be hashable");
-
     /// @cond INTERNAL
     struct node
     {
@@ -390,7 +385,7 @@ public:
      * @return Iterator pointing to the position after the longest match
      * @endif
      */
-    template <is_ichannel_iterator TIter, std::sentinel_for<TIter> TSent>
+    template <specialization_of<ichannel_iterator> TIter, std::sentinel_for<TIter> TSent>
     [[nodiscard]] TIter max_match(TIter b, TSent e, match_out_type& out) const
     {
         if constexpr (is_small_type_v<TValue>)

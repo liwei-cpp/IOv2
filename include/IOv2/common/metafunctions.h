@@ -13,6 +13,8 @@
 
 #pragma once
 #include <concepts>
+#include <cstddef>
+#include <functional>
 #include <iterator>
 #include <memory>
 #include <type_traits>
@@ -178,6 +180,129 @@ namespace IOv2
      */
     template<typename P, typename T>
     concept shared_ptr_to = shared_ptr_to_impl<std::decay_t<P>, T>::value;
+
+    /**
+     * @lang{ZH}
+     * 判断类型 T 是否为类模板 TTemplate 的某个特化。
+     *
+     * TTemplate 的模板参数可以带概念约束或 `requires` 子句：按 [temp.arg.template]，
+     * 模板模板形参不带约束时忽略实参模板的约束，且参数包 `typename...` 可匹配任意个
+     * 类型参数。但 TTemplate 只能含**类型**参数——含非类型参数或模板模板参数的模板
+     * 无法匹配，用到时直接编译失败。
+     *
+     * 判定是精确的：不去除 cv 限定与引用（`const X<int>` 为 false），也不认派生类
+     * （派生自 `X<int>` 的类型为 false）。
+     *
+     * @tparam T 要检查的类型
+     * @tparam TTemplate 只含类型参数的类模板
+     *
+     * @par 示例
+     * @code
+     * static_assert( is_specialization_of<std::vector<int>, std::vector>);
+     * static_assert(!is_specialization_of<int, std::vector>);
+     * static_assert(!is_specialization_of<const std::vector<int>, std::vector>);
+     * @endcode
+     * @endif
+     *
+     * @lang{EN}
+     * Checks whether type T is a specialization of class template TTemplate.
+     *
+     * TTemplate's parameters may carry type-constraints or a `requires` clause: per
+     * [temp.arg.template], constraints on the argument template are ignored when the
+     * template template parameter is unconstrained, and the pack `typename...` matches
+     * any number of type parameters. TTemplate must have **type** parameters only,
+     * though -- a template with a non-type or template template parameter does not
+     * match, and using it is a compile error.
+     *
+     * The test is exact: cv-qualifiers and references are not stripped
+     * (`const X<int>` yields false), and derived classes are not recognized (a type
+     * derived from `X<int>` yields false).
+     *
+     * @tparam T The type to check
+     * @tparam TTemplate A class template with type parameters only
+     *
+     * @par Example
+     * @code
+     * static_assert( is_specialization_of<std::vector<int>, std::vector>);
+     * static_assert(!is_specialization_of<int, std::vector>);
+     * static_assert(!is_specialization_of<const std::vector<int>, std::vector>);
+     * @endcode
+     * @endif
+     */
+    template <typename T, template <typename...> class TTemplate>
+    inline constexpr bool is_specialization_of = false;
+
+    /// @cond INTERNAL
+    template <template <typename...> class TTemplate, typename... TArgs>
+    inline constexpr bool is_specialization_of<TTemplate<TArgs...>, TTemplate> = true;
+    /// @endcond
+
+    /**
+     * @lang{ZH}
+     * `is_specialization_of` 的 concept 形式，可用于简写约束。
+     *
+     * 判定规则与限制同 `is_specialization_of`。
+     *
+     * @tparam T 要检查的类型
+     * @tparam TTemplate 只含类型参数的类模板
+     *
+     * @par 示例
+     * @code
+     * template <specialization_of<std::vector> TVec>
+     * void f(const TVec& v);
+     * @endcode
+     * @endif
+     *
+     * @lang{EN}
+     * Concept form of `is_specialization_of`, usable as a type-constraint.
+     *
+     * Same rules and limitations as `is_specialization_of`.
+     *
+     * @tparam T The type to check
+     * @tparam TTemplate A class template with type parameters only
+     *
+     * @par Example
+     * @code
+     * template <specialization_of<std::vector> TVec>
+     * void f(const TVec& v);
+     * @endcode
+     * @endif
+     */
+    template <typename T, template <typename...> class TTemplate>
+    concept specialization_of = is_specialization_of<T, TTemplate>;
+
+    /**
+     * @lang{ZH}
+     * 判断类型 T 能否作为无序容器（`std::unordered_map` 等）在默认哈希器与判等器下的键。
+     *
+     * 要求 T 可判等，且 `std::hash<T>` 可默认构造、以 `const T&` 调用的结果可转换为
+     * `std::size_t`。没有特化的 `std::hash<T>` 是被禁用的特化，不满足本概念。
+     *
+     * 不要求可拷贝：只能移动的类型同样可以作为无序容器的键。需要拷贝键的使用者应另行约束。
+     *
+     * @tparam T 要检查的类型
+     * @endif
+     *
+     * @lang{EN}
+     * Whether type T can serve as the key of an unordered container (such as
+     * `std::unordered_map`) under the default hasher and key-equality predicate.
+     *
+     * Requires T to be equality comparable, and `std::hash<T>` to be default-constructible
+     * with its call on a `const T&` yielding something convertible to `std::size_t`. A
+     * `std::hash<T>` that has not been specialized is a disabled specialization and does
+     * not satisfy this concept.
+     *
+     * Copyability is not required: a move-only type can be an unordered container's key as
+     * well. Users that copy keys must constrain that separately.
+     *
+     * @tparam T The type to check
+     * @endif
+     */
+    template <typename T>
+    concept unordered_key = std::equality_comparable<T>
+                         && requires (const T& v) {
+                                { std::hash<T>{}(v) } -> std::convertible_to<std::size_t>;
+                            };
 
     /**
      * @lang{ZH}

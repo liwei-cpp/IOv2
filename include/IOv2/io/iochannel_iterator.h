@@ -64,7 +64,7 @@ namespace IOv2
  * @endif
  */
 template <typename TChannel>
-    requires (is_iochannel<TChannel> || is_ichannel<TChannel>)
+    requires (specialization_of<TChannel, iochannel> || specialization_of<TChannel, ichannel>)
 class ichannel_iterator
 {
 public:
@@ -379,7 +379,7 @@ private:
  * @endif
  */
 template <typename TChannel>
-    requires (is_iochannel<TChannel> || is_ochannel<TChannel>)
+    requires (specialization_of<TChannel, iochannel> || specialization_of<TChannel, ochannel>)
 class ochannel_iterator
 {
 public:

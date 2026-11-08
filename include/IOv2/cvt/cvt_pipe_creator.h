@@ -18,6 +18,7 @@
  */
 #pragma once
 
+#include <IOv2/common/metafunctions.h>
 #include <IOv2/cvt/cvt_concepts.h>
 
 #include <concepts>
@@ -45,59 +46,6 @@ namespace IOv2
  */
 template <typename... T>
 class cvt_pipe_creator;
-
-/**
- * @lang{ZH}
- * `cpt_cvt_pipe_creator` 概念的辅助特征模板（主模板）。
- * 对于非 `cvt_pipe_creator` 特化的类型，`value` 为 `false`。
- * @endif
- *
- * @lang{EN}
- * Helper trait template (primary template) for the `cpt_cvt_pipe_creator` concept.
- * For types that are not specializations of `cvt_pipe_creator`, `value` is `false`.
- * @endif
- *
- * @tparam T 待检测的类型。 / The type to be inspected.
- */
-template<typename T>
-struct cpt_cvt_pipe_creator_helper
-{
-    constexpr static bool value = false;
-};
-
-/**
- * @lang{ZH}
- * `cpt_cvt_pipe_creator` 概念的辅助特征模板（`cvt_pipe_creator` 特化）。
- * 对于 `cvt_pipe_creator<T...>` 特化，`value` 为 `true`。
- * @endif
- *
- * @lang{EN}
- * Helper trait template specialization for `cvt_pipe_creator<T...>`.
- * For specializations of `cvt_pipe_creator`, `value` is `true`.
- * @endif
- *
- * @tparam T 组成管道的各转换器工厂类型。
- *           / The converter creator types that form the pipeline.
- */
-template<typename... T>
-struct cpt_cvt_pipe_creator_helper<cvt_pipe_creator<T...>>
-{
-    constexpr static bool value = true;
-};
-
-/**
- * @lang{ZH}
- * 检测类型 T 是否为 `cvt_pipe_creator` 特化实例的概念。
- * @endif
- *
- * @lang{EN}
- * Concept that detects whether type T is a specialization of `cvt_pipe_creator`.
- * @endif
- *
- * @tparam T 待检测的类型。 / The type to be checked.
- */
-template<typename T>
-concept cpt_cvt_pipe_creator = cpt_cvt_pipe_creator_helper<T>::value;
 
 /**
  * @lang{ZH}
@@ -136,7 +84,7 @@ struct cvt_creator_type_gen;
 template <typename T1, typename T2>
     requires (std::is_same_v<typename T1::category, CvtCreatorCategory> &&
               std::is_same_v<typename T2::category, CvtCreatorCategory> &&
-              !cpt_cvt_pipe_creator<T1> && !cpt_cvt_pipe_creator<T2>)
+              !specialization_of<T1, cvt_pipe_creator> && !specialization_of<T2, cvt_pipe_creator>)
 struct cvt_creator_type_gen<T1, T2>
 {
     using type = cvt_pipe_creator<T1, T2>;
@@ -159,7 +107,7 @@ struct cvt_creator_type_gen<T1, T2>
  */
 template <typename T1, typename... T2>
     requires (std::is_same_v<typename T1::category, CvtCreatorCategory> &&
-              !cpt_cvt_pipe_creator<T1>)
+              !specialization_of<T1, cvt_pipe_creator>)
 struct cvt_creator_type_gen<T1, cvt_pipe_creator<T2...>>
 {
     using type = cvt_pipe_creator<T1, T2...>;
@@ -182,7 +130,7 @@ struct cvt_creator_type_gen<T1, cvt_pipe_creator<T2...>>
  */
 template <typename... T1, typename T2>
     requires (std::is_same_v<typename T2::category, CvtCreatorCategory> &&
-              !cpt_cvt_pipe_creator<T2>)
+              !specialization_of<T2, cvt_pipe_creator>)
 struct cvt_creator_type_gen<cvt_pipe_creator<T1...>, T2>
 {
     using type = cvt_pipe_creator<T1..., T2>;
@@ -317,14 +265,14 @@ public:
      * creator lists into a single flat list.
      * @endif
      *
-     * @tparam T1 左侧管道工厂类型（须满足 `cpt_cvt_pipe_creator`）。
-     *           / Left-hand pipeline creator type (must satisfy `cpt_cvt_pipe_creator`).
-     * @tparam T2 右侧管道工厂类型（须满足 `cpt_cvt_pipe_creator`）。
-     *           / Right-hand pipeline creator type (must satisfy `cpt_cvt_pipe_creator`).
+     * @tparam T1 左侧管道工厂类型（须为 `cvt_pipe_creator` 的特化）。
+     *           / Left-hand pipeline creator type (must be a `cvt_pipe_creator` specialization).
+     * @tparam T2 右侧管道工厂类型（须为 `cvt_pipe_creator` 的特化）。
+     *           / Right-hand pipeline creator type (must be a `cvt_pipe_creator` specialization).
      * @param t1 左侧管道工厂实例。 / Left-hand pipeline creator instance.
      * @param t2 右侧管道工厂实例。 / Right-hand pipeline creator instance.
      */
-    template <cpt_cvt_pipe_creator T1, cpt_cvt_pipe_creator T2>
+    template <specialization_of<cvt_pipe_creator> T1, specialization_of<cvt_pipe_creator> T2>
     cvt_pipe_creator(const T1& t1, const T2& t2)
         : m_creators(std::tuple_cat(t1.m_creators, t2.m_creators)) {}
 
@@ -339,13 +287,13 @@ public:
      * @endif
      *
      * @tparam TH 左侧非管道转换器工厂类型。 / Left-hand non-pipe converter creator type.
-     * @tparam TR 右侧管道工厂类型（须满足 `cpt_cvt_pipe_creator`）。
-     *           / Right-hand pipeline creator type (must satisfy `cpt_cvt_pipe_creator`).
+     * @tparam TR 右侧管道工厂类型（须为 `cvt_pipe_creator` 的特化）。
+     *           / Right-hand pipeline creator type (must be a `cvt_pipe_creator` specialization).
      * @param h  左侧非管道工厂实例。 / Left-hand non-pipe creator instance.
      * @param hr 右侧管道工厂实例。 / Right-hand pipeline creator instance.
      */
-    template <typename TH, cpt_cvt_pipe_creator TR>
-        requires (!cpt_cvt_pipe_creator<TH>)
+    template <typename TH, specialization_of<cvt_pipe_creator> TR>
+        requires (!specialization_of<TH, cvt_pipe_creator>)
     cvt_pipe_creator(const TH& h, const TR& hr)
         : m_creators(std::tuple_cat(std::make_tuple(h), hr.m_creators)) {}
 
@@ -359,14 +307,14 @@ public:
      * internal creator list.
      * @endif
      *
-     * @tparam TR 左侧管道工厂类型（须满足 `cpt_cvt_pipe_creator`）。
-     *           / Left-hand pipeline creator type (must satisfy `cpt_cvt_pipe_creator`).
+     * @tparam TR 左侧管道工厂类型（须为 `cvt_pipe_creator` 的特化）。
+     *           / Left-hand pipeline creator type (must be a `cvt_pipe_creator` specialization).
      * @tparam TT 右侧非管道转换器工厂类型。 / Right-hand non-pipe converter creator type.
      * @param tr 左侧管道工厂实例。 / Left-hand pipeline creator instance.
      * @param t  右侧非管道工厂实例。 / Right-hand non-pipe creator instance.
      */
-    template <cpt_cvt_pipe_creator TR, typename TT>
-        requires (!cpt_cvt_pipe_creator<TT>)
+    template <specialization_of<cvt_pipe_creator> TR, typename TT>
+        requires (!specialization_of<TT, cvt_pipe_creator>)
     cvt_pipe_creator(const TR& tr, const TT& t)
         : m_creators(std::tuple_cat(tr.m_creators, std::make_tuple(t))) {}
 

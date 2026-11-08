@@ -43,6 +43,11 @@
 - `ios_base` 与 `ios_state` 的构造函数可以接受一把外部的对象锁（缺省为空，用流自带的锁），
   供共用底层资源的几个流共用一把 `io_mutex()`。拷贝或移动出的流用自己的锁，赋值不改变
   双方各自用的锁。
+- `is_specialization_of<T, TTemplate>` 与对应的概念 `specialization_of<T, TTemplate>`：判断 `T`
+  是否为类模板 `TTemplate` 的特化。`TTemplate` 的参数可以带约束，但只能是类型参数；不去除
+  cv 与引用，也不认派生类。
+- 概念 `unordered_key<T>`：`T` 可判等且可用 `std::hash<T>` 求哈希，即能作为无序容器在默认
+  哈希器与判等器下的键。不要求可拷贝。
 
 #### 变更
 
@@ -103,10 +108,22 @@
   都抛出 `cvt_error`，且不污染转换器。此前反向的 `put()` 会把原始字节交给下层，由下层
   `root_cvt` 自行换向写到流首，两层的方向也随之不一致。`main_cont_beg()` 之后的换向不变；
   `root_cvt` 本身不读写流头，不受此限。
+- `lru_cache` 的约束改为 `unordered_key TK`、`std::copy_constructible TK` 与
+  `std::copy_constructible TV`，`prefix_tree` 的约束改为 `unordered_key CharT` 与
+  `std::equality_comparable TValue`（原为类内 `static_assert`）。哈希要求比原来严格：
+  `std::hash<T>` 须能以 `const T&` 调用并得到可转换为 `std::size_t` 的结果，而不只是可构造。
+- `copyable_atomic` 的默认构造与以值构造合并为一个 `constexpr` 构造函数。
 
 #### 废弃
 
 - `file_open_flag::binary`：已不起作用，计划在 2.0 中删除。
+
+#### 移除
+
+- `is_iochannel`、`is_ichannel`、`is_ochannel`、`is_ichannel_iterator`、
+  `is_ochannel_iterator`、`is_stamp_input_iterator_v`、`is_mem_device` 与
+  `cpt_cvt_pipe_creator`：改用 `is_specialization_of` / `specialization_of`，例如
+  `is_mem_device<T>` 写作 `specialization_of<T, mem_device>`。
 
 #### 修复
 
@@ -236,6 +253,14 @@ have no release line of their own.
   (null by default, meaning the stream's own), so that streams over a shared
   resource can share one `io_mutex()`. A stream copied or moved from another uses
   its own lock, and assignment leaves each side with the lock it had.
+- `is_specialization_of<T, TTemplate>` and the matching concept
+  `specialization_of<T, TTemplate>`: whether `T` is a specialization of class
+  template `TTemplate`. `TTemplate`'s parameters may be constrained but must be
+  type parameters; cv-qualifiers and references are not stripped, and derived
+  classes do not count.
+- Concept `unordered_key<T>`: `T` is equality comparable and hashable with
+  `std::hash<T>`, i.e. usable as an unordered container's key under the default
+  hasher and key-equality predicate. Copyability is not required.
 
 #### Changed
 
@@ -329,11 +354,26 @@ have no release line of their own.
   `root_cvt` switched on its own and wrote at the stream origin, leaving the two layers
   disagreeing on the direction. Switching after `main_cont_beg()` is unchanged; `root_cvt`
   itself reads and writes no header and is not restricted.
+- `lru_cache` is now constrained by `unordered_key TK`, `std::copy_constructible TK`
+  and `std::copy_constructible TV`, and `prefix_tree` by `unordered_key CharT` and
+  `std::equality_comparable TValue` (formerly in-class `static_assert`s). The hash
+  requirement is stricter than before: `std::hash<T>` must be callable with a
+  `const T&` and yield something convertible to `std::size_t`, not merely be
+  constructible.
+- `copyable_atomic`'s default and value constructors are merged into one
+  `constexpr` constructor.
 
 #### Deprecated
 
 - `file_open_flag::binary`: it no longer has any effect, and is to be removed in
   2.0.
+
+#### Removed
+
+- `is_iochannel`, `is_ichannel`, `is_ochannel`, `is_ichannel_iterator`,
+  `is_ochannel_iterator`, `is_stamp_input_iterator_v`, `is_mem_device` and
+  `cpt_cvt_pipe_creator`: use `is_specialization_of` / `specialization_of` instead,
+  e.g. `is_mem_device<T>` becomes `specialization_of<T, mem_device>`.
 
 #### Fixed
 
