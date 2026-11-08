@@ -218,11 +218,11 @@ public:
 
             // Only the first init constructs. A singleton whose exit hook left it alive
             // is not built again over itself when an init comes after the count fell to 0.
-            if (count().fetch_add(1) != 0 || sing_temp::instance() != nullptr)
+            if (count().fetch_add(1) != 0 || sing_temp::s_instance != nullptr)
                 return;
             try {
                 // NOLINTNEXTLINE(cppcoreguidelines-owning-memory)
-                sing_temp::instance() = ::new (sing_temp::storage()) T();
+                sing_temp::s_instance = ::new (sing_temp::storage()) T();
             } catch (...) {
                 // sing_temp is designed for static initialization before main().
                 // If T() throws, the singleton cannot be constructed and there is
@@ -238,10 +238,10 @@ public:
             if (count().fetch_sub(1) != 1)
                 return;
             if (sing_temp::s_exit_hook != nullptr) {
-                sing_temp::s_exit_hook(sing_temp::instance());
+                sing_temp::s_exit_hook(sing_temp::s_instance);
             } else {
-                sing_temp::instance()->~T();
-                sing_temp::instance() = nullptr;
+                sing_temp::s_instance->~T();
+                sing_temp::s_instance = nullptr;
             }
         }
 
@@ -268,7 +268,7 @@ public:
          */
         [[nodiscard]] T& get() const noexcept
         {
-            return *sing_temp::instance();
+            return *sing_temp::s_instance;
         }
 
         init(const init&) = delete;
@@ -352,37 +352,37 @@ private:
 
     /**
      * @lang{ZH}
-     * 获取指向单例对象的规范指针的引用。
+     * @brief 指向单例对象的规范指针。
      *
      * 该指针由构造单例的 placement-new 表达式产出并在此保存；对单例的所有访问都
      * 经由它，因此无需 std::launder。其值在构造前为 nullptr；未登记退出钩子时
      * 析构后亦为 nullptr，登记了钩子时 init 不清空它。
      *
-     * @return 对该规范指针的引用（便于 init 写入与清空）
+     * 与 `storage()` 不同，它只是 `T*`，不需要 `T` 完整，因此可以是静态数据成员。
      * @endif
      *
      * @lang{EN}
-     * Get a reference to the canonical pointer to the singleton object.
+     * @brief The canonical pointer to the singleton object.
      *
      * The pointer is produced and stored by the placement-new that constructs the
      * singleton; every access goes through it, so std::launder is never needed. Its
      * value is nullptr before construction, and after destruction when no exit hook
      * is registered; with a hook, init leaves it untouched.
      *
-     * @return Reference to the canonical pointer (so init can set and clear it)
+     * Unlike `storage()`, it is a mere `T*` and needs no complete `T`, so it can be a
+     * static data member.
      * @endif
      */
-    [[nodiscard]] static T*& instance() noexcept
-    {
-        static T* p = nullptr;
-        return p;
-    }
+    inline static constinit T* s_instance = nullptr;
 
     /**
      * @lang{ZH}
      * 获取单例的原始、正确对齐的存储。
      *
-     * 仅用作 placement-new 的目标；对象本身一律通过 instance() 持有的指针访问。
+     * 仅用作 placement-new 的目标；对象本身一律通过 `s_instance` 访问。
+     *
+     * 必须是函数：`sizeof(T)` / `alignas(T)` 要求 `T` 完整，而 CRTP 下 `sing_temp<T>`
+     * 实例化时 `T` 尚不完整；函数体直到被调用才实例化，那时 `T` 已完整。
      *
      * @return 指向存储首字节的指针
      * @endif
@@ -391,14 +391,18 @@ private:
      * Get the raw, correctly-aligned storage for the singleton.
      *
      * Used only as the placement-new target; the object itself is always accessed
-     * through the pointer held by instance().
+     * through `s_instance`.
+     *
+     * It has to be a function: `sizeof(T)` / `alignas(T)` need a complete `T`, while
+     * under CRTP `T` is still incomplete when `sing_temp<T>` is instantiated; a function
+     * body is not instantiated until called, by which time `T` is complete.
      *
      * @return Pointer to the first byte of the storage
      * @endif
      */
     [[nodiscard]] static void* storage() noexcept
     {
-        alignas(T) static std::array<std::byte, sizeof(T)> sing_buf;
+        alignas(T) static constinit std::array<std::byte, sizeof(T)> sing_buf{};
         return sing_buf.data();
     }
 };

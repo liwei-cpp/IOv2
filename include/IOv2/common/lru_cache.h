@@ -71,11 +71,8 @@ namespace IOv2
  * @endcode
  * @endif
  */
-template <typename TK, typename TV, std::size_t Capacity>
-    requires std::is_copy_constructible_v<TK>  // Key must be copyable for storage
-          && std::is_copy_constructible_v<TV>  // Value must be copyable for storage
-          && std::equality_comparable<TK>      // Key needs operator== for hash map
-          && requires { std::hash<TK>{}; }     // Key must be hashable
+template <unordered_key TK, std::copy_constructible TV, std::size_t Capacity>
+    requires std::copy_constructible<TK>  // Key is stored twice: in the list and as the map key
 class lru_cache
 {
     static_assert(Capacity > 0, "Capacity must be greater than 0");

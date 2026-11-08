@@ -224,8 +224,8 @@ TEST(StampInputIterator, Constructors)
     EXPECT_EQ(it_assign, it);
 
     // Test traits
-    EXPECT_TRUE(is_stamp_input_iterator_v<decltype(it)>);
-    EXPECT_FALSE(is_stamp_input_iterator_v<int>);
+    EXPECT_TRUE((IOv2::is_specialization_of<decltype(it), IOv2::stamp_input_iterator>));
+    EXPECT_FALSE((IOv2::is_specialization_of<int, IOv2::stamp_input_iterator>));
 }
 
 TEST(StampInputIterator, IchannelRollbackAndInternal)

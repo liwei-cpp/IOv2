@@ -61,8 +61,7 @@ template <typename T>
 class copyable_atomic
 {
 public:
-    copyable_atomic() noexcept = default;
-    copyable_atomic(T value) noexcept : m_value(value) {}
+    constexpr copyable_atomic(T value = T{}) noexcept : m_value(value) {}
 
     copyable_atomic(const copyable_atomic& other) noexcept
         : m_value(other.m_value.load()) {}
@@ -91,6 +90,6 @@ public:
     { return m_value.compare_exchange_weak(expected, desired); }
 
 private:
-    std::atomic<T> m_value{};
+    std::atomic<T> m_value;
 };
 }

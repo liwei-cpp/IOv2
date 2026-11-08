@@ -1796,7 +1796,7 @@ no_rb_root_cvt(DeviceType) -> no_rb_root_cvt<DeviceType>;
 // cvt_reader specialization for root_cvt with buffer: directly use root_cvt's internal buffer
 template <io_converter KernelType>
     requires (std::is_base_of_v<root_cvt<typename KernelType::device_type, true>, KernelType> &&
-              !is_mem_device<typename KernelType::device_type>)
+              !specialization_of<typename KernelType::device_type, mem_device>)
 class cvt_reader<KernelType>
 {
     using device_type = typename KernelType::device_type;
@@ -1988,7 +1988,7 @@ private:
 // cvt_writer specialization for root_cvt: directly use root_cvt's internal buffer
 template <io_converter KernelType>
     requires (std::is_base_of_v<root_cvt<typename KernelType::device_type, KernelType::s_has_buffer>, KernelType> &&
-              !is_mem_device<typename KernelType::device_type>)
+              !specialization_of<typename KernelType::device_type, mem_device>)
 class cvt_writer<KernelType>
 {
     using device_type = typename KernelType::device_type;
@@ -2163,7 +2163,7 @@ private:
 template <io_converter KernelType>
     requires ((std::is_base_of_v<root_cvt<typename KernelType::device_type, true>, KernelType> ||
                std::is_base_of_v<root_cvt<typename KernelType::device_type, false>, KernelType>) &&
-              is_mem_device<typename KernelType::device_type>)
+              specialization_of<typename KernelType::device_type, mem_device>)
 class cvt_reader<KernelType>
 {
     using device_type = typename KernelType::device_type;
@@ -2282,7 +2282,7 @@ private:
 template <io_converter KernelType>
     requires ((std::is_base_of_v<root_cvt<typename KernelType::device_type, true>, KernelType> ||
                std::is_base_of_v<root_cvt<typename KernelType::device_type, false>, KernelType>) &&
-              is_mem_device<typename KernelType::device_type>)
+              specialization_of<typename KernelType::device_type, mem_device>)
 class cvt_writer<KernelType>
 {
     using device_type = typename KernelType::device_type;

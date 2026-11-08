@@ -13,6 +13,7 @@
 
 #pragma once
 #include <IOv2/common/iochannel_defs.h>
+#include <IOv2/common/metafunctions.h>
 
 #include <compare>
 #include <forward_list>
@@ -236,7 +237,7 @@ private:
  *
  * ichannel_iterator 概念约束确保此特化仅匹配 IOv2::ichannel_iterator 类型。
  *
- * @tparam TIter 必须满足 is_ichannel_iterator（仅限 IOv2::ichannel_iterator）
+ * @tparam TIter 必须是 IOv2::ichannel_iterator 的特化
  * @endif
  *
  * @lang{EN}
@@ -250,10 +251,10 @@ private:
  * The ichannel_iterator concept constraint ensures this specialization
  * only matches IOv2::ichannel_iterator types.
  *
- * @tparam TIter Must satisfy is_ichannel_iterator (IOv2::ichannel_iterator only)
+ * @tparam TIter Must be a specialization of IOv2::ichannel_iterator
  * @endif
  */
-template <is_ichannel_iterator TIter>
+template <specialization_of<ichannel_iterator> TIter>
 struct stamp_input_iterator<TIter>
 {
     stamp_input_iterator()
@@ -350,26 +351,5 @@ stamp_input_iterator(TIter) -> stamp_input_iterator<std::remove_reference_t<TIte
 
 template <typename TIter>
 stamp_input_iterator(stamp_input_iterator<TIter>&) -> stamp_input_iterator<TIter>;
-/// @endcond
-
-/**
- * @lang{ZH}
- * 检查类型 T 是否为 stamp_input_iterator 特化。
- *
- * @tparam T 要检查的类型
- * @endif
- *
- * @lang{EN}
- * Checks if type T is a stamp_input_iterator specialization.
- *
- * @tparam T The type to check
- * @endif
- */
-template <typename T>
-static constexpr bool is_stamp_input_iterator_v = false;
-
-/// @cond INTERNAL
-template <typename T>
-static constexpr bool is_stamp_input_iterator_v<stamp_input_iterator<T>> = true;
 /// @endcond
 }

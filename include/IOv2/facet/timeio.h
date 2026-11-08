@@ -2783,7 +2783,7 @@ public:
      * @endif
      */
     template <typename TIter, std::sentinel_for<TIter> TSent, bool HaveDate, bool HaveTime, tz_level TzLevel>
-        requires (steppable_back<TIter> || is_ichannel_iterator<TIter>)
+        requires (steppable_back<TIter> || specialization_of<TIter, ichannel_iterator>)
     TIter get(TIter beg, TSent end, time_parse_context<char_type, HaveDate, HaveTime, TzLevel>& ctx,
               char format, char modifier = 0) const // NOLINT(bugprone-easily-swappable-parameters)
     {
@@ -2856,7 +2856,7 @@ public:
      * @endif
      */
     template <typename TIter, std::sentinel_for<TIter> TSent, bool HaveDate, bool HaveTime, tz_level TzLevel>
-        requires (steppable_back<TIter> || is_ichannel_iterator<TIter>)
+        requires (steppable_back<TIter> || specialization_of<TIter, ichannel_iterator>)
     TIter get(TIter rp, TSent rp_end, time_parse_context<char_type, HaveDate, HaveTime, TzLevel>& ctx,
               std::basic_string_view<CharT> _fmt) const
     {
@@ -3008,7 +3008,7 @@ private:
      */
     // NOLINTBEGIN(cppcoreguidelines-avoid-goto)
     template <typename TIter, std::sentinel_for<TIter> TSent, bool HaveDate, bool HaveTime, tz_level TzLevel>
-        requires (steppable_back<TIter> || is_ichannel_iterator<TIter>)
+        requires (steppable_back<TIter> || specialization_of<TIter, ichannel_iterator>)
     TIter do_get(TIter rp, TSent rp_end, time_parse_context<char_type, HaveDate, HaveTime, TzLevel>& ctx,
                  bool& succ, std::basic_string_view<CharT> _fmt) const
     {
@@ -3602,7 +3602,7 @@ private:
                     if (modifier == static_cast<CharT>('O')) goto bad_parse_format;
                     if (era_items_active(ctx, modifier))
                     {
-                        if constexpr (is_stamp_input_iterator_v<TIter>)
+                        if constexpr (is_specialization_of<TIter, stamp_input_iterator>)
                         {
                             succ = false;
                             return rp;
