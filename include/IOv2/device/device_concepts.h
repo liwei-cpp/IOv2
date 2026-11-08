@@ -68,8 +68,7 @@ namespace IOv2
          *       内部缓冲的设备必须在自己的析构里完成这次冲刷。
          * @note `dput()` 失败时用异常类型说明「已有多少字符被下层接收」：写到一半失败抛 `dput_error`
          *       并带出已接收的个数；一个字符也没有接收（例如写之前的参数检查失败）抛普通的
-         *       `device_error`。`root_cvt` 依此只保留未被接收的部分，恢复后恰好写出一次；
-         *       详见 `dput_error`。
+         *       `device_error`。详见 `dput_error`。
          * @tparam T 要检查的设备类型。
          * @endif
          *
@@ -86,8 +85,7 @@ namespace IOv2
          * @note A failing `dput()` tells through the exception type how many characters the
          *       layer below has accepted: one that fails partway throws `dput_error` with that
          *       count; one that accepted nothing (a check failing before the write, say)
-         *       throws a plain `device_error`. `root_cvt` keeps only what was not accepted, so
-         *       it goes out exactly once after recovery; see `dput_error`.
+         *       throws a plain `device_error`. See `dput_error`.
          * @tparam T The device type to check.
          * @endif
          */
