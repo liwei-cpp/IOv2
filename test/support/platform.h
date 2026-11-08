@@ -6,7 +6,7 @@
 // The few operating-system calls the support headers need, behind one name on
 // every platform, so that test sources stay free of #ifdef _WIN32. What only
 // one platform can do -- signals, O_NONBLOCK, rlimits -- is not wrapped here:
-// tests of it live in a posix/, linux/ or windows/ subdirectory instead, which
+// tests of it live in a posix/, linux/, macos/ or windows/ subdirectory instead, which
 // CMakeLists.txt builds on that platform alone.
 
 #include <cstddef>

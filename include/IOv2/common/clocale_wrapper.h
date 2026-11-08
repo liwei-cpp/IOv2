@@ -4,37 +4,37 @@
 /**
  * @file clocale_wrapper.h
  * @lang{ZH}
- * POSIX locale_t 的 RAII 包装类。
+ * C 库 locale 对象的 RAII 包装类。
  * @endif
  * @lang{EN}
- * RAII wrapper for POSIX locale_t objects.
+ * RAII wrapper for C library locale objects.
  * @endif
  */
 
 #pragma once
 #include <IOv2/common/defs.h>
+#include <IOv2/common/platform/clocale_backend.h>
 
 #include <clocale>
 #include <string>
-
-#include <langinfo.h>
 
 namespace IOv2
 {
 /**
  * @lang{ZH}
- * POSIX locale_t 对象的 RAII 包装类。
+ * C 库 locale 对象的 RAII 包装类。
  *
- * @note 此类需要 POSIX locale 扩展（在 Linux、macOS 上可用）。
- *       在 Windows 上不可用。
+ * @note 支持 glibc、macOS 与 Windows（UCRT），平台相关的部分在 `common/platform/` 下的后端
+ *       里：POSIX 上包装 `locale_t`，Windows 上包装 `_locale_t` 及其解析后的名字。
  * @note 此类不是线程安全的。
  * @endif
  *
  * @lang{EN}
- * RAII wrapper for POSIX locale_t objects.
+ * RAII wrapper for C library locale objects.
  *
- * @note This class requires POSIX locale extensions (available on Linux, macOS).
- *       Not available on Windows.
+ * @note Supports glibc, macOS and Windows (UCRT); the platform-specific part lives in the
+ *       backends under `common/platform/`: a `locale_t` on POSIX, a `_locale_t` together
+ *       with its resolved names on Windows.
  * @note This class is NOT thread-safe.
  * @endif
  */
@@ -69,8 +69,7 @@ struct clocale_wrapper
      * @endif
      */
     explicit clocale_wrapper(const std::string& name)
-        : c_locale(name.find('\0') == std::string::npos ? newlocale(LC_ALL_MASK, name.c_str(), nullptr)
-                                                          : nullptr)
+        : c_locale(name.find('\0') == std::string::npos ? detail::clocale_create(name.c_str()) : nullptr)
     {
         if (name.find('\0') != std::string::npos)
             throw io_error("clocale_wrapper: locale name contains an embedded NUL");
@@ -82,14 +81,14 @@ struct clocale_wrapper
     ~clocale_wrapper() noexcept
     {
         if (c_locale)
-            freelocale(c_locale);
+            detail::clocale_release(c_locale);
     }
 
     clocale_wrapper(const clocale_wrapper& val)
-        : c_locale(val.c_locale ? duplocale(val.c_locale) : nullptr)
+        : c_locale(val.c_locale ? detail::clocale_duplicate(val.c_locale) : nullptr)
     {
         if (val.c_locale && !c_locale)
-            throw io_error("clocale_wrapper: duplocale failed during copy construction");
+            throw io_error("clocale_wrapper: copying the locale failed during copy construction");
     }
 
     clocale_wrapper(clocale_wrapper&& val) noexcept
@@ -103,7 +102,7 @@ struct clocale_wrapper
         if (this != &val)
         {
             if (c_locale)
-                freelocale(c_locale);
+                detail::clocale_release(c_locale);
             c_locale = val.c_locale;
             val.c_locale = nullptr;
         }
@@ -114,12 +113,12 @@ struct clocale_wrapper
     {
         if (this != &val)
         {
-            locale_t tmp = val.c_locale ? duplocale(val.c_locale) : nullptr;
+            detail::clocale_handle tmp = val.c_locale ? detail::clocale_duplicate(val.c_locale) : nullptr;
             if (val.c_locale && !tmp)
-                throw io_error("clocale_wrapper: duplocale failed during assignment");
+                throw io_error("clocale_wrapper: copying the locale failed during assignment");
 
             if (c_locale)
-                freelocale(c_locale);
+                detail::clocale_release(c_locale);
             c_locale = tmp;
         }
         return *this;
@@ -133,8 +132,16 @@ struct clocale_wrapper
      * 查环境得到的具体名字（如 `"C.UTF-8"`）；别名按平台规范化（glibc 把 `"POSIX"` 报成
      * `"C"`）。返回值可再交给 `newlocale` 得到同一个 `LC_CTYPE`。
      *
-     * @note 实现依赖 glibc 扩展 `nl_langinfo_l(_NL_LOCALE_NAME(LC_CTYPE), …)`（`<langinfo.h>`）；
-     *       POSIX 没有等价接口，musl 等 libc 需要另想办法（例如自己保存解析后的名字）。
+     * @note 名字由 `common/platform/` 下的后端取得：glibc 上用扩展
+     *       `nl_langinfo_l(_NL_LOCALE_NAME(LC_CTYPE), …)`，macOS 上用 `querylocale`，Windows 上
+     *       是构造时 `setlocale(LC_CTYPE, nullptr)` 报出并保存的名字。POSIX 没有等价接口，musl
+     *       等其他 libc 不受支持。
+     * @note macOS 与 glibc 有两处不同：别名不规范化，`"POSIX"` 仍报 `"POSIX"`；`LC_CTYPE` 可以
+     *       来自只有这一个类别的 locale，如 `LC_CTYPE=UTF-8` 时以 `""` 构造得到的 `"UTF-8"`——
+     *       它能交给 `newlocale(LC_CTYPE_MASK, …)`，但本类构造用的 `newlocale(LC_ALL_MASK, …)`
+     *       拒绝它。
+     * @note Windows 上名字是 CRT 的写法，如 `"English_United States.1252"`；CRT 不认 `"POSIX"`，
+     *       以它构造会抛异常。
      * @return 已解析的 locale 名字。
      * @throws io_error 若本对象处于 moved-from 状态。
      * @endif
@@ -148,9 +155,18 @@ struct clocale_wrapper
      * platform normalizes them (glibc reports `"POSIX"` as `"C"`). The result can be handed
      * back to `newlocale` to obtain the same `LC_CTYPE`.
      *
-     * @note Relies on the glibc extension `nl_langinfo_l(_NL_LOCALE_NAME(LC_CTYPE), …)`
-     *       (`<langinfo.h>`); POSIX has no equivalent, so another libc (musl, say) would need
-     *       a different route, such as keeping the resolved name itself.
+     * @note The name comes from the backend under `common/platform/`: the glibc extension
+     *       `nl_langinfo_l(_NL_LOCALE_NAME(LC_CTYPE), …)` on glibc, `querylocale` on macOS,
+     *       and on Windows the name `setlocale(LC_CTYPE, nullptr)` reported at construction,
+     *       kept since. POSIX has no equivalent, so other C libraries (musl, say) are not
+     *       supported.
+     * @note macOS differs from glibc in two ways: aliases are not normalized, so `"POSIX"`
+     *       comes back as `"POSIX"`; and `LC_CTYPE` may come from a locale that has that
+     *       category alone, such as the `"UTF-8"` a wrapper built from `""` gets under
+     *       `LC_CTYPE=UTF-8` -- `newlocale(LC_CTYPE_MASK, …)` takes it, but the
+     *       `newlocale(LC_ALL_MASK, …)` this class constructs with rejects it.
+     * @note On Windows the name is spelled the CRT's way, e.g. `"English_United States.1252"`;
+     *       the CRT does not know `"POSIX"`, so constructing from it throws.
      * @return The resolved locale name.
      * @throws io_error If this object is in a moved-from state.
      * @endif
@@ -160,11 +176,11 @@ struct clocale_wrapper
         if (!c_locale)
             throw io_error("clocale_wrapper::name: wrapper is in moved-from state");
 
-        return nl_langinfo_l(_NL_LOCALE_NAME(LC_CTYPE), c_locale);
+        return detail::clocale_ctype_name(c_locale);
     }
 
 private:
-    locale_t c_locale;
+    detail::clocale_handle c_locale;
 };
 
 /**
@@ -210,22 +226,27 @@ struct clocale_user
      * @lang{ZH}
      * 构造一个语言环境守卫，切换到指定的语言环境。
      * @param wrapper 要切换到的语言环境
-     * @throws io_error 如果 wrapper 处于 moved-from 状态
-     * @note 捕获当前线程的语言环境以便稍后恢复
+     * @throws io_error 如果 wrapper 处于 moved-from 状态；Windows 上 `setlocale` 拒绝切换时也抛
+     * @note 捕获当前线程的语言环境以便稍后恢复。POSIX 上用 `uselocale`；Windows 上让本线程进入
+     *       per-thread locale 模式后 `setlocale`，只影响本线程，析构时连同模式一起恢复。
      * @endif
      *
      * @lang{EN}
      * Construct a locale guard that switches to the specified locale.
      * @param wrapper The locale to switch to
-     * @throws io_error If wrapper is in moved-from state
-     * @note Captures the current thread's locale for later restoration
+     * @throws io_error If wrapper is in moved-from state; on Windows also if `setlocale`
+     *         refuses the switch
+     * @note Captures the current thread's locale for later restoration. On POSIX this is
+     *       `uselocale`; on Windows the thread enters per-thread locale mode and calls
+     *       `setlocale`, which affects this thread alone, and the destructor restores the
+     *       mode along with the locale.
      * @endif
      */
     explicit clocale_user(const clocale_wrapper& wrapper)
     {
         if (!wrapper.c_locale)
             throw io_error("clocale_user: wrapper is in moved-from state");
-        old = uselocale(wrapper.c_locale);
+        old = detail::clocale_use(wrapper.c_locale);
     }
 
     // Non-copyable and non-movable to prevent cross-thread usage
@@ -247,9 +268,9 @@ struct clocale_user
      */
     ~clocale_user() noexcept
     {
-        uselocale(old);
+        detail::clocale_restore(old);
     }
 private:
-    locale_t old = nullptr;
+    detail::clocale_saved old{};
 };
 }

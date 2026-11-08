@@ -1,43 +1,52 @@
 // SPDX-FileCopyrightText: 2026 liwei <liwei.cpp@gmail.com>
 // SPDX-License-Identifier: MIT
 
-#include <clocale>
-
 #include <IOv2/common/defs.h>
+
+// Macro interception, at the backend rather than the C library so that it is the same on
+// every platform. Every name whose body differs here from the rest of the binary is
+// renamed, so the mocked copies never meet the real ones (no ODR clash):
+// 1. The backend comes in first, its create/duplicate renamed *_real; #pragma once keeps
+//    clocale_wrapper.h from including it again.
+#define clocale_create clocale_create_real
+#define clocale_duplicate clocale_duplicate_real
+#include <IOv2/common/platform/clocale_backend.h>
+#undef clocale_create
+#undef clocale_duplicate
 
 #include <gtest/gtest.h>
 
 namespace
 {
-// Mocking system calls for testing exception paths
-static bool mock_newlocale_fail = false;
-static bool mock_duplocale_fail = false;
+bool mock_create_fail = false;
+bool mock_duplicate_fail = false;
+}
 
-inline locale_t mock_newlocale(int category_mask, const char* locale, locale_t base)
+namespace IOv2::detail
 {
-    if (mock_newlocale_fail) return (locale_t)0;
-    return newlocale(category_mask, locale, base);
-}
-
-inline locale_t mock_duplocale(locale_t loc)
+static clocale_handle clocale_create_mock(const char* name)
 {
-    if (mock_duplocale_fail) return (locale_t)0;
-    return duplocale(loc);
+    if (mock_create_fail) return nullptr;
+    return clocale_create_real(name);
+}
+
+static clocale_handle clocale_duplicate_mock(clocale_handle loc)
+{
+    if (mock_duplicate_fail) return nullptr;
+    return clocale_duplicate_real(loc);
 }
 }
 
-// Macro Interception:
-// 1. Redirect system calls to our mocks
-// 2. Rename the class to avoid ODR conflicts with the original version in the same binary
-#define newlocale mock_newlocale
-#define duplocale mock_duplocale
+// 2. The wrapper calls the mocks, and its classes are renamed too.
+#define clocale_create clocale_create_mock
+#define clocale_duplicate clocale_duplicate_mock
 #define clocale_wrapper clocale_wrapper_mock
 #define clocale_user clocale_user_mock
 
 #include <IOv2/common/clocale_wrapper.h>
 
-#undef newlocale
-#undef duplocale
+#undef clocale_create
+#undef clocale_duplicate
 // We keep the class renames active for the rest of this file so we can use the names naturally
 
 using namespace IOv2;
@@ -53,30 +62,30 @@ protected:
 
     static void reset()
     {
-        mock_newlocale_fail = false;
-        mock_duplocale_fail = false;
+        mock_create_fail = false;
+        mock_duplicate_fail = false;
     }
 };
 
-TEST_F(ClocaleWrapperMock, NewlocaleFailureThrows)
+TEST_F(ClocaleWrapperMock, CreateFailureThrows)
 {
-    mock_newlocale_fail = true;
+    mock_create_fail = true;
     EXPECT_THROW((void)clocale_wrapper_mock("C"), io_error);
 }
 
-TEST_F(ClocaleWrapperMock, DuplocaleFailureInCopyConstructorThrows)
+TEST_F(ClocaleWrapperMock, DuplicateFailureInCopyConstructorThrows)
 {
     clocale_wrapper_mock loc1("C");
 
-    mock_duplocale_fail = true;
+    mock_duplicate_fail = true;
     EXPECT_THROW((void)clocale_wrapper_mock(loc1), io_error);
 }
 
-TEST_F(ClocaleWrapperMock, DuplocaleFailureInCopyAssignmentThrows)
+TEST_F(ClocaleWrapperMock, DuplicateFailureInCopyAssignmentThrows)
 {
     clocale_wrapper_mock loc1("C");
     clocale_wrapper_mock loc2("C");
 
-    mock_duplocale_fail = true;
+    mock_duplicate_fail = true;
     EXPECT_THROW(loc2 = loc1, io_error);
 }

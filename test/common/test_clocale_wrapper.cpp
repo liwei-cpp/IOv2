@@ -98,28 +98,29 @@ TEST(ClocaleWrapper, ANameWithAnEmbeddedNulIsRejected)
 
 // name() reports the locale's own resolved LC_CTYPE name, which is what lets it stand
 // in for the string the wrapper was built from: "" is a lookup rather than a name and
-// comes back concrete, an alias comes back normalized, and whatever comes back builds
-// the same locale again.
+// comes back concrete, and whatever comes back builds the same locale again. What an
+// alias comes back as is the C library's call; linux/ and macos/ pin it.
 TEST(ClocaleWrapper, NameReportsTheResolvedLocale)
 {
     EXPECT_EQ(clocale_wrapper("C").name(), "C");
-    EXPECT_EQ(clocale_wrapper("POSIX").name(), "C");
 
     const std::string resolved = clocale_wrapper("").name();
     EXPECT_FALSE(resolved.empty());
     EXPECT_EQ(clocale_wrapper(resolved).name(), resolved);
 }
 
-// duplocale() hands out a locale of its own, and it has to be the same locale; the
-// source of a move keeps nothing and can no longer be asked.
+// A copy is a locale of its own, and it has to be the same locale; the source of a move
+// keeps nothing and can no longer be asked. "C" because it is the one name every
+// platform knows; "POSIX" is not one on Windows.
 TEST(ClocaleWrapper, NameSurvivesCopyAndMove)
 {
-    clocale_wrapper loc1("POSIX");
+    clocale_wrapper loc1("C");
+    const std::string name = loc1.name();
     clocale_wrapper loc2(loc1);
-    EXPECT_EQ(loc2.name(), "C");
+    EXPECT_EQ(loc2.name(), name);
 
     clocale_wrapper loc3(std::move(loc1));
-    EXPECT_EQ(loc3.name(), "C");
+    EXPECT_EQ(loc3.name(), name);
     EXPECT_THROW((void)loc1.name(), io_error);
 }
 

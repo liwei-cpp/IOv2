@@ -116,8 +116,10 @@ if(NOT IOV2_TEST_ALL_SOURCES)
 endif()
 
 # Tests of what only some platforms have sit in a subdirectory named for them:
-# posix/ (signals, O_NONBLOCK, rlimits), linux/ (/dev/full, GNU ld's --wrap),
-# windows/ (text-mode CRLF and Ctrl+Z). Each is built on its platform alone, so
+# posix/ (signals, O_NONBLOCK, rlimits, fork), linux/ (/dev/full, GNU ld's --wrap,
+# glibc's locale names), macos/ (Apple libc's locale names), windows/ (text-mode
+# CRLF and Ctrl+Z, the CRT's locale names and per-thread locales). Each is built on
+# its platform alone, so
 # test sources need no #ifdef; support/platform.h covers the API differences.
 # Matched on the path below this directory, never on where the checkout lives.
 set(IOV2_TEST_OTHER_PLATFORM_DIRS "")
@@ -126,6 +128,9 @@ if(NOT UNIX)
 endif()
 if(NOT CMAKE_SYSTEM_NAME STREQUAL "Linux")
   list(APPEND IOV2_TEST_OTHER_PLATFORM_DIRS linux)
+endif()
+if(NOT APPLE)
+  list(APPEND IOV2_TEST_OTHER_PLATFORM_DIRS macos)
 endif()
 if(NOT WIN32)
   list(APPEND IOV2_TEST_OTHER_PLATFORM_DIRS windows)
