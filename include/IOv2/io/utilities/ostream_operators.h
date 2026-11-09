@@ -44,8 +44,10 @@ namespace IOv2
  * @lang{ZH}
  * @brief 输出操作的 RAII 哨兵：在每次插入操作的入口统一完成前置准备与末尾自动刷新。
  *
- * 哨兵负责校验流的有效性、刷新关联（tie）流，并在需要时切换读写方向、
- * （追加模式下）定位到末尾；析构时对 unitbuf / 与 stdio 同步的流执行自动刷新。
+ * 哨兵负责校验流的有效性、刷新关联（tie）流，并在需要时（追加模式下）定位到末尾、
+ * 切换读写方向；析构时对 unitbuf / 与 stdio 同步的流执行自动刷新。
+ * 先定位、后切换：只允许在末尾写入的转换器在切换时检查这一点；定位还会丢弃尚未读取的输入，
+ * 切换时便不必再为它们重新定位。
  * 哨兵不可拷贝、不可移动。
  * @tparam TStream 关联的输出流类型。
  * @tparam involve_input 若为 `true`，表示该流同时支持输入，构造时会将底层缓冲区
@@ -59,8 +61,11 @@ namespace IOv2
  *        insertion operation and an automatic flush at its end.
  *
  * The sentry validates the stream, flushes the tied stream, and
- * optionally switches direction and (in append mode) repositions to the end; on destruction it
+ * optionally (in append mode) repositions to the end and switches direction; on destruction it
  * auto-flushes a unitbuf / stdio-synced stream. The sentry is neither copyable nor movable.
+ * Repositioning comes first: a converter that lets writes happen only at the end checks that
+ * when switching, and the repositioning drops any unread input, so the switch need not
+ * reposition again for it.
  * @tparam TStream The associated output stream type.
  * @tparam involve_input If `true`, the stream also supports input, and construction switches
  *                       the underlying buffer to put mode (`switch_to_put`).
@@ -74,7 +79,7 @@ struct out_sentry
 {
     /**
      * @lang{ZH}
-     * @brief 构造输出哨兵：校验流、刷新关联流，并按需切换读写方向 / 定位到末尾。
+     * @brief 构造输出哨兵：校验流、刷新关联流，并按需定位到末尾 / 切换读写方向。
      *
      * @warning **调用方必须已经持有 `os.io_mutex()`，必须有自己的 `catch`，且锁要持到那个 `catch`
      *          之后。** 哨兵自己不加锁：它在 `try` 块末尾就析构了，而 `catch` 里的
@@ -95,7 +100,7 @@ struct out_sentry
      * @endif
      * @lang{EN}
      * @brief Constructs the output sentry: validates the stream, flushes the tied stream, and
-     * switches direction / repositions to end as needed.
+     * repositions to end / switches direction as needed.
      *
      * @warning **The caller must already hold `os.io_mutex()`, must have a `catch` of its own, and
      *          must keep holding the lock past that `catch`.** The sentry does not lock: it is
@@ -137,9 +142,6 @@ struct out_sentry
         if constexpr (is_std)
             m_sync_with_stdio = os.m_sync_with_stdio.load();
 
-        if constexpr (involve_input)
-            os.m_channel.switch_to_put();
-
         if constexpr (!is_std)
         {
             if (is_app_mode)
@@ -157,6 +159,9 @@ struct out_sentry
                 }
             }
         }
+
+        if constexpr (involve_input)
+            os.m_channel.switch_to_put();
 
         if (!static_cast<bool>(m_os))
             throw stream_error("ostream_sentry create fail: Invalid ostream");

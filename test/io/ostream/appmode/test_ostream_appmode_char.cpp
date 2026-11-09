@@ -184,6 +184,24 @@ TEST(OstreamAppmodeChar, AppmodeDoesNotMoveTheReadPosition)
     EXPECT_EQ(dev.str(), "abcdeW hello");
 }
 
+// A peeked character is input not yet read. Appmode still appends, and the repositioning
+// to the end leaves nothing of it behind to read.
+TEST(OstreamAppmodeChar, AppmodeAfterAPeekStillAppends)
+{
+    iostream ios{mem_device{"abcde"}};
+
+    EXPECT_EQ(ios.peek(), 'a');
+    ios << appmode << 'W';
+    ios.flush();
+    EXPECT_TRUE(static_cast<bool>(ios));
+    EXPECT_EQ(ios.device().str(), "abcdeW");
+
+    char ch = 0;
+    ios.get(ch);
+    EXPECT_TRUE(ios.eof());
+    EXPECT_EQ(ch, 0);
+}
+
 TEST(OstreamAppmodeChar, TheSameWhileReadingThroughTheSyncView)
 {
     iostream ios{mem_device{"abcde"}};
