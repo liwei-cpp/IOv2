@@ -38,6 +38,7 @@ IOv2 的系统架构分为以下几个正交的维度：
 2. **转换器层 (Converter) - 表示变换**
    负责数据的表示变换，支持无限链式串联。内置功能包括：
    - **编码转换**：如 `code_cvt`、`code_cvt_stdio`，支持多字节与宽字符等转换。
+   - **换行转换**：`newline_cvt` 读时把 `\r\n` 换成 `\n`、写时把 `\n` 换成 `\r\n`，模拟 Windows 文本模式；与平台无关。
    - **压缩解压**：`zlib_cvt`（依赖 zlib）提供数据压缩与解压能力。
    - **密码学与哈希**：
      - `chacha20_cvt`: 基于现代流密码 ChaCha20 的加解密支持。当前实现的安全性仍有待加强（未做认证加密），后续会引入更稳妥的方案。
@@ -293,6 +294,7 @@ The architecture is divided into the following orthogonal dimensions:
 2. **Converter Layer (Representation Transformation)**
    Manages intermediate transformations with support for infinite chaining. Built-in converters include:
    - **Encodings**: e.g., `code_cvt`, `code_cvt_stdio` for multibyte/wide-character conversions.
+   - **Line endings**: `newline_cvt` turns `\r\n` into `\n` on reading and `\n` into `\r\n` on writing, emulating Windows text mode on any platform.
    - **Compression**: `zlib_cvt` (requires zlib) for data compression and decompression.
    - **Cryptography & Hashing**: `chacha20_cvt` (the modern ChaCha20 stream cipher; the present implementation is not yet authenticated encryption, and a stronger scheme is planned) and `vigenere_cvt` for encryption/decryption, and `hash_cvt` for hashing (requires Botan).
    - **Runtime Conversion**: `runtime_cvt` provides polymorphic converter dispatch at runtime via type erasure.
