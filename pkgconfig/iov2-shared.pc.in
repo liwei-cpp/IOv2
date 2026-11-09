@@ -8,13 +8,15 @@
 # carries, via its own DT_NEEDED entries, whatever it actually uses at runtime.
 # You only need to link -lz / -lbotan-2 yourself if YOUR code uses the
 # compression (zlib_cvt) or hashing (hash_cvt) converters.
-prefix=/usr/local
-includedir=${prefix}/include
-libdir=${prefix}/lib
+#
+# Generated from pkgconfig/iov2-shared.pc.in by the root CMakeLists.txt.
+prefix=@CMAKE_INSTALL_PREFIX@
+includedir=@CMAKE_INSTALL_FULL_INCLUDEDIR@
+libdir=@CMAKE_INSTALL_FULL_LIBDIR@
 
 Name: IOv2
 Description: C++23 I/O and localization library (shared library / DSO mode)
 URL: https://github.com/liwei-cpp/IOv2
-Version: 1.0.0
+Version: @PROJECT_VERSION@
 Cflags: -I${includedir} -D_POSIX_C_SOURCE=200809L
 Libs: -L${libdir} -liov2

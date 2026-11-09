@@ -19,15 +19,16 @@
 // ─── 发行模式开关 / Distribution-mode switch ─────────────────────────────────
 // @lang{ZH}
 //  header-only 发行（默认）：保持下面这行注释。
-//  共享库发行：安装步骤会把它解开注释（将来迁到 CMake 后，改由
-//  generate_export_header() 自动产出本文件并写好这行）。这样消费者只要
+//  共享库发行：安装步骤会把它解开注释（根目录 CMake 工程以 IOV2_BUILD_SHARED=ON
+//  配置时，安装的是解开这行的副本）。这样消费者只要
 //  #include 就自动进入 shared 模式，无需在命令行上自己加 -DIOV2_SHARED，
 //  从根上消除“漏宏 → 静默双实例”（方向 A）。构建 .so 时 iov2_objects.cpp 仍
 //  自行 #define IOV2_SHARED/IOV2_EXPORTS；下面的 #ifndef 守卫保证两边不冲突。
 // @lang{EN}
 //  Header-only distribution (default): keep the line below commented out.
-//  Shared-library distribution: the install step uncomments it (later, under
-//  CMake, generate_export_header() emits this file with it enabled). Consumers
+//  Shared-library distribution: the install step uncomments it (the root CMake
+//  project configured with IOV2_BUILD_SHARED=ON installs a copy with this line
+//  enabled). Consumers
 //  then get shared mode just by #include -- no need to pass -DIOV2_SHARED, which
 //  removes the "forgot the macro -> silent duplicate instance" footgun. When
 //  building the .so, iov2_objects.cpp still defines IOV2_SHARED/IOV2_EXPORTS
@@ -56,7 +57,7 @@
  *          但进程里有两套单例**——头文件在可执行文件里定义了那些 inline 单例，.so
  *          对它们的引用被绑到那一份，随后可执行文件自己的初始化再构造一套覆盖掉。
  *          后果是两张 tie 图、两份 facet 缓存、退出时重复刷出，而链接期没有任何诊断。
- *          用安装版头文件（`make install-shared` 会打开上面那个开关）就不会遇到；
+ *          用安装版头文件（以 `IOV2_BUILD_SHARED=ON` 安装时会打开上面那个开关）就不会遇到；
  *          直接用仓库内的头文件时请自行核对：
  *          @code
  *            # 链接了 libiov2.so 的二进制里不应有自己定义的 IOv2 单例符号
@@ -109,7 +110,7 @@
  *          those, and the executable's own initialization then constructs a second set
  *          over the top. The result is two tie graphs, two facet caches and a duplicated
  *          flush at exit, with no diagnostic at link time. Installed headers do not have
- *          this problem (`make install-shared` turns the switch above on); when consuming
+ *          this problem (installing with `IOV2_BUILD_SHARED=ON` turns the switch above on); when consuming
  *          the headers straight from the source tree, check it yourself:
  *          @code
  *            # a binary linking libiov2.so must not define IOv2 singletons of its own

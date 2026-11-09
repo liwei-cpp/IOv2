@@ -126,7 +126,11 @@ TSan 是 happens-before 检测器，不会凭空造出竞争，所以报红就�
 ### 对着已安装的库跑
 
 ```bash
-make -C .. install-shared PREFIX=/opt/iov2           # 顶层 Makefile 负责打包安装
+# 根目录 CMake 工程负责打包安装
+cmake -S .. -B ../build/pkg-shared -DIOV2_BUILD_SHARED=ON \
+      -DCMAKE_INSTALL_PREFIX=/opt/iov2 -DCMAKE_INSTALL_LIBDIR=lib
+cmake --build ../build/pkg-shared --parallel "$(nproc)"
+cmake --install ../build/pkg-shared
 export PKG_CONFIG_PATH=/opt/iov2/lib/pkgconfig
 export LD_LIBRARY_PATH=/opt/iov2/lib
 cmake --preset gcc-installed-shared
@@ -285,7 +289,11 @@ run while CI stays green.
 ### Running Against an Installed Library
 
 ```bash
-make -C .. install-shared PREFIX=/opt/iov2           # the top-level Makefile packages and installs
+# the root CMake project packages and installs
+cmake -S .. -B ../build/pkg-shared -DIOV2_BUILD_SHARED=ON \
+      -DCMAKE_INSTALL_PREFIX=/opt/iov2 -DCMAKE_INSTALL_LIBDIR=lib
+cmake --build ../build/pkg-shared --parallel "$(nproc)"
+cmake --install ../build/pkg-shared
 export PKG_CONFIG_PATH=/opt/iov2/lib/pkgconfig
 export LD_LIBRARY_PATH=/opt/iov2/lib
 cmake --preset gcc-installed-shared

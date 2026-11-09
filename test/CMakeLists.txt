@@ -1,12 +1,11 @@
 # IOv2 -- the test suite: one per-feature suite and CTest test per source-holding
 # directory.
 #
-# The library itself is header-only and needs no build system; the top-level
-# Makefile owns the optional shared-library packaging (make shared / install /
-# install-shared) and nothing else. This project builds only the tests, which is
-# why it is rooted here rather than at the repository root: configure it from
-# this directory. Its build trees still land in the repository's build/; see
-# CMakePresets.json.
+# The library itself is header-only and needs no build system; the root
+# CMakeLists.txt owns the packaging (install, the optional libiov2, pkg-config
+# files and the CMake package) and nothing else. This project builds only the
+# tests and is a separate one, rooted here: configure it from this directory. Its
+# build trees still land in the repository's build/; see CMakePresets.json.
 #
 # test/Makefile linked everything into seven executables, one per top-level
 # directory, each driven by a hand-written main() that called its tests in a

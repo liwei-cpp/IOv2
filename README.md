@@ -140,26 +140,43 @@ IOv2 提供两种发布模式，默认即开箱即用的 header-only：
 
 - **共享库（多模块时必须使用）**：进程里不止一个模块用到 IOv2——主程序之外还有共享库或 `dlopen` 载入的插件——时，**所有模块都必须使用共享库模式**，链接同一个 `libiov2.so`。此模式把上述进程级单例的唯一定义集中到 `src/iov2_objects.cpp`（等价于 `std::cout` 定义在 libstdc++ 中的做法），保证全进程只有一份。
 
-**安装（根目录 `Makefile`）**
+**安装（根目录 CMake 工程）**
 
 ```bash
-# header-only：安装头文件、许可证文件与 iov2.pc
-make install PREFIX=/usr/local
+# header-only：安装头文件、许可证文件、iov2.pc 与 CMake 包
+cmake -S . -B build/pkg -DCMAKE_INSTALL_PREFIX=/usr/local
+cmake --install build/pkg
 
 # 共享库：另加 libiov2.so 与 iov2-shared.pc
-make install-shared PREFIX=/opt/iov2
+cmake -S . -B build/pkg-shared -DIOV2_BUILD_SHARED=ON -DCMAKE_INSTALL_PREFIX=/opt/iov2
+cmake --build build/pkg-shared
+cmake --install build/pkg-shared
 ```
 
-`install-shared` 会自动打开**已安装那份**头文件里的发行模式开关，因此**消费方无需手动传 `-DIOV2_SHARED`**——模式信息随头文件一起交付。底层构建命令见 `src/iov2_objects.cpp`。卸载用 `make uninstall PREFIX=...`。
+以 `IOV2_BUILD_SHARED=ON` 安装时会自动打开**已安装那份**头文件里的发行模式开关，因此**消费方无需手动传 `-DIOV2_SHARED`**——模式信息随头文件一起交付。卸载用 `cmake --build <构建目录> --target uninstall`：删除该构建目录上次安装的文件，以及因此变空的 IOv2 目录，前缀下其它内容不受影响。
+
+- **安装前缀在配置时给定**：`.pc` 文件在配置时写入前缀，请用 `-DCMAKE_INSTALL_PREFIX`，不要用 `cmake --install --prefix` 改到别处。
+- **库目录随系统惯例**：`<libdir>` 由 GNUInstallDirs 决定（如 `lib`、`lib64`），需要固定时传 `-DCMAKE_INSTALL_LIBDIR=lib`。
 
 两种模式都把头文件放在 `<prefix>/include/IOv2/`，避免在系统 include 根目录创建
-`common/`、`io/` 等通用名称；pkg-config 仍把 `<prefix>/include` 加入搜索路径，
+`common/`、`io/` 等通用名称；pkg-config 与 CMake 包都把 `<prefix>/include` 加入搜索路径，
 公开头文件统一使用 `#include <IOv2/io/iostream.h>`。MIT 正文与项目声明安装到
 `<prefix>/share/licenses/IOv2/`。
 
-**消费（推荐 pkg-config）**
+**消费：CMake**
 
-安装会附带两份 pkg-config 文件：`iov2.pc`（header-only）与 `iov2-shared.pc`（共享库）。客户 Makefile 用包名切换模式，本身无需改动：
+两种模式下都链接同一个目标 `IOv2::iov2`，它带上 include 路径、C++23 与所需的宏，共享模式下还带上 `libiov2.so`：
+
+```cmake
+find_package(IOv2 REQUIRED)
+target_link_libraries(app PRIVATE IOv2::iov2)
+```
+
+安装到非标准前缀时传 `-DCMAKE_PREFIX_PATH=<prefix>`。`IOv2_SHARED` 变量报告找到的是哪种安装。
+
+**消费：pkg-config**
+
+安装会附带对应模式的 pkg-config 文件：`iov2.pc`（header-only）或 `iov2-shared.pc`（共享库）。客户 Makefile 用包名切换模式，本身无需改动：
 
 ```make
 IOV2_PKG ?= iov2          # 默认 header-only；改成 iov2-shared 即共享库
@@ -175,8 +192,8 @@ make                        # header-only
 make IOV2_PKG=iov2-shared   # 共享 .so（无需 -DIOV2_SHARED）
 ```
 
-- **zlib / Botan 为可选依赖**：仅当使用压缩（`zlib_cvt`）或哈希（`hash_cvt`）转换器时才需要。两份 `.pc` 都**不**强制链接它们；需要时自行追加 `$(shell pkg-config --cflags --libs zlib botan-2)`。
-- **每种模式安装到各自的 PREFIX**：模式开关焙在单个头文件里，一棵头树只能对应一种模式。安装到非标准前缀时 `export PKG_CONFIG_PATH=<prefix>/lib/pkgconfig`，可用 `pkg-config --modversion iov2` 验证。
+- **zlib / Botan 为可选依赖**：仅当使用压缩（`zlib_cvt`）或哈希（`hash_cvt`）转换器时才需要。两份 `.pc` 与 CMake 包都**不**强制链接它们；需要时自行追加 `$(shell pkg-config --cflags --libs zlib botan-2)`。
+- **每种模式安装到各自的 PREFIX**：模式开关焙在单个头文件里，一棵头树只能对应一种模式。安装到非标准前缀时 `export PKG_CONFIG_PATH=<prefix>/<libdir>/pkgconfig`，可用 `pkg-config --modversion iov2` 验证。
 
 **编译宏一览**
 
@@ -218,7 +235,7 @@ make IOV2_PKG=iov2-shared   # 共享 .so（无需 -DIOV2_SHARED）
 - **依赖**：核心头文件库本身无需构建，但部分特性依赖 `zlib` 和 `Botan`。
 
 **运行测试**
-`test` 目录包含了所有的单元测试与验证程序，由 CMake/CTest 构建，按目录划分成套件。CMake 工程只用于测试，因此它的根就是 `test` 目录，以下命令都在该目录下执行。运行测试前，请确保系统中已安装必要的依赖（如 `botan-2` 和 `zlib` 开发包）。
+`test` 目录包含了所有的单元测试与验证程序，由 CMake/CTest 构建，按目录划分成套件。测试套件是独立于根目录打包工程的 CMake 工程，根就是 `test` 目录，以下命令都在该目录下执行。运行测试前，请确保系统中已安装必要的依赖（如 `botan-2` 和 `zlib` 开发包）。
 
 ```bash
 cd test
@@ -376,27 +393,44 @@ IOv2 ships in two modes; the default is header-only and works out of the box:
 
 - **Shared Library (required with more than one module)**: when more than one module in the process uses IOv2 — shared libraries or `dlopen`ed plugins besides the main program — **every module must use shared-library mode** and link the same `libiov2.so`. This mode concentrates the one definition of each of those process-wide singletons in `src/iov2_objects.cpp` (the same approach `std::cout` uses inside libstdc++), so the process has exactly one.
 
-**Install (root `Makefile`)**
+**Install (root CMake project)**
 
 ```bash
-# header-only: install headers, licence files and iov2.pc
-make install PREFIX=/usr/local
+# header-only: install headers, licence files, iov2.pc and the CMake package
+cmake -S . -B build/pkg -DCMAKE_INSTALL_PREFIX=/usr/local
+cmake --install build/pkg
 
-# shared library: additionally build and install libiov2.so + iov2-shared.pc
-make install-shared PREFIX=/opt/iov2
+# shared library: additionally libiov2.so + iov2-shared.pc
+cmake -S . -B build/pkg-shared -DIOV2_BUILD_SHARED=ON -DCMAKE_INSTALL_PREFIX=/opt/iov2
+cmake --build build/pkg-shared
+cmake --install build/pkg-shared
 ```
 
-`install-shared` turns on the distribution switch in the *installed* copy of the headers, so **consumers do not pass `-DIOV2_SHARED` by hand** — the mode ships with the headers. The underlying build command lives in `src/iov2_objects.cpp`. Uninstall with `make uninstall PREFIX=...`.
+Installing with `IOV2_BUILD_SHARED=ON` turns on the distribution switch in the *installed* copy of the headers, so **consumers do not pass `-DIOV2_SHARED` by hand** — the mode ships with the headers. Uninstall with `cmake --build <build dir> --target uninstall`: it removes what the last install from that build tree put in place, and the IOv2 directories that leaves empty, without touching anything else under the prefix.
+
+- **Give the prefix at configure time**: the `.pc` files have it written in when configuring, so use `-DCMAKE_INSTALL_PREFIX` rather than relocating with `cmake --install --prefix`.
+- **The library directory follows the platform**: `<libdir>` comes from GNUInstallDirs (e.g. `lib`, `lib64`); pass `-DCMAKE_INSTALL_LIBDIR=lib` to pin it.
 
 Both modes place headers below `<prefix>/include/IOv2/`, rather than claiming
 generic names such as `common/` and `io/` in the system include root. pkg-config
-continues to add `<prefix>/include` to the search path; public headers uniformly
-use `#include <IOv2/io/iostream.h>`. The MIT text and project notice are
+and the CMake package both add `<prefix>/include` to the search path; public headers
+uniformly use `#include <IOv2/io/iostream.h>`. The MIT text and project notice are
 installed under `<prefix>/share/licenses/IOv2/`.
 
-**Consume (pkg-config recommended)**
+**Consume: CMake**
 
-The install ships two pkg-config files: `iov2.pc` (header-only) and `iov2-shared.pc` (shared). A consumer Makefile switches modes by package name, with no other change:
+Both modes link the same target, `IOv2::iov2`. It brings the include path, C++23 and the required macro, and in shared mode `libiov2.so` as well:
+
+```cmake
+find_package(IOv2 REQUIRED)
+target_link_libraries(app PRIVATE IOv2::iov2)
+```
+
+For a non-standard prefix pass `-DCMAKE_PREFIX_PATH=<prefix>`. The `IOv2_SHARED` variable reports which kind of installation was found.
+
+**Consume: pkg-config**
+
+The install ships the pkg-config file for its mode: `iov2.pc` (header-only) or `iov2-shared.pc` (shared). A consumer Makefile switches modes by package name, with no other change:
 
 ```make
 IOV2_PKG ?= iov2          # header-only by default; set to iov2-shared for the DSO
@@ -412,8 +446,8 @@ make                        # header-only
 make IOV2_PKG=iov2-shared   # shared .so (no -DIOV2_SHARED needed)
 ```
 
-- **zlib / Botan are optional**: needed only if you use the compression (`zlib_cvt`) or hashing (`hash_cvt`) converters. Neither `.pc` links them; add `$(shell pkg-config --cflags --libs zlib botan-2)` yourself when you do.
-- **Install each mode into its own PREFIX**: the mode switch is baked into a single header, so one header tree corresponds to exactly one mode. For a non-standard prefix, `export PKG_CONFIG_PATH=<prefix>/lib/pkgconfig` and verify with `pkg-config --modversion iov2`.
+- **zlib / Botan are optional**: needed only if you use the compression (`zlib_cvt`) or hashing (`hash_cvt`) converters. Neither `.pc` nor the CMake package links them; add `$(shell pkg-config --cflags --libs zlib botan-2)` yourself when you do.
+- **Install each mode into its own PREFIX**: the mode switch is baked into a single header, so one header tree corresponds to exactly one mode. For a non-standard prefix, `export PKG_CONFIG_PATH=<prefix>/<libdir>/pkgconfig` and verify with `pkg-config --modversion iov2`.
 
 **Compile-time macros**
 
@@ -455,7 +489,7 @@ Thread safety is provided **at the stream-object layer**: every stream owns a re
 - **Dependencies**: The core library requires no build, but specific converters depend on `zlib` and `Botan`.
 
 **Running Tests**
-The `test` directory contains all unit tests, built by CMake/CTest as one suite per directory. The CMake project exists only for the tests, so it is rooted at `test`, and the commands below run there. Ensure you have the necessary dependencies installed (e.g., `botan-2` and `zlib` development packages).
+The `test` directory contains all unit tests, built by CMake/CTest as one suite per directory. The test suite is a CMake project of its own, separate from the root packaging project and rooted at `test`, and the commands below run there. Ensure you have the necessary dependencies installed (e.g., `botan-2` and `zlib` development packages).
 
 ```bash
 cd test

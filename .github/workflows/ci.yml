@@ -338,24 +338,28 @@ jobs:
         # $(nproc) in this job resolves to.
         echo "cpus=$(nproc) ram=$(free -m | awk '/^Mem:/ {print $2}')MB arch=$(uname -m)"
 
-    # The install itself is the root Makefile's job and stays that way; only
-    # the suite that is then run against it moved to CTest.
+    # The install is the root CMake project's job; the suite then run against it
+    # is the test/ project. CMAKE_INSTALL_LIBDIR is pinned so the paths below do
+    # not depend on the image's GNUInstallDirs default (lib vs lib64).
 
     - name: Build the shared library
-      run: make shared
+      run: |
+        cmake -S . -B build/pkg-shared -DIOV2_BUILD_SHARED=ON \
+              -DCMAKE_INSTALL_PREFIX=/opt/iov2 -DCMAKE_INSTALL_LIBDIR=lib
+        cmake --build build/pkg-shared --parallel $(nproc)
 
     - name: Verify no unexpected runtime dependencies
       run: |
         # iov2_objects.cpp pulls in none of the optional converters, so the .so
         # must not depend on zlib/Botan.
-        if readelf -d build/make/libiov2.so | grep -Eiq 'libz|libbotan'; then
+        if readelf -d build/pkg-shared/libiov2.so | grep -Eiq 'libz|libbotan'; then
           echo "libiov2.so unexpectedly links zlib/Botan"; exit 1
         fi
 
     - name: Install the shared library
       run: |
-        make install-shared PREFIX=/opt/iov2
-        # install-shared flips the switch in the shipped header.
+        cmake --install build/pkg-shared
+        # The shared-mode install flips the switch in the shipped header.
         grep -q '^#define IOV2_SHARED 1' /opt/iov2/include/IOv2/common/iov2_export.h
         # Headers live below a package-owned directory, and every installation
         # carries the complete licence and notice.
@@ -367,6 +371,31 @@ jobs:
         if PKG_CONFIG_PATH=/opt/iov2/lib/pkgconfig pkg-config --cflags iov2-shared \
              | grep -q -- '/include/IOv2'; then
           echo "pkg-config must expose the include root, not the package directory"; exit 1
+        fi
+
+    - name: Consume the shared install through find_package(IOv2)
+      shell: bash -e {0}
+      run: |
+        # IOv2::iov2 alone must yield a correct shared-mode consumer: linked to
+        # libiov2, and with no singleton of its own (the recipe from iov2_export.h).
+        d=$(mktemp -d)
+        printf '%s\n' '#include <IOv2/io/objects/objects.h>' \
+          '#include <IOv2/io/traits/char_and_str.h>' \
+          'int main() { IOv2::cout << "iov2 find_package ok\n"; return 0; }' > "$d/c.cpp"
+        printf '%s\n' 'cmake_minimum_required(VERSION 3.25)' 'project(consumer LANGUAGES CXX)' \
+          'find_package(IOv2 REQUIRED)' \
+          'if(NOT IOv2_SHARED)' '  message(FATAL_ERROR "expected the shared install")' 'endif()' \
+          'add_executable(consumer c.cpp)' 'target_link_libraries(consumer PRIVATE IOv2::iov2)' \
+          > "$d/CMakeLists.txt"
+        cmake -S "$d" -B "$d/build" -DCMAKE_PREFIX_PATH=/opt/iov2
+        cmake --build "$d/build"
+        "$d/build/consumer" | grep -q 'iov2 find_package ok'
+        readelf -d "$d/build/consumer" | grep -q 'NEEDED.*libiov2\.so'
+        own=$(comm -23 \
+            <(nm -D --defined-only "$d/build/consumer" | awk '$3 ~ /^_ZN4IOv2/ && $2 ~ /^[BDuV]$/ {print $3}' | sort) \
+            <(readelf -rW "$d/build/consumer" | awk '$3 ~ /_COPY$/ {print $5}' | sort) | wc -l)
+        if [ "$own" -ne 0 ]; then
+          echo "[!] the find_package consumer defines $own IOv2 singletons itself"; exit 1
         fi
 
     - name: A consumer that forgot IOV2_SHARED is detectable in its symbol table
@@ -395,7 +424,7 @@ jobs:
             for mode in correct missed; do
               [ "$mode" = correct ] && sw="-DIOV2_SHARED" || sw=""
               "$cxx" -std=c++23 -D_POSIX_C_SOURCE=200809L -Iinclude $sw $lto \
-                  "$d/c.cpp" -o "$d/$mode" -Lbuild/make -liov2 -Wl,-rpath,"$PWD/build/make"
+                  "$d/c.cpp" -o "$d/$mode" -Lbuild/pkg-shared -liov2 -Wl,-rpath,"$PWD/build/pkg-shared"
               readelf -d "$d/$mode" | grep -q libiov2.so \
                 || { echo "[!] $cxx $lto $mode does not link libiov2.so"; exit 1; }
               own=$(comm -23 \
@@ -427,10 +456,12 @@ jobs:
 
     - name: Install + consume in header-only mode (via pkg-config iov2)
       run: |
-        # The header-only install path (make install + iov2.pc) is distinct from
+        # The header-only install path (cmake --install + iov2.pc) is distinct from
         # the -I include path the build and coverage jobs use; exercise it so the
-        # install target, iov2.pc, and the shipped switch-off header stay covered.
-        make install PREFIX=/opt/iov2-ho
+        # install rules, iov2.pc, and the shipped switch-off header stay covered.
+        cmake -S . -B build/pkg-header-only \
+              -DCMAKE_INSTALL_PREFIX=/opt/iov2-ho -DCMAKE_INSTALL_LIBDIR=lib
+        cmake --install build/pkg-header-only
         # Header-only: the shipped switch must stay commented out. This and the
         # grep above are each other's control -- run against the other install,
         # either one fails.
@@ -456,6 +487,18 @@ jobs:
         g++ -std=c++23 -D_POSIX_C_SOURCE=200809L $(pkg-config --cflags iov2) \
             "$smoke/consumer_ho.cpp" -o "$smoke/consumer_ho" $(pkg-config --libs iov2)
         "$smoke/consumer_ho" | grep -q 'iov2 header-only ok'
+        # The same program through find_package(IOv2): no libiov2 to link.
+        printf '%s\n' 'cmake_minimum_required(VERSION 3.25)' 'project(consumer LANGUAGES CXX)' \
+          'find_package(IOv2 REQUIRED)' \
+          'if(IOv2_SHARED)' '  message(FATAL_ERROR "expected the header-only install")' 'endif()' \
+          'add_executable(consumer_ho consumer_ho.cpp)' \
+          'target_link_libraries(consumer_ho PRIVATE IOv2::iov2)' > "$smoke/CMakeLists.txt"
+        cmake -S "$smoke" -B "$smoke/build" -DCMAKE_PREFIX_PATH=/opt/iov2-ho
+        cmake --build "$smoke/build"
+        "$smoke/build/consumer_ho" | grep -q 'iov2 header-only ok'
+        if readelf -d "$smoke/build/consumer_ho" | grep -q libiov2; then
+          echo "[!] the header-only find_package consumer links libiov2"; exit 1
+        fi
 
     - name: Run the full test suite against the installed header-only library
       working-directory: test
@@ -486,17 +529,20 @@ jobs:
         # Neighbouring package data must survive either uninstall mode.
         install -d /opt/iov2/include/common /opt/iov2/share/licenses/OtherPackage
         touch /opt/iov2/include/common/keep.h /opt/iov2/share/licenses/OtherPackage/keep
-        make uninstall PREFIX=/opt/iov2
+        cmake --build build/pkg-shared --target uninstall
         test ! -e /opt/iov2/include/IOv2
         test ! -e /opt/iov2/share/licenses/IOv2
+        test ! -e /opt/iov2/lib/cmake/IOv2
         test ! -e /opt/iov2/lib/libiov2.so
+        test ! -e /opt/iov2/lib/libiov2.so.1
         test ! -e /opt/iov2/lib/pkgconfig/iov2-shared.pc
         test -e /opt/iov2/include/common/keep.h
         test -e /opt/iov2/share/licenses/OtherPackage/keep
 
-        make uninstall PREFIX=/opt/iov2-ho
+        cmake --build build/pkg-header-only --target uninstall
         test ! -e /opt/iov2-ho/include/IOv2
         test ! -e /opt/iov2-ho/share/licenses/IOv2
+        test ! -e /opt/iov2-ho/share/cmake/IOv2
         test ! -e /opt/iov2-ho/lib/pkgconfig/iov2.pc
 
   clang-tidy:
