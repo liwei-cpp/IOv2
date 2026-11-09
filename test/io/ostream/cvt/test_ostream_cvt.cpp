@@ -122,3 +122,28 @@ TEST(OstreamCvt, AppmodeOverAVariableLengthEncodingIsRefused)
     helper.operator()<ostream>();
     helper.operator()<iostream>();
 }
+
+// An iostream over unread input starts in read mode, so its first appmode insertion has to
+// both reposition and switch. The sentry repositions first: a converter that allows writes
+// only at the end checks that when switching, and is then already at the end. Over UTF-8
+// it is the repositioning that is refused, and the error says appmode is the reason,
+// rather than the switch complaining about the unread input.
+TEST(OstreamCvt, AppmodeRepositionsBeforeSwitchingDirection)
+{
+    auto     creator = code_cvt_creator<char, char32_t>("zh_CN.UTF-8");
+    iostream ios(mem_device{"\xE6\x9D\x8E"}, creator, locale<char32_t>("C"));
+    ios.exceptions(ios_defs::cvtfailbit);
+
+    ios << appmode;
+    std::string what;
+    try
+    {
+        ios << U"X";
+    }
+    catch (const cvt_error& e)
+    {
+        what = e.what();
+    }
+    EXPECT_NE(what.find("appmode"), std::string::npos) << what;
+    EXPECT_TRUE(ios.rdstate() & ios_defs::cvtfailbit);
+}
