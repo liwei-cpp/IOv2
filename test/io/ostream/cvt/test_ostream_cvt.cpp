@@ -147,3 +147,34 @@ TEST(OstreamCvt, AppmodeRepositionsBeforeSwitchingDirection)
     EXPECT_NE(what.find("appmode"), std::string::npos) << what;
     EXPECT_TRUE(ios.rdstate() & ios_defs::cvtfailbit);
 }
+
+// An ostream over existing content starts out facing input. It switches to output on its
+// first write, not on construction: a repositioning may come first, and a UTF-8 code_cvt
+// only switches at the end. So constructing succeeds, and a write from the start is what
+// gets refused -- by the insertion, into cvtfailbit.
+TEST(OstreamCvt, OverExistingContentTheSwitchWaitsForTheFirstWrite)
+{
+    ostream os(mem_device<char8_t>{u8"李"}, code_cvt_creator<char8_t, char32_t>{},
+               locale<char32_t>("C"));
+    EXPECT_TRUE(os.good());
+    os.flush();                      // nothing written: nothing to switch for
+    EXPECT_TRUE(os.good());
+
+    os << U"X";
+    EXPECT_TRUE(os.rdstate() & ios_defs::cvtfailbit);
+    EXPECT_EQ(os.device().str(), u8"李");
+}
+
+// Without such a converter the deferred switch changes nothing: a seek before the first
+// write decides where it lands.
+TEST(OstreamCvt, ASeekBeforeTheFirstWriteDecidesWhereItLands)
+{
+    ostream os(mem_device{"abcde"});
+    EXPECT_EQ(os.tell(), 0u);
+    os.seek(2);
+    os.put('X');
+    os.flush();
+    EXPECT_TRUE(os.good());
+    EXPECT_EQ(os.tell(), 3u);
+    EXPECT_EQ(os.device().str(), "abXde");
+}

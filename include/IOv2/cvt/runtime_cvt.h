@@ -162,7 +162,7 @@ public:
  * 继承自 `abs_runtime_cvt_imp`，通过转发调用将所有虚函数接口委托给内部的内核实例。
  * 对于内核不支持的可选能力（读取、写入、定位、I/O 切换），在编译期通过 `if constexpr`
  * 检测，若调用到不支持的接口则在运行时抛出 `cvt_error`。
- * `switch_to_get` 和 `switch_to_put` 通过 `m_io_status` 追踪当前方向，实现幂等调用。
+ * 本类不记录当前方向：幂等检查由外层 `runtime_cvt` 在虚函数调用之前完成。
  * @endif
  *
  * @lang{EN}
@@ -172,8 +172,8 @@ public:
  * Optional capabilities (read, write, positioning, I/O switch) that the kernel may not
  * support are detected at compile time via `if constexpr`; calling an unsupported interface
  * throws `cvt_error` at runtime.
- * `switch_to_get` and `switch_to_put` track the current direction via `m_io_status`
- * to make repeated calls idempotent.
+ * This class does not record the current direction: the outer `runtime_cvt` does the
+ * idempotence check before the virtual call.
  * @endif
  *
  * @tparam KernelType 被包装的具体转换器内核类型，须满足 `io_converter`。
@@ -191,33 +191,31 @@ public:
 public:
     /**
      * @lang{ZH}
-     * 从内核的 const 引用拷贝构造，I/O 状态初始化为 `neutral`。
+     * 从内核的 const 引用拷贝构造。
      * @endif
      *
      * @lang{EN}
-     * Copy-constructs from a const kernel reference; I/O status is initialized to `neutral`.
+     * Copy-constructs from a const kernel reference.
      * @endif
      *
      * @param kernel 待包装的转换器内核（拷贝）。 / The converter kernel to wrap (copied).
      */
     runtime_cvt_imp(const KernelType& kernel)
-        : m_kernel(kernel)
-        , m_io_status(io_status::neutral) {}
+        : m_kernel(kernel) {}
 
     /**
      * @lang{ZH}
-     * 从内核的右值引用移动构造，I/O 状态初始化为 `neutral`。
+     * 从内核的右值引用移动构造。
      * @endif
      *
      * @lang{EN}
-     * Move-constructs from a kernel rvalue reference; I/O status is initialized to `neutral`.
+     * Move-constructs from a kernel rvalue reference.
      * @endif
      *
      * @param kernel 待包装的转换器内核（移动）。 / The converter kernel to wrap (moved).
      */
     runtime_cvt_imp(KernelType&& kernel)
-        : m_kernel(std::move(kernel))
-        , m_io_status(io_status::neutral) {}
+        : m_kernel(std::move(kernel)) {}
 
 public:
     /**
@@ -249,15 +247,12 @@ public:
 
     std::pair<device_type, std::exception_ptr> detach() noexcept override
     {
-        auto result = m_kernel.detach();
-        m_io_status = io_status::neutral;
-        return result;
+        return m_kernel.detach();
     }
 
     void attach(device_type&& dev = device_type{}) override
     {
         m_kernel.attach(std::move(dev));
-        m_io_status = io_status::neutral;
     }
 
     void adjust(const cvt_behavior& acc) override
@@ -289,8 +284,7 @@ public:
 
     io_status bos() override
     {
-        m_io_status = m_kernel.bos();
-        return m_io_status;
+        return m_kernel.bos();
     }
 
     void main_cont_beg() override
@@ -402,48 +396,42 @@ public:
 
     /**
      * @lang{ZH}
-     * 切换至输入模式。若已处于输入模式则直接返回（幂等）；
-     * 若内核不支持 I/O 切换，抛出 `cvt_error`。
+     * 切换至输入模式。若内核不支持 I/O 切换，抛出 `cvt_error`。
+     * 已处于输入模式时由外层 `runtime_cvt` 直接返回，不会调到这里。
      * @endif
      *
      * @lang{EN}
-     * Switch to input mode. Returns immediately if already in input mode (idempotent).
-     * Throws `cvt_error` if the kernel does not support I/O switching.
+     * Switch to input mode. Throws `cvt_error` if the kernel does not support I/O switching.
+     * When already in input mode the outer `runtime_cvt` returns at once and this is not
+     * reached.
      * @endif
      */
     void switch_to_get() override
     {
-        if (m_io_status == io_status::input) return;
         if constexpr (!cvt_cpt::support_io_switch<KernelType>)
             throw cvt_error("runtime_cvt fail: kernel does not support I/O switch");
         else
-        {
             m_kernel.switch_to_get();
-            m_io_status = io_status::input;
-        }
     }
 
     /**
      * @lang{ZH}
-     * 切换至输出模式。若已处于输出模式则直接返回（幂等）；
-     * 若内核不支持 I/O 切换，抛出 `cvt_error`。
+     * 切换至输出模式。若内核不支持 I/O 切换，抛出 `cvt_error`。
+     * 已处于输出模式时由外层 `runtime_cvt` 直接返回，不会调到这里。
      * @endif
      *
      * @lang{EN}
-     * Switch to output mode. Returns immediately if already in output mode (idempotent).
-     * Throws `cvt_error` if the kernel does not support I/O switching.
+     * Switch to output mode. Throws `cvt_error` if the kernel does not support I/O switching.
+     * When already in output mode the outer `runtime_cvt` returns at once and this is not
+     * reached.
      * @endif
      */
     void switch_to_put() override
     {
-        if (m_io_status == io_status::output) return;
         if constexpr (!cvt_cpt::support_io_switch<KernelType>)
             throw cvt_error("runtime_cvt fail: kernel does not support I/O switch");
         else
-        {
             m_kernel.switch_to_put();
-            m_io_status = io_status::output;
-        }
     }
 
     /// @lang{ZH} 包装着的转换器内核，供 `runtime_cvt::target()` 取出。 @endif @lang{EN} The wrapped converter kernel, for `runtime_cvt::target()` to hand out. @endif
@@ -452,8 +440,6 @@ public:
 
 private:
     KernelType m_kernel;
-    io_status m_io_status; ///< 追踪当前 I/O 方向，用于 switch_to_get/switch_to_put 的幂等检查。
-                           ///< Tracks current I/O direction for idempotent switch_to_get/switch_to_put.
 };
 
 /**
@@ -551,7 +537,8 @@ public:
      * @throws cvt_error @lang{ZH} 若内核不支持拷贝构造。 @endif @lang{EN} If the kernel does not support copy construction. @endif
      */
     runtime_cvt(const runtime_cvt& val)
-        : m_ptr(val.m_ptr ? val.m_ptr->clone() : nullptr) {}
+        : m_ptr(val.m_ptr ? val.m_ptr->clone() : nullptr)
+        , m_io_status(val.m_io_status) {}
 
     /**
      * @lang{ZH}
@@ -569,7 +556,10 @@ public:
     runtime_cvt& operator=(const runtime_cvt& val)
     {
         if (this != &val)
+        {
             m_ptr = val.m_ptr ? val.m_ptr->clone() : nullptr;
+            m_io_status = val.m_io_status;
+        }
         return *this;
     }
 
@@ -604,14 +594,16 @@ public:
     std::pair<device_type, std::exception_ptr> detach() noexcept
     {
         if (!m_ptr) std::terminate();
+        m_io_status = io_status::neutral;
         return m_ptr->detach();
     }
 
-    /// @lang{ZH} 将设备绑定到此转换器；若内部指针为空则抛出异常。 @endif
-    /// @lang{EN} Attach a device to this converter; throws if the internal pointer is null. @endif
+    /// @lang{ZH} 将设备绑定到此转换器，I/O 状态重置为 `neutral`；若内部指针为空则抛出异常。 @endif
+    /// @lang{EN} Attach a device to this converter, resetting I/O status to `neutral`; throws if the internal pointer is null. @endif
     void attach(device_type&& dev = device_type{})
     {
         if (!m_ptr) std::rethrow_exception(detail::runtime_cvt_null_err);
+        m_io_status = io_status::neutral;
         m_ptr->attach(std::move(dev));
     }
 
@@ -644,7 +636,9 @@ public:
     io_status bos()
     {
         if (!m_ptr) std::rethrow_exception(detail::runtime_cvt_null_err);
-        return m_ptr->bos();
+        m_io_status = io_status::neutral;
+        m_io_status = m_ptr->bos();
+        return m_io_status;
     }
 
     /// @lang{ZH} 通知转换器进入主内容阶段；若内部指针为空则抛出异常。 @endif
@@ -703,20 +697,24 @@ public:
         m_ptr->rseek(pos);
     }
 
-    /// @lang{ZH} 切换至输入（读取）模式；若内部指针为空则抛出异常。 @endif
-    /// @lang{EN} Switch to input (reading) mode; throws if the internal pointer is null. @endif
+    /// @lang{ZH} 切换至输入（读取）模式；已处于输入模式时不经虚函数直接返回。若内部指针为空则抛出异常。 @endif
+    /// @lang{EN} Switch to input (reading) mode; already in input mode, it returns without a virtual call. Throws if the internal pointer is null. @endif
     void switch_to_get()
     {
+        if (m_io_status == io_status::input) return;
         if (!m_ptr) std::rethrow_exception(detail::runtime_cvt_null_err);
-        return m_ptr->switch_to_get();
+        m_ptr->switch_to_get();
+        m_io_status = io_status::input;
     }
 
-    /// @lang{ZH} 切换至输出（写入）模式；若内部指针为空则抛出异常。 @endif
-    /// @lang{EN} Switch to output (writing) mode; throws if the internal pointer is null. @endif
+    /// @lang{ZH} 切换至输出（写入）模式；已处于输出模式时不经虚函数直接返回。若内部指针为空则抛出异常。 @endif
+    /// @lang{EN} Switch to output (writing) mode; already in output mode, it returns without a virtual call. Throws if the internal pointer is null. @endif
     void switch_to_put()
     {
+        if (m_io_status == io_status::output) return;
         if (!m_ptr) std::rethrow_exception(detail::runtime_cvt_null_err);
-        return m_ptr->switch_to_put();
+        m_ptr->switch_to_put();
+        m_io_status = io_status::output;
     }
 
     /**
@@ -761,6 +759,31 @@ public:
     }
 private:
     std::unique_ptr<abs_runtime_cvt_imp<TDevice, TInt>> m_ptr;
+
+    /**
+     * @lang{ZH}
+     * 当前 I/O 方向的缓存，让 `switch_to_get` / `switch_to_put` 在已处于目标方向时不经虚函数
+     * 直接返回。`neutral` 表示未知：`bos()`、`attach()`、`detach()` 先把它置为 `neutral` 再调用
+     * 内层，切换成功后才记下新方向；因此它若为 `input` / `output` 必定准确，若为 `neutral`
+     * 最多多一次（幂等的）内层切换。
+     *
+     * 方向只经本类的这几个函数改变时缓存才准确：经 `target()` 取得内层转换器直接切换方向、
+     * 或依赖内层在 `get` / `put` 中自动换向，都会使它过时。
+     * @endif
+     *
+     * @lang{EN}
+     * Cache of the current I/O direction, letting `switch_to_get` / `switch_to_put` return
+     * without a virtual call when already facing that way. `neutral` means unknown: `bos()`,
+     * `attach()` and `detach()` set it to `neutral` before calling inside, and a switch
+     * records the new direction only once it succeeded; so `input` / `output` is always
+     * accurate, and `neutral` costs at most one extra (idempotent) switch inside.
+     *
+     * The cache is accurate only while the direction changes through these functions of
+     * this class: switching the inner converter directly through `target()`, or relying on
+     * it turning around by itself in `get` / `put`, leaves it stale.
+     * @endif
+     */
+    io_status m_io_status = io_status::neutral;
 };
 
 /**
