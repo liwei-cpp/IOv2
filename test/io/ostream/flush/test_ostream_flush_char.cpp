@@ -14,6 +14,7 @@
  * a cycle among tied streams would make one flush recurse forever, so cycles
  * are refused when the tie is set rather than when it is followed.
  */
+#include <IOv2/cvt/newline_cvt.h>
 #include <IOv2/device/mem_device.h>
 #include <IOv2/io/io_base.h>
 #include <IOv2/io/iostream.h>
@@ -152,4 +153,38 @@ TEST(OstreamFlushChar, ConcurrentFlushesDoNotCorruptTheStream)
 
     helper.operator()<ostream>();
     helper.operator()<iostream>();
+}
+
+// A read-write stream that is reading has nothing to write, so a flush does nothing:
+// it does not turn to writing, and what the read buffer holds -- even a substituted
+// putback -- is still there to read.
+TEST(OstreamFlushChar, FlushWhileReadingLeavesTheReadSideAlone)
+{
+    iostream ios{mem_device{"abc"}};
+    char ch = 0;
+    ios.get(ch);
+    ios.putback('Z');
+
+    ios.flush();
+    EXPECT_TRUE(ios.good());
+
+    ios.get(ch);
+    EXPECT_EQ(ch, 'Z');
+    ios.get(ch);
+    EXPECT_EQ(ch, 'b');
+}
+
+// A converter that turns from reading to writing only at the end used to refuse the
+// switch a flush forced midway through reading.
+TEST(OstreamFlushChar, FlushWhileReadingDoesNotAskTheConverterToSwitch)
+{
+    iostream ios(mem_device{"a\r\nb"}, newline_cvt_creator{});
+    char ch = 0;
+    ios.get(ch);
+
+    ios.flush();
+    EXPECT_TRUE(ios.good());
+
+    ios.get(ch);
+    EXPECT_EQ(ch, '\n');
 }

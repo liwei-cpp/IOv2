@@ -585,21 +585,22 @@ public:
     /**
      * @lang{ZH}
      * @brief 刷新输出，将缓冲数据推送到底层设备。
-     * @note 在双向模式下会先切换到输出方向。单向模式不切换：转换器仍处于输入方向说明尚未
-     *       写入，没有可刷新的内容，转换器的 `flush()` 此时什么也不做。
+     * @note 不切换方向：转换器处于输入方向时没有待写的数据，其 `flush()` 什么也不做。
+     *       双向模式下切换会有副作用——读缓冲被清空、对只能在末尾从读换写的转换器
+     *       （变长编码的 `code_cvt`、`newline_cvt`）读到一半时失败——而换来的只是一次空操作。
      * @endif
      *
      * @lang{EN}
      * @brief Flushes output, pushing buffered data to the underlying device.
-     * @note In bidirectional mode it first switches to the output direction. Unidirectional
-     *       mode does not switch: a converter still facing input has had nothing written, so
-     *       there is nothing to flush, and its `flush()` does nothing then.
+     * @note It does not switch direction: a converter facing input has nothing to write, and
+     *       its `flush()` does nothing. In bidirectional mode a switch would have side effects
+     *       -- the read buffer cleared, and a failure midway through reading for converters
+     *       that turn from reading to writing only at the end (`code_cvt` with a
+     *       variable-length encoding, `newline_cvt`) -- for nothing but a no-op.
      * @endif
      */
     void flush() requires (IsOut)
     {
-        if constexpr (IsIn)
-            switch_to_put();
         m_cvt.flush();
     }
     /**

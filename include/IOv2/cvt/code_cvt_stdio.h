@@ -231,15 +231,18 @@ public:
     /**
      * @lang{ZH}
      * @brief 同 `code_cvt::flush`，但转换器 tainted 时先重新附接同一 fd（见类文档）。
+     * 不在输出方向时什么也不做，也不重新附接：没有待写的数据，与 `abs_cvt::flush` 的规则一致。
      * @endif
      * @lang{EN}
      * @brief As `code_cvt::flush`, but reattaches the same fd first when the converter is
-     * tainted (see the class documentation).
+     * tainted (see the class documentation). Not facing output, it does nothing and does not
+     * reattach either: there is nothing to write, the same rule as `abs_cvt::flush`.
      * @endif
      */
     void flush()
         requires (cvt_cpt::support_put<KernelType>)
     {
+        if (this->m_io_status != io_status::output) return;
         if (this->is_tainted()) recover();
         BT::flush();
     }

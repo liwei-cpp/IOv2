@@ -14,8 +14,8 @@
  *
  * @warning **双向不等于可以自由地读写交替。** 换向要经底层转换器同意，转换器可以基于自身状态
  *          与位置拒绝，因此换向会在一个健康的流上失败（置 `cvtfailbit`）；换向还会清空读缓冲
- *          区，丢弃 `putback()` 压回的内容。更要紧的是，本类可充当 tie 目标，于是一次与本流
- *          无关的输出就会在本流上触发换向。详见 `iostream` 与 `iostream::switch_to_put()`。
+ *          区，丢弃 `putback()` 压回的内容。刷新不换向：本类可充当 tie 目标，读状态下被刷新时
+ *          什么也不做。详见 `iostream` 与 `iostream::switch_to_put()`。
  * @warning **构造流可能抛出异常，且异常不会被转成失败位**，调用方需要自行 `try`；本库其余的
  *          操作（包括 `attach()`）都把异常转为状态位，唯独构造不能。理由见
  *          `iostream::iostream()`。
@@ -41,10 +41,9 @@
  * @warning **Bidirectional does not mean freely alternating.** A direction switch needs the
  *          underlying converter's consent, and a converter may refuse based on its own state and
  *          position, so a switch can fail on a perfectly healthy stream (setting `cvtfailbit`); a
- *          switch also clears the read buffer, discarding whatever `putback()` pushed back. More
- *          to the point, instances of this class can serve as tie targets, so an output having
- *          nothing to do with this stream can trigger a switch on it. See `iostream` and
- *          `iostream::switch_to_put()`.
+ *          switch also clears the read buffer, discarding whatever `putback()` pushed back.
+ *          Flushing does not switch: instances of this class can serve as tie targets, and a
+ *          flush while reading does nothing. See `iostream` and `iostream::switch_to_put()`.
  * @warning **Constructing a stream may throw, and the exception is not turned into a failure
  *          bit**, so the caller must `try` around it; every other operation in this library,
  *          `attach()` included, turns exceptions into state, and construction alone cannot. See
@@ -99,13 +98,10 @@ namespace IOv2
  *          状态与位置拒绝——什么条件下拒绝是转换器的策略，见所用转换器的文档。因此
  *          `switch_to_put()` / `switch_to_get()` 会在一个健康的流上失败（置 `cvtfailbit`）。
  *
- * @warning `out_tie_target` 这个基类同时意味着**本类可以充当 tie 目标**，而刷新目标要先把它切到
- *          输出方向。发起者是绑定方，于是一次与本流无关的输出就会在本流上触发换向：压回内容
- *          可能被丢弃，转换器拒绝时还会置本流的 `cvtfailbit`——只要拒绝的条件持续成立，
- *          **每一次**刷新都会重新置位。发起方一位不动、也拿不到异常。
- *          门槛比看上去低：任何一次成功的提取都会在定界符处留一个字符在读缓冲区里，
- *          不必显式 `peek()`/`putback()`。
- *          详见 `switch_to_put()` 与 `stream_common_operators::tie()` 的说明。
+ * @note `out_tie_target` 这个基类同时意味着**本类可以充当 tie 目标**。刷新不换向：本流处于写
+ *       状态时，刷新把待写数据推给设备；处于读状态时没有待写的数据，刷新什么也不做——读缓冲区
+ *       里 peek 与压回的内容原样保留，也不置任何状态位。因此绑定方的输出不会改变本流的读写
+ *       方向。详见 `stream_common_operators::tie()` 的说明。
  *
  * @tparam TDevice 底层设备类型，须满足 `io_device` 且同时支持读取与写入。
  * @tparam TChar 字符类型。
@@ -138,15 +134,12 @@ namespace IOv2
  *          `switch_to_put()` / `switch_to_get()` can therefore fail on a perfectly healthy stream
  *          (setting `cvtfailbit`).
  *
- * @warning The `out_tie_target` base also means **instances of this class can serve as tie
- *          targets**, and flushing a target first switches it to the put direction. The tied stream
- *          initiates that, so an output having nothing to do with this stream triggers a direction
- *          switch on it: pushed-back content may be discarded, and if the converter refuses, this
- *          stream's `cvtfailbit` is set -- and **every** flush sets it again for as long as the
- *          refusal holds. The initiator is untouched and receives no exception. The bar is lower
- *          than it looks: any successful extraction leaves a character in the read buffer from
- *          peeking at the delimiter, so no explicit `peek()`/`putback()` is needed.
- *          See `switch_to_put()` and `stream_common_operators::tie()`.
+ * @note The `out_tie_target` base also means **instances of this class can serve as tie
+ *       targets**. Flushing does not switch direction: while this stream is writing, a flush
+ *       pushes the pending output to the device; while it is reading there is nothing to write,
+ *       and a flush does nothing -- what is peeked or pushed back in the read buffer stays, and no
+ *       state bit is set. So output by the tying stream never changes this stream's direction.
+ *       See `stream_common_operators::tie()`.
  *
  * @tparam TDevice The underlying device type; must satisfy `io_device` and support both reading
  *         and writing.
@@ -514,11 +507,7 @@ public:
      * @note 流处于失败状态时直接返回、不触碰缓冲区，与 `tell()` 的做法一致。
      * @warning 清空读缓冲区会**丢弃 `putback()` 替换进去的字符与过量压回的字符**：
      *          回退恢复的是位置而不是内容，之后从读方向读到的是底层原始数据（未经替换的
-     *          `peek()` 不受影响）。而且这件事**不一定由本流发起**——本类可作 tie 目标
-     *          （见类文档），tie 目标在绑定方每次 I/O 前都会被刷新，刷新对双向流意味着
-     *          先切到输出方向。因此一次与本流无关的 `writer << x` 就会作用到本流上。
-     *          要读的内容请在把本流设为 tie 目标之前消费掉，或者不要把正在用 `putback()`
-     *          的流设为 tie 目标。
+     *          `peek()` 不受影响）。tie 刷新不会走到这里：刷新不换向（见类文档）。
      * @warning 本函数要转换器做两件事，**任何一件都可能被转换器按自身策略拒绝**：
      *          读缓冲区非空时重定位到当前逻辑位置；以及离开读方向。据此有三种结果：
      *          - 两件都做到：切向成功，读缓冲区被清空，压回内容丢失，**不置任何状态位**。
@@ -528,10 +517,7 @@ public:
      *            位置正确、方向仍是读、可继续使用。
      *          后两种都置 `cvtfailbit`。**不要用 `cvtfailbit` 反推压回内容是否还在**；
      *          需要保留就在切向之前消费掉。
-     *          直接调用时异常由本流的 `handle_exception` 转成 `cvtfailbit`；经 tie 刷新走到
-     *          这里时同样只置**本流**的位、原始异常存进本流的 `m_exp_cvt_fail`，发起方一位不动、
-     *          也拿不到异常（见 `tie_target::try_flush()`）。只要拒绝的条件持续成立，
-     *          `clear()` 之后绑定方再写一次就会再次置位。
+     *          异常由本流的 `handle_exception` 转成 `cvtfailbit`。
      * @return 流自身的引用。
      * @endif
      *
@@ -547,12 +533,8 @@ public:
      * @warning Clearing the read buffer **discards characters substituted in by `putback()`
      *          and any over-putback**: the rewind restores the position, not the contents, so
      *          reading afterwards yields the underlying data (an unsubstituted `peek()` is
-     *          unaffected). And this need not be initiated by this stream: instances of this
-     *          class are valid tie targets (see the class documentation), a tie target is
-     *          flushed before every I/O on the stream tied to it, and flushing a bidirectional
-     *          stream means switching it to the put direction first. So an unrelated
-     *          `writer << x` acts on this stream. Consume what you need before making this
-     *          stream a tie target, or do not tie to a stream that is using `putback()`.
+     *          unaffected). A tie flush never gets here: flushing does not switch direction (see
+     *          the class documentation).
      * @warning This asks two things of the converter, and **it may refuse either one by its own
      *          policy**: repositioning to the current logical position when the read buffer is
      *          non-empty, and leaving the get direction. Hence three outcomes:
@@ -567,12 +549,7 @@ public:
      *            direction, still usable.
      *          The last two both set `cvtfailbit`. **Do not use `cvtfailbit` to infer whether the
      *          pushed-back content survived**; consume it before switching if you need it.
-     *          Called directly, the exception becomes `cvtfailbit` through this stream's
-     *          `handle_exception`; reached through a tie flush it likewise sets the bit on **this**
-     *          stream only and stores the original exception in this stream's `m_exp_cvt_fail`,
-     *          leaving the initiator untouched and without an exception (see
-     *          `tie_target::try_flush()`). For as long as the refusal holds, the next write by the
-     *          tied stream sets the bit again after a `clear()`.
+     *          The exception becomes `cvtfailbit` through this stream's `handle_exception`.
      * @return A reference to the stream itself.
      * @endif
      */

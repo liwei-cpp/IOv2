@@ -707,27 +707,14 @@ struct basic_stream_common_operators
      *          流析构。无竞争时刷新必定成功，短暂竞争由 `try_flush()` 内部的有限次重试覆盖，
      *          因此绝大多数场景的行为与"保证刷新"没有区别。
      *
-     * @warning **目标是双向流时，刷新会丢掉它的读侧压回内容。** 刷新一个 `iostream` 必须先
-     *          把它切到输出方向，而切向会清空读缓冲区：`putback()` 替换进去的字符与过量压回
-     *          的字符就此丢失，之后从该流读到的是底层原始数据（未经替换的 `peek()` 不受影响，
-     *          回退后重读得到同一字符）。这是输出语义的必然结果——输出要求设备停在写位置，
-     *          而读缓冲区里放的是尚未生效的读侧推测状态。要注意的是**发起者是绑定方**：一次
-     *          与目标无关的 `writer << x` 就会丢掉目标已压回的字符，且不置任何状态位。
-     *          因此不要把一个正在用 `putback()`/`peek()` 读的 `iostream` 设为 tie 目标，
-     *          或至少在设为目标之前把要用的字符消费掉。
+     * @note **目标可以是双向流，刷新它不换向。** 目标处于写状态时，刷新把待写数据推给设备；
+     *       处于读状态时没有待写的数据，刷新什么也不做——读缓冲区里 peek 与压回的内容原样保留，
+     *       也不置任何状态位。因此绑定方的输出不会改变目标的读写方向。
      *
-     * @warning **上一条只在目标的转换器支持定位时成立；不可定位的管线上后果正好相反。**
-     *          切向在读缓冲区非空时需要先定位，而双向但不可定位的管线（如套接字一类设备）
-     *          做不到，于是抛 `cvt_error`。抛出发生在清空读缓冲区**之前**，所以压回内容
-     *          **反而完整保留**，代价是**目标流被置上 `cvtfailbit`**（原始异常存进目标的
-     *          `m_exp_cvt_fail`，可事后取回）。失败**只记在目标身上**：发起方一位不动，
-     *          也不会收到异常——`try_flush()` 是 `noexcept` 的，目标的异常掩码在这条路径上
-     *          **不生效**（唯一在场的调用栈属于一个与目标无关的流，异常送不出去）。
-     *          这一点与标准库不同：libstdc++ 与 libc++ 都会让目标的掩码打断**发起方**的操作。
-     *          由于抛出在清空之前，读缓冲区仍非空，目标 `clear()` 之后绑定方再写一次就会再次
-     *          置位；要摆脱这个状态，须先把目标的读缓冲区消费干净，或解开 tie。
-     *          门槛比看上去低：任何一次成功的提取都会在定界符处留一个字符在读缓冲区里，
-     *          不必显式 `putback()`/`peek()`。
+     * @note 刷新目标时出的错（如设备写失败）**只记在目标身上**：发起方一位不动，也不会收到
+     *       异常——`try_flush()` 是 `noexcept` 的，目标的异常掩码在这条路径上**不生效**（唯一在场
+     *       的调用栈属于一个与目标无关的流，异常送不出去）；原始异常存进目标对应的异常指针，可事后
+     *       取回。这一点与标准库不同：libstdc++ 与 libc++ 都会让目标的掩码打断**发起方**的操作。
      * @warning 生命周期由调用方负责：`str` 仅以裸指针保存，本类不做任何生命周期管理，
      *          也不会在析构时自动解绑。最简单且始终安全的规则是：让 `str` 所指的流存活于
      *          所有绑定到它的流之后（这也是标准用法，如全局 `cout` 活得比 `cin` 久）。否则
@@ -808,38 +795,20 @@ struct basic_stream_common_operators
      *          is covered by the bounded retry inside `try_flush()`, so in the vast majority of
      *          cases the behavior is indistinguishable from a guaranteed flush.
      *
-     * @warning **When the target is bidirectional, flushing drops its pushed-back input.**
-     *          Flushing an `iostream` must first switch it to the put direction, and switching
-     *          clears the read buffer: characters substituted in by `putback()`, and any
-     *          over-putback, are lost, so reading from that stream afterwards yields the
-     *          underlying data (an unsubstituted `peek()` is unaffected — re-reading after the
-     *          rewind gives the same character). This follows from what output means: output
-     *          requires the device to sit at the write position, while the read buffer holds
-     *          speculative read-side state that has not taken effect. Note who initiates it:
-     *          a `writer << x` that has nothing to do with the target drops the target's
-     *          pushed-back characters, and sets no state bit. So do not tie to an `iostream`
-     *          that is being read with `putback()`/`peek()`, or at least consume what you need
-     *          before making it a tie target.
+     * @note **The target may be bidirectional; flushing it does not switch direction.** While the
+     *       target is writing, a flush pushes the pending output to the device; while it is
+     *       reading there is nothing to write, and a flush does nothing -- what is peeked or
+     *       pushed back in its read buffer stays, and no state bit is set. So output by the tying
+     *       stream never changes the target's direction.
      *
-     * @warning **The above holds only while the target's converter supports positioning; on a
-     *          non-positionable pipeline the outcome is the exact opposite.** With a non-empty
-     *          read buffer the switch has to reposition first, which a bidirectional but
-     *          non-seekable pipeline (e.g. a socket-like device) cannot do, so it throws
-     *          `cvt_error`. The throw happens *before* the read buffer is cleared, so the
-     *          pushed-back content is **kept intact** instead; the price is that **the target is
-     *          left with `cvtfailbit`** (the original exception is stored in the target's
-     *          `m_exp_cvt_fail` and can be recovered afterwards). The failure is recorded **on
-     *          the target only**: the initiator is untouched and receives no exception --
-     *          `try_flush()` is `noexcept`, and the target's exception mask **does not apply** on
-     *          this path (the only stack available belongs to a stream unrelated to the target,
-     *          so an exception has nowhere to go). This differs from the standard library, where
-     *          both libstdc++ and libc++ let the target's mask abort the *initiator's* operation.
-     *          Because the throw precedes the clear, the read buffer is still non-empty, so after
-     *          the target is `clear()`ed the next write by the tied stream sets the bit again;
-     *          escaping that state requires draining the target's read buffer or undoing the tie.
-     *          The bar is lower than it looks: any successful extraction leaves a character in
-     *          the read buffer from peeking at the delimiter, so no explicit
-     *          `putback()`/`peek()` is needed.
+     * @note An error while flushing the target (a failed device write, say) is recorded **on the
+     *       target only**: the initiator is untouched and receives no exception -- `try_flush()`
+     *       is `noexcept`, and the target's exception mask **does not apply** on this path (the
+     *       only stack available belongs to a stream unrelated to the target, so an exception has
+     *       nowhere to go); the original exception is stored in the target's matching exception
+     *       pointer and can be recovered afterwards. This differs from the standard library,
+     *       where both libstdc++ and libc++ let the target's mask abort the *initiator's*
+     *       operation.
      * @warning Lifetime is the caller's responsibility: `str` is stored as a raw pointer;
      *          this class performs no lifetime management and does not auto-untie on
      *          destruction. The simplest always-safe rule is to let `str` outlive every

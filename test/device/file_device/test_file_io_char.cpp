@@ -717,3 +717,23 @@ TEST(FileDeviceChar, ReadOnlyOpen)
     ifile_device<char> dev(name);
     EXPECT_TRUE(dev.is_open());
 }
+
+// After a read, dflush has nothing to write and leaves the FILE alone (fflush on an update
+// stream whose last operation was input is undefined in C). The next write must still
+// reposition first, as C requires between a read and a write -- MSVC's CRT is strict about it.
+TEST(FileDeviceChar, DflushAfterAReadKeepsTheWriteWhereTheReadStopped)
+{
+    const char* name = "dflush_after_read.txt";
+    file_guard g(name, std::string("abcdef"));
+    {
+        file_device<char> dev(name);
+        char buf[3] = {};
+        ASSERT_EQ(dev.dget(buf, 3), 3u);
+        dev.dflush();
+        EXPECT_EQ(dev.dtell(), 3u);
+        dev.dput("XY", 2);
+        dev.dflush();
+        EXPECT_EQ(dev.dtell(), 5u);
+    }
+    EXPECT_EQ(g.contents(), "abcXYf");
+}

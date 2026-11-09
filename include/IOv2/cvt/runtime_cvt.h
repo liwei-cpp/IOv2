@@ -665,10 +665,11 @@ public:
         return m_ptr->put(to, to_size);
     }
 
-    /// @lang{ZH} 将所有缓冲数据刷出转换器；若内部指针为空则抛出异常。 @endif
-    /// @lang{EN} Flush all buffered data out of the converter; throws if the internal pointer is null. @endif
+    /// @lang{ZH} 将所有缓冲数据刷出转换器；处于输入模式时没有待写的数据，不经虚函数直接返回。若内部指针为空则抛出异常。 @endif
+    /// @lang{EN} Flush all buffered data out of the converter; in input mode there is nothing to write, and it returns without a virtual call. Throws if the internal pointer is null. @endif
     void flush()
     {
+        if (m_io_status == io_status::input) return;
         if (!m_ptr) std::rethrow_exception(detail::runtime_cvt_null_err);
         return m_ptr->flush();
     }
@@ -762,8 +763,8 @@ private:
 
     /**
      * @lang{ZH}
-     * 当前 I/O 方向的缓存，让 `switch_to_get` / `switch_to_put` 在已处于目标方向时不经虚函数
-     * 直接返回。`neutral` 表示未知：`bos()`、`attach()`、`detach()` 先把它置为 `neutral` 再调用
+     * 当前 I/O 方向的缓存，让 `switch_to_get` / `switch_to_put` 在已处于目标方向时、`flush`
+     * 在输入模式时不经虚函数直接返回。`neutral` 表示未知：`bos()`、`attach()`、`detach()` 先把它置为 `neutral` 再调用
      * 内层，切换成功后才记下新方向；因此它若为 `input` / `output` 必定准确，若为 `neutral`
      * 最多多一次（幂等的）内层切换。
      *
@@ -773,7 +774,7 @@ private:
      *
      * @lang{EN}
      * Cache of the current I/O direction, letting `switch_to_get` / `switch_to_put` return
-     * without a virtual call when already facing that way. `neutral` means unknown: `bos()`,
+     * without a virtual call when already facing that way, and `flush` in input mode. `neutral` means unknown: `bos()`,
      * `attach()` and `detach()` set it to `neutral` before calling inside, and a switch
      * records the new direction only once it succeeded; so `input` / `output` is always
      * accurate, and `neutral` costs at most one extra (idempotent) switch inside.

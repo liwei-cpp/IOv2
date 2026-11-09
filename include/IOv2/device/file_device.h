@@ -602,6 +602,10 @@ public:
      * @brief 刷新写入缓冲区。
      *
      * 强制将 C 标准库 `FILE` 的内部缓冲区内容写入操作系统。
+     *
+     * 读写设备上最近一次操作是读时什么也不做：没有待写的数据，而 C 标准规定对最近一次操作
+     * 是输入的更新流调用 `fflush` 是未定义行为。此时也保留方向记录，之后的写入仍会先定位，
+     * 满足 C 对读后写的要求。
      * @throw device_error 如果刷新失败。
      * @endif
      *
@@ -609,6 +613,11 @@ public:
      * @brief Flushes the write buffer.
      *
      * Forces the contents of the C standard library `FILE`'s internal buffer to be written to the operating system.
+     *
+     * On a read-write device whose last operation was a read it does nothing: there is nothing
+     * to write, and the C standard makes `fflush` on an update stream whose most recent
+     * operation was input undefined behavior. The direction record is kept as well, so the next
+     * write still repositions first, as C requires between a read and a write.
      * @throw device_error If flushing fails.
      * @endif
      */
@@ -616,6 +625,10 @@ public:
         requires (IsOut)
     {
         if (!is_open()) return;
+        if constexpr (IsIn)
+        {
+            if (m_last_dir == io_dir::read) return;
+        }
         if (std::fflush(m_file.get()) == EOF)
             throw device_error("file_device::dflush fail: fflush error");
         m_last_dir = {};

@@ -412,3 +412,49 @@ TEST(OstreamTie, AFailedLinkStillPassesTheFlushOn)
     b.tie(nullptr);
     b.clear();
 }
+
+// A read-write target that is reading has nothing to flush: output by the tying stream leaves
+// its direction, its read buffer -- a substituted putback included -- and its state alone.
+TEST(OstreamTie, ATargetThatIsReadingIsLeftAlone)
+{
+    auto target = make<IOv2::iostream>("abc");
+    char ch = 0;
+    target.get(ch);
+    target.putback('Z');
+
+    auto writer = make<IOv2::ostream>();
+    writer.tie(as_tie_target(target));
+    writer.put('x');
+    writer.tie(nullptr);
+
+    EXPECT_TRUE(target.good());
+    target.get(ch);
+    EXPECT_EQ(ch, 'Z');
+    target.get(ch);
+    EXPECT_EQ(ch, 'b');
+    EXPECT_EQ(target.device().str(), "abc");
+}
+
+// The same target in the middle of a chain: its own flush does nothing, but the flush still
+// goes on down the chain -- each link passes it downstream before flushing itself.
+TEST(OstreamTie, AMiddleLinkThatIsReadingStillPassesTheFlushOn)
+{
+    auto a = make<IOv2::ostream>();
+    auto b = make<IOv2::iostream>("abc");
+    ProbeFlusher c;
+    char ch = 0;
+    b.get(ch);
+    b.putback('Z');
+
+    a.tie(as_tie_target(b));
+    b.tie(&c);
+    a.put('x');
+    EXPECT_EQ(c.flushed, 1);
+    EXPECT_TRUE(b.good());
+    EXPECT_TRUE(a.good());
+
+    a.tie(nullptr);
+    b.tie(nullptr);
+    b.get(ch);
+    EXPECT_EQ(ch, 'Z');
+}
