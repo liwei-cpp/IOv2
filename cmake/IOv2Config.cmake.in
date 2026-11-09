@@ -1,0 +1,16 @@
+# IOv2 CMake package: find_package(IOv2) provides the target IOv2::iov2.
+#
+# Link IOv2::iov2 in either mode; it carries the include root, C++23 and the POSIX
+# feature-test macro, and in shared mode libiov2 itself. The installed headers
+# already have IOV2_SHARED switched on in shared mode, so nothing else is needed.
+#
+# zlib and Botan are optional and not pulled in: they are needed only by code that
+# uses the compression (zlib_cvt) or hashing (hash_cvt) converters.
+
+@PACKAGE_INIT@
+
+# ON when this installation is the shared library, OFF when header-only.
+set(IOv2_SHARED @IOV2_BUILD_SHARED@)
+
+include("${CMAKE_CURRENT_LIST_DIR}/IOv2Targets.cmake")
+check_required_components(IOv2)

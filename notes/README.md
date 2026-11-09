@@ -9,7 +9,7 @@
 本目录存放 IOv2 开发过程中的记录，**不属于库本身**：
 
 - 构建、测试、文档生成都不读取这里的任何文件；
-- `make install` / `make install-shared` 不安装它；
+- `cmake --install` 不安装它；
 - 仓库根目录的 `.gitattributes` 将其标为 `export-ignore`，因此 `git archive`
   与 GitHub 生成的源码包中也不包含它。
 
@@ -36,7 +36,7 @@ This directory holds records kept while developing IOv2. **It is not part of the
 library**:
 
 - nothing here is read by the build, the tests or the documentation;
-- `make install` / `make install-shared` do not install it;
+- `cmake --install` does not install it;
 - the repository's `.gitattributes` marks it `export-ignore`, so `git archive`
   and the source archives GitHub generates leave it out as well.
 

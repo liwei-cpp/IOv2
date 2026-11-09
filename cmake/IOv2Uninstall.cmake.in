@@ -1,0 +1,35 @@
+# Uninstalls IOv2: run through `cmake --build <build dir> --target uninstall`.
+#
+# Removes every file the last `cmake --install` from this build tree recorded in
+# install_manifest.txt, then each IOv2-owned directory if that left it empty. A
+# directory still holding something IOv2 did not install is reported and kept.
+
+set(manifest "@PROJECT_BINARY_DIR@/install_manifest.txt")
+if(NOT EXISTS "${manifest}")
+  message(FATAL_ERROR "Nothing to uninstall: ${manifest} not found. Run cmake --install first.")
+endif()
+
+file(STRINGS "${manifest}" installed_files)
+foreach(file IN LISTS installed_files)
+  if(IS_SYMLINK "${file}" OR EXISTS "${file}")
+    message(STATUS "Uninstalling: ${file}")
+    file(REMOVE "${file}")
+  endif()
+endforeach()
+
+foreach(dir IN ITEMS @IOV2_OWNED_DIRS@)
+  if(NOT IS_ABSOLUTE "${dir}")
+    set(dir "@CMAKE_INSTALL_PREFIX@/${dir}")
+  endif()
+  set(dir "$ENV{DESTDIR}${dir}")
+  if(NOT IS_DIRECTORY "${dir}")
+    continue()
+  endif()
+  file(GLOB_RECURSE leftovers LIST_DIRECTORIES false "${dir}/*")
+  if(leftovers)
+    message(WARNING "Keeping ${dir}: it holds files IOv2 did not install.")
+  else()
+    message(STATUS "Removing: ${dir}")
+    file(REMOVE_RECURSE "${dir}")
+  endif()
+endforeach()

@@ -48,6 +48,9 @@
   cv 与引用，也不认派生类。
 - 概念 `unordered_key<T>`：`T` 可判等且可用 `std::hash<T>` 求哈希，即能作为无序容器在默认
   哈希器与判等器下的键。不要求可拷贝。
+- CMake 包：安装后可 `find_package(IOv2)`，两种模式下都链接目标 `IOv2::iov2`；它带上
+  include 路径、C++23 与所需的宏，共享模式下还带上 `libiov2`。变量 `IOv2_SHARED` 报告找到的
+  是哪种安装。
 
 #### 变更
 
@@ -113,6 +116,11 @@
   `std::equality_comparable TValue`（原为类内 `static_assert`）。哈希要求比原来严格：
   `std::hash<T>` 须能以 `const T&` 调用并得到可转换为 `std::size_t` 的结果，而不只是可构造。
 - `copyable_atomic` 的默认构造与以值构造合并为一个 `constexpr` 构造函数。
+- 打包改由根目录 CMake 工程负责：`cmake -S . -B build/pkg` 后 `cmake --install`，共享库加
+  `-DIOV2_BUILD_SHARED=ON` 并先 `cmake --build`；卸载为 `cmake --build <构建目录> --target uninstall`。
+  安装布局不变（`include/IOv2/`、`share/licenses/IOv2/`、`.pc` 文件），另有三处不同：库目录随
+  GNUInstallDirs（如 `lib64`），需要时传 `-DCMAKE_INSTALL_LIBDIR=lib`；`libiov2.so` 带 soname
+  `libiov2.so.<主版本号>`；卸载只删安装过的文件，IOv2 目录里有别的文件时保留该目录。
 
 #### 废弃
 
@@ -124,6 +132,8 @@
   `is_ochannel_iterator`、`is_stamp_input_iterator_v`、`is_mem_device` 与
   `cpt_cvt_pipe_creator`：改用 `is_specialization_of` / `specialization_of`，例如
   `is_mem_device<T>` 写作 `specialization_of<T, mem_device>`。
+- 根目录 `Makefile`（`make shared` / `install` / `install-shared` / `uninstall`）：改用根目录
+  CMake 工程，见上文“变更”。
 
 #### 修复
 
@@ -261,6 +271,10 @@ have no release line of their own.
 - Concept `unordered_key<T>`: `T` is equality comparable and hashable with
   `std::hash<T>`, i.e. usable as an unordered container's key under the default
   hasher and key-equality predicate. Copyability is not required.
+- A CMake package: once installed, `find_package(IOv2)` works, and both modes link
+  the target `IOv2::iov2`, which brings the include path, C++23 and the required
+  macro, and in shared mode `libiov2` as well. The variable `IOv2_SHARED` reports
+  which kind of installation was found.
 
 #### Changed
 
@@ -362,6 +376,14 @@ have no release line of their own.
   constructible.
 - `copyable_atomic`'s default and value constructors are merged into one
   `constexpr` constructor.
+- Packaging is now the root CMake project's job: `cmake -S . -B build/pkg` then
+  `cmake --install`, and for the shared library add `-DIOV2_BUILD_SHARED=ON` and run
+  `cmake --build` first; uninstall with `cmake --build <build dir> --target uninstall`.
+  The installed layout is unchanged (`include/IOv2/`, `share/licenses/IOv2/`, the
+  `.pc` files), with three differences: the library directory follows GNUInstallDirs
+  (e.g. `lib64`), pass `-DCMAKE_INSTALL_LIBDIR=lib` where needed; `libiov2.so` has the
+  soname `libiov2.so.<major>`; and uninstall removes only what was installed, keeping
+  an IOv2 directory that holds other files.
 
 #### Deprecated
 
@@ -374,6 +396,8 @@ have no release line of their own.
   `is_ochannel_iterator`, `is_stamp_input_iterator_v`, `is_mem_device` and
   `cpt_cvt_pipe_creator`: use `is_specialization_of` / `specialization_of` instead,
   e.g. `is_mem_device<T>` becomes `specialization_of<T, mem_device>`.
+- The root `Makefile` (`make shared` / `install` / `install-shared` / `uninstall`):
+  use the root CMake project instead, see *Changed* above.
 
 #### Fixed
 

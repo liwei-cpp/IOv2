@@ -24,7 +24,8 @@
  *       -Iinclude -I/usr/include/botan-2 -D_POSIX_C_SOURCE=200809L \
  *       -DIOV2_SHARED -DIOV2_EXPORTS src/iov2_objects.cpp \
  *       -o libiov2.so -lz -lbotan-2
- *   # 或直接用根 Makefile / or just use the root Makefile:  make shared
+ *   # 或用根目录 CMake 工程 / or use the root CMake project:
+ *   #   cmake -S . -B build/pkg-shared -DIOV2_BUILD_SHARED=ON && cmake --build build/pkg-shared
  *   # 客户：编译时加 -DIOV2_SHARED，链接时加 -liov2
  * @endcode
  * @endif
@@ -55,7 +56,8 @@
  *       -Iinclude -I/usr/include/botan-2 -D_POSIX_C_SOURCE=200809L \
  *       -DIOV2_SHARED -DIOV2_EXPORTS src/iov2_objects.cpp \
  *       -o libiov2.so -lz -lbotan-2
- *   # 或直接用根 Makefile / or just use the root Makefile:  make shared
+ *   # 或用根目录 CMake 工程 / or use the root CMake project:
+ *   #   cmake -S . -B build/pkg-shared -DIOV2_BUILD_SHARED=ON && cmake --build build/pkg-shared
  *   # Consumers: compile with -DIOV2_SHARED, link with -liov2
  * @endcode
  * @endif
