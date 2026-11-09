@@ -63,8 +63,9 @@ namespace IOv2
  * `getc()` 预读（peek）以及被 `putbackc()` 压回的字符。
  *
  * 是否具备输入/输出能力由模板参数 `IsIn`/`IsOut` 在编译期决定，相应的成员函数通过
- * `requires` 约束仅在对应能力开启时可用。当二者同时为真时，对象是双向的，输入与输出
- * 操作会按需自动调用 `switch_to_get()`/`switch_to_put()` 切换底层转换器的方向。
+ * `requires` 约束仅在对应能力开启时可用。当二者同时为真时，对象是双向的。输入与输出
+ * 操作会按需自动调用 `switch_to_get()`/`switch_to_put()` 切换底层转换器的方向；单向的
+ * 通道也是如此——构造时不切换，转换器在首次读或写时才切到所需方向（见 `init_cvt()`）。
  *
  * @note 关于读缓冲区与逻辑位置的语义细节（尤其是过度回退时位置在起点处饱和为 0），
  *       见 putbackc()、tell() 与 switch_to_put() 的说明。
@@ -91,9 +92,10 @@ namespace IOv2
  * Whether input/output is available is decided at compile time by the template
  * parameters `IsIn`/`IsOut`; the corresponding member functions are constrained via
  * `requires` to be available only when the matching capability is enabled. When both are
- * true the object is bidirectional, and input/output operations automatically call
+ * true the object is bidirectional. Input/output operations automatically call
  * `switch_to_get()`/`switch_to_put()` to switch the underlying converter's direction as
- * needed.
+ * needed; so does a unidirectional channel, which does not switch on construction -- its
+ * converter turns to the direction it needs on the first read or write (see `init_cvt()`).
  *
  * @note For the detailed semantics of the read buffer and the logical position (in
  *       particular, the position saturating at 0 on over-putback), see putbackc(),
@@ -275,7 +277,7 @@ public:
      * 若读缓冲区非空，返回其栈顶字符；否则从底层转换器读取一个字符，压入读缓冲区栈顶后
      * 返回。因此该字符**下一次**仍会被 getc()/bumpc() 读到。
      * @return 当前字符；若已到达末尾则为空的 optional。
-     * @note 在双向模式下会先切换到输入方向。
+     * @note 先切换到输入方向（见 `switch_to_get()`）。
      * @endif
      *
      * @lang{EN}
@@ -285,13 +287,12 @@ public:
      * character from the underlying converter, pushes it onto the read buffer, and returns
      * it. The character therefore remains available to the **next** getc()/bumpc().
      * @return The current character; an empty optional if the end has been reached.
-     * @note In bidirectional mode it first switches to the input direction.
+     * @note It first switches to the input direction (see `switch_to_get()`).
      * @endif
      */
     std::optional<char_type> getc() requires (IsIn)
     {
-        if constexpr (IsOut)
-            switch_to_get();
+        switch_to_get();
 
         if (!m_read_buf.empty()) return m_read_buf.back();
 
@@ -307,7 +308,7 @@ public:
      *
      * 若读缓冲区非空，弹出并返回其栈顶字符；否则直接从底层转换器读取一个字符返回。
      * @return 被读取的字符；若已到达末尾则为空的 optional。
-     * @note 在双向模式下会先切换到输入方向。
+     * @note 先切换到输入方向（见 `switch_to_get()`）。
      * @endif
      *
      * @lang{EN}
@@ -316,13 +317,12 @@ public:
      * If the read buffer is non-empty, pops and returns its top character; otherwise
      * reads one character directly from the underlying converter and returns it.
      * @return The character read; an empty optional if the end has been reached.
-     * @note In bidirectional mode it first switches to the input direction.
+     * @note It first switches to the input direction (see `switch_to_get()`).
      * @endif
      */
     std::optional<char_type> bumpc() requires (IsIn)
     {
-        if constexpr (IsOut)
-            switch_to_get();
+        switch_to_get();
 
         if (!m_read_buf.empty())
         {
@@ -369,7 +369,7 @@ public:
      *        抛出后，`*got` 仍是已消费并写入 `s` 的准确数量，调用方据此可完整交付这批数据，
      *        不会丢失。返回值只在正常返回时可用，故需要异常路径下的计数时必须使用本参数。
      * @return 实际读取的字符数；`s` 为 nullptr 或 `n` 为 0 时返回 0。
-     * @note 在双向模式下会先切换到输入方向。
+     * @note 先切换到输入方向（见 `switch_to_get()`）。
      * @endif
      *
      * @lang{EN}
@@ -386,7 +386,7 @@ public:
      *        The return value is only available on a normal return, so this parameter is
      *        required whenever the count is needed on the exception path.
      * @return The number of characters actually read; 0 if `s` is nullptr or `n` is 0.
-     * @note In bidirectional mode it first switches to the input direction.
+     * @note It first switches to the input direction (see `switch_to_get()`).
      * @endif
      */
     std::size_t getn(char_type* s, std::size_t n, std::size_t* got = nullptr) requires (IsIn)
@@ -394,8 +394,7 @@ public:
         if (got) *got = 0;
         if ((s == nullptr) || (n == 0)) return 0;
 
-        if constexpr (IsOut)
-            switch_to_get();
+        switch_to_get();
 
         std::size_t res = 0;
         while (!m_read_buf.empty())
@@ -425,7 +424,7 @@ public:
      * 仅当读缓冲区为空**且**底层转换器也报告 EOF 时才返回 true——只要读缓冲区中还残留
      * 字符（例如 peek 或 put-back 的内容），就不算末尾。
      * @return 已到达末尾则为 true。
-     * @note 在双向模式下会先切换到输入方向。
+     * @note 先切换到输入方向（见 `switch_to_get()`）。
      * @endif
      *
      * @lang{EN}
@@ -435,13 +434,12 @@ public:
      * also reports EOF — as long as characters remain in the read buffer (e.g. peeked or
      * put-back content), the end is not considered reached.
      * @return true if the end has been reached.
-     * @note In bidirectional mode it first switches to the input direction.
+     * @note It first switches to the input direction (see `switch_to_get()`).
      * @endif
      */
     bool is_eof() requires (IsIn)
     {
-        if constexpr (IsOut)
-            switch_to_get();
+        switch_to_get();
         return (this->m_read_buf.empty()) && (m_cvt.is_eof());
     }
 
@@ -473,8 +471,7 @@ public:
      */
     void putbackc(char_type ch) requires (IsIn)
     {
-        if constexpr (IsOut)
-            switch_to_get();
+        switch_to_get();
         m_read_buf.push_back(ch);
     }
 
@@ -546,19 +543,18 @@ public:
      * @lang{ZH}
      * @brief 写入单个字符。
      * @param ch 要写入的字符。
-     * @note 在双向模式下会先切换到输出方向。
+     * @note 先切换到输出方向（见 `switch_to_put()`）。
      * @endif
      *
      * @lang{EN}
      * @brief Writes a single character.
      * @param ch The character to write.
-     * @note In bidirectional mode it first switches to the output direction.
+     * @note It first switches to the output direction (see `switch_to_put()`).
      * @endif
      */
     void putc(char_type ch) requires (IsOut)
     {
-        if constexpr (IsIn)
-            switch_to_put();
+        switch_to_put();
         m_cvt.put(&ch, 1);
     }
 
@@ -567,35 +563,37 @@ public:
      * @brief 批量写入 `n` 个字符。
      * @param s 源缓冲区。
      * @param n 要写入的字符数。
-     * @note `s` 为 nullptr 或 `n` 为 0 时不做任何事。在双向模式下会先切换到输出方向。
+     * @note `s` 为 nullptr 或 `n` 为 0 时不做任何事。否则先切换到输出方向（见 `switch_to_put()`）。
      * @endif
      *
      * @lang{EN}
      * @brief Writes `n` characters in bulk.
      * @param s The source buffer.
      * @param n The number of characters to write.
-     * @note Does nothing if `s` is nullptr or `n` is 0. In bidirectional mode it first
-     * switches to the output direction.
+     * @note Does nothing if `s` is nullptr or `n` is 0. Otherwise it first switches to the
+     * output direction (see `switch_to_put()`).
      * @endif
      */
     void putn(const char_type* s, std::size_t n) requires (IsOut)
     {
         if ((s == nullptr) || (n == 0)) return;
 
-        if constexpr (IsIn)
-            switch_to_put();
+        switch_to_put();
         m_cvt.put(s, n);
     }
 
     /**
      * @lang{ZH}
      * @brief 刷新输出，将缓冲数据推送到底层设备。
-     * @note 在双向模式下会先切换到输出方向。
+     * @note 在双向模式下会先切换到输出方向。单向模式不切换：转换器仍处于输入方向说明尚未
+     *       写入，没有可刷新的内容，转换器的 `flush()` 此时什么也不做。
      * @endif
      *
      * @lang{EN}
      * @brief Flushes output, pushing buffered data to the underlying device.
-     * @note In bidirectional mode it first switches to the output direction.
+     * @note In bidirectional mode it first switches to the output direction. Unidirectional
+     *       mode does not switch: a converter still facing input has had nothing written, so
+     *       there is nothing to flush, and its `flush()` does nothing then.
      * @endif
      */
     void flush() requires (IsOut)
@@ -701,26 +699,31 @@ public:
 
     /**
      * @lang{ZH}
-     * @name 读/写方向切换（仅 IsIn && IsOut）
+     * @name 读/写方向切换
      * @{
      * @endif
      * @lang{EN}
-     * @name Read/write direction switching (IsIn && IsOut only)
+     * @name Read/write direction switching
      * @{
      * @endif
      */
     /**
      * @lang{ZH}
      * @brief 切换到输入模式。
-     * @note 直接委托给底层转换器的 switch_to_get()。
+     * @note 直接委托给底层转换器的 switch_to_get()。读操作（`getc()`、`bumpc()`、`getn()`、
+     *       `is_eof()`、`putbackc()`）都先经本函数切换；只读通道的转换器在首次读取前可能仍
+     *       处于输出方向（见 `init_cvt()`），也在这里切换。
      * @endif
      *
      * @lang{EN}
      * @brief Switches to input mode.
-     * @note Delegates directly to the underlying converter's switch_to_get().
+     * @note Delegates directly to the underlying converter's switch_to_get(). Read operations
+     *       (`getc()`, `bumpc()`, `getn()`, `is_eof()`, `putbackc()`) all switch through here
+     *       first; a read-only channel's converter may still face output before the first
+     *       read (see `init_cvt()`), and switches here too.
      * @endif
      */
-    void switch_to_get() requires (IsIn && IsOut)
+    void switch_to_get() requires (IsIn)
     {
         m_cvt.switch_to_get();
     }
@@ -741,6 +744,9 @@ public:
      *
      * 过量回退时，回退目标位置（即 `tell()`）在起点处钳位为 0（见 `tell()`/`putbackc()`），
      * 因此切换后写入将从位置 0 开始。这是既定语义，非错误。
+     *
+     * 只写通道没有读缓冲区，本函数只切换转换器的方向：其转换器在首次写入前可能仍处于输入
+     * 方向（见 `init_cvt()`），由 `putc()` / `putn()` 经本函数切换。
      * @endif
      *
      * @lang{EN}
@@ -763,6 +769,10 @@ public:
      * On over-putback the rewind target (i.e. `tell()`) saturates at the stream origin 0 (see
      * `tell()`/`putbackc()`), so writing after the switch begins at position 0. This is
      * by-design behavior, not a bug.
+     *
+     * A write-only channel has no read buffer, and this function only switches its
+     * converter's direction: that converter may still face input before the first write (see
+     * `init_cvt()`), and `putc()` / `putn()` switch it through here.
      * @endif
      *
      * @throws cvt_error
@@ -774,27 +784,30 @@ public:
      * direction -- this one is independent of the read buffer. The first throws before the clear,
      * the second after it. @endif
      */
-    void switch_to_put() requires (IsIn && IsOut)
+    void switch_to_put() requires (IsOut)
     {
-        if (!m_read_buf.empty())
+        if constexpr (IsIn)
         {
-            try
+            if (!m_read_buf.empty())
             {
-                const std::size_t pos = tell();
-                m_cvt.seek(pos);
+                try
+                {
+                    const std::size_t pos = tell();
+                    m_cvt.seek(pos);
+                }
+                catch (const cvt_error& e)
+                {
+                    throw cvt_error("base_channel::switch_to_put fails: cannot reposition "
+                                     + std::to_string(m_read_buf.size())
+                                     + " buffered/put-back character(s) before switching to output mode: "
+                                     + e.what());
+                }
+                // Must immediately follow a *successful* seek: the seek consumed the buffer, and
+                // tell() subtracts m_read_buf.size(), so keeping it would subtract twice. A failed
+                // seek skips this and leaves the buffer intact; a throw from the switch below
+                // therefore finds it already cleared. Both are by design -- see iostream's @warning.
+                m_read_buf.clear();
             }
-            catch (const cvt_error& e)
-            {
-                throw cvt_error("base_channel::switch_to_put fails: cannot reposition "
-                                 + std::to_string(m_read_buf.size())
-                                 + " buffered/put-back character(s) before switching to output mode: "
-                                 + e.what());
-            }
-            // Must immediately follow a *successful* seek: the seek consumed the buffer, and
-            // tell() subtracts m_read_buf.size(), so keeping it would subtract twice. A failed
-            // seek skips this and leaves the buffer intact; a throw from the switch below
-            // therefore finds it already cleared. Both are by design -- see iostream's @warning.
-            m_read_buf.clear();
         }
         m_cvt.switch_to_put();
     }
@@ -992,8 +1005,11 @@ private:
      * @lang{ZH}
      * @brief 初始化转换器：建立初始 I/O 状态并进入主内容阶段。
      *
-     * 调用底层转换器的 bos()（建立初始状态并返回初始方向）与 main_cont_beg()。对于
-     * 单向的通道，若初始方向与所需方向不一致，则相应切换到输入或输出方向。
+     * 调用底层转换器的 bos()（建立初始状态并返回初始方向）与 main_cont_beg()，不切换方向：
+     * 无论单向还是双向，通道都在首次读（`switch_to_get()`）或写（`switch_to_put()`）时才把
+     * 转换器切到所需方向。读 → 写的切换可能要求位于流的末尾（变长编码的 `code_cvt`、
+     * `newline_cvt`），而首次写入之前还可能有重定位（如追加模式的 `rseek(0)`），在构造时
+     * 就切换会在开头失败。
      * @endif
      *
      * @lang{EN}
@@ -1001,25 +1017,18 @@ private:
      * main content phase.
      *
      * Calls the underlying converter's bos() (which establishes the initial state and
-     * returns the initial direction) and main_cont_beg(). For a unidirectional stream
-     * buffer, if the initial direction does not match the required one, it switches to
-     * the input or output direction accordingly.
+     * returns the initial direction) and main_cont_beg(), without switching direction:
+     * unidirectional or not, a channel switches its converter to the direction it needs on
+     * the first read (`switch_to_get()`) or write (`switch_to_put()`). A read → write switch
+     * may require standing at the end of the stream (`code_cvt` with a variable-length
+     * encoding, `newline_cvt`), and a repositioning may come before the first write
+     * (appmode's `rseek(0)`, say), so switching on construction would fail at the start.
      * @endif
      */
     void init_cvt()
     {
-        auto res = m_cvt.bos();
+        m_cvt.bos();
         m_cvt.main_cont_beg();
-        if constexpr (IsIn && !IsOut)
-        {
-            if (res != io_status::input)
-                m_cvt.switch_to_get();
-        }
-        else if constexpr (!IsIn && IsOut)
-        {
-            if (res != io_status::output)
-                m_cvt.switch_to_put();
-        }
     }
 
 private:
