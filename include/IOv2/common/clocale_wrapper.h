@@ -69,14 +69,15 @@ struct clocale_wrapper
      * @endif
      */
     explicit clocale_wrapper(const std::string& name)
-        : c_locale(name.find('\0') == std::string::npos ? detail::clocale_create(name.c_str()) : nullptr)
-    {
-        if (name.find('\0') != std::string::npos)
-            throw io_error("clocale_wrapper: locale name contains an embedded NUL");
-
-        if (!c_locale)
-            throw io_error("Cannot construct a C locale: " + name);
-    }
+        : c_locale([&name] {
+              if (name.find('\0') != std::string::npos)
+                  throw io_error("clocale_wrapper: locale name contains an embedded NUL");
+              detail::clocale_handle h = detail::clocale_create(name.c_str());
+              if (!h)
+                  throw io_error("Cannot construct a C locale: " + name);
+              return h;
+          }())
+    { }
 
     ~clocale_wrapper() noexcept
     {
@@ -89,6 +90,21 @@ struct clocale_wrapper
     {
         if (val.c_locale && !c_locale)
             throw io_error("clocale_wrapper: copying the locale failed during copy construction");
+    }
+
+    clocale_wrapper& operator=(const clocale_wrapper& val)
+    {
+        if (this != &val)
+        {
+            detail::clocale_handle tmp = val.c_locale ? detail::clocale_duplicate(val.c_locale) : nullptr;
+            if (val.c_locale && !tmp)
+                throw io_error("clocale_wrapper: copying the locale failed during assignment");
+
+            if (c_locale)
+                detail::clocale_release(c_locale);
+            c_locale = tmp;
+        }
+        return *this;
     }
 
     clocale_wrapper(clocale_wrapper&& val) noexcept
@@ -109,28 +125,17 @@ struct clocale_wrapper
         return *this;
     }
 
-    clocale_wrapper& operator=(const clocale_wrapper& val)
-    {
-        if (this != &val)
-        {
-            detail::clocale_handle tmp = val.c_locale ? detail::clocale_duplicate(val.c_locale) : nullptr;
-            if (val.c_locale && !tmp)
-                throw io_error("clocale_wrapper: copying the locale failed during assignment");
-
-            if (c_locale)
-                detail::clocale_release(c_locale);
-            c_locale = tmp;
-        }
-        return *this;
-    }
-
     /**
      * @lang{ZH}
-     * 返回本 locale 的 `LC_CTYPE` 名字。
+     * 返回本 locale **解析后**的名字。
      *
-     * 这是 locale 自己报出的**已解析**名字，不是构造时的实参：以 `""` 构造时，返回的是当时
-     * 查环境得到的具体名字（如 `"C.UTF-8"`）；别名按平台规范化（glibc 把 `"POSIX"` 报成
-     * `"C"`）。返回值可再交给 `newlocale` 得到同一个 `LC_CTYPE`。
+     * 不是构造时的实参，而是 locale 自己报出的名字：以 `""` 构造时，返回的是当时查环境得到的
+     * 具体名字（如 `"C.UTF-8"`）；别名按平台规范化（glibc 把 `"POSIX"` 报成 `"C"`）。返回值
+     * 可原样再交给本类构造或 `newlocale`，得到同一个编码。宽字符标准流的 `code()` 经
+     * `code_cvt::code()` 报告的就是它。
+     *
+     * 名字取自 `LC_CTYPE` 类别——编码由它决定；本类以 `LC_ALL_MASK` 构造，各类别通常一致
+     * （例外见下面 macOS 的注记）。
      *
      * @note 名字由 `common/platform/` 下的后端取得：glibc 上用扩展
      *       `nl_langinfo_l(_NL_LOCALE_NAME(LC_CTYPE), …)`，macOS 上用 `querylocale`，Windows 上
@@ -147,13 +152,18 @@ struct clocale_wrapper
      * @endif
      *
      * @lang{EN}
-     * Return this locale's `LC_CTYPE` name.
+     * Return this locale's **resolved** name.
      *
-     * This is the **resolved** name the locale reports for itself, not the argument it was
-     * built from: for a locale constructed from `""` it is the concrete name the environment
-     * resolved to at that time (e.g. `"C.UTF-8"`), and aliases are normalized the way the
-     * platform normalizes them (glibc reports `"POSIX"` as `"C"`). The result can be handed
-     * back to `newlocale` to obtain the same `LC_CTYPE`.
+     * Not the argument it was built from, but the name the locale reports for itself: for a
+     * locale constructed from `""` it is the concrete name the environment resolved to at
+     * that time (e.g. `"C.UTF-8"`), and aliases are normalized the way the platform
+     * normalizes them (glibc reports `"POSIX"` as `"C"`). The result can be handed back
+     * as-is to this class or to `newlocale` to obtain the same encoding. It is what the wide
+     * standard streams' `code()` reports, through `code_cvt::code()`.
+     *
+     * The name is taken from the `LC_CTYPE` category, the one that decides the encoding;
+     * this class constructs with `LC_ALL_MASK`, so the categories normally agree (for the
+     * exception see the macOS note below).
      *
      * @note The name comes from the backend under `common/platform/`: the glibc extension
      *       `nl_langinfo_l(_NL_LOCALE_NAME(LC_CTYPE), …)` on glibc, `querylocale` on macOS,
