@@ -51,6 +51,12 @@
 - CMake 包：安装后可 `find_package(IOv2)`，两种模式下都链接目标 `IOv2::iov2`；它带上
   include 路径、C++23 与所需的宏，共享模式下还带上 `libiov2`。变量 `IOv2_SHARED` 报告找到的
   是哪种安装。
+- `newline_cvt` 与工厂 `newline_cvt_creator`（`<IOv2/cvt/newline_cvt.h>`）：换行转换器，用来
+  得到 Windows 文本模式的行为，与平台无关（#505）。读时 `\r\n` 换成 `\n`，单独的 `\r` 与
+  末尾的 `\r` 原样保留；写时 `\n` 换成 `\r\n`。位置按上层字符计数，`\r\n` 算一个字符；只支持
+  读状态下的 `seek(0)` 与 `rseek(0)`（后者读到末尾并计数，因此叠在变长编码的 `code_cvt`
+  之上时追加模式仍可用）；写入只能发生在流的末尾。宽字符流应把它叠在 `code_cvt` 之上，
+  按字符转换。
 
 #### 变更
 
