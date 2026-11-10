@@ -594,17 +594,55 @@ jobs:
     - name: Set up the MSVC environment
       uses: ilammy/msvc-dev-cmd@v1
 
+    # zlib's and Botan's headers, for the converters that include them: the same
+    # test/vcpkg.json, binary cache and cache steps as the portability jobs (see
+    # there), installed by hand since no CMake runs here.
+    - name: Point vcpkg at the runner's checkout and a binary cache
+      shell: pwsh
+      run: |
+        "VCPKG_ROOT=$env:VCPKG_INSTALLATION_ROOT" >> $env:GITHUB_ENV
+        "VCPKG_BINARY_SOURCES=clear;files,${{ github.workspace }}\vcpkg-cache,readwrite" >> $env:GITHUB_ENV
+
+    - name: Restore the vcpkg binary cache
+      uses: actions/cache/restore@v6
+      with:
+        path: vcpkg-cache
+        key: vcpkg-x64-${{ hashFiles('test/vcpkg.json') }}-${{ github.run_id }}-${{ github.run_attempt }}
+        restore-keys: vcpkg-x64-${{ hashFiles('test/vcpkg.json') }}
+
+    - name: Note what the vcpkg cache holds
+      id: vcpkg-before
+      shell: bash
+      run: echo "hash=${{ hashFiles('vcpkg-cache/**') }}" >> "$GITHUB_OUTPUT"
+
+    - name: Install zlib and Botan
+      shell: pwsh
+      run: |
+        & "$env:VCPKG_ROOT\vcpkg.exe" install --triplet x64-windows `
+          --x-manifest-root=test --x-install-root=vcpkg_installed
+
+    - name: Save the vcpkg binary cache
+      if: always() && hashFiles('vcpkg-cache/**') != '' && hashFiles('vcpkg-cache/**') != steps.vcpkg-before.outputs.hash
+      uses: actions/cache/save@v6
+      with:
+        path: vcpkg-cache
+        key: vcpkg-x64-${{ hashFiles('test/vcpkg.json') }}-${{ github.run_id }}-${{ github.run_attempt }}
+
     - name: Run clang-tidy
       shell: bash
       run: |
         clang-tidy --version
+        deps=vcpkg_installed/x64-windows/include
         clang-tidy include/IOv2/common/*.h include/IOv2/common/platform/windows/*.h \
           include/IOv2/device/*.h include/IOv2/device/platform/windows/*.h \
           include/IOv2/cvt/abs_cvt.h include/IOv2/cvt/cvt_concepts.h \
           include/IOv2/cvt/root_cvt.h include/IOv2/cvt/runtime_cvt.h \
+          include/IOv2/cvt/comp/zlib_cvt.h \
+          include/IOv2/cvt/crypt/chacha20_cvt.h include/IOv2/cvt/crypt/hash_cvt.h \
           --checks="$IOV2_TIDY_CHECKS" \
           --warnings-as-errors='bugprone-*' \
-          -- -std=c++23 -x c++ -I include --target=x86_64-pc-windows-msvc
+          -- -std=c++23 -x c++ -I include -I "$deps" -I "$deps/botan-3" \
+             --target=x86_64-pc-windows-msvc
 
   # The platforms the cross-platform port has reached. Each builds and runs only
   # the components ported so far -- IOV2_TEST_COMPONENTS in its preset, today
