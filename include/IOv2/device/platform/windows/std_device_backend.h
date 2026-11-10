@@ -61,7 +61,8 @@ inline bool std_fd_readable_now(int fd) noexcept
     const std::intptr_t raw = _get_osfhandle(fd);
     if (raw == -1 || raw == -2)
         return false;
-    void* const h = reinterpret_cast<void*>(raw);
+    // _get_osfhandle hands the HANDLE over as an intptr_t; there is no other way back.
+    void* const h = reinterpret_cast<void*>(raw); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast,performance-no-int-to-ptr)
 
     switch (GetFileType(h))
     {
@@ -99,6 +100,8 @@ public:
     ~stdin_file_lock() { _unlock_file(stdin); }
     stdin_file_lock(const stdin_file_lock&) = delete;
     stdin_file_lock& operator=(const stdin_file_lock&) = delete;
+    stdin_file_lock(stdin_file_lock&&) = delete;
+    stdin_file_lock& operator=(stdin_file_lock&&) = delete;
 };
 
 // Reads n bytes through stdin's FILE and, like fread(), waits until all have

@@ -124,8 +124,9 @@ inline clocale_handle clocale_duplicate(clocale_handle loc)
 
 inline void clocale_release(clocale_handle loc) noexcept
 {
-    _free_locale(loc->loc);
-    delete loc;
+    // Owned since clocale_create / clocale_duplicate released it from a unique_ptr.
+    const std::unique_ptr<windows_clocale> owned(loc);
+    _free_locale(owned->loc);
 }
 
 // The name of loc's LC_CTYPE category, as setlocale reports it. "POSIX" is not a name the

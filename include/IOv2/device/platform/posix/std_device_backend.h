@@ -94,6 +94,8 @@ public:
     ~stdin_file_lock() { funlockfile(stdin); }
     stdin_file_lock(const stdin_file_lock&) = delete;
     stdin_file_lock& operator=(const stdin_file_lock&) = delete;
+    stdin_file_lock(stdin_file_lock&&) = delete;
+    stdin_file_lock& operator=(stdin_file_lock&&) = delete;
 };
 
 // Reads n bytes through stdin's FILE and, like fread(), waits until all have
