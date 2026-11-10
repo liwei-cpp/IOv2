@@ -167,16 +167,16 @@ endif()
 # --------------------------------------------- optional third-party libraries
 #
 # Only the include directory and the link library are taken from pkg-config.
-# `pkg-config --cflags botan-2` also reports -fstack-protector -m64 -pthread,
+# `pkg-config --libs botan-3` also reports -fstack-protector -m64 -pthread,
 # which test/Makefile does not pass; -fstack-protector in particular changes code
 # generation, so adopting it would make the two builds incomparable. Dropping
-# CFLAGS_OTHER is what keeps this an equivalence migration. The target always
+# LDFLAGS_OTHER is what keeps this an equivalence migration. The target always
 # exists so suite construction stays uniform, but dependency-free component
 # selections leave it empty and perform no discovery.
 add_library(iov2_test_thirdparty INTERFACE)
 if(IOV2_TEST_NEEDS_OPTIONAL_DEPS)
   find_package(PkgConfig REQUIRED)
-  pkg_check_modules(BOTAN REQUIRED botan-2)
+  pkg_check_modules(BOTAN REQUIRED botan-3)
   find_package(ZLIB REQUIRED)
 
   # Plain INTERFACE, not SYSTEM: -isystem would suppress warnings from these

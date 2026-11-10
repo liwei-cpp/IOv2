@@ -584,7 +584,7 @@ jobs:
         clang-tidy $(find include/IOv2 -name '*.h' -not -path '*/platform/windows/*') \
           --checks="$IOV2_TIDY_CHECKS" \
           --warnings-as-errors='bugprone-*' \
-          -- -std=c++23 -x c++ -I include -I /usr/include -I /usr/include/botan-2
+          -- -std=c++23 -x c++ -I include -I /usr/include -I /usr/include/botan-3
 
   clang-tidy-windows:
     runs-on: windows-latest

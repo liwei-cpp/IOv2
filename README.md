@@ -193,7 +193,7 @@ make                        # header-only
 make IOV2_PKG=iov2-shared   # 共享 .so（无需 -DIOV2_SHARED）
 ```
 
-- **zlib / Botan 为可选依赖**：仅当使用压缩（`zlib_cvt`）或哈希（`hash_cvt`）转换器时才需要。两份 `.pc` 与 CMake 包都**不**强制链接它们；需要时自行追加 `$(shell pkg-config --cflags --libs zlib botan-2)`。
+- **zlib / Botan 3 为可选依赖**：仅当使用压缩（`zlib_cvt`）或哈希（`hash_cvt`）转换器时才需要。两份 `.pc` 与 CMake 包都**不**强制链接它们；需要时自行追加 `$(shell pkg-config --cflags --libs zlib botan-3)`。
 - **每种模式安装到各自的 PREFIX**：模式开关焙在单个头文件里，一棵头树只能对应一种模式。安装到非标准前缀时 `export PKG_CONFIG_PATH=<prefix>/<libdir>/pkgconfig`，可用 `pkg-config --modversion iov2` 验证。
 
 **编译宏一览**
@@ -236,7 +236,7 @@ make IOV2_PKG=iov2-shared   # 共享 .so（无需 -DIOV2_SHARED）
 - **依赖**：核心头文件库本身无需构建，但部分特性依赖 `zlib` 和 `Botan`。
 
 **运行测试**
-`test` 目录包含了所有的单元测试与验证程序，由 CMake/CTest 构建，按目录划分成套件。测试套件是独立于根目录打包工程的 CMake 工程，根就是 `test` 目录，以下命令都在该目录下执行。运行测试前，请确保系统中已安装必要的依赖（如 `botan-2` 和 `zlib` 开发包）。
+`test` 目录包含了所有的单元测试与验证程序，由 CMake/CTest 构建，按目录划分成套件。测试套件是独立于根目录打包工程的 CMake 工程，根就是 `test` 目录，以下命令都在该目录下执行。运行测试前，请确保系统中已安装必要的依赖（如 `botan-3` 和 `zlib` 开发包）。
 
 ```bash
 cd test
@@ -448,7 +448,7 @@ make                        # header-only
 make IOV2_PKG=iov2-shared   # shared .so (no -DIOV2_SHARED needed)
 ```
 
-- **zlib / Botan are optional**: needed only if you use the compression (`zlib_cvt`) or hashing (`hash_cvt`) converters. Neither `.pc` nor the CMake package links them; add `$(shell pkg-config --cflags --libs zlib botan-2)` yourself when you do.
+- **zlib / Botan 3 are optional**: needed only if you use the compression (`zlib_cvt`) or hashing (`hash_cvt`) converters. Neither `.pc` nor the CMake package links them; add `$(shell pkg-config --cflags --libs zlib botan-3)` yourself when you do.
 - **Install each mode into its own PREFIX**: the mode switch is baked into a single header, so one header tree corresponds to exactly one mode. For a non-standard prefix, `export PKG_CONFIG_PATH=<prefix>/<libdir>/pkgconfig` and verify with `pkg-config --modversion iov2`.
 
 **Compile-time macros**
@@ -491,7 +491,7 @@ Thread safety is provided **at the stream-object layer**: every stream owns a re
 - **Dependencies**: The core library requires no build, but specific converters depend on `zlib` and `Botan`.
 
 **Running Tests**
-The `test` directory contains all unit tests, built by CMake/CTest as one suite per directory. The test suite is a CMake project of its own, separate from the root packaging project and rooted at `test`, and the commands below run there. Ensure you have the necessary dependencies installed (e.g., `botan-2` and `zlib` development packages).
+The `test` directory contains all unit tests, built by CMake/CTest as one suite per directory. The test suite is a CMake project of its own, separate from the root packaging project and rooted at `test`, and the commands below run there. Ensure you have the necessary dependencies installed (e.g., `botan-3` and `zlib` development packages).
 
 ```bash
 cd test

@@ -6,7 +6,7 @@
 #
 # zlib and Botan are OPTIONAL and intentionally NOT linked here. libiov2.so
 # carries, via its own DT_NEEDED entries, whatever it actually uses at runtime.
-# You only need to link -lz / -lbotan-2 yourself if YOUR code uses the
+# You only need to link -lz / -lbotan-3 yourself if YOUR code uses the
 # compression (zlib_cvt) or hashing (hash_cvt) converters.
 #
 # Generated from pkgconfig/iov2-shared.pc.in by the root CMakeLists.txt.
