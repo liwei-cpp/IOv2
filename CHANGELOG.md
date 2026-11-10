@@ -149,6 +149,9 @@
   `is_mem_device<T>` 写作 `specialization_of<T, mem_device>`。
 - 根目录 `Makefile`（`make shared` / `install` / `install-shared` / `uninstall`）：改用根目录
   CMake 工程，见上文“变更”。
+- 不再支持 Botan 2：`chacha20_cvt` 与 `hash_cvt` 所需的 Botan 改为 Botan 3（`pkg-config botan-3`），
+  文档与测试随之更改。头文件本身未变，目前仍能用 Botan 2 编译，但不再测试，今后可能用到只有
+  Botan 3 才有的接口。
 
 #### 修复
 
@@ -418,6 +421,10 @@ have no release line of their own.
   e.g. `is_mem_device<T>` becomes `specialization_of<T, mem_device>`.
 - The root `Makefile` (`make shared` / `install` / `install-shared` / `uninstall`):
   use the root CMake project instead, see *Changed* above.
+- Botan 2 support: `chacha20_cvt` and `hash_cvt` now require Botan 3 (`pkg-config botan-3`),
+  and the documentation and tests have moved with them. The headers themselves are
+  unchanged and still compile against Botan 2 today, but that is no longer tested, and
+  later changes may use interfaces only Botan 3 has.
 
 #### Fixed
 

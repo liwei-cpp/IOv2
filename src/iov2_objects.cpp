@@ -21,9 +21,9 @@
  * 构建示例（Linux，按需替换第三方依赖与路径）：
  * @code
  *   g++ -std=c++23 -fPIC -fvisibility=hidden -shared \
- *       -Iinclude -I/usr/include/botan-2 -D_POSIX_C_SOURCE=200809L \
+ *       -Iinclude -I/usr/include/botan-3 -D_POSIX_C_SOURCE=200809L \
  *       -DIOV2_SHARED -DIOV2_EXPORTS src/iov2_objects.cpp \
- *       -o libiov2.so -lz -lbotan-2
+ *       -o libiov2.so -lz -lbotan-3
  *   # 或用根目录 CMake 工程 / or use the root CMake project:
  *   #   cmake -S . -B build/pkg-shared -DIOV2_BUILD_SHARED=ON && cmake --build build/pkg-shared
  *   # 客户：编译时加 -DIOV2_SHARED，链接时加 -liov2
@@ -53,9 +53,9 @@
  * Build example (Linux; substitute third-party deps/paths as needed):
  * @code
  *   g++ -std=c++23 -fPIC -fvisibility=hidden -shared \
- *       -Iinclude -I/usr/include/botan-2 -D_POSIX_C_SOURCE=200809L \
+ *       -Iinclude -I/usr/include/botan-3 -D_POSIX_C_SOURCE=200809L \
  *       -DIOV2_SHARED -DIOV2_EXPORTS src/iov2_objects.cpp \
- *       -o libiov2.so -lz -lbotan-2
+ *       -o libiov2.so -lz -lbotan-3
  *   # 或用根目录 CMake 工程 / or use the root CMake project:
  *   #   cmake -S . -B build/pkg-shared -DIOV2_BUILD_SHARED=ON && cmake --build build/pkg-shared
  *   # Consumers: compile with -DIOV2_SHARED, link with -liov2

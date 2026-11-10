@@ -6,7 +6,7 @@
 # zlib and Botan are OPTIONAL: they are needed only if your code uses the
 # compression converter (zlib_cvt) or the hashing converter (hash_cvt). This .pc
 # deliberately does NOT pull them in. If you use those features, include their
-# headers and link -lz / -lbotan-2 yourself (e.g. via `pkg-config zlib botan-2`).
+# headers and link -lz / -lbotan-3 yourself (e.g. via `pkg-config zlib botan-3`).
 #
 # Generated from pkgconfig/iov2.pc.in by the root CMakeLists.txt.
 prefix=@CMAKE_INSTALL_PREFIX@
