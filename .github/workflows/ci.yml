@@ -320,7 +320,7 @@ jobs:
     - name: Upload coverage.info
       # Codecov publishes a percentage; comparing a refactor against a baseline
       # needs the line set, which only the file itself carries.
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: coverage-cmake
         path: coverage.info
@@ -592,7 +592,9 @@ jobs:
     - uses: actions/checkout@v6
 
     - name: Set up the MSVC environment
-      uses: ilammy/msvc-dev-cmd@v1
+      uses: TheMrMilchmann/setup-msvc-dev@v4
+      with:
+        arch: x64
 
     # zlib's and Botan's headers, for the converters that include them: the same
     # test/vcpkg.json, binary cache and cache steps as the portability jobs (see
@@ -706,8 +708,10 @@ jobs:
     - name: Set up the MSVC environment
       # cl, clang-cl and the linker find the CRT and SDK through what vcvars
       # sets; the Ninja presets expect it to be in place already.
+      # TheMrMilchmann's maintained fork of ilammy/msvc-dev-cmd, whose last release
+      # still runs on the deprecated Node.js 20.
       if: runner.os == 'Windows'
-      uses: ilammy/msvc-dev-cmd@v1
+      uses: TheMrMilchmann/setup-msvc-dev@v4
       with:
         arch: ${{ matrix.arch || 'x64' }}
 
