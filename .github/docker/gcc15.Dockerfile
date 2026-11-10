@@ -20,6 +20,9 @@ ARG DEBIAN_FRONTEND=noninteractive
 # cmake and lcov are what the test suite is built and measured with; it moved
 # off test/Makefile, so make is now only needed for the top-level shared-library
 # packaging targets. curl fetches the GoogleTest source below.
+#
+# Botan 2 and 3 install side by side (include/botan-2, include/botan-3). Both are
+# here only while the build moves to Botan 3; libbotan-2-dev goes once it has.
 RUN apt-get update \
  && apt-get install -y \
       clang \
@@ -28,6 +31,7 @@ RUN apt-get update \
       curl \
       lcov \
       libbotan-2-dev \
+      libbotan-3-dev \
       locales-all \
       make \
       pkg-config \
