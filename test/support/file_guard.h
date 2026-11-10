@@ -20,19 +20,25 @@ namespace
             std::filesystem::remove(m_fileName);
             if (!buf.empty())
             {
-                std::ofstream t(m_fileName);
+                // Binary, as file_device opens files: text mode would turn \n into
+                // \r\n on Windows.
+                std::ofstream t(m_fileName, std::ios::binary);
                 t.write(reinterpret_cast<const char*>(buf.c_str()), buf.size());
             }
         }
         
+        // Windows refuses to remove a file something still holds open, and a test
+        // may declare its guard after the object that opens the file; the throwing
+        // overload would then end the process from a destructor.
         ~file_guard()
         {
-            std::filesystem::remove(m_fileName);
+            std::error_code ec;
+            std::filesystem::remove(m_fileName, ec);
         }
         
         std::basic_string<TChar> contents() const
         {
-            std::ifstream t(m_fileName);
+            std::ifstream t(m_fileName, std::ios::binary);
             std::stringstream buffer;
             buffer << t.rdbuf();
             return reinterpret_cast<const TChar*>(buffer.str().c_str());
