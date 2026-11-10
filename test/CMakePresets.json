@@ -113,28 +113,43 @@
       "description": "Cross-built on Linux for Windows (MSVC ABI) and run under Wine; see cmake/toolchains/windows-clangcl-xwin.cmake. IOV2_TEST_COMPONENTS lists the components, and the suites of partly ported ones, ported so far.",
       "generator": "Ninja",
       "toolchainFile": "${sourceDir}/cmake/toolchains/windows-clangcl-xwin.cmake",
-      "cacheVariables": { "IOV2_TEST_COMPONENTS": "common;device;cvt/root_cvt" }
+      "cacheVariables": { "IOV2_TEST_COMPONENTS": "common;device;cvt/root_cvt;cvt/runtime_cvt;cvt/comp;cvt/crypt" }
     },
     {
       "name": "win-clangcl-xwin-release",
       "inherits": "win-clangcl-xwin",
-      "displayName": "clang-cl -> Windows under Wine, release (/O2 /Z7 -DNDEBUG)"
+      "displayName": "clang-cl -> Windows under Wine, release (/O2 /Z7 -DNDEBUG)",
+      "description": "zlib and Botan cross-built for /MT, installed under ~/.cache/iov2-win-deps/release.",
+      "cacheVariables": {
+        "CMAKE_PREFIX_PATH": "$env{HOME}/.cache/iov2-win-deps/release",
+        "CMAKE_FIND_ROOT_PATH": "$env{HOME}/.cache/iov2-win-deps/release"
+      }
     },
     {
       "name": "win-clangcl-xwin-debug",
       "inherits": "win-clangcl-xwin",
       "displayName": "clang-cl -> Windows under Wine, debug CRT (/Od /Z7 /MTd)",
-      "cacheVariables": { "IOV2_TEST_MODE": "debug" }
+      "description": "zlib and Botan cross-built for /MTd, installed under ~/.cache/iov2-win-deps/debug.",
+      "cacheVariables": {
+        "IOV2_TEST_MODE": "debug",
+        "CMAKE_PREFIX_PATH": "$env{HOME}/.cache/iov2-win-deps/debug",
+        "CMAKE_FIND_ROOT_PATH": "$env{HOME}/.cache/iov2-win-deps/debug"
+      }
     },
 
     {
       "name": "windows",
       "hidden": true,
       "inherits": "base",
-      "description": "Native Windows, from a shell where the MSVC environment is set up (vcvars, or ilammy/msvc-dev-cmd in CI). IOV2_TEST_COMPONENTS lists the components, and the suites of partly ported ones, ported so far.",
+      "description": "Native Windows, from a shell where the MSVC environment is set up (vcvars, or ilammy/msvc-dev-cmd in CI) and VCPKG_ROOT names a vcpkg checkout: zlib and Botan come from vcpkg.json. IOV2_TEST_COMPONENTS lists the components, and the suites of partly ported ones, ported so far.",
       "generator": "Ninja",
       "condition": { "type": "equals", "lhs": "${hostSystemName}", "rhs": "Windows" },
-      "cacheVariables": { "IOV2_TEST_COMPONENTS": "common;device;cvt/root_cvt" }
+      "toolchainFile": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
+      "cacheVariables": {
+        "IOV2_TEST_COMPONENTS": "common;device;cvt/root_cvt;cvt/runtime_cvt;cvt/comp;cvt/crypt",
+        "VCPKG_TARGET_TRIPLET": "x64-windows",
+        "VCPKG_APPLOCAL_DEPS": "OFF"
+      }
     },
     {
       "name": "windows-msvc-release",
@@ -161,7 +176,8 @@
       "inherits": "windows",
       "displayName": "MSVC cl, 32-bit x86, release (/O2 /Z7 -DNDEBUG)",
       "description": "From a shell where the x86 MSVC environment is set up (vcvars32, or ilammy/msvc-dev-cmd with arch: x86).",
-      "environment": { "CC": "cl", "CXX": "cl" }
+      "environment": { "CC": "cl", "CXX": "cl" },
+      "cacheVariables": { "VCPKG_TARGET_TRIPLET": "x86-windows" }
     },
     {
       "name": "windows-clangcl-release",
@@ -173,10 +189,13 @@
       "name": "macos",
       "hidden": true,
       "inherits": "base",
-      "description": "IOV2_TEST_COMPONENTS lists the components, and the suites of partly ported ones, ported so far.",
+      "description": "zlib comes with the SDK and Botan from Homebrew (brew install botan), found under /opt/homebrew on Apple silicon and /usr/local on Intel. IOV2_TEST_COMPONENTS lists the components, and the suites of partly ported ones, ported so far.",
       "condition": { "type": "equals", "lhs": "${hostSystemName}", "rhs": "Darwin" },
       "environment": { "CXX": "clang++" },
-      "cacheVariables": { "IOV2_TEST_COMPONENTS": "common;device;cvt/root_cvt" }
+      "cacheVariables": {
+        "IOV2_TEST_COMPONENTS": "common;device;cvt/root_cvt;cvt/runtime_cvt;cvt/comp;cvt/crypt",
+        "CMAKE_PREFIX_PATH": "/opt/homebrew"
+      }
     },
     {
       "name": "macos-clang-release",

@@ -1,0 +1,12 @@
+{
+  "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
+  "description": "zlib and Botan 3 for the IOv2 test suite on Windows: the presets that set CMAKE_TOOLCHAIN_FILE to vcpkg's install them into the build tree.",
+  "dependencies": [
+    "zlib",
+    {
+      "name": "botan",
+      "default-features": false
+    }
+  ],
+  "builtin-baseline": "802d61d714db2714e3fefcfc59447431166b8367"
+}
