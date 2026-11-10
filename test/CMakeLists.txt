@@ -57,42 +57,62 @@ set(MEMORYCHECK_COMMAND_OPTIONS
 
 include(CTest)
 
-# Select top-level test components at configure time, not merely at CTest run
-# time. This lets a platform bring up (say) device without first making every
-# unrelated platform backend and optional dependency buildable.
+# Select tests at configure time, not merely at CTest run time. This lets a
+# platform bring up (say) device without first making every unrelated platform
+# backend and optional dependency buildable.
+#
+# An entry is a top-level component (cvt) or a directory below one
+# (cvt/root_cvt), and selects every suite at or below it, platform
+# subdirectories included. The second form lets a port open a component one
+# suite at a time.
 set(IOV2_TEST_KNOWN_COMPONENTS common concur cvt device facet io locale)
 set(IOV2_TEST_COMPONENTS "all" CACHE STRING
-    "Semicolon-separated top-level test components to configure, or 'all'")
+    "Semicolon-separated test components, or directories below them such as cvt/root_cvt, to configure; or 'all'")
 set_property(CACHE IOV2_TEST_COMPONENTS PROPERTY STRINGS
     all ${IOV2_TEST_KNOWN_COMPONENTS})
 
 if(IOV2_TEST_COMPONENTS STREQUAL "all")
-  set(IOV2_TEST_SELECTED_COMPONENTS ${IOV2_TEST_KNOWN_COMPONENTS})
+  set(IOV2_TEST_SELECTED_DIRS ${IOV2_TEST_KNOWN_COMPONENTS})
 else()
-  set(IOV2_TEST_SELECTED_COMPONENTS "")
-  foreach(component IN LISTS IOV2_TEST_COMPONENTS)
-    if(component STREQUAL "all")
+  set(IOV2_TEST_SELECTED_DIRS "")
+  list(JOIN IOV2_TEST_KNOWN_COMPONENTS ", " known_components)
+  foreach(entry IN LISTS IOV2_TEST_COMPONENTS)
+    if(entry STREQUAL "all")
       message(FATAL_ERROR
-          "IOV2_TEST_COMPONENTS may be 'all' or a component list, but not both")
+          "IOV2_TEST_COMPONENTS may be 'all' or a list of components and directories, but not both")
     endif()
+    # Plain names only: no "..", ".", leading or trailing "/", which would name a
+    # directory that the prefix match below never sees.
+    if(NOT entry MATCHES "^[A-Za-z0-9_]+(/[A-Za-z0-9_]+)*$")
+      message(FATAL_ERROR
+          "IOV2_TEST_COMPONENTS entry '${entry}' is not a component or a directory below one, "
+          "such as cvt or cvt/root_cvt")
+    endif()
+    string(REGEX REPLACE "/.*$" "" component "${entry}")
     if(NOT component IN_LIST IOV2_TEST_KNOWN_COMPONENTS)
-      list(JOIN IOV2_TEST_KNOWN_COMPONENTS ", " known_components)
       message(FATAL_ERROR
-          "Unknown IOV2_TEST_COMPONENTS entry '${component}'. Known components: ${known_components}")
+          "Unknown component in IOV2_TEST_COMPONENTS entry '${entry}'. Known components: ${known_components}")
     endif()
-    list(APPEND IOV2_TEST_SELECTED_COMPONENTS "${component}")
+    if(NOT IS_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/${entry}")
+      message(FATAL_ERROR
+          "IOV2_TEST_COMPONENTS entry '${entry}' names no directory under ${CMAKE_CURRENT_SOURCE_DIR}")
+    endif()
+    list(APPEND IOV2_TEST_SELECTED_DIRS "${entry}")
   endforeach()
-  list(REMOVE_DUPLICATES IOV2_TEST_SELECTED_COMPONENTS)
+  list(REMOVE_DUPLICATES IOV2_TEST_SELECTED_DIRS)
 endif()
 
-if(NOT IOV2_TEST_SELECTED_COMPONENTS)
+if(NOT IOV2_TEST_SELECTED_DIRS)
   message(FATAL_ERROR "IOV2_TEST_COMPONENTS must select at least one component")
 endif()
 
-# Today only cvt and io suites exercise the optional zlib/Botan converters.
+# Today only cvt and io suites exercise the optional zlib/Botan converters, and
+# selecting either whole component requires them. A directory below one does not
+# look them up at all, so a platform without them can open the suites that do
+# not use them; a selected suite that does fails to compile on the missing header.
+# Not a lookup that may fail: a cross build's pkg-config finds the host's Botan.
 set(IOV2_TEST_NEEDS_OPTIONAL_DEPS OFF)
-if("cvt" IN_LIST IOV2_TEST_SELECTED_COMPONENTS OR
-   "io" IN_LIST IOV2_TEST_SELECTED_COMPONENTS)
+if("cvt" IN_LIST IOV2_TEST_SELECTED_DIRS OR "io" IN_LIST IOV2_TEST_SELECTED_DIRS)
   set(IOV2_TEST_NEEDS_OPTIONAL_DEPS ON)
 endif()
 
@@ -137,22 +157,42 @@ endif()
 list(JOIN IOV2_TEST_OTHER_PLATFORM_DIRS "|" _other_platforms)
 
 set(IOV2_TEST_SELECTED_SOURCES "")
+set(_selected_rels "")
 foreach(source IN LISTS IOV2_TEST_ALL_SOURCES)
   file(RELATIVE_PATH source_rel "${CMAKE_CURRENT_SOURCE_DIR}" "${source}")
-  string(REGEX REPLACE "/.*$" "" source_component "${source_rel}")
-  if(NOT source_component IN_LIST IOV2_TEST_SELECTED_COMPONENTS)
+  set(_in_selection FALSE)
+  foreach(dir IN LISTS IOV2_TEST_SELECTED_DIRS)
+    string(FIND "${source_rel}" "${dir}/" _pos)
+    if(_pos EQUAL 0)
+      set(_in_selection TRUE)
+      break()
+    endif()
+  endforeach()
+  if(NOT _in_selection)
     continue()
   endif()
   if(_other_platforms AND source_rel MATCHES "/(${_other_platforms})/")
     continue()
   endif()
   list(APPEND IOV2_TEST_SELECTED_SOURCES "${source}")
+  list(APPEND _selected_rels "${source_rel}")
 endforeach()
 
 if(NOT IOV2_TEST_SELECTED_SOURCES)
   message(FATAL_ERROR
       "IOV2_TEST_COMPONENTS='${IOV2_TEST_COMPONENTS}' selected no test sources")
 endif()
+
+# An entry that selects nothing here is a mistake, such as a directory that holds
+# only another platform's tests. The entries are plain names, safe in a regex.
+foreach(dir IN LISTS IOV2_TEST_SELECTED_DIRS)
+  set(_hits ${_selected_rels})
+  list(FILTER _hits INCLUDE REGEX "^${dir}/")
+  if(NOT _hits)
+    message(FATAL_ERROR
+        "IOV2_TEST_COMPONENTS entry '${dir}' selects no test source on this platform")
+  endif()
+endforeach()
 
 set(IOV2_TEST_SUITE_DIRS "")
 foreach(source IN LISTS IOV2_TEST_SELECTED_SOURCES)
