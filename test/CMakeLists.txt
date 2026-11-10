@@ -110,7 +110,7 @@ endif()
 # selecting either whole component requires them. A directory below one does not
 # look them up at all, so a platform without them can open the suites that do
 # not use them; a selected suite that does fails to compile on the missing header.
-# Not a lookup that may fail: a cross build's pkg-config finds the host's Botan.
+# Not a lookup that may fail: a cross build may find the host's libraries.
 set(IOV2_TEST_NEEDS_OPTIONAL_DEPS OFF)
 if("cvt" IN_LIST IOV2_TEST_SELECTED_DIRS OR "io" IN_LIST IOV2_TEST_SELECTED_DIRS)
   set(IOV2_TEST_NEEDS_OPTIONAL_DEPS ON)

@@ -166,22 +166,33 @@ endif()
 
 # --------------------------------------------- optional third-party libraries
 #
-# Only the include directory and the link library are taken from pkg-config.
-# `pkg-config --libs botan-3` also reports -fstack-protector -m64 -pthread,
-# which test/Makefile does not pass; -fstack-protector in particular changes code
-# generation, so adopting it would make the two builds incomparable. Dropping
-# LDFLAGS_OTHER is what keeps this an equivalence migration. The target always
-# exists so suite construction stays uniform, but dependency-free selections
-# leave it empty and perform no discovery.
+# Botan 3 installs a CMake package of its own, and so do the distribution
+# packages and vcpkg's port, so it is found the same way everywhere; Windows has
+# no pkg-config to lean on. The package names its target Botan::Botan when there
+# is a shared library and Botan::Botan-static when there is only a static one.
+# It also adds -fstack-protector -m64 -pthread to the link, which is harmless:
+# at link time they generate no code.
+#
+# The target always exists so suite construction stays uniform, but
+# dependency-free selections leave it empty and perform no discovery.
 add_library(iov2_test_thirdparty INTERFACE)
 if(IOV2_TEST_NEEDS_OPTIONAL_DEPS)
-  find_package(PkgConfig REQUIRED)
-  pkg_check_modules(BOTAN REQUIRED botan-3)
+  find_package(Botan 3 CONFIG REQUIRED)
   find_package(ZLIB REQUIRED)
 
-  # Plain INTERFACE, not SYSTEM: -isystem would suppress warnings from these
-  # headers, and with -Werror that is the difference between a build the
-  # Makefile fails and one CMake lets through.
-  target_include_directories(iov2_test_thirdparty INTERFACE ${BOTAN_INCLUDE_DIRS})
-  target_link_libraries(iov2_test_thirdparty INTERFACE ${BOTAN_LIBRARIES} ZLIB::ZLIB)
+  if(TARGET Botan::Botan)
+    set(_iov2_botan Botan::Botan)
+  else()
+    set(_iov2_botan Botan::Botan-static)
+  endif()
+  # Not SYSTEM, which an imported target is by default: -isystem would suppress
+  # warnings from Botan's headers, and with -Werror those should fail the build.
+  # The property goes on the target behind the alias.
+  get_target_property(_iov2_botan_real ${_iov2_botan} ALIASED_TARGET)
+  if(NOT _iov2_botan_real)
+    set(_iov2_botan_real ${_iov2_botan})
+  endif()
+  set_target_properties(${_iov2_botan_real} PROPERTIES SYSTEM FALSE)
+
+  target_link_libraries(iov2_test_thirdparty INTERFACE ${_iov2_botan} ZLIB::ZLIB)
 endif()
