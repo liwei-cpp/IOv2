@@ -177,26 +177,73 @@ endif()
 # It also adds -fstack-protector -m64 -pthread to the link, which is harmless:
 # at link time they generate no code.
 #
-# The target always exists so suite construction stays uniform, but
-# dependency-free selections leave it empty and perform no discovery.
-add_library(iov2_test_thirdparty INTERFACE)
-if(IOV2_TEST_NEEDS_OPTIONAL_DEPS)
-  find_package(Botan 3 CONFIG REQUIRED)
-  find_package(ZLIB REQUIRED)
+# Required whatever the selection: every platform the tests run on has both
+# (Windows through vcpkg, see vcpkg.json; macOS through Homebrew), and one rule
+# is simpler than tracking which suites use them.
+find_package(Botan 3 CONFIG REQUIRED)
+find_package(ZLIB REQUIRED)
 
-  if(TARGET Botan::Botan)
-    set(_iov2_botan Botan::Botan)
-  else()
-    set(_iov2_botan Botan::Botan-static)
-  endif()
-  # Not SYSTEM, which an imported target is by default: -isystem would suppress
-  # warnings from Botan's headers, and with -Werror those should fail the build.
-  # The property goes on the target behind the alias.
-  get_target_property(_iov2_botan_real ${_iov2_botan} ALIASED_TARGET)
-  if(NOT _iov2_botan_real)
-    set(_iov2_botan_real ${_iov2_botan})
-  endif()
-  set_target_properties(${_iov2_botan_real} PROPERTIES SYSTEM FALSE)
-
-  target_link_libraries(iov2_test_thirdparty INTERFACE ${_iov2_botan} ZLIB::ZLIB)
+if(TARGET Botan::Botan)
+  set(_iov2_botan Botan::Botan)
+else()
+  set(_iov2_botan Botan::Botan-static)
 endif()
+# Not SYSTEM, which an imported target is by default: -isystem would suppress
+# warnings from Botan's headers, and with -Werror those should fail the build.
+# The property goes on the target behind the alias.
+get_target_property(_iov2_botan_real ${_iov2_botan} ALIASED_TARGET)
+if(NOT _iov2_botan_real)
+  set(_iov2_botan_real ${_iov2_botan})
+endif()
+set_target_properties(${_iov2_botan_real} PROPERTIES SYSTEM FALSE)
+
+# vcpkg builds a debug Botan as well, but Botan's package names a single library
+# for every configuration, and this build has no configuration anyway (the debug
+# CRT comes from IOV2_TEST_MODE, above). So the debug mode would link the release
+# DLL, whose STL has another layout: the first std::string to cross the DLL
+# boundary crashes (hash_cvt's hex_encode). Swap in vcpkg's debug copies, which
+# have the same file names.
+if(MSVC AND IOV2_TEST_MODE STREQUAL "debug" AND DEFINED VCPKG_INSTALLED_DIR)
+  set(_iov2_vcpkg_debug "${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/debug")
+  foreach(_iov2_prop IN ITEMS IMPORTED_LOCATION IMPORTED_IMPLIB
+                              IMPORTED_LOCATION_NOCONFIG IMPORTED_IMPLIB_NOCONFIG)
+    get_target_property(_iov2_release_file ${_iov2_botan_real} ${_iov2_prop})
+    if(NOT _iov2_release_file OR NOT EXISTS "${_iov2_release_file}")
+      continue()
+    endif()
+    cmake_path(GET _iov2_release_file FILENAME _iov2_name)
+    cmake_path(GET _iov2_release_file PARENT_PATH _iov2_dir)
+    cmake_path(GET _iov2_dir FILENAME _iov2_subdir)       # bin or lib
+    set(_iov2_debug_file "${_iov2_vcpkg_debug}/${_iov2_subdir}/${_iov2_name}")
+    if(NOT EXISTS "${_iov2_debug_file}")
+      message(FATAL_ERROR "No debug Botan at ${_iov2_debug_file}, for ${_iov2_release_file}")
+    endif()
+    set_target_properties(${_iov2_botan_real} PROPERTIES ${_iov2_prop} "${_iov2_debug_file}")
+  endforeach()
+
+  # FindZLIB does know both of vcpkg's zlibs, as the RELEASE and DEBUG
+  # configurations of ZLIB::ZLIB, but with no configuration CMake takes RELEASE,
+  # zlib1.dll, absent from debug/bin (the debug one is zlibd1.dll). Windows then
+  # stops each such test on a dialog that nobody dismisses.
+  get_target_property(_iov2_zlib_configs ZLIB::ZLIB IMPORTED_CONFIGURATIONS)
+  if(NOT "DEBUG" IN_LIST _iov2_zlib_configs)
+    message(FATAL_ERROR "ZLIB::ZLIB has no DEBUG configuration (only '${_iov2_zlib_configs}')")
+  endif()
+  set_target_properties(ZLIB::ZLIB PROPERTIES MAP_IMPORTED_CONFIG_NOCONFIG DEBUG)
+endif()
+
+# The DLLs the tests load, for CTest to put first on PATH. vcpkg's own copying
+# next to each executable is turned off in the presets: it picks bin/ or
+# debug/bin/ by configuration, which this build lacks, and the debug and
+# release Botan DLLs share a name, so the debug mode got the release one.
+if(DEFINED VCPKG_INSTALLED_DIR)
+  if(MSVC AND IOV2_TEST_MODE STREQUAL "debug")
+    set(_iov2_dll_dir "${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/debug/bin")
+  else()
+    set(_iov2_dll_dir "${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/bin")
+  endif()
+  cmake_path(NATIVE_PATH _iov2_dll_dir IOV2_TEST_DLL_DIR)
+endif()
+
+add_library(iov2_test_thirdparty INTERFACE)
+target_link_libraries(iov2_test_thirdparty INTERFACE ${_iov2_botan} ZLIB::ZLIB)

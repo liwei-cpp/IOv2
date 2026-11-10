@@ -106,16 +106,6 @@ if(NOT IOV2_TEST_SELECTED_DIRS)
   message(FATAL_ERROR "IOV2_TEST_COMPONENTS must select at least one component")
 endif()
 
-# Today only cvt and io suites exercise the optional zlib/Botan converters, and
-# selecting either whole component requires them. A directory below one does not
-# look them up at all, so a platform without them can open the suites that do
-# not use them; a selected suite that does fails to compile on the missing header.
-# Not a lookup that may fail: a cross build may find the host's libraries.
-set(IOV2_TEST_NEEDS_OPTIONAL_DEPS OFF)
-if("cvt" IN_LIST IOV2_TEST_SELECTED_DIRS OR "io" IN_LIST IOV2_TEST_SELECTED_DIRS)
-  set(IOV2_TEST_NEEDS_OPTIONAL_DEPS ON)
-endif()
-
 include(IOv2TestOptions)
 include(IOv2GoogleTest)
 
@@ -266,6 +256,12 @@ foreach(suite_dir IN LISTS IOV2_TEST_SUITE_DIRS)
   if(suite_environment)
     set_tests_properties(${IOV2_SUITE_NAME} PROPERTIES
         ENVIRONMENT "${suite_environment}")
+  endif()
+  # Where vcpkg's DLLs are (see IOv2TestOptions.cmake); outside CTest, put the
+  # same directory on PATH to run a suite by hand.
+  if(IOV2_TEST_DLL_DIR)
+    set_tests_properties(${IOV2_SUITE_NAME} PROPERTIES
+        ENVIRONMENT_MODIFICATION "PATH=path_list_prepend:${IOV2_TEST_DLL_DIR}")
   endif()
 endforeach()
 

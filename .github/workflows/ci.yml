@@ -608,7 +608,7 @@ jobs:
 
   # The platforms the cross-platform port has reached. Each builds and runs only
   # the components ported so far -- IOV2_TEST_COMPONENTS in its preset, today
-  # common, device and cvt/root_cvt -- and grows as the port does; the Linux jobs above stay the full
+  # common, device and four cvt suites -- and grows as the port does; the Linux jobs above stay the full
   # gate. No container: the GHCR image is Linux-only, and the point here is the
   # platform's own compiler, standard library and C runtime.
   portability:
@@ -673,6 +673,40 @@ jobs:
       with:
         arch: ${{ matrix.arch || 'x64' }}
 
+    # zlib and Botan. On Windows the presets install test/vcpkg.json through the
+    # runner's vcpkg during configure; building Botan takes minutes, so the built
+    # packages are cached, one cache per architecture. macOS has zlib in the SDK.
+    #
+    # vcpkg reuses a cached package only if its ABI hash still matches, which
+    # covers the compiler too: an image with a newer MSVC rebuilds. So the cache
+    # is keyed per run and restored from the latest one, and a run saves only
+    # when vcpkg added packages; a fixed key would be restored as a hit and never
+    # replaced, leaving every later run to rebuild.
+    - name: Point vcpkg at the runner's checkout and a binary cache
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: |
+        "VCPKG_ROOT=$env:VCPKG_INSTALLATION_ROOT" >> $env:GITHUB_ENV
+        "VCPKG_BINARY_SOURCES=clear;files,${{ github.workspace }}\vcpkg-cache,readwrite" >> $env:GITHUB_ENV
+
+    - name: Restore the vcpkg binary cache
+      if: runner.os == 'Windows'
+      uses: actions/cache/restore@v6
+      with:
+        path: vcpkg-cache
+        key: vcpkg-${{ matrix.arch || 'x64' }}-${{ hashFiles('test/vcpkg.json') }}-${{ github.run_id }}-${{ github.run_attempt }}
+        restore-keys: vcpkg-${{ matrix.arch || 'x64' }}-${{ hashFiles('test/vcpkg.json') }}
+
+    - name: Note what the vcpkg cache holds
+      if: runner.os == 'Windows'
+      id: vcpkg-before
+      shell: bash
+      run: echo "hash=${{ hashFiles('vcpkg-cache/**') }}" >> "$GITHUB_OUTPUT"
+
+    - name: Install Botan
+      if: runner.os == 'macOS'
+      run: brew install botan
+
     - name: Configure and build
       working-directory: test
       run: |
@@ -681,6 +715,15 @@ jobs:
         # run, not the first one per run.
         cmake --preset ${{ matrix.preset }}
         cmake --build --preset ${{ matrix.preset }} --parallel ${{ matrix.jobs }} -- ${{ matrix.keep_going }}
+
+    # Saved even when the build fails, as long as vcpkg added packages: they were
+    # built either way.
+    - name: Save the vcpkg binary cache
+      if: always() && runner.os == 'Windows' && hashFiles('vcpkg-cache/**') != '' && hashFiles('vcpkg-cache/**') != steps.vcpkg-before.outputs.hash
+      uses: actions/cache/save@v6
+      with:
+        path: vcpkg-cache
+        key: vcpkg-${{ matrix.arch || 'x64' }}-${{ hashFiles('test/vcpkg.json') }}-${{ github.run_id }}-${{ github.run_attempt }}
 
     - name: Run tests
       working-directory: test
