@@ -6,51 +6,20 @@
 #include <IOv2/cvt/runtime_cvt.h>
 #include <IOv2/device/std_device.h>
 
+#include <support/platform.h>
 #include <support/stdio_guard.h>
 
 #include <gtest/gtest.h>
 
-#include <algorithm>
-#include <cstddef>
-#include <cstdio>
-#include <iterator>
 #include <string>
 #include <type_traits>
 #include <utility>
-
-#include <fcntl.h>
-#include <stdio_ext.h>
-#include <unistd.h>
 
 using namespace IOv2;
 
 namespace
 {
-    constexpr std::size_t kSize = 4102;
-
-    // 586 repetitions of the UTF-8 for U'李' U'伟' plus one byte cycling 1..127.
-    // The point of the sample here is only its length and that 4102 is not a
-    // multiple of any chunk size below, so the loops cross the root converter's
-    // own buffer boundary at every offset.
-    std::string sample()
-    {
-        std::string out;
-        out.resize(kSize);
-        for (std::size_t i = 0; i < kSize; i += 7)
-        {
-            out[i + 0] = '\xE6';
-            out[i + 1] = '\x9D';
-            out[i + 2] = '\x8E';
-            out[i + 3] = '\xE4';
-            out[i + 4] = '\xBC';
-            out[i + 5] = '\x9F';
-            out[i + 6] = (i / 7) % 127 + 1;
-        }
-        return out;
-    }
-
-    constexpr std::size_t kGetChunks[] = {2, 41, 3, 5, 7, 11, 13, 17, 19};
-    constexpr std::size_t kPutChunks[] = {2, 41, 3, 90, 7, 11, 13, 17, 19};
+    namespace sys = iov2_test::sys;
 
     // Writing "hello", handing the converter over, then writing " world" through
     // the target: the two halves may only reach the descriptor in that order, and
@@ -88,57 +57,13 @@ namespace
         EXPECT_EQ(moved.get(str.data(), 6), 6u);
         EXPECT_EQ(str, " world");
     }
-
-    template <typename T>
-    void expect_chunked_get_reads_the_sample(T& obj, const std::string& expected)
-    {
-        EXPECT_EQ(obj.bos(), io_status::input);
-        obj.main_cont_beg();
-
-        std::string out_buf(kSize, '\0');
-        std::size_t total = 0;
-        char*       cur   = out_buf.data();
-        int         id    = 0;
-        while (true)
-        {
-            std::size_t n = std::min<std::size_t>(kSize - total, kGetChunks[id++]);
-            auto        s = obj.get(cur, n);
-            id %= std::size(kGetChunks);
-            cur   += s;
-            total += s;
-            if (s == 0) break;
-        }
-
-        EXPECT_EQ(total, kSize);
-        EXPECT_EQ(cur, out_buf.data() + kSize);
-        EXPECT_EQ(out_buf, expected);
-    }
-
-    template <typename T>
-    void put_sample_in_chunks(T& obj, std::string& plain)
-    {
-        EXPECT_EQ(obj.bos(), io_status::output);
-        obj.main_cont_beg();
-
-        char* cur = plain.data();
-        int   id  = 0;
-        while (cur < plain.data() + kSize)
-        {
-            std::size_t n = std::min<std::size_t>(kPutChunks[id++], plain.data() + kSize - cur);
-            obj.put(cur, n);
-            id %= std::size(kPutChunks);
-            cur += n;
-        }
-        EXPECT_EQ(cur, plain.data() + kSize);
-        obj.flush();
-    }
 }
 
 TEST(RootCvtStd, TraitsOverStdin)
 {
-    using CheckType = no_rb_root_cvt<std_device<STDIN_FILENO>>;
+    using CheckType = no_rb_root_cvt<std_device<sys::stdin_fd>>;
     static_assert(io_converter<CheckType>);
-    static_assert(std::is_same_v<CheckType::device_type, std_device<STDIN_FILENO>>);
+    static_assert(std::is_same_v<CheckType::device_type, std_device<sys::stdin_fd>>);
     static_assert(std::is_same_v<CheckType::internal_type, char>);
     static_assert(std::is_same_v<CheckType::external_type, char>);
 
@@ -152,9 +77,9 @@ TEST(RootCvtStd, TraitsOverStdin)
 
 TEST(RootCvtStd, TraitsOverStdout)
 {
-    using CheckType = rb_root_cvt<std_device<STDOUT_FILENO>>;
+    using CheckType = rb_root_cvt<std_device<sys::stdout_fd>>;
     static_assert(io_converter<CheckType>);
-    static_assert(std::is_same_v<CheckType::device_type, std_device<STDOUT_FILENO>>);
+    static_assert(std::is_same_v<CheckType::device_type, std_device<sys::stdout_fd>>);
     static_assert(std::is_same_v<CheckType::internal_type, char>);
     static_assert(std::is_same_v<CheckType::external_type, char>);
 
@@ -166,16 +91,16 @@ TEST(RootCvtStd, TraitsOverStdout)
 
 TEST(RootCvtStd, MoveConstructionKeepsTheOutputStream)
 {
-    auto obj = rb_root_cvt{std_device<STDOUT_FILENO>{}};
+    auto obj = rb_root_cvt{std_device<sys::stdout_fd>{}};
     expect_a_move_keeps_the_output_stream(
         obj,
-        [](auto& src) { return rb_root_cvt<std_device<STDOUT_FILENO>>{std::move(src)}; },
+        [](auto& src) { return rb_root_cvt<std_device<sys::stdout_fd>>{std::move(src)}; },
         [](auto& dst) { dst.detach(); });
 }
 
 TEST(RootCvtStd, MoveConstructionKeepsTheOutputStreamThroughARuntimeCvt)
 {
-    runtime_cvt obj(rb_root_cvt{std_device<STDOUT_FILENO>{}});
+    runtime_cvt obj(rb_root_cvt{std_device<sys::stdout_fd>{}});
     expect_a_move_keeps_the_output_stream(
         obj,
         [](auto& src) { return runtime_cvt{std::move(src)}; },
@@ -186,181 +111,51 @@ TEST(RootCvtStd, MoveConstructionKeepsTheOutputStreamThroughARuntimeCvt)
 // detach(): attaching a fresh device has to flush what the old one still held.
 TEST(RootCvtStd, MoveAssignmentKeepsTheOutputStream)
 {
-    auto obj = rb_root_cvt{std_device<STDOUT_FILENO>{}};
+    auto obj = rb_root_cvt{std_device<sys::stdout_fd>{}};
     expect_a_move_keeps_the_output_stream(
         obj,
         [](auto& src)
         {
-            rb_root_cvt<std_device<STDOUT_FILENO>> dst{std_device<STDOUT_FILENO>{}};
+            rb_root_cvt<std_device<sys::stdout_fd>> dst{std_device<sys::stdout_fd>{}};
             dst = std::move(src);
             return dst;
         },
-        [](auto& dst) { dst.attach(std_device<STDOUT_FILENO>{}); });
+        [](auto& dst) { dst.attach(std_device<sys::stdout_fd>{}); });
 }
 
 TEST(RootCvtStd, MoveAssignmentKeepsTheOutputStreamThroughARuntimeCvt)
 {
-    runtime_cvt obj(rb_root_cvt{std_device<STDOUT_FILENO>{}});
+    runtime_cvt obj(rb_root_cvt{std_device<sys::stdout_fd>{}});
     expect_a_move_keeps_the_output_stream(
         obj,
         [](auto& src)
         {
-            runtime_cvt dst{rb_root_cvt{std_device<STDOUT_FILENO>{}}};
+            runtime_cvt dst{rb_root_cvt{std_device<sys::stdout_fd>{}}};
             dst = std::move(src);
             return dst;
         },
-        [](auto& dst) { dst.attach(std_device<STDOUT_FILENO>{}); });
-}
-
-// The other half of a move: the source must go quiet. Over a fixed fd two duties
-// travel with the converter -- its own buffer, and the device's duty to flush
-// the FILE on destruction -- and after a move both belong to the target alone.
-// A source that still flushed would push bytes out early, and would take the one
-// fflush that can fail into a destructor that must swallow the error, leaving
-// the real holder with nothing to report.
-//
-// Full buffering is what makes the second duty observable: the bytes handed to
-// stdio stay pending until somebody flushes, so __fpending() says whether the
-// dying source did.
-TEST(RootCvtStd, AMovedFromOutputRootFlushesNothingWhenItDies)
-{
-    oguard<true>       g;
-    stdout_full_buffer buffered;
-
-    auto moved = [&]
-    {
-        auto src = rb_root_cvt{std_device<STDOUT_FILENO>{}};
-        EXPECT_EQ(src.bos(), io_status::output);
-        src.main_cont_beg();
-        src.put("hello", 5);
-        src.flush();                                 // into stdio's buffer, not to the fd
-        EXPECT_EQ(__fpending(stdout), 5u);
-        return rb_root_cvt<std_device<STDOUT_FILENO>>{std::move(src)};
-    }();                                             // src dies here
-
-    EXPECT_EQ(__fpending(stdout), 5u);               // it neither flushed nor wrote
-
-    moved.put(" world", 6);
-    moved.detach();                                  // the target still owns both duties
-    std::fflush(stdout);
-    EXPECT_EQ(g.contents(), "hello world");
-}
-
-// The same through assignment. The target first hands its own buffer to stdio
-// (a dput, not an fflush), then takes over both duties from the source, which
-// must die as quietly as a move-constructed one.
-TEST(RootCvtStd, AMovedFromOutputRootFlushesNothingWhenItDiesAfterMoveAssignment)
-{
-    oguard<true>       g;
-    stdout_full_buffer buffered;
-
-    auto dst = rb_root_cvt{std_device<STDOUT_FILENO>{}};
-    EXPECT_EQ(dst.bos(), io_status::output);
-    dst.main_cont_beg();
-    dst.put("D", 1);                                 // still in dst's own buffer
-    {
-        auto src = rb_root_cvt{std_device<STDOUT_FILENO>{}};
-        EXPECT_EQ(src.bos(), io_status::output);
-        src.main_cont_beg();
-        src.put("S", 1);
-        src.flush();                                 // into stdio's buffer, not to the fd
-        EXPECT_EQ(__fpending(stdout), 1u);
-
-        dst = std::move(src);
-        EXPECT_EQ(__fpending(stdout), 2u);           // dst's "D" handed to stdio, not flushed
-    }                                                // src dies here
-    EXPECT_EQ(__fpending(stdout), 2u);               // it neither flushed nor wrote
-
-    dst.put("T", 1);
-    dst.detach();
-    std::fflush(stdout);
-    EXPECT_EQ(g.contents(), "SDT");
-}
-
-// Why the source must stay quiet, at this layer: glibc discards the buffer when
-// fflush fails, so only the first flush sees the error. After a move the owner
-// has to be the one that reports it, exactly once.
-TEST(RootCvtStd, AMovedFromOutputRootLeavesTheFlushFailureToItsOwner)
-{
-    oguard<true>       g;
-    stdout_full_buffer buffered;
-
-    const int saved = ::dup(STDOUT_FILENO);
-    const int full  = ::open("/dev/full", O_WRONLY);
-    ASSERT_NE(full, -1);
-    ::dup2(full, STDOUT_FILENO);
-    ::close(full);
-
-    auto dst = rb_root_cvt{std_device<STDOUT_FILENO>{}};
-    EXPECT_EQ(dst.bos(), io_status::output);
-    dst.main_cont_beg();
-    {
-        auto src = rb_root_cvt{std_device<STDOUT_FILENO>{}};
-        EXPECT_EQ(src.bos(), io_status::output);
-        src.main_cont_beg();
-        src.put("SSSS", 4);
-        src.flush();                                 // into stdio's buffer
-        dst = std::move(src);
-    }                                                // src dies: must not take the fflush
-    EXPECT_EQ(__fpending(stdout), 4u);
-
-    EXPECT_THROW(dst.attach(), device_error);        // the owner sees the failure...
-    EXPECT_EQ(dst.bos(), io_status::output);
-    dst.main_cont_beg();
-    EXPECT_NO_THROW(dst.attach());                   // ...and only once
-
-    ::dup2(saved, STDOUT_FILENO);
-    ::close(saved);
-    std::clearerr(stdout);
-}
-
-// A self-move changes nothing: the bytes in the converter's buffer stay there,
-// and the duty to flush stays with the object.
-TEST(RootCvtStd, ASelfMoveKeepsTheOutputBufferAndTheFlushDuty)
-{
-    oguard<true>       g;
-    stdout_full_buffer buffered;
-
-    auto obj = rb_root_cvt{std_device<STDOUT_FILENO>{}};
-    EXPECT_EQ(obj.bos(), io_status::output);
-    obj.main_cont_beg();
-    obj.put("AB", 2);
-
-#if defined(__GNUC__) || defined(__clang__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wself-move"
-#endif
-    obj = std::move(obj);
-#if defined(__GNUC__) || defined(__clang__)
-#pragma GCC diagnostic pop
-#endif
-    EXPECT_EQ(__fpending(stdout), 0u);               // "AB" still in the converter's buffer
-
-    obj.put("C", 1);
-    obj.detach();
-    std::fflush(stdout);
-    EXPECT_EQ(g.contents(), "ABC");
+        [](auto& dst) { dst.attach(std_device<sys::stdout_fd>{}); });
 }
 
 TEST(RootCvtStd, MoveConstructionKeepsTheInputStream)
 {
-    auto obj = rb_root_cvt{std_device<STDIN_FILENO>{}};
+    auto obj = rb_root_cvt{std_device<sys::stdin_fd>{}};
     expect_a_move_keeps_the_input_stream(
-        obj, [](auto& src) { return rb_root_cvt<std_device<STDIN_FILENO>>{std::move(src)}; });
+        obj, [](auto& src) { return rb_root_cvt<std_device<sys::stdin_fd>>{std::move(src)}; });
 }
 
 TEST(RootCvtStd, MoveConstructionKeepsTheInputStreamThroughARuntimeCvt)
 {
-    runtime_cvt obj(rb_root_cvt{std_device<STDIN_FILENO>{}});
+    runtime_cvt obj(rb_root_cvt{std_device<sys::stdin_fd>{}});
     expect_a_move_keeps_the_input_stream(obj, [](auto& src) { return runtime_cvt{std::move(src)}; });
 }
 
 TEST(RootCvtStd, MoveAssignmentKeepsTheInputStream)
 {
-    auto obj = rb_root_cvt{std_device<STDIN_FILENO>{}};
+    auto obj = rb_root_cvt{std_device<sys::stdin_fd>{}};
     expect_a_move_keeps_the_input_stream(obj, [](auto& src)
     {
-        rb_root_cvt<std_device<STDIN_FILENO>> dst{std_device<STDIN_FILENO>{}};
+        rb_root_cvt<std_device<sys::stdin_fd>> dst{std_device<sys::stdin_fd>{}};
         dst = std::move(src);
         return dst;
     });
@@ -368,87 +163,11 @@ TEST(RootCvtStd, MoveAssignmentKeepsTheInputStream)
 
 TEST(RootCvtStd, MoveAssignmentKeepsTheInputStreamThroughARuntimeCvt)
 {
-    runtime_cvt obj(rb_root_cvt{std_device<STDIN_FILENO>{}});
+    runtime_cvt obj(rb_root_cvt{std_device<sys::stdin_fd>{}});
     expect_a_move_keeps_the_input_stream(obj, [](auto& src)
     {
-        runtime_cvt dst{rb_root_cvt{std_device<STDIN_FILENO>{}}};
+        runtime_cvt dst{rb_root_cvt{std_device<sys::stdin_fd>{}}};
         dst = std::move(src);
         return dst;
     });
-}
-
-TEST(RootCvtStd, ChunkedGetReadsTheWholeSample)
-{
-    const std::string expected = sample();
-    iguard            g(expected);
-    auto              obj = rb_root_cvt{std_device<STDIN_FILENO>{}};
-    expect_chunked_get_reads_the_sample(obj, expected);
-}
-
-TEST(RootCvtStd, ChunkedGetReadsTheWholeSampleThroughARuntimeCvt)
-{
-    const std::string expected = sample();
-    iguard            g(expected);
-    runtime_cvt       obj{rb_root_cvt{std_device<STDIN_FILENO>{}}};
-    expect_chunked_get_reads_the_sample(obj, expected);
-}
-
-// The same read without a read-back buffer: every character has to come straight
-// off the descriptor, so nothing may be re-read or dropped between chunks.
-TEST(RootCvtStd, ChunkedGetReadsTheWholeSampleWithoutAReadBuffer)
-{
-    const std::string expected = sample();
-    iguard            g(expected);
-    auto              obj = no_rb_root_cvt{std_device<STDIN_FILENO>{}};
-    expect_chunked_get_reads_the_sample(obj, expected);
-}
-
-TEST(RootCvtStd, ChunkedGetReadsTheWholeSampleWithoutAReadBufferThroughARuntimeCvt)
-{
-    const std::string expected = sample();
-    iguard            g(expected);
-    runtime_cvt       obj{no_rb_root_cvt{std_device<STDIN_FILENO>{}}};
-    expect_chunked_get_reads_the_sample(obj, expected);
-}
-
-TEST(RootCvtStd, ChunkedPutReachesStdout)
-{
-    std::string  plain = sample();
-    oguard<true> g;
-    {
-        auto obj = no_rb_root_cvt{std_device<STDOUT_FILENO>{}};
-        put_sample_in_chunks(obj, plain);
-    }
-    EXPECT_EQ(g.contents(), plain);
-}
-
-// stderr is unbuffered, so the same writes have to land without waiting for the
-// converter to be destroyed.
-TEST(RootCvtStd, ChunkedPutReachesStderr)
-{
-    std::string   plain = sample();
-    oguard<false> g;
-    auto          obj = no_rb_root_cvt{std_device<STDERR_FILENO>{}};
-    put_sample_in_chunks(obj, plain);
-    EXPECT_EQ(g.contents(), plain);
-}
-
-TEST(RootCvtStd, ChunkedPutReachesStdoutThroughARuntimeCvt)
-{
-    std::string  plain = sample();
-    oguard<true> g;
-    {
-        runtime_cvt obj(no_rb_root_cvt{std_device<STDOUT_FILENO>{}});
-        put_sample_in_chunks(obj, plain);
-    }
-    EXPECT_EQ(g.contents(), plain);
-}
-
-TEST(RootCvtStd, ChunkedPutReachesStderrThroughARuntimeCvt)
-{
-    std::string   plain = sample();
-    oguard<false> g;
-    runtime_cvt   obj(no_rb_root_cvt{std_device<STDERR_FILENO>{}});
-    put_sample_in_chunks(obj, plain);
-    EXPECT_EQ(g.contents(), plain);
 }

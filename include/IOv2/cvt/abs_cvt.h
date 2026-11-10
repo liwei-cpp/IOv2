@@ -1032,7 +1032,7 @@ namespace IOv2
             , m_buf_cur(val.m_buf_cur)
             , m_buf_end(val.m_buf_end)
             , m_is_tainted(val.m_is_tainted)
-            , m_get_error(std::move(val.m_get_error))
+            , m_get_error(std::move(val.m_get_error)) // NOLINT(performance-move-const-arg): MSVC's exception_ptr has no move constructor
         {
             val.m_io_status = io_status::neutral;
             val.m_is_bos_done = false;
@@ -1096,7 +1096,7 @@ namespace IOv2
                 val.m_buf_cur = val.m_buf_end = 0;
                 m_is_tainted = val.m_is_tainted;
                 val.m_is_tainted = false;
-                m_get_error = std::move(val.m_get_error);
+                m_get_error = std::move(val.m_get_error); // NOLINT(performance-move-const-arg): MSVC's exception_ptr has no move assignment
                 val.m_get_error = nullptr;
             }
             return *this;

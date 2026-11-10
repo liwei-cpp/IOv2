@@ -110,10 +110,10 @@
       "name": "win-clangcl-xwin",
       "hidden": true,
       "inherits": "base",
-      "description": "Cross-built on Linux for Windows (MSVC ABI) and run under Wine; see cmake/toolchains/windows-clangcl-xwin.cmake. IOV2_TEST_COMPONENTS lists the components ported so far.",
+      "description": "Cross-built on Linux for Windows (MSVC ABI) and run under Wine; see cmake/toolchains/windows-clangcl-xwin.cmake. IOV2_TEST_COMPONENTS lists the components, and the suites of partly ported ones, ported so far.",
       "generator": "Ninja",
       "toolchainFile": "${sourceDir}/cmake/toolchains/windows-clangcl-xwin.cmake",
-      "cacheVariables": { "IOV2_TEST_COMPONENTS": "common;device" }
+      "cacheVariables": { "IOV2_TEST_COMPONENTS": "common;device;cvt/root_cvt" }
     },
     {
       "name": "win-clangcl-xwin-release",
@@ -131,10 +131,10 @@
       "name": "windows",
       "hidden": true,
       "inherits": "base",
-      "description": "Native Windows, from a shell where the MSVC environment is set up (vcvars, or ilammy/msvc-dev-cmd in CI). IOV2_TEST_COMPONENTS lists the components ported so far.",
+      "description": "Native Windows, from a shell where the MSVC environment is set up (vcvars, or ilammy/msvc-dev-cmd in CI). IOV2_TEST_COMPONENTS lists the components, and the suites of partly ported ones, ported so far.",
       "generator": "Ninja",
       "condition": { "type": "equals", "lhs": "${hostSystemName}", "rhs": "Windows" },
-      "cacheVariables": { "IOV2_TEST_COMPONENTS": "common;device" }
+      "cacheVariables": { "IOV2_TEST_COMPONENTS": "common;device;cvt/root_cvt" }
     },
     {
       "name": "windows-msvc-release",
@@ -173,10 +173,10 @@
       "name": "macos",
       "hidden": true,
       "inherits": "base",
-      "description": "IOV2_TEST_COMPONENTS lists the components ported so far.",
+      "description": "IOV2_TEST_COMPONENTS lists the components, and the suites of partly ported ones, ported so far.",
       "condition": { "type": "equals", "lhs": "${hostSystemName}", "rhs": "Darwin" },
       "environment": { "CXX": "clang++" },
-      "cacheVariables": { "IOV2_TEST_COMPONENTS": "common;device" }
+      "cacheVariables": { "IOV2_TEST_COMPONENTS": "common;device;cvt/root_cvt" }
     },
     {
       "name": "macos-clang-release",
