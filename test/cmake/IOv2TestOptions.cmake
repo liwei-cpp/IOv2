@@ -48,8 +48,12 @@ add_library(iov2_test_options INTERFACE)
 # /std:c++latest.
 set_target_properties(iov2_test_options PROPERTIES INTERFACE_COMPILE_FEATURES "")
 if(MSVC)
+  # /Zc:u8EscapeEncoding: by default cl encodes \xFF in a u8"" literal as the
+  # UTF-8 of U+00FF, two bytes, where the standard wants the one code unit. Tests
+  # spell raw bytes that way. clang-cl already conforms and rejects the flag.
   target_compile_options(iov2_test_options INTERFACE
-      /std:c++latest /permissive- /Zc:__cplusplus /utf-8 /W4 /WX)
+      /std:c++latest /permissive- /Zc:__cplusplus /utf-8 /W4 /WX
+      $<$<CXX_COMPILER_ID:MSVC>:/Zc:u8EscapeEncoding>)
 else()
   target_compile_options(iov2_test_options INTERFACE
       -std=c++23 -Wall -Werror -Wshadow)
