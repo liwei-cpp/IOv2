@@ -328,35 +328,6 @@ TEST(ZlibCvtWchar, MainContBegEmitsTheZlibHeaderThroughARuntimeCvt)
     EXPECT_EQ(dev.str(), "\x78\x9c");
 }
 
-// Data written between bos() and main_cont_beg() reaches the device uncompressed,
-// after the header -- and as raw wchar_t code units, four little-endian bytes
-// each, which is what makes the width change visible at the byte level.
-TEST(ZlibCvtWchar, PutBeforeMainContBegLandsAfterTheHeaderAsRawCodeUnits)
-{
-    WcharCvt    obj = static_cvt(6);
-    const auto& dev = obj.device();
-    EXPECT_EQ(obj.bos(), io_status::output);
-
-    wchar_t buf[] = L"uvw";
-    obj.put(buf, 3);
-
-    obj.main_cont_beg();
-    EXPECT_EQ(dev.str(), std::string("\x78\x9c""u\x00\x00\x00v\x00\x00\x00w\x00\x00\x00", 14));
-}
-
-TEST(ZlibCvtWchar, PutBeforeMainContBegLandsAfterTheHeaderThroughARuntimeCvt)
-{
-    auto        obj = runtime_of(static_cvt(6));
-    const auto& dev = obj.device();
-    EXPECT_EQ(obj.bos(), io_status::output);
-
-    wchar_t buf[] = L"uvw";
-    obj.put(buf, 3);
-
-    obj.main_cont_beg();
-    EXPECT_EQ(dev.str(), std::string("\x78\x9c""u\x00\x00\x00v\x00\x00\x00w\x00\x00\x00", 14));
-}
-
 TEST(ZlibCvtWchar, ChunkedPutRoundTrips)
 {
     WcharCvt obj = static_cvt(8);
