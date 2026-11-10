@@ -171,8 +171,8 @@ endif()
 # which test/Makefile does not pass; -fstack-protector in particular changes code
 # generation, so adopting it would make the two builds incomparable. Dropping
 # LDFLAGS_OTHER is what keeps this an equivalence migration. The target always
-# exists so suite construction stays uniform, but dependency-free component
-# selections leave it empty and perform no discovery.
+# exists so suite construction stays uniform, but dependency-free selections
+# leave it empty and perform no discovery.
 add_library(iov2_test_thirdparty INTERFACE)
 if(IOV2_TEST_NEEDS_OPTIONAL_DEPS)
   find_package(PkgConfig REQUIRED)
