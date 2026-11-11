@@ -35,6 +35,7 @@
 | GCC / libstdc++ | [PR 125554](https://gcc.gnu.org/bugzilla/show_bug.cgi?id=125554) | [`money_get` 把每组位数截断成 `char`,导致单组 256·k+g 位的畸形分组被误判为合法](gcc-money_get-group-count-truncation.md) | `NEW` |
 | GCC / libstdc++ | [PR 127815](https://gcc.gnu.org/bugzilla/show_bug.cgi?id=127815) | [`time_zone::get_info` 对早于 `year::min()` 的时刻抛异常,当区的第一段引用规则集时(tzdata 2026d 起的 `CST6CDT` 等)](gcc-tzdb-get_info-before-year-min.md) | `UNCONFIRMED` |
 | LLVM / Clang | [Issue #230610](https://github.com/llvm/llvm-project/issues/230610) | [经私有基类用限定名调用显式对象成员函数（deducing this）不报错,违反 [class.access.base]/6](llvm-clang-explicit-object-private-base-access.md) | `Open` |
+| Apple / libc | `FB25523856`(Feedback Assistant,不公开) | [`_IONBF` 流上 `ungetc` 回退 N 字节后,`fread` 读 2..N 字节返回 0 并置 EOF](apple-libc-fread-unbuffered-ungetc.md) | `Reported` |
 
 > 表格中的"编号"指上游缺陷追踪系统分配的 ID(如 GCC PR 号、LLVM Issue 号)。状态字段建议使用 `Reported` / `Confirmed` / `Fixed` / `WontFix` 等简短标记。
 
@@ -71,5 +72,6 @@ Bug reports do not reproduce upstream implementation source verbatim. When imple
 | GCC / libstdc++ | [PR 125554](https://gcc.gnu.org/bugzilla/show_bug.cgi?id=125554) | [`money_get` truncates each group's digit count to `char`, so a single 256·k+g-digit malformed group is accepted as valid](gcc-money_get-group-count-truncation.md) | `NEW` |
 | GCC / libstdc++ | [PR 127815](https://gcc.gnu.org/bugzilla/show_bug.cgi?id=127815) | [`time_zone::get_info` throws for an instant before `year::min()` when the zone's first period follows a rule set (`CST6CDT` and co. since tzdata 2026d)](gcc-tzdb-get_info-before-year-min.md) | `UNCONFIRMED` |
 | LLVM / Clang | [Issue #230610](https://github.com/llvm/llvm-project/issues/230610) | [A qualified call to an explicit object member function (deducing this) through a private base is accepted, violating [class.access.base]/6](llvm-clang-explicit-object-private-base-access.md) | `Open` |
+| Apple / libc | `FB25523856` (Feedback Assistant, private) | [On an `_IONBF` stream, `fread` of 2..N bytes after N bytes were pushed back with `ungetc` returns 0 and sets EOF](apple-libc-fread-unbuffered-ungetc.md) | `Reported` |
 
 > The `ID` column refers to the identifier assigned by the upstream tracker (e.g. GCC PR number, LLVM Issue number). Recommended status values: `Reported` / `Confirmed` / `Fixed` / `WontFix`.
