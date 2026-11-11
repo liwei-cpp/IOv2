@@ -11,21 +11,13 @@
  * tell() is exact after every repositioning that is allowed -- the checks
  * below compare it with what reading actually delivers.
  *
- * The last tests put the converter under real streams, where appmode relies on
- * rseek(0) coming before the switch to writing.
+ * The converter under real streams is tested in io/newline_cvt/.
  */
 #include <IOv2/common/defs.h>
 #include <IOv2/cvt/code_cvt.h>
 #include <IOv2/cvt/newline_cvt.h>
 #include <IOv2/cvt/root_cvt.h>
-#include <IOv2/device/file_device.h>
 #include <IOv2/device/mem_device.h>
-#include <IOv2/io/io_base.h>
-#include <IOv2/io/iostream.h>
-#include <IOv2/io/ostream.h>
-#include <IOv2/io/traits/char_and_str.h>
-
-#include <support/file_guard.h>
 
 #include <gtest/gtest.h>
 
@@ -227,31 +219,4 @@ TEST(NewlineCvtPositioning, RseekZeroAboveAVariableLengthEncoding)
     auto [dev, err] = c.detach();
     EXPECT_FALSE(err);
     EXPECT_EQ(dev.str(), u8"李\r\n伟\r\n");
-}
-
-// An iostream over unread content: appmode reaches the end by rseek(0) before
-// switching to writing, so the switch finds eof.
-TEST(NewlineCvtPositioning, AppmodeOnAnIostreamOverUnreadContent)
-{
-    iostream ios(mem_device{"a\r\nb"}, newline_cvt_creator{});
-    ios << appmode << "x\n";
-    ios.flush();
-    EXPECT_TRUE(static_cast<bool>(ios));
-    EXPECT_EQ(ios.device().str(), "a\r\nbx\r\n");
-    EXPECT_EQ(ios.tell(), 5u);
-}
-
-// The same over a real file, written through an ostream and read back raw.
-TEST(NewlineCvtPositioning, AppmodeOnAFile)
-{
-    file_guard g("newline_cvt_appmode", "one\r\n");
-    {
-        ostream os(file_device<char>{"newline_cvt_appmode"}, newline_cvt_creator{});
-        os << appmode << "two\n" << "three\n";
-        os.flush();
-        EXPECT_TRUE(static_cast<bool>(os));
-        auto [dev, err] = os.detach();
-        dev.close();
-    }
-    EXPECT_EQ(g.contents(), "one\r\ntwo\r\nthree\r\n");
 }

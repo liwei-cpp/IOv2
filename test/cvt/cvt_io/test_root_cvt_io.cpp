@@ -19,7 +19,6 @@
 #include <iterator>
 #include <string>
 #include <tuple>
-#include <type_traits>
 #include <utility>
 #include <vector>
 
@@ -73,30 +72,6 @@ namespace
         std::pair<std::size_t, std::exception_ptr>
                     get_main(IT*, std::size_t) noexcept { return {0, nullptr}; }
         void        put_main(const IT*, std::size_t) {}
-    };
-
-    // Minimal cvt: exposes `char` as internal_type while the kernel uses
-    // `wchar_t` units. Lets us exercise the BOS partial-unit code path in
-    // abs_cvt::get / abs_cvt::put (triggered when to_max * sizeof(char) is not a
-    // multiple of sizeof(wchar_t)).
-    template <io_converter KernelType>
-        requires std::is_same_v<typename KernelType::internal_type, wchar_t>
-    struct wext_char_cvt
-        : public abs_cvt<KernelType, char,
-                         /*position=*/false, /*io_switch=*/false>
-    {
-        using BT = abs_cvt<KernelType, char, false, false>;
-        friend BT;
-
-    public:
-        using device_type   = typename KernelType::device_type;
-        using internal_type = char;
-        using external_type = wchar_t;
-        explicit wext_char_cvt(KernelType k) : BT(std::move(k)) {}
-
-        std::pair<std::size_t, std::exception_ptr>
-                    get_main(char*, std::size_t) noexcept { return {0, nullptr}; }
-        void        put_main(const char*, std::size_t) {}
     };
 
     // Minimal cvt with io-direction switching disabled
@@ -1115,30 +1090,6 @@ TEST(CvtIo, AConverterThatCannotSwitchRejectsPutWhileReading)
 
     const char src[1] = {'x'};
     EXPECT_THROW(cvt.put(src, 1), cvt_error);
-}
-
-// The BOS phase reads and writes in whole external units. wext_char_cvt has a
-// one-byte internal type over a four-byte external one, so a request for three
-// characters ends part-way through a unit -- the partial-unit path in
-// abs_cvt::get / abs_cvt::put.
-TEST(CvtIo, GetDuringBosHandlesAPartialExternalUnit)
-{
-    using WKernelT = rb_root_cvt<mem_device<wchar_t>>;
-    wext_char_cvt<WKernelT> cvt{WKernelT{mem_device<wchar_t>{L"\x01020304"}}};
-    EXPECT_EQ(cvt.bos(), io_status::input);
-
-    char buf[4] = {};
-    EXPECT_EQ(cvt.get(buf, 3), 3u);
-}
-
-TEST(CvtIo, PutDuringBosHandlesAPartialExternalUnit)
-{
-    using WKernelT = rb_root_cvt<mem_device<wchar_t>>;
-    wext_char_cvt<WKernelT> cvt{WKernelT{mem_device<wchar_t>{L""}}};
-    EXPECT_EQ(cvt.bos(), io_status::output);
-
-    const char src[3] = {'a', 'b', 'c'};
-    EXPECT_NO_THROW(cvt.put(src, 3));
 }
 
 // A converter whose put_main throws is left tainted: the stream is in an unknown

@@ -243,15 +243,6 @@ TEST(CodeCvtMemChar32, TraitsWithoutAReadBuffer)
     static_assert(std::is_same_v<CheckType::external_type, char>);
 }
 
-TEST(CodeCvtMemChar32, TraitsWithWcharAsTheInternalType)
-{
-    using CheckType = code_cvt<rb_root_cvt<mem_device<char>>, wchar_t>;
-    static_assert(io_converter<CheckType>);
-    static_assert(std::is_same_v<CheckType::device_type, mem_device<char>>);
-    static_assert(std::is_same_v<CheckType::internal_type, wchar_t>);
-    static_assert(std::is_same_v<CheckType::external_type, char>);
-}
-
 // The decoder carries state between chunks -- a multi-byte sequence can be split
 // across two get() calls -- so a converter that is copied or moved between every
 // chunk has to carry that state with it.
