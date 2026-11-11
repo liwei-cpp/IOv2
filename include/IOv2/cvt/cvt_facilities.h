@@ -23,6 +23,7 @@
 #include <exception>
 #include <string>
 #include <string_view>
+#include <type_traits>
 #include <utility>
 
 namespace IOv2::detail
@@ -101,16 +102,24 @@ namespace IOv2::detail
      *                   sequence under the locale. This is NOT a best-effort
      *                   conversion — callers must pass a complete byte stream.
      * @endif
+     *
+     * @note @lang{ZH} 只在 `wchar_t_is_utf32` 的平台上提供（locale 内核的 `char32_t` 版本依赖它，
+     *       Windows 上没有）。`TInt` 只为让函数体依赖模板参数，不必写出。 @endif
+     *       @lang{EN} Available only where `wchar_t_is_utf32` holds (the locale kernel's
+     *       `char32_t` form depends on it; Windows has none). `TInt` only makes the body depend
+     *       on a template parameter and is not meant to be spelled out. @endif
      */
-    inline std::u32string to_u32string(std::string_view val, const std::string& locale_name)
+    template <typename TInt = char32_t>
+        requires (std::is_same_v<TInt, char32_t> && wchar_t_is_utf32)
+    std::basic_string<TInt> to_u32string(std::string_view val, const std::string& locale_name)
     {
-        using cvt_type = code_cvt<rb_root_cvt<mem_device<char>>, char32_t>;
+        using cvt_type = code_cvt<rb_root_cvt<mem_device<char>>, TInt>;
         cvt_type tmp_cvt(rb_root_cvt{mem_device(std::string(val))}, locale_name);
         tmp_cvt.bos();
         tmp_cvt.main_cont_beg();
 
-        std::u32string res;
-        std::array<char32_t, 8> res_buf{};
+        std::basic_string<TInt> res;
+        std::array<TInt, 8> res_buf{};
         while (true)
         {
             auto c = tmp_cvt.get(res_buf.data(), res_buf.size());

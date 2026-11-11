@@ -32,6 +32,7 @@
 #include <IOv2/common/metafunctions.h>
 #include <IOv2/cvt/abs_cvt.h>
 #include <IOv2/cvt/cvt_concepts.h>
+#include <IOv2/cvt/platform/crt_backend.h>
 
 #include <algorithm>
 #include <array>
@@ -45,6 +46,7 @@
 #include <exception>
 #include <functional>
 #include <limits>
+#include <span>
 #include <string>
 #include <type_traits>
 #include <utility>
@@ -220,7 +222,7 @@ struct codecvt_kernel<char, TInt>
             throw cvt_error("codecvt_kernel::unshift fail: insufficient output buffer");
 
         clocale_user guard(m_inter_locale);
-        const std::size_t count = std::wcrtomb(to, L'\0', &m_state);
+        const std::size_t count = detail::crt_wcrtomb(std::span<char>(to, capacity), L'\0', m_state);
         if (count == static_cast<std::size_t>(-1)) // NOLINT(modernize-use-integer-sign-comparison)
         {
             init_state();
@@ -358,7 +360,7 @@ struct codecvt_kernel<char, TInt>
 
         const std::mbstate_t before = m_state;
         std::array<char, MB_LEN_MAX> local{};
-        const std::size_t conv = std::wcrtomb(local.data(), ch, &m_state);
+        const std::size_t conv = detail::crt_wcrtomb(local, ch, m_state);
         if (conv == static_cast<std::size_t>(-1)) // NOLINT(modernize-use-integer-sign-comparison)
         {
             m_state = before;
