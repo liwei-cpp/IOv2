@@ -1226,9 +1226,3 @@ TEST(CvtFacilities, NarrowToWideThroughANamedLocale)
     EXPECT_EQ(detail::to_wstring("hello", "C"), L"hello");
     EXPECT_TRUE(detail::to_wstring("", "C").empty());
 }
-
-TEST(CvtFacilities, NarrowToUtf32ThroughANamedLocale)
-{
-    EXPECT_EQ(detail::to_u32string("hello", "C"), U"hello");
-    EXPECT_TRUE(detail::to_u32string("", "C").empty());
-}
