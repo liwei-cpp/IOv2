@@ -41,7 +41,6 @@
 
 #include <array>
 #include <string>
-#include <tuple>
 #include <utility>
 
 #include <unistd.h>
@@ -64,8 +63,9 @@ namespace
     bool encode(codecvt_kernel<char, wchar_t>& kernel, wchar_t ch, std::string& out)
     {
         std::array<char, 16> buf{};
+        const wchar_t* from = &ch;
         char* next = buf.data();
-        const bool ok = kernel.out_helper(ch, next, buf.data() + buf.size());
+        const bool ok = kernel.out_helper(from, from + 1, next, buf.data() + buf.size());
         out.append(buf.data(), next);
         return ok;
     }
@@ -130,18 +130,16 @@ namespace
         const std::string half = kShiftIn.substr(0, 2);
         const char* from = half.data();
         wchar_t* to = buf.data();
-        auto [ok, n] = kernel.in_helper(from, half.data() + half.size(), to, buf.data() + buf.size());
-        EXPECT_TRUE(ok);
-        EXPECT_EQ(n, 0u);
+        EXPECT_TRUE(kernel.in_helper(from, half.data() + half.size(), to, buf.data() + buf.size()));
+        EXPECT_EQ(to, buf.data());
         EXPECT_EQ(from, half.data()) << "half a shift sequence was consumed";
         EXPECT_TRUE(kernel.is_init_state()) << "half a shift sequence leaked into the shift state";
 
         // The whole shift sequence and 中, now in JIS X 0208.
         from = kZhong.data();
         to = buf.data();
-        std::tie(ok, n) = kernel.in_helper(from, kZhong.data() + kZhong.size(), to, buf.data() + buf.size());
-        EXPECT_TRUE(ok);
-        ASSERT_EQ(n, 1u) << "a shift sequence came back as a character";
+        EXPECT_TRUE(kernel.in_helper(from, kZhong.data() + kZhong.size(), to, buf.data() + buf.size()));
+        ASSERT_EQ(to, buf.data() + 1) << "a shift sequence came back as a character";
         EXPECT_EQ(buf[0], L'中');
         EXPECT_EQ(from, kZhong.data() + kZhong.size());
         EXPECT_FALSE(kernel.is_init_state());
@@ -150,18 +148,16 @@ namespace
         const std::string c = "C";
         from = c.data();
         to = buf.data();
-        std::tie(ok, n) = kernel.in_helper(from, c.data() + c.size(), to, buf.data() + buf.size());
-        EXPECT_TRUE(ok);
-        EXPECT_EQ(n, 0u);
+        EXPECT_TRUE(kernel.in_helper(from, c.data() + c.size(), to, buf.data() + buf.size()));
+        EXPECT_EQ(to, buf.data());
         EXPECT_EQ(from, c.data());
         EXPECT_FALSE(kernel.is_init_state());
 
         // The way back to ASCII on its own: no character, back to the initial state.
         from = kShiftOut.data();
         to = buf.data();
-        std::tie(ok, n) = kernel.in_helper(from, kShiftOut.data() + kShiftOut.size(), to, buf.data() + buf.size());
-        EXPECT_TRUE(ok);
-        EXPECT_EQ(n, 0u);
+        EXPECT_TRUE(kernel.in_helper(from, kShiftOut.data() + kShiftOut.size(), to, buf.data() + buf.size()));
+        EXPECT_EQ(to, buf.data());
         EXPECT_EQ(from, kShiftOut.data() + kShiftOut.size());
         EXPECT_TRUE(kernel.is_init_state());
     }
@@ -250,8 +246,8 @@ namespace
         const auto decode = [&](const std::string& bytes, std::size_t& n) {
             const char* from = bytes.data();
             wchar_t* to = buf.data();
-            auto [ok, count] = kernel.in_helper(from, bytes.data() + bytes.size(), to, buf.data() + buf.size());
-            n = count;
+            const bool ok = kernel.in_helper(from, bytes.data() + bytes.size(), to, buf.data() + buf.size());
+            n = static_cast<std::size_t>(to - buf.data());
             return ok;
         };
 
@@ -341,8 +337,8 @@ namespace
         std::array<wchar_t, 16> buf{};
         const char* from = in.data();
         wchar_t* to = buf.data();
-        auto [ok, n] = kernel.in_helper(from, in.data() + in.size(), to, buf.data() + buf.size());
-        return {ok, std::wstring(buf.data(), n)};
+        const bool ok = kernel.in_helper(from, in.data() + in.size(), to, buf.data() + buf.size());
+        return {ok, std::wstring(buf.data(), to)};
     }
 
     void kernel_decodes_a_null_byte_in_a_shifted_state()
@@ -393,8 +389,11 @@ namespace
 
         std::array<char, 16> buf{};
         buf.fill('#');
+        const wchar_t zhong = L'中';
+        const wchar_t* from = &zhong;
         char* next = buf.data();
-        EXPECT_THROW(kernel.out_helper(L'中', next, buf.data() + kernel.epc()), cvt_error);
+        EXPECT_THROW(kernel.out_helper(from, from + 1, next, buf.data() + kernel.epc()), cvt_error);
+        EXPECT_EQ(from, &zhong);
         EXPECT_EQ(next, buf.data());
         EXPECT_EQ(std::string(buf.data(), buf.size()), std::string(buf.size(), '#'))
             << "the rejected character wrote bytes";

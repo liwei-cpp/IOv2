@@ -11,6 +11,7 @@
 #include <gtest/gtest.h>
 
 #include <algorithm>
+#include <climits>
 #include <cstddef>
 #include <iterator>
 #include <string>
@@ -1419,22 +1420,30 @@ TEST(CodeCvtMemChar32, TheEncodeHelperRejectsAnInvertedRange)
 {
     codecvt_kernel<char, char32_t> kernel("C");
 
+    const char32_t  in[] = {U'A'};
+    const char32_t* from = in;
     char  buf[4];
     char* to     = buf + 2;
     char* to_end = buf;
-    EXPECT_THROW((void)kernel.out_helper(U'A', to, to_end), cvt_error);
+    EXPECT_THROW((void)kernel.out_helper(from, in + 1, to, to_end), cvt_error);
 }
 
-// A buffer with no room left is not an error: the helper says so by returning
-// false, and the caller makes room and comes back.
-TEST(CodeCvtMemChar32, TheEncodeHelperReportsAFullBuffer)
+// A buffer with no room left is not an error: the helper stops with nothing
+// consumed, and the caller makes room and comes back.
+TEST(CodeCvtMemChar32, TheEncodeHelperStopsAtAFullBuffer)
 {
     codecvt_kernel<char, char32_t> kernel("C");
 
-    char  buf[1];
+    const char32_t  in[] = {U'A'};
+    const char32_t* from = in;
+    // MB_LEN_MAX, not 1: gcc cannot see the loop is never entered and warns of a
+    // write past a smaller array (-Warray-bounds).
+    char  buf[MB_LEN_MAX];
     char* to     = buf;
     char* to_end = buf;
-    EXPECT_FALSE(kernel.out_helper(U'A', to, to_end));
+    EXPECT_TRUE(kernel.out_helper(from, in + 1, to, to_end));
+    EXPECT_EQ(from, in);
+    EXPECT_EQ(to, buf);
 }
 
 // wcrtomb(L'\0') returns the unshift bytes followed by a terminating null. In

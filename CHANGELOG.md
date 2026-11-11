@@ -136,6 +136,10 @@
   不变，只有变长编码下被拒时的错误信息改为说明是追加模式的缘故。
 - `runtime_cvt` 在外层记录当前 I/O 方向，已处于目标方向时 `switch_to_get()`、`switch_to_put()`
   不再经虚函数调用。
+- `code_cvt` 编码内核（`codecvt_kernel`）的 `out_helper` 改为接收一段字符
+  `(from, from_end, to, to_end)`，能写下多少就写多少，两个指针都向后推进；单字符版本删除。
+  输出空间不足不再返回 `false`，而是停下并返回 `true`，`false` 只表示遇到无法编码的字符。
+  `in_helper` 改为返回 `bool`，写出的字符数由 `to` 推进了多少得出。自定义内核要相应修改。
 
 #### 废弃
 
@@ -407,6 +411,12 @@ have no release line of their own.
   (e.g. `lib64`), pass `-DCMAKE_INSTALL_LIBDIR=lib` where needed; `libiov2.so` has the
   soname `libiov2.so.<major>`; and uninstall removes only what was installed, keeping
   an IOv2 directory that holds other files.
+- The `code_cvt` encoding kernels' (`codecvt_kernel`) `out_helper` takes a run of
+  characters, `(from, from_end, to, to_end)`, encodes as many as fit and advances
+  both pointers; the single-character version is gone. Running out of room no
+  longer returns `false` but stops and returns `true`; `false` means only a
+  character that cannot be encoded. `in_helper` returns `bool`, and the number of
+  characters written is how far `to` advanced. Custom kernels have to follow.
 
 #### Deprecated
 
