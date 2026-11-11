@@ -287,15 +287,13 @@ public:
         if (this->is_tainted() || !this->m_cvt_kernel.is_init_state())
             throw cvt_error("code_cvt_stdio::unget fail: invalid state");
 
-        const auto n = static_cast<std::size_t>(std::distance(first, last));
-        std::string bytes(n * this->m_cvt_kernel.epc(), '\0');
+        // The kernel takes a contiguous run; epc() bytes per character leave room for all.
+        const std::wstring chars(first, last);
+        std::string bytes(chars.size() * this->m_cvt_kernel.epc(), '\0');
+        const wchar_t* from = chars.data();
         char* to = bytes.data();
-        char* const to_end = to + bytes.size();
-        for (; first != last; ++first)
-        {
-            if (!this->m_cvt_kernel.out_helper(*first, to, to_end))
-                throw cvt_error("code_cvt_stdio::unget fail: cannot encode");
-        }
+        if (!this->m_cvt_kernel.out_helper(from, from + chars.size(), to, to + bytes.size()))
+            throw cvt_error("code_cvt_stdio::unget fail: cannot encode");
 
         BT::kernel_reader().unget(bytes.data(), to);
     }

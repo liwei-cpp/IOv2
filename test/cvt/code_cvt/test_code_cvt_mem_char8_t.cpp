@@ -16,7 +16,6 @@
 #include <cstddef>
 #include <iterator>
 #include <string>
-#include <tuple>
 #include <type_traits>
 #include <utility>
 #include <vector>
@@ -1064,17 +1063,15 @@ TEST(CodeCvtMemChar8, TheKernelLeavesASplitCharacterUnconsumed)
 
     const char8_t* from = bytes;
     char32_t* to = buf;
-    auto [ok, n] = kernel.in_helper(from, bytes + 2, to, buf + 2);
-    EXPECT_TRUE(ok);
-    ASSERT_EQ(n, 1u);
+    EXPECT_TRUE(kernel.in_helper(from, bytes + 2, to, buf + 2));
+    ASSERT_EQ(to, buf + 1);
     EXPECT_EQ(buf[0], U'a');
     EXPECT_EQ(from, bytes + 1);
     EXPECT_TRUE(kernel.is_init_state());
 
     to = buf;
-    std::tie(ok, n) = kernel.in_helper(from, bytes + 4, to, buf + 2);
-    EXPECT_TRUE(ok);
-    ASSERT_EQ(n, 1u);
+    EXPECT_TRUE(kernel.in_helper(from, bytes + 4, to, buf + 2));
+    ASSERT_EQ(to, buf + 1);
     EXPECT_EQ(buf[0], U'中');
     EXPECT_EQ(from, bytes + 4);
 }
@@ -1088,9 +1085,8 @@ TEST(CodeCvtMemChar8, TheKernelStopsAtTheStartOfAnInvalidSequence)
 
     const char8_t* from = bytes;
     char32_t* to = buf;
-    auto [ok, n] = kernel.in_helper(from, bytes + 4, to, buf + 4);
-    EXPECT_FALSE(ok);
-    ASSERT_EQ(n, 1u);
+    EXPECT_FALSE(kernel.in_helper(from, bytes + 4, to, buf + 4));
+    ASSERT_EQ(to, buf + 1);
     EXPECT_EQ(buf[0], U'a');
     EXPECT_EQ(from, bytes + 1);
 }
@@ -1151,23 +1147,29 @@ TEST(CodeCvtMemChar8, TheEncodeHelperRejectsAnInvertedRange)
 {
     codecvt_kernel<char8_t, char32_t> kernel;
 
+    const char32_t  in[]  = {U'A'};
+    const char32_t* from  = in;
     char8_t  buf[4];
     char8_t* to     = buf + 2;
     char8_t* to_end = buf;
-    EXPECT_THROW((void)kernel.out_helper(U'A', to, to_end), cvt_error);
+    EXPECT_THROW((void)kernel.out_helper(from, in + 1, to, to_end), cvt_error);
 }
 
-// The helper reserves room for the widest sequence it might produce, so a buffer
-// with fewer than four units left is reported as full even for a one-unit
-// character.
-TEST(CodeCvtMemChar8, TheEncodeHelperReportsABufferTooSmallForTheWidestSequence)
+// The helper reserves room for the widest sequence it might produce, so with fewer
+// than four units left it stops before even a one-unit character: nothing consumed,
+// nothing written, and no error.
+TEST(CodeCvtMemChar8, TheEncodeHelperStopsWhenTheBufferIsTooSmallForTheWidestSequence)
 {
     codecvt_kernel<char8_t, char32_t> kernel;
 
+    const char32_t  in[]  = {U'A'};
+    const char32_t* from  = in;
     char8_t  buf[2];
     char8_t* to     = buf;
     char8_t* to_end = buf + 2;
-    EXPECT_FALSE(kernel.out_helper(U'A', to, to_end));
+    EXPECT_TRUE(kernel.out_helper(from, in + 1, to, to_end));
+    EXPECT_EQ(from, in);
+    EXPECT_EQ(to, buf);
 }
 
 // UTF-8 has no shift state, so closing its output conversion stream emits no

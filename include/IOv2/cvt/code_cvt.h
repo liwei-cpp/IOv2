@@ -313,67 +313,92 @@ struct codecvt_kernel<char, TInt>
 
     /**
      * @lang{ZH}
-     * 将单个内部字符编码为外部字节序列，并追加写入输出缓冲区。
+     * 将一段内部字符编码为外部字节序列，能写下多少就写多少，追加到输出缓冲区。
      *
-     * @param ch      待编码的内部字符。
-     * @param to      指向输出缓冲区当前写入位置的指针（成功时向后推进）。
-     * @param to_end  输出缓冲区的结束指针（不可写入此位置）。
+     * 每编码一个字符前要求输出至少还剩 `epc()` 字节，所以一个字符不会被截断；不够时停下。
+     * 整段只切换一次 locale（`clocale_user`）。
      *
-     * @return 若成功编码并写入，返回 `true`；若缓冲区空间不足或字符无法编码，返回 `false`。
+     * @param from      指向待编码字符的指针，每编码一个字符向后推进一个。
+     * @param from_end  待编码字符的结束指针。
+     * @param to        指向输出缓冲区当前写入位置的指针，随写入向后推进。
+     * @param to_end    输出缓冲区的结束指针（不可写入此位置）。
+     *
+     * @return 遇到无法编码的字符时返回 `false`，此时 `from` 停在该字符上，`to` 停在它之前的
+     *         字符之后；否则返回 `true`，包括因输出空间不足而停下（`from` 未到 `from_end`）。
+     *
+     * @throws cvt_error 若指针范围倒置；或某个字符的编码超过 `epc()` 字节（locale 报的
+     *         `MB_CUR_MAX` 偏小时会如此），此时该字符不写出任何字节。
+     *
+     * 分工：数据本身的问题（字符无法编码）用返回值报告，调用方自行决定如何处理；调用方用错
+     * 接口或 C 库违背自身约定才抛异常。
      *
      * @note "字符无法编码"的判据**只有 `wcrtomb` 返回 -1 这一条**，本函数不另加码点校验；
      *       `TInt` 为 `char32_t` 时，超出 Unicode 范围的码点未必会被拒。详见类文档的
      *       `@warning`。
-     * @note 前置条件：`to` 和 `to_end` 必须指向同一个数组，否则行为未定义。
+     * @note 前置条件：`from`/`from_end` 和 `to`/`to_end` 各自必须指向同一数组，否则行为未定义。
      *       `std::greater` 可在任意指针间建立全序，但后续的指针减法要求两者同源（[expr.add]/5）。
      * @endif
      *
      * @lang{EN}
-     * Encode a single internal character into the external byte sequence and
-     * append it to the output buffer.
+     * Encode a run of internal characters into external bytes, as many as fit, and
+     * append them to the output buffer.
      *
-     * @param ch      Internal character to encode.
-     * @param to      Pointer to the current write position in the output buffer
-     *                (advanced on success).
-     * @param to_end  One-past-the-end pointer of the output buffer.
+     * Each character is started only with at least `epc()` bytes left, so none is cut
+     * off; with less, encoding stops. The locale is switched (`clocale_user`) once for
+     * the whole run.
      *
-     * @return `true` if the character was successfully encoded and written;
-     *         `false` if the buffer is too small or the character cannot be encoded.
+     * @param from      Pointer to the characters to encode, advanced past each one encoded.
+     * @param from_end  One-past-the-end pointer of the characters to encode.
+     * @param to        Pointer to the current write position in the output buffer,
+     *                  advanced as bytes are written.
+     * @param to_end    One-past-the-end pointer of the output buffer.
+     *
+     * @return `false` at a character that cannot be encoded: `from` is left on it and `to`
+     *         after the characters before it. `true` otherwise, including when encoding
+     *         stopped for lack of room (`from` short of `from_end`).
+     *
+     * @throws cvt_error If a pointer range is inverted, or if a character's encoding
+     *         takes more than `epc()` bytes (as with a locale that reports too small a
+     *         `MB_CUR_MAX`); that character writes no bytes.
+     *
+     * The split: a problem with the data (a character that cannot be encoded) is
+     * reported through the return value, for the caller to handle as it sees fit; only
+     * misuse by the caller, or a C library breaking its own contract, throws.
      *
      * @note "Cannot be encoded" means **exactly one thing: `wcrtomb` returned -1**. No
      *       further code point validation happens here, so with `TInt == char32_t` a value
      *       outside the Unicode range is not necessarily rejected. See the `@warning` on
      *       the class.
-     * @note Precondition: `to` and `to_end` must point into the same array;
-     *       behavior is undefined otherwise. `std::greater` enforces a total order
-     *       across pointers regardless of provenance, but the pointer subtraction
-     *       below requires same-object provenance per [expr.add]/5.
+     * @note Precondition: `from`/`from_end` and `to`/`to_end` must each point into the
+     *       same array; behavior is undefined otherwise. `std::greater` enforces a total
+     *       order across pointers regardless of provenance, but the pointer subtractions
+     *       below require same-object provenance per [expr.add]/5.
      * @endif
      */
-    bool out_helper(TInt ch, char*& to, char* to_end)
+    bool out_helper(const TInt*& from, const TInt* from_end, char*& to, char* to_end)
     {
-        if (std::greater<>{}(to, to_end)) [[unlikely]]
+        if (std::greater<>{}(from, from_end) || std::greater<>{}(to, to_end)) [[unlikely]]
             throw cvt_error("codecvt_kernel::out_helper fail: invalid pointer range");
         clocale_user guard(m_inter_locale);
-        if (static_cast<std::size_t>(to_end - to) < m_epc) // NOLINT(modernize-use-integer-sign-comparison)
-            return false;
 
-        const std::mbstate_t before = m_state;
         std::array<char, MB_LEN_MAX> local{};
-        const std::size_t conv = detail::crt_wcrtomb(local, ch, m_state);
-        if (conv == static_cast<std::size_t>(-1)) // NOLINT(modernize-use-integer-sign-comparison)
+        while (from != from_end && static_cast<std::size_t>(to_end - to) >= m_epc) // NOLINT(modernize-use-integer-sign-comparison)
         {
-            m_state = before;
-            return false;
+            const std::mbstate_t before = m_state;
+            const std::size_t conv = detail::crt_wcrtomb(local, *from, m_state);
+            if (conv == static_cast<std::size_t>(-1)) // NOLINT(modernize-use-integer-sign-comparison)
+            {
+                m_state = before;
+                return false;
+            }
+            if (conv > m_epc)
+            {
+                m_state = before;
+                throw cvt_error("codecvt_kernel::out_helper fail: encoding exceeds MB_CUR_MAX");
+            }
+            to = std::copy_n(local.data(), conv, to);
+            ++from;
         }
-        if (conv > static_cast<std::size_t>(to_end - to)) // NOLINT(modernize-use-integer-sign-comparison)
-        {
-            m_state = before;
-            throw cvt_error("codecvt_kernel::out_helper fail: encoding exceeds MB_CUR_MAX");
-        }
-        std::copy_n(local.data(), conv, to);
-        to += conv;
-
         return true;
     }
 
@@ -386,9 +411,10 @@ struct codecvt_kernel<char, TInt>
      * @param to        指向输出缓冲区当前写入位置的指针（写入后向后推进）。
      * @param to_end    输出缓冲区的结束指针。
      *
-     * @return 一个 `std::pair<bool, size_t>`：
-     *         - `first`：转换是否成功（`false` 表示遇到无效字节序列）。
-     *         - `second`：已写入输出缓冲区的内部字符数量。
+     * @return 遇到无效字节序列时返回 `false`，否则返回 `true`。写出了多少字符看 `to` 推进了多少。
+     *
+     * @throws cvt_error 若指针范围倒置。数据本身的问题（无效序列）只用返回值报告，与
+     *         `out_helper` 的分工相同。
      *
      * @note 前置条件：`from`/`from_end` 和 `to`/`to_end` 各自必须指向同一数组，否则行为未定义。
      * @note 末尾不完整的多字节序列不消费（`from` 停在它的开头），也不存进 `mbstate_t`：
@@ -410,10 +436,12 @@ struct codecvt_kernel<char, TInt>
      *                  (advanced as characters are written).
      * @param to_end    One-past-the-end pointer of the output buffer.
      *
-     * @return A `std::pair<bool, size_t>`:
-     *         - `first`: Whether the conversion succeeded (`false` indicates an invalid
-     *           byte sequence).
-     *         - `second`: Number of internal characters written to the output buffer.
+     * @return `false` at an invalid byte sequence, `true` otherwise. How many characters
+     *         were written is how far `to` advanced.
+     *
+     * @throws cvt_error If a pointer range is inverted. A problem with the data (an
+     *         invalid sequence) is reported only through the return value, the same split
+     *         as in `out_helper`.
      *
      * @note Precondition: `from`/`from_end` and `to`/`to_end` must each point into
      *       the same array; behavior is undefined otherwise. `std::greater` enforces
@@ -430,15 +458,13 @@ struct codecvt_kernel<char, TInt>
      *       count but leaves `*pwc` untouched, so every call is primed with a sentinel.
      * @endif
      */
-    std::pair<bool, std::size_t> in_helper(const char*& from, const char* from_end,
-                                      TInt*& to, TInt* to_end)
+    bool in_helper(const char*& from, const char* from_end, TInt*& to, TInt* to_end)
     {
         if (std::greater<>{}(from, from_end) || std::greater<>{}(to, to_end)) [[unlikely]]
             throw cvt_error("codecvt_kernel::in_helper fail: invalid pointer range");
         clocale_user guard(m_inter_locale);
         // No wchar_t value glibc decodes to: it tells a shift-only run from a character.
         constexpr auto no_char = static_cast<wchar_t>(-1);
-        std::size_t i_count = 0;
 
         const auto find_nul = [&]
         {
@@ -449,8 +475,7 @@ struct codecvt_kernel<char, TInt>
         };
         const char* nul = find_nul();
 
-        const std::size_t to_max = to_end - to;
-        while (i_count < to_max && from < from_end)
+        while (to < to_end && from < from_end)
         {
             if (nul < from)
                 nul = find_nul();
@@ -459,7 +484,6 @@ struct codecvt_kernel<char, TInt>
                 ++from;
                 m_state = std::mbstate_t{};
                 *to++ = TInt{};
-                ++i_count;
                 continue;
             }
 
@@ -491,13 +515,13 @@ struct codecvt_kernel<char, TInt>
                 // Only tmp_state is unspecified after EILSEQ (C11 7.29.6.3.2); m_state
                 // still holds the shift state before the bad byte. conv == 0 (a NUL
                 // decoded) is rejected the same way.
-                return std::pair{false, i_count};
+                return false;
             }
             if (conv == static_cast<std::size_t>(-2)) // NOLINT(modernize-use-integer-sign-comparison)
             {
                 // A NUL inside, or longer than any character: not the start of one.
                 if (nul != from_end || avail > MB_LEN_MAX)
-                    return std::pair{false, i_count};
+                    return false;
                 break;   // incomplete: left at from for the caller to keep
             }
 
@@ -506,10 +530,9 @@ struct codecvt_kernel<char, TInt>
             if (wch == no_char)
                 continue; // a shift sequence alone
             *to++ = static_cast<TInt>(wch);
-            ++i_count;
         }
 
-        return std::pair{true, i_count};
+        return true;
     }
 
 private:
@@ -655,71 +678,88 @@ struct codecvt_kernel<char8_t, TInt>
 
     /**
      * @lang{ZH}
-     * 将单个内部字符（UTF-32 码点）编码为 UTF-8 字节序列，并追加写入输出缓冲区。
-     * 拒绝代理码点（[0xD800, 0xDFFF]）及超出 Unicode 范围（> 0x10FFFF）的码点。
+     * 将一段内部字符（UTF-32 码点）编码为 UTF-8 字节序列，能写下多少就写多少，追加到输出
+     * 缓冲区。拒绝代理码点（[0xD800, 0xDFFF]）及超出 Unicode 范围（> 0x10FFFF）的码点。
      *
-     * @param ch      待编码的内部字符（UTF-32 码点）。
-     * @param to      指向输出缓冲区当前写入位置的指针（成功时向后推进）。
-     * @param to_end  输出缓冲区的结束指针（不可写入此位置）。
+     * 每编码一个字符前要求输出至少还剩 4 字节（UTF-8 最长序列），不够时停下。
      *
-     * @return 若成功编码并写入，返回 `true`；若缓冲区空间不足（< 4 字节）
-     *         或码点无效，返回 `false`。
+     * @param from      指向待编码字符的指针，每编码一个字符向后推进一个。
+     * @param from_end  待编码字符的结束指针。
+     * @param to        指向输出缓冲区当前写入位置的指针，随写入向后推进。
+     * @param to_end    输出缓冲区的结束指针（不可写入此位置）。
      *
-     * @note 前置条件：`to` 和 `to_end` 必须指向同一个数组，否则行为未定义。
+     * @return 遇到无效码点时返回 `false`，此时 `from` 停在该码点上，`to` 停在它之前的字符
+     *         之后；否则返回 `true`，包括因输出空间不足而停下（`from` 未到 `from_end`）。
+     *
+     * @throws cvt_error 若指针范围倒置。数据本身的问题（无效码点）只用返回值报告：调用方
+     *         用错接口才抛异常。
+     *
+     * @note 前置条件：`from`/`from_end` 和 `to`/`to_end` 各自必须指向同一数组，否则行为未定义。
      * @endif
      *
      * @lang{EN}
-     * Encode a single internal character (UTF-32 code point) into the UTF-8 byte
-     * sequence and append it to the output buffer. Surrogate code points
-     * ([0xD800, 0xDFFF]) and values beyond the Unicode range (> 0x10FFFF) are rejected.
+     * Encode a run of internal characters (UTF-32 code points) into UTF-8, as many as fit,
+     * and append them to the output buffer. Surrogate code points ([0xD800, 0xDFFF]) and
+     * values beyond the Unicode range (> 0x10FFFF) are rejected.
      *
-     * @param ch      Internal character (UTF-32 code point) to encode.
-     * @param to      Pointer to the current write position in the output buffer
-     *                (advanced on success).
-     * @param to_end  One-past-the-end pointer of the output buffer.
+     * Each character is started only with at least 4 bytes left (the longest UTF-8
+     * sequence); with less, encoding stops.
      *
-     * @return `true` if the code point was successfully encoded and written;
-     *         `false` if the buffer is too small (< 4 bytes) or the code point is invalid.
+     * @param from      Pointer to the characters to encode, advanced past each one encoded.
+     * @param from_end  One-past-the-end pointer of the characters to encode.
+     * @param to        Pointer to the current write position in the output buffer,
+     *                  advanced as bytes are written.
+     * @param to_end    One-past-the-end pointer of the output buffer.
      *
-     * @note Precondition: `to` and `to_end` must point into the same array;
-     *       behavior is undefined otherwise. `std::greater` enforces a total order
-     *       across pointers regardless of provenance, but the pointer subtraction
-     *       below requires same-object provenance per [expr.add]/5.
+     * @return `false` at an invalid code point: `from` is left on it and `to` after the
+     *         characters before it. `true` otherwise, including when encoding stopped for
+     *         lack of room (`from` short of `from_end`).
+     *
+     * @throws cvt_error If a pointer range is inverted. A problem with the data (an
+     *         invalid code point) is reported only through the return value: only misuse
+     *         by the caller throws.
+     *
+     * @note Precondition: `from`/`from_end` and `to`/`to_end` must each point into the
+     *       same array; behavior is undefined otherwise. `std::greater` enforces a total
+     *       order across pointers regardless of provenance, but the pointer subtractions
+     *       below require same-object provenance per [expr.add]/5.
      * @endif
      */
-    bool out_helper(TInt ch, char8_t*& to, char8_t* to_end)
+    bool out_helper(const TInt*& from, const TInt* from_end, char8_t*& to, char8_t* to_end)
     {
-        if (std::greater<>{}(to, to_end)) [[unlikely]]
+        if (std::greater<>{}(from, from_end) || std::greater<>{}(to, to_end)) [[unlikely]]
             throw cvt_error("codecvt_kernel::out_helper fail: invalid pointer range");
-        // Check for maximum UTF-8 length (4 bytes) upfront
-        if (to_end - to < 4)
-            return false;
-        const auto c = static_cast<uint32_t>(ch);
-        if (0xD800U <= c && c <= 0xDFFFU) [[unlikely]]
-            return false;
 
-        if (c < 0x80U)
-            *to++ = static_cast<char8_t>(c);
-        else if (c <= 0x7ffU)
+        while (from != from_end && to_end - to >= 4)
         {
-            *to++ = static_cast<char8_t>((c >> 6) + 0xC0U);
-            *to++ = static_cast<char8_t>((c & 0x3FU) + 0x80U);
+            const auto c = static_cast<uint32_t>(*from);
+            if (0xD800U <= c && c <= 0xDFFFU) [[unlikely]]
+                return false;
+
+            if (c < 0x80U)
+                *to++ = static_cast<char8_t>(c);
+            else if (c <= 0x7ffU)
+            {
+                *to++ = static_cast<char8_t>((c >> 6) + 0xC0U);
+                *to++ = static_cast<char8_t>((c & 0x3FU) + 0x80U);
+            }
+            else if (c <= 0xFFFFU)
+            {
+                *to++ = static_cast<char8_t>((c >> 12) + 0xE0U);
+                *to++ = static_cast<char8_t>(((c >> 6) & 0x3FU) + 0x80U);
+                *to++ = static_cast<char8_t>((c & 0x3FU) + 0x80U);
+            }
+            else if (c <= 0x10FFFFU)
+            {
+                *to++ = static_cast<char8_t>((c >> 18) + 0xF0U);
+                *to++ = static_cast<char8_t>(((c >> 12) & 0x3FU) + 0x80U);
+                *to++ = static_cast<char8_t>(((c >> 6) & 0x3FU) + 0x80U);
+                *to++ = static_cast<char8_t>((c & 0x3FU) + 0x80U);
+            }
+            else [[unlikely]]
+                return false;
+            ++from;
         }
-        else if (c <= 0xFFFFU)
-        {
-            *to++ = static_cast<char8_t>((c >> 12) + 0xE0U);
-            *to++ = static_cast<char8_t>(((c >> 6) & 0x3FU) + 0x80U);
-            *to++ = static_cast<char8_t>((c & 0x3FU) + 0x80U);
-        }
-        else if (c <= 0x10FFFFU)
-        {
-            *to++ = static_cast<char8_t>((c >> 18) + 0xF0U);
-            *to++ = static_cast<char8_t>(((c >> 12) & 0x3FU) + 0x80U);
-            *to++ = static_cast<char8_t>(((c >> 6) & 0x3FU) + 0x80U);
-            *to++ = static_cast<char8_t>((c & 0x3FU) + 0x80U);
-        }
-        else [[unlikely]]
-            return false;
         return true;
     }
 
@@ -733,9 +773,11 @@ struct codecvt_kernel<char8_t, TInt>
      * @param to        指向输出缓冲区当前写入位置的指针（写入后向后推进）。
      * @param to_end    输出缓冲区的结束指针。
      *
-     * @return 一个 `std::pair<bool, size_t>`：
-     *         - `first`：转换是否成功（`false` 表示遇到无效 UTF-8 序列）。
-     *         - `second`：已写入输出缓冲区的内部字符数量。
+     * @return 遇到无效 UTF-8 序列时返回 `false`，否则返回 `true`。写出了多少字符看 `to`
+     *         推进了多少。
+     *
+     * @throws cvt_error 若指针范围倒置。数据本身的问题（无效序列）只用返回值报告，与
+     *         `out_helper` 的分工相同。
      *
      * @note 前置条件：`from`/`from_end` 和 `to`/`to_end` 各自必须指向同一数组，否则行为未定义。
      * @endif
@@ -753,10 +795,12 @@ struct codecvt_kernel<char8_t, TInt>
      *                  (advanced as characters are written).
      * @param to_end    One-past-the-end pointer of the output buffer.
      *
-     * @return A `std::pair<bool, size_t>`:
-     *         - `first`: Whether the conversion succeeded (`false` indicates an invalid
-     *           UTF-8 sequence).
-     *         - `second`: Number of internal characters written to the output buffer.
+     * @return `false` at an invalid UTF-8 sequence, `true` otherwise. How many characters
+     *         were written is how far `to` advanced.
+     *
+     * @throws cvt_error If a pointer range is inverted. A problem with the data (an
+     *         invalid sequence) is reported only through the return value, the same split
+     *         as in `out_helper`.
      *
      * @note Precondition: `from`/`from_end` and `to`/`to_end` must each point into
      *       the same array; behavior is undefined otherwise. `std::greater` enforces
@@ -764,18 +808,14 @@ struct codecvt_kernel<char8_t, TInt>
      *       subtractions below require same-object provenance per [expr.add]/5.
      * @endif
      */
-    std::pair<bool, std::size_t> in_helper(const char8_t*& from, const char8_t* from_end,
-                                      TInt*& to, TInt* to_end)
+    bool in_helper(const char8_t*& from, const char8_t* from_end, TInt*& to, TInt* to_end)
     {
         if (std::greater<>{}(from, from_end) || std::greater<>{}(to, to_end)) [[unlikely]]
             throw cvt_error("codecvt_kernel::in_helper fail: invalid pointer range");
-        const TInt* const ori_to = to;
-        const auto written = [&] { return static_cast<std::size_t>(to - ori_to); };
 
         // An incomplete character at the end (short_input) is left at from, unconsumed,
         // for the caller to keep; so is an invalid one (bad).
-        const bool ok = decode_run(from, from_end, to, to_end) != run_status::bad;
-        return std::pair{ok, written()};
+        return decode_run(from, from_end, to, to_end) != run_status::bad;
     }
 
 private:
@@ -1143,14 +1183,16 @@ private:
     /**
      * @lang{ZH}
      * 将内部字符序列编码为外部字节并写入底层缓冲区（由 `abs_cvt::put` 调用）。
-     * 依次对每个内部字符调用编码内核的 `out_helper()`，成功后更新累计字符计数。
+     * 按块调用编码内核的 `out_helper()`：每块预留 `字符数 × epc()` 字节，保证整块写得下；
+     * 成功后更新累计字符计数。
      * @endif
      *
      * @lang{EN}
      * Encode the internal character sequence to external bytes and write them to
      * the underlying buffer (called by `abs_cvt::put`).
-     * Invokes the encoding kernel's `out_helper()` for each internal character
-     * in sequence, updating the accumulated character count on success.
+     * Invokes the encoding kernel's `out_helper()` chunk by chunk, reserving
+     * `characters × epc()` bytes per chunk so the whole chunk fits, and updates the
+     * accumulated character count on success.
      * @endif
      */
     void put_main(const internal_type* to, std::size_t to_size)
@@ -1158,19 +1200,24 @@ private:
     {
         auto writer = BT::kernel_writer();
         writer.reset(s_max_buf_size);
-        const std::size_t buf_len = m_cvt_kernel.epc();
-        for (std::size_t i = 0; i < to_size; ++i)
+        const std::size_t epc = m_cvt_kernel.epc();
+        const internal_type* cur = to;
+        const internal_type* const end = to + to_size;
+        while (cur != end)
         {
+            const std::size_t n = std::min<std::size_t>(static_cast<std::size_t>(end - cur),
+                                                         s_max_buf_size / epc);
+            const std::size_t buf_len = n * epc;
             external_type* out_beg = writer.put_buf(buf_len);
             external_type* out_next = out_beg;
             put_buf_guard guard{writer, buf_len};
 
-            internal_type ch = *to++;
-
-            if (!m_cvt_kernel.out_helper(ch, out_next, out_beg + buf_len))
-                throw cvt_error("code_cvt::put fail: input character cannot be encoded");
-
+            // Room for n * epc bytes: the kernel stops early only at a character it
+            // cannot encode.
+            const bool ok = m_cvt_kernel.out_helper(cur, cur + n, out_next, out_beg + buf_len);
             guard.used(static_cast<std::size_t>(out_next - out_beg));
+            if (!ok)
+                throw cvt_error("code_cvt::put fail: input character cannot be encoded");
         }
         // commit() is the responsibility of abs_cvt::put; m_accu_len is
         // updated only on success so that a thrown encoding error leaves
@@ -1237,7 +1284,9 @@ private:
                 }
 
                 auto ext_cur = ptr;
-                auto [succ, int_len] = m_cvt_kernel.in_helper(ext_cur, ptr + cur_size, to, to + to_max - total_size);
+                const internal_type* const to_before = to;
+                const bool succ = m_cvt_kernel.in_helper(ext_cur, ptr + cur_size, to, to + to_max - total_size);
+                const auto int_len = static_cast<std::size_t>(to - to_before);
 
                 // in_helper may have written `int_len` chars into `to` before hitting an
                 // invalid byte: count them before anything can throw.
