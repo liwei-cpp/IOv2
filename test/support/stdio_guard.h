@@ -91,7 +91,9 @@ namespace
             m_old_stdin = sys::dup(sys::stdin_fd);
             if (!sys::reopen("stdio_input_guard", "r", stdin))
                 throw std::runtime_error("Cannot re-direct stdin");
+#if !defined(__APPLE__)
             setvbuf(stdin, nullptr, _IONBF, 0);
+#endif
         }
 
         ~iguard()
@@ -102,7 +104,9 @@ namespace
             drain_stdin();
             sys::dup2(m_old_stdin, sys::stdin_fd);
             sys::close(m_old_stdin);
+#if !defined(__APPLE__)
             setvbuf(stdin, nullptr, _IONBF, 0);
+#endif
             std::filesystem::remove("stdio_input_guard");
         }
 
