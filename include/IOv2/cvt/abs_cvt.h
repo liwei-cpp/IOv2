@@ -141,8 +141,11 @@ namespace IOv2
          */
         void reset(std::size_t buf_size)
         {
+            // resize(buf_size) by another route: GCC 16 at -O3 reports a bogus -Warray-bounds
+            // inside resize (GCC PR 128679), and resize(buf_size, char_type{}) a bogus
+            // -Wstringop-overflow instead.
             if (m_buffer.size() < buf_size)
-                m_buffer.resize(buf_size);
+                m_buffer.insert(m_buffer.end(), buf_size - m_buffer.size(), char_type{});
         }
 
         /**
@@ -418,8 +421,9 @@ namespace IOv2
          */
         void reset(std::size_t buf_size)
         {
+            // insert rather than resize: see cvt_reader::reset (GCC PR 128679).
             if (m_buffer.size() < buf_size)
-                m_buffer.resize(buf_size);
+                m_buffer.insert(m_buffer.end(), buf_size - m_buffer.size(), char_type{});
         }
 
         /**

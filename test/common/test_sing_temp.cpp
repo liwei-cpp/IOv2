@@ -141,8 +141,10 @@ class counted_probe : public sing_temp<counted_probe<Tag>>
     friend sing_temp<counted_probe<Tag>>;
 
 public:
-    static inline int constructions = 0;
-    static inline int destructions = 0;
+    // [[maybe_unused]]: clang 23 reports these as set but not used although the tests
+    // read them through each instantiation (llvm/llvm-project#231652).
+    [[maybe_unused]] static inline int constructions = 0;
+    [[maybe_unused]] static inline int destructions = 0;
     int state = 0;
 
 private:
@@ -156,9 +158,10 @@ class hooked_probe : public sing_temp<hooked_probe<Tag>>
     friend sing_temp<hooked_probe<Tag>>;
 
 public:
-    static inline int constructions = 0;
-    static inline int destructions = 0;
-    static inline int flushes = 0;
+    // [[maybe_unused]]: as in counted_probe (llvm/llvm-project#231652).
+    [[maybe_unused]] static inline int constructions = 0;
+    [[maybe_unused]] static inline int destructions = 0;
+    [[maybe_unused]] static inline int flushes = 0;
     int state = 0;
 
 private:
