@@ -575,25 +575,27 @@ namespace detail
      * @lang{ZH}
      * 解码 `from` 处的一个 UTF-8 字符，得到码点（要求 `from != from_end`）。严格按 RFC 3629：
      * 拒绝超长编码、代理码点、0x10FFFF 以上的码点及格式错误的续接字节。返回 `ok` 时 `cp`
-     * 为码点、`len` 为所占字节数；否则两者不变。码点如何变成内部单元由各 UTF-8 内核决定。
+     * 为码点、`from` 越过该字符；否则两者不变（`from` 停在该字符的开头）。码点如何变成
+     * 内部单元由各 UTF-8 内核决定。
      * @endif
      *
      * @lang{EN}
      * Decode the UTF-8 character at `from` into a code point (`from != from_end` required),
      * strictly per RFC 3629: overlong encodings, surrogate code points, values above
      * 0x10FFFF and malformed continuation bytes are rejected. On `ok`, `cp` is the code
-     * point and `len` the number of bytes it took; otherwise both are left alone. How the
-     * code point becomes internal units is up to each UTF-8 kernel.
+     * point and `from` moves past the character; otherwise both are left alone (`from`
+     * stays at the character's start). How the code point becomes internal units is up
+     * to each UTF-8 kernel.
      * @endif
      */
-    constexpr utf8_status utf8_decode_one(const char8_t* from, const char8_t* from_end,
-                                          char32_t& cp, std::size_t& len) noexcept
+    constexpr utf8_status utf8_decode_one(const char8_t*& from, const char8_t* from_end,
+                                          char32_t& cp) noexcept
     {
         const auto c1 = static_cast<uint32_t>(*from);
         if (c1 < 0x80U) [[likely]]
         {
             cp = c1;
-            len = 1;
+            from += 1;
             return utf8_status::ok;
         }
         if (c1 < 0xE0U)
@@ -609,7 +611,7 @@ namespace detail
             const auto c = encoded - prefix_bias;
             if (c < 0x80U) return utf8_status::bad;
             cp = c;
-            len = 2;
+            from += 2;
             return utf8_status::ok;
         }
         if (c1 < 0xF0U)
@@ -626,7 +628,7 @@ namespace detail
             if (c >= 0xD800U && c <= 0xDFFFU) [[unlikely]]
                 return utf8_status::bad;
             cp = c;
-            len = 3;
+            from += 3;
             return utf8_status::ok;
         }
         if (c1 < 0xF8U)
@@ -643,7 +645,7 @@ namespace detail
             const auto c = encoded - prefix_bias;
             if (c < 0x10000U || c > 0x10FFFFU) return utf8_status::bad;
             cp = c;
-            len = 4;
+            from += 4;
             return utf8_status::ok;
         }
         return utf8_status::bad;
@@ -955,14 +957,12 @@ struct codecvt_kernel<char8_t, TInt>
         while (from != from_end && to != to_end)
         {
             char32_t cp{};
-            std::size_t len = 0;
-            const auto status = detail::utf8_decode_one(from, from_end, cp, len);
+            const auto status = detail::utf8_decode_one(from, from_end, cp);
             // An incomplete character at the end (short_input) is left at from, unconsumed,
             // for the caller to keep; so is an invalid one (bad).
             if (status != detail::utf8_status::ok)
                 return status != detail::utf8_status::bad;
             *to++ = static_cast<TInt>(cp);
-            from += len;
         }
         return true;
     }
@@ -1187,11 +1187,9 @@ struct codecvt_kernel<char8_t, TInt>
         while (from != from_end && to != to_end)
         {
             char32_t cp{};
-            std::size_t len = 0;
-            const auto status = detail::utf8_decode_one(from, from_end, cp, len);
+            const auto status = detail::utf8_decode_one(from, from_end, cp);
             if (status != detail::utf8_status::ok)
                 return status != detail::utf8_status::bad;
-            from += len;
 
             if (cp < 0x10000U)
             {
