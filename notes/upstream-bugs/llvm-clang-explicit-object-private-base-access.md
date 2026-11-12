@@ -4,8 +4,8 @@
 - **Upstream project / component**: LLVM / Clang (Sema, access control)
 - **Bug ID**: Issue #230610
 - **Reported**: 2026-10-09 18:07 UTC by liwei-cpp
-- **Last modified upstream**: 2026-10-09 18:08 UTC (checked 2026-10-10)
-- **Current status**: `Open` — triaged with labels `clang:frontend` and `accepts-invalid`; no assignee, no comment beyond the bot's subscriber notice.
+- **Last modified upstream**: 2026-10-12 04:01 UTC (checked 2026-11-12)
+- **Current status**: `Open` — triaged with labels `clang:frontend` and `accepts-invalid`; no assignee. On 2026-10-12 shafik commented to CC cor3ntin; no technical comments or patch yet.
 
 [中文](#中文) | [English](#english)
 
@@ -19,7 +19,7 @@
 
 ### 当前状态
 
-`Open`（已分拣）。2026-10-09 提交后一分钟内，EugeneZelenko 打上 `clang:frontend` 与 `accepts-invalid` 两个标签，机器人随之通知了 clang 前端的订阅者。目前没有指派人，除那条机器人通知外没有评论。以上为 2026-10-10 核对的状态，后续以上游链接为准：<https://github.com/llvm/llvm-project/issues/230610>。
+`Open`（已分拣）。2026-10-09 提交后一分钟内，EugeneZelenko 打上 `clang:frontend` 与 `accepts-invalid` 两个标签，机器人随之通知了 clang 前端的订阅者。2026-10-12，shafik 留言抄送 cor3ntin。目前没有指派人，也没有技术性评论或补丁。以上为 2026-11-12 核对的状态，后续以上游链接为准：<https://github.com/llvm/llvm-project/issues/230610>。
 
 ### Bug 描述
 
@@ -74,7 +74,7 @@ int main() {
 
 ### Current status
 
-`Open` (triaged). Within a minute of submission on 2026-10-09, EugeneZelenko labeled it `clang:frontend` and `accepts-invalid`, and the bot notified the clang frontend subscribers. No assignee yet, and no comment apart from that bot notice. This is the status as checked on 2026-10-10; for up-to-date status, see <https://github.com/llvm/llvm-project/issues/230610>.
+`Open` (triaged). Within a minute of submission on 2026-10-09, EugeneZelenko labeled it `clang:frontend` and `accepts-invalid`, and the bot notified the clang frontend subscribers. On 2026-10-12 shafik commented to CC cor3ntin. No assignee yet, and no technical comment or patch. This is the status as checked on 2026-11-12; for up-to-date status, see <https://github.com/llvm/llvm-project/issues/230610>.
 
 ### Bug description
 

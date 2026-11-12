@@ -4,7 +4,7 @@
 - **Upstream project / component**: GCC / `libstdc++`
 - **Bug ID**: PR 125554
 - **Reported**: 2026-06-01 16:07 UTC by liwei
-- **Last modified upstream**: 2026-06-09 17:53 UTC (checked 2026-10-10)
+- **Last modified upstream**: 2026-06-09 17:53 UTC (checked 2026-11-12)
 - **Current status**: `NEW` — confirmed by Jonathan Wakely on 2026-06-02; `Assignee: Not yet assigned to anyone`, no comments, no patch.
 
 [中文](#中文) | [English](#english)
