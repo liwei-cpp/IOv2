@@ -4,7 +4,7 @@
 - **Upstream project / component**: GCC / optimizer (IPA modref + points-to / tree-optimization). The `Blocks:` field is set to `modref`, and maintainer analysis (comments 13–14) places the root cause in IPA escape tracking.
 - **Bug ID**: PR 121814
 - **Reported**: 2025-09-05 20:20 UTC
-- **Last modified upstream**: 2026-02-06 11:26 UTC
+- **Last modified upstream**: 2026-02-06 11:26 UTC (checked 2026-11-12)
 - **Current status**: `NEW` — confirmed by GCC maintainers (Richard Biener in comment #13, Jan Hubicka in comment #14). No fix yet; not yet assigned to anyone. Importance `P3 / normal`.
 
 [中文](#中文) | [English](#english)

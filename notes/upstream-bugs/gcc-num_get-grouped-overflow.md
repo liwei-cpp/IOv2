@@ -4,7 +4,7 @@
 - **Upstream project / component**: GCC / `libstdc++`
 - **Bug ID**: PR 125499
 - **Reported**: 2026-05-29 15:23 UTC
-- **Last modified upstream**: 2026-05-29 22:26 UTC (checked 2026-10-10)
+- **Last modified upstream**: 2026-05-29 22:26 UTC (checked 2026-11-12)
 - **Current status**: `UNCONFIRMED` — not yet confirmed or assigned; Jonathan Wakely commented (#1) that [LWG 3689](https://cplusplus.github.io/LWG/issue3689) is related.
 
 [中文](#中文) | [English](#english)

@@ -4,8 +4,8 @@
 - **Upstream project / component**: GCC / `libstdc++`
 - **Bug ID**: PR 127815
 - **Reported**: 2026-10-10 18:33 UTC by liwei (Version: 15.3.0)
-- **Last modified upstream**: 2026-10-10 18:33 UTC
-- **Current status**: `UNCONFIRMED` — submitted, awaiting maintainer triage; `Assignee: Not yet assigned to anyone`, no maintainer comments yet.
+- **Last modified upstream**: 2026-11-06 14:50 UTC (checked 2026-11-12)
+- **Current status**: `ASSIGNED` to Jonathan Wakely, Target Milestone 16.3. Fixed on master by r17-5617-gdad7575e1d2e (2026-10-27) and backported to releases/gcc-16 by r16-9917-g25e5e8638baa (2026-11-06), so the first release with the fix should be 16.3; GCC 16.2.1 20261029 (Fedora 45) still reproduces it. Comment #6 (a third party) reports a mirror-image problem at the upper bound that the fix leaves alone; no maintainer reply yet.
 
 [中文](#中文) | [English](#english)
 
@@ -19,7 +19,15 @@
 
 ### 当前状态
 
-`UNCONFIRMED`(已提交,尚未被 GCC 维护者确认)。Assignee 字段为 *Not yet assigned to anyone*,目前没有上游开发者的评论。后续状态变更请以上游链接为准:<https://gcc.gnu.org/bugzilla/show_bug.cgi?id=127815>。
+`ASSIGNED`(截至 2026-11-12)。进展:
+
+- 2026-10-11:Jonathan Wakely 确认并接手,Target Milestone 设为 16.3,在 comment #3 给出修复思路的 diff。
+- 2026-10-15:补丁发到 gcc-patches(经 Tomasz Kamiński 评审,出了 v2),bug 加上 `patch` 关键字。
+- 2026-10-27:合入 master,[r17-5617-gdad7575e1d2e](https://gcc.gnu.org/g:dad7575e1d2e24ee49f4caea69d67dbafdfbb974),"libstdc++: Fix chrono::time_zone::get_info for very negative times [PR127815]"。
+- 2026-11-06:回移到 releases/gcc-16,[r16-9917-g25e5e8638baa](https://gcc.gnu.org/g:25e5e8638baac11cab12846ba00264e226dadd15)。首个带修复的正式版本应为 16.3。2026-11-12 在 Fedora 45 的 GCC 16.2.1(20261029 快照,早于回移)上核验,最小复现仍然复现。
+- 2026-11-05/06:第三方在 comment #6 指出上界方向有对称的问题,修复没有涉及,并给出测试用例;目前没有维护者回复。本文未核验这一说法。
+
+bug 尚未关闭。后续状态变更请以上游链接为准:<https://gcc.gnu.org/bugzilla/show_bug.cgi?id=127815>。
 
 ### 发现经过
 
@@ -81,7 +89,15 @@ Plain: ok, abbrev=CST
 
 ### Current status
 
-`UNCONFIRMED` (submitted, not yet confirmed by a GCC maintainer). The Assignee field reads *Not yet assigned to anyone*, and there are no comments from upstream developers yet. For later status changes, see <https://gcc.gnu.org/bugzilla/show_bug.cgi?id=127815>.
+`ASSIGNED` (as of 2026-11-12). Progress:
+
+- 2026-10-11: Jonathan Wakely confirmed and took it, set Target Milestone to 16.3, and sketched the fix as a diff in comment #3.
+- 2026-10-15: patch posted to gcc-patches (reviewed by Tomasz Kamiński, followed by a v2); the bug got the `patch` keyword.
+- 2026-10-27: committed to master as [r17-5617-gdad7575e1d2e](https://gcc.gnu.org/g:dad7575e1d2e24ee49f4caea69d67dbafdfbb974), "libstdc++: Fix chrono::time_zone::get_info for very negative times [PR127815]".
+- 2026-11-06: backported to releases/gcc-16 as [r16-9917-g25e5e8638baa](https://gcc.gnu.org/g:25e5e8638baac11cab12846ba00264e226dadd15). The first release with the fix should be 16.3. Checked on 2026-11-12 with Fedora 45's GCC 16.2.1 (a 20261029 snapshot, before the backport): the reproducer still fails.
+- 2026-11-05/06: a third party reported in comment #6, with a testcase, a mirror-image problem at the upper bound that the fix does not touch; no maintainer reply yet. That claim was not checked for this note.
+
+The bug is still open. For later status changes, see <https://gcc.gnu.org/bugzilla/show_bug.cgi?id=127815>.
 
 ### How it was found
 
