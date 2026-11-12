@@ -57,6 +57,11 @@
   读状态下的 `seek(0)` 与 `rseek(0)`（后者读到末尾并计数，因此叠在变长编码的 `code_cvt`
   之上时追加模式仍可用）；写入只能发生在流的末尾。宽字符流应把它叠在 `code_cvt` 之上，
   按字符转换。
+- Windows 上可用 `code_cvt_creator<char8_t, wchar_t>`：UTF-8 与 16 位 `wchar_t`（UTF-16）
+  互转，BMP 以外的字符读写为代理对。代理对被调用边界切开时转换器暂存半个：只读一个单元时
+  先交出高位代理，写时以高位代理结尾的 `put` 等下一次 `put` 的低位代理；关闭流时高位代理
+  仍未配对则报错。UTF-8 的判法与 `char32_t` 版本相同；孤立的代理无法编码。macOS 上仍不提供。
+- `wchar_t_is_utf16`：本平台的 `wchar_t` 是否为 UTF-16 编码单元（Windows 上为真）。
 
 #### 变更
 
@@ -139,7 +144,8 @@
 - `code_cvt` 编码内核（`codecvt_kernel`）的 `out_helper` 改为接收一段字符
   `(from, from_end, to, to_end)`，能写下多少就写多少，两个指针都向后推进；单字符版本删除。
   输出空间不足不再返回 `false`，而是停下并返回 `true`，`false` 只表示遇到无法编码的字符。
-  `in_helper` 改为返回 `bool`，写出的字符数由 `to` 推进了多少得出。自定义内核要相应修改。
+  `in_helper` 改为返回 `bool`，写出的字符数由 `to` 推进了多少得出。内核另须提供
+  `has_pending_get()`：是否暂存着已解码、因输出位置不够而未交出的字符。自定义内核要相应修改。
 
 #### 废弃
 
@@ -302,6 +308,15 @@ have no release line of their own.
   the target `IOv2::iov2`, which brings the include path, C++23 and the required
   macro, and in shared mode `libiov2` as well. The variable `IOv2_SHARED` reports
   which kind of installation was found.
+- `code_cvt_creator<char8_t, wchar_t>` on Windows: UTF-8 to and from 16-bit `wchar_t`
+  (UTF-16), a character outside the BMP read and written as a surrogate pair. When a
+  call boundary splits a pair, the converter holds half of it: reading one unit at a
+  time hands over the high surrogate first, and a `put` that ends in a high surrogate
+  waits for the low one from the next `put`; closing the stream with a high surrogate
+  still unpaired reports an error. UTF-8 is judged as for `char32_t`; a lone surrogate
+  cannot be encoded. Still not provided on macOS.
+- `wchar_t_is_utf16`: whether this platform's `wchar_t` is a UTF-16 code unit (true
+  on Windows).
 
 #### Changed
 
@@ -416,7 +431,9 @@ have no release line of their own.
   both pointers; the single-character version is gone. Running out of room no
   longer returns `false` but stops and returns `true`; `false` means only a
   character that cannot be encoded. `in_helper` returns `bool`, and the number of
-  characters written is how far `to` advanced. Custom kernels have to follow.
+  characters written is how far `to` advanced. A kernel also provides
+  `has_pending_get()`: whether it holds back a character it decoded but had no room to
+  hand over. Custom kernels have to follow.
 
 #### Deprecated
 
