@@ -90,7 +90,8 @@ namespace IOv2
      *
      * 当且仅当 C 库声明了 `__STDC_ISO_10646__`（即承诺所有 locale 下 wchar_t 的值都是
      * Unicode 码位）、wchar_t 与 char32_t 等宽、且二者对同一字符的编码一致时为 true
-     * （借助两个中文字符在编译期校验）。在 glibc/Linux 上为 true；在 wchar_t
+     * （借助两个中文字符在编译期校验，以通用字符名书写，不受源文件编码影响）。
+     * 在 glibc/Linux 上为 true；在 wchar_t
      * 为 16 位 UTF-16 的平台（如 MSVC），以及未声明该宏的平台（如 macOS，其非 UTF-8
      * locale 下 wchar_t 是本地码值）上为 false。
      *
@@ -104,7 +105,8 @@ namespace IOv2
      * True iff the C library defines `__STDC_ISO_10646__` (its promise that
      * wchar_t values are Unicode code points in every locale), wchar_t has the
      * same width as char32_t, and the two agree on the encoding of the same
-     * character (verified at compile time via two CJK characters). True on
+     * character (verified at compile time via two CJK characters, spelled with
+     * universal character names so the source file's encoding does not matter). True on
      * glibc/Linux; false where wchar_t is a 16-bit UTF-16 code unit (e.g. MSVC)
      * and where the macro is not defined (e.g. macOS, whose wchar_t holds
      * locale-specific values outside UTF-8 locales).
@@ -117,8 +119,44 @@ namespace IOv2
     inline constexpr bool wchar_t_is_utf32 =
 #if defined(__STDC_ISO_10646__)
         (sizeof(char32_t) == sizeof(wchar_t)) &&
-        (static_cast<wchar_t>(U'李') == L'李') &&
-        (static_cast<char32_t>(L'伟') == U'伟');
+        (static_cast<wchar_t>(U'\u674E') == L'\u674E') &&  // 李
+        (static_cast<char32_t>(L'\u4F1F') == U'\u4F1F');   // 伟
+#else
+        false;
+#endif
+
+    /**
+     * @lang{ZH}
+     * 本平台的 wchar_t 是否为 UTF-16 编码单元。
+     *
+     * 要求目标为 Windows（`_WIN32`），wchar_t 与 char16_t 等宽、同一字符两者编码一致，且 BMP
+     * 以外的字符在宽字符串里占两个单元（代理对）。`_WIN32` 在这里的作用相当于
+     * `wchar_t_is_utf32` 里的 `__STDC_ISO_10646__`：Win32 API 与 UCRT 规定 wchar_t 在任何
+     * locale 下都是 UTF-16，字面量检查只能证明编译器的宽字符编码。`__STDC_ISO_10646__` 本身
+     * 不能用：它承诺每个字符装进一个 wchar_t，UTF-16 平台按定义不会定义它。字面量用通用
+     * 字符名书写，不受源文件编码影响。与 `wchar_t_is_utf32` 互斥；两者可能都为假（如 macOS）。
+     * @endif
+     *
+     * @lang{EN}
+     * Whether this platform's wchar_t is a UTF-16 code unit.
+     *
+     * Requires a Windows target (`_WIN32`), wchar_t as wide as char16_t, the two encoding the
+     * same character alike, and a character outside the BMP taking two units (a surrogate
+     * pair) in a wide string. `_WIN32` plays the part `__STDC_ISO_10646__` plays in
+     * `wchar_t_is_utf32`: the Win32 API and the UCRT define wchar_t as UTF-16 in every
+     * locale, while the literal checks only prove the compiler's wide encoding.
+     * `__STDC_ISO_10646__` itself will not do: it promises every character fits in one
+     * wchar_t, which a UTF-16 platform by definition does not define. The literals are
+     * spelled with universal character names, so the source file's encoding does not
+     * matter. Exclusive with `wchar_t_is_utf32`; both may be false (macOS, say).
+     * @endif
+     */
+    inline constexpr bool wchar_t_is_utf16 =
+#if defined(_WIN32)
+        (sizeof(char16_t) == sizeof(wchar_t)) &&
+        (static_cast<wchar_t>(u'\u674E') == L'\u674E') &&  // 李
+        (static_cast<char16_t>(L'\u4F1F') == u'\u4F1F') && // 伟
+        (sizeof(L"\U0001F600") == 3 * sizeof(wchar_t));      // a surrogate pair and the null
 #else
         false;
 #endif
