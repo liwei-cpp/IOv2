@@ -52,7 +52,7 @@
 
 ### IOv2 的处理
 
-尚未规避:GCC 16 下 `gcc-release` 等 `-O3 -Werror` 配置在 `test_zlib_cvt_char.cpp` 处构建失败。可选的做法是在 `cvt_reader::reset` 处局部压制该诊断,或改写成不触发它的形式;待定。
+已规避,见 PR #550:`cvt_reader::reset` 与 `cvt_writer::reset` 不再调用 `resize(buf_size)`,改为 `m_buffer.insert(m_buffer.end(), buf_size - m_buffer.size(), char_type{})`,在末尾追加同样的值初始化元素,语义不变。先试过的 `resize(buf_size, char_type{})` 在真实代码里只是把这个警告换成了一个 `-Wstringop-overflow` 误报("writing 8 bytes into a region of size 2"),因此没有采用。规避后 GCC 16.2.1 与 15.3.1 在 `-O3 -Werror` 下都能编过 `test_zlib_cvt_char.cpp`。上游修复后可改回 `resize`。
 
 ---
 
@@ -114,4 +114,4 @@ In function '... std::__fill_a1(_Up*, _Up*, const _Tp&) [with _Up = char; _Tp = 
 
 ### What IOv2 does
 
-Not worked around yet: with GCC 16, `gcc-release` and the other `-O3 -Werror` configurations fail to build at `test_zlib_cvt_char.cpp`. The options are to suppress the diagnostic locally at `cvt_reader::reset`, or to rewrite it in a form that does not trigger it; undecided.
+Worked around in PR #550: `cvt_reader::reset` and `cvt_writer::reset` no longer call `resize(buf_size)` but `m_buffer.insert(m_buffer.end(), buf_size - m_buffer.size(), char_type{})`, which appends the same value-initialized elements. `resize(buf_size, char_type{})` was tried first; in the real code it only traded this warning for a bogus `-Wstringop-overflow` ("writing 8 bytes into a region of size 2"), so it was not used. With the workaround, GCC 16.2.1 and 15.3.1 both build `test_zlib_cvt_char.cpp` at `-O3 -Werror`. Once upstream fixes the bug, `resize` can come back.
