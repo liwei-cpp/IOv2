@@ -23,9 +23,11 @@
 #include <cerrno>
 #include <cstddef>
 
+#if defined(IOV2_TEST_WRAP_READ)
 #include <fcntl.h>
 #include <sys/types.h>
 #include <unistd.h>
+#endif
 
 using namespace IOv2;
 
