@@ -77,6 +77,18 @@ inline bool env_is_set(const char* name)
     return ::getenv_s(&len, nullptr, 0, name) == 0 && len != 0;
 }
 
+// The value, or "" when unset; _dupenv_s() hands back a copy to free.
+inline std::string get_env(const char* name)
+{
+    char* value = nullptr;
+    std::size_t len = 0;
+    if (::_dupenv_s(&value, &len, name) != 0 || value == nullptr)
+        return {};
+    std::string res(value);
+    std::free(value);
+    return res;
+}
+
 // freopen() is deprecated by MSVC, and freopen_s() opens the file unshared, so a
 // test could not read a capture file while the stream still holds it (measured).
 // The file is opened shared instead and put under the stream's descriptor.
@@ -138,6 +150,12 @@ inline long long write(int fd, const void* buf, std::size_t n) { return ::write(
 inline void set_env(const char* name, const std::string& value) { ::setenv(name, value.c_str(), 1); }
 inline void unset_env(const char* name) { ::unsetenv(name); }
 inline bool env_is_set(const char* name) { return std::getenv(name) != nullptr; }
+
+inline std::string get_env(const char* name)
+{
+    const char* value = std::getenv(name);
+    return value != nullptr ? value : "";
+}
 
 inline bool reopen(const char* name, const char* mode, std::FILE* stream)
 {

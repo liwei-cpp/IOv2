@@ -15,6 +15,7 @@
 #include <IOv2/device/file_device.h>
 
 #include <support/file_guard.h>
+#include <support/platform_macros.h>
 #include <support/test_child.h>
 
 #include <gtest/gtest.h>
@@ -24,7 +25,9 @@
 #include <fstream>
 #include <string>
 
+#if IOV2_TEST_LINUX_GLIBC || IOV2_TEST_MACOS
 #include <sys/resource.h>
+#endif
 
 using namespace IOv2;
 
@@ -32,7 +35,11 @@ namespace
 {
     using RWDev = basic_file_device<true, true, char>;
     const char* const kFile = "file_device_stale_error";
+}
 
+#if IOV2_TEST_LINUX_GLIBC || IOV2_TEST_MACOS
+namespace
+{
     // In the child: a write that the 5-byte limit makes fail (in dput, or in dflush once
     // stdio has buffered it), then a read from the start that reaches the end.
     void read_back_after_a_failed(const std::string& which)
@@ -64,9 +71,11 @@ namespace
         EXPECT_EQ(std::string(buf, got), std::string(std::filesystem::file_size(kFile), 'x'));
     }
 }
+#endif
 
 TEST(FileDeviceStaleError, AReadAfterAFailedWriteReachesTheEndCleanly)
 {
+#if IOV2_TEST_LINUX_GLIBC || IOV2_TEST_MACOS
     if (in_test_child())
         return read_back_after_a_failed(test_child_arg());
 
@@ -77,6 +86,9 @@ TEST(FileDeviceStaleError, AReadAfterAFailedWriteReachesTheEndCleanly)
         EXPECT_EQ(run_test_child("FileDeviceStaleError.AReadAfterAFailedWriteReachesTheEndCleanly", which), 0)
             << "the checks in the child failed; see its output above";
     }
+#else
+    GTEST_SKIP() << "needs a file size limit (setrlimit, SIGXFSZ)";
+#endif
 }
 
 // On the normal path nothing is cleared: once a read reaches the end, what is appended

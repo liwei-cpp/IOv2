@@ -135,7 +135,7 @@ endif()
 # This is giving way to support/platform_macros.h: a test that runs on some
 # platforms says which with #if inside its TEST() and skips on the rest, so one
 # that holds on two platforms of three is written once, and every platform reports
-# the same list of tests. common, cvt/comp and cvt/root_cvt are done that way.
+# the same list of tests. common, cvt/comp, cvt/root_cvt and device are done that way.
 set(IOV2_TEST_OTHER_PLATFORM_DIRS "")
 if(NOT UNIX)
   list(APPEND IOV2_TEST_OTHER_PLATFORM_DIRS posix)
@@ -274,9 +274,9 @@ endforeach()
 # closed between read() and poll(). Elsewhere the macro stays undefined and the
 # tests skip themselves.
 if(UNIX AND NOT APPLE AND CMAKE_SIZEOF_VOID_P EQUAL 8)
-  if(TARGET test_device_std_device_posix_poll_error)
-    target_link_options(test_device_std_device_posix_poll_error PRIVATE "LINKER:--wrap=read")
-    target_compile_definitions(test_device_std_device_posix_poll_error PRIVATE IOV2_TEST_WRAP_READ=1)
+  if(TARGET test_device_std_device_poll_error)
+    target_link_options(test_device_std_device_poll_error PRIVATE "LINKER:--wrap=read")
+    target_compile_definitions(test_device_std_device_poll_error PRIVATE IOV2_TEST_WRAP_READ=1)
   endif()
 endif()
 

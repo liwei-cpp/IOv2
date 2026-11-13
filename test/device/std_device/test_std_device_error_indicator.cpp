@@ -14,6 +14,7 @@
 #include <IOv2/common/defs.h>
 #include <IOv2/device/std_device.h>
 
+#include <support/platform_macros.h>
 #include <support/test_child.h>
 
 #include <gtest/gtest.h>
@@ -21,11 +22,14 @@
 #include <cstdio>
 #include <string>
 
+#if IOV2_TEST_LINUX_GLIBC
 #include <fcntl.h>
 #include <unistd.h>
+#endif
 
 using namespace IOv2;
 
+#if IOV2_TEST_LINUX_GLIBC
 namespace
 {
     // In the child: stdout to /dev/full, then the case named by the parent. Returns the
@@ -65,13 +69,18 @@ namespace
             << which << ": 1 means ferror(stdout) was cleared; 10-14, the setup went wrong";
     }
 }
+#endif
 
 TEST(StdDeviceErrorIndicator, KeptAfterAFailure)
 {
+#if IOV2_TEST_LINUX_GLIBC
     if (in_test_child())
         ::_exit(run_case(test_child_arg()));
 
     expect_the_indicator_kept("flush");
     expect_the_indicator_kept("write");
     expect_the_indicator_kept("user_first");
+#else
+    GTEST_SKIP() << "needs Linux's /dev/full";
+#endif
 }

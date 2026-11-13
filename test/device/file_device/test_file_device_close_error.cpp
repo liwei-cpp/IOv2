@@ -16,19 +16,23 @@
 #include <IOv2/device/file_device.h>
 
 #include <support/file_guard.h>
+#include <support/platform_macros.h>
 
 #include <gtest/gtest.h>
 
 #include <string>
 
+#if IOV2_TEST_LINUX_GLIBC || IOV2_TEST_MACOS
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#endif
 
 using namespace IOv2;
 
 TEST(FileDeviceCloseError, CloseReportsAFailedFcloseAndStillReleasesTheFile)
 {
+#if IOV2_TEST_LINUX_GLIBC || IOV2_TEST_MACOS
     file_guard g("close_ebadf.txt", std::string("hi"));
 
     const int fd = ::open("close_ebadf.txt", O_RDONLY);
@@ -49,4 +53,7 @@ TEST(FileDeviceCloseError, CloseReportsAFailedFcloseAndStillReleasesTheFile)
     // close() releases the handle before throwing, so the device is closed
     // even though it reported an error.
     EXPECT_FALSE(dev.is_open());
+#else
+    GTEST_SKIP() << "the CRT terminates on fclose() of a closed descriptor";
+#endif
 }
