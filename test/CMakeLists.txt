@@ -131,6 +131,11 @@ endif()
 # its platform alone, so
 # test sources need no #ifdef; support/platform.h covers the API differences.
 # Matched on the path below this directory, never on where the checkout lives.
+#
+# This is giving way to support/platform_macros.h: a test that runs on some
+# platforms says which with #if inside its TEST() and skips on the rest, so one
+# that holds on two platforms of three is written once, and every platform reports
+# the same list of tests. cvt/comp and cvt/root_cvt are done that way.
 set(IOV2_TEST_OTHER_PLATFORM_DIRS "")
 if(NOT UNIX)
   list(APPEND IOV2_TEST_OTHER_PLATFORM_DIRS posix)
