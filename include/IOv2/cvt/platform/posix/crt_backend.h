@@ -39,4 +39,19 @@ inline std::size_t crt_wcrtomb(std::span<char> to, wchar_t ch, std::mbstate_t& s
 {
     return std::wcrtomb(to.data(), ch, &state);
 }
+
+/**
+ * @lang{ZH}
+ * 只有 Windows 后端需要判断：POSIX 上 `wchar_t` 不是 UTF-16，UTF-8 locale 也照样走
+ * `mbrtowc`/`wcrtomb`，故恒为 `false`。
+ * @endif
+ * @lang{EN}
+ * Only the Windows backend needs to tell: on POSIX `wchar_t` is not UTF-16 and a UTF-8 locale
+ * goes through `mbrtowc`/`wcrtomb` like any other, so this is always `false`.
+ * @endif
+ */
+constexpr bool crt_locale_is_utf8() noexcept
+{
+    return false;
+}
 }

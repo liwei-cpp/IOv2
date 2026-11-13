@@ -52,6 +52,7 @@
 #include <string>
 #include <type_traits>
 #include <utility>
+#include <variant>
 
 namespace IOv2
 {
@@ -73,6 +74,351 @@ namespace IOv2
  */
 template <typename TExt, typename TInt>
 struct codecvt_kernel;
+
+namespace detail
+{
+    /**
+     * @lang{ZH}
+     * `utf8_decode_one` 的结果：`ok` 解出一个字符；`short_input` 剩下的字节是一个字符的
+     * 开头但不够长；`bad` 无效序列。
+     * @endif
+     *
+     * @lang{EN}
+     * The outcome of `utf8_decode_one`: `ok`, a character decoded; `short_input`, the bytes
+     * left start a character but are too few; `bad`, an invalid sequence.
+     * @endif
+     */
+    enum class utf8_status : std::uint8_t { ok, short_input, bad };
+
+    // The byte's value, 0 to 255 whether or not char is signed. The UTF-8 code below takes
+    // char8_t (the UTF-8 kernels) or char (the locale kernel under a UTF-8 locale on Windows):
+    // one cannot be read through a pointer to the other, char8_t lacking char's aliasing
+    // privilege, so it is instantiated for each.
+    template <typename TByte>
+        requires (std::is_same_v<TByte, char8_t> || std::is_same_v<TByte, char>)
+    constexpr uint32_t utf8_unit(TByte b) noexcept
+    {
+        return static_cast<unsigned char>(b);
+    }
+
+    /**
+     * @lang{ZH}
+     * 解码 `from` 处的一个 UTF-8 字符，得到码点（要求 `from != from_end`）。严格按 RFC 3629：
+     * 拒绝超长编码、代理码点、0x10FFFF 以上的码点及格式错误的续接字节。返回 `ok` 时 `cp`
+     * 为码点、`from` 越过该字符；否则两者不变（`from` 停在该字符的开头）。码点如何变成
+     * 内部单元由各 UTF-8 内核决定。
+     * @endif
+     *
+     * @lang{EN}
+     * Decode the UTF-8 character at `from` into a code point (`from != from_end` required),
+     * strictly per RFC 3629: overlong encodings, surrogate code points, values above
+     * 0x10FFFF and malformed continuation bytes are rejected. On `ok`, `cp` is the code
+     * point and `from` moves past the character; otherwise both are left alone (`from`
+     * stays at the character's start). How the code point becomes internal units is up
+     * to each UTF-8 kernel.
+     * @endif
+     */
+    template <typename TByte>
+        requires (std::is_same_v<TByte, char8_t> || std::is_same_v<TByte, char>)
+    constexpr utf8_status utf8_decode_one(const TByte*& from, const TByte* from_end,
+                                          char32_t& cp) noexcept
+    {
+        const auto c1 = utf8_unit(*from);
+        if (c1 < 0x80U) [[likely]]
+        {
+            cp = c1;
+            from += 1;
+            return utf8_status::ok;
+        }
+        if (c1 < 0xE0U)
+        {
+            if (c1 < 0xC0U) [[unlikely]]
+                return utf8_status::bad;
+            if (from_end - from < 2) return utf8_status::short_input;
+            auto c2 = utf8_unit(from[1]);
+            if ((c2 & 0xC0U) != 0x80U) [[unlikely]]
+                return utf8_status::bad;
+            const auto encoded = c2 + (c1 << 6);
+            constexpr auto prefix_bias = (0xC0U << 6) + 0x80U;
+            const auto c = encoded - prefix_bias;
+            if (c < 0x80U) return utf8_status::bad;
+            cp = c;
+            from += 2;
+            return utf8_status::ok;
+        }
+        if (c1 < 0xF0U)
+        {
+            if (from_end - from < 3) return utf8_status::short_input;
+            auto c2 = utf8_unit(from[1]);
+            auto c3 = utf8_unit(from[2]);
+            if (((c2 & 0xC0U) != 0x80U) || ((c3 & 0xC0U) != 0x80U)) [[unlikely]]
+                return utf8_status::bad;
+            const auto encoded = c3 + (c2 << 6) + (c1 << 12);
+            constexpr auto prefix_bias = (0xE0U << 12) + (0x80U << 6) + 0x80U;
+            const auto c = encoded - prefix_bias;
+            if (c < 0x800U) return utf8_status::bad;
+            if (c >= 0xD800U && c <= 0xDFFFU) [[unlikely]]
+                return utf8_status::bad;
+            cp = c;
+            from += 3;
+            return utf8_status::ok;
+        }
+        if (c1 < 0xF8U)
+        {
+            if (from_end - from < 4) return utf8_status::short_input;
+            auto c2 = utf8_unit(from[1]);
+            auto c3 = utf8_unit(from[2]);
+            auto c4 = utf8_unit(from[3]);
+            if (((c2 & 0xC0U) != 0x80U) || ((c3 & 0xC0U) != 0x80U) || ((c4 & 0xC0U) != 0x80U)) [[unlikely]]
+                return utf8_status::bad;
+            const auto encoded = c4 + (c3 << 6) + (c2 << 12) + (c1 << 18);
+            constexpr auto prefix_bias =
+                (0xF0U << 18) + (0x80U << 12) + (0x80U << 6) + 0x80U;
+            const auto c = encoded - prefix_bias;
+            if (c < 0x10000U || c > 0x10FFFFU) return utf8_status::bad;
+            cp = c;
+            from += 4;
+            return utf8_status::ok;
+        }
+        return utf8_status::bad;
+    }
+
+    /**
+     * @lang{ZH}
+     * 把码点 `cp` 编码为 UTF-8 写到 `to`（要求至少还有 4 字节），`to` 随之推进。代理码点与
+     * 0x10FFFF 以上的值返回 `false`，什么也不写。内部单元如何组成码点由各 UTF-8 内核决定。
+     * @endif
+     *
+     * @lang{EN}
+     * Encode code point `cp` as UTF-8 at `to` (4 bytes of room required), advancing `to`.
+     * A surrogate code point or a value above 0x10FFFF returns `false` and writes nothing.
+     * How internal units make up the code point is up to each UTF-8 kernel.
+     * @endif
+     */
+    template <typename TByte>
+        requires (std::is_same_v<TByte, char8_t> || std::is_same_v<TByte, char>)
+    constexpr bool utf8_encode_one(char32_t cp, TByte*& to) noexcept
+    {
+        const auto c = static_cast<uint32_t>(cp);
+        if (0xD800U <= c && c <= 0xDFFFU) [[unlikely]]
+            return false;
+
+        if (c < 0x80U)
+            *to++ = static_cast<TByte>(c);
+        else if (c <= 0x7ffU)
+        {
+            *to++ = static_cast<TByte>((c >> 6) + 0xC0U);
+            *to++ = static_cast<TByte>((c & 0x3FU) + 0x80U);
+        }
+        else if (c <= 0xFFFFU)
+        {
+            *to++ = static_cast<TByte>((c >> 12) + 0xE0U);
+            *to++ = static_cast<TByte>(((c >> 6) & 0x3FU) + 0x80U);
+            *to++ = static_cast<TByte>((c & 0x3FU) + 0x80U);
+        }
+        else if (c <= 0x10FFFFU)
+        {
+            *to++ = static_cast<TByte>((c >> 18) + 0xF0U);
+            *to++ = static_cast<TByte>(((c >> 12) & 0x3FU) + 0x80U);
+            *to++ = static_cast<TByte>(((c >> 6) & 0x3FU) + 0x80U);
+            *to++ = static_cast<TByte>((c & 0x3FU) + 0x80U);
+        }
+        else [[unlikely]]
+            return false;
+        return true;
+    }
+
+    /**
+     * @lang{ZH}
+     * UTF-8 字节与 16 位 `wchar_t`（UTF-16）之间的转换，连同暂存的半个代理对；只在
+     * `wchar_t_is_utf16` 的平台上实例化。两个内核共用：`codecvt_kernel<char8_t, wchar_t>`
+     * （`TByte` 为 `char8_t`），以及 Windows 上 UTF-8 locale 的 `codecvt_kernel<char, wchar_t>`
+     * （`TByte` 为 `char`）。不检查指针范围，由内核负责。
+     *
+     * BMP 以外的字符在内部占两个 `wchar_t`（代理对），可能被调用边界切开，故暂存半个：
+     * - 写：一段以高位代理结尾时暂存它、不写字节，与下一段开头的低位代理一起编码；
+     * - 读：解出 BMP 以外的字符而输出只剩一个位置时，写高位代理、暂存低位代理，下一次
+     *   `in_helper` 先交出它，不消费字节。
+     * @endif
+     *
+     * @lang{EN}
+     * Conversion between UTF-8 bytes and 16-bit `wchar_t` (UTF-16), with half a surrogate
+     * pair held across calls; instantiated only where `wchar_t_is_utf16` holds. Shared by two
+     * kernels: `codecvt_kernel<char8_t, wchar_t>` (`TByte` is `char8_t`), and on Windows
+     * `codecvt_kernel<char, wchar_t>` under a UTF-8 locale (`TByte` is `char`). Pointer
+     * ranges are not checked; the kernels do that.
+     *
+     * A character outside the BMP takes two `wchar_t`s internally (a surrogate pair), which a
+     * call boundary can split, so half of one is held:
+     * - writing: a run that ends in a high surrogate has it held, writing no bytes, and
+     *   encoded with the low surrogate that opens the next run;
+     * - reading: a character outside the BMP decoded with one place left in the output has
+     *   its high surrogate written and its low one held; the next `in_helper` hands that
+     *   over first, consuming no bytes.
+     * @endif
+     */
+    template <typename TByte>
+        requires (std::is_same_v<TByte, char8_t> || std::is_same_v<TByte, char>)
+    class utf8_utf16_codec
+    {
+    public:
+        /**
+         * @lang{ZH} 回到初始状态：丢弃暂存的半个代理对。 @endif
+         * @lang{EN} Return to the initial state, dropping any half surrogate pair held. @endif
+         */
+        void init_state() noexcept { m_held = 0; }
+
+        /**
+         * @lang{ZH} 是否处于初始状态：没有暂存半个代理对。 @endif
+         * @lang{EN} Whether in the initial state: no half surrogate pair held. @endif
+         */
+        [[nodiscard]] bool is_init_state() const noexcept { return m_held == 0; }
+
+        /**
+         * @lang{ZH} 是否暂存着解出而未交出的低位代理。 @endif
+         * @lang{EN} Whether a decoded low surrogate is held back, not yet handed over. @endif
+         */
+        [[nodiscard]] bool has_pending_get() const noexcept { return is_low(m_held); }
+
+        /**
+         * @lang{ZH}
+         * 关闭输出流前的检查。
+         * @throws cvt_error 若还暂存着高位代理（最后一个字符不完整）。
+         * @endif
+         * @lang{EN}
+         * The check before an output stream is closed.
+         * @throws cvt_error If a high surrogate is still held (the last character is
+         *         incomplete).
+         * @endif
+         */
+        void check_unshift() const
+        {
+            if (is_high(m_held))
+                throw cvt_error("codecvt_kernel::unshift fail: incomplete surrogate pair");
+        }
+
+        /**
+         * @lang{ZH}
+         * 将一段 UTF-16 单元编码为 UTF-8，能写下多少就写多少。每个字符开始前要求输出至少还剩
+         * 4 字节。一段以高位代理结尾时暂存它（`from` 越过它，不写字节）。
+         *
+         * @return 遇到无法编码的单元时返回 `false`：孤立的低位代理，或高位代理后面跟的不是
+         *         低位代理（`from` 停在高位代理上；若高位代理是上一段暂存的，则停在本段第一个
+         *         单元上，暂存随之丢弃）。否则返回 `true`，包括因输出空间不足而停下。
+         * @endif
+         *
+         * @lang{EN}
+         * Encode a run of UTF-16 units into UTF-8, as many as fit. Each character is started
+         * only with at least 4 bytes left. A run that ends in a high surrogate has it held
+         * (`from` moves past it, no bytes written).
+         *
+         * @return `false` at a unit that cannot be encoded: a lone low surrogate, or a high
+         *         surrogate not followed by a low one (`from` is left on the high surrogate;
+         *         if that was held from the previous run, on this run's first unit, and the
+         *         held one is dropped). `true` otherwise, including when encoding stopped
+         *         for lack of room.
+         * @endif
+         */
+        bool out_helper(const wchar_t*& from, const wchar_t* from_end, TByte*& to, TByte* to_end)
+        {
+            while (from != from_end && to_end - to >= 4)
+            {
+                const auto unit = static_cast<char16_t>(*from);
+                char32_t cp = unit;
+                if (m_held != 0)
+                {
+                    // The high surrogate ended the previous run.
+                    const char16_t high = std::exchange(m_held, char16_t{});
+                    if (!is_low(unit))
+                        return false;
+                    cp = combine(high, unit);
+                }
+                else if (is_high(unit))
+                {
+                    if (from + 1 == from_end)
+                    {
+                        // The low surrogate comes with the next run.
+                        m_held = unit;
+                        ++from;
+                        continue;
+                    }
+                    const auto low = static_cast<char16_t>(from[1]);
+                    if (!is_low(low))
+                        return false;
+                    cp = combine(unit, low);
+                    ++from;
+                }
+                else if (is_low(unit))
+                    return false;
+
+                // A BMP character or a whole pair: never a surrogate, never above 0x10FFFF.
+                (void)utf8_encode_one(cp, to);
+                ++from;
+            }
+            return true;
+        }
+
+        /**
+         * @lang{ZH}
+         * 将 UTF-8 字节解码为 UTF-16 单元。先交出上次暂存的低位代理（不消费字节）；BMP
+         * 以外的字符而输出只剩一个位置时，写高位代理、暂存低位代理。末尾不完整的字符与无效
+         * 序列都不消费（`from` 停在它的开头）。
+         *
+         * @return 遇到无效 UTF-8 序列时返回 `false`，否则返回 `true`。写出了多少单元看 `to`
+         *         推进了多少。
+         * @endif
+         *
+         * @lang{EN}
+         * Decode UTF-8 bytes into UTF-16 units. A low surrogate held from the previous call
+         * comes first, consuming no bytes; a character outside the BMP met with one place left
+         * in the output has its high surrogate written and its low one held. An incomplete
+         * character at the end and an invalid sequence are left unconsumed (`from` stops at
+         * its start).
+         *
+         * @return `false` at an invalid UTF-8 sequence, `true` otherwise. How many units were
+         *         written is how far `to` advanced.
+         * @endif
+         */
+        bool in_helper(const TByte*& from, const TByte* from_end, wchar_t*& to, wchar_t* to_end)
+        {
+            if (m_held != 0 && to != to_end)
+                *to++ = static_cast<wchar_t>(std::exchange(m_held, char16_t{}));
+
+            while (from != from_end && to != to_end)
+            {
+                char32_t cp{};
+                const auto status = utf8_decode_one(from, from_end, cp);
+                if (status != utf8_status::ok)
+                    return status != utf8_status::bad;
+
+                if (cp < 0x10000U)
+                {
+                    *to++ = static_cast<wchar_t>(cp);
+                    continue;
+                }
+                const auto v = static_cast<std::uint32_t>(cp) - 0x10000U;
+                *to++ = static_cast<wchar_t>(0xD800U + (v >> 10));
+                const auto low = static_cast<char16_t>(0xDC00U + (v & 0x3FFU));
+                if (to == to_end)
+                    m_held = low; // the next call hands it over
+                else
+                    *to++ = static_cast<wchar_t>(low);
+            }
+            return true;
+        }
+
+    private:
+        static constexpr bool is_high(char16_t u) noexcept { return u >= 0xD800U && u <= 0xDBFFU; }
+        static constexpr bool is_low(char16_t u) noexcept { return u >= 0xDC00U && u <= 0xDFFFU; }
+        static constexpr char32_t combine(char16_t high, char16_t low) noexcept
+        {
+            return 0x10000U + ((static_cast<char32_t>(high) - 0xD800U) << 10)
+                            + (static_cast<char32_t>(low) - 0xDC00U);
+        }
+
+        char16_t m_held = 0; ///< 暂存的半个代理对，0 表示没有 / Half a surrogate pair held, 0 if none.
+    };
+}
 
 /**
  * @lang{ZH}
@@ -100,6 +446,12 @@ struct codecvt_kernel;
  *          它自己实现 UTF-8 并显式拒绝代理与超范围码点。
  *          缓冲区安全不受影响：`out_helper` 先保证有 `epc() == MB_CUR_MAX` 字节可写，
  *          glibc 的 UTF-8 下 `MB_CUR_MAX` 为 6，正好覆盖它可能写出的最长序列。
+ *
+ * @note Windows 的 UTF-8 locale（代码页 65001）是例外：UCRT 的 `mbrtowc` 会把 BMP 以外的
+ *       字符悄悄换成 U+FFFD、`wcrtomb_s` 拒绝代理，16 位 `wchar_t` 因此表示不了这些字符。
+ *       这时本内核不走 C 库，改用与 `codecvt_kernel<char8_t, wchar_t>` 相同的转换
+ *       （`detail::utf8_utf16_codec`）：严格按 RFC 3629，BMP 以外的字符读写为代理对，也不再
+ *       进出 `clocale_user`。其他代码页照旧走 C 库。
  * @endif
  *
  * @lang{EN}
@@ -134,6 +486,14 @@ struct codecvt_kernel;
  *          explicitly. Buffer safety is unaffected: `out_helper` first ensures
  *          `epc() == MB_CUR_MAX` bytes are writable, and glibc's UTF-8 reports a
  *          `MB_CUR_MAX` of 6, exactly covering the longest sequence it can emit.
+ *
+ * @note A UTF-8 locale on Windows (code page 65001) is the exception: the UCRT's `mbrtowc`
+ *       silently turns a character outside the BMP into U+FFFD and `wcrtomb_s` rejects
+ *       surrogates, so 16-bit `wchar_t` could not carry those characters. There this kernel
+ *       leaves the C library aside and converts as `codecvt_kernel<char8_t, wchar_t>` does
+ *       (`detail::utf8_utf16_codec`): strictly per RFC 3629, a character outside the BMP read
+ *       and written as a surrogate pair, and without entering a `clocale_user`. Other code
+ *       pages go through the C library as before.
  * @endif
  */
 template <typename TInt>
@@ -196,32 +556,46 @@ struct codecvt_kernel<char, TInt>
         // and are safe for single-instance usage.
         // NOLINTNEXTLINE(cppcoreguidelines-prefer-member-initializer)
         m_is_state_dep = (std::mbtowc(nullptr, nullptr, MB_CUR_MAX) != 0);
+        if constexpr (s_has_utf16)
+            m_is_utf8 = detail::crt_locale_is_utf8();
         init_state();
     }
 
     /**
      * @lang{ZH}
-     * 将编码转换状态（`mbstate_t`）重置为初始状态。
+     * 将编码转换状态（`mbstate_t`，以及 Windows UTF-8 locale 下暂存的半个代理对）重置为初始状态。
      * @endif
      *
      * @lang{EN}
-     * Reset the encoding conversion state (`mbstate_t`) to its initial value.
+     * Reset the encoding conversion state (`mbstate_t`, and under a UTF-8 locale on Windows
+     * the half surrogate pair held) to its initial value.
      * @endif
      */
     void init_state() noexcept
     {
         m_state = std::mbstate_t{};
+        if constexpr (s_has_utf16)
+            m_utf16.init_state();
     }
 
     /**
      * Emit the sequence required to return a state-dependent encoding to its
      * initial shift state. The terminating null byte produced by wcrtomb is
-     * excluded from the returned length.
+     * excluded from the returned length. Under a UTF-8 locale on Windows nothing
+     * is written, and a high surrogate still held throws.
      */
     std::size_t unshift(char* to, std::size_t capacity)
     {
         if (to == nullptr || capacity < m_epc)
             throw cvt_error("codecvt_kernel::unshift fail: insufficient output buffer");
+        if constexpr (s_has_utf16)
+        {
+            if (m_is_utf8)
+            {
+                m_utf16.check_unshift();
+                return 0;
+            }
+        }
 
         clocale_user guard(m_inter_locale);
         const std::size_t count = detail::crt_wcrtomb(std::span<char>(to, capacity), L'\0', m_state);
@@ -239,28 +613,46 @@ struct codecvt_kernel<char, TInt>
      * @lang{ZH}
      * 判断编码转换状态是否处于初始状态。
      *
-     * @return 若 `mbstate_t` 为初始状态，返回 `true`；否则返回 `false`。
+     * @return 若 `mbstate_t` 为初始状态（Windows UTF-8 locale 下还要求没有暂存半个代理对），
+     *         返回 `true`；否则返回 `false`。
      * @endif
      *
      * @lang{EN}
      * Check whether the encoding conversion state is in its initial state.
      *
-     * @return `true` if `mbstate_t` is in its initial state; `false` otherwise.
+     * @return `true` if `mbstate_t` is in its initial state (and, under a UTF-8 locale on
+     *         Windows, no half surrogate pair is held); `false` otherwise.
      * @endif
      */
-    [[nodiscard]] bool is_init_state() const { return std::mbsinit(&m_state); }
+    [[nodiscard]] bool is_init_state() const
+    {
+        if constexpr (s_has_utf16)
+        {
+            if (!m_utf16.is_init_state())
+                return false;
+        }
+        return std::mbsinit(&m_state);
+    }
 
     /**
      * @lang{ZH}
-     * 是否暂存着解出而未交出的内部字符。本内核解出的字符都当场写出，始终返回 `false`。
+     * 是否暂存着解出而未交出的内部字符。只有 Windows UTF-8 locale 下会暂存（代理对的低位）；
+     * 其余情况解出的字符都当场写出，返回 `false`。
      * @endif
      *
      * @lang{EN}
-     * Whether a decoded internal character is held back, not yet handed over. This kernel
-     * writes every character it decodes at once: always `false`.
+     * Whether a decoded internal character is held back, not yet handed over. Only under a
+     * UTF-8 locale on Windows is one held (the low surrogate of a pair); otherwise every
+     * character decoded is written at once and this is `false`.
      * @endif
      */
-    [[nodiscard]] bool has_pending_get() const noexcept { return false; }
+    [[nodiscard]] bool has_pending_get() const noexcept
+    {
+        if constexpr (s_has_utf16)
+            return m_utf16.has_pending_get();
+        else
+            return false;
+    }
 
     /**
      * @lang{ZH}
@@ -393,6 +785,11 @@ struct codecvt_kernel<char, TInt>
     {
         if (std::greater<>{}(from, from_end) || std::greater<>{}(to, to_end)) [[unlikely]]
             throw cvt_error("codecvt_kernel::out_helper fail: invalid pointer range");
+        if constexpr (s_has_utf16)
+        {
+            if (m_is_utf8)
+                return m_utf16.out_helper(from, from_end, to, to_end);
+        }
         clocale_user guard(m_inter_locale);
 
         std::array<char, MB_LEN_MAX> local{};
@@ -476,6 +873,11 @@ struct codecvt_kernel<char, TInt>
     {
         if (std::greater<>{}(from, from_end) || std::greater<>{}(to, to_end)) [[unlikely]]
             throw cvt_error("codecvt_kernel::in_helper fail: invalid pointer range");
+        if constexpr (s_has_utf16)
+        {
+            if (m_is_utf8)
+                return m_utf16.in_helper(from, from_end, to, to_end);
+        }
         clocale_user guard(m_inter_locale);
         // No wchar_t value glibc decodes to: it tells a shift-only run from a character.
         constexpr auto no_char = static_cast<wchar_t>(-1);
@@ -554,146 +956,15 @@ private:
     unsigned        m_epc = 0;      ///< 每个内部字符对应的最大外部字节数 / Max external bytes per internal character.
     std::mbstate_t  m_state{};      ///< 多字节转换状态 / Multi-byte conversion state.
     bool            m_is_state_dep = false; ///< 编码是否为状态依赖型 / Whether the encoding is state-dependent.
+
+    // Windows' UTF-8 locales only: whether this is one, and the conversion used there in
+    // place of mbrtowc/wcrtomb_s. Takes no room elsewhere. Where wchar_t_is_utf16 holds TInt
+    // can only be wchar_t; testing TInt anyway makes the condition depend on it, so the
+    // discarded `if constexpr` branches that call m_utf16 are not checked elsewhere.
+    static constexpr bool s_has_utf16 = wchar_t_is_utf16 && std::is_same_v<TInt, wchar_t>;
+    IOV2_NO_UNIQUE_ADDRESS std::conditional_t<s_has_utf16, detail::utf8_utf16_codec<char>, std::monostate> m_utf16{};
+    bool m_is_utf8 = false;
 };
-
-namespace detail
-{
-    /**
-     * @lang{ZH}
-     * `utf8_decode_one` 的结果：`ok` 解出一个字符；`short_input` 剩下的字节是一个字符的
-     * 开头但不够长；`bad` 无效序列。
-     * @endif
-     *
-     * @lang{EN}
-     * The outcome of `utf8_decode_one`: `ok`, a character decoded; `short_input`, the bytes
-     * left start a character but are too few; `bad`, an invalid sequence.
-     * @endif
-     */
-    enum class utf8_status : std::uint8_t { ok, short_input, bad };
-
-    /**
-     * @lang{ZH}
-     * 解码 `from` 处的一个 UTF-8 字符，得到码点（要求 `from != from_end`）。严格按 RFC 3629：
-     * 拒绝超长编码、代理码点、0x10FFFF 以上的码点及格式错误的续接字节。返回 `ok` 时 `cp`
-     * 为码点、`from` 越过该字符；否则两者不变（`from` 停在该字符的开头）。码点如何变成
-     * 内部单元由各 UTF-8 内核决定。
-     * @endif
-     *
-     * @lang{EN}
-     * Decode the UTF-8 character at `from` into a code point (`from != from_end` required),
-     * strictly per RFC 3629: overlong encodings, surrogate code points, values above
-     * 0x10FFFF and malformed continuation bytes are rejected. On `ok`, `cp` is the code
-     * point and `from` moves past the character; otherwise both are left alone (`from`
-     * stays at the character's start). How the code point becomes internal units is up
-     * to each UTF-8 kernel.
-     * @endif
-     */
-    constexpr utf8_status utf8_decode_one(const char8_t*& from, const char8_t* from_end,
-                                          char32_t& cp) noexcept
-    {
-        const auto c1 = static_cast<uint32_t>(*from);
-        if (c1 < 0x80U) [[likely]]
-        {
-            cp = c1;
-            from += 1;
-            return utf8_status::ok;
-        }
-        if (c1 < 0xE0U)
-        {
-            if (c1 < 0xC0U) [[unlikely]]
-                return utf8_status::bad;
-            if (from_end - from < 2) return utf8_status::short_input;
-            auto c2 = static_cast<uint32_t>(from[1]);
-            if ((c2 & 0xC0U) != 0x80U) [[unlikely]]
-                return utf8_status::bad;
-            const auto encoded = c2 + (c1 << 6);
-            constexpr auto prefix_bias = (0xC0U << 6) + 0x80U;
-            const auto c = encoded - prefix_bias;
-            if (c < 0x80U) return utf8_status::bad;
-            cp = c;
-            from += 2;
-            return utf8_status::ok;
-        }
-        if (c1 < 0xF0U)
-        {
-            if (from_end - from < 3) return utf8_status::short_input;
-            auto c2 = static_cast<uint32_t>(from[1]);
-            auto c3 = static_cast<uint32_t>(from[2]);
-            if (((c2 & 0xC0U) != 0x80U) || ((c3 & 0xC0U) != 0x80U)) [[unlikely]]
-                return utf8_status::bad;
-            const auto encoded = c3 + (c2 << 6) + (c1 << 12);
-            constexpr auto prefix_bias = (0xE0U << 12) + (0x80U << 6) + 0x80U;
-            const auto c = encoded - prefix_bias;
-            if (c < 0x800U) return utf8_status::bad;
-            if (c >= 0xD800U && c <= 0xDFFFU) [[unlikely]]
-                return utf8_status::bad;
-            cp = c;
-            from += 3;
-            return utf8_status::ok;
-        }
-        if (c1 < 0xF8U)
-        {
-            if (from_end - from < 4) return utf8_status::short_input;
-            auto c2 = static_cast<uint32_t>(from[1]);
-            auto c3 = static_cast<uint32_t>(from[2]);
-            auto c4 = static_cast<uint32_t>(from[3]);
-            if (((c2 & 0xC0U) != 0x80U) || ((c3 & 0xC0U) != 0x80U) || ((c4 & 0xC0U) != 0x80U)) [[unlikely]]
-                return utf8_status::bad;
-            const auto encoded = c4 + (c3 << 6) + (c2 << 12) + (c1 << 18);
-            constexpr auto prefix_bias =
-                (0xF0U << 18) + (0x80U << 12) + (0x80U << 6) + 0x80U;
-            const auto c = encoded - prefix_bias;
-            if (c < 0x10000U || c > 0x10FFFFU) return utf8_status::bad;
-            cp = c;
-            from += 4;
-            return utf8_status::ok;
-        }
-        return utf8_status::bad;
-    }
-
-    /**
-     * @lang{ZH}
-     * 把码点 `cp` 编码为 UTF-8 写到 `to`（要求至少还有 4 字节），`to` 随之推进。代理码点与
-     * 0x10FFFF 以上的值返回 `false`，什么也不写。内部单元如何组成码点由各 UTF-8 内核决定。
-     * @endif
-     *
-     * @lang{EN}
-     * Encode code point `cp` as UTF-8 at `to` (4 bytes of room required), advancing `to`.
-     * A surrogate code point or a value above 0x10FFFF returns `false` and writes nothing.
-     * How internal units make up the code point is up to each UTF-8 kernel.
-     * @endif
-     */
-    constexpr bool utf8_encode_one(char32_t cp, char8_t*& to) noexcept
-    {
-        const auto c = static_cast<uint32_t>(cp);
-        if (0xD800U <= c && c <= 0xDFFFU) [[unlikely]]
-            return false;
-
-        if (c < 0x80U)
-            *to++ = static_cast<char8_t>(c);
-        else if (c <= 0x7ffU)
-        {
-            *to++ = static_cast<char8_t>((c >> 6) + 0xC0U);
-            *to++ = static_cast<char8_t>((c & 0x3FU) + 0x80U);
-        }
-        else if (c <= 0xFFFFU)
-        {
-            *to++ = static_cast<char8_t>((c >> 12) + 0xE0U);
-            *to++ = static_cast<char8_t>(((c >> 6) & 0x3FU) + 0x80U);
-            *to++ = static_cast<char8_t>((c & 0x3FU) + 0x80U);
-        }
-        else if (c <= 0x10FFFFU)
-        {
-            *to++ = static_cast<char8_t>((c >> 18) + 0xF0U);
-            *to++ = static_cast<char8_t>(((c >> 12) & 0x3FU) + 0x80U);
-            *to++ = static_cast<char8_t>(((c >> 6) & 0x3FU) + 0x80U);
-            *to++ = static_cast<char8_t>((c & 0x3FU) + 0x80U);
-        }
-        else [[unlikely]]
-            return false;
-        return true;
-    }
-}
 
 /**
  * @lang{ZH}
@@ -1017,7 +1288,7 @@ struct codecvt_kernel<char8_t, TInt>
      * @lang{ZH} 回到初始状态：丢弃暂存的半个代理对。 @endif
      * @lang{EN} Return to the initial state, dropping any half surrogate pair held. @endif
      */
-    void init_state() noexcept { m_held = 0; }
+    void init_state() noexcept { m_codec.init_state(); }
 
     /**
      * @lang{ZH}
@@ -1036,8 +1307,7 @@ struct codecvt_kernel<char8_t, TInt>
      */
     std::size_t unshift(char8_t*, std::size_t) const
     {
-        if (is_high(m_held))
-            throw cvt_error("codecvt_kernel::unshift fail: incomplete surrogate pair");
+        m_codec.check_unshift();
         return 0;
     }
 
@@ -1045,7 +1315,7 @@ struct codecvt_kernel<char8_t, TInt>
      * @lang{ZH} 是否处于初始状态：没有暂存半个代理对。 @endif
      * @lang{EN} Whether in the initial state: no half surrogate pair held. @endif
      */
-    [[nodiscard]] bool is_init_state() const noexcept { return m_held == 0; }
+    [[nodiscard]] bool is_init_state() const noexcept { return m_codec.is_init_state(); }
 
     /**
      * @lang{ZH} 是否暂存着解出而未交出的低位代理，下一次 `in_helper` 先交出它。 @endif
@@ -1054,7 +1324,7 @@ struct codecvt_kernel<char8_t, TInt>
      * first.
      * @endif
      */
-    [[nodiscard]] bool has_pending_get() const noexcept { return is_low(m_held); }
+    [[nodiscard]] bool has_pending_get() const noexcept { return m_codec.has_pending_get(); }
 
     /**
      * @lang{ZH} 每个内部单元最多对应 4 字节（低位代理带出整个 4 字节序列）。 @endif
@@ -1114,42 +1384,7 @@ struct codecvt_kernel<char8_t, TInt>
     {
         if (std::greater<>{}(from, from_end) || std::greater<>{}(to, to_end)) [[unlikely]]
             throw cvt_error("codecvt_kernel::out_helper fail: invalid pointer range");
-
-        while (from != from_end && to_end - to >= 4)
-        {
-            const auto unit = static_cast<char16_t>(*from);
-            char32_t cp = unit;
-            if (m_held != 0)
-            {
-                // The high surrogate ended the previous run.
-                const char16_t high = std::exchange(m_held, char16_t{});
-                if (!is_low(unit))
-                    return false;
-                cp = combine(high, unit);
-            }
-            else if (is_high(unit))
-            {
-                if (from + 1 == from_end)
-                {
-                    // The low surrogate comes with the next run.
-                    m_held = unit;
-                    ++from;
-                    continue;
-                }
-                const auto low = static_cast<char16_t>(from[1]);
-                if (!is_low(low))
-                    return false;
-                cp = combine(unit, low);
-                ++from;
-            }
-            else if (is_low(unit))
-                return false;
-
-            // A BMP character or a whole pair: never a surrogate, never above 0x10FFFF.
-            (void)detail::utf8_encode_one(cp, to);
-            ++from;
-        }
-        return true;
+        return m_codec.out_helper(from, from_end, to, to_end);
     }
 
     /**
@@ -1180,43 +1415,11 @@ struct codecvt_kernel<char8_t, TInt>
     {
         if (std::greater<>{}(from, from_end) || std::greater<>{}(to, to_end)) [[unlikely]]
             throw cvt_error("codecvt_kernel::in_helper fail: invalid pointer range");
-
-        if (m_held != 0 && to != to_end)
-            *to++ = static_cast<TInt>(std::exchange(m_held, char16_t{}));
-
-        while (from != from_end && to != to_end)
-        {
-            char32_t cp{};
-            const auto status = detail::utf8_decode_one(from, from_end, cp);
-            if (status != detail::utf8_status::ok)
-                return status != detail::utf8_status::bad;
-
-            if (cp < 0x10000U)
-            {
-                *to++ = static_cast<TInt>(cp);
-                continue;
-            }
-            const auto v = static_cast<std::uint32_t>(cp) - 0x10000U;
-            *to++ = static_cast<TInt>(0xD800U + (v >> 10));
-            const auto low = static_cast<char16_t>(0xDC00U + (v & 0x3FFU));
-            if (to == to_end)
-                m_held = low; // the next call hands it over
-            else
-                *to++ = static_cast<TInt>(low);
-        }
-        return true;
+        return m_codec.in_helper(from, from_end, to, to_end);
     }
 
 private:
-    static constexpr bool is_high(char16_t u) noexcept { return u >= 0xD800U && u <= 0xDBFFU; }
-    static constexpr bool is_low(char16_t u) noexcept { return u >= 0xDC00U && u <= 0xDFFFU; }
-    static constexpr char32_t combine(char16_t high, char16_t low) noexcept
-    {
-        return 0x10000U + ((static_cast<char32_t>(high) - 0xD800U) << 10)
-                        + (static_cast<char32_t>(low) - 0xDC00U);
-    }
-
-    char16_t m_held = 0; ///< 暂存的半个代理对，0 表示没有 / Half a surrogate pair held, 0 if none.
+    detail::utf8_utf16_codec<char8_t> m_codec; ///< UTF-8 与 UTF-16 的转换及暂存的半个代理对 / The conversion and the half surrogate pair held.
 };
 
 /**

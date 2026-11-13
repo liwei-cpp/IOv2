@@ -18,6 +18,7 @@
 
 #pragma once
 
+#include <clocale>
 #include <cstddef>
 #include <cwchar>
 #include <span>
@@ -52,5 +53,23 @@ inline std::size_t crt_wcrtomb(std::span<char> to, wchar_t ch, std::mbstate_t& s
     if (wcrtomb_s(&count, to.data(), to.size(), ch, &state) != 0)
         return static_cast<std::size_t>(-1);
     return count;
+}
+
+/**
+ * @lang{ZH}
+ * 本线程当前 locale 的 `LC_CTYPE` 是否为 UTF-8（代码页 65001）。须在 `clocale_user` 之下调用。
+ * 这时 `mbrtowc` 会把 BMP 以外的字符悄悄换成 U+FFFD、`wcrtomb_s` 拒绝代理（见 E0 探针），
+ * locale 内核改用自己的 UTF-8 ↔ UTF-16 转换。
+ * @endif
+ * @lang{EN}
+ * Whether the calling thread's current `LC_CTYPE` is UTF-8 (code page 65001). Call it under a
+ * `clocale_user`. There `mbrtowc` silently turns a character outside the BMP into U+FFFD and
+ * `wcrtomb_s` rejects surrogates, so the locale kernel converts UTF-8 to and from UTF-16
+ * itself.
+ * @endif
+ */
+inline bool crt_locale_is_utf8()
+{
+    return ___lc_codepage_func() == 65001U;
 }
 }
