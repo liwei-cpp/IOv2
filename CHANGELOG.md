@@ -146,6 +146,11 @@
   输出空间不足不再返回 `false`，而是停下并返回 `true`，`false` 只表示遇到无法编码的字符。
   `in_helper` 改为返回 `bool`，写出的字符数由 `to` 推进了多少得出。内核另须提供
   `has_pending_get()`：是否暂存着已解码、因输出位置不够而未交出的字符。自定义内核要相应修改。
+- Windows 上 UTF-8 locale（代码页 65001）的 `code_cvt_creator<char, wchar_t>` 能读写 BMP
+  以外的字符了，读写为代理对，与 `code_cvt_creator<char8_t, wchar_t>` 相同。此前 UCRT 的
+  `mbrtowc` 把它们悄悄换成 U+FFFD，`wcrtomb_s` 拒绝代理对。这种 locale 下的判法随之改为严格的
+  RFC 3629（超长编码、编码过的代理一律无效），转换也不再切换本线程的 locale。其他代码页照旧
+  走 UCRT。
 
 #### 废弃
 
@@ -434,6 +439,13 @@ have no release line of their own.
   characters written is how far `to` advanced. A kernel also provides
   `has_pending_get()`: whether it holds back a character it decoded but had no room to
   hand over. Custom kernels have to follow.
+- On Windows, `code_cvt_creator<char, wchar_t>` under a UTF-8 locale (code page 65001)
+  reads and writes characters outside the BMP, as surrogate pairs, the same as
+  `code_cvt_creator<char8_t, wchar_t>`. The UCRT's `mbrtowc` used to turn them silently
+  into U+FFFD and `wcrtomb_s` rejected surrogate pairs. Under such a locale UTF-8 is now
+  judged strictly per RFC 3629 (overlong forms and encoded surrogates are invalid), and
+  converting no longer switches the thread's locale. Other code pages still go through
+  the UCRT.
 
 #### Deprecated
 
