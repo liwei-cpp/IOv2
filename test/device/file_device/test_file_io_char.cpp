@@ -642,7 +642,7 @@ TEST(FileDeviceChar, DseekRejectsAnOffsetThatWouldOverflowTheFileOffsetType)
 
 // ---------------------------------------------------------------------------
 // Failures that need the operating system to produce them.  The ones that
-// write to /dev/full are Linux-only and live in linux/.
+// write to /dev/full are Linux-only and live in test_file_device_dev_full.cpp.
 // ---------------------------------------------------------------------------
 
 TEST(FileDeviceChar, ANonSeekableFileIsRejected)
