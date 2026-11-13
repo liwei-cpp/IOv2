@@ -16,6 +16,8 @@
 #include <IOv2/cvt/root_cvt.h>
 #include <IOv2/device/mem_device.h>
 
+#include <support/platform_macros.h>
+
 #include <gtest/gtest.h>
 
 #include <clocale>
@@ -24,10 +26,13 @@
 #include <string>
 #include <vector>
 
+#if IOV2_TEST_LINUX_GLIBC
 #include <locale.h>
+#endif
 
 using namespace IOv2;
 
+#if IOV2_TEST_LINUX_GLIBC
 namespace
 {
     constexpr char32_t kError = U'�';
@@ -87,34 +92,48 @@ namespace
         }
     }
 }
+#endif
 
 // glibc calls 81 30 41 invalid only at the fourth byte, 62; the 0 and A after the bad
 // lead byte are characters of their own.
 TEST(CodeCvtReadModesAgree, Gb18030)
 {
+#if IOV2_TEST_LINUX_GLIBC
     if (!have_locale("zh_CN.gb18030"))
         GTEST_SKIP() << "zh_CN.gb18030 not installed";
     expect_text("a\x81\x30\x41" "b", "zh_CN.gb18030", U"a�0Ab");
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 // 8F A4 A2 41: invalid at the 41; A4 A2 is あ.
 TEST(CodeCvtReadModesAgree, EucJp)
 {
+#if IOV2_TEST_LINUX_GLIBC
     if (!have_locale("ja_JP.eucjp"))
         GTEST_SKIP() << "ja_JP.eucjp not installed";
     expect_text("a\x8f\xa4\xa2\x41" "b", "ja_JP.eucjp", U"a�あAb");
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 // E4 B8 41: two bad sequences, E4 and B8, whichever way it is read.
 TEST(CodeCvtReadModesAgree, Utf8)
 {
+#if IOV2_TEST_LINUX_GLIBC
     expect_text("a\xe4\xb8\x41" "b", "zh_CN.UTF-8", U"a��Ab");
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 // Random bytes drawn mostly from lead and trail ranges, so that sequences break at
 // every length; whole blocks, small blocks and single characters must agree.
 TEST(CodeCvtReadModesAgree, RandomInput)
 {
+#if IOV2_TEST_LINUX_GLIBC
     struct case_t { const char* locale; const char* alphabet; };
     const case_t cases[] = {
         {"zh_CN.UTF-8",   "ab\x80\xbf\xc3\xa9\xe4\xb8\xad\xf0\x9f\x98\x80\xff"},
@@ -149,4 +168,7 @@ TEST(CodeCvtReadModesAgree, RandomInput)
                 return;
         }
     }
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }

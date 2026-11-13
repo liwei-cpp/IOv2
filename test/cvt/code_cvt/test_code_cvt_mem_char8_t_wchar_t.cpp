@@ -1,16 +1,21 @@
 // SPDX-FileCopyrightText: 2026 liwei <liwei.cpp@gmail.com>
 // SPDX-License-Identifier: MIT
 
+#include <IOv2/common/defs.h>
+#include <IOv2/common/metafunctions.h>
 #include <IOv2/cvt/code_cvt.h>
 #include <IOv2/cvt/cvt_concepts.h>
 #include <IOv2/cvt/root_cvt.h>
 #include <IOv2/cvt/runtime_cvt.h>
 #include <IOv2/device/mem_device.h>
 
+#include <support/platform_macros.h>
+
 #include <gtest/gtest.h>
 
 #include <algorithm>
 #include <cstddef>
+#include <initializer_list>
 #include <iterator>
 #include <string>
 #include <type_traits>
@@ -20,9 +25,10 @@
 using namespace IOv2;
 
 // The same cases as test_code_cvt_mem_char8_t.cpp with wchar_t as the internal type
-// instead of char32_t. On this platform the two are the same width, so what this
+// instead of char32_t. On glibc the two are the same width, so what this
 // file adds is that the UTF-8 kernel is selected from the internal type rather
 // than hard-wired to char32_t: everything below has to behave identically.
+#if IOV2_TEST_LINUX_GLIBC
 namespace
 {
     using RbCvt   = code_cvt<rb_root_cvt<mem_device<char8_t>>, wchar_t>;
@@ -216,9 +222,11 @@ namespace
         EXPECT_EQ(obj.device().str(), external_sample());
     }
 }
+#endif
 
 TEST(CodeCvtMemChar8Wchar, TraitsOverAMemDeviceOfChar8)
 {
+#if IOV2_TEST_LINUX_GLIBC
     using CheckType = code_cvt<rb_root_cvt<mem_device<char8_t>>, wchar_t>;
     static_assert(io_converter<CheckType>);
     static_assert(std::is_same_v<CheckType::device_type, mem_device<char8_t>>);
@@ -229,15 +237,22 @@ TEST(CodeCvtMemChar8Wchar, TraitsOverAMemDeviceOfChar8)
     static_assert(cvt_cpt::support_get<CheckType>);
     static_assert(cvt_cpt::support_positioning<CheckType>);
     static_assert(cvt_cpt::support_io_switch<CheckType>);
+#else
+    GTEST_SKIP() << "takes wchar_t to be UTF-32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtMemChar8Wchar, TraitsWithoutAReadBuffer)
 {
+#if IOV2_TEST_LINUX_GLIBC
     using CheckType = code_cvt<no_rb_root_cvt<mem_device<char8_t>>, wchar_t>;
     static_assert(io_converter<CheckType>);
     static_assert(std::is_same_v<CheckType::device_type, mem_device<char8_t>>);
     static_assert(std::is_same_v<CheckType::internal_type, wchar_t>);
     static_assert(std::is_same_v<CheckType::external_type, char8_t>);
+#else
+    GTEST_SKIP() << "takes wchar_t to be UTF-32 (glibc)";
+#endif
 }
 
 // The decoder carries state between chunks -- a multi-byte sequence can be split
@@ -245,60 +260,93 @@ TEST(CodeCvtMemChar8Wchar, TraitsWithoutAReadBuffer)
 // chunk has to carry that state with it.
 TEST(CodeCvtMemChar8Wchar, ChunkedGetSurvivesACopyBetweenEveryChunk)
 {
+#if IOV2_TEST_LINUX_GLIBC
     RbCvt obj{rb_root_cvt{mem_device(external_sample())}};
     expect_chunked_get_survives(obj, [](auto& src) { return src; },
                                  [](auto& dst, auto& src) { dst = src; });
+#else
+    GTEST_SKIP() << "takes wchar_t to be UTF-32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtMemChar8Wchar, ChunkedGetSurvivesACopyBetweenEveryChunkThroughARuntimeCvt)
 {
+#if IOV2_TEST_LINUX_GLIBC
     runtime_cvt obj{RbCvt{rb_root_cvt{mem_device(external_sample())}}};
     expect_chunked_get_survives(obj, [](auto& src) { return src; },
                                  [](auto& dst, auto& src) { dst = src; });
+#else
+    GTEST_SKIP() << "takes wchar_t to be UTF-32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtMemChar8Wchar, ChunkedGetSurvivesAMoveBetweenEveryChunk)
 {
+#if IOV2_TEST_LINUX_GLIBC
     RbCvt obj{rb_root_cvt{mem_device(external_sample())}};
     expect_chunked_get_survives(obj, [](auto& src) { return std::move(src); },
                                  [](auto& dst, auto& src) { dst = std::move(src); });
+#else
+    GTEST_SKIP() << "takes wchar_t to be UTF-32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtMemChar8Wchar, ChunkedGetSurvivesAMoveBetweenEveryChunkThroughARuntimeCvt)
 {
+#if IOV2_TEST_LINUX_GLIBC
     runtime_cvt obj{RbCvt{rb_root_cvt{mem_device(external_sample())}}};
     expect_chunked_get_survives(obj, [](auto& src) { return std::move(src); },
                                  [](auto& dst, auto& src) { dst = std::move(src); });
+#else
+    GTEST_SKIP() << "takes wchar_t to be UTF-32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtMemChar8Wchar, ChunkedPutSurvivesACopyBetweenEveryChunk)
 {
+#if IOV2_TEST_LINUX_GLIBC
     RbCvt obj{rb_root_cvt{mem_device(std::u8string{})}};
     expect_chunked_put_survives(obj, [](auto& src) { return src; },
                                  [](auto& dst, auto& src) { dst = src; });
+#else
+    GTEST_SKIP() << "takes wchar_t to be UTF-32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtMemChar8Wchar, ChunkedPutSurvivesACopyBetweenEveryChunkThroughARuntimeCvt)
 {
+#if IOV2_TEST_LINUX_GLIBC
     runtime_cvt obj{RbCvt{rb_root_cvt{mem_device(std::u8string{})}}};
     expect_chunked_put_survives(obj, [](auto& src) { return src; },
                                  [](auto& dst, auto& src) { dst = src; });
+#else
+    GTEST_SKIP() << "takes wchar_t to be UTF-32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtMemChar8Wchar, ChunkedPutSurvivesAMoveBetweenEveryChunk)
 {
+#if IOV2_TEST_LINUX_GLIBC
     RbCvt obj{rb_root_cvt{mem_device(std::u8string{})}};
     expect_chunked_put_survives(obj, [](auto& src) { return std::move(src); },
                                  [](auto& dst, auto& src) { dst = std::move(src); });
+#else
+    GTEST_SKIP() << "takes wchar_t to be UTF-32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtMemChar8Wchar, ChunkedPutSurvivesAMoveBetweenEveryChunkThroughARuntimeCvt)
 {
+#if IOV2_TEST_LINUX_GLIBC
     runtime_cvt obj{RbCvt{rb_root_cvt{mem_device(std::u8string{})}}};
     expect_chunked_put_survives(obj, [](auto& src) { return std::move(src); },
                                  [](auto& dst, auto& src) { dst = std::move(src); });
+#else
+    GTEST_SKIP() << "takes wchar_t to be UTF-32 (glibc)";
+#endif
 }
 
+#if IOV2_TEST_LINUX_GLIBC
 namespace
 {
     template <typename T>
@@ -358,81 +406,130 @@ namespace
         return info;
     }
 }
+#endif
 
 TEST(CodeCvtMemChar8Wchar, AnEmptyPrologueLeavesBothPositionsAtZero)
 {
+#if IOV2_TEST_LINUX_GLIBC
     RbCvt obj(rb_root_cvt{mem_device(u8"")});
     expect_an_empty_prologue_leaves_both_positions_at_zero(obj);
+#else
+    GTEST_SKIP() << "takes wchar_t to be UTF-32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtMemChar8Wchar, AnEmptyPrologueLeavesBothPositionsAtZeroThroughARuntimeCvt)
 {
+#if IOV2_TEST_LINUX_GLIBC
     runtime_cvt obj{RbCvt{rb_root_cvt{mem_device(u8"")}}};
     expect_an_empty_prologue_leaves_both_positions_at_zero(obj);
+#else
+    GTEST_SKIP() << "takes wchar_t to be UTF-32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtMemChar8Wchar, AReadPrologueOfAsciiCharacters)
 {
+#if IOV2_TEST_LINUX_GLIBC
     RbCvt obj(rb_root_cvt{mem_device(as_wide_units("12345"))});
     expect_a_read_prologue_of_three_characters(obj, L'1', L'2', L'3');
+#else
+    GTEST_SKIP() << "takes wchar_t to be UTF-32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtMemChar8Wchar, AReadPrologueOfAsciiCharactersThroughARuntimeCvt)
 {
+#if IOV2_TEST_LINUX_GLIBC
     runtime_cvt obj{RbCvt{rb_root_cvt{mem_device(as_wide_units("12345"))}}};
     expect_a_read_prologue_of_three_characters(obj, L'1', L'2', L'3');
+#else
+    GTEST_SKIP() << "takes wchar_t to be UTF-32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtMemChar8Wchar, AReadPrologueOfMixedWidthCharacters)
 {
+#if IOV2_TEST_LINUX_GLIBC
     RbCvt obj(rb_root_cvt{mem_device(li_d_wei_units() + as_wide_units("cpp"))});
     expect_a_read_prologue_of_three_characters(obj, L'李', L'd', L'伟');
+#else
+    GTEST_SKIP() << "takes wchar_t to be UTF-32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtMemChar8Wchar, AReadPrologueOfMixedWidthCharactersThroughARuntimeCvt)
 {
+#if IOV2_TEST_LINUX_GLIBC
     runtime_cvt obj{RbCvt{rb_root_cvt{mem_device(li_d_wei_units() + as_wide_units("cpp"))}}};
     expect_a_read_prologue_of_three_characters(obj, L'李', L'd', L'伟');
+#else
+    GTEST_SKIP() << "takes wchar_t to be UTF-32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtMemChar8Wchar, AWritePrologueOfAsciiCharacters)
 {
+#if IOV2_TEST_LINUX_GLIBC
     RbCvt          obj(rb_root_cvt{mem_device(u8"")});
     const wchar_t text[] = L"123";
     expect_a_write_prologue(obj, text, as_wide_units("123"));
+#else
+    GTEST_SKIP() << "takes wchar_t to be UTF-32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtMemChar8Wchar, AWritePrologueOfAsciiCharactersThroughARuntimeCvt)
 {
+#if IOV2_TEST_LINUX_GLIBC
     runtime_cvt    obj{RbCvt{rb_root_cvt{mem_device(u8"")}}};
     const wchar_t text[] = L"123";
     expect_a_write_prologue(obj, text, as_wide_units("123"));
+#else
+    GTEST_SKIP() << "takes wchar_t to be UTF-32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtMemChar8Wchar, AWritePrologueOfMixedWidthCharacters)
 {
+#if IOV2_TEST_LINUX_GLIBC
     RbCvt          obj(rb_root_cvt{mem_device(u8"")});
     const wchar_t text[] = L"李d伟";
     expect_a_write_prologue(obj, text, li_d_wei_units());
+#else
+    GTEST_SKIP() << "takes wchar_t to be UTF-32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtMemChar8Wchar, AWritePrologueOfMixedWidthCharactersThroughARuntimeCvt)
 {
+#if IOV2_TEST_LINUX_GLIBC
     runtime_cvt    obj{RbCvt{rb_root_cvt{mem_device(u8"")}}};
     const wchar_t text[] = L"李d伟";
     expect_a_write_prologue(obj, text, li_d_wei_units());
+#else
+    GTEST_SKIP() << "takes wchar_t to be UTF-32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtMemChar8Wchar, ChunkedGetDecodesTheWholeSample)
 {
+#if IOV2_TEST_LINUX_GLIBC
     RbCvt obj{rb_root_cvt{mem_device(external_sample())}};
     expect_chunked_get_reads_the_sample(obj);
+#else
+    GTEST_SKIP() << "takes wchar_t to be UTF-32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtMemChar8Wchar, ChunkedGetDecodesTheWholeSampleThroughARuntimeCvt)
 {
+#if IOV2_TEST_LINUX_GLIBC
     runtime_cvt obj{RbCvt{rb_root_cvt{mem_device(external_sample())}}};
     expect_chunked_get_reads_the_sample(obj);
+#else
+    GTEST_SKIP() << "takes wchar_t to be UTF-32 (glibc)";
+#endif
 }
 
 // The same read with no read-back buffer under the converter: a split multi-byte
@@ -440,41 +537,66 @@ TEST(CodeCvtMemChar8Wchar, ChunkedGetDecodesTheWholeSampleThroughARuntimeCvt)
 // partial state itself.
 TEST(CodeCvtMemChar8Wchar, ChunkedGetDecodesTheWholeSampleWithoutAReadBuffer)
 {
+#if IOV2_TEST_LINUX_GLIBC
     NoRbCvt obj{no_rb_root_cvt{mem_device(external_sample())}};
     expect_chunked_get_reads_the_sample(obj);
+#else
+    GTEST_SKIP() << "takes wchar_t to be UTF-32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtMemChar8Wchar, ChunkedGetDecodesTheWholeSampleWithoutAReadBufferThroughARuntimeCvt)
 {
+#if IOV2_TEST_LINUX_GLIBC
     runtime_cvt obj{NoRbCvt{no_rb_root_cvt{mem_device(external_sample())}}};
     expect_chunked_get_reads_the_sample(obj);
+#else
+    GTEST_SKIP() << "takes wchar_t to be UTF-32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtMemChar8Wchar, ChunkedPutEncodesTheWholeSample)
 {
+#if IOV2_TEST_LINUX_GLIBC
     RbCvt obj(rb_root_cvt{mem_device(u8"")});
     expect_chunked_put_writes_the_sample(obj);
+#else
+    GTEST_SKIP() << "takes wchar_t to be UTF-32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtMemChar8Wchar, ChunkedPutEncodesTheWholeSampleThroughARuntimeCvt)
 {
+#if IOV2_TEST_LINUX_GLIBC
     runtime_cvt obj{RbCvt{rb_root_cvt{mem_device(u8"")}}};
     expect_chunked_put_writes_the_sample(obj);
+#else
+    GTEST_SKIP() << "takes wchar_t to be UTF-32 (glibc)";
+#endif
 }
 
 // One put() of everything must produce the same units as the chunked one.
 TEST(CodeCvtMemChar8Wchar, AWholePutEncodesTheSameUnitsAsAChunkedOne)
 {
+#if IOV2_TEST_LINUX_GLIBC
     RbCvt obj(rb_root_cvt{mem_device(u8"")});
     expect_whole_put_writes_the_sample(obj);
+#else
+    GTEST_SKIP() << "takes wchar_t to be UTF-32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtMemChar8Wchar, AWholePutEncodesTheSameUnitsAsAChunkedOneThroughARuntimeCvt)
 {
+#if IOV2_TEST_LINUX_GLIBC
     runtime_cvt obj{RbCvt{rb_root_cvt{mem_device(u8"")}}};
     expect_whole_put_writes_the_sample(obj);
+#else
+    GTEST_SKIP() << "takes wchar_t to be UTF-32 (glibc)";
+#endif
 }
 
+#if IOV2_TEST_LINUX_GLIBC
 namespace
 {
     // flush() has to push the encoder's pending units all the way to the device,
@@ -527,31 +649,49 @@ namespace
         EXPECT_EQ(obj.device().str(), external_sample());
     }
 }
+#endif
 
 TEST(CodeCvtMemChar8Wchar, FlushCompletesTheEncoding)
 {
+#if IOV2_TEST_LINUX_GLIBC
     RbCvt obj(rb_root_cvt{mem_device(u8"")});
     expect_flush_completes_the_encoding(obj);
+#else
+    GTEST_SKIP() << "takes wchar_t to be UTF-32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtMemChar8Wchar, FlushCompletesTheEncodingThroughARuntimeCvt)
 {
+#if IOV2_TEST_LINUX_GLIBC
     runtime_cvt obj{RbCvt{rb_root_cvt{mem_device(u8"")}}};
     expect_flush_completes_the_encoding(obj);
+#else
+    GTEST_SKIP() << "takes wchar_t to be UTF-32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtMemChar8Wchar, AFlushAfterEveryChunkReachesTheDevice)
 {
+#if IOV2_TEST_LINUX_GLIBC
     RbCvt obj(rb_root_cvt{mem_device(u8"")});
     expect_a_flush_after_every_chunk_reaches_the_device(obj);
+#else
+    GTEST_SKIP() << "takes wchar_t to be UTF-32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtMemChar8Wchar, AFlushAfterEveryChunkReachesTheDeviceThroughARuntimeCvt)
 {
+#if IOV2_TEST_LINUX_GLIBC
     runtime_cvt obj{RbCvt{rb_root_cvt{mem_device(u8"")}}};
     expect_a_flush_after_every_chunk_reaches_the_device(obj);
+#else
+    GTEST_SKIP() << "takes wchar_t to be UTF-32 (glibc)";
+#endif
 }
 
+#if IOV2_TEST_LINUX_GLIBC
 namespace
 {
     // UTF-8 is variable width, so the converter cannot turn a character index into
@@ -628,59 +768,93 @@ namespace
         EXPECT_EQ(obj.device().str(), std::u8string(u8"李x伟xy"));
     }
 }
+#endif
 
 TEST(CodeCvtMemChar8Wchar, SeekIsRefusedWhileReading)
 {
+#if IOV2_TEST_LINUX_GLIBC
     RbCvt obj(rb_root_cvt{mem_device(u8"123456")});
     expect_seek_is_refused_while_reading(obj);
+#else
+    GTEST_SKIP() << "takes wchar_t to be UTF-32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtMemChar8Wchar, SeekIsRefusedWhileReadingThroughARuntimeCvt)
 {
+#if IOV2_TEST_LINUX_GLIBC
     runtime_cvt obj{RbCvt{rb_root_cvt{mem_device(u8"123456")}}};
     expect_seek_is_refused_while_reading(obj);
+#else
+    GTEST_SKIP() << "takes wchar_t to be UTF-32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtMemChar8Wchar, SeekIsRefusedWhileWriting)
 {
+#if IOV2_TEST_LINUX_GLIBC
     RbCvt obj(rb_root_cvt{mem_device(u8"")});
     expect_repositioning_is_refused_while_writing(
         obj, [](auto& o, std::size_t n) { o.seek(n); });
+#else
+    GTEST_SKIP() << "takes wchar_t to be UTF-32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtMemChar8Wchar, SeekIsRefusedWhileWritingThroughARuntimeCvt)
 {
+#if IOV2_TEST_LINUX_GLIBC
     runtime_cvt obj{RbCvt{rb_root_cvt{mem_device(u8"")}}};
     expect_repositioning_is_refused_while_writing(
         obj, [](auto& o, std::size_t n) { o.seek(n); });
+#else
+    GTEST_SKIP() << "takes wchar_t to be UTF-32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtMemChar8Wchar, RseekIsRefusedWhileReading)
 {
+#if IOV2_TEST_LINUX_GLIBC
     RbCvt obj(rb_root_cvt{mem_device(u8"123456")});
     expect_rseek_is_refused_while_reading(obj);
+#else
+    GTEST_SKIP() << "takes wchar_t to be UTF-32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtMemChar8Wchar, RseekIsRefusedWhileReadingThroughARuntimeCvt)
 {
+#if IOV2_TEST_LINUX_GLIBC
     runtime_cvt obj{RbCvt{rb_root_cvt{mem_device(u8"123456")}}};
     expect_rseek_is_refused_while_reading(obj);
+#else
+    GTEST_SKIP() << "takes wchar_t to be UTF-32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtMemChar8Wchar, RseekIsRefusedWhileWriting)
 {
+#if IOV2_TEST_LINUX_GLIBC
     RbCvt obj(rb_root_cvt{mem_device(u8"")});
     expect_repositioning_is_refused_while_writing(
         obj, [](auto& o, std::size_t n) { o.rseek(n); });
+#else
+    GTEST_SKIP() << "takes wchar_t to be UTF-32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtMemChar8Wchar, RseekIsRefusedWhileWritingThroughARuntimeCvt)
 {
+#if IOV2_TEST_LINUX_GLIBC
     runtime_cvt obj{RbCvt{rb_root_cvt{mem_device(u8"")}}};
     expect_repositioning_is_refused_while_writing(
         obj, [](auto& o, std::size_t n) { o.rseek(n); });
+#else
+    GTEST_SKIP() << "takes wchar_t to be UTF-32 (glibc)";
+#endif
 }
 
+#if IOV2_TEST_LINUX_GLIBC
 namespace
 {
     // A four-unit-wide prologue makes positions addressable again, but only inside
@@ -752,31 +926,365 @@ namespace
         EXPECT_EQ(obj.device().str(), info);
     }
 }
+#endif
 
 TEST(CodeCvtMemChar8Wchar, TurningAroundIsRefused)
 {
+#if IOV2_TEST_LINUX_GLIBC
     RbCvt obj(rb_root_cvt{mem_device(u8"")});
     expect_turning_around_is_refused(obj);
+#else
+    GTEST_SKIP() << "takes wchar_t to be UTF-32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtMemChar8Wchar, TurningAroundIsRefusedThroughARuntimeCvt)
 {
+#if IOV2_TEST_LINUX_GLIBC
     runtime_cvt obj{RbCvt{rb_root_cvt{mem_device(u8"")}}};
     expect_turning_around_is_refused(obj);
+#else
+    GTEST_SKIP() << "takes wchar_t to be UTF-32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtMemChar8Wchar, WritingIsRefusedWhileReading)
 {
+#if IOV2_TEST_LINUX_GLIBC
     const std::u8string              info = as_wide_units("abcdefgh") + u8"12345";
     code_cvt_creator<char8_t, wchar_t> creator;
     auto obj = creator.create(no_rb_root_cvt{mem_device(info)});
     expect_writing_is_refused_while_reading(obj, info);
+#else
+    GTEST_SKIP() << "takes wchar_t to be UTF-32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtMemChar8Wchar, WritingIsRefusedWhileReadingThroughARuntimeCvt)
 {
+#if IOV2_TEST_LINUX_GLIBC
     const std::u8string              info = as_wide_units("abcdefgh") + u8"12345";
     code_cvt_creator<char8_t, wchar_t> creator;
     runtime_cvt obj(creator.create(no_rb_root_cvt{mem_device(info)}));
     expect_writing_is_refused_while_reading(obj, info);
+#else
+    GTEST_SKIP() << "takes wchar_t to be UTF-32 (glibc)";
+#endif
+}
+
+// UTF-8 <-> 16-bit wchar_t: a character outside the BMP is a surrogate pair inside,
+// and the pair can be cut by any call boundary.
+#if IOV2_TEST_WINDOWS
+namespace
+{
+    using RbCvt   = code_cvt<rb_root_cvt<mem_device<char8_t>>, wchar_t>;
+    using NoRbCvt = code_cvt<no_rb_root_cvt<mem_device<char8_t>>, wchar_t>;
+
+    std::u8string bytes(std::initializer_list<unsigned> list)
+    {
+        std::u8string out;
+        for (const unsigned b : list)
+            out += static_cast<char8_t>(b);
+        return out;
+    }
+
+    std::wstring units(std::initializer_list<unsigned> list)
+    {
+        std::wstring out;
+        for (const unsigned u : list)
+            out += static_cast<wchar_t>(u);
+        return out;
+    }
+
+    // a, U+1F600, U+674E, U+10348, z: two pairs around a BMP character.
+    const std::u8string kBytes = bytes({0x61, 0xF0, 0x9F, 0x98, 0x80, 0xE6, 0x9D, 0x8E,
+                                        0xF0, 0x90, 0x8D, 0x88, 0x7A});
+    const std::wstring  kUnits = units({0x61, 0xD83D, 0xDE00, 0x674E, 0xD800, 0xDF48, 0x7A});
+
+    template <typename T>
+    std::wstring get_in_chunks(T& obj, std::size_t chunk)
+    {
+        std::wstring got;
+        std::wstring buf(chunk, L'\0');
+        for (;;)
+        {
+            const std::size_t n = obj.get(buf.data(), chunk);
+            if (n == 0)
+                break;
+            got.append(buf.data(), n);
+        }
+        return got;
+    }
+
+    template <typename TRoot>
+    void every_chunk_size_decodes_the_same_units()
+    {
+        for (std::size_t chunk = 1; chunk <= kUnits.size() + 1; ++chunk)
+        {
+            code_cvt<TRoot, wchar_t> obj{TRoot{mem_device(kBytes)}};
+            ASSERT_EQ(obj.bos(), io_status::input);
+            obj.main_cont_beg();
+            EXPECT_EQ(get_in_chunks(obj, chunk), kUnits) << "chunk " << chunk;
+            EXPECT_TRUE(obj.is_eof());
+            EXPECT_EQ(obj.tell(), kUnits.size());
+        }
+    }
+
+    template <typename TRoot>
+    void every_chunk_size_encodes_the_same_bytes()
+    {
+        for (std::size_t chunk = 1; chunk <= kUnits.size() + 1; ++chunk)
+        {
+            code_cvt<TRoot, wchar_t> obj{TRoot{mem_device(std::u8string{})}};
+            ASSERT_EQ(obj.bos(), io_status::output);
+            obj.main_cont_beg();
+            for (std::size_t i = 0; i < kUnits.size(); i += chunk)
+                obj.put(kUnits.data() + i, std::min(chunk, kUnits.size() - i));
+            EXPECT_EQ(obj.tell(), kUnits.size());
+            auto [dev, err] = obj.detach();
+            EXPECT_FALSE(err);
+            EXPECT_EQ(dev.str(), kBytes) << "chunk " << chunk;
+        }
+    }
+}
+#endif
+
+TEST(CodeCvtMemChar8Wchar16, Traits)
+{
+#if IOV2_TEST_WINDOWS
+    static_assert(wchar_t_is_utf16);
+    static_assert(io_converter<RbCvt>);
+    static_assert(io_converter<NoRbCvt>);
+    static_assert(std::is_same_v<RbCvt::internal_type, wchar_t>);
+    static_assert(std::is_same_v<RbCvt::external_type, char8_t>);
+
+    code_cvt_access acc;
+    RbCvt obj{rb_root_cvt{mem_device(std::u8string{})}};
+    obj.retrieve(acc);
+    EXPECT_EQ(acc.code, "(builtin)UTF-8");
+#else
+    GTEST_SKIP() << "takes wchar_t to be UTF-16 (Windows)";
+#endif
+}
+
+TEST(CodeCvtMemChar8Wchar16, EveryChunkSizeDecodesTheSameUnits)
+{
+#if IOV2_TEST_WINDOWS
+    every_chunk_size_decodes_the_same_units<rb_root_cvt<mem_device<char8_t>>>();
+#else
+    GTEST_SKIP() << "takes wchar_t to be UTF-16 (Windows)";
+#endif
+}
+
+TEST(CodeCvtMemChar8Wchar16, EveryChunkSizeDecodesTheSameUnitsWithoutAReadBuffer)
+{
+#if IOV2_TEST_WINDOWS
+    every_chunk_size_decodes_the_same_units<no_rb_root_cvt<mem_device<char8_t>>>();
+#else
+    GTEST_SKIP() << "takes wchar_t to be UTF-16 (Windows)";
+#endif
+}
+
+TEST(CodeCvtMemChar8Wchar16, EveryChunkSizeEncodesTheSameBytes)
+{
+#if IOV2_TEST_WINDOWS
+    every_chunk_size_encodes_the_same_bytes<rb_root_cvt<mem_device<char8_t>>>();
+#else
+    GTEST_SKIP() << "takes wchar_t to be UTF-16 (Windows)";
+#endif
+}
+
+TEST(CodeCvtMemChar8Wchar16, EveryChunkSizeEncodesTheSameBytesWithoutAReadBuffer)
+{
+#if IOV2_TEST_WINDOWS
+    every_chunk_size_encodes_the_same_bytes<no_rb_root_cvt<mem_device<char8_t>>>();
+#else
+    GTEST_SKIP() << "takes wchar_t to be UTF-16 (Windows)";
+#endif
+}
+
+// The input ends in a pair read one unit at a time: the low surrogate is held in the
+// converter after the bytes are gone, so the end is not reached until it is handed over.
+TEST(CodeCvtMemChar8Wchar16, AHeldLowSurrogateComesOutAfterTheLastByte)
+{
+#if IOV2_TEST_WINDOWS
+    RbCvt obj{rb_root_cvt{mem_device(bytes({0x61, 0xF0, 0x9F, 0x98, 0x80}))}};
+    ASSERT_EQ(obj.bos(), io_status::input);
+    obj.main_cont_beg();
+
+    wchar_t c = 0;
+    ASSERT_EQ(obj.get(&c, 1), 1u);
+    EXPECT_EQ(c, L'a');
+    ASSERT_EQ(obj.get(&c, 1), 1u);
+    EXPECT_EQ(c, static_cast<wchar_t>(0xD83D));
+    EXPECT_FALSE(obj.is_eof());
+    EXPECT_EQ(obj.tell(), 2u);
+
+    ASSERT_EQ(obj.get(&c, 1), 1u);
+    EXPECT_EQ(c, static_cast<wchar_t>(0xDE00));
+    EXPECT_TRUE(obj.is_eof());
+    EXPECT_EQ(obj.tell(), 3u);
+    EXPECT_EQ(obj.get(&c, 1), 0u);
+#else
+    GTEST_SKIP() << "takes wchar_t to be UTF-16 (Windows)";
+#endif
+}
+
+// seek(0) with a low surrogate held drops it: reading starts over from the first unit.
+TEST(CodeCvtMemChar8Wchar16, SeekToTheStartDropsAHeldLowSurrogate)
+{
+#if IOV2_TEST_WINDOWS
+    RbCvt obj{rb_root_cvt{mem_device(kBytes)}};
+    ASSERT_EQ(obj.bos(), io_status::input);
+    obj.main_cont_beg();
+
+    wchar_t buf[2]{};
+    ASSERT_EQ(obj.get(buf, 2), 2u);
+    EXPECT_EQ(buf[1], static_cast<wchar_t>(0xD83D)) << "the read did not stop inside the pair";
+    EXPECT_FALSE(obj.is_eof());
+
+    obj.seek(0);
+    EXPECT_EQ(obj.tell(), 0u);
+    EXPECT_EQ(get_in_chunks(obj, 3), kUnits);
+    EXPECT_EQ(obj.tell(), kUnits.size());
+#else
+    GTEST_SKIP() << "takes wchar_t to be UTF-16 (Windows)";
+#endif
+}
+
+// Half a pair handed over: turning round to writing is refused, the converter unchanged.
+TEST(CodeCvtMemChar8Wchar16, TurningRoundIsRefusedInsideAPair)
+{
+#if IOV2_TEST_WINDOWS
+    RbCvt obj{rb_root_cvt{mem_device(bytes({0xF0, 0x9F, 0x98, 0x80}))}};
+    ASSERT_EQ(obj.bos(), io_status::input);
+    obj.main_cont_beg();
+
+    wchar_t c = 0;
+    ASSERT_EQ(obj.get(&c, 1), 1u);
+    EXPECT_THROW(obj.switch_to_put(), cvt_error);
+    EXPECT_FALSE(obj.is_tainted());
+
+    ASSERT_EQ(obj.get(&c, 1), 1u);
+    EXPECT_EQ(c, static_cast<wchar_t>(0xDE00));
+#else
+    GTEST_SKIP() << "takes wchar_t to be UTF-16 (Windows)";
+#endif
+}
+
+// A put that ends in a high surrogate writes nothing for it yet; the low surrogate of
+// the next put completes the character.
+TEST(CodeCvtMemChar8Wchar16, AHighSurrogateEndingAPutWaitsForTheNext)
+{
+#if IOV2_TEST_WINDOWS
+    RbCvt obj{rb_root_cvt{mem_device(std::u8string{})}};
+    ASSERT_EQ(obj.bos(), io_status::output);
+    obj.main_cont_beg();
+
+    const wchar_t high = static_cast<wchar_t>(0xD83D);
+    const wchar_t low  = static_cast<wchar_t>(0xDE00);
+    obj.put(&high, 1);
+    obj.flush();
+    EXPECT_TRUE(obj.device().str().empty());
+    EXPECT_THROW(obj.switch_to_get(), cvt_error) << "half a pair let the direction turn";
+
+    obj.put(&low, 1);
+    auto [dev, err] = obj.detach();
+    EXPECT_FALSE(err);
+    EXPECT_EQ(dev.str(), bytes({0xF0, 0x9F, 0x98, 0x80}));
+#else
+    GTEST_SKIP() << "takes wchar_t to be UTF-16 (Windows)";
+#endif
+}
+
+// Closing the stream with the low surrogate never come is an incomplete character.
+TEST(CodeCvtMemChar8Wchar16, DetachWithAHighSurrogateHeldReportsIt)
+{
+#if IOV2_TEST_WINDOWS
+    RbCvt obj{rb_root_cvt{mem_device(std::u8string{})}};
+    ASSERT_EQ(obj.bos(), io_status::output);
+    obj.main_cont_beg();
+
+    const std::wstring text = units({0x61, 0xD83D});
+    obj.put(text.data(), text.size());
+    auto [dev, err] = obj.detach();
+    EXPECT_TRUE(err);
+    EXPECT_EQ(dev.str(), u8"a");
+#else
+    GTEST_SKIP() << "takes wchar_t to be UTF-16 (Windows)";
+#endif
+}
+
+TEST(CodeCvtMemChar8Wchar16, ALoneLowSurrogateCannotBeEncoded)
+{
+#if IOV2_TEST_WINDOWS
+    RbCvt obj{rb_root_cvt{mem_device(std::u8string{})}};
+    ASSERT_EQ(obj.bos(), io_status::output);
+    obj.main_cont_beg();
+
+    const std::wstring text = units({0x61, 0xDE00});
+    EXPECT_THROW(obj.put(text.data(), text.size()), cvt_error);
+    EXPECT_TRUE(obj.is_tainted());
+#else
+    GTEST_SKIP() << "takes wchar_t to be UTF-16 (Windows)";
+#endif
+}
+
+TEST(CodeCvtMemChar8Wchar16, AHighSurrogateNotFollowedByALowOneCannotBeEncoded)
+{
+#if IOV2_TEST_WINDOWS
+    {
+        RbCvt obj{rb_root_cvt{mem_device(std::u8string{})}};
+        ASSERT_EQ(obj.bos(), io_status::output);
+        obj.main_cont_beg();
+        const std::wstring text = units({0xD83D, 0x61});
+        EXPECT_THROW(obj.put(text.data(), text.size()), cvt_error);
+        EXPECT_TRUE(obj.is_tainted());
+    }
+    {
+        // The same with the high surrogate held from the previous put.
+        RbCvt obj{rb_root_cvt{mem_device(std::u8string{})}};
+        ASSERT_EQ(obj.bos(), io_status::output);
+        obj.main_cont_beg();
+        const wchar_t high = static_cast<wchar_t>(0xD83D);
+        obj.put(&high, 1);
+        const wchar_t a = L'a';
+        EXPECT_THROW(obj.put(&a, 1), cvt_error);
+        EXPECT_TRUE(obj.is_tainted());
+    }
+#else
+    GTEST_SKIP() << "takes wchar_t to be UTF-16 (Windows)";
+#endif
+}
+
+// The UTF-8 side is as strict as with char32_t: an encoded surrogate is invalid.
+TEST(CodeCvtMemChar8Wchar16, AnEncodedSurrogateIsAnInvalidSequence)
+{
+#if IOV2_TEST_WINDOWS
+    RbCvt obj{rb_root_cvt{mem_device(bytes({0xED, 0xA0, 0x80}))}};
+    ASSERT_EQ(obj.bos(), io_status::input);
+    obj.main_cont_beg();
+
+    wchar_t buf[4]{};
+    EXPECT_THROW(obj.get(buf, 4), cvt_error);
+#else
+    GTEST_SKIP() << "takes wchar_t to be UTF-16 (Windows)";
+#endif
+}
+
+// Input cut off inside a four-byte character: nothing comes out, and the read fails.
+TEST(CodeCvtMemChar8Wchar16, InputCutOffInsideAPairFailsTheRead)
+{
+#if IOV2_TEST_WINDOWS
+    RbCvt obj{rb_root_cvt{mem_device(bytes({0x61, 0xF0, 0x9F, 0x98}))}};
+    ASSERT_EQ(obj.bos(), io_status::input);
+    obj.main_cont_beg();
+
+    wchar_t buf[4]{};
+    ASSERT_EQ(obj.get(buf, 4), 1u);
+    EXPECT_EQ(buf[0], L'a');
+    EXPECT_THROW(obj.get(buf, 4), cvt_error);
+#else
+    GTEST_SKIP() << "takes wchar_t to be UTF-16 (Windows)";
+#endif
 }

@@ -11,6 +11,8 @@
 #include <IOv2/cvt/runtime_cvt.h>
 #include <IOv2/device/mem_device.h>
 
+#include <support/platform_macros.h>
+
 #include <gtest/gtest.h>
 
 #include <algorithm>
@@ -22,6 +24,7 @@
 
 using namespace IOv2;
 
+#if IOV2_TEST_LINUX_GLIBC
 namespace
 {
     // The fixed sample is 4102 external bytes: 586 repetitions of the UTF-8 for
@@ -167,18 +170,27 @@ namespace
         EXPECT_EQ(read_back.substr(0, kChars), i_lit);
     }
 }
+#endif
 
 TEST(CvtPipeCreator, PutThroughAStaticPipe)
 {
+#if IOV2_TEST_LINUX_GLIBC
     auto obj = vigenere_then_code().create(rb_root_cvt{mem_device("")});
     EXPECT_EQ(put_in_chunks(obj, true), vigenere_bytes());
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CvtPipeCreator, PutThroughARuntimeCvt)
 {
+#if IOV2_TEST_LINUX_GLIBC
     auto        tmp = vigenere_then_code().create(rb_root_cvt{mem_device("")});
     runtime_cvt obj(std::move(tmp));
     EXPECT_EQ(put_in_chunks(obj, true), vigenere_bytes());
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 // operator| is left-associative, so `a | b | c | d` and `(a | b) | (c | d)` name
@@ -186,6 +198,7 @@ TEST(CvtPipeCreator, PutThroughARuntimeCvt)
 // depend on which nesting was written.
 TEST(CvtPipeCreator, GroupingOfThePipeOperatorDoesNotChangeTheBytes)
 {
+#if IOV2_TEST_LINUX_GLIBC
     auto grouped = (Crypt::Classic::vigenere_cvt_creator(kKey) |
                     Crypt::hash_cvt_creator<char>(Crypt::hash_algo::MD5)) |
                    (Comp::zlib_cvt_creator<char>(6) |
@@ -202,12 +215,16 @@ TEST(CvtPipeCreator, GroupingOfThePipeOperatorDoesNotChangeTheBytes)
     auto        tmp = flat.create(rb_root_cvt{mem_device("")});
     runtime_cvt via_runtime(std::move(tmp));
     EXPECT_EQ(put_in_chunks(via_runtime, false), expected);
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 // The same four stages with the hash moved past the compressor: a runtime_cvt
 // must still produce byte-for-byte what the statically typed pipe does.
 TEST(CvtPipeCreator, ARuntimeCvtMatchesTheStaticPipeWithTheHashAfterZlib)
 {
+#if IOV2_TEST_LINUX_GLIBC
     auto creator = (Crypt::Classic::vigenere_cvt_creator(kKey) |
                     Comp::zlib_cvt_creator<char>(6)) |
                    (Crypt::hash_cvt_creator<char>(Crypt::hash_algo::MD5) |
@@ -219,55 +236,82 @@ TEST(CvtPipeCreator, ARuntimeCvtMatchesTheStaticPipeWithTheHashAfterZlib)
     auto        tmp = creator.create(rb_root_cvt{mem_device("")});
     runtime_cvt via_runtime(std::move(tmp));
     EXPECT_EQ(put_in_chunks(via_runtime, false), expected);
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CvtPipeCreator, GetThroughAStaticPipe)
 {
+#if IOV2_TEST_LINUX_GLIBC
     auto obj = vigenere_then_code().create(rb_root_cvt{mem_device(vigenere_bytes())});
     get_in_chunks(obj);
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CvtPipeCreator, GetThroughARuntimeCvt)
 {
+#if IOV2_TEST_LINUX_GLIBC
     auto        tmp = vigenere_then_code().create(rb_root_cvt{mem_device(vigenere_bytes())});
     runtime_cvt obj(std::move(tmp));
     get_in_chunks(obj);
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CvtPipeCreator, RoundTripThroughAStaticPipe)
 {
+#if IOV2_TEST_LINUX_GLIBC
     auto creator = Crypt::Classic::vigenere_cvt_creator(kKey) |
                    Comp::zlib_cvt_creator<char>(6) |
                    code_cvt_creator<char, char32_t>("zh_CN.UTF-8");
     auto obj = creator.create(rb_root_cvt{mem_device("")});
     round_trip(obj, creator);
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CvtPipeCreator, RoundTripThroughARuntimeCvt)
 {
+#if IOV2_TEST_LINUX_GLIBC
     auto creator = Crypt::Classic::vigenere_cvt_creator(kKey) |
                    Comp::zlib_cvt_creator<char>(6) |
                    code_cvt_creator<char, char32_t>("zh_CN.UTF-8");
     auto        tmp = creator.create(rb_root_cvt{mem_device("")});
     runtime_cvt obj(std::move(tmp));
     round_trip(obj, creator);
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CvtPipeCreator, RoundTripWithTheTailGroupedToTheRight)
 {
+#if IOV2_TEST_LINUX_GLIBC
     auto creator = Crypt::Classic::vigenere_cvt_creator(kKey) |
                    (Comp::zlib_cvt_creator<char>(6) |
                     code_cvt_creator<char, char32_t>("zh_CN.UTF-8"));
     auto obj = creator.create(rb_root_cvt{mem_device("")});
     round_trip(obj, creator);
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CvtPipeCreator, RoundTripWithTheTailGroupedToTheRightThroughARuntimeCvt)
 {
+#if IOV2_TEST_LINUX_GLIBC
     auto creator = Crypt::Classic::vigenere_cvt_creator(kKey) |
                    (Comp::zlib_cvt_creator<char>(6) |
                     code_cvt_creator<char, char32_t>("zh_CN.UTF-8"));
     auto        tmp = creator.create(rb_root_cvt{mem_device("")});
     runtime_cvt obj(std::move(tmp));
     round_trip(obj, creator);
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }

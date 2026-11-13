@@ -9,6 +9,7 @@
 #include <IOv2/device/mem_device.h>
 
 #include <support/file_guard.h>
+#include <support/platform_macros.h>
 
 #include <gtest/gtest.h>
 
@@ -19,10 +20,13 @@
 #include <string>
 #include <utility>
 
+#if IOV2_TEST_LINUX_GLIBC
 #include <locale.h>
+#endif
 
 using namespace IOv2;
 
+#if IOV2_TEST_LINUX_GLIBC
 namespace
 {
     // Each root reads a different way: straight out of the mem_device, out of
@@ -68,29 +72,43 @@ namespace
 
     using RODev = basic_file_device<true, false, char>;
 }
+#endif
 
 TEST(CodeCvtReadAfterError, BlockReadOverAMemDevice)
 {
+#if IOV2_TEST_LINUX_GLIBC
     code_cvt<no_rb_root_cvt<mem_device<char>>, char32_t> obj{no_rb_root_cvt{mem_device(kBadByte)}, "zh_CN.UTF-8"};
     expect_a_block_read_delivers_up_to_the_bad_byte_and_resumes_after_it(obj);
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtReadAfterError, BlockReadOverARootBuffer)
 {
+#if IOV2_TEST_LINUX_GLIBC
     file_guard g("code_cvt_read_after_error", kBadByte);
     code_cvt<rb_root_cvt<RODev>, char32_t> obj{rb_root_cvt{RODev("code_cvt_read_after_error")}, "zh_CN.UTF-8"};
     expect_a_block_read_delivers_up_to_the_bad_byte_and_resumes_after_it(obj);
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtReadAfterError, BlockReadOverTheReadArea)
 {
+#if IOV2_TEST_LINUX_GLIBC
     file_guard g("code_cvt_read_after_error", kBadByte);
     code_cvt<no_rb_root_cvt<RODev>, char32_t> obj{no_rb_root_cvt{RODev("code_cvt_read_after_error")}, "zh_CN.UTF-8"};
     expect_a_block_read_delivers_up_to_the_bad_byte_and_resumes_after_it(obj);
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtReadAfterError, TheReadAreaSurvivesAMove)
 {
+#if IOV2_TEST_LINUX_GLIBC
     file_guard g("code_cvt_read_after_error", kBadByte);
     code_cvt<no_rb_root_cvt<RODev>, char32_t> obj{no_rb_root_cvt{RODev("code_cvt_read_after_error")}, "zh_CN.UTF-8"};
     EXPECT_EQ(obj.bos(), io_status::input);
@@ -103,25 +121,37 @@ TEST(CodeCvtReadAfterError, TheReadAreaSurvivesAMove)
     EXPECT_THROW(moved.get(buf.data(), buf.size()), cvt_error);
     EXPECT_EQ(moved.get(buf.data(), buf.size()), 5u);
     EXPECT_EQ(buf.substr(0, 5), U"cd ef");
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtReadAfterError, HeldLeadByteOverAMemDevice)
 {
+#if IOV2_TEST_LINUX_GLIBC
     code_cvt<rb_root_cvt<mem_device<char>>, char32_t> obj{rb_root_cvt{mem_device(kHeldLead)}, "zh_CN.UTF-8"};
     expect_a_held_lead_byte_is_all_an_error_drops(obj);
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtReadAfterError, HeldLeadByteOverTheReadArea)
 {
+#if IOV2_TEST_LINUX_GLIBC
     file_guard g("code_cvt_read_after_error", kHeldLead);
     code_cvt<no_rb_root_cvt<RODev>, char32_t> obj{no_rb_root_cvt{RODev("code_cvt_read_after_error")}, "zh_CN.UTF-8"};
     expect_a_held_lead_byte_is_all_an_error_drops(obj);
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 // A deferred error is still to come, so the stream is not at its end: switching a
 // variable-length encoding to writing is refused until a get has reported it.
 TEST(CodeCvtReadAfterError, APendingErrorKeepsTheStreamFromEnding)
 {
+#if IOV2_TEST_LINUX_GLIBC
     code_cvt<rb_root_cvt<mem_device<char>>, char32_t> obj{rb_root_cvt{mem_device(std::string("ab\xff"))}, "zh_CN.UTF-8"};
     EXPECT_EQ(obj.bos(), io_status::input);
     obj.main_cont_beg();
@@ -134,11 +164,15 @@ TEST(CodeCvtReadAfterError, APendingErrorKeepsTheStreamFromEnding)
     EXPECT_THROW(obj.get(buf.data(), buf.size()), cvt_error);
     EXPECT_TRUE(obj.is_eof());
     EXPECT_NO_THROW(obj.switch_to_put());
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 // Half a character held at EOF is still to be reported as well.
 TEST(CodeCvtReadAfterError, HeldBytesAtEofKeepTheStreamFromEnding)
 {
+#if IOV2_TEST_LINUX_GLIBC
     code_cvt<rb_root_cvt<mem_device<char>>, char32_t> obj{rb_root_cvt{mem_device(std::string("ab\xe6"))}, "zh_CN.UTF-8"};
     EXPECT_EQ(obj.bos(), io_status::input);
     obj.main_cont_beg();
@@ -148,8 +182,12 @@ TEST(CodeCvtReadAfterError, HeldBytesAtEofKeepTheStreamFromEnding)
     EXPECT_THROW(obj.get(buf.data(), buf.size()), cvt_error);
     EXPECT_FALSE(obj.is_eof());
     EXPECT_THROW(obj.get(buf.data(), buf.size()), cvt_error);
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
+#if IOV2_TEST_LINUX_GLIBC
 namespace
 {
     // glibc's "C" is a fixed-length encoding that rejects bytes above 0x7F.
@@ -166,12 +204,14 @@ namespace
         return rejects;
     }
 }
+#endif
 
 // A fixed-length encoding may switch halfway through reading: it goes back to where
 // the caller stopped (dropping the read-ahead and the pending error), and the write
 // starts there -- over the bad byte. Reading on finds nothing stale.
 TEST(CodeCvtReadAfterError, AFixedLengthSwitchWritesWhereReadingStopped)
 {
+#if IOV2_TEST_LINUX_GLIBC
     if (!c_locale_rejects_ff())
         GTEST_SKIP() << "the C locale here accepts 0xFF, so there is no decode error to defer";
 
@@ -194,8 +234,12 @@ TEST(CodeCvtReadAfterError, AFixedLengthSwitchWritesWhereReadingStopped)
     auto [dev, err] = obj.detach();
     EXPECT_FALSE(err);
     EXPECT_EQ(dev.str(), "abXcd");
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
+#if IOV2_TEST_LINUX_GLIBC
 namespace
 {
     bool g_refuse_switch_to_put = false;
@@ -257,12 +301,14 @@ namespace
         return obj;
     }
 }
+#endif
 
 // Below a layer that cannot be positioned, a fixed-length switch has nothing to
 // undo a half read with: read-ahead bytes or a pending error refuse it, and
 // leave the input as it was.
 TEST(CodeCvtReadAfterError, AFixedLengthSwitchWithoutPositioningIsRefusedWhileInputIsPending)
 {
+#if IOV2_TEST_LINUX_GLIBC
     if (!c_locale_rejects_ff())
         GTEST_SKIP() << "the C locale here accepts 0xFF, so there is no decode error to defer";
 
@@ -293,6 +339,9 @@ TEST(CodeCvtReadAfterError, AFixedLengthSwitchWithoutPositioningIsRefusedWhileIn
         EXPECT_THROW(obj.get(buf.data(), buf.size()), cvt_error);
         EXPECT_NO_THROW(obj.switch_to_put());
     }
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 // If the layer below fails to switch after the half read was undone, the converter
@@ -300,6 +349,7 @@ TEST(CodeCvtReadAfterError, AFixedLengthSwitchWithoutPositioningIsRefusedWhileIn
 // given without the attempt -- the bad byte's error, then the rest.
 TEST(CodeCvtReadAfterError, AFailedSwitchAfterRepositioningReadsOnAsBefore)
 {
+#if IOV2_TEST_LINUX_GLIBC
     if (!c_locale_rejects_ff())
         GTEST_SKIP() << "the C locale here accepts 0xFF, so there is no decode error to defer";
 
@@ -316,4 +366,7 @@ TEST(CodeCvtReadAfterError, AFailedSwitchAfterRepositioningReadsOnAsBefore)
     EXPECT_EQ(obj.get(buf.data(), buf.size()), 2u);
     EXPECT_EQ(buf.substr(0, 2), U"cd");
     EXPECT_EQ(obj.get(buf.data(), buf.size()), 0u);
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }

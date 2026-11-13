@@ -34,7 +34,7 @@
 #include <IOv2/device/mem_device.h>
 #include <IOv2/device/std_device.h>
 
-#include <support/stateful_locale.h>
+#include <support/platform_macros.h>
 #include <support/stdio_guard.h>
 
 #include <gtest/gtest.h>
@@ -43,10 +43,15 @@
 #include <string>
 #include <utility>
 
+#if IOV2_TEST_LINUX_GLIBC
+#include <support/stateful_locale.h>
+
 #include <unistd.h>
+#endif
 
 using namespace IOv2;
 
+#if IOV2_TEST_LINUX_GLIBC
 namespace
 {
     const char* const kLocaleName = stateful_locale_name;
@@ -483,9 +488,11 @@ namespace
         }
     }
 }
+#endif
 
 TEST(CodeCvtStatefulEncoding, AFailedEncodeKeepsTheShiftState)
 {
+#if IOV2_TEST_LINUX_GLIBC
     if (!in_stateful_child())
     {
         EXPECT_EQ(run_stateful_child("CodeCvtStatefulEncoding.AFailedEncodeKeepsTheShiftState"), 0)
@@ -498,10 +505,14 @@ TEST(CodeCvtStatefulEncoding, AFailedEncodeKeepsTheShiftState)
     kernel_unshifts_after_a_failed_encode();
     detach_after_a_failed_put_returns_to_ascii<rb_root_cvt<mem_device<char>>>();
     detach_after_a_failed_put_returns_to_ascii<no_rb_root_cvt<mem_device<char>>>();
+#else
+    GTEST_SKIP() << "needs an ISO-2022-JP locale built by glibc's localedef";
+#endif
 }
 
 TEST(CodeCvtStatefulEncoding, ANullByteInAShiftedStateIsANullCharacter)
 {
+#if IOV2_TEST_LINUX_GLIBC
     if (!in_stateful_child())
     {
         EXPECT_EQ(run_stateful_child("CodeCvtStatefulEncoding.ANullByteInAShiftedStateIsANullCharacter"), 0)
@@ -513,10 +524,14 @@ TEST(CodeCvtStatefulEncoding, ANullByteInAShiftedStateIsANullCharacter)
     kernel_decodes_a_null_byte_in_a_shifted_state();
     a_null_byte_in_a_shifted_state_reads_as_a_null_character<rb_root_cvt<mem_device<char>>>();
     a_null_byte_in_a_shifted_state_reads_as_a_null_character<no_rb_root_cvt<mem_device<char>>>();
+#else
+    GTEST_SKIP() << "needs an ISO-2022-JP locale built by glibc's localedef";
+#endif
 }
 
 TEST(CodeCvtStatefulEncoding, AnUndersizedMbCurMaxIsRejected)
 {
+#if IOV2_TEST_LINUX_GLIBC
     if (!in_stateful_child())
     {
         ASSERT_TRUE(build_undersized_locale(stateful_locpath()));
@@ -529,10 +544,14 @@ TEST(CodeCvtStatefulEncoding, AnUndersizedMbCurMaxIsRejected)
     kernel_rejects_an_encoding_longer_than_mb_cur_max();
     put_rejects_an_encoding_longer_than_mb_cur_max<rb_root_cvt<mem_device<char>>>();
     put_rejects_an_encoding_longer_than_mb_cur_max<no_rb_root_cvt<mem_device<char>>>();
+#else
+    GTEST_SKIP() << "needs an ISO-2022-JP locale built by glibc's localedef";
+#endif
 }
 
 TEST(CodeCvtStatefulEncoding, AShiftSequenceDecodesToNoCharacter)
 {
+#if IOV2_TEST_LINUX_GLIBC
     if (!in_stateful_child())
     {
         EXPECT_EQ(run_stateful_child("CodeCvtStatefulEncoding.AShiftSequenceDecodesToNoCharacter"), 0)
@@ -548,10 +567,14 @@ TEST(CodeCvtStatefulEncoding, AShiftSequenceDecodesToNoCharacter)
     a_truncated_character_fails_the_read<no_rb_root_cvt<mem_device<char>>>();
     input_ending_in_a_shift_state_just_ends<rb_root_cvt<mem_device<char>>>();
     input_ending_in_a_shift_state_just_ends<no_rb_root_cvt<mem_device<char>>>();
+#else
+    GTEST_SKIP() << "needs an ISO-2022-JP locale built by glibc's localedef";
+#endif
 }
 
 TEST(CodeCvtStatefulEncoding, TheStdioConverterTakesNoStateDependentEncoding)
 {
+#if IOV2_TEST_LINUX_GLIBC
     if (!in_stateful_child())
     {
         EXPECT_EQ(run_stateful_child("CodeCvtStatefulEncoding.TheStdioConverterTakesNoStateDependentEncoding"), 0)
@@ -562,10 +585,14 @@ TEST(CodeCvtStatefulEncoding, TheStdioConverterTakesNoStateDependentEncoding)
     // --- child ---
     construction_falls_back_to_c();
     a_switch_is_refused_and_changes_nothing();
+#else
+    GTEST_SKIP() << "needs an ISO-2022-JP locale built by glibc's localedef";
+#endif
 }
 
 TEST(CodeCvtStatefulEncoding, AnInvalidByteKeepsTheShiftState)
 {
+#if IOV2_TEST_LINUX_GLIBC
     if (!in_stateful_child())
     {
         EXPECT_EQ(run_stateful_child("CodeCvtStatefulEncoding.AnInvalidByteKeepsTheShiftState"), 0)
@@ -575,10 +602,14 @@ TEST(CodeCvtStatefulEncoding, AnInvalidByteKeepsTheShiftState)
 
     // --- child ---
     kernel_keeps_the_shift_state_across_an_invalid_byte();
+#else
+    GTEST_SKIP() << "needs an ISO-2022-JP locale built by glibc's localedef";
+#endif
 }
 
 TEST(CodeCvtStatefulEncoding, Char32StreamsRoundTrip)
 {
+#if IOV2_TEST_LINUX_GLIBC
     if (!in_stateful_child())
     {
         EXPECT_EQ(run_stateful_child("CodeCvtStatefulEncoding.Char32StreamsRoundTrip"), 0)
@@ -589,10 +620,14 @@ TEST(CodeCvtStatefulEncoding, Char32StreamsRoundTrip)
     // --- child ---
     char32_t_streams_round_trip<rb_root_cvt<mem_device<char>>>();
     char32_t_streams_round_trip<no_rb_root_cvt<mem_device<char>>>();
+#else
+    GTEST_SKIP() << "needs an ISO-2022-JP locale built by glibc's localedef";
+#endif
 }
 
 TEST(CodeCvtStatefulEncoding, ABlockReadRecoversLikeOneCharacterAtATime)
 {
+#if IOV2_TEST_LINUX_GLIBC
     if (!in_stateful_child())
     {
         EXPECT_EQ(run_stateful_child("CodeCvtStatefulEncoding.ABlockReadRecoversLikeOneCharacterAtATime"), 0)
@@ -603,10 +638,14 @@ TEST(CodeCvtStatefulEncoding, ABlockReadRecoversLikeOneCharacterAtATime)
     // --- child ---
     a_block_read_recovers_like_one_character_at_a_time<rb_root_cvt<mem_device<char>>>();
     a_block_read_recovers_like_one_character_at_a_time<no_rb_root_cvt<mem_device<char>>>();
+#else
+    GTEST_SKIP() << "needs an ISO-2022-JP locale built by glibc's localedef";
+#endif
 }
 
 TEST(CodeCvtStatefulEncoding, RedundantShiftSequencesReadAtAnyBlockSize)
 {
+#if IOV2_TEST_LINUX_GLIBC
     if (!in_stateful_child())
     {
         EXPECT_EQ(run_stateful_child("CodeCvtStatefulEncoding.RedundantShiftSequencesReadAtAnyBlockSize"), 0)
@@ -617,4 +656,7 @@ TEST(CodeCvtStatefulEncoding, RedundantShiftSequencesReadAtAnyBlockSize)
     // --- child ---
     redundant_shift_sequences_read_at_any_block_size<rb_root_cvt<mem_device<char>>>();
     redundant_shift_sequences_read_at_any_block_size<no_rb_root_cvt<mem_device<char>>>();
+#else
+    GTEST_SKIP() << "needs an ISO-2022-JP locale built by glibc's localedef";
+#endif
 }
