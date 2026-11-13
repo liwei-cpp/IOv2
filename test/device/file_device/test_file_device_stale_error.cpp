@@ -15,6 +15,7 @@
 #include <IOv2/device/file_device.h>
 
 #include <support/file_guard.h>
+#include <support/platform_macros.h>
 #include <support/test_child.h>
 
 #include <gtest/gtest.h>
@@ -24,10 +25,13 @@
 #include <fstream>
 #include <string>
 
+#if IOV2_TEST_LINUX_GLIBC || IOV2_TEST_MACOS
 #include <sys/resource.h>
+#endif
 
 using namespace IOv2;
 
+#if IOV2_TEST_LINUX_GLIBC || IOV2_TEST_MACOS
 namespace
 {
     using RWDev = basic_file_device<true, true, char>;
@@ -64,9 +68,11 @@ namespace
         EXPECT_EQ(std::string(buf, got), std::string(std::filesystem::file_size(kFile), 'x'));
     }
 }
+#endif
 
 TEST(FileDeviceStaleError, AReadAfterAFailedWriteReachesTheEndCleanly)
 {
+#if IOV2_TEST_LINUX_GLIBC || IOV2_TEST_MACOS
     if (in_test_child())
         return read_back_after_a_failed(test_child_arg());
 
@@ -77,12 +83,16 @@ TEST(FileDeviceStaleError, AReadAfterAFailedWriteReachesTheEndCleanly)
         EXPECT_EQ(run_test_child("FileDeviceStaleError.AReadAfterAFailedWriteReachesTheEndCleanly", which), 0)
             << "the checks in the child failed; see its output above";
     }
+#else
+    GTEST_SKIP() << "needs a file size limit (setrlimit, SIGXFSZ)";
+#endif
 }
 
 // On the normal path nothing is cleared: once a read reaches the end, what is appended
 // to the file later stays out of sight, as stdio's sticky EOF has it.
 TEST(FileDeviceStaleError, EofStaysStickyOnTheNormalPath)
 {
+#if IOV2_TEST_LINUX_GLIBC || IOV2_TEST_MACOS
     file_guard g(kFile, "abc");
     RWDev dev(kFile);
 
@@ -92,4 +102,7 @@ TEST(FileDeviceStaleError, EofStaysStickyOnTheNormalPath)
 
     std::ofstream(kFile, std::ios::binary | std::ios::app) << "def";
     EXPECT_EQ(dev.dget(buf, sizeof buf), 0u);
+#else
+    GTEST_SKIP() << "the UCRT's EOF is not sticky: a read past it returns what was appended";
+#endif
 }

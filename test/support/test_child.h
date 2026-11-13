@@ -19,21 +19,16 @@
 #include <support/exe_path.h>
 #include <support/platform.h>
 
-#include <cstdlib>
 #include <string>
 
 namespace
 {
     inline const char* const test_child_env = "IOV2_TEST_CHILD";
 
-    inline bool in_test_child() { return std::getenv(test_child_env) != nullptr; }
+    inline bool in_test_child() { return iov2_test::sys::env_is_set(test_child_env); }
 
     // What the parent passed to run_test_child(); empty outside a child.
-    inline std::string test_child_arg()
-    {
-        const char* arg = std::getenv(test_child_env);
-        return arg != nullptr ? arg : "";
-    }
+    inline std::string test_child_arg() { return iov2_test::sys::get_env(test_child_env); }
 
     // Re-runs this executable on `test` (a full "Suite.Name") with `arg` in the
     // environment. Returns the child's exit status -- 0 when its checks passed --
