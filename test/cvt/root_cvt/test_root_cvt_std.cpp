@@ -7,13 +7,24 @@
 #include <IOv2/device/std_device.h>
 
 #include <support/platform.h>
+#include <support/platform_macros.h>
 #include <support/stdio_guard.h>
 
 #include <gtest/gtest.h>
 
+#include <algorithm>
+#include <cstddef>
+#include <cstdio>
+#include <iterator>
 #include <string>
 #include <type_traits>
 #include <utility>
+
+#if IOV2_TEST_LINUX_GLIBC
+#include <fcntl.h>
+#include <stdio_ext.h>
+#include <unistd.h>
+#endif
 
 using namespace IOv2;
 
@@ -170,4 +181,336 @@ TEST(RootCvtStd, MoveAssignmentKeepsTheInputStreamThroughARuntimeCvt)
         dst = std::move(src);
         return dst;
     });
+}
+
+// The cases below pass every byte through unchanged, \n and Ctrl+Z included. On
+// Windows the CRT opens the standard streams in text mode, where \n is written as
+// \r\n and Ctrl+Z ends the input (see device/std_device/windows).
+#if !IOV2_TEST_WINDOWS
+namespace
+{
+    constexpr std::size_t kSize = 4102;
+
+    // 586 repetitions of the UTF-8 for U'李' U'伟' plus one byte cycling 1..127.
+    // The point of the sample here is only its length and that 4102 is not a
+    // multiple of any chunk size below, so the loops cross the root converter's
+    // own buffer boundary at every offset.
+    std::string sample()
+    {
+        std::string out;
+        out.resize(kSize);
+        for (std::size_t i = 0; i < kSize; i += 7)
+        {
+            out[i + 0] = '\xE6';
+            out[i + 1] = '\x9D';
+            out[i + 2] = '\x8E';
+            out[i + 3] = '\xE4';
+            out[i + 4] = '\xBC';
+            out[i + 5] = '\x9F';
+            out[i + 6] = (i / 7) % 127 + 1;
+        }
+        return out;
+    }
+
+    constexpr std::size_t kGetChunks[] = {2, 41, 3, 5, 7, 11, 13, 17, 19};
+    constexpr std::size_t kPutChunks[] = {2, 41, 3, 90, 7, 11, 13, 17, 19};
+
+    template <typename T>
+    void expect_chunked_get_reads_the_sample(T& obj, const std::string& expected)
+    {
+        EXPECT_EQ(obj.bos(), io_status::input);
+        obj.main_cont_beg();
+
+        std::string out_buf(kSize, '\0');
+        std::size_t total = 0;
+        char*       cur   = out_buf.data();
+        int         id    = 0;
+        while (true)
+        {
+            std::size_t n = std::min<std::size_t>(kSize - total, kGetChunks[id++]);
+            auto        s = obj.get(cur, n);
+            id %= std::size(kGetChunks);
+            cur   += s;
+            total += s;
+            if (s == 0) break;
+        }
+
+        EXPECT_EQ(total, kSize);
+        EXPECT_EQ(cur, out_buf.data() + kSize);
+        EXPECT_EQ(out_buf, expected);
+    }
+
+    template <typename T>
+    void put_sample_in_chunks(T& obj, std::string& plain)
+    {
+        EXPECT_EQ(obj.bos(), io_status::output);
+        obj.main_cont_beg();
+
+        char* cur = plain.data();
+        int   id  = 0;
+        while (cur < plain.data() + kSize)
+        {
+            std::size_t n = std::min<std::size_t>(kPutChunks[id++], plain.data() + kSize - cur);
+            obj.put(cur, n);
+            id %= std::size(kPutChunks);
+            cur += n;
+        }
+        EXPECT_EQ(cur, plain.data() + kSize);
+        obj.flush();
+    }
+}
+#endif
+
+TEST(RootCvtStd, ChunkedGetReadsTheWholeSample)
+{
+#if !IOV2_TEST_WINDOWS
+    const std::string expected = sample();
+    iguard            g(expected);
+    auto              obj = rb_root_cvt{std_device<sys::stdin_fd>{}};
+    expect_chunked_get_reads_the_sample(obj, expected);
+#else
+    GTEST_SKIP() << "the CRT's text mode rewrites \\n and ends input at Ctrl+Z";
+#endif
+}
+
+TEST(RootCvtStd, ChunkedGetReadsTheWholeSampleThroughARuntimeCvt)
+{
+#if !IOV2_TEST_WINDOWS
+    const std::string expected = sample();
+    iguard            g(expected);
+    runtime_cvt       obj{rb_root_cvt{std_device<sys::stdin_fd>{}}};
+    expect_chunked_get_reads_the_sample(obj, expected);
+#else
+    GTEST_SKIP() << "the CRT's text mode rewrites \\n and ends input at Ctrl+Z";
+#endif
+}
+
+// The same read without a read-back buffer: every character has to come straight
+// off the descriptor, so nothing may be re-read or dropped between chunks.
+TEST(RootCvtStd, ChunkedGetReadsTheWholeSampleWithoutAReadBuffer)
+{
+#if !IOV2_TEST_WINDOWS
+    const std::string expected = sample();
+    iguard            g(expected);
+    auto              obj = no_rb_root_cvt{std_device<sys::stdin_fd>{}};
+    expect_chunked_get_reads_the_sample(obj, expected);
+#else
+    GTEST_SKIP() << "the CRT's text mode rewrites \\n and ends input at Ctrl+Z";
+#endif
+}
+
+TEST(RootCvtStd, ChunkedGetReadsTheWholeSampleWithoutAReadBufferThroughARuntimeCvt)
+{
+#if !IOV2_TEST_WINDOWS
+    const std::string expected = sample();
+    iguard            g(expected);
+    runtime_cvt       obj{no_rb_root_cvt{std_device<sys::stdin_fd>{}}};
+    expect_chunked_get_reads_the_sample(obj, expected);
+#else
+    GTEST_SKIP() << "the CRT's text mode rewrites \\n and ends input at Ctrl+Z";
+#endif
+}
+
+TEST(RootCvtStd, ChunkedPutReachesStdout)
+{
+#if !IOV2_TEST_WINDOWS
+    std::string  plain = sample();
+    oguard<true> g;
+    {
+        auto obj = no_rb_root_cvt{std_device<sys::stdout_fd>{}};
+        put_sample_in_chunks(obj, plain);
+    }
+    EXPECT_EQ(g.contents(), plain);
+#else
+    GTEST_SKIP() << "the CRT's text mode rewrites \\n";
+#endif
+}
+
+// stderr is unbuffered, so the same writes have to land without waiting for the
+// converter to be destroyed.
+TEST(RootCvtStd, ChunkedPutReachesStderr)
+{
+#if !IOV2_TEST_WINDOWS
+    std::string   plain = sample();
+    oguard<false> g;
+    auto          obj = no_rb_root_cvt{std_device<sys::stderr_fd>{}};
+    put_sample_in_chunks(obj, plain);
+    EXPECT_EQ(g.contents(), plain);
+#else
+    GTEST_SKIP() << "the CRT's text mode rewrites \\n";
+#endif
+}
+
+TEST(RootCvtStd, ChunkedPutReachesStdoutThroughARuntimeCvt)
+{
+#if !IOV2_TEST_WINDOWS
+    std::string  plain = sample();
+    oguard<true> g;
+    {
+        runtime_cvt obj(no_rb_root_cvt{std_device<sys::stdout_fd>{}});
+        put_sample_in_chunks(obj, plain);
+    }
+    EXPECT_EQ(g.contents(), plain);
+#else
+    GTEST_SKIP() << "the CRT's text mode rewrites \\n";
+#endif
+}
+
+TEST(RootCvtStd, ChunkedPutReachesStderrThroughARuntimeCvt)
+{
+#if !IOV2_TEST_WINDOWS
+    std::string   plain = sample();
+    oguard<false> g;
+    runtime_cvt   obj(no_rb_root_cvt{std_device<sys::stderr_fd>{}});
+    put_sample_in_chunks(obj, plain);
+    EXPECT_EQ(g.contents(), plain);
+#else
+    GTEST_SKIP() << "the CRT's text mode rewrites \\n";
+#endif
+}
+
+// The other half of a move: the source must go quiet. Over a fixed fd two duties
+// travel with the converter -- its own buffer, and the device's duty to flush
+// the FILE on destruction -- and after a move both belong to the target alone.
+// A source that still flushed would push bytes out early, and would take the one
+// fflush that can fail into a destructor that must swallow the error, leaving
+// the real holder with nothing to report.
+//
+// Full buffering is what makes the second duty observable: the bytes handed to
+// stdio stay pending until somebody flushes, so __fpending() says whether the
+// dying source did.
+TEST(RootCvtStd, AMovedFromOutputRootFlushesNothingWhenItDies)
+{
+#if IOV2_TEST_LINUX_GLIBC
+    oguard<true>       g;
+    stdout_full_buffer buffered;
+
+    auto moved = [&]
+    {
+        auto src = rb_root_cvt{std_device<STDOUT_FILENO>{}};
+        EXPECT_EQ(src.bos(), io_status::output);
+        src.main_cont_beg();
+        src.put("hello", 5);
+        src.flush();                                 // into stdio's buffer, not to the fd
+        EXPECT_EQ(__fpending(stdout), 5u);
+        return rb_root_cvt<std_device<STDOUT_FILENO>>{std::move(src)};
+    }();                                             // src dies here
+
+    EXPECT_EQ(__fpending(stdout), 5u);               // it neither flushed nor wrote
+
+    moved.put(" world", 6);
+    moved.detach();                                  // the target still owns both duties
+    std::fflush(stdout);
+    EXPECT_EQ(g.contents(), "hello world");
+#else
+    GTEST_SKIP() << "needs __fpending() from glibc's <stdio_ext.h>";
+#endif
+}
+
+// The same through assignment. The target first hands its own buffer to stdio
+// (a dput, not an fflush), then takes over both duties from the source, which
+// must die as quietly as a move-constructed one.
+TEST(RootCvtStd, AMovedFromOutputRootFlushesNothingWhenItDiesAfterMoveAssignment)
+{
+#if IOV2_TEST_LINUX_GLIBC
+    oguard<true>       g;
+    stdout_full_buffer buffered;
+
+    auto dst = rb_root_cvt{std_device<STDOUT_FILENO>{}};
+    EXPECT_EQ(dst.bos(), io_status::output);
+    dst.main_cont_beg();
+    dst.put("D", 1);                                 // still in dst's own buffer
+    {
+        auto src = rb_root_cvt{std_device<STDOUT_FILENO>{}};
+        EXPECT_EQ(src.bos(), io_status::output);
+        src.main_cont_beg();
+        src.put("S", 1);
+        src.flush();                                 // into stdio's buffer, not to the fd
+        EXPECT_EQ(__fpending(stdout), 1u);
+
+        dst = std::move(src);
+        EXPECT_EQ(__fpending(stdout), 2u);           // dst's "D" handed to stdio, not flushed
+    }                                                // src dies here
+    EXPECT_EQ(__fpending(stdout), 2u);               // it neither flushed nor wrote
+
+    dst.put("T", 1);
+    dst.detach();
+    std::fflush(stdout);
+    EXPECT_EQ(g.contents(), "SDT");
+#else
+    GTEST_SKIP() << "needs __fpending() from glibc's <stdio_ext.h>";
+#endif
+}
+
+// Why the source must stay quiet, at this layer: glibc discards the buffer when
+// fflush fails, so only the first flush sees the error. After a move the owner
+// has to be the one that reports it, exactly once.
+TEST(RootCvtStd, AMovedFromOutputRootLeavesTheFlushFailureToItsOwner)
+{
+#if IOV2_TEST_LINUX_GLIBC
+    oguard<true>       g;
+    stdout_full_buffer buffered;
+
+    const int saved = ::dup(STDOUT_FILENO);
+    const int full  = ::open("/dev/full", O_WRONLY);
+    ASSERT_NE(full, -1);
+    ::dup2(full, STDOUT_FILENO);
+    ::close(full);
+
+    auto dst = rb_root_cvt{std_device<STDOUT_FILENO>{}};
+    EXPECT_EQ(dst.bos(), io_status::output);
+    dst.main_cont_beg();
+    {
+        auto src = rb_root_cvt{std_device<STDOUT_FILENO>{}};
+        EXPECT_EQ(src.bos(), io_status::output);
+        src.main_cont_beg();
+        src.put("SSSS", 4);
+        src.flush();                                 // into stdio's buffer
+        dst = std::move(src);
+    }                                                // src dies: must not take the fflush
+    EXPECT_EQ(__fpending(stdout), 4u);
+
+    EXPECT_THROW(dst.attach(), device_error);        // the owner sees the failure...
+    EXPECT_EQ(dst.bos(), io_status::output);
+    dst.main_cont_beg();
+    EXPECT_NO_THROW(dst.attach());                   // ...and only once
+
+    ::dup2(saved, STDOUT_FILENO);
+    ::close(saved);
+    std::clearerr(stdout);
+#else
+    GTEST_SKIP() << "needs __fpending() and /dev/full, and glibc's fflush discarding on failure";
+#endif
+}
+
+// A self-move changes nothing: the bytes in the converter's buffer stay there,
+// and the duty to flush stays with the object.
+TEST(RootCvtStd, ASelfMoveKeepsTheOutputBufferAndTheFlushDuty)
+{
+#if IOV2_TEST_LINUX_GLIBC
+    oguard<true>       g;
+    stdout_full_buffer buffered;
+
+    auto obj = rb_root_cvt{std_device<STDOUT_FILENO>{}};
+    EXPECT_EQ(obj.bos(), io_status::output);
+    obj.main_cont_beg();
+    obj.put("AB", 2);
+
+#if defined(__GNUC__) || defined(__clang__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wself-move"
+#endif
+    obj = std::move(obj);
+#if defined(__GNUC__) || defined(__clang__)
+#pragma GCC diagnostic pop
+#endif
+    EXPECT_EQ(__fpending(stdout), 0u);               // "AB" still in the converter's buffer
+
+    obj.put("C", 1);
+    obj.detach();
+    std::fflush(stdout);
+    EXPECT_EQ(g.contents(), "ABC");
+#else
+    GTEST_SKIP() << "needs __fpending() from glibc's <stdio_ext.h>";
+#endif
 }

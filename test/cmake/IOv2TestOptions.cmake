@@ -55,8 +55,10 @@ if(MSVC)
       /std:c++latest /permissive- /Zc:__cplusplus /utf-8 /W4 /WX
       $<$<CXX_COMPILER_ID:MSVC>:/Zc:u8EscapeEncoding>)
 else()
+  # -Wundef: support/platform_macros.h is used with #if, so a misspelled
+  # platform name has to be an error rather than a test that silently never runs.
   target_compile_options(iov2_test_options INTERFACE
-      -std=c++23 -Wall -Werror -Wshadow)
+      -std=c++23 -Wall -Werror -Wshadow -Wundef)
 endif()
 
 # POSIX.1-2008: locale_t, newlocale, uselocale and the *_l ctype helpers. The

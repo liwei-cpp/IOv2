@@ -11,9 +11,11 @@
 #include <gtest/gtest.h>
 
 #include <algorithm>
+#include <bit>
 #include <cstddef>
 #include <iterator>
 #include <string>
+#include <string_view>
 #include <type_traits>
 #include <utility>
 
@@ -21,8 +23,9 @@ using namespace IOv2;
 
 // The char counterpart of these cases lives in test_zlib_cvt_char.cpp. Here the
 // converter's internal type is wchar_t while the device still holds char, so
-// every put() of n characters reaches zlib as 4n bytes and the round trips below
-// are also checking that the width change survives compression.
+// every put() of n characters reaches zlib as n * sizeof(wchar_t) bytes -- four
+// on Linux and macOS, two on Windows -- and the round trips below are also
+// checking that the width change survives compression.
 namespace
 {
     constexpr std::size_t kSize = 4102;
@@ -326,6 +329,52 @@ TEST(ZlibCvtWchar, MainContBegEmitsTheZlibHeaderThroughARuntimeCvt)
     EXPECT_EQ(obj.bos(), io_status::output);
     obj.main_cont_beg();
     EXPECT_EQ(dev.str(), "\x78\x9c");
+}
+
+namespace
+{
+    // The zlib header, then each ASCII character of `s` as one raw wchar_t code
+    // unit: its byte followed by sizeof(wchar_t) - 1 zeros.
+    std::string header_then_raw_code_units(std::string_view s)
+    {
+        static_assert(std::endian::native == std::endian::little);
+        std::string out = "\x78\x9c";
+        for (char c : s)
+        {
+            out += c;
+            out.append(sizeof(wchar_t) - 1, '\0');
+        }
+        return out;
+    }
+}
+
+// Data written between bos() and main_cont_beg() reaches the device uncompressed,
+// after the header -- and as raw wchar_t code units, sizeof(wchar_t) little-endian
+// bytes each, which is what makes the width change visible at the byte level.
+TEST(ZlibCvtWchar, PutBeforeMainContBegLandsAfterTheHeaderAsRawCodeUnits)
+{
+    WcharCvt    obj = static_cvt(6);
+    const auto& dev = obj.device();
+    EXPECT_EQ(obj.bos(), io_status::output);
+
+    wchar_t buf[] = L"uvw";
+    obj.put(buf, 3);
+
+    obj.main_cont_beg();
+    EXPECT_EQ(dev.str(), header_then_raw_code_units("uvw"));
+}
+
+TEST(ZlibCvtWchar, PutBeforeMainContBegLandsAfterTheHeaderThroughARuntimeCvt)
+{
+    auto        obj = runtime_of(static_cvt(6));
+    const auto& dev = obj.device();
+    EXPECT_EQ(obj.bos(), io_status::output);
+
+    wchar_t buf[] = L"uvw";
+    obj.put(buf, 3);
+
+    obj.main_cont_beg();
+    EXPECT_EQ(dev.str(), header_then_raw_code_units("uvw"));
 }
 
 TEST(ZlibCvtWchar, ChunkedPutRoundTrips)
