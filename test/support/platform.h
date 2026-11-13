@@ -7,8 +7,7 @@
 // every platform, so that test sources stay free of #ifdef _WIN32. What only
 // one platform can do -- signals, O_NONBLOCK, rlimits -- is not wrapped here:
 // a test of it says where it runs with support/platform_macros.h and skips
-// elsewhere, or still lives in a posix/, linux/, macos/ or windows/ subdirectory,
-// which CMakeLists.txt builds on that platform alone.
+// elsewhere.
 
 #include <cstddef>
 #include <cstdio>

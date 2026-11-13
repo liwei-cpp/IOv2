@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: MIT
 
 /**
- * The one case of linux/test_code_cvt_mem_char_char32_t.cpp that puts wchar_t, not
+ * The one case of test_code_cvt_mem_char_char32_t.cpp that puts wchar_t, not
  * char32_t, inside: char <-> wchar_t is available wherever wchar_t is, which
  * char <-> char32_t is not (it needs wchar_t_is_utf32).
  */

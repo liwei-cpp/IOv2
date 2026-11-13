@@ -448,7 +448,8 @@ TEST(StdDevice, AByteProbedInFdModeComesFirstAfterTheSwitch)
 
 // dunget() refuses the same everywhere: fd mode has no buffer shared with C stdio,
 // and a byte fd mode probed before a switch would make the order unclear. A refusal
-// changes nothing. posix/ and windows/ have what stdio mode does on each platform.
+// changes nothing. StdDevicePosix and StdDeviceWindows below have what stdio mode
+// does on each platform.
 TEST(StdDevice, UngetRefusesWhereItCannotHandTheBytesBack)
 {
     pipe_iguard g("xyz");
@@ -578,7 +579,7 @@ namespace
 // dflush() is fflush(), and oguard leaves the stream unbuffered, so there is
 // never anything queued for fflush() to push at the descriptor: it returns 0
 // whether or not the descriptor is still there.  The next two cases pin that;
-// posix/ has the buffered ones, where the flush is what reaches the descriptor.
+// the buffered ones, where the flush is what reaches the descriptor, follow them.
 TEST(StdDevice, FlushOnAnUnbufferedStdoutSucceedsEvenWithTheDescriptorClosed)
 {
     bool threw = false;

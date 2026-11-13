@@ -62,9 +62,8 @@ include(CTest)
 # backend and optional dependency buildable.
 #
 # An entry is a top-level component (cvt) or a directory below one
-# (cvt/root_cvt), and selects every suite at or below it, platform
-# subdirectories included. The second form lets a port open a component one
-# suite at a time.
+# (cvt/root_cvt), and selects every suite at or below it. The second form lets
+# a port open a component one suite at a time.
 set(IOV2_TEST_KNOWN_COMPONENTS common concur cvt device facet io locale)
 set(IOV2_TEST_COMPONENTS "all" CACHE STRING
     "Semicolon-separated test components, or directories below them such as cvt/root_cvt, to configure; or 'all'")
@@ -124,33 +123,12 @@ if(NOT IOV2_TEST_ALL_SOURCES)
   message(FATAL_ERROR "No test sources found under ${CMAKE_CURRENT_SOURCE_DIR}")
 endif()
 
-# Tests of what only some platforms have sit in a subdirectory named for them:
-# posix/ (signals, O_NONBLOCK, rlimits, fork), linux/ (/dev/full, GNU ld's --wrap,
-# glibc's locale names), macos/ (Apple libc's locale names), windows/ (text-mode
-# CRLF and Ctrl+Z, the CRT's locale names and per-thread locales). Each is built on
-# its platform alone, so
-# test sources need no #ifdef; support/platform.h covers the API differences.
-# Matched on the path below this directory, never on where the checkout lives.
-#
-# This is giving way to support/platform_macros.h: a test that runs on some
-# platforms says which with #if inside its TEST() and skips on the rest, so one
-# that holds on two platforms of three is written once, and every platform reports
-# the same list of tests. common, cvt and device are done that way.
-set(IOV2_TEST_OTHER_PLATFORM_DIRS "")
-if(NOT UNIX)
-  list(APPEND IOV2_TEST_OTHER_PLATFORM_DIRS posix)
-endif()
-if(NOT CMAKE_SYSTEM_NAME STREQUAL "Linux")
-  list(APPEND IOV2_TEST_OTHER_PLATFORM_DIRS linux)
-endif()
-if(NOT APPLE)
-  list(APPEND IOV2_TEST_OTHER_PLATFORM_DIRS macos)
-endif()
-if(NOT WIN32)
-  list(APPEND IOV2_TEST_OTHER_PLATFORM_DIRS windows)
-endif()
-list(JOIN IOV2_TEST_OTHER_PLATFORM_DIRS "|" _other_platforms)
-
+# Every source is built on every platform. A test of what only some platforms
+# have says where it runs with support/platform_macros.h, #if inside its TEST(),
+# and skips on the rest with the reason, so every platform reports the same list
+# of tests and one that holds on two platforms of three is written once. Tests
+# used to sit in posix/, linux/, macos/ and windows/ subdirectories built on their
+# platform alone, which could say neither.
 set(IOV2_TEST_SELECTED_SOURCES "")
 set(_selected_rels "")
 foreach(source IN LISTS IOV2_TEST_ALL_SOURCES)
@@ -166,9 +144,6 @@ foreach(source IN LISTS IOV2_TEST_ALL_SOURCES)
   if(NOT _in_selection)
     continue()
   endif()
-  if(_other_platforms AND source_rel MATCHES "/(${_other_platforms})/")
-    continue()
-  endif()
   list(APPEND IOV2_TEST_SELECTED_SOURCES "${source}")
   list(APPEND _selected_rels "${source_rel}")
 endforeach()
@@ -178,14 +153,14 @@ if(NOT IOV2_TEST_SELECTED_SOURCES)
       "IOV2_TEST_COMPONENTS='${IOV2_TEST_COMPONENTS}' selected no test sources")
 endif()
 
-# An entry that selects nothing here is a mistake, such as a directory that holds
-# only another platform's tests. The entries are plain names, safe in a regex.
+# An entry that selects nothing is a mistake, such as a directory that holds only
+# plugins. The entries are plain names, safe in a regex.
 foreach(dir IN LISTS IOV2_TEST_SELECTED_DIRS)
   set(_hits ${_selected_rels})
   list(FILTER _hits INCLUDE REGEX "^${dir}/")
   if(NOT _hits)
     message(FATAL_ERROR
-        "IOV2_TEST_COMPONENTS entry '${dir}' selects no test source on this platform")
+        "IOV2_TEST_COMPONENTS entry '${dir}' selects no test source")
   endif()
 endforeach()
 
