@@ -10,12 +10,19 @@
 #include <IOv2/device/std_device.h>
 
 #include <support/platform.h>
+#include <support/platform_macros.h>
 #include <support/stdio_guard.h>
 
 #include <gtest/gtest.h>
 
+#include <cstdio>
 #include <string>
 #include <type_traits>
+#include <utility>
+
+#if IOV2_TEST_LINUX_GLIBC
+#include <stdio_ext.h>
+#endif
 
 using namespace IOv2;
 
@@ -173,4 +180,135 @@ TEST(CodeCvtStdio, ReadAheadBytesSurviveASwitchToSynchronized)
     while (obj.get(&c, 1) == 1)
         got += c;
     EXPECT_EQ(got, L"b中cd");
+}
+
+// Half a character left at the end of the input is rolled back, and synchronized the
+// root hands it back to C stdio: the read still reports it, and getchar() then gets the
+// two bytes before the end.
+TEST(CodeCvtStdio, AHalfCharacterAtTheEndGoesBackToCStdioWhenSynchronized)
+{
+#if !IOV2_TEST_WINDOWS
+    using Root = stdin_root_cvt;
+
+    iguard g("a\xe4\xb8");
+    code_cvt_stdio<Root> obj{Root{}, "zh_CN.UTF-8"};
+    EXPECT_EQ(obj.bos(), io_status::input);
+    obj.main_cont_beg();
+    wchar_t c = 0;
+    EXPECT_EQ(obj.get(&c, 1), 1u);
+    EXPECT_EQ(c, L'a');
+    EXPECT_THROW(obj.get(&c, 1), cvt_error);
+
+    EXPECT_EQ(std::getchar(), 0xe4);
+    EXPECT_EQ(std::getchar(), 0xb8);
+    EXPECT_EQ(std::getchar(), EOF);
+
+    code_cvt_access acc;
+    obj.retrieve(acc);
+    EXPECT_EQ(acc.code, "zh_CN.UTF-8");
+#else
+    GTEST_SKIP() << "the CRT does not take bytes back into stdin (dunget)";
+#endif
+}
+
+// A move hands the whole pipeline over -- the converter, its root buffer, and the
+// device's duty to flush the FILE on destruction -- so the source must die without
+// flushing. This is the layer wcout sits on; code_cvt's own move assignment adds
+// a close_stream() that the root-level tests do not reach. Full buffering keeps
+// the bytes in stdio, so __fpending() says whether the dying source flushed them.
+TEST(CodeCvtStdio, AMovedFromConverterFlushesNothingWhenItDies)
+{
+#if IOV2_TEST_LINUX_GLIBC
+    oguard<true>       g;
+    stdout_full_buffer buffered;
+
+    auto moved = [&]
+    {
+        StdioOut src{rb_root_cvt{std_device<sys::stdout_fd>{}}, "zh_CN.UTF-8"};
+        EXPECT_EQ(src.bos(), io_status::output);
+        src.main_cont_beg();
+        const wchar_t wen[] = {L'文'};
+        src.put(wen, 1);
+        src.flush();                                 // 3 bytes into stdio's buffer
+        EXPECT_EQ(__fpending(stdout), 3u);
+        return StdioOut{std::move(src)};
+    }();                                             // src dies here
+    EXPECT_EQ(__fpending(stdout), 3u);               // it neither flushed nor wrote
+
+    const wchar_t bang[] = {L'!'};
+    moved.put(bang, 1);
+    moved.detach();
+    std::fflush(stdout);
+    EXPECT_EQ(g.contents(), "文!");
+#else
+    GTEST_SKIP() << "needs __fpending() from glibc's <stdio_ext.h>";
+#endif
+}
+
+TEST(CodeCvtStdio, AMovedFromConverterFlushesNothingWhenItDiesAfterMoveAssignment)
+{
+#if IOV2_TEST_LINUX_GLIBC
+    oguard<true>       g;
+    stdout_full_buffer buffered;
+
+    StdioOut dst{rb_root_cvt{std_device<sys::stdout_fd>{}}, "zh_CN.UTF-8"};
+    EXPECT_EQ(dst.bos(), io_status::output);
+    dst.main_cont_beg();
+    const wchar_t zhong[] = {L'中'};
+    dst.put(zhong, 1);                               // 3 bytes in dst's root buffer
+    {
+        StdioOut src{rb_root_cvt{std_device<sys::stdout_fd>{}}, "zh_CN.UTF-8"};
+        EXPECT_EQ(src.bos(), io_status::output);
+        src.main_cont_beg();
+        const wchar_t wen[] = {L'文'};
+        src.put(wen, 1);
+        src.flush();
+        EXPECT_EQ(__fpending(stdout), 3u);
+
+        dst = std::move(src);
+        EXPECT_EQ(__fpending(stdout), 6u);           // dst's own bytes handed to stdio
+    }                                                // src dies here
+    EXPECT_EQ(__fpending(stdout), 6u);
+
+    const wchar_t bang[] = {L'!'};
+    dst.put(bang, 1);
+    dst.detach();
+    std::fflush(stdout);
+    EXPECT_EQ(g.contents(), "文中!");
+#else
+    GTEST_SKIP() << "needs __fpending() from glibc's <stdio_ext.h>";
+#endif
+}
+
+TEST(CodeCvtStdio, ASelfMoveChangesNothing)
+{
+#if IOV2_TEST_LINUX_GLIBC
+    oguard<true>       g;
+    stdout_full_buffer buffered;
+
+    StdioOut obj{rb_root_cvt{std_device<sys::stdout_fd>{}}, "zh_CN.UTF-8"};
+    EXPECT_EQ(obj.bos(), io_status::output);
+    obj.main_cont_beg();
+    const wchar_t wen[] = {L'文'};
+    obj.put(wen, 1);
+    obj.flush();
+
+#if defined(__GNUC__) || defined(__clang__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wself-move"
+#endif
+    obj = std::move(obj);
+#if defined(__GNUC__) || defined(__clang__)
+#pragma GCC diagnostic pop
+#endif
+    EXPECT_EQ(__fpending(stdout), 3u);
+
+    const wchar_t bang[] = {L'!'};
+    obj.put(bang, 1);
+    obj.detach();
+    std::fflush(stdout);
+    EXPECT_EQ(g.contents(), "文!");
+#else
+    GTEST_SKIP() << "needs __fpending() from glibc's <stdio_ext.h>";
+#endif
 }

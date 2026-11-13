@@ -8,6 +8,8 @@
 #include <IOv2/cvt/runtime_cvt.h>
 #include <IOv2/device/mem_device.h>
 
+#include <support/platform_macros.h>
+
 #include <gtest/gtest.h>
 
 #include <algorithm>
@@ -21,6 +23,7 @@
 
 using namespace IOv2;
 
+#if IOV2_TEST_LINUX_GLIBC
 namespace
 {
     using RbCvt   = code_cvt<rb_root_cvt<mem_device<char>>, char32_t>;
@@ -218,9 +221,11 @@ namespace
         EXPECT_EQ(dev.str(), external_sample());
     }
 }
+#endif
 
 TEST(CodeCvtMemChar32, TraitsOverAMemDeviceOfChar)
 {
+#if IOV2_TEST_LINUX_GLIBC
     using CheckType = code_cvt<rb_root_cvt<mem_device<char>>, char32_t>;
     static_assert(io_converter<CheckType>);
     static_assert(std::is_same_v<CheckType::device_type, mem_device<char>>);
@@ -233,15 +238,22 @@ TEST(CodeCvtMemChar32, TraitsOverAMemDeviceOfChar)
     static_assert(cvt_cpt::support_get<CheckType>);
     static_assert(cvt_cpt::support_positioning<CheckType>);
     static_assert(cvt_cpt::support_io_switch<CheckType>);
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtMemChar32, TraitsWithoutAReadBuffer)
 {
+#if IOV2_TEST_LINUX_GLIBC
     using CheckType = code_cvt<no_rb_root_cvt<mem_device<char>>, char32_t>;
     static_assert(io_converter<CheckType>);
     static_assert(std::is_same_v<CheckType::device_type, mem_device<char>>);
     static_assert(std::is_same_v<CheckType::internal_type, char32_t>);
     static_assert(std::is_same_v<CheckType::external_type, char>);
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 // The decoder carries state between chunks -- a multi-byte sequence can be split
@@ -249,60 +261,93 @@ TEST(CodeCvtMemChar32, TraitsWithoutAReadBuffer)
 // chunk has to carry that state with it.
 TEST(CodeCvtMemChar32, ChunkedGetSurvivesACopyBetweenEveryChunk)
 {
+#if IOV2_TEST_LINUX_GLIBC
     RbCvt obj{rb_root_cvt{mem_device(external_sample())}, "zh_CN.UTF-8"};
     expect_chunked_get_survives(obj, [](auto& src) { return src; },
                                  [](auto& dst, auto& src) { dst = src; });
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtMemChar32, ChunkedGetSurvivesACopyBetweenEveryChunkThroughARuntimeCvt)
 {
+#if IOV2_TEST_LINUX_GLIBC
     runtime_cvt obj{RbCvt{rb_root_cvt{mem_device(external_sample())}, "zh_CN.UTF-8"}};
     expect_chunked_get_survives(obj, [](auto& src) { return src; },
                                  [](auto& dst, auto& src) { dst = src; });
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtMemChar32, ChunkedGetSurvivesAMoveBetweenEveryChunk)
 {
+#if IOV2_TEST_LINUX_GLIBC
     RbCvt obj{rb_root_cvt{mem_device(external_sample())}, "zh_CN.UTF-8"};
     expect_chunked_get_survives(obj, [](auto& src) { return std::move(src); },
                                  [](auto& dst, auto& src) { dst = std::move(src); });
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtMemChar32, ChunkedGetSurvivesAMoveBetweenEveryChunkThroughARuntimeCvt)
 {
+#if IOV2_TEST_LINUX_GLIBC
     runtime_cvt obj{RbCvt{rb_root_cvt{mem_device(external_sample())}, "zh_CN.UTF-8"}};
     expect_chunked_get_survives(obj, [](auto& src) { return std::move(src); },
                                  [](auto& dst, auto& src) { dst = std::move(src); });
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtMemChar32, ChunkedPutSurvivesACopyBetweenEveryChunk)
 {
+#if IOV2_TEST_LINUX_GLIBC
     RbCvt obj{rb_root_cvt{mem_device("")}, "zh_CN.UTF-8"};
     expect_chunked_put_survives(obj, [](auto& src) { return src; },
                                  [](auto& dst, auto& src) { dst = src; });
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtMemChar32, ChunkedPutSurvivesACopyBetweenEveryChunkThroughARuntimeCvt)
 {
+#if IOV2_TEST_LINUX_GLIBC
     runtime_cvt obj{RbCvt{rb_root_cvt{mem_device("")}, "zh_CN.UTF-8"}};
     expect_chunked_put_survives(obj, [](auto& src) { return src; },
                                  [](auto& dst, auto& src) { dst = src; });
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtMemChar32, ChunkedPutSurvivesAMoveBetweenEveryChunk)
 {
+#if IOV2_TEST_LINUX_GLIBC
     RbCvt obj{rb_root_cvt{mem_device("")}, "zh_CN.UTF-8"};
     expect_chunked_put_survives(obj, [](auto& src) { return std::move(src); },
                                  [](auto& dst, auto& src) { dst = std::move(src); });
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtMemChar32, ChunkedPutSurvivesAMoveBetweenEveryChunkThroughARuntimeCvt)
 {
+#if IOV2_TEST_LINUX_GLIBC
     runtime_cvt obj{RbCvt{rb_root_cvt{mem_device("")}, "zh_CN.UTF-8"}};
     expect_chunked_put_survives(obj, [](auto& src) { return std::move(src); },
                                  [](auto& dst, auto& src) { dst = std::move(src); });
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
+#if IOV2_TEST_LINUX_GLIBC
 namespace
 {
     // main_cont_beg() draws the line between the prologue and the main content:
@@ -337,31 +382,49 @@ namespace
         EXPECT_EQ(obj.device().dtell(), 12u);
     }
 }
+#endif
 
 TEST(CodeCvtMemChar32, AnEmptyPrologueLeavesBothPositionsAtZero)
 {
+#if IOV2_TEST_LINUX_GLIBC
     RbCvt obj(rb_root_cvt{mem_device("")}, "zh_CN.UTF-8");
     expect_an_empty_prologue_leaves_both_positions_at_zero(obj);
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtMemChar32, AnEmptyPrologueLeavesBothPositionsAtZeroThroughARuntimeCvt)
 {
+#if IOV2_TEST_LINUX_GLIBC
     runtime_cvt obj{RbCvt{rb_root_cvt{mem_device("")}, "zh_CN.UTF-8"}};
     expect_an_empty_prologue_leaves_both_positions_at_zero(obj);
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtMemChar32, AReadPrologueLeavesTheDeviceAheadOfTell)
 {
+#if IOV2_TEST_LINUX_GLIBC
     NoRbCvt obj(no_rb_root_cvt{mem_device(as_char32_bytes("12345"))}, "zh_CN.UTF-8");
     expect_a_read_prologue_of_three_ascii_characters(obj);
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtMemChar32, AReadPrologueLeavesTheDeviceAheadOfTellThroughARuntimeCvt)
 {
+#if IOV2_TEST_LINUX_GLIBC
     runtime_cvt obj{NoRbCvt{no_rb_root_cvt{mem_device(as_char32_bytes("12345"))}, "zh_CN.UTF-8"}};
     expect_a_read_prologue_of_three_ascii_characters(obj);
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
+#if IOV2_TEST_LINUX_GLIBC
 namespace
 {
     // The same prologue, but with two of the three characters outside ASCII: the
@@ -413,59 +476,92 @@ namespace
         return info;
     }
 }
+#endif
 
 TEST(CodeCvtMemChar32, AReadPrologueOfMixedWidthCharacters)
 {
+#if IOV2_TEST_LINUX_GLIBC
     std::string info = li_d_wei_bytes() + as_char32_bytes("cpp");
     RbCvt       obj(rb_root_cvt{mem_device(info)}, "zh_CN.UTF-8");
     expect_a_read_prologue_of_mixed_width_characters(obj);
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtMemChar32, AReadPrologueOfMixedWidthCharactersThroughARuntimeCvt)
 {
+#if IOV2_TEST_LINUX_GLIBC
     std::string info = li_d_wei_bytes() + as_char32_bytes("cpp");
     runtime_cvt obj{RbCvt{rb_root_cvt{mem_device(info)}, "zh_CN.UTF-8"}};
     expect_a_read_prologue_of_mixed_width_characters(obj);
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtMemChar32, AWritePrologueOfAsciiCharacters)
 {
+#if IOV2_TEST_LINUX_GLIBC
     RbCvt          obj(rb_root_cvt{mem_device("")}, "zh_CN.UTF-8");
     const char32_t text[] = U"123";
     expect_a_write_prologue(obj, text, as_char32_bytes("123"));
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtMemChar32, AWritePrologueOfAsciiCharactersThroughARuntimeCvt)
 {
+#if IOV2_TEST_LINUX_GLIBC
     runtime_cvt    obj{RbCvt{rb_root_cvt{mem_device("")}, "zh_CN.UTF-8"}};
     const char32_t text[] = U"123";
     expect_a_write_prologue(obj, text, as_char32_bytes("123"));
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtMemChar32, AWritePrologueOfMixedWidthCharacters)
 {
+#if IOV2_TEST_LINUX_GLIBC
     RbCvt          obj(rb_root_cvt{mem_device("")}, "zh_CN.UTF-8");
     const char32_t text[] = U"李d伟";
     expect_a_write_prologue(obj, text, li_d_wei_bytes());
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtMemChar32, AWritePrologueOfMixedWidthCharactersThroughARuntimeCvt)
 {
+#if IOV2_TEST_LINUX_GLIBC
     runtime_cvt    obj{RbCvt{rb_root_cvt{mem_device("")}, "zh_CN.UTF-8"}};
     const char32_t text[] = U"李d伟";
     expect_a_write_prologue(obj, text, li_d_wei_bytes());
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtMemChar32, ChunkedGetDecodesTheWholeSample)
 {
+#if IOV2_TEST_LINUX_GLIBC
     RbCvt obj{rb_root_cvt{mem_device(external_sample())}, "zh_CN.UTF-8"};
     expect_chunked_get_reads_the_sample(obj);
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtMemChar32, ChunkedGetDecodesTheWholeSampleThroughARuntimeCvt)
 {
+#if IOV2_TEST_LINUX_GLIBC
     runtime_cvt obj{RbCvt{rb_root_cvt{mem_device(external_sample())}, "zh_CN.UTF-8"}};
     expect_chunked_get_reads_the_sample(obj);
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 // The same read with no read-back buffer under the converter: a split multi-byte
@@ -473,67 +569,108 @@ TEST(CodeCvtMemChar32, ChunkedGetDecodesTheWholeSampleThroughARuntimeCvt)
 // partial state itself.
 TEST(CodeCvtMemChar32, ChunkedGetDecodesTheWholeSampleWithoutAReadBuffer)
 {
+#if IOV2_TEST_LINUX_GLIBC
     NoRbCvt obj{no_rb_root_cvt{mem_device(external_sample())}, "zh_CN.UTF-8"};
     expect_chunked_get_reads_the_sample(obj);
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtMemChar32, ChunkedGetDecodesTheWholeSampleWithoutAReadBufferThroughARuntimeCvt)
 {
+#if IOV2_TEST_LINUX_GLIBC
     runtime_cvt obj{NoRbCvt{no_rb_root_cvt{mem_device(external_sample())}, "zh_CN.UTF-8"}};
     expect_chunked_get_reads_the_sample(obj);
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtMemChar32, ChunkedPutEncodesTheWholeSample)
 {
+#if IOV2_TEST_LINUX_GLIBC
     RbCvt obj(rb_root_cvt{mem_device("")}, "zh_CN.UTF-8");
     expect_chunked_put_writes_the_sample(obj);
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtMemChar32, ChunkedPutEncodesTheWholeSampleThroughARuntimeCvt)
 {
+#if IOV2_TEST_LINUX_GLIBC
     runtime_cvt obj{RbCvt{rb_root_cvt{mem_device("")}, "zh_CN.UTF-8"}};
     expect_chunked_put_writes_the_sample(obj);
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtMemChar32, ChunkedPutEncodesTheWholeSampleWithoutAReadBuffer)
 {
+#if IOV2_TEST_LINUX_GLIBC
     NoRbCvt obj(no_rb_root_cvt{mem_device("")}, "zh_CN.UTF-8");
     expect_chunked_put_writes_the_sample(obj);
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtMemChar32, ChunkedPutEncodesTheWholeSampleWithoutAReadBufferThroughARuntimeCvt)
 {
+#if IOV2_TEST_LINUX_GLIBC
     runtime_cvt obj{NoRbCvt{no_rb_root_cvt{mem_device("")}, "zh_CN.UTF-8"}};
     expect_chunked_put_writes_the_sample(obj);
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 // One put() of everything must produce the same bytes as the chunked one.
 TEST(CodeCvtMemChar32, AWholePutEncodesTheSameBytesAsAChunkedOne)
 {
+#if IOV2_TEST_LINUX_GLIBC
     RbCvt obj(rb_root_cvt{mem_device("")}, "zh_CN.UTF-8");
     expect_whole_put_writes_the_sample(obj);
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtMemChar32, AWholePutEncodesTheSameBytesAsAChunkedOneThroughARuntimeCvt)
 {
+#if IOV2_TEST_LINUX_GLIBC
     runtime_cvt obj{RbCvt{rb_root_cvt{mem_device("")}, "zh_CN.UTF-8"}};
     expect_whole_put_writes_the_sample(obj);
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 // The same single put() without a read buffer under the converter: the encoder
 // has nowhere to stage the bytes but the device itself.
 TEST(CodeCvtMemChar32, AWholePutEncodesTheSameBytesAsAChunkedOneWithoutAReadBuffer)
 {
+#if IOV2_TEST_LINUX_GLIBC
     NoRbCvt obj(no_rb_root_cvt{mem_device("")}, "zh_CN.UTF-8");
     expect_whole_put_writes_the_sample(obj);
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtMemChar32, AWholePutEncodesTheSameBytesAsAChunkedOneWithoutAReadBufferThroughARuntimeCvt)
 {
+#if IOV2_TEST_LINUX_GLIBC
     runtime_cvt obj{NoRbCvt{no_rb_root_cvt{mem_device("")}, "zh_CN.UTF-8"}};
     expect_whole_put_writes_the_sample(obj);
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
+#if IOV2_TEST_LINUX_GLIBC
 namespace
 {
     // flush() has to push the encoder's pending bytes all the way to the device,
@@ -587,43 +724,69 @@ namespace
         EXPECT_EQ(dev.str(), external_sample());
     }
 }
+#endif
 
 TEST(CodeCvtMemChar32, FlushCompletesTheEncoding)
 {
+#if IOV2_TEST_LINUX_GLIBC
     RbCvt obj(rb_root_cvt{mem_device("")}, "zh_CN.UTF-8");
     expect_flush_completes_the_encoding(obj);
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtMemChar32, FlushCompletesTheEncodingThroughARuntimeCvt)
 {
+#if IOV2_TEST_LINUX_GLIBC
     runtime_cvt obj(RbCvt{rb_root_cvt{mem_device("")}, "zh_CN.UTF-8"});
     expect_flush_completes_the_encoding(obj);
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtMemChar32, FlushCompletesTheEncodingWithoutAReadBuffer)
 {
+#if IOV2_TEST_LINUX_GLIBC
     NoRbCvt obj(no_rb_root_cvt{mem_device("")}, "zh_CN.UTF-8");
     expect_flush_completes_the_encoding(obj);
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtMemChar32, FlushCompletesTheEncodingWithoutAReadBufferThroughARuntimeCvt)
 {
+#if IOV2_TEST_LINUX_GLIBC
     runtime_cvt obj(NoRbCvt{no_rb_root_cvt{mem_device("")}, "zh_CN.UTF-8"});
     expect_flush_completes_the_encoding(obj);
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtMemChar32, AFlushAfterEveryChunkReachesTheDevice)
 {
+#if IOV2_TEST_LINUX_GLIBC
     RbCvt obj(rb_root_cvt{mem_device("")}, "zh_CN.UTF-8");
     expect_a_flush_after_every_chunk_reaches_the_device(obj);
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtMemChar32, AFlushAfterEveryChunkReachesTheDeviceThroughARuntimeCvt)
 {
+#if IOV2_TEST_LINUX_GLIBC
     runtime_cvt obj(RbCvt{rb_root_cvt{mem_device("")}, "zh_CN.UTF-8"});
     expect_a_flush_after_every_chunk_reaches_the_device(obj);
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
+#if IOV2_TEST_LINUX_GLIBC
 namespace
 {
     // In a variable-width locale the converter cannot turn a character index into a
@@ -732,55 +895,89 @@ namespace
         EXPECT_EQ(dev.str(), "axy");
     }
 }
+#endif
 
 TEST(CodeCvtMemChar32, SeekIsRefusedWhileReadingInAVariableWidthLocale)
 {
+#if IOV2_TEST_LINUX_GLIBC
     RbCvt obj(rb_root_cvt{mem_device("123456")}, "zh_CN.UTF-8");
     expect_seek_is_refused_in_a_variable_width_locale(obj);
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtMemChar32, SeekIsRefusedWhileReadingInAVariableWidthLocaleThroughARuntimeCvt)
 {
+#if IOV2_TEST_LINUX_GLIBC
     runtime_cvt obj(RbCvt{rb_root_cvt{mem_device("123456")}, "zh_CN.UTF-8"});
     expect_seek_is_refused_in_a_variable_width_locale(obj);
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtMemChar32, SeekWorksWhileReadingInASingleByteLocale)
 {
+#if IOV2_TEST_LINUX_GLIBC
     RbCvt obj(rb_root_cvt{mem_device("123456")}, "C");
     expect_seek_works_in_a_single_byte_locale(obj);
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtMemChar32, SeekWorksWhileReadingInASingleByteLocaleThroughARuntimeCvt)
 {
+#if IOV2_TEST_LINUX_GLIBC
     runtime_cvt obj(RbCvt{rb_root_cvt{mem_device("123456")}, "C"});
     expect_seek_works_in_a_single_byte_locale(obj);
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtMemChar32, SeekIsRefusedWhileWritingInAVariableWidthLocale)
 {
+#if IOV2_TEST_LINUX_GLIBC
     RbCvt obj(rb_root_cvt{mem_device("")}, "zh_CN.UTF-8");
     expect_seek_is_refused_while_writing_variable_width(obj);
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtMemChar32, SeekIsRefusedWhileWritingInAVariableWidthLocaleThroughARuntimeCvt)
 {
+#if IOV2_TEST_LINUX_GLIBC
     runtime_cvt obj(RbCvt{rb_root_cvt{mem_device("")}, "zh_CN.UTF-8"});
     expect_seek_is_refused_while_writing_variable_width(obj);
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtMemChar32, SeekWorksWhileWritingInASingleByteLocale)
 {
+#if IOV2_TEST_LINUX_GLIBC
     RbCvt obj(rb_root_cvt{mem_device("")}, "C");
     expect_seek_works_while_writing_single_byte(obj);
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtMemChar32, SeekWorksWhileWritingInASingleByteLocaleThroughARuntimeCvt)
 {
+#if IOV2_TEST_LINUX_GLIBC
     runtime_cvt obj(RbCvt{rb_root_cvt{mem_device("")}, "C"});
     expect_seek_works_while_writing_single_byte(obj);
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
+#if IOV2_TEST_LINUX_GLIBC
 namespace
 {
     // rseek() counts back from the end, which needs the same index-to-offset map
@@ -881,55 +1078,89 @@ namespace
         EXPECT_EQ(obj.device().str(), "abxy");
     }
 }
+#endif
 
 TEST(CodeCvtMemChar32, RseekIsRefusedWhileReadingInAVariableWidthLocale)
 {
+#if IOV2_TEST_LINUX_GLIBC
     RbCvt obj(rb_root_cvt{mem_device("123456")}, "zh_CN.UTF-8");
     expect_rseek_is_refused_in_a_variable_width_locale(obj);
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtMemChar32, RseekIsRefusedWhileReadingInAVariableWidthLocaleThroughARuntimeCvt)
 {
+#if IOV2_TEST_LINUX_GLIBC
     runtime_cvt obj(RbCvt{rb_root_cvt{mem_device("123456")}, "zh_CN.UTF-8"});
     expect_rseek_is_refused_in_a_variable_width_locale(obj);
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtMemChar32, RseekWorksWhileReadingInASingleByteLocale)
 {
+#if IOV2_TEST_LINUX_GLIBC
     RbCvt obj(rb_root_cvt{mem_device("123456")}, "C");
     expect_rseek_works_in_a_single_byte_locale(obj);
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtMemChar32, RseekWorksWhileReadingInASingleByteLocaleThroughARuntimeCvt)
 {
+#if IOV2_TEST_LINUX_GLIBC
     runtime_cvt obj(RbCvt{rb_root_cvt{mem_device("123456")}, "C"});
     expect_rseek_works_in_a_single_byte_locale(obj);
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtMemChar32, RseekIsRefusedWhileWritingInAVariableWidthLocale)
 {
+#if IOV2_TEST_LINUX_GLIBC
     RbCvt obj(rb_root_cvt{mem_device("")}, "zh_CN.UTF-8");
     expect_rseek_is_refused_while_writing_variable_width(obj);
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtMemChar32, RseekIsRefusedWhileWritingInAVariableWidthLocaleThroughARuntimeCvt)
 {
+#if IOV2_TEST_LINUX_GLIBC
     runtime_cvt obj(RbCvt{rb_root_cvt{mem_device("")}, "zh_CN.UTF-8"});
     expect_rseek_is_refused_while_writing_variable_width(obj);
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtMemChar32, RseekWorksWhileWritingInASingleByteLocale)
 {
+#if IOV2_TEST_LINUX_GLIBC
     RbCvt obj(rb_root_cvt{mem_device("")}, "C");
     expect_rseek_works_while_writing_single_byte(obj);
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtMemChar32, RseekWorksWhileWritingInASingleByteLocaleThroughARuntimeCvt)
 {
+#if IOV2_TEST_LINUX_GLIBC
     runtime_cvt obj(RbCvt{rb_root_cvt{mem_device("")}, "C"});
     expect_rseek_works_while_writing_single_byte(obj);
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
+#if IOV2_TEST_LINUX_GLIBC
 namespace
 {
     // Writing, seeking back inside what was written, reading it, then writing on:
@@ -998,33 +1229,51 @@ namespace
         EXPECT_EQ(obj.device().str(), as_char32_bytes("abcdefgh") + "QWER5");
     }
 }
+#endif
 
 TEST(CodeCvtMemChar32, ReadAndWriteShareOnePosition)
 {
+#if IOV2_TEST_LINUX_GLIBC
     NoRbCvt obj(no_rb_root_cvt{mem_device("")}, "C");
     expect_read_and_write_share_one_position(obj);
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtMemChar32, ReadAndWriteShareOnePositionThroughARuntimeCvt)
 {
+#if IOV2_TEST_LINUX_GLIBC
     runtime_cvt obj(NoRbCvt{no_rb_root_cvt{mem_device("")}, "C"});
     expect_read_and_write_share_one_position(obj);
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtMemChar32, AReadStreamCanBeWrittenThrough)
 {
+#if IOV2_TEST_LINUX_GLIBC
     std::string info = as_char32_bytes("abcdefgh") + "12345";
     NoRbCvt     obj(no_rb_root_cvt{mem_device(info)}, "C");
     expect_a_read_stream_can_be_written_through(obj);
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtMemChar32, AReadStreamCanBeWrittenThroughThroughARuntimeCvt)
 {
+#if IOV2_TEST_LINUX_GLIBC
     std::string info = as_char32_bytes("abcdefgh") + "12345";
     runtime_cvt obj(NoRbCvt{no_rb_root_cvt{mem_device(info)}, "C"});
     expect_a_read_stream_can_be_written_through(obj);
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
+#if IOV2_TEST_LINUX_GLIBC
 namespace
 {
     // In a variable-width locale the same sequence cannot seek, so a get() after a
@@ -1097,71 +1346,105 @@ namespace
         EXPECT_EQ(obj.device().str(), info);
     }
 }
+#endif
 
 TEST(CodeCvtMemChar32, TurningAroundIsRefusedInAVariableWidthLocale)
 {
+#if IOV2_TEST_LINUX_GLIBC
     code_cvt_creator<char, char32_t> creator("zh_CN.UTF-8");
     auto obj = creator.create(no_rb_root_cvt{mem_device("")});
     expect_turning_around_is_refused_in_a_variable_width_locale(obj);
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtMemChar32, TurningAroundIsRefusedInAVariableWidthLocaleWithAReadBuffer)
 {
+#if IOV2_TEST_LINUX_GLIBC
     code_cvt_creator<char, char32_t> creator("zh_CN.UTF-8");
     auto obj = creator.create(rb_root_cvt{mem_device("")});
     expect_turning_around_is_refused_in_a_variable_width_locale(obj);
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtMemChar32, TurningAroundIsRefusedInAVariableWidthLocaleThroughARuntimeCvt)
 {
+#if IOV2_TEST_LINUX_GLIBC
     code_cvt_creator<char, char32_t> creator("zh_CN.UTF-8");
     runtime_cvt obj(creator.create(no_rb_root_cvt{mem_device("")}));
     expect_turning_around_is_refused_in_a_variable_width_locale(obj);
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtMemChar32, TurningAroundIsRefusedInAVariableWidthLocaleWithAReadBufferThroughARuntimeCvt)
 {
+#if IOV2_TEST_LINUX_GLIBC
     code_cvt_creator<char, char32_t> creator("zh_CN.UTF-8");
     runtime_cvt obj(creator.create(rb_root_cvt{mem_device("")}));
     expect_turning_around_is_refused_in_a_variable_width_locale(obj);
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtMemChar32, WritingIsRefusedWhileReadingInAVariableWidthLocale)
 {
+#if IOV2_TEST_LINUX_GLIBC
     const std::string info = as_char32_bytes("abcdefgh") + "12345";
     code_cvt_creator<char, char32_t> creator("zh_CN.UTF-8");
     auto obj = creator.create(no_rb_root_cvt{mem_device(info)});
     expect_writing_is_refused_while_reading_variable_width(obj, info);
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtMemChar32, WritingIsRefusedWhileReadingInAVariableWidthLocaleWithAReadBuffer)
 {
+#if IOV2_TEST_LINUX_GLIBC
     const std::string info = as_char32_bytes("abcdefgh") + "12345";
     code_cvt_creator<char, char32_t> creator("zh_CN.UTF-8");
     auto obj = creator.create(rb_root_cvt{mem_device(info)});
     expect_writing_is_refused_while_reading_variable_width(obj, info);
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtMemChar32, WritingIsRefusedWhileReadingInAVariableWidthLocaleThroughARuntimeCvt)
 {
+#if IOV2_TEST_LINUX_GLIBC
     const std::string info = as_char32_bytes("abcdefgh") + "12345";
     code_cvt_creator<char, char32_t> creator("zh_CN.UTF-8");
     runtime_cvt obj(creator.create(no_rb_root_cvt{mem_device(info)}));
     expect_writing_is_refused_while_reading_variable_width(obj, info);
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtMemChar32, WritingIsRefusedWhileReadingInAVariableWidthLocaleWithAReadBufferThroughARuntimeCvt)
 {
+#if IOV2_TEST_LINUX_GLIBC
     const std::string info = as_char32_bytes("abcdefgh") + "12345";
     code_cvt_creator<char, char32_t> creator("zh_CN.UTF-8");
     runtime_cvt obj(creator.create(rb_root_cvt{mem_device(info)}));
     expect_writing_is_refused_while_reading_variable_width(obj, info);
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 // The "C" locale encodes one byte per character, so a code point outside ASCII
 // has no representation at all and wcrtomb refuses it.
 TEST(CodeCvtMemChar32, ACodePointTheLocaleCannotEncodeIsRejected)
 {
+#if IOV2_TEST_LINUX_GLIBC
     {
         RbCvt obj{rb_root_cvt{mem_device("")}, "C"};
         EXPECT_EQ(obj.bos(), io_status::output);
@@ -1176,6 +1459,9 @@ TEST(CodeCvtMemChar32, ACodePointTheLocaleCannotEncodeIsRejected)
         const char32_t ch = U'伟';
         EXPECT_THROW(obj.put(&ch, 1), cvt_error);
     }
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 // A failed encode must leave the device byte-for-byte as it was. put_buf reserves
@@ -1183,6 +1469,7 @@ TEST(CodeCvtMemChar32, ACodePointTheLocaleCannotEncodeIsRejected)
 // mem_device has no staging buffer and commit() is a no-op), so without the
 // put_buf_guard in put_main those reserved-but-never-written bytes stay in the
 // device as filler.
+#if IOV2_TEST_LINUX_GLIBC
 namespace
 {
     template <typename T>
@@ -1194,17 +1481,26 @@ namespace
         EXPECT_TRUE(obj.device().str().empty());
     }
 }
+#endif
 
 TEST(CodeCvtMemChar32, AFailedEncodeLeavesTheDeviceEmptyInTheCLocale)
 {
+#if IOV2_TEST_LINUX_GLIBC
     RbCvt obj{rb_root_cvt{mem_device("")}, "C"};
     expect_a_failed_encode_leaves_the_device_empty(obj, U'李');
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtMemChar32, AFailedEncodeLeavesTheDeviceEmptyInTheCLocaleWithoutAReadBuffer)
 {
+#if IOV2_TEST_LINUX_GLIBC
     NoRbCvt obj{no_rb_root_cvt{mem_device("")}, "C"};
     expect_a_failed_encode_leaves_the_device_empty(obj, U'李');
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 // In a UTF-8 locale epc() is MB_CUR_MAX, and a lone surrogate is rejected by
@@ -1212,19 +1508,28 @@ TEST(CodeCvtMemChar32, AFailedEncodeLeavesTheDeviceEmptyInTheCLocaleWithoutARead
 // this kernel ever takes.
 TEST(CodeCvtMemChar32, AFailedEncodeLeavesTheDeviceEmptyOnTheWidestReservation)
 {
+#if IOV2_TEST_LINUX_GLIBC
     RbCvt obj{rb_root_cvt{mem_device("")}, "zh_CN.UTF-8"};
     expect_a_failed_encode_leaves_the_device_empty(obj, static_cast<char32_t>(0xD800U));
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtMemChar32, AFailedEncodeLeavesTheDeviceEmptyOnTheWidestReservationWithoutAReadBuffer)
 {
+#if IOV2_TEST_LINUX_GLIBC
     NoRbCvt obj{no_rb_root_cvt{mem_device("")}, "zh_CN.UTF-8"};
     expect_a_failed_encode_leaves_the_device_empty(obj, static_cast<char32_t>(0xD800U));
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 // With valid output in front, the device must end exactly at the last valid byte.
 TEST(CodeCvtMemChar32, AFailedEncodeLeavesTheEarlierOutputUntouched)
 {
+#if IOV2_TEST_LINUX_GLIBC
     NoRbCvt obj{no_rb_root_cvt{mem_device("")}, "zh_CN.UTF-8"};
     EXPECT_EQ(obj.bos(), io_status::output);
     obj.main_cont_beg();
@@ -1235,12 +1540,16 @@ TEST(CodeCvtMemChar32, AFailedEncodeLeavesTheEarlierOutputUntouched)
     const char32_t bad = static_cast<char32_t>(0xD800U);
     EXPECT_THROW(obj.put(&bad, 1), cvt_error);
     EXPECT_EQ(obj.device().str(), "ab");
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 // A '\0' byte decodes to U'\0', which mbrtowc reports by returning 0 rather than
 // the byte count -- a path of its own that must still advance by one character.
 TEST(CodeCvtMemChar32, ANullByteDecodesToANullCharacter)
 {
+#if IOV2_TEST_LINUX_GLIBC
     std::string buf;
     buf += 'a';
     buf += '\0';
@@ -1255,10 +1564,14 @@ TEST(CodeCvtMemChar32, ANullByteDecodesToANullCharacter)
     EXPECT_EQ(out[0], U'a');
     EXPECT_EQ(out[1], U'\0');
     EXPECT_EQ(out[2], U'b');
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtMemChar32, ANullByteDecodesToANullCharacterThroughARuntimeCvt)
 {
+#if IOV2_TEST_LINUX_GLIBC
     std::string buf;
     buf += 'a';
     buf += '\0';
@@ -1273,12 +1586,16 @@ TEST(CodeCvtMemChar32, ANullByteDecodesToANullCharacterThroughARuntimeCvt)
     EXPECT_EQ(out[0], U'a');
     EXPECT_EQ(out[1], U'\0');
     EXPECT_EQ(out[2], U'b');
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 // In the "C" locale every byte above 0x7F is invalid, and mbrtowc says so with
 // -1. The converter has to report that rather than substitute anything.
 TEST(CodeCvtMemChar32, AnInvalidExternalByteIsRejected)
 {
+#if IOV2_TEST_LINUX_GLIBC
     for (char bad : {'\xff', '\xfe'})
     {
         std::string bytes(1, bad);
@@ -1289,8 +1606,12 @@ TEST(CodeCvtMemChar32, AnInvalidExternalByteIsRejected)
         char32_t buf[4];
         EXPECT_THROW((void)obj.get(buf, 4), cvt_error);
     }
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
+#if IOV2_TEST_LINUX_GLIBC
 namespace
 {
     struct throw_on_put
@@ -1305,23 +1626,29 @@ namespace
         void dflush() {}
     };
 }
+#endif
 
 // flush() only has something to do while writing; in any other state it returns
 // without touching the kernel.
 TEST(CodeCvtMemChar32, FlushIsANoopWhileNotWriting)
 {
+#if IOV2_TEST_LINUX_GLIBC
     RbCvt obj{rb_root_cvt{mem_device(std::string("hello"))}, "C"};
     EXPECT_NO_THROW(obj.flush()); // before bos(): no direction yet
 
     EXPECT_EQ(obj.bos(), io_status::input);
     obj.main_cont_beg();
     EXPECT_NO_THROW(obj.flush()); // reading: nothing pending to write
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 // A flush that fails leaves the stream in an unknown state, so the converter is
 // tainted and every later operation refuses rather than guesses.
 TEST(CodeCvtMemChar32, AFailedFlushTaintsTheConverter)
 {
+#if IOV2_TEST_LINUX_GLIBC
     code_cvt<rb_root_cvt<throw_on_put>, char32_t> obj{rb_root_cvt{throw_on_put{}}, "C"};
 
     EXPECT_EQ(obj.bos(), io_status::output);
@@ -1333,12 +1660,16 @@ TEST(CodeCvtMemChar32, AFailedFlushTaintsTheConverter)
     obj.device().should_throw = true;
     EXPECT_THROW(obj.flush(), device_error);
     EXPECT_THROW(obj.flush(), cvt_error);
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 // The taint can also be set directly by a derived converter that knows it has
 // lost track of the stream; from then on the object behaves the same way.
 TEST(CodeCvtMemChar32, SetTaintedMakesEveryLaterOperationRefuse)
 {
+#if IOV2_TEST_LINUX_GLIBC
     struct taintable : RbCvt
     {
         using RbCvt::RbCvt;
@@ -1351,6 +1682,9 @@ TEST(CodeCvtMemChar32, SetTaintedMakesEveryLaterOperationRefuse)
 
     obj.expose_set_tainted();
     EXPECT_THROW(obj.flush(), cvt_error);
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 // is_tainted() is the observable a derived converter recovers on: false from
@@ -1358,6 +1692,7 @@ TEST(CodeCvtMemChar32, SetTaintedMakesEveryLaterOperationRefuse)
 // detach() clears it -- exactly the flag the refusals above are made from.
 TEST(CodeCvtMemChar32, IsTaintedFollowsTheFlagAndIsClearedByAttach)
 {
+#if IOV2_TEST_LINUX_GLIBC
     code_cvt<rb_root_cvt<throw_on_put>, char32_t> obj{rb_root_cvt{throw_on_put{}}, "C"};
     EXPECT_FALSE(obj.is_tainted());
 
@@ -1380,10 +1715,14 @@ TEST(CodeCvtMemChar32, IsTaintedFollowsTheFlagAndIsClearedByAttach)
 
     EXPECT_NO_THROW(obj.attach(throw_on_put{}));
     EXPECT_FALSE(obj.is_tainted());
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtMemChar32, IsTaintedIsClearedByDetach)
 {
+#if IOV2_TEST_LINUX_GLIBC
     struct taintable : RbCvt
     {
         using RbCvt::RbCvt;
@@ -1399,12 +1738,16 @@ TEST(CodeCvtMemChar32, IsTaintedIsClearedByDetach)
 
     auto [dev, err] = obj.detach();
     EXPECT_FALSE(obj.is_tainted());
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 // A read error is not a taint: the bytes are still there to be re-read, so the
 // flag stays down and nothing refuses afterwards.
 TEST(CodeCvtMemChar32, AnInvalidSequenceDoesNotTaint)
 {
+#if IOV2_TEST_LINUX_GLIBC
     RbCvt obj{rb_root_cvt{mem_device(std::string("\xb7\x20"))}, "zh_CN.GBK"};
     EXPECT_EQ(obj.bos(), io_status::input);
     obj.main_cont_beg();
@@ -1412,12 +1755,16 @@ TEST(CodeCvtMemChar32, AnInvalidSequenceDoesNotTaint)
     char32_t ch = 0;
     EXPECT_THROW(obj.get(&ch, 1), cvt_error);
     EXPECT_FALSE(obj.is_tainted());
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 // The encode/decode helpers take a range and must reject one that is inverted --
 // a caller error that would otherwise read or write outside the buffer.
 TEST(CodeCvtMemChar32, TheEncodeHelperRejectsAnInvertedRange)
 {
+#if IOV2_TEST_LINUX_GLIBC
     codecvt_kernel<char, char32_t> kernel("C");
 
     const char32_t  in[] = {U'A'};
@@ -1426,12 +1773,16 @@ TEST(CodeCvtMemChar32, TheEncodeHelperRejectsAnInvertedRange)
     char* to     = buf + 2;
     char* to_end = buf;
     EXPECT_THROW((void)kernel.out_helper(from, in + 1, to, to_end), cvt_error);
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 // A buffer with no room left is not an error: the helper stops with nothing
 // consumed, and the caller makes room and comes back.
 TEST(CodeCvtMemChar32, TheEncodeHelperStopsAtAFullBuffer)
 {
+#if IOV2_TEST_LINUX_GLIBC
     codecvt_kernel<char, char32_t> kernel("C");
 
     const char32_t  in[] = {U'A'};
@@ -1444,6 +1795,9 @@ TEST(CodeCvtMemChar32, TheEncodeHelperStopsAtAFullBuffer)
     EXPECT_TRUE(kernel.out_helper(from, in + 1, to, to_end));
     EXPECT_EQ(from, in);
     EXPECT_EQ(to, buf);
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 // wcrtomb(L'\0') returns the unshift bytes followed by a terminating null. In
@@ -1451,15 +1805,20 @@ TEST(CodeCvtMemChar32, TheEncodeHelperStopsAtAFullBuffer)
 // counted and code_cvt::detach() must never append it to the device.
 TEST(CodeCvtMemChar32, TheLocaleKernelExcludesTheTerminatingNullFromUnshift)
 {
+#if IOV2_TEST_LINUX_GLIBC
     codecvt_kernel<char, char32_t> kernel("C");
     char buffer[1] = {'x'};
 
     EXPECT_EQ(kernel.unshift(buffer, sizeof(buffer)), 0u);
     EXPECT_EQ(buffer[0], '\0');
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtMemChar32, TheDecodeHelperRejectsAnInvertedRange)
 {
+#if IOV2_TEST_LINUX_GLIBC
     codecvt_kernel<char, char32_t> kernel("C");
 
     const char  input[]  = "hello";
@@ -1469,6 +1828,9 @@ TEST(CodeCvtMemChar32, TheDecodeHelperRejectsAnInvertedRange)
     char32_t*   to     = out;
     char32_t*   to_end = out + 4;
     EXPECT_THROW(kernel.in_helper(from, from_end, to, to_end), cvt_error);
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 // 0xE6 opens a three-byte UTF-8 sequence, so a stream that ends there leaves the
@@ -1477,6 +1839,7 @@ TEST(CodeCvtMemChar32, TheDecodeHelperRejectsAnInvertedRange)
 // refused.
 TEST(CodeCvtMemChar32, SwitchingToWritingIsRefusedMidCharacter)
 {
+#if IOV2_TEST_LINUX_GLIBC
     std::string partial;
     partial += '\xE6';
 
@@ -1488,6 +1851,9 @@ TEST(CodeCvtMemChar32, SwitchingToWritingIsRefusedMidCharacter)
     EXPECT_THROW(obj.get(buf, 4), cvt_error); // the kernel holds 0xE6; the input ends there
 
     EXPECT_THROW(obj.switch_to_put(), cvt_error);
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 // The characters before a cut-off still come out: the read that produces them
@@ -1495,6 +1861,7 @@ TEST(CodeCvtMemChar32, SwitchingToWritingIsRefusedMidCharacter)
 // A read of one character at a time sees the same.
 TEST(CodeCvtMemChar32, TheCharactersBeforeACutOffStillComeOut)
 {
+#if IOV2_TEST_LINUX_GLIBC
     const std::string text = "ab\xE6";
 
     RbCvt bulk{rb_root_cvt{mem_device(text)}, "zh_CN.UTF-8"};
@@ -1515,12 +1882,16 @@ TEST(CodeCvtMemChar32, TheCharactersBeforeACutOffStillComeOut)
     EXPECT_EQ(single.get(&c, 1), 1u);
     EXPECT_EQ(c, U'b');
     EXPECT_THROW(single.get(&c, 1), cvt_error);
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 // seek(0) goes back to the start and drops the held byte with the rest of the
 // decoder state; the same cut-off is met again on the way through.
 TEST(CodeCvtMemChar32, SeekingToTheStartDropsAHeldByte)
 {
+#if IOV2_TEST_LINUX_GLIBC
     RbCvt obj{rb_root_cvt{mem_device(std::string("ab\xE6"))}, "zh_CN.UTF-8"};
     EXPECT_EQ(obj.bos(), io_status::input);
     obj.main_cont_beg();
@@ -1534,8 +1905,12 @@ TEST(CodeCvtMemChar32, SeekingToTheStartDropsAHeldByte)
     ASSERT_EQ(obj.get(buf, 4), 2u);
     EXPECT_EQ(buf[0], U'a');
     EXPECT_THROW(obj.get(buf, 4), cvt_error);
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
+#if IOV2_TEST_LINUX_GLIBC
 namespace
 {
     // GBK: e8 af (璇) | b7 20 -- b7 opens a two-byte character that 0x20 cannot
@@ -1561,6 +1936,7 @@ namespace
         return got;
     }
 }
+#endif
 
 // C11 7.29.6.3.2 leaves the conversion state unspecified after mbrtowc reports an
 // invalid sequence. The decoder must reset it: with the stale lead byte still
@@ -1569,6 +1945,7 @@ namespace
 // lead byte, and decoding continues in step with the space that exposed it.
 TEST(CodeCvtMemChar32, AnInvalidSequenceDoesNotMisalignWhatFollows)
 {
+#if IOV2_TEST_LINUX_GLIBC
     int errors = 0;
     RbCvt obj{rb_root_cvt{mem_device(kGbkWithABadLead)}, "zh_CN.GBK"};
     EXPECT_EQ(obj.bos(), io_status::input);
@@ -1578,10 +1955,14 @@ TEST(CodeCvtMemChar32, AnInvalidSequenceDoesNotMisalignWhatFollows)
 
     EXPECT_EQ(errors, 1);
     EXPECT_EQ(got, (std::vector<char32_t>{U'璇', U' ', U'谢', U'谢', U'\n'}));
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtMemChar32, AnInvalidSequenceDoesNotMisalignWhatFollowsWithoutAReadBuffer)
 {
+#if IOV2_TEST_LINUX_GLIBC
     int errors = 0;
     NoRbCvt obj{no_rb_root_cvt{mem_device(kGbkWithABadLead)}, "zh_CN.GBK"};
     EXPECT_EQ(obj.bos(), io_status::input);
@@ -1591,12 +1972,16 @@ TEST(CodeCvtMemChar32, AnInvalidSequenceDoesNotMisalignWhatFollowsWithoutAReadBu
 
     EXPECT_EQ(errors, 1);
     EXPECT_EQ(got, (std::vector<char32_t>{U'璇', U' ', U'谢', U'谢', U'\n'}));
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 // The same reset is what lets the converter turn round after an error: with the
 // state back to initial there is no half character to strand.
 TEST(CodeCvtMemChar32, SwitchingToWritingIsAllowedAfterAnInvalidSequence)
 {
+#if IOV2_TEST_LINUX_GLIBC
     RbCvt obj{rb_root_cvt{mem_device(std::string("\xb7\x20"))}, "zh_CN.GBK"};
     EXPECT_EQ(obj.bos(), io_status::input);
     obj.main_cont_beg();
@@ -1607,10 +1992,14 @@ TEST(CodeCvtMemChar32, SwitchingToWritingIsAllowedAfterAnInvalidSequence)
     EXPECT_EQ(ch, U' ');
 
     EXPECT_NO_THROW(obj.switch_to_put());
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtMemChar32, ANullByteDecodesToANullCharacterInAMultibyteLocale)
 {
+#if IOV2_TEST_LINUX_GLIBC
     const std::string text("a\0\xE4\xB8\xAD\0b", 7);
     const std::u32string expected(U"a\0中\0b", 5);
 
@@ -1622,4 +2011,7 @@ TEST(CodeCvtMemChar32, ANullByteDecodesToANullCharacterInAMultibyteLocale)
     EXPECT_EQ(obj.get(got.data(), got.size()), expected.size());
     got.resize(expected.size());
     EXPECT_EQ(got, expected);
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }

@@ -10,6 +10,8 @@
 #include <IOv2/cvt/runtime_cvt.h>
 #include <IOv2/device/mem_device.h>
 
+#include <support/platform_macros.h>
+
 #include <gtest/gtest.h>
 
 #include <algorithm>
@@ -1227,4 +1229,14 @@ TEST(CvtFacilities, NarrowToWideThroughANamedLocale)
 {
     EXPECT_EQ(detail::to_wstring("hello", "C"), L"hello");
     EXPECT_TRUE(detail::to_wstring("", "C").empty());
+}
+
+TEST(CvtFacilities, NarrowToUtf32ThroughANamedLocale)
+{
+#if IOV2_TEST_LINUX_GLIBC
+    EXPECT_EQ(detail::to_u32string("hello", "C"), U"hello");
+    EXPECT_TRUE(detail::to_u32string("", "C").empty());
+#else
+    GTEST_SKIP() << "needs wchar_t_is_utf32 (glibc)";
+#endif
 }

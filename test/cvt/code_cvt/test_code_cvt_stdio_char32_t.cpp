@@ -4,9 +4,8 @@
 /**
  * code_cvt over the standard streams with char32_t inside, which needs
  * wchar_t_is_utf32 (glibc only), and the code_cvt_stdio case that needs a glibc
- * locale name (zh_CN.GBK). The cases that run everywhere are in
- * ../test_code_cvt_stdio_char.cpp, and the one that needs a C stdio that takes bytes
- * back (dunget) is in ../posix/test_code_cvt_stdio_char.cpp.
+ * locale name (zh_CN.GBK). The code_cvt_stdio cases over wchar_t are in
+ * test_code_cvt_stdio_char.cpp.
  */
 #include <IOv2/common/defs.h>
 #include <IOv2/cvt/code_cvt.h>
@@ -18,6 +17,7 @@
 #include <IOv2/device/mem_device.h>
 #include <IOv2/device/std_device.h>
 
+#include <support/platform_macros.h>
 #include <support/stdio_guard.h>
 
 #include <gtest/gtest.h>
@@ -31,10 +31,13 @@
 #include <utility>
 #include <vector>
 
+#if IOV2_TEST_LINUX_GLIBC
 #include <unistd.h>
+#endif
 
 using namespace IOv2;
 
+#if IOV2_TEST_LINUX_GLIBC
 namespace
 {
     using StdinCvt  = code_cvt<rb_root_cvt<std_device<STDIN_FILENO>>, char32_t>;
@@ -191,9 +194,11 @@ namespace
         obj.flush();
     }
 }
+#endif
 
 TEST(CodeCvtStdio, TraitsOverStdin)
 {
+#if IOV2_TEST_LINUX_GLIBC
     using CheckType = code_cvt<rb_root_cvt<std_device<STDIN_FILENO>>, char32_t>;
     static_assert(io_converter<CheckType>);
     static_assert(std::is_same_v<CheckType::device_type, std_device<STDIN_FILENO>>);
@@ -206,10 +211,14 @@ TEST(CodeCvtStdio, TraitsOverStdin)
     static_assert(cvt_cpt::support_get<CheckType>);
     static_assert(!cvt_cpt::support_positioning<CheckType>);
     static_assert(!cvt_cpt::support_io_switch<CheckType>);
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtStdio, TraitsOverStdout)
 {
+#if IOV2_TEST_LINUX_GLIBC
     using CheckType = code_cvt<rb_root_cvt<std_device<STDOUT_FILENO>>, char32_t>;
     static_assert(io_converter<CheckType>);
     static_assert(std::is_same_v<CheckType::device_type, std_device<STDOUT_FILENO>>);
@@ -220,72 +229,108 @@ TEST(CodeCvtStdio, TraitsOverStdout)
     static_assert(!cvt_cpt::support_get<CheckType>);
     static_assert(!cvt_cpt::support_positioning<CheckType>);
     static_assert(!cvt_cpt::support_io_switch<CheckType>);
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtStdio, ChunkedGetSurvivesAMoveBetweenEveryChunk)
 {
+#if IOV2_TEST_LINUX_GLIBC
     iguard    g(external_sample());
     StdinCvt  obj{rb_root_cvt{std_device<STDIN_FILENO>{}}, "zh_CN.UTF-8"};
     expect_chunked_get_reads_the_sample(obj, true);
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtStdio, ChunkedGetSurvivesAMoveBetweenEveryChunkThroughARuntimeCvt)
 {
+#if IOV2_TEST_LINUX_GLIBC
     iguard      g(external_sample());
     runtime_cvt obj{StdinCvt{rb_root_cvt{std_device<STDIN_FILENO>{}}, "zh_CN.UTF-8"}};
     expect_chunked_get_reads_the_sample(obj, true);
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtStdio, ChunkedPutSurvivesAMoveBetweenEveryChunkOnStdout)
 {
+#if IOV2_TEST_LINUX_GLIBC
     oguard<true> g;
     StdoutCvt    obj(rb_root_cvt{std_device<STDOUT_FILENO>{}}, "zh_CN.UTF-8");
     put_sample_in_chunks(obj, true);
     EXPECT_EQ(g.contents(), external_sample());
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtStdio, ChunkedPutSurvivesAMoveBetweenEveryChunkOnStderr)
 {
+#if IOV2_TEST_LINUX_GLIBC
     oguard<false> g;
     StderrCvt     obj(rb_root_cvt{std_device<STDERR_FILENO>{}}, "zh_CN.UTF-8");
     put_sample_in_chunks(obj, true);
     EXPECT_EQ(g.contents(), external_sample());
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtStdio, ChunkedPutSurvivesAMoveBetweenEveryChunkOnStdoutThroughARuntimeCvt)
 {
+#if IOV2_TEST_LINUX_GLIBC
     oguard<true> g;
     runtime_cvt  obj{StdoutCvt{rb_root_cvt{std_device<STDOUT_FILENO>{}}, "zh_CN.UTF-8"}};
     put_sample_in_chunks(obj, true);
     EXPECT_EQ(g.contents(), external_sample());
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtStdio, ChunkedPutSurvivesAMoveBetweenEveryChunkOnStderrThroughARuntimeCvt)
 {
+#if IOV2_TEST_LINUX_GLIBC
     oguard<false> g;
     runtime_cvt   obj{StderrCvt{rb_root_cvt{std_device<STDERR_FILENO>{}}, "zh_CN.UTF-8"}};
     put_sample_in_chunks(obj, true);
     EXPECT_EQ(g.contents(), external_sample());
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 // bos() on a descriptor with something waiting has to report input, and
 // main_cont_beg() has to complete without a position to record.
 TEST(CodeCvtStdio, BosReportsInputOnANonEmptyStdin)
 {
+#if IOV2_TEST_LINUX_GLIBC
     iguard   g("12345");
     StdinCvt obj(rb_root_cvt{std_device<STDIN_FILENO>{}}, "zh_CN.UTF-8");
     EXPECT_EQ(obj.bos(), io_status::input);
     EXPECT_NO_THROW(obj.main_cont_beg());
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtStdio, BosReportsInputOnANonEmptyStdinThroughARuntimeCvt)
 {
+#if IOV2_TEST_LINUX_GLIBC
     iguard      g("12345");
     runtime_cvt obj{StdinCvt{rb_root_cvt{std_device<STDIN_FILENO>{}}, "zh_CN.UTF-8"}};
     EXPECT_EQ(obj.bos(), io_status::input);
     EXPECT_NO_THROW(obj.main_cont_beg());
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
+#if IOV2_TEST_LINUX_GLIBC
 namespace
 {
     // Three characters read before main_cont_beg() are a prologue. A standard
@@ -317,35 +362,53 @@ namespace
         return info;
     }
 }
+#endif
 
 TEST(CodeCvtStdio, AReadPrologueOfAsciiCharacters)
 {
+#if IOV2_TEST_LINUX_GLIBC
     iguard   g(as_char32_bytes("123"));
     StdinCvt obj(rb_root_cvt{std_device<STDIN_FILENO>{}}, "zh_CN.UTF-8");
     expect_a_read_prologue(obj, U'1', U'2', U'3');
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtStdio, AReadPrologueOfAsciiCharactersThroughARuntimeCvt)
 {
+#if IOV2_TEST_LINUX_GLIBC
     iguard      g(as_char32_bytes("123"));
     runtime_cvt obj{StdinCvt{rb_root_cvt{std_device<STDIN_FILENO>{}}, "zh_CN.UTF-8"}};
     expect_a_read_prologue(obj, U'1', U'2', U'3');
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtStdio, AReadPrologueOfMixedWidthCharacters)
 {
+#if IOV2_TEST_LINUX_GLIBC
     iguard   g(li_d_wei_bytes() + as_char32_bytes("cpp"));
     StdinCvt obj(rb_root_cvt{std_device<STDIN_FILENO>{}}, "zh_CN.UTF-8");
     expect_a_read_prologue(obj, U'李', U'd', U'伟');
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtStdio, AReadPrologueOfMixedWidthCharactersThroughARuntimeCvt)
 {
+#if IOV2_TEST_LINUX_GLIBC
     iguard      g(li_d_wei_bytes() + as_char32_bytes("cpp"));
     runtime_cvt obj{StdinCvt{rb_root_cvt{std_device<STDIN_FILENO>{}}, "zh_CN.UTF-8"}};
     expect_a_read_prologue(obj, U'李', U'd', U'伟');
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
+#if IOV2_TEST_LINUX_GLIBC
 namespace
 {
     // An output stream with no prologue must not put anything on the descriptor
@@ -370,182 +433,272 @@ namespace
         EXPECT_EQ(g.contents(), expected);
     }
 }
+#endif
 
 TEST(CodeCvtStdio, AnEmptyWritePrologueEmitsNothingOnStdout)
 {
+#if IOV2_TEST_LINUX_GLIBC
     oguard<true> g;
     StdoutCvt    obj(rb_root_cvt{std_device<STDOUT_FILENO>{}}, "zh_CN.UTF-8");
     expect_an_empty_write_prologue(obj, g);
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtStdio, AnEmptyWritePrologueEmitsNothingOnStderr)
 {
+#if IOV2_TEST_LINUX_GLIBC
     oguard<false> g;
     StderrCvt     obj(rb_root_cvt{std_device<STDERR_FILENO>{}}, "zh_CN.UTF-8");
     expect_an_empty_write_prologue(obj, g);
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtStdio, AnEmptyWritePrologueEmitsNothingOnStdoutThroughARuntimeCvt)
 {
+#if IOV2_TEST_LINUX_GLIBC
     oguard<true> g;
     runtime_cvt  obj{StdoutCvt{rb_root_cvt{std_device<STDOUT_FILENO>{}}, "zh_CN.UTF-8"}};
     expect_an_empty_write_prologue(obj, g);
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtStdio, AnEmptyWritePrologueEmitsNothingOnStderrThroughARuntimeCvt)
 {
+#if IOV2_TEST_LINUX_GLIBC
     oguard<false> g;
     runtime_cvt   obj{StderrCvt{rb_root_cvt{std_device<STDERR_FILENO>{}}, "zh_CN.UTF-8"}};
     expect_an_empty_write_prologue(obj, g);
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtStdio, AWritePrologueOfAsciiCharactersOnStdout)
 {
+#if IOV2_TEST_LINUX_GLIBC
     oguard<true>   g;
     StdoutCvt      obj(rb_root_cvt{std_device<STDOUT_FILENO>{}}, "zh_CN.UTF-8");
     const char32_t text[] = U"123";
     expect_a_write_prologue(obj, g, text, as_char32_bytes("123"));
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtStdio, AWritePrologueOfAsciiCharactersOnStderr)
 {
+#if IOV2_TEST_LINUX_GLIBC
     oguard<false>  g;
     StderrCvt      obj(rb_root_cvt{std_device<STDERR_FILENO>{}}, "zh_CN.UTF-8");
     const char32_t text[] = U"123";
     expect_a_write_prologue(obj, g, text, as_char32_bytes("123"));
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtStdio, AWritePrologueOfAsciiCharactersOnStdoutThroughARuntimeCvt)
 {
+#if IOV2_TEST_LINUX_GLIBC
     oguard<true>   g;
     runtime_cvt    obj{StdoutCvt{rb_root_cvt{std_device<STDOUT_FILENO>{}}, "zh_CN.UTF-8"}};
     const char32_t text[] = U"123";
     expect_a_write_prologue(obj, g, text, as_char32_bytes("123"));
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtStdio, AWritePrologueOfAsciiCharactersOnStderrThroughARuntimeCvt)
 {
+#if IOV2_TEST_LINUX_GLIBC
     oguard<false>  g;
     runtime_cvt    obj{StderrCvt{rb_root_cvt{std_device<STDERR_FILENO>{}}, "zh_CN.UTF-8"}};
     const char32_t text[] = U"123";
     expect_a_write_prologue(obj, g, text, as_char32_bytes("123"));
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtStdio, AWritePrologueOfMixedWidthCharactersOnStdout)
 {
+#if IOV2_TEST_LINUX_GLIBC
     oguard<true>   g;
     StdoutCvt      obj(rb_root_cvt{std_device<STDOUT_FILENO>{}}, "zh_CN.UTF-8");
     const char32_t text[] = U"李d伟";
     expect_a_write_prologue(obj, g, text, li_d_wei_bytes());
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtStdio, AWritePrologueOfMixedWidthCharactersOnStderr)
 {
+#if IOV2_TEST_LINUX_GLIBC
     oguard<false>  g;
     StderrCvt      obj(rb_root_cvt{std_device<STDERR_FILENO>{}}, "zh_CN.UTF-8");
     const char32_t text[] = U"李d伟";
     expect_a_write_prologue(obj, g, text, li_d_wei_bytes());
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtStdio, AWritePrologueOfMixedWidthCharactersOnStdoutThroughARuntimeCvt)
 {
+#if IOV2_TEST_LINUX_GLIBC
     oguard<true>   g;
     runtime_cvt    obj{StdoutCvt{rb_root_cvt{std_device<STDOUT_FILENO>{}}, "zh_CN.UTF-8"}};
     const char32_t text[] = U"李d伟";
     expect_a_write_prologue(obj, g, text, li_d_wei_bytes());
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtStdio, AWritePrologueOfMixedWidthCharactersOnStderrThroughARuntimeCvt)
 {
+#if IOV2_TEST_LINUX_GLIBC
     oguard<false>  g;
     runtime_cvt    obj{StderrCvt{rb_root_cvt{std_device<STDERR_FILENO>{}}, "zh_CN.UTF-8"}};
     const char32_t text[] = U"李d伟";
     expect_a_write_prologue(obj, g, text, li_d_wei_bytes());
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtStdio, ChunkedGetDecodesTheWholeSample)
 {
+#if IOV2_TEST_LINUX_GLIBC
     iguard   g(external_sample());
     StdinCvt obj{rb_root_cvt{std_device<STDIN_FILENO>{}}, "zh_CN.UTF-8"};
     expect_chunked_get_reads_the_sample(obj, false);
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtStdio, ChunkedGetDecodesTheWholeSampleThroughARuntimeCvt)
 {
+#if IOV2_TEST_LINUX_GLIBC
     iguard      g(external_sample());
     runtime_cvt obj{StdinCvt{rb_root_cvt{std_device<STDIN_FILENO>{}}, "zh_CN.UTF-8"}};
     expect_chunked_get_reads_the_sample(obj, false);
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtStdio, ChunkedPutEncodesTheWholeSampleOnStdout)
 {
+#if IOV2_TEST_LINUX_GLIBC
     oguard<true> g;
     StdoutCvt    obj(rb_root_cvt{std_device<STDOUT_FILENO>{}}, "zh_CN.UTF-8");
     put_sample_in_chunks(obj, false);
     EXPECT_EQ(g.contents(), external_sample());
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtStdio, ChunkedPutEncodesTheWholeSampleOnStderr)
 {
+#if IOV2_TEST_LINUX_GLIBC
     oguard<false> g;
     StderrCvt     obj(rb_root_cvt{std_device<STDERR_FILENO>{}}, "zh_CN.UTF-8");
     put_sample_in_chunks(obj, false);
     EXPECT_EQ(g.contents(), external_sample());
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtStdio, ChunkedPutEncodesTheWholeSampleOnStdoutThroughARuntimeCvt)
 {
+#if IOV2_TEST_LINUX_GLIBC
     oguard<true> g;
     runtime_cvt  obj{StdoutCvt{rb_root_cvt{std_device<STDOUT_FILENO>{}}, "zh_CN.UTF-8"}};
     put_sample_in_chunks(obj, false);
     EXPECT_EQ(g.contents(), external_sample());
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtStdio, ChunkedPutEncodesTheWholeSampleOnStderrThroughARuntimeCvt)
 {
+#if IOV2_TEST_LINUX_GLIBC
     oguard<false> g;
     runtime_cvt   obj{StderrCvt{rb_root_cvt{std_device<STDERR_FILENO>{}}, "zh_CN.UTF-8"}};
     put_sample_in_chunks(obj, false);
     EXPECT_EQ(g.contents(), external_sample());
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 // One put() of everything must produce the same bytes as the chunked one.
 TEST(CodeCvtStdio, AWholePutEncodesTheSameBytesOnStdout)
 {
+#if IOV2_TEST_LINUX_GLIBC
     oguard<true> g;
     StdoutCvt    obj(rb_root_cvt{std_device<STDOUT_FILENO>{}}, "zh_CN.UTF-8");
     put_sample_whole(obj);
     EXPECT_EQ(g.contents(), external_sample());
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtStdio, AWholePutEncodesTheSameBytesOnStderr)
 {
+#if IOV2_TEST_LINUX_GLIBC
     oguard<false> g;
     StderrCvt     obj(rb_root_cvt{std_device<STDERR_FILENO>{}}, "zh_CN.UTF-8");
     put_sample_whole(obj);
     EXPECT_EQ(g.contents(), external_sample());
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtStdio, AWholePutEncodesTheSameBytesOnStdoutThroughARuntimeCvt)
 {
+#if IOV2_TEST_LINUX_GLIBC
     oguard<true> g;
     runtime_cvt  obj{StdoutCvt{rb_root_cvt{std_device<STDOUT_FILENO>{}}, "zh_CN.UTF-8"}};
     put_sample_whole(obj);
     EXPECT_EQ(g.contents(), external_sample());
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CodeCvtStdio, AWholePutEncodesTheSameBytesOnStderrThroughARuntimeCvt)
 {
+#if IOV2_TEST_LINUX_GLIBC
     oguard<false> g;
     runtime_cvt   obj{StderrCvt{rb_root_cvt{std_device<STDERR_FILENO>{}}, "zh_CN.UTF-8"}};
     put_sample_whole(obj);
     EXPECT_EQ(g.contents(), external_sample());
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 // Trying another encoding is the natural reaction to an encoding failure; it must
 // work right after one, and switch for real.
 TEST(CodeCvtStdio, ASwitchRecoversFromATaintAndSwitches)
 {
+#if IOV2_TEST_LINUX_GLIBC
     oguard<true> g;
     StdioOut     obj{rb_root_cvt{std_device<STDOUT_FILENO>{}}, "zh_CN.UTF-8"};
     EXPECT_EQ(obj.bos(), io_status::output);
@@ -566,4 +719,7 @@ TEST(CodeCvtStdio, ASwitchRecoversFromATaintAndSwitches)
     obj.put(zhong, 1);
     obj.flush();
     EXPECT_EQ(g.contents(), "\xd6\xd0"); // 中 in GBK: the new encoding is in effect
+#else
+    GTEST_SKIP() << "needs glibc's zh_CN.GBK locale";
+#endif
 }

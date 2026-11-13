@@ -11,6 +11,7 @@
 #include <IOv2/cvt/root_cvt.h>
 
 #include <support/partial_write_device.h>
+#include <support/platform_macros.h>
 
 #include <gtest/gtest.h>
 
@@ -23,6 +24,7 @@ using namespace IOv2;
 // after the failure sends the rest.
 TEST(RootCvtPartialWrite, ALayerAboveLosesNothingTheRootAccepted)
 {
+#if IOV2_TEST_LINUX_GLIBC
     g_out.clear();
     g_accept.reset();
     g_plain = false;
@@ -42,4 +44,7 @@ TEST(RootCvtPartialWrite, ALayerAboveLosesNothingTheRootAccepted)
     auto [dev, err] = obj.detach();
     EXPECT_FALSE(err);
     EXPECT_EQ(g_out, std::string(kLen - 1, 'a')) << "the failed put's character was not accepted";
+#else
+    GTEST_SKIP() << "code_cvt into char32_t needs wchar_t_is_utf32 (glibc)";
+#endif
 }
