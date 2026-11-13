@@ -91,7 +91,7 @@ TEST(CodeCvtStdio, TheEncodingCanBeSwitchedAfterAHalfCharacter)
 // The standard streams cannot be given another device, so code_cvt_stdio recovers
 // from a taint by itself: the next put/get/flush/adjust reattaches the same fd and
 // carries on. A character no encoding holds is the everyday way to get tainted --
-// wcout << L'\xD800' -- and the caller's next insertion after clear() must work.
+// wcout << L'\xDC00' -- and the caller's next insertion after clear() must work.
 TEST(CodeCvtStdio, PutRecoversFromATaintOnItsOwn)
 {
     oguard<true> g;
@@ -100,7 +100,9 @@ TEST(CodeCvtStdio, PutRecoversFromATaintOnItsOwn)
     obj.main_cont_beg();
 
     const wchar_t a[] = {L'a'};
-    const wchar_t lone_surrogate[] = {L'\xD800'};
+    // A low one: a put that ends in a high surrogate waits for the low one (Windows,
+    // UTF-8) instead of failing at once.
+    const wchar_t lone_surrogate[] = {L'\xDC00'};
     const wchar_t b[] = {L'b'};
 
     obj.put(a, 1);
@@ -120,7 +122,8 @@ TEST(CodeCvtStdio, FlushRecoversFromATaintOnItsOwn)
     EXPECT_EQ(obj.bos(), io_status::output);
     obj.main_cont_beg();
 
-    const wchar_t lone_surrogate[] = {L'\xD800'};
+    // Low, as in PutRecoversFromATaintOnItsOwn.
+    const wchar_t lone_surrogate[] = {L'\xDC00'};
     EXPECT_THROW(obj.put(lone_surrogate, 1), cvt_error);
     EXPECT_TRUE(obj.is_tainted());
 
