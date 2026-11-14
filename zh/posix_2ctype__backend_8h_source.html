@@ -1,0 +1,214 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=11"/>
+<meta name="generator" content="Doxygen 1.15.0"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>IOv2: include/IOv2/facet/platform/posix/ctype_backend.h 源文件</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<script type="text/javascript" src="clipboard.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<script type="text/javascript" src="cookie.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr id="projectrow">
+  <td id="projectalign">
+   <div id="projectname">IOv2
+   </div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 制作者 Doxygen 1.15.0 -->
+<script type="text/javascript">
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+</script>
+<script type="text/javascript">
+$(function() { codefold.init(); });
+</script>
+<script type="text/javascript" src="menudata.js"></script>
+<script type="text/javascript" src="menu.js"></script>
+<script type="text/javascript">
+$(function() {
+  initMenu('',true,false,'search.php','搜索',true);
+  $(function() { init_search(); });
+});
+</script>
+<div id="main-nav"></div>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+$(function(){initNavTree('posix_2ctype__backend_8h_source.html','',''); });
+</script>
+<div id="container">
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">载入中...</div>
+<div class="SRStatus" id="Searching">搜索中...</div>
+<div class="SRStatus" id="NoMatches">未找到</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="header">
+  <div class="headertitle"><div class="title">ctype_backend.h</div></div>
+</div><!--header-->
+<div class="contents">
+<a href="posix_2ctype__backend_8h.html">浏览该文件的文档.</a><div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span><span class="comment">// SPDX-FileCopyrightText: 2026 liwei &lt;liwei.cpp@gmail.com&gt;</span></div>
+<div class="line"><a id="l00002" name="l00002"></a><span class="lineno">    2</span><span class="comment">// SPDX-License-Identifier: MIT</span></div>
+<div class="line"><a id="l00003" name="l00003"></a><span class="lineno">    3</span></div>
+<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span> </div>
+<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span><span class="preprocessor">#pragma once</span></div>
+<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span> </div>
+<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span><span class="preprocessor">#include &lt;<a class="code" href="clocale__backend_8h.html">IOv2/common/platform/clocale_backend.h</a>&gt;</span></div>
+<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span> </div>
+<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span><span class="preprocessor">#include &lt;cctype&gt;</span></div>
+<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span><span class="preprocessor">#include &lt;cstdlib&gt;</span></div>
+<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span><span class="preprocessor">#include &lt;cwctype&gt;</span></div>
+<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span> </div>
+<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span><span class="preprocessor">#if defined(__APPLE__)</span></div>
+<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span><span class="preprocessor">#include &lt;xlocale.h&gt;</span></div>
+<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span><span class="preprocessor">#include &lt;xlocale/_ctype.h&gt;</span></div>
+<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span><span class="preprocessor">#include &lt;xlocale/_stdlib.h&gt;</span></div>
+<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span><span class="preprocessor">#include &lt;xlocale/_wctype.h&gt;</span></div>
+<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span><span class="preprocessor">#endif</span></div>
+<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span> </div>
+<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span><span class="keyword">namespace </span><a class="code hl_namespace" href="namespaceIOv2_1_1detail.html">IOv2::detail</a></div>
+<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span>{</div>
+<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span><span class="preprocessor">#if defined(__APPLE__)</span></div>
+<div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span><span class="keyword">inline</span> <span class="keywordtype">bool</span> <a class="code hl_function" href="namespaceIOv2_1_1detail.html#af9741a6335921f310f1312f7ab1bc35d">ctype_byte_is_char</a>(<span class="keywordtype">int</span> c, <a class="code hl_typedef" href="namespaceIOv2_1_1detail.html#accf1621f5d7c3a421034c1ff0569d1db">clocale_handle</a> loc) <span class="keyword">noexcept</span></div>
+<div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span>{</div>
+<div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span>    <span class="keywordflow">return</span> c &lt; 0x80 || MB_CUR_MAX_L(loc) == 1;</div>
+<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span>}</div>
+<div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span><span class="preprocessor">#else</span></div>
+<div class="foldopen" id="foldopen00061" data-start="{" data-end="}">
+<div class="line"><a id="l00061" name="l00061"></a><span class="lineno"><a class="line" href="namespaceIOv2_1_1detail.html#af9741a6335921f310f1312f7ab1bc35d">   61</a></span><span class="keyword">constexpr</span> <span class="keywordtype">bool</span> <a class="code hl_function" href="namespaceIOv2_1_1detail.html#af9741a6335921f310f1312f7ab1bc35d">ctype_byte_is_char</a>(<span class="keywordtype">int</span> <span class="comment">/*c*/</span>, <a class="code hl_typedef" href="namespaceIOv2_1_1detail.html#accf1621f5d7c3a421034c1ff0569d1db">clocale_handle</a> <span class="comment">/*loc*/</span>) <span class="keyword">noexcept</span></div>
+<div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span>{</div>
+<div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span>    <span class="keywordflow">return</span> <span class="keyword">true</span>;</div>
+<div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span>}</div>
+</div>
+<div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span><span class="preprocessor">#endif</span></div>
+<div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span> </div>
+<div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span><span class="comment">// Byte classification in loc; c is an unsigned char value.</span></div>
+<div class="line"><a id="l00068" name="l00068"></a><span class="lineno"><a class="line" href="namespaceIOv2_1_1detail.html#a8cb5535cf3be5892a8a01b9ced338cb3">   68</a></span><span class="keyword">inline</span> <span class="keywordtype">bool</span> <a class="code hl_function" href="namespaceIOv2_1_1detail.html#a8cb5535cf3be5892a8a01b9ced338cb3">ctype_isupper</a>(<span class="keywordtype">int</span> c, <a class="code hl_typedef" href="namespaceIOv2_1_1detail.html#accf1621f5d7c3a421034c1ff0569d1db">clocale_handle</a> loc) <span class="keyword">noexcept</span>  { <span class="keywordflow">return</span> <a class="code hl_function" href="namespaceIOv2_1_1detail.html#af9741a6335921f310f1312f7ab1bc35d">ctype_byte_is_char</a>(c, loc) &amp;&amp; isupper_l(c, loc) != 0; }</div>
+<div class="line"><a id="l00069" name="l00069"></a><span class="lineno"><a class="line" href="namespaceIOv2_1_1detail.html#a07d184aebe4b1fbf8c0801d38f1f6134">   69</a></span><span class="keyword">inline</span> <span class="keywordtype">bool</span> <a class="code hl_function" href="namespaceIOv2_1_1detail.html#a07d184aebe4b1fbf8c0801d38f1f6134">ctype_islower</a>(<span class="keywordtype">int</span> c, <a class="code hl_typedef" href="namespaceIOv2_1_1detail.html#accf1621f5d7c3a421034c1ff0569d1db">clocale_handle</a> loc) <span class="keyword">noexcept</span>  { <span class="keywordflow">return</span> <a class="code hl_function" href="namespaceIOv2_1_1detail.html#af9741a6335921f310f1312f7ab1bc35d">ctype_byte_is_char</a>(c, loc) &amp;&amp; islower_l(c, loc) != 0; }</div>
+<div class="line"><a id="l00070" name="l00070"></a><span class="lineno"><a class="line" href="namespaceIOv2_1_1detail.html#a1a0bbe351e8e5b04b1d1664f1aa90df4">   70</a></span><span class="keyword">inline</span> <span class="keywordtype">bool</span> <a class="code hl_function" href="namespaceIOv2_1_1detail.html#a1a0bbe351e8e5b04b1d1664f1aa90df4">ctype_isalpha</a>(<span class="keywordtype">int</span> c, <a class="code hl_typedef" href="namespaceIOv2_1_1detail.html#accf1621f5d7c3a421034c1ff0569d1db">clocale_handle</a> loc) <span class="keyword">noexcept</span>  { <span class="keywordflow">return</span> <a class="code hl_function" href="namespaceIOv2_1_1detail.html#af9741a6335921f310f1312f7ab1bc35d">ctype_byte_is_char</a>(c, loc) &amp;&amp; isalpha_l(c, loc) != 0; }</div>
+<div class="line"><a id="l00071" name="l00071"></a><span class="lineno"><a class="line" href="namespaceIOv2_1_1detail.html#afce222292de61c06e64712d794c1a3c8">   71</a></span><span class="keyword">inline</span> <span class="keywordtype">bool</span> <a class="code hl_function" href="namespaceIOv2_1_1detail.html#afce222292de61c06e64712d794c1a3c8">ctype_isdigit</a>(<span class="keywordtype">int</span> c, <a class="code hl_typedef" href="namespaceIOv2_1_1detail.html#accf1621f5d7c3a421034c1ff0569d1db">clocale_handle</a> loc) <span class="keyword">noexcept</span>  { <span class="keywordflow">return</span> <a class="code hl_function" href="namespaceIOv2_1_1detail.html#af9741a6335921f310f1312f7ab1bc35d">ctype_byte_is_char</a>(c, loc) &amp;&amp; isdigit_l(c, loc) != 0; }</div>
+<div class="line"><a id="l00072" name="l00072"></a><span class="lineno"><a class="line" href="namespaceIOv2_1_1detail.html#a269acc6d3649ef9171807b0b320f08cf">   72</a></span><span class="keyword">inline</span> <span class="keywordtype">bool</span> <a class="code hl_function" href="namespaceIOv2_1_1detail.html#a269acc6d3649ef9171807b0b320f08cf">ctype_isxdigit</a>(<span class="keywordtype">int</span> c, <a class="code hl_typedef" href="namespaceIOv2_1_1detail.html#accf1621f5d7c3a421034c1ff0569d1db">clocale_handle</a> loc) <span class="keyword">noexcept</span> { <span class="keywordflow">return</span> <a class="code hl_function" href="namespaceIOv2_1_1detail.html#af9741a6335921f310f1312f7ab1bc35d">ctype_byte_is_char</a>(c, loc) &amp;&amp; isxdigit_l(c, loc) != 0; }</div>
+<div class="line"><a id="l00073" name="l00073"></a><span class="lineno"><a class="line" href="namespaceIOv2_1_1detail.html#a5b76cc4110d5466a4bead4ea5999cf3f">   73</a></span><span class="keyword">inline</span> <span class="keywordtype">bool</span> <a class="code hl_function" href="namespaceIOv2_1_1detail.html#a5b76cc4110d5466a4bead4ea5999cf3f">ctype_isspace</a>(<span class="keywordtype">int</span> c, <a class="code hl_typedef" href="namespaceIOv2_1_1detail.html#accf1621f5d7c3a421034c1ff0569d1db">clocale_handle</a> loc) <span class="keyword">noexcept</span>  { <span class="keywordflow">return</span> <a class="code hl_function" href="namespaceIOv2_1_1detail.html#af9741a6335921f310f1312f7ab1bc35d">ctype_byte_is_char</a>(c, loc) &amp;&amp; isspace_l(c, loc) != 0; }</div>
+<div class="line"><a id="l00074" name="l00074"></a><span class="lineno"><a class="line" href="namespaceIOv2_1_1detail.html#a28216b8258715d7131ab1003b0b673e6">   74</a></span><span class="keyword">inline</span> <span class="keywordtype">bool</span> <a class="code hl_function" href="namespaceIOv2_1_1detail.html#a28216b8258715d7131ab1003b0b673e6">ctype_isprint</a>(<span class="keywordtype">int</span> c, <a class="code hl_typedef" href="namespaceIOv2_1_1detail.html#accf1621f5d7c3a421034c1ff0569d1db">clocale_handle</a> loc) <span class="keyword">noexcept</span>  { <span class="keywordflow">return</span> <a class="code hl_function" href="namespaceIOv2_1_1detail.html#af9741a6335921f310f1312f7ab1bc35d">ctype_byte_is_char</a>(c, loc) &amp;&amp; isprint_l(c, loc) != 0; }</div>
+<div class="line"><a id="l00075" name="l00075"></a><span class="lineno"><a class="line" href="namespaceIOv2_1_1detail.html#a58098dae03b49b3cb1d4f260b72e982f">   75</a></span><span class="keyword">inline</span> <span class="keywordtype">bool</span> <a class="code hl_function" href="namespaceIOv2_1_1detail.html#a58098dae03b49b3cb1d4f260b72e982f">ctype_iscntrl</a>(<span class="keywordtype">int</span> c, <a class="code hl_typedef" href="namespaceIOv2_1_1detail.html#accf1621f5d7c3a421034c1ff0569d1db">clocale_handle</a> loc) <span class="keyword">noexcept</span>  { <span class="keywordflow">return</span> <a class="code hl_function" href="namespaceIOv2_1_1detail.html#af9741a6335921f310f1312f7ab1bc35d">ctype_byte_is_char</a>(c, loc) &amp;&amp; iscntrl_l(c, loc) != 0; }</div>
+<div class="line"><a id="l00076" name="l00076"></a><span class="lineno"><a class="line" href="namespaceIOv2_1_1detail.html#a0de3ea950ff7ac0c6a8bc46cf5670649">   76</a></span><span class="keyword">inline</span> <span class="keywordtype">bool</span> <a class="code hl_function" href="namespaceIOv2_1_1detail.html#a0de3ea950ff7ac0c6a8bc46cf5670649">ctype_ispunct</a>(<span class="keywordtype">int</span> c, <a class="code hl_typedef" href="namespaceIOv2_1_1detail.html#accf1621f5d7c3a421034c1ff0569d1db">clocale_handle</a> loc) <span class="keyword">noexcept</span>  { <span class="keywordflow">return</span> <a class="code hl_function" href="namespaceIOv2_1_1detail.html#af9741a6335921f310f1312f7ab1bc35d">ctype_byte_is_char</a>(c, loc) &amp;&amp; ispunct_l(c, loc) != 0; }</div>
+<div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span> </div>
+<div class="line"><a id="l00078" name="l00078"></a><span class="lineno">   78</span><span class="comment">// Byte case mapping in loc. macOS maps a byte as a code point too and can answer with</span></div>
+<div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span><span class="comment">// one above 0xFF (0xFF -&gt; U+0178), which is no byte; c is then kept.</span></div>
+<div class="foldopen" id="foldopen00080" data-start="{" data-end="}">
+<div class="line"><a id="l00080" name="l00080"></a><span class="lineno"><a class="line" href="namespaceIOv2_1_1detail.html#abee22b6691e48c9672fb088ab4ec6269">   80</a></span><span class="keyword">inline</span> <span class="keywordtype">int</span> <a class="code hl_function" href="namespaceIOv2_1_1detail.html#abee22b6691e48c9672fb088ab4ec6269">ctype_toupper</a>(<span class="keywordtype">int</span> c, <a class="code hl_typedef" href="namespaceIOv2_1_1detail.html#accf1621f5d7c3a421034c1ff0569d1db">clocale_handle</a> loc) <span class="keyword">noexcept</span></div>
+<div class="line"><a id="l00081" name="l00081"></a><span class="lineno">   81</span>{</div>
+<div class="line"><a id="l00082" name="l00082"></a><span class="lineno">   82</span>    <span class="keywordflow">if</span> (!<a class="code hl_function" href="namespaceIOv2_1_1detail.html#af9741a6335921f310f1312f7ab1bc35d">ctype_byte_is_char</a>(c, loc)) <span class="keywordflow">return</span> c;</div>
+<div class="line"><a id="l00083" name="l00083"></a><span class="lineno">   83</span>    <span class="keyword">const</span> <span class="keywordtype">int</span> res = toupper_l(c, loc);</div>
+<div class="line"><a id="l00084" name="l00084"></a><span class="lineno">   84</span>    <span class="keywordflow">return</span> (res &gt;= 0 &amp;&amp; res &lt;= 0xFF) ? res : c;</div>
+<div class="line"><a id="l00085" name="l00085"></a><span class="lineno">   85</span>}</div>
+</div>
+<div class="line"><a id="l00086" name="l00086"></a><span class="lineno">   86</span> </div>
+<div class="foldopen" id="foldopen00087" data-start="{" data-end="}">
+<div class="line"><a id="l00087" name="l00087"></a><span class="lineno"><a class="line" href="namespaceIOv2_1_1detail.html#a90b71528bddc458a9cfdf908f8d882dc">   87</a></span><span class="keyword">inline</span> <span class="keywordtype">int</span> <a class="code hl_function" href="namespaceIOv2_1_1detail.html#a90b71528bddc458a9cfdf908f8d882dc">ctype_tolower</a>(<span class="keywordtype">int</span> c, <a class="code hl_typedef" href="namespaceIOv2_1_1detail.html#accf1621f5d7c3a421034c1ff0569d1db">clocale_handle</a> loc) <span class="keyword">noexcept</span></div>
+<div class="line"><a id="l00088" name="l00088"></a><span class="lineno">   88</span>{</div>
+<div class="line"><a id="l00089" name="l00089"></a><span class="lineno">   89</span>    <span class="keywordflow">if</span> (!<a class="code hl_function" href="namespaceIOv2_1_1detail.html#af9741a6335921f310f1312f7ab1bc35d">ctype_byte_is_char</a>(c, loc)) <span class="keywordflow">return</span> c;</div>
+<div class="line"><a id="l00090" name="l00090"></a><span class="lineno">   90</span>    <span class="keyword">const</span> <span class="keywordtype">int</span> res = tolower_l(c, loc);</div>
+<div class="line"><a id="l00091" name="l00091"></a><span class="lineno">   91</span>    <span class="keywordflow">return</span> (res &gt;= 0 &amp;&amp; res &lt;= 0xFF) ? res : c;</div>
+<div class="line"><a id="l00092" name="l00092"></a><span class="lineno">   92</span>}</div>
+</div>
+<div class="line"><a id="l00093" name="l00093"></a><span class="lineno">   93</span> </div>
+<div class="line"><a id="l00094" name="l00094"></a><span class="lineno">   94</span><span class="comment">// What ctype_wctype returns: a wctype_t, valid only together with the locale it came from.</span></div>
+<div class="line"><a id="l00095" name="l00095"></a><span class="lineno"><a class="line" href="namespaceIOv2_1_1detail.html#a797229663c6d63cafa7a0dea9ec1872a">   95</a></span><span class="keyword">using </span><a class="code hl_typedef" href="namespaceIOv2_1_1detail.html#a797229663c6d63cafa7a0dea9ec1872a">ctype_wclass</a> = wctype_t;</div>
+<div class="line"><a id="l00096" name="l00096"></a><span class="lineno">   96</span> </div>
+<div class="line"><a id="l00097" name="l00097"></a><span class="lineno">   97</span><span class="comment">// The class named name (&quot;upper&quot;, &quot;alpha&quot;, ...) in loc; 0 if loc has no such class.</span></div>
+<div class="foldopen" id="foldopen00098" data-start="{" data-end="}">
+<div class="line"><a id="l00098" name="l00098"></a><span class="lineno"><a class="line" href="namespaceIOv2_1_1detail.html#af5b1f3fbc997082b7838daf425b21f71">   98</a></span><span class="keyword">inline</span> <a class="code hl_typedef" href="namespaceIOv2_1_1detail.html#a797229663c6d63cafa7a0dea9ec1872a">ctype_wclass</a> <a class="code hl_function" href="namespaceIOv2_1_1detail.html#af5b1f3fbc997082b7838daf425b21f71">ctype_wctype</a>(<span class="keyword">const</span> <span class="keywordtype">char</span>* name, <a class="code hl_typedef" href="namespaceIOv2_1_1detail.html#accf1621f5d7c3a421034c1ff0569d1db">clocale_handle</a> loc) <span class="keyword">noexcept</span></div>
+<div class="line"><a id="l00099" name="l00099"></a><span class="lineno">   99</span>{</div>
+<div class="line"><a id="l00100" name="l00100"></a><span class="lineno">  100</span>    <span class="keywordflow">return</span> wctype_l(name, loc);</div>
+<div class="line"><a id="l00101" name="l00101"></a><span class="lineno">  101</span>}</div>
+</div>
+<div class="line"><a id="l00102" name="l00102"></a><span class="lineno">  102</span> </div>
+<div class="line"><a id="l00103" name="l00103"></a><span class="lineno">  103</span><span class="comment">// Whether c belongs to cls, which ctype_wctype obtained from loc.</span></div>
+<div class="foldopen" id="foldopen00104" data-start="{" data-end="}">
+<div class="line"><a id="l00104" name="l00104"></a><span class="lineno"><a class="line" href="namespaceIOv2_1_1detail.html#a325eb69bb2c53b98c94bddc2c09ad824">  104</a></span><span class="keyword">inline</span> <span class="keywordtype">bool</span> <a class="code hl_function" href="namespaceIOv2_1_1detail.html#a325eb69bb2c53b98c94bddc2c09ad824">ctype_iswctype</a>(wint_t c, <a class="code hl_typedef" href="namespaceIOv2_1_1detail.html#a797229663c6d63cafa7a0dea9ec1872a">ctype_wclass</a> cls, <a class="code hl_typedef" href="namespaceIOv2_1_1detail.html#accf1621f5d7c3a421034c1ff0569d1db">clocale_handle</a> loc) <span class="keyword">noexcept</span></div>
+<div class="line"><a id="l00105" name="l00105"></a><span class="lineno">  105</span>{</div>
+<div class="line"><a id="l00106" name="l00106"></a><span class="lineno">  106</span>    <span class="keywordflow">return</span> iswctype_l(c, cls, loc) != 0;</div>
+<div class="line"><a id="l00107" name="l00107"></a><span class="lineno">  107</span>}</div>
+</div>
+<div class="line"><a id="l00108" name="l00108"></a><span class="lineno">  108</span> </div>
+<div class="line"><a id="l00109" name="l00109"></a><span class="lineno">  109</span><span class="comment">// Wide case mapping in loc.</span></div>
+<div class="line"><a id="l00110" name="l00110"></a><span class="lineno"><a class="line" href="namespaceIOv2_1_1detail.html#a58537d9290620912db6c30838d73bb65">  110</a></span><span class="keyword">inline</span> wint_t <a class="code hl_function" href="namespaceIOv2_1_1detail.html#a58537d9290620912db6c30838d73bb65">ctype_towupper</a>(wint_t c, <a class="code hl_typedef" href="namespaceIOv2_1_1detail.html#accf1621f5d7c3a421034c1ff0569d1db">clocale_handle</a> loc) <span class="keyword">noexcept</span> { <span class="keywordflow">return</span> towupper_l(c, loc); }</div>
+<div class="line"><a id="l00111" name="l00111"></a><span class="lineno"><a class="line" href="namespaceIOv2_1_1detail.html#a416fdf45f966e9358af265e47861062d">  111</a></span><span class="keyword">inline</span> wint_t <a class="code hl_function" href="namespaceIOv2_1_1detail.html#a416fdf45f966e9358af265e47861062d">ctype_towlower</a>(wint_t c, <a class="code hl_typedef" href="namespaceIOv2_1_1detail.html#accf1621f5d7c3a421034c1ff0569d1db">clocale_handle</a> loc) <span class="keyword">noexcept</span> { <span class="keywordflow">return</span> towlower_l(c, loc); }</div>
+<div class="line"><a id="l00112" name="l00112"></a><span class="lineno">  112</span>}</div>
+<div class="ttc" id="aclocale__backend_8h_html"><div class="ttname"><a href="clocale__backend_8h.html">clocale_backend.h</a></div></div>
+<div class="ttc" id="anamespaceIOv2_1_1detail_html"><div class="ttname"><a href="namespaceIOv2_1_1detail.html">IOv2::detail</a></div><div class="ttdef"><b>定义</b> copyable_mutex.h:28</div></div>
+<div class="ttc" id="anamespaceIOv2_1_1detail_html_a07d184aebe4b1fbf8c0801d38f1f6134"><div class="ttname"><a href="namespaceIOv2_1_1detail.html#a07d184aebe4b1fbf8c0801d38f1f6134">IOv2::detail::ctype_islower</a></div><div class="ttdeci">bool ctype_islower(int c, clocale_handle loc) noexcept</div><div class="ttdef"><b>定义</b> ctype_backend.h:69</div></div>
+<div class="ttc" id="anamespaceIOv2_1_1detail_html_a0de3ea950ff7ac0c6a8bc46cf5670649"><div class="ttname"><a href="namespaceIOv2_1_1detail.html#a0de3ea950ff7ac0c6a8bc46cf5670649">IOv2::detail::ctype_ispunct</a></div><div class="ttdeci">bool ctype_ispunct(int c, clocale_handle loc) noexcept</div><div class="ttdef"><b>定义</b> ctype_backend.h:76</div></div>
+<div class="ttc" id="anamespaceIOv2_1_1detail_html_a1a0bbe351e8e5b04b1d1664f1aa90df4"><div class="ttname"><a href="namespaceIOv2_1_1detail.html#a1a0bbe351e8e5b04b1d1664f1aa90df4">IOv2::detail::ctype_isalpha</a></div><div class="ttdeci">bool ctype_isalpha(int c, clocale_handle loc) noexcept</div><div class="ttdef"><b>定义</b> ctype_backend.h:70</div></div>
+<div class="ttc" id="anamespaceIOv2_1_1detail_html_a269acc6d3649ef9171807b0b320f08cf"><div class="ttname"><a href="namespaceIOv2_1_1detail.html#a269acc6d3649ef9171807b0b320f08cf">IOv2::detail::ctype_isxdigit</a></div><div class="ttdeci">bool ctype_isxdigit(int c, clocale_handle loc) noexcept</div><div class="ttdef"><b>定义</b> ctype_backend.h:72</div></div>
+<div class="ttc" id="anamespaceIOv2_1_1detail_html_a28216b8258715d7131ab1003b0b673e6"><div class="ttname"><a href="namespaceIOv2_1_1detail.html#a28216b8258715d7131ab1003b0b673e6">IOv2::detail::ctype_isprint</a></div><div class="ttdeci">bool ctype_isprint(int c, clocale_handle loc) noexcept</div><div class="ttdef"><b>定义</b> ctype_backend.h:74</div></div>
+<div class="ttc" id="anamespaceIOv2_1_1detail_html_a325eb69bb2c53b98c94bddc2c09ad824"><div class="ttname"><a href="namespaceIOv2_1_1detail.html#a325eb69bb2c53b98c94bddc2c09ad824">IOv2::detail::ctype_iswctype</a></div><div class="ttdeci">bool ctype_iswctype(wint_t c, ctype_wclass cls, clocale_handle loc) noexcept</div><div class="ttdef"><b>定义</b> ctype_backend.h:104</div></div>
+<div class="ttc" id="anamespaceIOv2_1_1detail_html_a416fdf45f966e9358af265e47861062d"><div class="ttname"><a href="namespaceIOv2_1_1detail.html#a416fdf45f966e9358af265e47861062d">IOv2::detail::ctype_towlower</a></div><div class="ttdeci">wint_t ctype_towlower(wint_t c, clocale_handle loc) noexcept</div><div class="ttdef"><b>定义</b> ctype_backend.h:111</div></div>
+<div class="ttc" id="anamespaceIOv2_1_1detail_html_a58098dae03b49b3cb1d4f260b72e982f"><div class="ttname"><a href="namespaceIOv2_1_1detail.html#a58098dae03b49b3cb1d4f260b72e982f">IOv2::detail::ctype_iscntrl</a></div><div class="ttdeci">bool ctype_iscntrl(int c, clocale_handle loc) noexcept</div><div class="ttdef"><b>定义</b> ctype_backend.h:75</div></div>
+<div class="ttc" id="anamespaceIOv2_1_1detail_html_a58537d9290620912db6c30838d73bb65"><div class="ttname"><a href="namespaceIOv2_1_1detail.html#a58537d9290620912db6c30838d73bb65">IOv2::detail::ctype_towupper</a></div><div class="ttdeci">wint_t ctype_towupper(wint_t c, clocale_handle loc) noexcept</div><div class="ttdef"><b>定义</b> ctype_backend.h:110</div></div>
+<div class="ttc" id="anamespaceIOv2_1_1detail_html_a5b76cc4110d5466a4bead4ea5999cf3f"><div class="ttname"><a href="namespaceIOv2_1_1detail.html#a5b76cc4110d5466a4bead4ea5999cf3f">IOv2::detail::ctype_isspace</a></div><div class="ttdeci">bool ctype_isspace(int c, clocale_handle loc) noexcept</div><div class="ttdef"><b>定义</b> ctype_backend.h:73</div></div>
+<div class="ttc" id="anamespaceIOv2_1_1detail_html_a797229663c6d63cafa7a0dea9ec1872a"><div class="ttname"><a href="namespaceIOv2_1_1detail.html#a797229663c6d63cafa7a0dea9ec1872a">IOv2::detail::ctype_wclass</a></div><div class="ttdeci">wctype_t ctype_wclass</div><div class="ttdef"><b>定义</b> ctype_backend.h:95</div></div>
+<div class="ttc" id="anamespaceIOv2_1_1detail_html_a8cb5535cf3be5892a8a01b9ced338cb3"><div class="ttname"><a href="namespaceIOv2_1_1detail.html#a8cb5535cf3be5892a8a01b9ced338cb3">IOv2::detail::ctype_isupper</a></div><div class="ttdeci">bool ctype_isupper(int c, clocale_handle loc) noexcept</div><div class="ttdef"><b>定义</b> ctype_backend.h:68</div></div>
+<div class="ttc" id="anamespaceIOv2_1_1detail_html_a90b71528bddc458a9cfdf908f8d882dc"><div class="ttname"><a href="namespaceIOv2_1_1detail.html#a90b71528bddc458a9cfdf908f8d882dc">IOv2::detail::ctype_tolower</a></div><div class="ttdeci">int ctype_tolower(int c, clocale_handle loc) noexcept</div><div class="ttdef"><b>定义</b> ctype_backend.h:87</div></div>
+<div class="ttc" id="anamespaceIOv2_1_1detail_html_abee22b6691e48c9672fb088ab4ec6269"><div class="ttname"><a href="namespaceIOv2_1_1detail.html#abee22b6691e48c9672fb088ab4ec6269">IOv2::detail::ctype_toupper</a></div><div class="ttdeci">int ctype_toupper(int c, clocale_handle loc) noexcept</div><div class="ttdef"><b>定义</b> ctype_backend.h:80</div></div>
+<div class="ttc" id="anamespaceIOv2_1_1detail_html_accf1621f5d7c3a421034c1ff0569d1db"><div class="ttname"><a href="namespaceIOv2_1_1detail.html#accf1621f5d7c3a421034c1ff0569d1db">IOv2::detail::clocale_handle</a></div><div class="ttdeci">locale_t clocale_handle</div><div class="ttdef"><b>定义</b> clocale_backend.h:35</div></div>
+<div class="ttc" id="anamespaceIOv2_1_1detail_html_af5b1f3fbc997082b7838daf425b21f71"><div class="ttname"><a href="namespaceIOv2_1_1detail.html#af5b1f3fbc997082b7838daf425b21f71">IOv2::detail::ctype_wctype</a></div><div class="ttdeci">ctype_wclass ctype_wctype(const char *name, clocale_handle loc) noexcept</div><div class="ttdef"><b>定义</b> ctype_backend.h:98</div></div>
+<div class="ttc" id="anamespaceIOv2_1_1detail_html_af9741a6335921f310f1312f7ab1bc35d"><div class="ttname"><a href="namespaceIOv2_1_1detail.html#af9741a6335921f310f1312f7ab1bc35d">IOv2::detail::ctype_byte_is_char</a></div><div class="ttdeci">constexpr bool ctype_byte_is_char(int, clocale_handle) noexcept</div><div class="ttdef"><b>定义</b> ctype_backend.h:61</div></div>
+<div class="ttc" id="anamespaceIOv2_1_1detail_html_afce222292de61c06e64712d794c1a3c8"><div class="ttname"><a href="namespaceIOv2_1_1detail.html#afce222292de61c06e64712d794c1a3c8">IOv2::detail::ctype_isdigit</a></div><div class="ttdeci">bool ctype_isdigit(int c, clocale_handle loc) noexcept</div><div class="ttdef"><b>定义</b> ctype_backend.h:71</div></div>
+</div><!-- fragment --></div><!-- contents -->
+</div><!-- doc-content -->
+</div><!-- container -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><a href="dir_d44c64559bbebec7f509842c48db8b23.html">include</a></li><li class="navelem"><a href="dir_1157f564aec2b3a7d6bde4eba89ab805.html">IOv2</a></li><li class="navelem"><a href="dir_86635f995fd9ec725e3aec943495dac7.html">facet</a></li><li class="navelem"><a href="dir_749f025f4ad35d262b7a58dfc0482586.html">platform</a></li><li class="navelem"><a href="dir_f513006777039295e415c45e2a269569.html">posix</a></li><li class="navelem"><a href="posix_2ctype__backend_8h.html">ctype_backend.h</a></li>
+    <li class="footer">制作者 <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.15.0 </li>
+  </ul>
+</div>
+</body>
+</html>

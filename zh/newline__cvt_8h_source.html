@@ -1,0 +1,445 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=11"/>
+<meta name="generator" content="Doxygen 1.15.0"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>IOv2: include/IOv2/cvt/newline_cvt.h 源文件</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<script type="text/javascript" src="clipboard.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<script type="text/javascript" src="cookie.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr id="projectrow">
+  <td id="projectalign">
+   <div id="projectname">IOv2
+   </div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 制作者 Doxygen 1.15.0 -->
+<script type="text/javascript">
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+</script>
+<script type="text/javascript">
+$(function() { codefold.init(); });
+</script>
+<script type="text/javascript" src="menudata.js"></script>
+<script type="text/javascript" src="menu.js"></script>
+<script type="text/javascript">
+$(function() {
+  initMenu('',true,false,'search.php','搜索',true);
+  $(function() { init_search(); });
+});
+</script>
+<div id="main-nav"></div>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+$(function(){initNavTree('newline__cvt_8h_source.html','',''); });
+</script>
+<div id="container">
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">载入中...</div>
+<div class="SRStatus" id="Searching">搜索中...</div>
+<div class="SRStatus" id="NoMatches">未找到</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="header">
+  <div class="headertitle"><div class="title">newline_cvt.h</div></div>
+</div><!--header-->
+<div class="contents">
+<a href="newline__cvt_8h.html">浏览该文件的文档.</a><div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span><span class="comment">// SPDX-FileCopyrightText: 2026 liwei &lt;liwei.cpp@gmail.com&gt;</span></div>
+<div class="line"><a id="l00002" name="l00002"></a><span class="lineno">    2</span><span class="comment">// SPDX-License-Identifier: MIT</span></div>
+<div class="line"><a id="l00003" name="l00003"></a><span class="lineno">    3</span></div>
+<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span><span class="preprocessor">#pragma once</span></div>
+<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span><span class="preprocessor">#include &lt;<a class="code" href="abs__cvt_8h.html">IOv2/cvt/abs_cvt.h</a>&gt;</span></div>
+<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span><span class="preprocessor">#include &lt;<a class="code" href="cvt__concepts_8h.html">IOv2/cvt/cvt_concepts.h</a>&gt;</span></div>
+<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span> </div>
+<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span><span class="preprocessor">#include &lt;algorithm&gt;</span></div>
+<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span><span class="preprocessor">#include &lt;cstddef&gt;</span></div>
+<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span><span class="preprocessor">#include &lt;cstdint&gt;</span></div>
+<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span><span class="preprocessor">#include &lt;exception&gt;</span></div>
+<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span><span class="preprocessor">#include &lt;type_traits&gt;</span></div>
+<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span><span class="preprocessor">#include &lt;utility&gt;</span></div>
+<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span> </div>
+<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span><span class="keyword">namespace </span><a class="code hl_namespace" href="namespaceIOv2.html">IOv2</a></div>
+<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span>{</div>
+<div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span><span class="keyword">template</span> &lt;io_converter KernelType&gt;</div>
+<div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span>    <span class="keyword">requires</span> std::is_integral_v&lt;typename KernelType::internal_type&gt;</div>
+<div class="foldopen" id="foldopen00072" data-start="{" data-end="};">
+<div class="line"><a id="l00072" name="l00072"></a><span class="lineno"><a class="line" href="classIOv2_1_1newline__cvt.html">   72</a></span><span class="keyword">class </span><a class="code hl_function" href="classIOv2_1_1newline__cvt.html#a6a1989f2bec55b9d9a57b14cf9742fec">newline_cvt</a> : <span class="keyword">public</span> <a class="code hl_function" href="classIOv2_1_1abs__cvt.html#a77db0a3eaa1dbaa6954cc0d9801ba2d5">abs_cvt</a>&lt;KernelType, typename KernelType::internal_type, true, true&gt;</div>
+<div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span>{</div>
+<div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span>    <span class="keyword">using </span>BT = <a class="code hl_function" href="classIOv2_1_1abs__cvt.html#a77db0a3eaa1dbaa6954cc0d9801ba2d5">abs_cvt&lt;KernelType, typename KernelType::internal_type, true, true&gt;</a>;</div>
+<div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span>    <span class="keyword">friend</span> BT;  <span class="comment">// for put_main, get_main, and private hooks</span></div>
+<div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span> </div>
+<div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span><span class="keyword">public</span>:</div>
+<div class="line"><a id="l00078" name="l00078"></a><span class="lineno"><a class="line" href="classIOv2_1_1newline__cvt.html#a6ef4ad09b8367125ac9849952845633d">   78</a></span>    <span class="keyword">using </span><a class="code hl_typedef" href="classIOv2_1_1newline__cvt.html#a6ef4ad09b8367125ac9849952845633d">device_type</a> = <span class="keyword">typename</span> KernelType::device_type;     </div>
+<div class="line"><a id="l00079" name="l00079"></a><span class="lineno"><a class="line" href="classIOv2_1_1newline__cvt.html#a3dbe44389ff0a0048e0f3a02742a87f4">   79</a></span>    <span class="keyword">using </span><a class="code hl_typedef" href="classIOv2_1_1newline__cvt.html#a3dbe44389ff0a0048e0f3a02742a87f4">internal_type</a> = <span class="keyword">typename</span> KernelType::internal_type; </div>
+<div class="line"><a id="l00080" name="l00080"></a><span class="lineno"><a class="line" href="classIOv2_1_1newline__cvt.html#a69303d761201071d16e2ace0d077391b">   80</a></span>    <span class="keyword">using </span><a class="code hl_typedef" href="classIOv2_1_1newline__cvt.html#a69303d761201071d16e2ace0d077391b">external_type</a> = <a class="code hl_typedef" href="classIOv2_1_1newline__cvt.html#a3dbe44389ff0a0048e0f3a02742a87f4">internal_type</a>;                       </div>
+<div class="line"><a id="l00081" name="l00081"></a><span class="lineno">   81</span></div>
+<div class="foldopen" id="foldopen00086" data-start="{" data-end="}">
+<div class="line"><a id="l00086" name="l00086"></a><span class="lineno"><a class="line" href="classIOv2_1_1newline__cvt.html#a6a1989f2bec55b9d9a57b14cf9742fec">   86</a></span>    <span class="keyword">explicit</span> <a class="code hl_function" href="classIOv2_1_1newline__cvt.html#a6a1989f2bec55b9d9a57b14cf9742fec">newline_cvt</a>(KernelType kernel)</div>
+<div class="line"><a id="l00087" name="l00087"></a><span class="lineno">   87</span>        : BT(<a class="code hl_namespace" href="namespacestd.html">std</a>::move(kernel))</div>
+<div class="line"><a id="l00088" name="l00088"></a><span class="lineno">   88</span>    {}</div>
+</div>
+<div class="line"><a id="l00089" name="l00089"></a><span class="lineno">   89</span></div>
+<div class="line"><a id="l00104" name="l00104"></a><span class="lineno"><a class="line" href="classIOv2_1_1newline__cvt.html#aeecb633cf75ef6e8d7051f9812bcaedc">  104</a></span>    <a class="code hl_function" href="classIOv2_1_1newline__cvt.html#aeecb633cf75ef6e8d7051f9812bcaedc">newline_cvt</a>(<span class="keyword">const</span> <a class="code hl_function" href="classIOv2_1_1newline__cvt.html#a6a1989f2bec55b9d9a57b14cf9742fec">newline_cvt</a>&amp;) <span class="keyword">requires</span> (std::copy_constructible&lt;KernelType&gt;) = <span class="keywordflow">default</span>;</div>
+<div class="line"><a id="l00105" name="l00105"></a><span class="lineno"><a class="line" href="classIOv2_1_1newline__cvt.html#a7262b923373901522c5582ba4d0b63e2">  105</a></span>    <a class="code hl_function" href="classIOv2_1_1newline__cvt.html#a6a1989f2bec55b9d9a57b14cf9742fec">newline_cvt</a>&amp; <a class="code hl_function" href="classIOv2_1_1newline__cvt.html#a7262b923373901522c5582ba4d0b63e2">operator=</a>(<span class="keyword">const</span> <a class="code hl_function" href="classIOv2_1_1newline__cvt.html#a6a1989f2bec55b9d9a57b14cf9742fec">newline_cvt</a>&amp;) <span class="keyword">requires</span> (std::copy_constructible&lt;KernelType&gt;) = <span class="keywordflow">default</span>;</div>
+<div class="line"><a id="l00106" name="l00106"></a><span class="lineno"><a class="line" href="classIOv2_1_1newline__cvt.html#ad17535514f4fd7c549596fe1bbd21e4c">  106</a></span>    <a class="code hl_function" href="classIOv2_1_1newline__cvt.html#ad17535514f4fd7c549596fe1bbd21e4c">newline_cvt</a>(<a class="code hl_function" href="classIOv2_1_1newline__cvt.html#a6a1989f2bec55b9d9a57b14cf9742fec">newline_cvt</a>&amp;&amp;) noexcept = default;             </div>
+<div class="line"><a id="l00107" name="l00107"></a><span class="lineno"><a class="line" href="classIOv2_1_1newline__cvt.html#a8370c5d9e553e14525b66620fb6e3570">  107</a></span>    <a class="code hl_function" href="classIOv2_1_1newline__cvt.html#a6a1989f2bec55b9d9a57b14cf9742fec">newline_cvt</a>&amp; operator=(<a class="code hl_function" href="classIOv2_1_1newline__cvt.html#a6a1989f2bec55b9d9a57b14cf9742fec">newline_cvt</a>&amp;&amp;) noexcept = default;  </div>
+<div class="line"><a id="l00108" name="l00108"></a><span class="lineno"><a class="line" href="classIOv2_1_1newline__cvt.html#ad309281cb5b0abc1daf76f0302e2c4e3">  108</a></span>    ~<a class="code hl_function" href="classIOv2_1_1newline__cvt.html#a6a1989f2bec55b9d9a57b14cf9742fec">newline_cvt</a>() = default;                                  </div>
+<div class="line"><a id="l00109" name="l00109"></a><span class="lineno">  109</span> </div>
+<div class="line"><a id="l00110" name="l00110"></a><span class="lineno">  110</span>private:</div>
+<div class="line"><a id="l00133" name="l00133"></a><span class="lineno">  133</span>    enum class at_end : <a class="code hl_namespace" href="namespacestd.html">std</a>::uint8_t { unknown, yes, no };</div>
+<div class="line"><a id="l00134" name="l00134"></a><span class="lineno">  134</span> </div>
+<div class="line"><a id="l00135" name="l00135"></a><span class="lineno">  135</span>    <span class="keyword">static</span> <span class="keyword">constexpr</span> <a class="code hl_typedef" href="classIOv2_1_1newline__cvt.html#a3dbe44389ff0a0048e0f3a02742a87f4">internal_type</a> s_cr = <span class="keyword">static_cast&lt;</span><a class="code hl_typedef" href="classIOv2_1_1newline__cvt.html#a3dbe44389ff0a0048e0f3a02742a87f4">internal_type</a><span class="keyword">&gt;</span>(<span class="charliteral">&#39;\r&#39;</span>);</div>
+<div class="line"><a id="l00136" name="l00136"></a><span class="lineno">  136</span>    <span class="keyword">static</span> <span class="keyword">constexpr</span> <a class="code hl_typedef" href="classIOv2_1_1newline__cvt.html#a3dbe44389ff0a0048e0f3a02742a87f4">internal_type</a> s_lf = <span class="keyword">static_cast&lt;</span><a class="code hl_typedef" href="classIOv2_1_1newline__cvt.html#a3dbe44389ff0a0048e0f3a02742a87f4">internal_type</a><span class="keyword">&gt;</span>(<span class="charliteral">&#39;\n&#39;</span>);</div>
+<div class="line"><a id="l00137" name="l00137"></a><span class="lineno">  137</span></div>
+<div class="line"><a id="l00139" name="l00139"></a><span class="lineno">  139</span>    <span class="keyword">static</span> <span class="keyword">constexpr</span> std::size_t s_buf_len = 64;</div>
+<div class="line"><a id="l00140" name="l00140"></a><span class="lineno">  140</span></div>
+<div class="line"><a id="l00142" name="l00142"></a><span class="lineno">  142</span>    <span class="keyword">static</span> <span class="keyword">constexpr</span> std::size_t s_count_buf_len = 1024;</div>
+<div class="line"><a id="l00143" name="l00143"></a><span class="lineno">  143</span></div>
+<div class="line"><a id="l00155" name="l00155"></a><span class="lineno">  155</span>    std::exception_ptr detach_impl() noexcept</div>
+<div class="line"><a id="l00156" name="l00156"></a><span class="lineno">  156</span>    {</div>
+<div class="line"><a id="l00157" name="l00157"></a><span class="lineno">  157</span>        m_accu_len = 0;</div>
+<div class="line"><a id="l00158" name="l00158"></a><span class="lineno">  158</span>        m_at_end = at_end::unknown;</div>
+<div class="line"><a id="l00159" name="l00159"></a><span class="lineno">  159</span>        <span class="keywordflow">return</span> <span class="keyword">nullptr</span>;</div>
+<div class="line"><a id="l00160" name="l00160"></a><span class="lineno">  160</span>    }</div>
+<div class="line"><a id="l00161" name="l00161"></a><span class="lineno">  161</span></div>
+<div class="line"><a id="l00176" name="l00176"></a><span class="lineno">  176</span>    <span class="keywordtype">void</span> main_cont_beg_impl()</div>
+<div class="line"><a id="l00177" name="l00177"></a><span class="lineno">  177</span>    {</div>
+<div class="line"><a id="l00178" name="l00178"></a><span class="lineno">  178</span>        m_accu_len = 0;</div>
+<div class="line"><a id="l00179" name="l00179"></a><span class="lineno">  179</span>        m_at_end = at_end::unknown;</div>
+<div class="line"><a id="l00180" name="l00180"></a><span class="lineno">  180</span>    }</div>
+<div class="line"><a id="l00181" name="l00181"></a><span class="lineno">  181</span></div>
+<div class="line"><a id="l00183" name="l00183"></a><span class="lineno">  183</span>    <span class="keyword">struct </span>scan_result</div>
+<div class="line"><a id="l00184" name="l00184"></a><span class="lineno">  184</span>    {</div>
+<div class="line"><a id="l00185" name="l00185"></a><span class="lineno">  185</span>        std::size_t consumed; </div>
+<div class="line"><a id="l00186" name="l00186"></a><span class="lineno">  186</span>        std::size_t produced; </div>
+<div class="line"><a id="l00187" name="l00187"></a><span class="lineno">  187</span>        <span class="keywordtype">bool</span>        held_cr;  </div>
+<div class="line"><a id="l00188" name="l00188"></a><span class="lineno">  188</span>    };</div>
+<div class="line"><a id="l00189" name="l00189"></a><span class="lineno">  189</span></div>
+<div class="line"><a id="l00214" name="l00214"></a><span class="lineno">  214</span>    <span class="keyword">template</span> &lt;<span class="keywordtype">bool</span> Store&gt;</div>
+<div class="line"><a id="l00215" name="l00215"></a><span class="lineno">  215</span>    <span class="keyword">static</span> scan_result translate(<span class="keyword">const</span> <a class="code hl_typedef" href="classIOv2_1_1newline__cvt.html#a3dbe44389ff0a0048e0f3a02742a87f4">internal_type</a>* ptr, std::size_t len,</div>
+<div class="line"><a id="l00216" name="l00216"></a><span class="lineno">  216</span>                                 <a class="code hl_typedef" href="classIOv2_1_1newline__cvt.html#a3dbe44389ff0a0048e0f3a02742a87f4">internal_type</a>* out, std::size_t room) <span class="keyword">noexcept</span></div>
+<div class="line"><a id="l00217" name="l00217"></a><span class="lineno">  217</span>    {</div>
+<div class="line"><a id="l00218" name="l00218"></a><span class="lineno">  218</span>        std::size_t i = 0;</div>
+<div class="line"><a id="l00219" name="l00219"></a><span class="lineno">  219</span>        std::size_t produced = 0;</div>
+<div class="line"><a id="l00220" name="l00220"></a><span class="lineno">  220</span>        <span class="keywordflow">while</span> (i &lt; len &amp;&amp; produced &lt; room)</div>
+<div class="line"><a id="l00221" name="l00221"></a><span class="lineno">  221</span>        {</div>
+<div class="line"><a id="l00222" name="l00222"></a><span class="lineno">  222</span>            <a class="code hl_typedef" href="classIOv2_1_1newline__cvt.html#a3dbe44389ff0a0048e0f3a02742a87f4">internal_type</a> c = ptr[i];</div>
+<div class="line"><a id="l00223" name="l00223"></a><span class="lineno">  223</span>            <span class="keywordflow">if</span> (c == s_cr)</div>
+<div class="line"><a id="l00224" name="l00224"></a><span class="lineno">  224</span>            {</div>
+<div class="line"><a id="l00225" name="l00225"></a><span class="lineno">  225</span>                <span class="keywordflow">if</span> (i + 1 == len)</div>
+<div class="line"><a id="l00226" name="l00226"></a><span class="lineno">  226</span>                    <span class="keywordflow">return</span> {i, produced, <span class="keyword">true</span>};</div>
+<div class="line"><a id="l00227" name="l00227"></a><span class="lineno">  227</span>                <span class="keywordflow">if</span> (ptr[i + 1] == s_lf)</div>
+<div class="line"><a id="l00228" name="l00228"></a><span class="lineno">  228</span>                {</div>
+<div class="line"><a id="l00229" name="l00229"></a><span class="lineno">  229</span>                    c = s_lf;</div>
+<div class="line"><a id="l00230" name="l00230"></a><span class="lineno">  230</span>                    ++i;</div>
+<div class="line"><a id="l00231" name="l00231"></a><span class="lineno">  231</span>                }</div>
+<div class="line"><a id="l00232" name="l00232"></a><span class="lineno">  232</span>            }</div>
+<div class="line"><a id="l00233" name="l00233"></a><span class="lineno">  233</span>            <span class="keywordflow">if</span> <span class="keyword">constexpr</span> (Store)</div>
+<div class="line"><a id="l00234" name="l00234"></a><span class="lineno">  234</span>                out[produced] = c;</div>
+<div class="line"><a id="l00235" name="l00235"></a><span class="lineno">  235</span>            ++produced;</div>
+<div class="line"><a id="l00236" name="l00236"></a><span class="lineno">  236</span>            ++i;</div>
+<div class="line"><a id="l00237" name="l00237"></a><span class="lineno">  237</span>        }</div>
+<div class="line"><a id="l00238" name="l00238"></a><span class="lineno">  238</span>        <span class="keywordflow">return</span> {i, produced, <span class="keyword">false</span>};</div>
+<div class="line"><a id="l00239" name="l00239"></a><span class="lineno">  239</span>    }</div>
+<div class="line"><a id="l00240" name="l00240"></a><span class="lineno">  240</span></div>
+<div class="line"><a id="l00275" name="l00275"></a><span class="lineno">  275</span>    std::pair&lt;std::size_t, std::exception_ptr&gt;</div>
+<div class="line"><a id="l00276" name="l00276"></a><span class="lineno">  276</span>    get_main(<a class="code hl_typedef" href="classIOv2_1_1newline__cvt.html#a3dbe44389ff0a0048e0f3a02742a87f4">internal_type</a>* to, std::size_t to_max) <span class="keyword">noexcept</span></div>
+<div class="line"><a id="l00277" name="l00277"></a><span class="lineno">  277</span>        <span class="keyword">requires</span> (cvt_cpt::support_get&lt;KernelType&gt;)</div>
+<div class="line"><a id="l00278" name="l00278"></a><span class="lineno">  278</span>    {</div>
+<div class="line"><a id="l00279" name="l00279"></a><span class="lineno">  279</span>        std::size_t total = 0;</div>
+<div class="line"><a id="l00280" name="l00280"></a><span class="lineno">  280</span>        <span class="keywordflow">try</span></div>
+<div class="line"><a id="l00281" name="l00281"></a><span class="lineno">  281</span>        {</div>
+<div class="line"><a id="l00282" name="l00282"></a><span class="lineno">  282</span>            <span class="keywordflow">if</span> (to_max == 0) <span class="keywordflow">return</span> {0, <span class="keyword">nullptr</span>};</div>
+<div class="line"><a id="l00283" name="l00283"></a><span class="lineno">  283</span>            <span class="keyword">auto</span> reader = <a class="code hl_function" href="classIOv2_1_1abs__cvt.html#acf346044252b4c7a458b272001e1c0aa">BT::kernel_reader</a>();</div>
+<div class="line"><a id="l00284" name="l00284"></a><span class="lineno">  284</span>            reader.reset(s_buf_len);</div>
+<div class="line"><a id="l00285" name="l00285"></a><span class="lineno">  285</span> </div>
+<div class="line"><a id="l00286" name="l00286"></a><span class="lineno">  286</span>            <span class="keywordtype">bool</span> held_cr = <span class="keyword">false</span>;</div>
+<div class="line"><a id="l00287" name="l00287"></a><span class="lineno">  287</span>            <span class="keywordflow">while</span> (total &lt; to_max)</div>
+<div class="line"><a id="l00288" name="l00288"></a><span class="lineno">  288</span>            {</div>
+<div class="line"><a id="l00289" name="l00289"></a><span class="lineno">  289</span>                <span class="comment">// A held \r needs at least one character behind it to be decided.</span></div>
+<div class="line"><a id="l00290" name="l00290"></a><span class="lineno">  290</span>                std::size_t want = std::min(to_max - total, s_buf_len);</div>
+<div class="line"><a id="l00291" name="l00291"></a><span class="lineno">  291</span>                <span class="keywordflow">if</span> (held_cr) want = std::max&lt;std::size_t&gt;(want, 2);</div>
+<div class="line"><a id="l00292" name="l00292"></a><span class="lineno">  292</span> </div>
+<div class="line"><a id="l00293" name="l00293"></a><span class="lineno">  293</span>                <span class="keyword">auto</span> [ptr, len] = reader.get_buf(want);</div>
+<div class="line"><a id="l00294" name="l00294"></a><span class="lineno">  294</span>                <span class="keywordflow">if</span> (len == 0)</div>
+<div class="line"><a id="l00295" name="l00295"></a><span class="lineno">  295</span>                    <span class="keywordflow">return</span> {total, <span class="keyword">nullptr</span>};</div>
+<div class="line"><a id="l00296" name="l00296"></a><span class="lineno">  296</span>                <span class="keywordflow">if</span> (held_cr &amp;&amp; len == 1)</div>
+<div class="line"><a id="l00297" name="l00297"></a><span class="lineno">  297</span>                {</div>
+<div class="line"><a id="l00298" name="l00298"></a><span class="lineno">  298</span>                    <span class="comment">// Nothing more below: the \r ends the data and is kept.</span></div>
+<div class="line"><a id="l00299" name="l00299"></a><span class="lineno">  299</span>                    to[total++] = s_cr;</div>
+<div class="line"><a id="l00300" name="l00300"></a><span class="lineno">  300</span>                    ++m_accu_len;</div>
+<div class="line"><a id="l00301" name="l00301"></a><span class="lineno">  301</span>                    <span class="keywordflow">return</span> {total, <span class="keyword">nullptr</span>};</div>
+<div class="line"><a id="l00302" name="l00302"></a><span class="lineno">  302</span>                }</div>
+<div class="line"><a id="l00303" name="l00303"></a><span class="lineno">  303</span> </div>
+<div class="line"><a id="l00304" name="l00304"></a><span class="lineno">  304</span>                <span class="keyword">const</span> <span class="keyword">auto</span> res = translate&lt;true&gt;(ptr, len, to + total, to_max - total);</div>
+<div class="line"><a id="l00305" name="l00305"></a><span class="lineno">  305</span>                held_cr = res.held_cr;</div>
+<div class="line"><a id="l00306" name="l00306"></a><span class="lineno">  306</span>                total += res.produced;</div>
+<div class="line"><a id="l00307" name="l00307"></a><span class="lineno">  307</span>                m_accu_len += res.produced;</div>
+<div class="line"><a id="l00308" name="l00308"></a><span class="lineno">  308</span>                <span class="keywordflow">if</span> (res.consumed != len)</div>
+<div class="line"><a id="l00309" name="l00309"></a><span class="lineno">  309</span>                    reader.rollback(len - res.consumed);</div>
+<div class="line"><a id="l00310" name="l00310"></a><span class="lineno">  310</span>                <span class="keywordflow">if</span> (held_cr &amp;&amp; total != 0)</div>
+<div class="line"><a id="l00311" name="l00311"></a><span class="lineno">  311</span>                    <span class="keywordflow">return</span> {total, <span class="keyword">nullptr</span>};</div>
+<div class="line"><a id="l00312" name="l00312"></a><span class="lineno">  312</span>            }</div>
+<div class="line"><a id="l00313" name="l00313"></a><span class="lineno">  313</span>            <span class="keywordflow">return</span> {total, <span class="keyword">nullptr</span>};</div>
+<div class="line"><a id="l00314" name="l00314"></a><span class="lineno">  314</span>        }</div>
+<div class="line"><a id="l00315" name="l00315"></a><span class="lineno">  315</span>        <span class="keywordflow">catch</span> (...)</div>
+<div class="line"><a id="l00316" name="l00316"></a><span class="lineno">  316</span>        {</div>
+<div class="line"><a id="l00317" name="l00317"></a><span class="lineno">  317</span>            <span class="keywordflow">return</span> {total, std::current_exception()};</div>
+<div class="line"><a id="l00318" name="l00318"></a><span class="lineno">  318</span>        }</div>
+<div class="line"><a id="l00319" name="l00319"></a><span class="lineno">  319</span>    }</div>
+<div class="line"><a id="l00320" name="l00320"></a><span class="lineno">  320</span></div>
+<div class="line"><a id="l00344" name="l00344"></a><span class="lineno">  344</span>    <span class="keywordtype">void</span> put_main(<span class="keyword">const</span> <a class="code hl_typedef" href="classIOv2_1_1newline__cvt.html#a3dbe44389ff0a0048e0f3a02742a87f4">internal_type</a>* to, std::size_t to_size)</div>
+<div class="line"><a id="l00345" name="l00345"></a><span class="lineno">  345</span>        <span class="keyword">requires</span> (cvt_cpt::support_put&lt;KernelType&gt;)</div>
+<div class="line"><a id="l00346" name="l00346"></a><span class="lineno">  346</span>    {</div>
+<div class="line"><a id="l00347" name="l00347"></a><span class="lineno">  347</span>        resolve_at_end();</div>
+<div class="line"><a id="l00348" name="l00348"></a><span class="lineno">  348</span>        <span class="keywordflow">if</span> (m_at_end == at_end::no)</div>
+<div class="line"><a id="l00349" name="l00349"></a><span class="lineno">  349</span>            <span class="keywordflow">throw</span> cvt_error(<span class="stringliteral">&quot;newline_cvt::put fail: not at the end of the stream&quot;</span>);</div>
+<div class="line"><a id="l00350" name="l00350"></a><span class="lineno">  350</span>        <span class="keywordflow">if</span> (to_size == 0) <span class="keywordflow">return</span>;</div>
+<div class="line"><a id="l00351" name="l00351"></a><span class="lineno">  351</span> </div>
+<div class="line"><a id="l00352" name="l00352"></a><span class="lineno">  352</span>        <span class="keyword">auto</span> writer = <a class="code hl_function" href="classIOv2_1_1abs__cvt.html#a8c6d355fca4af3985fb431be31b9e510">BT::kernel_writer</a>();</div>
+<div class="line"><a id="l00353" name="l00353"></a><span class="lineno">  353</span>        writer.reset(s_buf_len * 2);</div>
+<div class="line"><a id="l00354" name="l00354"></a><span class="lineno">  354</span>        std::size_t done = 0;</div>
+<div class="line"><a id="l00355" name="l00355"></a><span class="lineno">  355</span>        <span class="keywordflow">while</span> (done != to_size)</div>
+<div class="line"><a id="l00356" name="l00356"></a><span class="lineno">  356</span>        {</div>
+<div class="line"><a id="l00357" name="l00357"></a><span class="lineno">  357</span>            <span class="comment">// Each character takes at most two slots below.</span></div>
+<div class="line"><a id="l00358" name="l00358"></a><span class="lineno">  358</span>            <span class="keyword">const</span> std::size_t count = std::min(s_buf_len, to_size - done);</div>
+<div class="line"><a id="l00359" name="l00359"></a><span class="lineno">  359</span>            <a class="code hl_typedef" href="classIOv2_1_1newline__cvt.html#a3dbe44389ff0a0048e0f3a02742a87f4">internal_type</a>* ptr = writer.put_buf(count * 2);</div>
+<div class="line"><a id="l00360" name="l00360"></a><span class="lineno">  360</span>            std::size_t used = 0;</div>
+<div class="line"><a id="l00361" name="l00361"></a><span class="lineno">  361</span>            <span class="keywordflow">for</span> (std::size_t i = 0; i &lt; count; ++i)</div>
+<div class="line"><a id="l00362" name="l00362"></a><span class="lineno">  362</span>            {</div>
+<div class="line"><a id="l00363" name="l00363"></a><span class="lineno">  363</span>                <span class="keyword">const</span> <a class="code hl_typedef" href="classIOv2_1_1newline__cvt.html#a3dbe44389ff0a0048e0f3a02742a87f4">internal_type</a> c = to[done + i];</div>
+<div class="line"><a id="l00364" name="l00364"></a><span class="lineno">  364</span>                <span class="keywordflow">if</span> (c == s_lf)</div>
+<div class="line"><a id="l00365" name="l00365"></a><span class="lineno">  365</span>                    ptr[used++] = s_cr;</div>
+<div class="line"><a id="l00366" name="l00366"></a><span class="lineno">  366</span>                ptr[used++] = c;</div>
+<div class="line"><a id="l00367" name="l00367"></a><span class="lineno">  367</span>            }</div>
+<div class="line"><a id="l00368" name="l00368"></a><span class="lineno">  368</span>            <span class="keywordflow">if</span> (used != count * 2)</div>
+<div class="line"><a id="l00369" name="l00369"></a><span class="lineno">  369</span>                writer.rollback(count * 2 - used);</div>
+<div class="line"><a id="l00370" name="l00370"></a><span class="lineno">  370</span>            done += count;</div>
+<div class="line"><a id="l00371" name="l00371"></a><span class="lineno">  371</span>        }</div>
+<div class="line"><a id="l00372" name="l00372"></a><span class="lineno">  372</span>        <span class="comment">// commit() is the responsibility of abs_cvt::put.</span></div>
+<div class="line"><a id="l00373" name="l00373"></a><span class="lineno">  373</span>        m_accu_len += to_size;</div>
+<div class="line"><a id="l00374" name="l00374"></a><span class="lineno">  374</span>    }</div>
+<div class="line"><a id="l00375" name="l00375"></a><span class="lineno">  375</span></div>
+<div class="line"><a id="l00400" name="l00400"></a><span class="lineno">  400</span>    <span class="keywordtype">void</span> switch_to_put_impl()</div>
+<div class="line"><a id="l00401" name="l00401"></a><span class="lineno">  401</span>        <span class="keyword">requires</span> (cvt_cpt::support_io_switch&lt;KernelType&gt;)</div>
+<div class="line"><a id="l00402" name="l00402"></a><span class="lineno">  402</span>    {</div>
+<div class="line"><a id="l00403" name="l00403"></a><span class="lineno">  403</span>        <span class="keywordflow">if</span> (<a class="code hl_variable" href="classIOv2_1_1abs__cvt.html#aff41c99f01bb736113ccf6d2374d8d5a">BT::m_io_status</a> == <a class="code hl_enumvalue" href="namespaceIOv2.html#a36673c0e1d93ef095d232f0f726134d9aa43c1b0aa53a0c908810c06ab1ff3967">io_status::input</a>)</div>
+<div class="line"><a id="l00404" name="l00404"></a><span class="lineno">  404</span>        {</div>
+<div class="line"><a id="l00405" name="l00405"></a><span class="lineno">  405</span>            <span class="keywordflow">if</span> (!this-&gt;<a class="code hl_function" href="classIOv2_1_1abs__cvt.html#a3f9541834637ad027cbb38fff1b7ac05">is_eof</a>())</div>
+<div class="line"><a id="l00406" name="l00406"></a><span class="lineno">  406</span>                <span class="keywordflow">throw</span> cvt_error(<span class="stringliteral">&quot;newline_cvt::switch_to_put fail: not at the end of the stream&quot;</span>);</div>
+<div class="line"><a id="l00407" name="l00407"></a><span class="lineno">  407</span>            m_at_end = at_end::yes;</div>
+<div class="line"><a id="l00408" name="l00408"></a><span class="lineno">  408</span>        }</div>
+<div class="line"><a id="l00409" name="l00409"></a><span class="lineno">  409</span>    }</div>
+<div class="line"><a id="l00410" name="l00410"></a><span class="lineno">  410</span></div>
+<div class="line"><a id="l00440" name="l00440"></a><span class="lineno">  440</span>    <span class="keywordtype">void</span> resolve_at_end()</div>
+<div class="line"><a id="l00441" name="l00441"></a><span class="lineno">  441</span>    {</div>
+<div class="line"><a id="l00442" name="l00442"></a><span class="lineno">  442</span>        <span class="keywordflow">if</span> (m_at_end != at_end::unknown) <span class="keywordflow">return</span>;</div>
+<div class="line"><a id="l00443" name="l00443"></a><span class="lineno">  443</span> </div>
+<div class="line"><a id="l00444" name="l00444"></a><span class="lineno">  444</span>        <span class="keywordflow">try</span></div>
+<div class="line"><a id="l00445" name="l00445"></a><span class="lineno">  445</span>        {</div>
+<div class="line"><a id="l00446" name="l00446"></a><span class="lineno">  446</span>            <span class="keywordflow">if</span> <span class="keyword">constexpr</span> (cvt_cpt::support_get&lt;KernelType&gt;)</div>
+<div class="line"><a id="l00447" name="l00447"></a><span class="lineno">  447</span>                m_at_end = <a class="code hl_function" href="classIOv2_1_1abs__cvt.html#ac6b396ec07922b14a92dd781c1daaad1">BT::kernel_is_eof</a>() ? at_end::yes : at_end::no;</div>
+<div class="line"><a id="l00448" name="l00448"></a><span class="lineno">  448</span>            <span class="keywordflow">else</span> <span class="keywordflow">if</span> <span class="keyword">constexpr</span> (cvt_cpt::support_positioning&lt;KernelType&gt;)</div>
+<div class="line"><a id="l00449" name="l00449"></a><span class="lineno">  449</span>            {</div>
+<div class="line"><a id="l00450" name="l00450"></a><span class="lineno">  450</span>                <span class="keyword">const</span> std::size_t saved = <a class="code hl_function" href="classIOv2_1_1abs__cvt.html#a9db0bc1c0c3b0202382391a72a3a1beb">BT::kernel_tell</a>();</div>
+<div class="line"><a id="l00451" name="l00451"></a><span class="lineno">  451</span>                <a class="code hl_function" href="classIOv2_1_1abs__cvt.html#ae431e0fbdb83dfc6029ecb607d50dd95">BT::kernel_rseek</a>(0);</div>
+<div class="line"><a id="l00452" name="l00452"></a><span class="lineno">  452</span>                <span class="keywordflow">if</span> (<a class="code hl_function" href="classIOv2_1_1abs__cvt.html#a9db0bc1c0c3b0202382391a72a3a1beb">BT::kernel_tell</a>() == saved)</div>
+<div class="line"><a id="l00453" name="l00453"></a><span class="lineno">  453</span>                    m_at_end = at_end::yes;</div>
+<div class="line"><a id="l00454" name="l00454"></a><span class="lineno">  454</span>                <span class="keywordflow">else</span></div>
+<div class="line"><a id="l00455" name="l00455"></a><span class="lineno">  455</span>                {</div>
+<div class="line"><a id="l00456" name="l00456"></a><span class="lineno">  456</span>                    <a class="code hl_function" href="classIOv2_1_1abs__cvt.html#a403d5c54cf5cd0b67eaba97aca113aa9">BT::kernel_seek</a>(saved);</div>
+<div class="line"><a id="l00457" name="l00457"></a><span class="lineno">  457</span>                    m_at_end = at_end::no;</div>
+<div class="line"><a id="l00458" name="l00458"></a><span class="lineno">  458</span>                }</div>
+<div class="line"><a id="l00459" name="l00459"></a><span class="lineno">  459</span>            }</div>
+<div class="line"><a id="l00460" name="l00460"></a><span class="lineno">  460</span>            <span class="keywordflow">else</span></div>
+<div class="line"><a id="l00461" name="l00461"></a><span class="lineno">  461</span>                m_at_end = at_end::yes;</div>
+<div class="line"><a id="l00462" name="l00462"></a><span class="lineno">  462</span>        }</div>
+<div class="line"><a id="l00463" name="l00463"></a><span class="lineno">  463</span>        <span class="keywordflow">catch</span> (...)</div>
+<div class="line"><a id="l00464" name="l00464"></a><span class="lineno">  464</span>        {</div>
+<div class="line"><a id="l00465" name="l00465"></a><span class="lineno">  465</span>            <a class="code hl_function" href="classIOv2_1_1abs__cvt.html#a564fad1ceb3a99a789010012ef081395">BT::set_tainted</a>();</div>
+<div class="line"><a id="l00466" name="l00466"></a><span class="lineno">  466</span>            <span class="keywordflow">throw</span>;</div>
+<div class="line"><a id="l00467" name="l00467"></a><span class="lineno">  467</span>        }</div>
+<div class="line"><a id="l00468" name="l00468"></a><span class="lineno">  468</span>    }</div>
+<div class="line"><a id="l00469" name="l00469"></a><span class="lineno">  469</span></div>
+<div class="line"><a id="l00482" name="l00482"></a><span class="lineno">  482</span>    [[nodiscard]] std::size_t tell_impl() const</div>
+<div class="line"><a id="l00483" name="l00483"></a><span class="lineno">  483</span>        requires (cvt_cpt::support_positioning&lt;KernelType&gt;)</div>
+<div class="line"><a id="l00484" name="l00484"></a><span class="lineno">  484</span>    {</div>
+<div class="line"><a id="l00485" name="l00485"></a><span class="lineno">  485</span>        <span class="keywordflow">return</span> m_accu_len;</div>
+<div class="line"><a id="l00486" name="l00486"></a><span class="lineno">  486</span>    }</div>
+<div class="line"><a id="l00487" name="l00487"></a><span class="lineno">  487</span></div>
+<div class="line"><a id="l00508" name="l00508"></a><span class="lineno">  508</span>    <span class="keywordtype">void</span> seek_impl(std::size_t pos)</div>
+<div class="line"><a id="l00509" name="l00509"></a><span class="lineno">  509</span>        <span class="keyword">requires</span> (cvt_cpt::support_positioning&lt;KernelType&gt;)</div>
+<div class="line"><a id="l00510" name="l00510"></a><span class="lineno">  510</span>    {</div>
+<div class="line"><a id="l00511" name="l00511"></a><span class="lineno">  511</span>        <span class="keywordflow">if</span> (<a class="code hl_variable" href="classIOv2_1_1abs__cvt.html#aff41c99f01bb736113ccf6d2374d8d5a">BT::m_io_status</a> == <a class="code hl_enumvalue" href="namespaceIOv2.html#a36673c0e1d93ef095d232f0f726134d9a78e6221f6393d1356681db398f14ce6d">io_status::output</a>)</div>
+<div class="line"><a id="l00512" name="l00512"></a><span class="lineno">  512</span>            <span class="keywordflow">throw</span> cvt_error(<span class="stringliteral">&quot;newline_cvt::seek fail: cannot seek while writing&quot;</span>);</div>
+<div class="line"><a id="l00513" name="l00513"></a><span class="lineno">  513</span>        <span class="keywordflow">if</span> (pos != 0)</div>
+<div class="line"><a id="l00514" name="l00514"></a><span class="lineno">  514</span>            <span class="keywordflow">throw</span> cvt_error(<span class="stringliteral">&quot;newline_cvt::seek fail: only seek(0) is supported&quot;</span>);</div>
+<div class="line"><a id="l00515" name="l00515"></a><span class="lineno">  515</span> </div>
+<div class="line"><a id="l00516" name="l00516"></a><span class="lineno">  516</span>        <a class="code hl_function" href="classIOv2_1_1abs__cvt.html#a403d5c54cf5cd0b67eaba97aca113aa9">BT::kernel_seek</a>(0);</div>
+<div class="line"><a id="l00517" name="l00517"></a><span class="lineno">  517</span>        m_accu_len = 0;</div>
+<div class="line"><a id="l00518" name="l00518"></a><span class="lineno">  518</span>    }</div>
+<div class="line"><a id="l00519" name="l00519"></a><span class="lineno">  519</span></div>
+<div class="line"><a id="l00568" name="l00568"></a><span class="lineno">  568</span>    <span class="keywordtype">void</span> rseek_impl(std::size_t pos)</div>
+<div class="line"><a id="l00569" name="l00569"></a><span class="lineno">  569</span>        <span class="keyword">requires</span> (cvt_cpt::support_positioning&lt;KernelType&gt;)</div>
+<div class="line"><a id="l00570" name="l00570"></a><span class="lineno">  570</span>    {</div>
+<div class="line"><a id="l00571" name="l00571"></a><span class="lineno">  571</span>        <span class="keywordflow">if</span> (pos != 0)</div>
+<div class="line"><a id="l00572" name="l00572"></a><span class="lineno">  572</span>            <span class="keywordflow">throw</span> cvt_error(<span class="stringliteral">&quot;newline_cvt::rseek fail: only rseek(0) is supported&quot;</span>);</div>
+<div class="line"><a id="l00573" name="l00573"></a><span class="lineno">  573</span> </div>
+<div class="line"><a id="l00574" name="l00574"></a><span class="lineno">  574</span>        <span class="keywordflow">if</span> (<a class="code hl_variable" href="classIOv2_1_1abs__cvt.html#aff41c99f01bb736113ccf6d2374d8d5a">BT::m_io_status</a> == <a class="code hl_enumvalue" href="namespaceIOv2.html#a36673c0e1d93ef095d232f0f726134d9a78e6221f6393d1356681db398f14ce6d">io_status::output</a>)</div>
+<div class="line"><a id="l00575" name="l00575"></a><span class="lineno">  575</span>        {</div>
+<div class="line"><a id="l00576" name="l00576"></a><span class="lineno">  576</span>            <span class="comment">// Writes only happen at the end, so normally there is nothing to do; confirm it.</span></div>
+<div class="line"><a id="l00577" name="l00577"></a><span class="lineno">  577</span>            resolve_at_end();</div>
+<div class="line"><a id="l00578" name="l00578"></a><span class="lineno">  578</span>            <span class="comment">// Not at the end: reaching it would need the logical length of what lies</span></div>
+<div class="line"><a id="l00579" name="l00579"></a><span class="lineno">  579</span>            <span class="comment">// between, which takes reading it -- impossible for the only layer that gets</span></div>
+<div class="line"><a id="l00580" name="l00580"></a><span class="lineno">  580</span>            <span class="comment">// here (write-only). tell() could not be exact, so refuse.</span></div>
+<div class="line"><a id="l00581" name="l00581"></a><span class="lineno">  581</span>            <span class="keywordflow">if</span> (m_at_end == at_end::no)</div>
+<div class="line"><a id="l00582" name="l00582"></a><span class="lineno">  582</span>                <span class="keywordflow">throw</span> cvt_error(<span class="stringliteral">&quot;newline_cvt::rseek fail: not at the end of the stream&quot;</span>);</div>
+<div class="line"><a id="l00583" name="l00583"></a><span class="lineno">  583</span>            <span class="keywordflow">return</span>;</div>
+<div class="line"><a id="l00584" name="l00584"></a><span class="lineno">  584</span>        }</div>
+<div class="line"><a id="l00585" name="l00585"></a><span class="lineno">  585</span> </div>
+<div class="line"><a id="l00586" name="l00586"></a><span class="lineno">  586</span>        <span class="comment">// Reading (a write-only layer below never is): count the characters up to the end,</span></div>
+<div class="line"><a id="l00587" name="l00587"></a><span class="lineno">  587</span>        <span class="comment">// storing none of them.</span></div>
+<div class="line"><a id="l00588" name="l00588"></a><span class="lineno">  588</span>        <span class="keywordflow">if</span> <span class="keyword">constexpr</span> (cvt_cpt::support_get&lt;KernelType&gt;)</div>
+<div class="line"><a id="l00589" name="l00589"></a><span class="lineno">  589</span>        {</div>
+<div class="line"><a id="l00590" name="l00590"></a><span class="lineno">  590</span>            <span class="keywordflow">try</span></div>
+<div class="line"><a id="l00591" name="l00591"></a><span class="lineno">  591</span>            {</div>
+<div class="line"><a id="l00592" name="l00592"></a><span class="lineno">  592</span>                <span class="keyword">auto</span> reader = <a class="code hl_function" href="classIOv2_1_1abs__cvt.html#acf346044252b4c7a458b272001e1c0aa">BT::kernel_reader</a>();</div>
+<div class="line"><a id="l00593" name="l00593"></a><span class="lineno">  593</span>                reader.reset(s_count_buf_len);</div>
+<div class="line"><a id="l00594" name="l00594"></a><span class="lineno">  594</span>                <span class="keywordtype">bool</span> held_cr = <span class="keyword">false</span>;</div>
+<div class="line"><a id="l00595" name="l00595"></a><span class="lineno">  595</span>                <span class="keywordflow">while</span> (<span class="keyword">true</span>)</div>
+<div class="line"><a id="l00596" name="l00596"></a><span class="lineno">  596</span>                {</div>
+<div class="line"><a id="l00597" name="l00597"></a><span class="lineno">  597</span>                    <span class="keyword">auto</span> [ptr, len] = reader.get_buf(s_count_buf_len);</div>
+<div class="line"><a id="l00598" name="l00598"></a><span class="lineno">  598</span>                    <span class="keywordflow">if</span> (len == 0)</div>
+<div class="line"><a id="l00599" name="l00599"></a><span class="lineno">  599</span>                        <span class="keywordflow">break</span>;</div>
+<div class="line"><a id="l00600" name="l00600"></a><span class="lineno">  600</span>                    <span class="keywordflow">if</span> (held_cr &amp;&amp; len == 1)</div>
+<div class="line"><a id="l00601" name="l00601"></a><span class="lineno">  601</span>                    {</div>
+<div class="line"><a id="l00602" name="l00602"></a><span class="lineno">  602</span>                        ++m_accu_len;   <span class="comment">// the \r ends the data</span></div>
+<div class="line"><a id="l00603" name="l00603"></a><span class="lineno">  603</span>                        <span class="keywordflow">break</span>;</div>
+<div class="line"><a id="l00604" name="l00604"></a><span class="lineno">  604</span>                    }</div>
+<div class="line"><a id="l00605" name="l00605"></a><span class="lineno">  605</span>                    <span class="keyword">const</span> <span class="keyword">auto</span> res = translate&lt;false&gt;(ptr, len, <span class="keyword">nullptr</span>, len);</div>
+<div class="line"><a id="l00606" name="l00606"></a><span class="lineno">  606</span>                    m_accu_len += res.produced;</div>
+<div class="line"><a id="l00607" name="l00607"></a><span class="lineno">  607</span>                    held_cr = res.held_cr;</div>
+<div class="line"><a id="l00608" name="l00608"></a><span class="lineno">  608</span>                    <span class="keywordflow">if</span> (res.consumed != len)</div>
+<div class="line"><a id="l00609" name="l00609"></a><span class="lineno">  609</span>                        reader.rollback(len - res.consumed);</div>
+<div class="line"><a id="l00610" name="l00610"></a><span class="lineno">  610</span>                }</div>
+<div class="line"><a id="l00611" name="l00611"></a><span class="lineno">  611</span>            }</div>
+<div class="line"><a id="l00612" name="l00612"></a><span class="lineno">  612</span>            <span class="keywordflow">catch</span> (...)</div>
+<div class="line"><a id="l00613" name="l00613"></a><span class="lineno">  613</span>            {</div>
+<div class="line"><a id="l00614" name="l00614"></a><span class="lineno">  614</span>                <a class="code hl_function" href="classIOv2_1_1abs__cvt.html#a564fad1ceb3a99a789010012ef081395">BT::set_tainted</a>();</div>
+<div class="line"><a id="l00615" name="l00615"></a><span class="lineno">  615</span>                <span class="keywordflow">throw</span>;</div>
+<div class="line"><a id="l00616" name="l00616"></a><span class="lineno">  616</span>            }</div>
+<div class="line"><a id="l00617" name="l00617"></a><span class="lineno">  617</span> </div>
+<div class="line"><a id="l00618" name="l00618"></a><span class="lineno">  618</span>            <span class="comment">// A repositioning drops an error a previous get held back; reading did not, so</span></div>
+<div class="line"><a id="l00619" name="l00619"></a><span class="lineno">  619</span>            <span class="comment">// seek where the layer below already stands. On failure nothing has changed.</span></div>
+<div class="line"><a id="l00620" name="l00620"></a><span class="lineno">  620</span>            <a class="code hl_function" href="classIOv2_1_1abs__cvt.html#a403d5c54cf5cd0b67eaba97aca113aa9">BT::kernel_seek</a>(<a class="code hl_function" href="classIOv2_1_1abs__cvt.html#a9db0bc1c0c3b0202382391a72a3a1beb">BT::kernel_tell</a>());</div>
+<div class="line"><a id="l00621" name="l00621"></a><span class="lineno">  621</span>        }</div>
+<div class="line"><a id="l00622" name="l00622"></a><span class="lineno">  622</span>    }</div>
+<div class="line"><a id="l00623" name="l00623"></a><span class="lineno">  623</span> </div>
+<div class="line"><a id="l00624" name="l00624"></a><span class="lineno">  624</span><span class="keyword">private</span>:</div>
+<div class="line"><a id="l00625" name="l00625"></a><span class="lineno">  625</span>    std::size_t m_accu_len = 0;             </div>
+<div class="line"><a id="l00626" name="l00626"></a><span class="lineno">  626</span>    at_end      m_at_end = at_end::unknown; </div>
+<div class="line"><a id="l00627" name="l00627"></a><span class="lineno">  627</span>};</div>
+</div>
+<div class="line"><a id="l00628" name="l00628"></a><span class="lineno">  628</span></div>
+<div class="foldopen" id="foldopen00639" data-start="{" data-end="};">
+<div class="line"><a id="l00639" name="l00639"></a><span class="lineno"><a class="line" href="classIOv2_1_1newline__cvt__creator.html">  639</a></span><span class="keyword">class </span><a class="code hl_class" href="classIOv2_1_1newline__cvt__creator.html">newline_cvt_creator</a></div>
+<div class="line"><a id="l00640" name="l00640"></a><span class="lineno">  640</span>{</div>
+<div class="line"><a id="l00641" name="l00641"></a><span class="lineno">  641</span><span class="keyword">public</span>:</div>
+<div class="line"><a id="l00642" name="l00642"></a><span class="lineno"><a class="line" href="classIOv2_1_1newline__cvt__creator.html#a4498cd236593f092fd7cd4d8e03d52a5">  642</a></span>    <span class="keyword">using </span><a class="code hl_typedef" href="classIOv2_1_1newline__cvt__creator.html#a4498cd236593f092fd7cd4d8e03d52a5">category</a> = CvtCreatorCategory;</div>
+<div class="line"><a id="l00643" name="l00643"></a><span class="lineno">  643</span></div>
+<div class="line"><a id="l00648" name="l00648"></a><span class="lineno">  648</span>    <span class="keyword">template</span> &lt;io_converter TKernel&gt;</div>
+<div class="foldopen" id="foldopen00649" data-start="{" data-end="}">
+<div class="line"><a id="l00649" name="l00649"></a><span class="lineno"><a class="line" href="classIOv2_1_1newline__cvt__creator.html#a47453faed555cbe58d52bc1c4aa70166">  649</a></span>    <span class="keyword">auto</span> <a class="code hl_function" href="classIOv2_1_1newline__cvt__creator.html#a47453faed555cbe58d52bc1c4aa70166">create</a>(TKernel&amp;&amp; kernel)<span class="keyword"> const</span></div>
+<div class="line"><a id="l00650" name="l00650"></a><span class="lineno">  650</span><span class="keyword">    </span>{</div>
+<div class="line"><a id="l00651" name="l00651"></a><span class="lineno">  651</span>        <span class="keywordflow">return</span> <a class="code hl_class" href="classIOv2_1_1newline__cvt.html">newline_cvt&lt;std::remove_cvref_t&lt;TKernel&gt;</a>&gt;{std::forward&lt;TKernel&gt;(kernel)};</div>
+<div class="line"><a id="l00652" name="l00652"></a><span class="lineno">  652</span>    }</div>
+</div>
+<div class="line"><a id="l00653" name="l00653"></a><span class="lineno">  653</span>};</div>
+</div>
+<div class="line"><a id="l00654" name="l00654"></a><span class="lineno">  654</span>}</div>
+<div class="ttc" id="aabs__cvt_8h_html"><div class="ttname"><a href="abs__cvt_8h.html">abs_cvt.h</a></div></div>
+<div class="ttc" id="aclassIOv2_1_1abs__cvt_html_a3f9541834637ad027cbb38fff1b7ac05"><div class="ttname"><a href="classIOv2_1_1abs__cvt.html#a3f9541834637ad027cbb38fff1b7ac05">IOv2::abs_cvt&lt; KernelType, KernelType::internal_type, true, true &gt;::is_eof</a></div><div class="ttdeci">bool is_eof(this auto &amp;self)</div><div class="ttdef"><b>定义</b> abs_cvt.h:1467</div></div>
+<div class="ttc" id="aclassIOv2_1_1abs__cvt_html_a403d5c54cf5cd0b67eaba97aca113aa9"><div class="ttname"><a href="classIOv2_1_1abs__cvt.html#a403d5c54cf5cd0b67eaba97aca113aa9">IOv2::abs_cvt&lt; KernelType, typename KernelType::internal_type, true, true &gt;::kernel_seek</a></div><div class="ttdeci">void kernel_seek(std::size_t pos)</div><div class="ttdef"><b>定义</b> abs_cvt.h:2194</div></div>
+<div class="ttc" id="aclassIOv2_1_1abs__cvt_html_a564fad1ceb3a99a789010012ef081395"><div class="ttname"><a href="classIOv2_1_1abs__cvt.html#a564fad1ceb3a99a789010012ef081395">IOv2::abs_cvt&lt; KernelType, typename KernelType::internal_type, true, true &gt;::set_tainted</a></div><div class="ttdeci">void set_tainted() noexcept</div><div class="ttdef"><b>定义</b> abs_cvt.h:2119</div></div>
+<div class="ttc" id="aclassIOv2_1_1abs__cvt_html_a77db0a3eaa1dbaa6954cc0d9801ba2d5"><div class="ttname"><a href="classIOv2_1_1abs__cvt.html#a77db0a3eaa1dbaa6954cc0d9801ba2d5">IOv2::abs_cvt&lt; KernelType, KernelType::internal_type, true, true &gt;::abs_cvt</a></div><div class="ttdeci">abs_cvt(KernelType kernel)</div><div class="ttdef"><b>定义</b> abs_cvt.h:997</div></div>
+<div class="ttc" id="aclassIOv2_1_1abs__cvt_html_a8c6d355fca4af3985fb431be31b9e510"><div class="ttname"><a href="classIOv2_1_1abs__cvt.html#a8c6d355fca4af3985fb431be31b9e510">IOv2::abs_cvt&lt; KernelType, typename KernelType::internal_type, true, true &gt;::kernel_writer</a></div><div class="ttdeci">cvt_writer&lt; KernelType &gt; kernel_writer()</div><div class="ttdef"><b>定义</b> abs_cvt.h:2180</div></div>
+<div class="ttc" id="aclassIOv2_1_1abs__cvt_html_a9db0bc1c0c3b0202382391a72a3a1beb"><div class="ttname"><a href="classIOv2_1_1abs__cvt.html#a9db0bc1c0c3b0202382391a72a3a1beb">IOv2::abs_cvt&lt; KernelType, typename KernelType::internal_type, true, true &gt;::kernel_tell</a></div><div class="ttdeci">std::size_t kernel_tell() const</div><div class="ttdef"><b>定义</b> abs_cvt.h:2188</div></div>
+<div class="ttc" id="aclassIOv2_1_1abs__cvt_html_ac6b396ec07922b14a92dd781c1daaad1"><div class="ttname"><a href="classIOv2_1_1abs__cvt.html#ac6b396ec07922b14a92dd781c1daaad1">IOv2::abs_cvt&lt; KernelType, typename KernelType::internal_type, true, true &gt;::kernel_is_eof</a></div><div class="ttdeci">bool kernel_is_eof()</div><div class="ttdef"><b>定义</b> abs_cvt.h:2211</div></div>
+<div class="ttc" id="aclassIOv2_1_1abs__cvt_html_acf346044252b4c7a458b272001e1c0aa"><div class="ttname"><a href="classIOv2_1_1abs__cvt.html#acf346044252b4c7a458b272001e1c0aa">IOv2::abs_cvt&lt; KernelType, typename KernelType::internal_type, true, true &gt;::kernel_reader</a></div><div class="ttdeci">cvt_reader&lt; KernelType &gt; kernel_reader()</div><div class="ttdef"><b>定义</b> abs_cvt.h:2153</div></div>
+<div class="ttc" id="aclassIOv2_1_1abs__cvt_html_ae431e0fbdb83dfc6029ecb607d50dd95"><div class="ttname"><a href="classIOv2_1_1abs__cvt.html#ae431e0fbdb83dfc6029ecb607d50dd95">IOv2::abs_cvt&lt; KernelType, typename KernelType::internal_type, true, true &gt;::kernel_rseek</a></div><div class="ttdeci">void kernel_rseek(std::size_t pos)</div><div class="ttdef"><b>定义</b> abs_cvt.h:2202</div></div>
+<div class="ttc" id="aclassIOv2_1_1abs__cvt_html_aff41c99f01bb736113ccf6d2374d8d5a"><div class="ttname"><a href="classIOv2_1_1abs__cvt.html#aff41c99f01bb736113ccf6d2374d8d5a">IOv2::abs_cvt&lt; KernelType, typename KernelType::internal_type, true, true &gt;::m_io_status</a></div><div class="ttdeci">io_status m_io_status</div><div class="ttdef"><b>定义</b> abs_cvt.h:2044</div></div>
+<div class="ttc" id="aclassIOv2_1_1newline__cvt__creator_html"><div class="ttname"><a href="classIOv2_1_1newline__cvt__creator.html">IOv2::newline_cvt_creator</a></div><div class="ttdef"><b>定义</b> newline_cvt.h:640</div></div>
+<div class="ttc" id="aclassIOv2_1_1newline__cvt__creator_html_a4498cd236593f092fd7cd4d8e03d52a5"><div class="ttname"><a href="classIOv2_1_1newline__cvt__creator.html#a4498cd236593f092fd7cd4d8e03d52a5">IOv2::newline_cvt_creator::category</a></div><div class="ttdeci">CvtCreatorCategory category</div><div class="ttdef"><b>定义</b> newline_cvt.h:642</div></div>
+<div class="ttc" id="aclassIOv2_1_1newline__cvt__creator_html_a47453faed555cbe58d52bc1c4aa70166"><div class="ttname"><a href="classIOv2_1_1newline__cvt__creator.html#a47453faed555cbe58d52bc1c4aa70166">IOv2::newline_cvt_creator::create</a></div><div class="ttdeci">auto create(TKernel &amp;&amp;kernel) const</div><div class="ttdef"><b>定义</b> newline_cvt.h:649</div></div>
+<div class="ttc" id="aclassIOv2_1_1newline__cvt_html"><div class="ttname"><a href="classIOv2_1_1newline__cvt.html">IOv2::newline_cvt</a></div><div class="ttdef"><b>定义</b> newline_cvt.h:73</div></div>
+<div class="ttc" id="aclassIOv2_1_1newline__cvt_html_a3dbe44389ff0a0048e0f3a02742a87f4"><div class="ttname"><a href="classIOv2_1_1newline__cvt.html#a3dbe44389ff0a0048e0f3a02742a87f4">IOv2::newline_cvt::internal_type</a></div><div class="ttdeci">typename KernelType::internal_type internal_type</div><div class="ttdoc">本层字符类型 / Character type at this layer.</div><div class="ttdef"><b>定义</b> newline_cvt.h:79</div></div>
+<div class="ttc" id="aclassIOv2_1_1newline__cvt_html_a69303d761201071d16e2ace0d077391b"><div class="ttname"><a href="classIOv2_1_1newline__cvt.html#a69303d761201071d16e2ace0d077391b">IOv2::newline_cvt::external_type</a></div><div class="ttdeci">internal_type external_type</div><div class="ttdoc">与本层相同 / Same as this layer&#39;s.</div><div class="ttdef"><b>定义</b> newline_cvt.h:80</div></div>
+<div class="ttc" id="aclassIOv2_1_1newline__cvt_html_a6a1989f2bec55b9d9a57b14cf9742fec"><div class="ttname"><a href="classIOv2_1_1newline__cvt.html#a6a1989f2bec55b9d9a57b14cf9742fec">IOv2::newline_cvt::newline_cvt</a></div><div class="ttdeci">newline_cvt(KernelType kernel)</div><div class="ttdef"><b>定义</b> newline_cvt.h:86</div></div>
+<div class="ttc" id="aclassIOv2_1_1newline__cvt_html_a6ef4ad09b8367125ac9849952845633d"><div class="ttname"><a href="classIOv2_1_1newline__cvt.html#a6ef4ad09b8367125ac9849952845633d">IOv2::newline_cvt::device_type</a></div><div class="ttdeci">typename KernelType::device_type device_type</div><div class="ttdoc">底层设备类型 / Underlying device type.</div><div class="ttdef"><b>定义</b> newline_cvt.h:78</div></div>
+<div class="ttc" id="aclassIOv2_1_1newline__cvt_html_a7262b923373901522c5582ba4d0b63e2"><div class="ttname"><a href="classIOv2_1_1newline__cvt.html#a7262b923373901522c5582ba4d0b63e2">IOv2::newline_cvt::operator=</a></div><div class="ttdeci">newline_cvt &amp; operator=(const newline_cvt &amp;)=default</div></div>
+<div class="ttc" id="aclassIOv2_1_1newline__cvt_html_ad17535514f4fd7c549596fe1bbd21e4c"><div class="ttname"><a href="classIOv2_1_1newline__cvt.html#ad17535514f4fd7c549596fe1bbd21e4c">IOv2::newline_cvt::newline_cvt</a></div><div class="ttdeci">newline_cvt(newline_cvt &amp;&amp;) noexcept=default</div><div class="ttdoc">移动构造 / Move constructor.</div></div>
+<div class="ttc" id="aclassIOv2_1_1newline__cvt_html_aeecb633cf75ef6e8d7051f9812bcaedc"><div class="ttname"><a href="classIOv2_1_1newline__cvt.html#aeecb633cf75ef6e8d7051f9812bcaedc">IOv2::newline_cvt::newline_cvt</a></div><div class="ttdeci">newline_cvt(const newline_cvt &amp;)=default</div></div>
+<div class="ttc" id="acvt__concepts_8h_html"><div class="ttname"><a href="cvt__concepts_8h.html">cvt_concepts.h</a></div></div>
+<div class="ttc" id="anamespaceIOv2_html"><div class="ttname"><a href="namespaceIOv2.html">IOv2</a></div><div class="ttdef"><b>定义</b> clocale_wrapper.h:22</div></div>
+<div class="ttc" id="anamespaceIOv2_html_a36673c0e1d93ef095d232f0f726134d9a78e6221f6393d1356681db398f14ce6d"><div class="ttname"><a href="namespaceIOv2.html#a36673c0e1d93ef095d232f0f726134d9a78e6221f6393d1356681db398f14ce6d">IOv2::io_status::output</a></div><div class="ttdeci">@ output</div><div class="ttdoc">输出（写入）模式 / Output (writing) mode.</div><div class="ttdef"><b>定义</b> cvt_concepts.h:97</div></div>
+<div class="ttc" id="anamespaceIOv2_html_a36673c0e1d93ef095d232f0f726134d9aa43c1b0aa53a0c908810c06ab1ff3967"><div class="ttname"><a href="namespaceIOv2.html#a36673c0e1d93ef095d232f0f726134d9aa43c1b0aa53a0c908810c06ab1ff3967">IOv2::io_status::input</a></div><div class="ttdeci">@ input</div><div class="ttdoc">输入（读取）模式 / Input (reading) mode.</div><div class="ttdef"><b>定义</b> cvt_concepts.h:96</div></div>
+<div class="ttc" id="anamespacestd_html"><div class="ttname"><a href="namespacestd.html">std</a></div><div class="ttdef"><b>定义</b> ori_facet_buf.h:83</div></div>
+</div><!-- fragment --></div><!-- contents -->
+</div><!-- doc-content -->
+</div><!-- container -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><a href="dir_d44c64559bbebec7f509842c48db8b23.html">include</a></li><li class="navelem"><a href="dir_1157f564aec2b3a7d6bde4eba89ab805.html">IOv2</a></li><li class="navelem"><a href="dir_cb47199aadcaf8cfcea269255baf147a.html">cvt</a></li><li class="navelem"><a href="newline__cvt_8h.html">newline_cvt.h</a></li>
+    <li class="footer">制作者 <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.15.0 </li>
+  </ul>
+</div>
+</body>
+</html>

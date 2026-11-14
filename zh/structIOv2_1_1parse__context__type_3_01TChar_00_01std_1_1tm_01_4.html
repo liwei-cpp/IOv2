@@ -1,0 +1,247 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=11"/>
+<meta name="generator" content="Doxygen 1.15.0"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>IOv2: IOv2::parse_context_type&lt; TChar, std::tm &gt; 模板结构体 参考</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<script type="text/javascript" src="clipboard.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<script type="text/javascript" src="cookie.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr id="projectrow">
+  <td id="projectalign">
+   <div id="projectname">IOv2
+   </div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 制作者 Doxygen 1.15.0 -->
+<script type="text/javascript">
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+</script>
+<script type="text/javascript">
+$(function() { codefold.init(); });
+</script>
+<script type="text/javascript" src="menudata.js"></script>
+<script type="text/javascript" src="menu.js"></script>
+<script type="text/javascript">
+$(function() {
+  initMenu('',true,false,'search.php','搜索',true);
+  $(function() { init_search(); });
+});
+</script>
+<div id="main-nav"></div>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+$(function(){initNavTree('structIOv2_1_1parse__context__type_3_01TChar_00_01std_1_1tm_01_4.html','','structIOv2_1_1parse__context__type_3_01TChar_00_01std_1_1tm_01_4-members'); });
+</script>
+<div id="container">
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">载入中...</div>
+<div class="SRStatus" id="Searching">搜索中...</div>
+<div class="SRStatus" id="NoMatches">未找到</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="header">
+  <div class="headertitle"><div class="title">IOv2::parse_context_type&lt; TChar, std::tm &gt; 模板结构体 参考</div></div>
+</div><!--header-->
+<div class="contents">
+
+<p>把 <span class="tt">std::tm</span> 的提取改道到 <span class="tt"><a class="el" href="structIOv2_1_1time__parse__context.html" title="timeio::get() 的聚合解析上下文。">time_parse_context</a></span>，并用目标的现有字段作回退值。  
+ <a href="#details">更多...</a></p>
+
+<p><code>#include &lt;<a class="el" href="tm_8h_source.html">tm.h</a>&gt;</code></p>
+<table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 id="header-pub-types" class="groupheader"><a id="pub-types" name="pub-types"></a>
+Public 类型</h2></td></tr>
+<tr class="memitem:ac20f848841404261b65acd446917c8f3" id="r_ac20f848841404261b65acd446917c8f3"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ac20f848841404261b65acd446917c8f3">type</a> = <a class="el" href="structIOv2_1_1time__parse__context.html">time_parse_context</a>&lt;TChar, true, true, <a class="el" href="#a454b0601944ff72558fd861a3067c575">tm_parse_tz_level</a>&gt;</td></tr>
+<tr class="memdesc:ac20f848841404261b65acd446917c8f3"><td class="mdescLeft">&#160;</td><td class="mdescRight">实际解析进的中转类型：带日期、带时间、时区档取 <a class="el" href="#a454b0601944ff72558fd861a3067c575">tm_parse_tz_level</a> 的 <span class="tt"><a class="el" href="structIOv2_1_1time__parse__context.html" title="timeio::get() 的聚合解析上下文。">time_parse_context</a></span>。  <br /></td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 id="header-pub-static-methods" class="groupheader"><a id="pub-static-methods" name="pub-static-methods"></a>
+静态 Public 成员函数</h2></td></tr>
+<tr class="memitem:a1fbc5924fc102912abe0748308ef1a8a" id="r_a1fbc5924fc102912abe0748308ef1a8a"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="#ac20f848841404261b65acd446917c8f3">type</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a1fbc5924fc102912abe0748308ef1a8a">make_parse_context</a> (const std::tm &amp;tmb)</td></tr>
+<tr class="memdesc:a1fbc5924fc102912abe0748308ef1a8a"><td class="mdescLeft">&#160;</td><td class="mdescRight">由一个 <span class="tt">std::tm</span> 构造出以其字段为回退值的解析上下文。  <br /></td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 id="header-pub-static-attribs" class="groupheader"><a id="pub-static-attribs" name="pub-static-attribs"></a>
+静态 Public 属性</h2></td></tr>
+<tr class="memitem:a454b0601944ff72558fd861a3067c575" id="r_a454b0601944ff72558fd861a3067c575"><td class="memItemLeft" align="right" valign="top">static constexpr <a class="el" href="namespaceIOv2.html#ae5c45ed29b875d3d35e686974d847b1e">tz_level</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a454b0601944ff72558fd861a3067c575">tm_parse_tz_level</a></td></tr>
+<tr class="memdesc:a454b0601944ff72558fd861a3067c575"><td class="mdescLeft">&#160;</td><td class="mdescRight">本上下文所处的时区档：由 <a class="el" href="structIOv2_1_1time__value__fields_3_01std_1_1tm_01_4.html">time_value_fields&lt;std::tm&gt;</a> 的两个标志位直接决定。  <br /></td></tr>
+</table>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">详细描述</h2>
+<div class="textblock"><div class="compoundTemplParams">template&lt;typename TChar&gt;<br />
+struct IOv2::parse_context_type&lt; TChar, std::tm &gt;</div><p>把 <span class="tt">std::tm</span> 的提取改道到 <span class="tt"><a class="el" href="structIOv2_1_1time__parse__context.html" title="timeio::get() 的聚合解析上下文。">time_parse_context</a></span>，并用目标的现有字段作回退值。 </p>
+<p>这是 <span class="tt"><a class="el" href="traits__base_8h.html">traits_base.h</a></span> 所述"解析上下文"机制的实例：<span class="tt"><a class="el" href="#ac20f848841404261b65acd446917c8f3" title="实际解析进的中转类型：带日期、带时间、时区档取 tm_parse_tz_level 的 time_parse_context。">type</a></span> 指定实际解析进的中转类型， <span class="tt"><a class="el" href="#a1fbc5924fc102912abe0748308ef1a8a" title="由一个 std::tm 构造出以其字段为回退值的解析上下文。">make_parse_context</a></span> 从待写入的 <span class="tt">std::tm</span> 构造它。<span class="tt">operator&gt;&gt;</span> 先让 <span class="tt"><a class="el" href="structIOv2_1_1io__traits.html" title="把 TChar 流的读写逻辑接到类型 T 上的扩展点。主模板故意不定义；见本文件头部。">io_traits</a>&lt;TChar, <a class="el" href="#ac20f848841404261b65acd446917c8f3" title="实际解析进的中转类型：带日期、带时间、时区档取 tm_parse_tz_level 的 time_parse_context。">type</a>&gt;::sread</span> 解析进中转对象，再调用其 <span class="tt">convert_to(std::tm&amp;)</span> 写回。</p>
+<dl class="tparams"><dt>模板参数</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">TChar</td><td>流的字符类型。 </td></tr>
+  </table>
+  </dd>
+</dl>
+</div><a name="doc-typedef-members" id="doc-typedef-members"></a><h2 id="header-doc-typedef-members" class="groupheader">成员类型定义说明</h2>
+<a id="ac20f848841404261b65acd446917c8f3" name="ac20f848841404261b65acd446917c8f3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac20f848841404261b65acd446917c8f3">&#9670;&#160;</a></span>type</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename TChar&gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname">using <a class="el" href="structIOv2_1_1parse__context__type.html">IOv2::parse_context_type</a>&lt; TChar, std::tm &gt;::type = <a class="el" href="structIOv2_1_1time__parse__context.html">time_parse_context</a>&lt;TChar, true, true, <a class="el" href="#a454b0601944ff72558fd861a3067c575">tm_parse_tz_level</a>&gt;</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>实际解析进的中转类型：带日期、带时间、时区档取 <a class="el" href="#a454b0601944ff72558fd861a3067c575">tm_parse_tz_level</a> 的 <span class="tt"><a class="el" href="structIOv2_1_1time__parse__context.html" title="timeio::get() 的聚合解析上下文。">time_parse_context</a></span>。 </p>
+
+</div>
+</div>
+<a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">成员函数说明</h2>
+<a id="a1fbc5924fc102912abe0748308ef1a8a" name="a1fbc5924fc102912abe0748308ef1a8a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1fbc5924fc102912abe0748308ef1a8a">&#9670;&#160;</a></span>make_parse_context()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename TChar&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="#ac20f848841404261b65acd446917c8f3">type</a> <a class="el" href="structIOv2_1_1parse__context__type.html">IOv2::parse_context_type</a>&lt; TChar, std::tm &gt;::make_parse_context </td>
+          <td>(</td>
+          <td class="paramtype">const std::tm &amp;</td>          <td class="paramname"><span class="paramname"><em>tmb</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel static">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>由一个 <span class="tt">std::tm</span> 构造出以其字段为回退值的解析上下文。 </p>
+<p>返回的上下文的日期与时间字段被预置为 <code class="param">tmb</code> 中的对应值，因此随后 <span class="tt">get()</span> 未解析到的 字段会保留 <code class="param">tmb</code> 的取值——除非其它字段的归一化进位波及到它——而不是退回默认构造所采用 的挂钟时间。时区档随平台而定，见 <a class="el" href="#a454b0601944ff72558fd861a3067c575">tm_parse_tz_level</a>。</p>
+<p>归一化只用 <span class="tt">std::chrono</span> 完成，**不经 <span class="tt">mktime()</span>**（后者依赖 <span class="tt">TZ</span>、会因夏令时平移小时数、 且写入全局状态）。规则为：</p><ul>
+<li><span class="tt">tm_mon</span> 不限于 <span class="tt">0..11</span>，溢出部分按月进位并入年份；</li>
+<li><span class="tt">tm_mday</span> 按"自当月 1 日起的天数偏移"处理，故 <span class="tt">0</span> 表示上月最后一天；</li>
+<li><span class="tt">tm_hour</span> / <span class="tt">tm_min</span> / <span class="tt">tm_sec</span> 同样不限于范围：三者先折成"当日秒数"，超出 <span class="tt">[0, 24h)</span> 的部分按天进位或借位并入日期，余下部分才作为时刻。故 <span class="tt">00:00:-5</span> 得到前一天的 <span class="tt">23:59:55</span>，<span class="tt">24:00:00</span> 得到次日的 <span class="tt">00:00:00</span>；</li>
+<li><span class="tt">tm_sec == 60</span>（闰秒）取 <span class="tt">59</span>，因为 <span class="tt">hh_mm_ss</span> 无法表示它。这是时间组唯一的 截断，其余越界值一律进位；</li>
+<li>日期偏移（<span class="tt">tm_mday</span> 与时间组的进位之和）先被夹取到 ±4,000,000 天再叠到当月 1 日上， 所得日期再被夹取到 <span class="tt">std::chrono::year</span> 可表示的日历范围内。故越界极远的 <span class="tt">tm_mday</span> 停在离当月 1 日约 ±10,951 年处，而不是日历边界。</li>
+</ul>
+<dl class="section warning"><dt>警告</dt><dd>**<code class="param">tmb</code> 必须是已初始化的对象**（例如 <span class="tt">std::tm t{}</span>）。那六项在解析开始前被 **无条件读取**一次以铺好回退值，与格式串之后是否覆盖它们无关，故传入未初始化的 <span class="tt">std::tm</span> 即为未定义行为（[basic.indet]/2 读取不确定值），即使格式串填满六项也一样。 这一点与 <span class="tt">std::get_time</span> 不同——<span class="tt">std::time_get::get</span> 只写不读。<span class="tt">is &gt;&gt; tm</span> 与 <span class="tt"><a class="el" href="namespaceIOv2.html#af07ff1562a8d2f2453ffc25c02316ef7" title="构造按 fmt 解析时间并写入 *tmb 的操纵符。">get_time</a></span> 两条入口都经由本函数，故两者同受此约束；详见 <span class="tt"><a class="el" href="namespaceIOv2.html#af07ff1562a8d2f2453ffc25c02316ef7" title="构造按 fmt 解析时间并写入 *tmb 的操纵符。">get_time</a></span> 的同名警告。 </dd></dl>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">tmb</td><td>提供回退值的 <span class="tt">std::tm</span>；其 <span class="tt">tm_wday</span> / <span class="tt">tm_yday</span> / <span class="tt">tm_isdst</span> 不参与计算。 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd>已装入回退值的上下文。 </dd></dl>
+
+</div>
+</div>
+<a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">类成员变量说明</h2>
+<a id="a454b0601944ff72558fd861a3067c575" name="a454b0601944ff72558fd861a3067c575"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a454b0601944ff72558fd861a3067c575">&#9670;&#160;</a></span>tm_parse_tz_level</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename TChar&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#ae5c45ed29b875d3d35e686974d847b1e">tz_level</a> <a class="el" href="structIOv2_1_1parse__context__type.html">IOv2::parse_context_type</a>&lt; TChar, std::tm &gt;::tm_parse_tz_level</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span><span class="mlabel constexpr">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<b>初始值:</b><div class="fragment"><div class="line">=</div>
+<div class="line">        <a class="code hl_struct" href="structIOv2_1_1time__value__fields.html">time_value_fields&lt;std::tm&gt;::has_zone</a>   ? <a class="code hl_enumvalue" href="namespaceIOv2.html#ae5c45ed29b875d3d35e686974d847b1eaa84e5f25e7f6d5de9b82ce3f64d1b8fa">tz_level::zone</a></div>
+<div class="line">      : <a class="code hl_struct" href="structIOv2_1_1time__value__fields.html">time_value_fields&lt;std::tm&gt;::has_offset</a> ? <a class="code hl_enumvalue" href="namespaceIOv2.html#ae5c45ed29b875d3d35e686974d847b1ea7a86c157ee9713c34fbd7a1ee40f0c5a">tz_level::offset</a></div>
+<div class="line">                                               : <a class="code hl_enumvalue" href="namespaceIOv2.html#ae5c45ed29b875d3d35e686974d847b1ea334c4a4c42fdb79d7ebc3e73b517e6f8">tz_level::none</a></div>
+<div class="ttc" id="anamespaceIOv2_html_ae5c45ed29b875d3d35e686974d847b1ea334c4a4c42fdb79d7ebc3e73b517e6f8"><div class="ttname"><a href="namespaceIOv2.html#ae5c45ed29b875d3d35e686974d847b1ea334c4a4c42fdb79d7ebc3e73b517e6f8">IOv2::tz_level::none</a></div><div class="ttdeci">@ none</div><div class="ttdoc">不携带时区字段，z 与 Z 都按字面量处理。</div><div class="ttdef"><b>定义</b> timeio.h:741</div></div>
+<div class="ttc" id="anamespaceIOv2_html_ae5c45ed29b875d3d35e686974d847b1ea7a86c157ee9713c34fbd7a1ee40f0c5a"><div class="ttname"><a href="namespaceIOv2.html#ae5c45ed29b875d3d35e686974d847b1ea7a86c157ee9713c34fbd7a1ee40f0c5a">IOv2::tz_level::offset</a></div><div class="ttdeci">@ offset</div><div class="ttdoc">解析 z 的 UTC 偏移；Z 仍按字面量处理。</div><div class="ttdef"><b>定义</b> timeio.h:742</div></div>
+<div class="ttc" id="anamespaceIOv2_html_ae5c45ed29b875d3d35e686974d847b1eaa84e5f25e7f6d5de9b82ce3f64d1b8fa"><div class="ttname"><a href="namespaceIOv2.html#ae5c45ed29b875d3d35e686974d847b1eaa84e5f25e7f6d5de9b82ce3f64d1b8fa">IOv2::tz_level::zone</a></div><div class="ttdeci">@ zone</div><div class="ttdoc">在 offset 之上再解析 Z，得到区域身份与缩写。</div><div class="ttdef"><b>定义</b> timeio.h:743</div></div>
+<div class="ttc" id="astructIOv2_1_1time__value__fields_html"><div class="ttname"><a href="structIOv2_1_1time__value__fields.html">IOv2::time_value_fields</a></div><div class="ttdoc">某个时间值类型能供出哪几类字段——timeio::expand_format 据此裁剪格式串。</div><div class="ttdef"><b>定义</b> timeio.h:1628</div></div>
+</div><!-- fragment -->
+<p>本上下文所处的时区档：由 <a class="el" href="structIOv2_1_1time__value__fields_3_01std_1_1tm_01_4.html">time_value_fields&lt;std::tm&gt;</a> 的两个标志位直接决定。 </p>
+<p><span class="tt">std::tm</span> 的 <span class="tt">tm_gmtoff</span> 与 <span class="tt">tm_zone</span> 是一对实现定义的扩展，实践中要么都在、要么都不在， 所以本判据实际只在 <span class="tt">zone</span> 与 <span class="tt">none</span> 之间取值，<span class="tt">offset</span> 那一支留给将来只有其中一个的平台。 判据与 put 侧同源，因此两个方向不会脱节：都在时 <span class="tt">z</span> / <span class="tt">Z</span> 双向都真的工作， 都不在时两侧一同退化为字面量。 </p>
+
+</div>
+</div>
+<hr/>该结构体的文档由以下文件生成:<ul>
+<li>include/IOv2/io/traits/<a class="el" href="tm_8h_source.html">tm.h</a></li>
+</ul>
+</div><!-- contents -->
+</div><!-- doc-content -->
+<div id="page-nav" class="page-nav-panel">
+<div id="page-nav-resize-handle"></div>
+<div id="page-nav-tree">
+<div id="page-nav-contents">
+</div><!-- page-nav-contents -->
+</div><!-- page-nav-tree -->
+</div><!-- page-nav -->
+</div><!-- container -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><a href="namespaceIOv2.html">IOv2</a></li><li class="navelem"><a href="structIOv2_1_1parse__context__type_3_01TChar_00_01std_1_1tm_01_4.html">parse_context_type&lt; TChar, std::tm &gt;</a></li>
+    <li class="footer">制作者 <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.15.0 </li>
+  </ul>
+</div>
+</body>
+</html>

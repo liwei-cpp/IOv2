@@ -1,0 +1,444 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=11"/>
+<meta name="generator" content="Doxygen 1.15.0"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>IOv2: IOv2::io_traits&lt; TChar, TValue &gt; 模板结构体 参考</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<script type="text/javascript" src="clipboard.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<script type="text/javascript" src="cookie.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr id="projectrow">
+  <td id="projectalign">
+   <div id="projectname">IOv2
+   </div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 制作者 Doxygen 1.15.0 -->
+<script type="text/javascript">
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+</script>
+<script type="text/javascript">
+$(function() { codefold.init(); });
+</script>
+<script type="text/javascript" src="menudata.js"></script>
+<script type="text/javascript" src="menu.js"></script>
+<script type="text/javascript">
+$(function() {
+  initMenu('',true,false,'search.php','搜索',true);
+  $(function() { init_search(); });
+});
+</script>
+<div id="main-nav"></div>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+$(function(){initNavTree('structIOv2_1_1io__traits_3_01TChar_00_01TValue_01_4.html','','structIOv2_1_1io__traits_3_01TChar_00_01TValue_01_4-members'); });
+</script>
+<div id="container">
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">载入中...</div>
+<div class="SRStatus" id="Searching">搜索中...</div>
+<div class="SRStatus" id="NoMatches">未找到</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="header">
+  <div class="headertitle"><div class="title">IOv2::io_traits&lt; TChar, TValue &gt; 模板结构体 参考</div></div>
+</div><!--header-->
+<div class="contents">
+
+<p>算术值的数值格式读写。  
+ <a href="#details">更多...</a></p>
+
+<p><code>#include &lt;<a class="el" href="arithmetic_8h_source.html">arithmetic.h</a>&gt;</code></p>
+<table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 id="header-pub-static-methods" class="groupheader"><a id="pub-static-methods" name="pub-static-methods"></a>
+静态 Public 成员函数</h2></td></tr>
+<tr class="memitem:ac858946829f26a5bd1ec31dccf35feec" id="r_ac858946829f26a5bd1ec31dccf35feec"><td class="memTemplParams" colspan="2">template&lt;typename TIter&gt; <br />
+requires (char_sink_for&lt;TIter, TChar&gt;)</td></tr>
+<tr class="memitem:ac858946829f26a5bd1ec31dccf35feec template"><td class="memItemLeft" align="right" valign="top">static TIter&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ac858946829f26a5bd1ec31dccf35feec">swrite</a> (TIter s, <a class="el" href="classIOv2_1_1ios__base.html">ios_base</a>&lt; TChar &gt; &amp;io, const <a class="el" href="classIOv2_1_1locale.html">locale</a>&lt; TChar &gt; &amp;loc, TValue value)</td></tr>
+<tr class="memdesc:ac858946829f26a5bd1ec31dccf35feec"><td class="mdescLeft">&#160;</td><td class="mdescRight">把一个算术值按数值格式写出。  <br /></td></tr>
+<tr class="memitem:afbb2adfba4f68ebf6dfb034388a90d34" id="r_afbb2adfba4f68ebf6dfb034388a90d34"><td class="memTemplParams" colspan="2">template&lt;typename TIter, std::sentinel_for&lt; TIter &gt; TSent&gt; <br />
+requires (std::is_same_v&lt;TChar, typename TIter::value_type&gt;) (!std::is_same_v&lt;TValue, signed char&gt; &amp;&amp; !std::is_same_v&lt;TValue, unsigned char&gt;)</td></tr>
+<tr class="memitem:afbb2adfba4f68ebf6dfb034388a90d34 template"><td class="memItemLeft" align="right" valign="top">static TIter&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#afbb2adfba4f68ebf6dfb034388a90d34">sread</a> (TIter s, TSent s_end, <a class="el" href="classIOv2_1_1ios__base.html">ios_base</a>&lt; TChar &gt; &amp;io, const <a class="el" href="classIOv2_1_1locale.html">locale</a>&lt; TChar &gt; &amp;loc, TValue &amp;value)</td></tr>
+<tr class="memdesc:afbb2adfba4f68ebf6dfb034388a90d34"><td class="mdescLeft">&#160;</td><td class="mdescRight">从流中解析一个算术值。  <br /></td></tr>
+<tr class="memitem:ac858946829f26a5bd1ec31dccf35feec" id="r_ac858946829f26a5bd1ec31dccf35feec"><td class="memTemplParams" colspan="2">template&lt;typename TIter&gt; <br />
+requires (char_sink_for&lt;TIter, TChar&gt;)</td></tr>
+<tr class="memitem:ac858946829f26a5bd1ec31dccf35feec template"><td class="memItemLeft" align="right" valign="top">static TIter&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ac858946829f26a5bd1ec31dccf35feec">swrite</a> (TIter s, <a class="el" href="classIOv2_1_1ios__base.html">ios_base</a>&lt; TChar &gt; &amp;io, const <a class="el" href="classIOv2_1_1locale.html">locale</a>&lt; TChar &gt; &amp;loc, TValue value)</td></tr>
+<tr class="memdesc:ac858946829f26a5bd1ec31dccf35feec"><td class="mdescLeft">&#160;</td><td class="mdescRight">把一个指针的地址按十六进制写出。  <br /></td></tr>
+<tr class="memitem:afbe86630c9b50b76f0b5a56606ec49cc" id="r_afbe86630c9b50b76f0b5a56606ec49cc"><td class="memTemplParams" colspan="2">template&lt;typename TIter, std::sentinel_for&lt; TIter &gt; TSent&gt; <br />
+requires (std::is_same_v&lt;TChar, typename TIter::value_type&gt; &amp;&amp; std::is_same_v&lt;TValue, void*&gt;)</td></tr>
+<tr class="memitem:afbe86630c9b50b76f0b5a56606ec49cc template"><td class="memItemLeft" align="right" valign="top">static TIter&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#afbe86630c9b50b76f0b5a56606ec49cc">sread</a> (TIter s, TSent s_end, <a class="el" href="classIOv2_1_1ios__base.html">ios_base</a>&lt; TChar &gt; &amp;io, const <a class="el" href="classIOv2_1_1locale.html">locale</a>&lt; TChar &gt; &amp;loc, void *&amp;value)</td></tr>
+<tr class="memdesc:afbe86630c9b50b76f0b5a56606ec49cc"><td class="mdescLeft">&#160;</td><td class="mdescRight">从流中解析一个地址，写入 <span class="tt">void*</span>。  <br /></td></tr>
+</table>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">详细描述</h2>
+<div class="textblock"><div class="compoundTemplParams">template&lt;typename TChar, typename TValue&gt;<br />
+requires (std::is_same_v&lt;TValue, std::remove_cv_t&lt;TValue&gt;&gt; &amp;&amp; std::is_arithmetic_v&lt;TValue&gt; &amp;&amp; (!std::is_floating_point_v&lt;TValue&gt; || (std::numeric_limits&lt;long double&gt;::digits &gt;= std::numeric_limits&lt;TValue&gt;::digits &amp;&amp; std::numeric_limits&lt;long double&gt;::max_exponent &gt;= std::numeric_limits&lt;TValue&gt;::max_exponent &amp;&amp; std::numeric_limits&lt;long double&gt;::min_exponent &lt;= std::numeric_limits&lt;TValue&gt;::min_exponent)) &amp;&amp; !std::is_same_v&lt;TValue, char&gt; &amp;&amp; !std::is_same_v&lt;TValue, wchar_t&gt; &amp;&amp; !std::is_same_v&lt;TValue, char8_t&gt; &amp;&amp; !std::is_same_v&lt;TValue, char16_t&gt; &amp;&amp; !std::is_same_v&lt;TValue, char32_t&gt; &amp;&amp; !(std::is_same_v&lt;TChar, char&gt; &amp;&amp; std::is_same_v&lt;TValue, signed char&gt;) &amp;&amp; !(std::is_same_v&lt;TChar, char&gt; &amp;&amp; std::is_same_v&lt;TValue, unsigned char&gt;))<br />
+struct IOv2::io_traits&lt; TChar, TValue &gt;</div><p>算术值的数值格式读写。 </p>
+<p>指针的地址格式读写。</p>
+<dl class="section note"><dt>注解</dt><dd>排除的那五个类型是**字符**类型，归 <span class="tt"><a class="el" href="char__and__str_8h.html">IOv2/io/traits/char_and_str.h</a></span> 管，不是数值。 排除项的作用不止于选择重载，更在于让 <span class="tt"><a class="el" href="structIOv2_1_1io__traits.html" title="把 TChar 流的读写逻辑接到类型 T 上的扩展点。主模板故意不定义；见本文件头部。">io_traits</a>&lt;char, wchar_t&gt;</span> 之类**根本不存在**： 类模板没有 <span class="tt">= delete</span>，这是表达标准所删重载的唯一手段。删掉任何一条， <span class="tt">os &lt;&lt; L'x'</span> 都会静默打印出一个数字。 </dd>
+<dd>
+<span class="tt">signed char</span> / <span class="tt">unsigned char</span> 的排除**挂着 <span class="tt">TChar == char</span> 这个条件**，因为这两个 类型是二维的：<span class="tt">char</span> 流上它们是字符，归 <span class="tt"><a class="el" href="char__and__str_8h.html">char_and_str.h</a></span>；宽流上标准没有它们的重载， 它们经整型提升落到数值插入，必须留在本特化。条件排除让缺少 <span class="tt"><a class="el" href="char__and__str_8h.html">char_and_str.h</a></span> 时 <span class="tt">os &lt;&lt; (signed char)</span> 成为**编译错误**，而不是静默按数值写出。 </dd></dl>
+<dl class="section warning"><dt>警告</dt><dd>**写出时本库不做整型提升**，按 <span class="tt">TValue</span> 自身的位宽格式化，因此宽流上负的 <span class="tt">signed char</span> 在 <span class="tt"><a class="el" href="group__ios__manipulators.html#ga294fd2715f31cbf89f98b4365b3e88ad" title="在 basefield 内设置 hex：整数以十六进制表示。">hex</a></span> / <span class="tt"><a class="el" href="group__ios__manipulators.html#ga5f8ee2313b90a96b380258357f5573ec" title="在 basefield 内设置 oct：整数以八进制表示。">oct</a></span> 下比标准短一半：<span class="tt">wos &lt;&lt; <a class="el" href="group__ios__manipulators.html#ga294fd2715f31cbf89f98b4365b3e88ad" title="在 basefield 内设置 hex：整数以十六进制表示。">hex</a> &lt;&lt; (signed char)-1</span> 这里 写 <span class="tt">ff</span>，标准写 <span class="tt">ffffffff</span>（提升到 <span class="tt">int</span> 后按 LWG 23 重解释为 <span class="tt">unsigned int</span>）。 <span class="tt">short</span> 等有自己重载的类型不受影响——标准按被选中重载的形参宽度重解释，恰与 <span class="tt">make_unsigned_t&lt;TValue&gt;</span> 相同；<span class="tt">unsigned char</span> 提升后仍非负，数字也相同。 这一格是刻意保留的分歧：读侧两边都不接受宽流上的 <span class="tt">signed char</span>，复刻标准换不到 互操作性，而 8 位写法用 <span class="tt">int</span> 读得回来（<span class="tt">ff</span> → 255 → <span class="tt">-1</span>），32 位写法会溢出 <span class="tt">int</span> 并置 <span class="tt">strfailbit</span>。 </dd></dl>
+<dl class="section note"><dt>注解</dt><dd>约束里那条 <span class="tt">numeric_limits</span> 判据管的是 C++23 的扩展浮点类型（<span class="tt">std::float16_t</span> / <span class="tt">bfloat16_t</span> / <span class="tt">float32_t</span> / <span class="tt">float64_t</span> / <span class="tt">float128_t</span>）：本特化只接纳**存在标准浮点 类型能精确表示**的那些，与 C++23 <span class="tt">[ostream.inserters.arithmetic]</span> 一致。装不下的 让特化不存在，因此本机（<span class="tt">long double</span> 为 x87 80 位）上 <span class="tt">os &lt;&lt; std::float128_t{}</span> 报「没有 <span class="tt">operator&lt;&lt;</span>」。 </dd></dl>
+<dl class="tparams"><dt>模板参数</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">TChar</td><td>流的字符类型。 </td></tr>
+    <tr><td class="paramname">TValue</td><td>算术类型；须不带顶层 cv 限定，且不是上述被排除的字符类型。 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section note"><dt>注解</dt><dd>排除的四个指向类型对应标准里 <span class="tt">= delete</span> 的字符串重载：<span class="tt">const wchar_t*</span>（窄流上）、 <span class="tt">const char8_t*</span>、<span class="tt">const char16_t*</span>、<span class="tt">const char32_t*</span>。排除之后没有任何 <span class="tt"><a class="el" href="structIOv2_1_1io__traits.html" title="把 TChar 流的读写逻辑接到类型 T 上的扩展点。主模板故意不定义；见本文件头部。">io_traits</a></span> 匹配，<span class="tt">os &lt;&lt; L"hi"</span> 编译不过，而不是静默打出一个地址、流还留在 <span class="tt">good()</span>。 类模板没有 <span class="tt">= delete</span>，「根本没有 <span class="tt"><a class="el" href="structIOv2_1_1io__traits.html" title="把 TChar 流的读写逻辑接到类型 T 上的扩展点。主模板故意不定义；见本文件头部。">io_traits</a></span>」是表达它的唯一手段。 </dd>
+<dd>
+判的是 <span class="tt">remove_const_t</span> 而**不是** <span class="tt">remove_cv_t</span>：<span class="tt">const wchar_t*</span> 被标准删掉， <span class="tt">const volatile wchar_t*</span> 没有，后者按地址打印。指向 volatile 内存的字符串本就无法 安全打印——找终止符与搬字符是两趟，两趟之间内容可以变。 </dd>
+<dd>
+第一个约束判的是**键本身**的顶层 cv，与上一条无关：<span class="tt">is_pointer_v</span> 对顶层 cv 不敏感， 而 <span class="tt"><a class="el" href="char__and__str_8h.html">char_and_str.h</a></span> 里的字符串特化敏感，少了它 <span class="tt">char* volatile</span> 会被本特化接住打地址， 而标准打的是内容。加上之后本特化拒绝，<span class="tt">operator&lt;&lt;</span> 改用 <span class="tt">decay_t</span> 重试，得到与无限定键 一致的答案。只有 <span class="tt">volatile</span> 会这样漏进来——<span class="tt">operator&lt;&lt;</span> 的形参是 <span class="tt">const TValue&amp;</span>。 </dd>
+<dd>
+指向函数的指针也被排除，因此 <span class="tt">os &lt;&lt; <a class="el" href="namespaceIOv2.html#aedf6b0c58c8061128becb490433aecf3" title="构造设置字段宽度的操纵符。">setw</a></span>（漏写实参列表）编译不过，而不是打出一个 地址。用户自写的操纵符走 <span class="tt">operator&lt;&lt;(T&amp;, void (*)(<a class="el" href="classIOv2_1_1ios__base.html" title="所有流的格式化状态基类。">ios_base</a>&lt;TChar&gt;&amp;))</span>，不经过本特化。 </dd>
+<dd>
+<span class="tt">volatile int*</span> 之类照样打得出地址（<span class="tt"><a class="el" href="#ac858946829f26a5bd1ec31dccf35feec" title="把一个算术值按数值格式写出。">swrite</a></span> 会把 <span class="tt">volatile</span> 转掉），与 C++23 P1147R1 给 <span class="tt">basic_ostream</span> 添加的 <span class="tt">operator&lt;&lt;(const volatile void*)</span> 一致。地址只被格式化， 从不解引用。 </dd>
+<dd>
+指向类型与流的 <span class="tt">char_type</span> 一致时（<span class="tt">wos &lt;&lt; L"hi"</span>），<span class="tt"><a class="el" href="structIOv2_1_1io__traits.html" title="把 TChar 流的读写逻辑接到类型 T 上的扩展点。主模板故意不定义；见本文件头部。">io_traits</a>&lt;TChar, const TChar*&gt;</span> 更特化，本特化本来就轮不到。<span class="tt">char</span> 被指类型**无条件排除**——<span class="tt"><a class="el" href="char__and__str_8h.html">char_and_str.h</a></span> 对任何流 都提供加宽特化，宽流上标准也写文本。<span class="tt">signed char</span> / <span class="tt">unsigned char</span> 被指类型只在 <span class="tt">char</span> 流上排除：宽流上标准没有它们的字符串重载，落到 <span class="tt">operator&lt;&lt;(const void*)</span> 打地址， 正是本特化该做的。三处排除都键在 <span class="tt">remove_const_t</span> 上，故 <span class="tt">volatile char*</span> 仍打地址。 </dd></dl>
+<dl class="tparams"><dt>模板参数</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">TChar</td><td>流的字符类型。 </td></tr>
+    <tr><td class="paramname">TValue</td><td>对象指针类型；须不带顶层 cv 限定，且被指类型不在上述排除名单内。 </td></tr>
+  </table>
+  </dd>
+</dl>
+</div><a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">成员函数说明</h2>
+<a id="afbb2adfba4f68ebf6dfb034388a90d34" name="afbb2adfba4f68ebf6dfb034388a90d34"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afbb2adfba4f68ebf6dfb034388a90d34">&#9670;&#160;</a></span>sread() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename TChar, typename TValue&gt; </div>
+<div class="memtemplate">
+template&lt;typename TIter, std::sentinel_for&lt; TIter &gt; TSent&gt; <br />
+requires (std::is_same_v&lt;TChar, typename TIter::value_type&gt;) (!std::is_same_v&lt;TValue, signed char&gt; &amp;&amp; !std::is_same_v&lt;TValue, unsigned char&gt;)</div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">TIter <a class="el" href="structIOv2_1_1io__traits.html">IOv2::io_traits</a>&lt; TChar, TValue &gt;::sread </td>
+          <td>(</td>
+          <td class="paramtype">TIter</td>          <td class="paramname"><span class="paramname"><em>s</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">TSent</td>          <td class="paramname"><span class="paramname"><em>s_end</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classIOv2_1_1ios__base.html">ios_base</a>&lt; TChar &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>io</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="classIOv2_1_1locale.html">locale</a>&lt; TChar &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>loc</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">TValue &amp;</td>          <td class="paramname"><span class="paramname"><em>value</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel static">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>从流中解析一个算术值。 </p>
+<p>解析全部交给 locale 的 <span class="tt"><a class="el" href="classIOv2_1_1numeric.html" title="基于 locale 的数值格式化与解析 facet。">numeric</a>&lt;TChar&gt;</span> facet，它按 <code class="param">io</code> 的 <span class="tt">basefield</span> 等标志识别 记法、按 locale 规则处理分组，解析失败或溢出时抛出。与标准一致，本函数**不消费** <span class="tt">width()</span>。</p>
+<dl class="section note"><dt>注解</dt><dd>本成员比类模板的名单多排除 <span class="tt">signed char</span> 与 <span class="tt">unsigned char</span>，这处**不对称是有意 的**。提取按引用传参，拿不到插入侧的整型提升，标准也只为 <span class="tt">char</span> 流定义了这两个 提取器，因此宽流上的 <span class="tt">wis &gt;&gt; sc</span> 编译不过，而不是退回去按数值解析。<span class="tt">char</span> 流上的 两条已由类模板的名单排除，归 <span class="tt"><a class="el" href="char__and__str_8h.html">char_and_str.h</a></span>。 </dd></dl>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">s</td><td>输入迭代器。 </td></tr>
+    <tr><td class="paramname">s_end</td><td>输入哨位。 </td></tr>
+    <tr><td class="paramname">io</td><td>提供 <span class="tt">basefield</span> 等解析标志的流。 </td></tr>
+    <tr><td class="paramname">loc</td><td>提供 <span class="tt"><a class="el" href="classIOv2_1_1numeric.html" title="基于 locale 的数值格式化与解析 facet。">numeric</a>&lt;TChar&gt;</span> facet 的 locale。 </td></tr>
+    <tr><td class="paramname">value</td><td>接收结果的变量；溢出时按 LWG 23 置为 <span class="tt">numeric_limits</span> 的极值后再抛出。 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd>指向最后一个被消费字符之后的输入迭代器。 </dd></dl>
+<dl class="exception"><dt>异常</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname"><a class="el" href="structIOv2_1_1stream__error.html">stream_error</a></td><td>若 locale 中没有 <span class="tt"><a class="el" href="classIOv2_1_1numeric.html" title="基于 locale 的数值格式化与解析 facet。">numeric</a>&lt;TChar&gt;</span> facet，或解析失败（含溢出）。 </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="afbe86630c9b50b76f0b5a56606ec49cc" name="afbe86630c9b50b76f0b5a56606ec49cc"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afbe86630c9b50b76f0b5a56606ec49cc">&#9670;&#160;</a></span>sread() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename TChar, typename TValue&gt; </div>
+<div class="memtemplate">
+template&lt;typename TIter, std::sentinel_for&lt; TIter &gt; TSent&gt; <br />
+requires (std::is_same_v&lt;TChar, typename TIter::value_type&gt; &amp;&amp; std::is_same_v&lt;TValue, void*&gt;)</div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">TIter <a class="el" href="structIOv2_1_1io__traits.html">IOv2::io_traits</a>&lt; TChar, TValue &gt;::sread </td>
+          <td>(</td>
+          <td class="paramtype">TIter</td>          <td class="paramname"><span class="paramname"><em>s</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">TSent</td>          <td class="paramname"><span class="paramname"><em>s_end</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classIOv2_1_1ios__base.html">ios_base</a>&lt; TChar &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>io</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="classIOv2_1_1locale.html">locale</a>&lt; TChar &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>loc</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&amp;</td>          <td class="paramname"><span class="paramname"><em>value</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel static">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>从流中解析一个地址，写入 <span class="tt">void*</span>。 </p>
+<p>解析交给 locale 的 <span class="tt"><a class="el" href="classIOv2_1_1numeric.html" title="基于 locale 的数值格式化与解析 facet。">numeric</a>&lt;TChar&gt;</span> facet，按十六进制整数读入并转成指针。与标准一致， 本函数**不消费** <span class="tt">width()</span>。</p>
+<dl class="section note"><dt>注解</dt><dd>与 <span class="tt"><a class="el" href="#ac858946829f26a5bd1ec31dccf35feec" title="把一个算术值按数值格式写出。">swrite</a></span> 不同，<span class="tt"><a class="el" href="#afbb2adfba4f68ebf6dfb034388a90d34" title="从流中解析一个算术值。">sread</a></span> **只接受 <span class="tt">void*</span>**，不接受任意指针类型，与标准一致—— <span class="tt">std::istream</span> 只有 <span class="tt">operator&gt;&gt;(void*&amp;)</span>。因此 <span class="tt">is &gt;&gt; intptr</span> / <span class="tt">is &gt;&gt; charptr</span> 没有可行重载，编译不过，而不是把文本地址 <span class="tt">reinterpret_cast</span> 成野指针， 也不会把字符缓冲区的提取悄悄变成地址解析。 </dd>
+<dd>
+这处收窄由**两处**共同表达：<span class="tt">requires</span> 里的 <span class="tt">is_same_v&lt;TValue, void*&gt;</span> 钉住键， 形参 <span class="tt">void*&amp;</span> 钉住目标。走 <span class="tt">operator&gt;&gt;</span> 时任一处都够，显式限定调用则需要两处齐备， 所以任何一处都不是冗余的。 </dd></dl>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">s</td><td>输入迭代器。 </td></tr>
+    <tr><td class="paramname">s_end</td><td>输入哨位。 </td></tr>
+    <tr><td class="paramname">io</td><td>提供解析标志的流。 </td></tr>
+    <tr><td class="paramname">loc</td><td>提供 <span class="tt"><a class="el" href="classIOv2_1_1numeric.html" title="基于 locale 的数值格式化与解析 facet。">numeric</a>&lt;TChar&gt;</span> facet 的 locale。 </td></tr>
+    <tr><td class="paramname">value</td><td>接收解析出的地址。 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd>指向最后一个被消费字符之后的输入迭代器。 </dd></dl>
+<dl class="exception"><dt>异常</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname"><a class="el" href="structIOv2_1_1stream__error.html">stream_error</a></td><td>若 locale 中没有 <span class="tt"><a class="el" href="classIOv2_1_1numeric.html" title="基于 locale 的数值格式化与解析 facet。">numeric</a>&lt;TChar&gt;</span> facet，或解析失败。 </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="ac858946829f26a5bd1ec31dccf35feec" name="ac858946829f26a5bd1ec31dccf35feec"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac858946829f26a5bd1ec31dccf35feec">&#9670;&#160;</a></span>swrite() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename TChar, typename TValue&gt; </div>
+<div class="memtemplate">
+template&lt;typename TIter&gt; <br />
+requires (char_sink_for&lt;TIter, TChar&gt;)</div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">TIter <a class="el" href="structIOv2_1_1io__traits.html">IOv2::io_traits</a>&lt; TChar, TValue &gt;::swrite </td>
+          <td>(</td>
+          <td class="paramtype">TIter</td>          <td class="paramname"><span class="paramname"><em>s</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classIOv2_1_1ios__base.html">ios_base</a>&lt; TChar &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>io</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="classIOv2_1_1locale.html">locale</a>&lt; TChar &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>loc</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">TValue</td>          <td class="paramname"><span class="paramname"><em>value</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel static">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>把一个指针的地址按十六进制写出。 </p>
+<p>指针先被转成 <span class="tt">const void*</span>（<span class="tt">volatile</span> 一并转掉）再交给 locale 的 <span class="tt"><a class="el" href="classIOv2_1_1numeric.html" title="基于 locale 的数值格式化与解析 facet。">numeric</a>&lt;TChar&gt;</span> facet，补齐与 <span class="tt">width()</span> 的消费也由 facet 完成；<span class="tt">width_guard</span> 保证取不到 facet 而抛出时 宽度同样清零。地址只被格式化，从不解引用，因此悬空指针也能安全写出。</p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">s</td><td>输出迭代器。 </td></tr>
+    <tr><td class="paramname">io</td><td>提供格式标志、宽度与填充字符的流。 </td></tr>
+    <tr><td class="paramname">loc</td><td>提供 <span class="tt"><a class="el" href="classIOv2_1_1numeric.html" title="基于 locale 的数值格式化与解析 facet。">numeric</a>&lt;TChar&gt;</span> facet 的 locale。 </td></tr>
+    <tr><td class="paramname">value</td><td>要写出地址的指针。 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd>写完之后的输出迭代器。 </dd></dl>
+<dl class="exception"><dt>异常</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname"><a class="el" href="structIOv2_1_1stream__error.html">stream_error</a></td><td>若 locale 中没有 <span class="tt"><a class="el" href="classIOv2_1_1numeric.html" title="基于 locale 的数值格式化与解析 facet。">numeric</a>&lt;TChar&gt;</span> facet。 </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="ac858946829f26a5bd1ec31dccf35feec" name="ac858946829f26a5bd1ec31dccf35feec"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac858946829f26a5bd1ec31dccf35feec">&#9670;&#160;</a></span>swrite() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename TChar, typename TValue&gt; </div>
+<div class="memtemplate">
+template&lt;typename TIter&gt; <br />
+requires (char_sink_for&lt;TIter, TChar&gt;)</div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">TIter <a class="el" href="structIOv2_1_1io__traits.html">IOv2::io_traits</a>&lt; TChar, TValue &gt;::swrite </td>
+          <td>(</td>
+          <td class="paramtype">TIter</td>          <td class="paramname"><span class="paramname"><em>s</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classIOv2_1_1ios__base.html">ios_base</a>&lt; TChar &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>io</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="classIOv2_1_1locale.html">locale</a>&lt; TChar &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>loc</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">TValue</td>          <td class="paramname"><span class="paramname"><em>value</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel static">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>把一个算术值按数值格式写出。 </p>
+<p>基数、符号、精度、浮点记法、分组以及按 <span class="tt">width()</span> / <span class="tt">fill()</span> / <span class="tt">adjustfield</span> 补齐， 全部由 locale 的 <span class="tt"><a class="el" href="classIOv2_1_1numeric.html" title="基于 locale 的数值格式化与解析 facet。">numeric</a>&lt;TChar&gt;</span> facet 依据 <code class="param">io</code> 的状态完成；本函数只取 facet 并 转交。<span class="tt">width()</span> 由 facet 消费，<span class="tt">width_guard</span> 保证取不到 facet 而抛出时也同样清零。</p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">s</td><td>输出迭代器。 </td></tr>
+    <tr><td class="paramname">io</td><td>提供格式标志、精度、宽度与填充字符的流。 </td></tr>
+    <tr><td class="paramname">loc</td><td>提供 <span class="tt"><a class="el" href="classIOv2_1_1numeric.html" title="基于 locale 的数值格式化与解析 facet。">numeric</a>&lt;TChar&gt;</span> facet 的 locale。 </td></tr>
+    <tr><td class="paramname">value</td><td>要写出的值，按 <span class="tt">TValue</span> 自身的位宽格式化（见类说明中的 <span class="tt">@warning</span>）。 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd>写完之后的输出迭代器。 </dd></dl>
+<dl class="exception"><dt>异常</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname"><a class="el" href="structIOv2_1_1stream__error.html">stream_error</a></td><td>若 locale 中没有 <span class="tt"><a class="el" href="classIOv2_1_1numeric.html" title="基于 locale 的数值格式化与解析 facet。">numeric</a>&lt;TChar&gt;</span> facet。 </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<hr/>该结构体的文档由以下文件生成:<ul>
+<li>include/IOv2/io/traits/<a class="el" href="arithmetic_8h_source.html">arithmetic.h</a></li>
+</ul>
+</div><!-- contents -->
+</div><!-- doc-content -->
+<div id="page-nav" class="page-nav-panel">
+<div id="page-nav-resize-handle"></div>
+<div id="page-nav-tree">
+<div id="page-nav-contents">
+</div><!-- page-nav-contents -->
+</div><!-- page-nav-tree -->
+</div><!-- page-nav -->
+</div><!-- container -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><a href="namespaceIOv2.html">IOv2</a></li><li class="navelem"><a href="structIOv2_1_1io__traits_3_01TChar_00_01TValue_01_4.html">io_traits&lt; TChar, TValue &gt;</a></li>
+    <li class="footer">制作者 <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.15.0 </li>
+  </ul>
+</div>
+</body>
+</html>

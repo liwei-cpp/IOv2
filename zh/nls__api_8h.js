@@ -1,0 +1,28 @@
+var nls__api_8h =
+[
+    [ "IOv2::detail::win_lparam", "namespaceIOv2_1_1detail.html#a87389f88638aaa51a606fa20c37825e0", null ],
+    [ "IOv2::detail::__declspec", "namespaceIOv2_1_1detail.html#a1b8bb33a5a1cf5ebf7901525b4cd6b69", null ],
+    [ "IOv2::detail::cchCount1", "namespaceIOv2_1_1detail.html#ae01e54b14b0b522959b4ed49316f04c3", null ],
+    [ "IOv2::detail::cchCount2", "namespaceIOv2_1_1detail.html#a7e2586052e5a961a2d01cc8bb82d2070", null ],
+    [ "IOv2::detail::cchDest", "namespaceIOv2_1_1detail.html#a8ac9ebb207a80ee85ef82bf9c1ceadb6", null ],
+    [ "IOv2::detail::cchSrc", "namespaceIOv2_1_1detail.html#ad1057b3ff257aed54d13fbb5eaca19c3", null ],
+    [ "IOv2::detail::dwCmpFlags", "namespaceIOv2_1_1detail.html#a241268628c30ac4cb773b9ea41a8ea5f", null ],
+    [ "IOv2::detail::dwMapFlags", "namespaceIOv2_1_1detail.html#a68465719a11e9a7f80b1902355f3cd6f", null ],
+    [ "IOv2::detail::lParam", "namespaceIOv2_1_1detail.html#aa1857561c973fad55a54b0fae7fe22d5", null ],
+    [ "IOv2::detail::lpCharType", "namespaceIOv2_1_1detail.html#a544095e7eb82c24daf1c26c68d79ca0e", null ],
+    [ "IOv2::detail::lpDestStr", "namespaceIOv2_1_1detail.html#a9dc5fc7d3726855bda0ef834b117cf49", null ],
+    [ "IOv2::detail::lpReserved", "namespaceIOv2_1_1detail.html#ac29594fffee7f28311ab691fe823a4e5", null ],
+    [ "IOv2::detail::lpSrcStr", "namespaceIOv2_1_1detail.html#a5b275786fbfcdfac571c44f3e9eab583", null ],
+    [ "IOv2::detail::lpString1", "namespaceIOv2_1_1detail.html#adb1e2e4ab88d4a4d0fdfc718e4febce3", null ],
+    [ "IOv2::detail::lpString2", "namespaceIOv2_1_1detail.html#aa5f27435f766757f2bf5f15953406b48", null ],
+    [ "IOv2::detail::lpVersionInformation", "namespaceIOv2_1_1detail.html#a3b60b89fc0fb2d1f53a5b705c1a99dc8", null ],
+    [ "IOv2::detail::sortHandle", "namespaceIOv2_1_1detail.html#a7178345ab3e1bd881bcdec3099b02ad3", null ],
+    [ "IOv2::detail::win_cstr_equal", "namespaceIOv2_1_1detail.html#a9043d22dc143767b6fb335bed5ca3c2b", null ],
+    [ "IOv2::detail::win_cstr_less_than", "namespaceIOv2_1_1detail.html#a2059703dbad0f0900c6602da293537fe", null ],
+    [ "IOv2::detail::win_ct_ctype1", "namespaceIOv2_1_1detail.html#ad66128181c2b6579b7d5c962586fc2d4", null ],
+    [ "IOv2::detail::win_lcmap_linguistic_casing", "namespaceIOv2_1_1detail.html#a5ccc5c6940aec940f723c452ed1a9ba4", null ],
+    [ "IOv2::detail::win_lcmap_lowercase", "namespaceIOv2_1_1detail.html#a6700a6c602a328a42993f77500716465", null ],
+    [ "IOv2::detail::win_lcmap_sortkey", "namespaceIOv2_1_1detail.html#af1ce810091747be8ac60c3f44f04ec96", null ],
+    [ "IOv2::detail::win_lcmap_uppercase", "namespaceIOv2_1_1detail.html#ae4e0f0756cb68c2489cf3c2b5dbce26a", null ],
+    [ "IOv2::detail::win_mb_err_invalid_chars", "namespaceIOv2_1_1detail.html#a614f2b7f6849cea4c616b7b4133aedb7", null ]
+];
