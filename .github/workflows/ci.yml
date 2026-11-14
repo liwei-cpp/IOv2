@@ -638,6 +638,8 @@ jobs:
         clang-tidy include/IOv2/common/*.h include/IOv2/common/platform/windows/*.h \
           include/IOv2/device/*.h include/IOv2/device/platform/windows/*.h \
           $(find include/IOv2/cvt -name '*.h' -not -path '*/platform/posix/*') \
+          include/IOv2/facet/ctype.h include/IOv2/facet/ctype_details.h \
+          include/IOv2/facet/platform/ctype_backend.h include/IOv2/facet/platform/windows/*.h \
           --checks="$IOV2_TIDY_CHECKS" \
           --warnings-as-errors='bugprone-*' \
           -- -std=c++23 -x c++ -I include -I "$deps" -I "$deps/botan-3" \
@@ -645,7 +647,7 @@ jobs:
 
   # The platforms the cross-platform port has reached. Each builds and runs only
   # the components ported so far -- IOV2_TEST_COMPONENTS in its preset, today
-  # common, device and cvt -- and grows as the port does; the Linux jobs above stay the full
+  # common, device, cvt and facet/ctype -- and grows as the port does; the Linux jobs above stay the full
   # gate. No container: the GHCR image is Linux-only, and the point here is the
   # platform's own compiler, standard library and C runtime.
   portability:

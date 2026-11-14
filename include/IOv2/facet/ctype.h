@@ -784,7 +784,7 @@ public:
         {
             m_toupper[i] = m_obj->toupper(static_cast<CharT>(i));
             m_tolower[i] = m_obj->tolower(static_cast<CharT>(i));
-            m_widen[i] = m_obj->widen(static_cast<CharT>(i));
+            m_widen[i] = m_obj->widen(static_cast<char>(i));
             m_narrow[i] = m_obj->narrow(static_cast<CharT>(i));
             m_table[i] = m_obj->is(static_cast<CharT>(i));
         }

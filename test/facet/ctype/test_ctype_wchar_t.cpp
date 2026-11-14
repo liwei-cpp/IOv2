@@ -19,6 +19,8 @@
 #include <IOv2/facet/ctype.h>
 #include <IOv2/facet/ctype_details.h>
 
+#include <support/platform_macros.h>
+
 #include <gtest/gtest.h>
 
 #include <cstddef>
@@ -54,21 +56,31 @@ namespace
         explicit ref_ctype(const char* name) : std::ctype_byname<wchar_t>(name) {}
     };
 
-    mask to_iov2(std::ctype_base::mask in)
+    // The reference's classification of c, asked one category at a time.  is(m, c)
+    // means "has any of m" on every implementation, whereas what a std mask's bits
+    // are is each library's own: the MSVC STL makes alpha, print and space
+    // composites of several, so comparing bits would misread it.
+    mask expected_for(const ref_ctype& ref, wchar_t c)
     {
         mask res = static_cast<mask>(0);
-        auto copy_bit = [&](std::ctype_base::mask from, mask to)
-        { if ((in & from) == from) res |= to; };
+        auto copy = [&](std::ctype_base::mask from, mask to)
+        { if (ref.is(from, c)) res |= to; };
 
-        copy_bit(std::ctype_base::upper,  CT::upper);
-        copy_bit(std::ctype_base::lower,  CT::lower);
-        copy_bit(std::ctype_base::alpha,  CT::alpha);
-        copy_bit(std::ctype_base::digit,  CT::digit);
-        copy_bit(std::ctype_base::xdigit, CT::xdigit);
-        copy_bit(std::ctype_base::space,  CT::space);
-        copy_bit(std::ctype_base::print,  CT::print);
-        copy_bit(std::ctype_base::cntrl,  CT::cntrl);
-        copy_bit(std::ctype_base::punct,  CT::punct);
+        copy(std::ctype_base::upper,  CT::upper);
+        copy(std::ctype_base::lower,  CT::lower);
+        copy(std::ctype_base::alpha,  CT::alpha);
+        copy(std::ctype_base::digit,  CT::digit);
+        copy(std::ctype_base::xdigit, CT::xdigit);
+        copy(std::ctype_base::space,  CT::space);
+        copy(std::ctype_base::print,  CT::print);
+        copy(std::ctype_base::cntrl,  CT::cntrl);
+        copy(std::ctype_base::punct,  CT::punct);
+
+#if IOV2_TEST_WINDOWS
+        // GetStringTypeW gives tab C1_BLANK, and the MSVC STL lets that make it print;
+        // IOv2 does not (ctype_iswctype in facet/platform/windows/ctype_backend.h).
+        if (c == L'\t') res = static_cast<mask>(res & ~CT::print);
+#endif
         return res;
     }
 
@@ -145,15 +157,12 @@ TEST(CtypeWchar, ClassificationMatchesTheStandardFacet)
 {
     const ctype<wchar_t> obj(conf_for("en_US.UTF-8"));
     const ref_ctype      ref("en_US.UTF-8");
-    const std::wstring   all = every_cached_value();
-
-    std::vector<std::ctype_base::mask> expected(kCachedValues);
-    ref.is(all.data(), all.data() + kCachedValues, expected.data());
 
     for (int i = 0; i < kCachedValues; ++i)
     {
         SCOPED_TRACE(i);
-        EXPECT_EQ(obj.is(all[i]), to_iov2(expected[i]));
+        const auto c = static_cast<wchar_t>(i);
+        EXPECT_EQ(obj.is(c), expected_for(ref, c));
     }
 }
 
@@ -166,6 +175,15 @@ TEST(CtypeWchar, CaseMappingMatchesTheStandardFacet)
     {
         SCOPED_TRACE(i);
         const auto c = static_cast<wchar_t>(i);
+#if IOV2_TEST_WINDOWS
+        // Linguistic casing maps the micro sign to capital mu (U+039C), as glibc does;
+        // the MSVC STL leaves it alone.
+        if (c == L'µ')
+        {
+            EXPECT_EQ(obj.toupper(c), L'Μ');
+            continue;
+        }
+#endif
         EXPECT_EQ(obj.toupper(c), ref.toupper(c));
         EXPECT_EQ(obj.tolower(c), ref.tolower(c));
     }
@@ -312,12 +330,21 @@ TEST(CtypeWchar, TheDefaultOnlyReplacesWhatCannotBeNarrowed)
 // The two locales differ in what they call a letter, and U+00E4 is where: it is
 // alphabetic in German and nothing at all in "C".  Naming the character says
 // more than observing that two tables are unequal somewhere.
+//
+// Except on Windows, which classifies by Unicode alone in every locale (see
+// facet/platform/windows/ctype_backend.h), so there U+00E4 is a letter in "C" as
+// well.  The case mapping still differs: "C" maps ASCII only, everywhere.
 TEST(CtypeWchar, TheLocaleDecidesWhatCountsAsALetter)
 {
     const ctype<wchar_t> plain(conf_for("C"));
     const ctype<wchar_t> german(conf_for("de_DE.UTF-8"));
 
+#if IOV2_TEST_WINDOWS
+    EXPECT_TRUE(plain.is_any(CT::alpha, L'ä'));
+#else
     EXPECT_FALSE(plain.is_any(CT::alpha, L'ä'));
+#endif
+    EXPECT_EQ(plain.toupper(L'ä'), L'ä');
     EXPECT_TRUE(german.is_any(CT::alpha, L'ä'));
     EXPECT_TRUE(german.is_any(CT::lower, L'ä'));
     EXPECT_EQ(german.toupper(L'ä'), L'Ä');
@@ -446,4 +473,91 @@ TEST(CtypeWchar, FullWidthLettersMapCaseThroughTheConfiguration)
     EXPECT_TRUE(obj.is_any(CT::alpha, L'Ａ'));
     EXPECT_TRUE(obj.is_any(CT::upper, L'Ａ'));
     EXPECT_TRUE(obj.is_any(CT::lower, L'ａ'));
+}
+
+// "C" knows the case of ASCII letters and of nothing else, on every platform.
+TEST(CtypeWchar, TheCLocaleMapsTheCaseOfAsciiOnly)
+{
+    const ctype<wchar_t> obj(conf_for("C"));
+    EXPECT_EQ(obj.toupper(L'a'), L'A');
+    EXPECT_EQ(obj.tolower(L'Z'), L'z');
+    EXPECT_EQ(obj.toupper(L'é'), L'é');
+    EXPECT_EQ(obj.tolower(L'É'), L'É');
+    EXPECT_EQ(obj.toupper(L'ж'), L'ж');
+}
+
+// Case pairs that straddle the snapshot: U+00FF and U+00B5 sit in the table but
+// their capitals do not, U+0178 is the other way round.  These are linguistic
+// mappings -- micro sign to capital mu, dotless i to I -- which glibc makes and
+// which Windows makes only with LCMAP_LINGUISTIC_CASING.
+TEST(CtypeWchar, CaseMappingFollowsUnicodeAcrossTheSnapshotBoundary)
+{
+    const ctype<wchar_t> obj(conf_for("en_US.UTF-8"));
+    EXPECT_EQ(obj.toupper(L'ÿ'), L'Ÿ');
+    EXPECT_EQ(obj.tolower(L'Ÿ'), L'ÿ');
+    EXPECT_EQ(obj.toupper(L'é'), L'É');
+    EXPECT_EQ(obj.toupper(L'µ'), L'Μ');
+    EXPECT_EQ(obj.toupper(L'ı'), L'I');
+}
+
+// The one well-known case where the language, not just the script, decides: in
+// Turkish the capital of i is İ (U+0130) and the small form of I is ı (U+0131).
+TEST(CtypeWchar, TurkishMapsTheDottedAndDotlessI)
+{
+#if !IOV2_TEST_MACOS
+    const ctype<wchar_t> turkish(conf_for("tr_TR.UTF-8"));
+    EXPECT_EQ(turkish.toupper(L'i'), L'İ');
+    EXPECT_EQ(turkish.tolower(L'I'), L'ı');
+    EXPECT_EQ(turkish.toupper(L'ı'), L'I');
+    EXPECT_EQ(turkish.tolower(L'İ'), L'i');
+
+    const ctype<wchar_t> english(conf_for("en_US.UTF-8"));
+    EXPECT_EQ(english.toupper(L'i'), L'I');
+    EXPECT_EQ(english.tolower(L'I'), L'i');
+#else
+    GTEST_SKIP() << "macOS's tr_TR.UTF-8 has no Turkish casing: it maps i to I as any locale does";
+#endif
+}
+
+// A no-break space prints, and tab, a blank but a control character, does not.
+// On Windows both used to be wrong in one place or another: the UCRT's iswctype
+// table leaves U+00A0 non-printing, and GetStringTypeW makes tab blank.
+TEST(CtypeWchar, TheNoBreakSpacePrintsAndTabDoesNot)
+{
+    const ctype<wchar_t> obj(conf_for("en_US.UTF-8"));
+    EXPECT_TRUE(obj.is_any(CT::print, L' '));
+    EXPECT_FALSE(obj.is_any(CT::cntrl, L' '));
+    EXPECT_TRUE(obj.is_any(CT::cntrl, L'\t'));
+    EXPECT_FALSE(obj.is_any(CT::print, L'\t'));
+}
+
+// A surrogate on its own is not a character: no class, no case.  On Windows,
+// where wchar_t is UTF-16, this is half of a character outside the BMP.
+TEST(CtypeWchar, ALoneSurrogateHasNoClassAndNoCase)
+{
+    const ctype<wchar_t> obj(conf_for("en_US.UTF-8"));
+    for (const wchar_t c : {static_cast<wchar_t>(0xD800), static_cast<wchar_t>(0xDC00)})
+    {
+        SCOPED_TRACE(static_cast<int>(c));
+        EXPECT_EQ(obj.is(c), static_cast<mask>(0));
+        EXPECT_EQ(obj.toupper(c), c);
+        EXPECT_EQ(obj.tolower(c), c);
+    }
+}
+
+// The UCRT's own _towupper_l looks a character below 256 up in a table of the
+// locale's code-page bytes, so under a code-page locale it maps U+00FF to U+009F
+// (1252) or to U+00DF (1251), and U+00DF to U+00BA (1253).  The backend maps by
+// Unicode instead; these are the cases that told the two apart.
+TEST(CtypeWchar, CodePageLocalesMapCaseByUnicode)
+{
+#if IOV2_TEST_WINDOWS
+    EXPECT_EQ(ctype<wchar_t>(conf_for("English_United States.1252")).toupper(L'ÿ'), L'Ÿ');
+    EXPECT_EQ(ctype<wchar_t>(conf_for("ru-RU")).toupper(L'ÿ'), L'Ÿ');
+    EXPECT_EQ(ctype<wchar_t>(conf_for("ru-RU")).toupper(L'ж'), L'Ж');
+    EXPECT_EQ(ctype<wchar_t>(conf_for("Greek_Greece.1253")).toupper(L'ß'), L'ß');
+    EXPECT_EQ(ctype<wchar_t>(conf_for(".936")).toupper(L'é'), L'É');
+#else
+    GTEST_SKIP() << "code-page locale names such as English_United States.1252 are the UCRT's";
+#endif
 }

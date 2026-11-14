@@ -17,11 +17,11 @@
  *   [0x00, 0x7F] 区间委托给内部 `ctype_conf<char>` 处理，对 [0x80, 0xFF] 区间
  *   采用保守策略（不分类、不转换大小写、不映射到 `char`）。
  *
- * @par 构建要求
- * 本文件依赖 POSIX.1-2008（需定义 `_POSIX_C_SOURCE >= 200809L` 或 `_GNU_SOURCE`）。
- * 所用的 `*_l` 字符分类与转换函数（`isupper_l`、`toupper_l`、`wctype_l`、`iswctype_l`、
- * `towupper_l` 等）是 POSIX 扩展，非标准 C++。构建系统须在包含任何系统头文件前定义
- * 相应的特性测试宏。
+ * @par 平台
+ * 按 locale 分类与大小写映射的 C 库调用都经由 `facet/platform/` 下的后端：POSIX（glibc、
+ * macOS）上是 POSIX.1-2008 的 `*_l` 函数（`isupper_l`、`wctype_l`、`towupper_l` 等），
+ * Windows 上是 UCRT 的 `_isupper_l` 等与 `LCMapStringEx`。Windows 上宽字符分类与 locale
+ * 无关，详见 `facet/platform/windows/ctype_backend.h`。
  * @endif
  *
  * @lang{EN}
@@ -42,12 +42,12 @@
  *   `ctype_conf<char>` and applies a conservative treatment to [0x80, 0xFF]
  *   (no classification, no case conversion, no `char` mapping).
  *
- * @par Build requirement
- * This file requires POSIX.1-2008 (`_POSIX_C_SOURCE >= 200809L` or `_GNU_SOURCE`).
- * The `*_l` character-classification and conversion functions used here
- * (`isupper_l`, `toupper_l`, `wctype_l`, `iswctype_l`, `towupper_l`, etc.) are
- * POSIX extensions, not standard C++. The build system must define the appropriate
- * feature-test macro before any system header is included.
+ * @par Platforms
+ * Every C library call that classifies or case-maps by locale goes through the
+ * backends under `facet/platform/`: the POSIX.1-2008 `*_l` functions (`isupper_l`,
+ * `wctype_l`, `towupper_l`, ...) on POSIX (glibc, macOS), the UCRT's `_isupper_l` and
+ * friends plus `LCMapStringEx` on Windows. Wide-character classification on Windows
+ * does not depend on the locale; see `facet/platform/windows/ctype_backend.h`.
  * @endif
  */
 
@@ -56,6 +56,7 @@
 #include <IOv2/common/defs.h>
 #include <IOv2/common/metafunctions.h>
 #include <IOv2/facet/facet_common.h>
+#include <IOv2/facet/platform/ctype_backend.h>
 
 #include <array>
 
@@ -235,23 +236,25 @@ public:
         : ft_basic<ctype<char>>()
         , m_inter_locale(name)
     {
-        // Build lookup tables using standard POSIX functions
-        for (unsigned c = 0; c <= std::numeric_limits<unsigned char>::max(); ++c)
+        // Build lookup tables with the C library's locale-taking functions (see ctype_backend.h)
+        const detail::clocale_handle loc = m_inter_locale.c_locale;
+        for (unsigned u = 0; u <= std::numeric_limits<unsigned char>::max(); ++u)
         {
-            m_toupper_table[c] = toupper_l(static_cast<int>(c), m_inter_locale.c_locale);
-            m_tolower_table[c] = tolower_l(static_cast<int>(c), m_inter_locale.c_locale);
+            const auto c = static_cast<int>(u);
+            m_toupper_table[u] = detail::ctype_toupper(c, loc);
+            m_tolower_table[u] = detail::ctype_tolower(c, loc);
 
             mask m = 0;
-            if (isupper_l(static_cast<int>(c), m_inter_locale.c_locale))  m |= base_ft<ctype>::upper;
-            if (islower_l(static_cast<int>(c), m_inter_locale.c_locale))  m |= base_ft<ctype>::lower;
-            if (isalpha_l(static_cast<int>(c), m_inter_locale.c_locale))  m |= base_ft<ctype>::alpha;
-            if (isdigit_l(static_cast<int>(c), m_inter_locale.c_locale))  m |= base_ft<ctype>::digit;
-            if (isxdigit_l(static_cast<int>(c), m_inter_locale.c_locale)) m |= base_ft<ctype>::xdigit;
-            if (isspace_l(static_cast<int>(c), m_inter_locale.c_locale))  m |= base_ft<ctype>::space;
-            if (isprint_l(static_cast<int>(c), m_inter_locale.c_locale))  m |= base_ft<ctype>::print;
-            if (iscntrl_l(static_cast<int>(c), m_inter_locale.c_locale))  m |= base_ft<ctype>::cntrl;
-            if (ispunct_l(static_cast<int>(c), m_inter_locale.c_locale))  m |= base_ft<ctype>::punct;
-            m_table[c] = m;
+            if (detail::ctype_isupper(c, loc))  m |= base_ft<ctype>::upper;
+            if (detail::ctype_islower(c, loc))  m |= base_ft<ctype>::lower;
+            if (detail::ctype_isalpha(c, loc))  m |= base_ft<ctype>::alpha;
+            if (detail::ctype_isdigit(c, loc))  m |= base_ft<ctype>::digit;
+            if (detail::ctype_isxdigit(c, loc)) m |= base_ft<ctype>::xdigit;
+            if (detail::ctype_isspace(c, loc))  m |= base_ft<ctype>::space;
+            if (detail::ctype_isprint(c, loc))  m |= base_ft<ctype>::print;
+            if (detail::ctype_iscntrl(c, loc))  m |= base_ft<ctype>::cntrl;
+            if (detail::ctype_ispunct(c, loc))  m |= base_ft<ctype>::punct;
+            m_table[u] = m;
         }
     }
 
@@ -466,7 +469,7 @@ public:
 
         auto wctype_wrapper = [&](const char* category)
         {
-            wctype_t res = wctype_l(category, m_inter_locale.c_locale);
+            const detail::ctype_wclass res = detail::ctype_wctype(category, m_inter_locale.c_locale);
             if (res == 0)
                 throw io_error(std::string("ctype_conf constructor failed: wctype_l returned 0 for category ") + category);
             return res;
@@ -513,15 +516,17 @@ public:
 
         base_ft<ctype>::mask res = 0;
         const auto c = static_cast<wchar_t>(_c);
-        if (iswctype_l(c, m_wmask_upper, m_inter_locale.c_locale))  res |= base_ft<ctype>::upper;
-        if (iswctype_l(c, m_wmask_lower, m_inter_locale.c_locale))  res |= base_ft<ctype>::lower;
-        if (iswctype_l(c, m_wmask_alpha, m_inter_locale.c_locale))  res |= base_ft<ctype>::alpha;
-        if (iswctype_l(c, m_wmask_digit, m_inter_locale.c_locale))  res |= base_ft<ctype>::digit;
-        if (iswctype_l(c, m_wmask_xdigit, m_inter_locale.c_locale)) res |= base_ft<ctype>::xdigit;
-        if (iswctype_l(c, m_wmask_space, m_inter_locale.c_locale))  res |= base_ft<ctype>::space;
-        if (iswctype_l(c, m_wmask_print, m_inter_locale.c_locale))  res |= base_ft<ctype>::print;
-        if (iswctype_l(c, m_wmask_cntrl, m_inter_locale.c_locale))  res |= base_ft<ctype>::cntrl;
-        if (iswctype_l(c, m_wmask_punct, m_inter_locale.c_locale))  res |= base_ft<ctype>::punct;
+        const auto in = [&](detail::ctype_wclass cls)
+        { return detail::ctype_iswctype(static_cast<wint_t>(c), cls, m_inter_locale.c_locale); };
+        if (in(m_wmask_upper))  res |= base_ft<ctype>::upper;
+        if (in(m_wmask_lower))  res |= base_ft<ctype>::lower;
+        if (in(m_wmask_alpha))  res |= base_ft<ctype>::alpha;
+        if (in(m_wmask_digit))  res |= base_ft<ctype>::digit;
+        if (in(m_wmask_xdigit)) res |= base_ft<ctype>::xdigit;
+        if (in(m_wmask_space))  res |= base_ft<ctype>::space;
+        if (in(m_wmask_print))  res |= base_ft<ctype>::print;
+        if (in(m_wmask_cntrl))  res |= base_ft<ctype>::cntrl;
+        if (in(m_wmask_punct))  res |= base_ft<ctype>::punct;
         return res;
     }
 
@@ -550,7 +555,7 @@ public:
     [[nodiscard]] virtual CharT toupper(CharT c) const
     {
         if (out_of_wchar_range(c)) return c;
-        return towupper_l(static_cast<wchar_t>(c), m_inter_locale.c_locale);
+        return static_cast<CharT>(detail::ctype_towupper(static_cast<wint_t>(c), m_inter_locale.c_locale));
     }
 
     /**
@@ -578,7 +583,7 @@ public:
     [[nodiscard]] virtual CharT tolower(CharT c) const
     {
         if (out_of_wchar_range(c)) return c;
-        return towlower_l(static_cast<wchar_t>(c), m_inter_locale.c_locale);
+        return static_cast<CharT>(detail::ctype_towlower(static_cast<wint_t>(c), m_inter_locale.c_locale));
     }
 
     /**
@@ -690,39 +695,39 @@ private:
 
     /** @lang{ZH} `upper` 分类对应的 `wctype_t` 句柄。 @endif
      *  @lang{EN} `wctype_t` handle for the `upper` classification category. @endif */
-    wctype_t          m_wmask_upper;
+    detail::ctype_wclass m_wmask_upper;
 
     /** @lang{ZH} `lower` 分类对应的 `wctype_t` 句柄。 @endif
      *  @lang{EN} `wctype_t` handle for the `lower` classification category. @endif */
-    wctype_t          m_wmask_lower;
+    detail::ctype_wclass m_wmask_lower;
 
     /** @lang{ZH} `alpha` 分类对应的 `wctype_t` 句柄。 @endif
      *  @lang{EN} `wctype_t` handle for the `alpha` classification category. @endif */
-    wctype_t          m_wmask_alpha;
+    detail::ctype_wclass m_wmask_alpha;
 
     /** @lang{ZH} `digit` 分类对应的 `wctype_t` 句柄。 @endif
      *  @lang{EN} `wctype_t` handle for the `digit` classification category. @endif */
-    wctype_t          m_wmask_digit;
+    detail::ctype_wclass m_wmask_digit;
 
     /** @lang{ZH} `xdigit` 分类对应的 `wctype_t` 句柄。 @endif
      *  @lang{EN} `wctype_t` handle for the `xdigit` classification category. @endif */
-    wctype_t          m_wmask_xdigit;
+    detail::ctype_wclass m_wmask_xdigit;
 
     /** @lang{ZH} `space` 分类对应的 `wctype_t` 句柄。 @endif
      *  @lang{EN} `wctype_t` handle for the `space` classification category. @endif */
-    wctype_t          m_wmask_space;
+    detail::ctype_wclass m_wmask_space;
 
     /** @lang{ZH} `print` 分类对应的 `wctype_t` 句柄。 @endif
      *  @lang{EN} `wctype_t` handle for the `print` classification category. @endif */
-    wctype_t          m_wmask_print;
+    detail::ctype_wclass m_wmask_print;
 
     /** @lang{ZH} `cntrl` 分类对应的 `wctype_t` 句柄。 @endif
      *  @lang{EN} `wctype_t` handle for the `cntrl` classification category. @endif */
-    wctype_t          m_wmask_cntrl;
+    detail::ctype_wclass m_wmask_cntrl;
 
     /** @lang{ZH} `punct` 分类对应的 `wctype_t` 句柄。 @endif
      *  @lang{EN} `wctype_t` handle for the `punct` classification category. @endif */
-    wctype_t          m_wmask_punct;
+    detail::ctype_wclass m_wmask_punct;
 };
 
 /**
