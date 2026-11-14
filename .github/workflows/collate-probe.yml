@@ -54,6 +54,6 @@ jobs:
         c++ --version
         if [ "$RUNNER_OS" = macOS ]; then sw_vers; ls -l /usr/share/locale/de_DE.UTF-8/ /usr/share/locale/de_DE.ISO8859-1/ || true; fi
     - name: Build
-      run: c++ -std=c++23 -Wall -Wextra -O2 probe/collate_probe.cpp -o probe
+      run: c++ -std=c++23 -Wall -Wextra -O2 probe/collate_probe.cpp -o probe.out
     - name: Run
-      run: ./probe
+      run: ./probe.out

@@ -297,9 +297,12 @@ namespace
         free_loc(l);
     }
 
-    // mbrtoc32 / mbrtoc16 under a thread locale that is not UTF-8.
+    // mbrtoc32 / mbrtoc16 under a thread locale that is not UTF-8. macOS has neither.
     void mbrtoc_suite(const char* name)
     {
+#if defined(__APPLE__)
+        std::printf("=== mbrtoc under \"%s\": macOS has no mbrtoc32/mbrtoc16\n", name);
+#else
         std::printf("=== mbrtoc under \"%s\"", name);
         if (!std::setlocale(LC_ALL, name)) { std::printf("  (refused)\n"); return; }
         std::printf("  MB_CUR_MAX=%d\n", static_cast<int>(MB_CUR_MAX));
@@ -341,6 +344,7 @@ namespace
             std::printf("%02X ", static_cast<unsigned char>(out[i]));
         std::printf("\n");
         std::setlocale(LC_ALL, "C");
+#endif
     }
 }
 
