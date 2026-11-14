@@ -11,10 +11,16 @@
  * "C" keeps wcsxfrm an identity, so a key is its own input and the
  * expectations can be read off the literals; de_DE.UTF-8 is where collation
  * order and code-point order disagree.
+ *
+ * Only glibc has a UTF-32 wchar_t among the platforms the tests know (macOS
+ * does not promise one, Windows' is UTF-16), and elsewhere collate_conf<char32_t>
+ * does not exist, so every case is skipped there.
  */
 #include <IOv2/common/defs.h>
 #include <IOv2/facet/collate.h>
 #include <IOv2/facet/collate_details.h>
+
+#include <support/platform_macros.h>
 
 #include <gtest/gtest.h>
 
@@ -29,6 +35,7 @@
 
 using namespace IOv2;
 
+#if IOV2_TEST_LINUX_GLIBC
 namespace
 {
     // The two locales the cases above describe.  Every other string in this file
@@ -81,36 +88,53 @@ namespace
         a_umlaut, A_umlaut, U"B",
     };
 }
+#endif
 
 TEST(CollateChar32, ANullConfigurationIsRejected)
 {
+#if IOV2_TEST_LINUX_GLIBC
     std::shared_ptr<collate_conf<char32_t>> empty;
     EXPECT_THROW(collate<char32_t>{empty}, io_error);
+#else
+    GTEST_SKIP() << "collate<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CollateChar32, EqualRangesCompareEqual)
 {
+#if IOV2_TEST_LINUX_GLIBC
     const collate<char32_t> obj = facet_for(kPlain);
     for (const std::u32string& s : kCases)
     {
         SCOPED_TRACE(::testing::PrintToString(s));
         EXPECT_EQ(compare_ptr(obj, s, s), 0);
     }
+#else
+    GTEST_SKIP() << "collate<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CollateChar32, AProperPrefixSortsFirst)
 {
+#if IOV2_TEST_LINUX_GLIBC
     const collate<char32_t> obj = facet_for(kPlain);
     EXPECT_EQ(compare_ptr(obj, U"abc", U"abcd"), -1);
     EXPECT_EQ(compare_ptr(obj, U"abcd", U"abc"), 1);
+#else
+    GTEST_SKIP() << "collate<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CollateChar32, AnEmptyRangeSortsBeforeANonEmptyOne)
 {
+#if IOV2_TEST_LINUX_GLIBC
     const collate<char32_t> obj = facet_for(kPlain);
     EXPECT_EQ(compare_ptr(obj, U"", U"a"), -1);
     EXPECT_EQ(compare_ptr(obj, U"a", U""), 1);
     EXPECT_EQ(compare_ptr(obj, U"", U""), 0);
+#else
+    GTEST_SKIP() << "collate<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 // 'a' is 0x61 and 'B' is 0x42, so code-point order and dictionary order disagree here.
@@ -118,27 +142,39 @@ TEST(CollateChar32, AnEmptyRangeSortsBeforeANonEmptyOne)
 // other one on the same pair.
 TEST(CollateChar32, TheCLocaleComparesByCodePointValue)
 {
+#if IOV2_TEST_LINUX_GLIBC
     const collate<char32_t> obj = facet_for(kPlain);
     EXPECT_EQ(compare_ptr(obj, U"a", U"B"), 1);
     EXPECT_EQ(compare_ptr(obj, a_umlaut, U"b"), 1);
     EXPECT_EQ(compare_ptr(obj, A_umlaut, U"B"), 1);
+#else
+    GTEST_SKIP() << "collate<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CollateChar32, TheFirstUnequalSegmentDecides)
 {
+#if IOV2_TEST_LINUX_GLIBC
     const collate<char32_t> obj = facet_for(kPlain);
     EXPECT_EQ(compare_ptr(obj, std::u32string(U"a\0b", 3), std::u32string(U"a\0c", 3)), -1);
     EXPECT_EQ(compare_ptr(obj, std::u32string(U"a\0b", 3), std::u32string(U"a\0a", 3)), 1);
 
     // The second segment loses its say once the first one has spoken.
     EXPECT_EQ(compare_ptr(obj, std::u32string(U"b\0a", 3), std::u32string(U"a\0z", 3)), 1);
+#else
+    GTEST_SKIP() << "collate<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CollateChar32, SegmentsAfterAnEqualPrefixMakeTheLongerRangeGreater)
 {
+#if IOV2_TEST_LINUX_GLIBC
     const collate<char32_t> obj = facet_for(kPlain);
     EXPECT_EQ(compare_ptr(obj, std::u32string(U"a\0b", 3), std::u32string(U"a\0", 2)), 1);
     EXPECT_EQ(compare_ptr(obj, std::u32string(U"a\0", 2), std::u32string(U"a\0b", 3)), -1);
+#else
+    GTEST_SKIP() << "collate<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 // An embedded '\0' is a separator, so a range that contains one ends in an empty
@@ -146,24 +182,36 @@ TEST(CollateChar32, SegmentsAfterAnEqualPrefixMakeTheLongerRangeGreater)
 // these two ranges, and the terminated one is the greater.
 TEST(CollateChar32, AnExplicitTerminatorSortsAfterAMissingOne)
 {
+#if IOV2_TEST_LINUX_GLIBC
     const collate<char32_t> obj = facet_for(kPlain);
     EXPECT_EQ(compare_ptr(obj, std::u32string(U"a\0", 2), U"a"), 1);
     EXPECT_EQ(compare_ptr(obj, U"a", std::u32string(U"a\0", 2)), -1);
     EXPECT_EQ(compare_ptr(obj, std::u32string(U"a\0", 2), std::u32string(U"a\0", 2)), 0);
+#else
+    GTEST_SKIP() << "collate<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CollateChar32, GermanCollationIgnoresCaseAtThePrimaryLevel)
 {
+#if IOV2_TEST_LINUX_GLIBC
     const collate<char32_t> obj = facet_for(kGerman);
     EXPECT_EQ(compare_ptr(obj, U"a", U"B"), -1);
     EXPECT_EQ(compare_ptr(obj, U"B", U"a"), 1);
+#else
+    GTEST_SKIP() << "collate<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CollateChar32, GermanCollationPlacesAnUmlautWithItsBaseLetter)
 {
+#if IOV2_TEST_LINUX_GLIBC
     const collate<char32_t> obj = facet_for(kGerman);
     EXPECT_EQ(compare_ptr(obj, a_umlaut, U"b"), -1);
     EXPECT_EQ(compare_ptr(obj, A_umlaut, U"B"), -1);
+#else
+    GTEST_SKIP() << "collate<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 // Same primary weight as 'a', so the tie is broken one level down and the
@@ -171,9 +219,13 @@ TEST(CollateChar32, GermanCollationPlacesAnUmlautWithItsBaseLetter)
 // satisfied by a locale that simply dropped the diacritic.
 TEST(CollateChar32, GermanCollationSeparatesAnUmlautFromItsBaseLetterAtTheSecondaryLevel)
 {
+#if IOV2_TEST_LINUX_GLIBC
     const collate<char32_t> obj = facet_for(kGerman);
     EXPECT_EQ(compare_ptr(obj, a_umlaut, U"a"), 1);
     EXPECT_EQ(compare_ptr(obj, U"a", a_umlaut), -1);
+#else
+    GTEST_SKIP() << "collate<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 // compare() takes a segment by two routes -- a pointer straight into a pointer
@@ -181,6 +233,7 @@ TEST(CollateChar32, GermanCollationSeparatesAnUmlautFromItsBaseLetterAtTheSecond
 // interchangeable if they agree on every pair.
 TEST(CollateChar32, ListIteratorsCompareLikePointers)
 {
+#if IOV2_TEST_LINUX_GLIBC
     for (const char* loc : {kPlain, kGerman})
     {
         const collate<char32_t> obj = facet_for(loc);
@@ -194,10 +247,14 @@ TEST(CollateChar32, ListIteratorsCompareLikePointers)
                           compare_ptr(obj, lhs, rhs));
             }
     }
+#else
+    GTEST_SKIP() << "collate<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CollateChar32, DequeIteratorsCompareLikePointers)
 {
+#if IOV2_TEST_LINUX_GLIBC
     const collate<char32_t> obj = facet_for(kGerman);
     for (const std::u32string& lhs : kCases)
         for (const std::u32string& rhs : kCases)
@@ -208,10 +265,14 @@ TEST(CollateChar32, DequeIteratorsCompareLikePointers)
             EXPECT_EQ(order(obj.compare(l.begin(), l.end(), r.begin(), r.end())),
                       compare_ptr(obj, lhs, rhs));
         }
+#else
+    GTEST_SKIP() << "collate<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CollateChar32, APointerAndAnIteratorCompareLikeTwoPointers)
 {
+#if IOV2_TEST_LINUX_GLIBC
     const collate<char32_t> obj = facet_for(kGerman);
     for (const std::u32string& lhs : kCases)
         for (const std::u32string& rhs : kCases)
@@ -233,12 +294,16 @@ TEST(CollateChar32, APointerAndAnIteratorCompareLikeTwoPointers)
             EXPECT_EQ(order(obj.compare(dl.begin(), dl.end(), rhs.data(), rhs.data() + rhs.size())),
                       compare_ptr(obj, lhs, rhs));
         }
+#else
+    GTEST_SKIP() << "collate<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 // The tie-break on a missing terminator depends on which side ran out of input,
 // so a sign it got backwards would only show up with the arguments swapped.
 TEST(CollateChar32, SwappingTheArgumentsReversesTheResult)
 {
+#if IOV2_TEST_LINUX_GLIBC
     const collate<char32_t> obj = facet_for(kGerman);
     for (const std::u32string& lhs : kCases)
         for (const std::u32string& rhs : kCases)
@@ -246,22 +311,30 @@ TEST(CollateChar32, SwappingTheArgumentsReversesTheResult)
             SCOPED_TRACE(trace(lhs, rhs));
             EXPECT_EQ(compare_ptr(obj, lhs, rhs), -compare_ptr(obj, rhs, lhs));
         }
+#else
+    GTEST_SKIP() << "collate<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 // wcsxfrm is the identity in "C", and transform_length adds one per separator,
 // so the key of an n-character range is n characters long however the '\0's fall.
 TEST(CollateChar32, TheCLocaleKeyIsAsLongAsTheInput)
 {
+#if IOV2_TEST_LINUX_GLIBC
     const collate<char32_t> obj = facet_for(kPlain);
     for (const std::u32string& s : kCases)
     {
         SCOPED_TRACE(::testing::PrintToString(s));
         EXPECT_EQ(obj.transform_length(s.data(), s.data() + s.size()), s.size());
     }
+#else
+    GTEST_SKIP() << "collate<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CollateChar32, TransformLengthCountsEachSegmentSeparator)
 {
+#if IOV2_TEST_LINUX_GLIBC
     const collate<char32_t> obj = facet_for(kGerman);
     const std::u32string    head(U"a\0", 2);
     const std::u32string    tail(U"b");
@@ -270,10 +343,14 @@ TEST(CollateChar32, TransformLengthCountsEachSegmentSeparator)
     EXPECT_EQ(obj.transform_length(both.data(), both.data() + both.size()),
               obj.transform_length(head.data(), head.data() + head.size()) +
               obj.transform_length(tail.data(), tail.data() + tail.size()));
+#else
+    GTEST_SKIP() << "collate<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CollateChar32, TransformLengthIsTheSameThroughIterators)
 {
+#if IOV2_TEST_LINUX_GLIBC
     for (const char* loc : {kPlain, kGerman})
     {
         const collate<char32_t> obj = facet_for(loc);
@@ -287,10 +364,14 @@ TEST(CollateChar32, TransformLengthIsTheSameThroughIterators)
             EXPECT_EQ(obj.transform_length(d.begin(), d.end()), expected);
         }
     }
+#else
+    GTEST_SKIP() << "collate<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CollateChar32, TheCLocaleKeyIsTheInputItself)
 {
+#if IOV2_TEST_LINUX_GLIBC
     const collate<char32_t> obj = facet_for(kPlain);
     for (const std::u32string& s : kCases)
     {
@@ -301,10 +382,14 @@ TEST(CollateChar32, TheCLocaleKeyIsTheInputItself)
         EXPECT_EQ(it, key.data() + s.size());
         EXPECT_EQ(key, s);
     }
+#else
+    GTEST_SKIP() << "collate<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CollateChar32, TransformWritesExactlyTransformLengthCharacters)
 {
+#if IOV2_TEST_LINUX_GLIBC
     const collate<char32_t> obj = facet_for(kGerman);
     for (const std::u32string& s : kCases)
     {
@@ -315,6 +400,9 @@ TEST(CollateChar32, TransformWritesExactlyTransformLengthCharacters)
         EXPECT_EQ(n, len);
         EXPECT_EQ(it, key.data() + len);
     }
+#else
+    GTEST_SKIP() << "collate<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 // What transform() is for: comparing two keys byte by byte has to give the same
@@ -322,6 +410,7 @@ TEST(CollateChar32, TransformWritesExactlyTransformLengthCharacters)
 // the facet would have nothing to do.
 TEST(CollateChar32, KeysOrderLikeCompare)
 {
+#if IOV2_TEST_LINUX_GLIBC
     const collate<char32_t> obj = facet_for(kGerman);
     for (const std::u32string& lhs : kCases)
         for (const std::u32string& rhs : kCases)
@@ -332,6 +421,9 @@ TEST(CollateChar32, KeysOrderLikeCompare)
             obj.transform(rhs.data(), rhs.data() + rhs.size(), std::back_inserter(kr));
             EXPECT_EQ(order(kl <=> kr), compare_ptr(obj, lhs, rhs));
         }
+#else
+    GTEST_SKIP() << "collate<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 // A terminated segment contributes its weights and a separator; an unterminated
@@ -339,6 +431,7 @@ TEST(CollateChar32, KeysOrderLikeCompare)
 // key at the same place.
 TEST(CollateChar32, AKeyIsTheConcatenationOfItsSegmentKeys)
 {
+#if IOV2_TEST_LINUX_GLIBC
     const collate<char32_t> obj = facet_for(kGerman);
     const std::u32string    head(U"Zange\0", 6);
     const std::u32string    tail(A_umlaut + U"pfel");
@@ -352,10 +445,14 @@ TEST(CollateChar32, AKeyIsTheConcatenationOfItsSegmentKeys)
     EXPECT_EQ(k_head.size() + k_tail.size(), k_both.size());
     EXPECT_EQ(k_head + k_tail, k_both);
     EXPECT_EQ(obj.transform_length(both.data(), both.data() + both.size()), k_both.size());
+#else
+    GTEST_SKIP() << "collate<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CollateChar32, AnOutputIteratorReceivesTheSameKey)
 {
+#if IOV2_TEST_LINUX_GLIBC
     const collate<char32_t> obj = facet_for(kGerman);
     for (const std::u32string& s : kCases)
     {
@@ -369,10 +466,14 @@ TEST(CollateChar32, AnOutputIteratorReceivesTheSameKey)
         EXPECT_EQ(n, len);
         EXPECT_EQ(through, direct);
     }
+#else
+    GTEST_SKIP() << "collate<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CollateChar32, AnInputIteratorProducesTheSameKey)
 {
+#if IOV2_TEST_LINUX_GLIBC
     const collate<char32_t> obj = facet_for(kGerman);
     for (const std::u32string& s : kCases)
     {
@@ -393,10 +494,14 @@ TEST(CollateChar32, AnInputIteratorProducesTheSameKey)
         EXPECT_EQ(obj.transform(d.begin(), d.end(), random_access.data()).second, len);
         EXPECT_EQ(random_access, direct);
     }
+#else
+    GTEST_SKIP() << "collate<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(CollateChar32, IteratorsOnBothSidesProduceTheSameKey)
 {
+#if IOV2_TEST_LINUX_GLIBC
     const collate<char32_t> obj = facet_for(kGerman);
     for (const std::u32string& s : kCases)
     {
@@ -411,6 +516,9 @@ TEST(CollateChar32, IteratorsOnBothSidesProduceTheSameKey)
         EXPECT_EQ(n, len);
         EXPECT_EQ(through, direct);
     }
+#else
+    GTEST_SKIP() << "collate<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 // n is a hard cap on characters written, checked both before a segment and
@@ -419,6 +527,7 @@ TEST(CollateChar32, IteratorsOnBothSidesProduceTheSameKey)
 // character of the second segment.
 TEST(CollateChar32, AMaximumLengthTruncatesTheKey)
 {
+#if IOV2_TEST_LINUX_GLIBC
     const collate<char32_t> obj   = facet_for(kPlain);
     const std::u32string    input(U"ab\0cd", 5);
     const char32_t*         lo = input.data();
@@ -446,18 +555,25 @@ TEST(CollateChar32, AMaximumLengthTruncatesTheKey)
         EXPECT_EQ(obj.transform(l.begin(), l.end(), std::back_inserter(d), mx).second, mx);
         EXPECT_EQ(d, expected);
     }
+#else
+    GTEST_SKIP() << "collate<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 // 0 used to mean "no limit"; it is refused so that a caller still relying on
 // that fails loudly instead of silently getting an empty key.
 TEST(CollateChar32, AZeroMaximumLengthIsRejected)
 {
+#if IOV2_TEST_LINUX_GLIBC
     const collate<char32_t> obj = facet_for(kPlain);
     const std::u32string input(U"ab");
     std::u32string key;
     EXPECT_THROW(obj.transform(input.data(), input.data() + input.size(), std::back_inserter(key), 0),
                  io_error);
     EXPECT_TRUE(key.empty());
+#else
+    GTEST_SKIP() << "collate<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 // U+082F and U+1CF7 are ignored at every level of glibc's de_DE collation, so
@@ -465,6 +581,7 @@ TEST(CollateChar32, AZeroMaximumLengthIsRejected)
 // std::weak_ordering -- and, as strxfrm promises, get the very same key.
 TEST(CollateChar32, DifferentRangesCanBeEquivalent)
 {
+#if IOV2_TEST_LINUX_GLIBC
     const collate<char32_t> obj = facet_for(kGerman);
     const std::u32string lhs(U"a\u082Fz");
     const std::u32string rhs(U"a\u1CF7z");
@@ -475,12 +592,16 @@ TEST(CollateChar32, DifferentRangesCanBeEquivalent)
     obj.transform(lhs.data(), lhs.data() + lhs.size(), std::back_inserter(kl));
     obj.transform(rhs.data(), rhs.data() + rhs.size(), std::back_inserter(kr));
     EXPECT_EQ(kl, kr);
+#else
+    GTEST_SKIP() << "collate<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 // 128 KiB in one segment forces the staging buffers through many growth rounds and a key far too large for
 // any small-buffer optimisation; in "C" the result is still exactly the input.
 TEST(CollateChar32, ALargeInputIsTransformedInOnePiece)
 {
+#if IOV2_TEST_LINUX_GLIBC
     const collate<char32_t> obj = facet_for(kPlain);
     const std::u32string    input(std::size_t{1} << 17, U'a');
 
@@ -490,6 +611,9 @@ TEST(CollateChar32, ALargeInputIsTransformedInOnePiece)
     auto [it, n] = obj.transform(input.data(), input.data() + input.size(), key.data());
     EXPECT_EQ(n, input.size());
     EXPECT_EQ(key, input);
+#else
+    GTEST_SKIP() << "collate<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 // The same amount of work spread over many segments instead of one: every
@@ -497,6 +621,7 @@ TEST(CollateChar32, ALargeInputIsTransformedInOnePiece)
 // come out in the right places.
 TEST(CollateChar32, ManySegmentsAreTransformedInOrder)
 {
+#if IOV2_TEST_LINUX_GLIBC
     const collate<char32_t> obj      = facet_for(kPlain);
     const std::size_t       segments = 5000;
     std::u32string          input;
@@ -509,4 +634,7 @@ TEST(CollateChar32, ManySegmentsAreTransformedInOrder)
     auto [it, n] = obj.transform(input.data(), input.data() + input.size(), std::back_inserter(key));
     EXPECT_EQ(n, input.size());
     EXPECT_EQ(key, input);
+#else
+    GTEST_SKIP() << "collate<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }

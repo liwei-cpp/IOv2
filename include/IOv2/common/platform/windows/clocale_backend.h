@@ -11,8 +11,10 @@
  * locale 则让本线程进入 `_ENABLE_PER_THREAD_LOCALE` 模式后 `setlocale`，此时 `setlocale` 只改
  * 本线程，全局 locale 与其他线程不受影响。解析名字时也在这一模式下进行，用完即恢复。
  *
- * 解析时还一并保存 `LC_CTYPE` 的 BCP-47 名字（如 `en-US`，取自 `___lc_locale_name_func`），
- * 供 facet 后端调用 `LCMapStringEx` 等以名字定 locale 的 NLS 函数；`"C"` locale 没有此名字。
+ * 解析时还一并保存 `LC_CTYPE` 与 `LC_COLLATE` 的 BCP-47 名字（如 `en-US`，取自
+ * `___lc_locale_name_func`），供 facet 后端调用 `LCMapStringEx`、`CompareStringEx` 等以名字定
+ * locale 的 NLS 函数；`"C"` locale 没有此名字。`LC_COLLATE` 的代码页（`___lc_collate_cp_func`）
+ * 也一并保存，`collate` 后端用它把窄字符串转成 UTF-16。
  * @endif
  * @lang{EN}
  * Windows (UCRT) backend of `clocale_wrapper`.
@@ -24,9 +26,11 @@
  * in that mode changes this thread alone, leaving the global locale and other threads
  * untouched. Resolving the name happens in the same mode and is undone at once.
  *
- * Resolving also keeps the BCP-47 name of `LC_CTYPE` (`en-US`, say, from
- * `___lc_locale_name_func`), for facet backends calling `LCMapStringEx` and the other NLS
- * functions that take a locale by name; the `"C"` locale has no such name.
+ * Resolving also keeps the BCP-47 names of `LC_CTYPE` and `LC_COLLATE` (`en-US`, say, from
+ * `___lc_locale_name_func`), for facet backends calling `LCMapStringEx`, `CompareStringEx` and
+ * the other NLS functions that take a locale by name; the `"C"` locale has no such name. It
+ * keeps the code page of `LC_COLLATE` (`___lc_collate_cp_func`) as well, which the `collate`
+ * backend converts narrow strings to UTF-16 with.
  * @endif
  */
 
@@ -46,6 +50,8 @@ struct windows_clocale
     std::string  all_name;     // setlocale(LC_ALL) after switching to it: rebuilds the locale
     std::string  ctype_name;   // setlocale(LC_CTYPE) likewise: what name() reports
     std::wstring ctype_bcp47;  // LC_CTYPE's BCP-47 name ("en-US") for the NLS APIs; empty for "C"
+    std::wstring collate_bcp47;   // LC_COLLATE's, likewise
+    unsigned int collate_cp = 0;  // LC_COLLATE's code page; 0 for "C"
 };
 
 using clocale_handle = windows_clocale*;
@@ -108,6 +114,9 @@ inline clocale_handle clocale_create(const char* name)
             res->ctype_name = std::setlocale(LC_CTYPE, nullptr);
             if (const wchar_t* bcp47 = ___lc_locale_name_func()[LC_CTYPE])
                 res->ctype_bcp47 = bcp47;
+            if (const wchar_t* bcp47 = ___lc_locale_name_func()[LC_COLLATE])
+                res->collate_bcp47 = bcp47;
+            res->collate_cp = ___lc_collate_cp_func();
         }
     }
     catch (...)
@@ -128,7 +137,8 @@ inline clocale_handle clocale_duplicate(clocale_handle loc)
 {
     auto res = std::make_unique<windows_clocale>(
         windows_clocale{.all_name = loc->all_name, .ctype_name = loc->ctype_name,
-                        .ctype_bcp47 = loc->ctype_bcp47});
+                        .ctype_bcp47 = loc->ctype_bcp47, .collate_bcp47 = loc->collate_bcp47,
+                        .collate_cp = loc->collate_cp});
     res->loc = _create_locale(LC_ALL, res->all_name.c_str());
     return res->loc ? res.release() : nullptr;
 }

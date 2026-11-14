@@ -48,39 +48,13 @@
 #pragma once
 
 #include <IOv2/common/platform/clocale_backend.h>
+#include <IOv2/facet/platform/windows/nls_api.h>
 
 #include <cctype>
 #include <cwctype>
 
-// LCMapStringEx, declared as <windows.h> does but without including it (the reasons are in
-// device/platform/windows/win32_api.h). Its version-info parameter needs the struct's tag at
-// global scope so the two declarations name the same type.
-struct _nlsversioninfo;   // NOLINT(bugprone-reserved-identifier): <winnls.h>'s own tag
-
 namespace IOv2::detail
 {
-#if defined(_WIN64)
-using win_lparam = __int64;   // LPARAM
-#else
-using win_lparam = long;
-#endif
-
-extern "C"
-{
-__declspec(dllimport) int __stdcall LCMapStringEx(const wchar_t* lpLocaleName, unsigned long dwMapFlags,
-                                                  const wchar_t* lpSrcStr, int cchSrc,
-                                                  wchar_t* lpDestStr, int cchDest,
-                                                  ::_nlsversioninfo* lpVersionInformation,
-                                                  void* lpReserved, win_lparam sortHandle);
-__declspec(dllimport) int __stdcall GetStringTypeW(unsigned long dwInfoType, const wchar_t* lpSrcStr,
-                                                   int cchSrc, unsigned short* lpCharType);
-}
-
-inline constexpr unsigned long win_ct_ctype1 = 0x0001;                    // CT_CTYPE1
-inline constexpr unsigned long win_lcmap_lowercase = 0x00000100;          // LCMAP_LOWERCASE
-inline constexpr unsigned long win_lcmap_uppercase = 0x00000200;          // LCMAP_UPPERCASE
-inline constexpr unsigned long win_lcmap_linguistic_casing = 0x01000000;  // LCMAP_LINGUISTIC_CASING
-
 // Byte classification and case mapping in loc; c is an unsigned char value. Unlike the
 // wide functions, these do read the locale: its code page's table. Some are macros in
 // the UCRT headers, hence no :: qualification.
