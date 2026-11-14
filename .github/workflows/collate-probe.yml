@@ -1,0 +1,59 @@
+name: Collate probe
+
+# Collate port: runs probe/collate_probe.cpp on real Windows, macOS and Linux and
+# prints what strcoll_l / wcscoll_l / strxfrm_l / wcsxfrm_l do. Lives on probe/*
+# branches only; never merged.
+on:
+  push:
+    branches: [ 'probe/**' ]
+
+jobs:
+  windows:
+    name: probe (${{ matrix.os }}, /${{ matrix.crt }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: windows-latest, crt: MD }
+          - { os: windows-latest, crt: MT }
+          - { os: windows-2022,   crt: MD }
+    steps:
+    - uses: actions/checkout@v6
+    - uses: ilammy/msvc-dev-cmd@v1
+    - name: Versions
+      shell: pwsh
+      run: |
+        [System.Environment]::OSVersion.VersionString
+        (Get-Item C:\Windows\System32\ucrtbase.dll).VersionInfo.FileVersion
+        cl 2>&1 | Select-Object -First 1
+    - name: Build
+      shell: cmd
+      run: cl /nologo /std:c++latest /utf-8 /EHsc /W4 /O2 /${{ matrix.crt }} probe\collate_probe.cpp /Fe:probe.exe
+    - name: Run
+      shell: cmd
+      run: probe.exe
+
+  posix:
+    name: probe (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ macos-latest, macos-14, ubuntu-latest ]
+    steps:
+    - uses: actions/checkout@v6
+    - name: Locales (Linux)
+      if: runner.os == 'Linux'
+      run: |
+        sudo locale-gen de_DE.UTF-8 de_DE en_US.UTF-8 sv_SE.UTF-8 zh_CN.UTF-8 zh_CN.GB18030 || true
+        locale -a
+    - name: Versions
+      run: |
+        uname -a
+        c++ --version
+        if [ "$RUNNER_OS" = macOS ]; then sw_vers; ls -l /usr/share/locale/de_DE.UTF-8/ /usr/share/locale/de_DE.ISO8859-1/ || true; fi
+    - name: Build
+      run: c++ -std=c++23 -Wall -Wextra -O2 probe/collate_probe.cpp -o probe
+    - name: Run
+      run: ./probe
