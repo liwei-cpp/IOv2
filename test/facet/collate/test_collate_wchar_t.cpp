@@ -3,19 +3,22 @@
 
 /**
  * The same collation contract as test_collate_char.cpp, one level up: for
- * wchar_t the segments go to wcscoll and wcsxfrm rather than wcscoll and
- * wcsxfrm, and a segment is a run of wchar_t values rather than of bytes.  An
+ * wchar_t the segments go to wcscoll and wcsxfrm rather than strcoll and
+ * strxfrm, and a segment is a run of wchar_t values rather than of bytes.  An
  * umlaut is therefore one code unit here, not the two UTF-8 bytes the narrow
  * file has to spell out, which is the whole reason both instantiations are
  * worth testing.
  *
  * "C" keeps wcsxfrm an identity, so a key is its own input and the
  * expectations can be read off the literals; de_DE.UTF-8 is where collation
- * order and code-unit order disagree.
+ * order and code-unit order disagree.  On Windows a wchar_t is a UTF-16 code
+ * unit, so a character outside the BMP is two of them.
  */
 #include <IOv2/common/defs.h>
 #include <IOv2/facet/collate.h>
 #include <IOv2/facet/collate_details.h>
+
+#include <support/platform_macros.h>
 
 #include <gtest/gtest.h>
 
@@ -510,4 +513,47 @@ TEST(CollateWchar, ManySegmentsAreTransformedInOrder)
     auto [it, n] = obj.transform(input.data(), input.data() + input.size(), std::back_inserter(key));
     EXPECT_EQ(n, input.size());
     EXPECT_EQ(key, input);
+}
+
+// Where punctuation goes is a choice the locale makes, but keys have to make the
+// same choice as compare(); the UCRT's wcscoll and wcsxfrm do not agree on it.
+TEST(CollateWchar, KeysOrderLikeCompareAcrossPunctuation)
+{
+    const collate<wchar_t> obj = facet_for(kGerman);
+    const std::wstring cases[] = {L"co-op", L"coat", L"coop", L"it's", L"itch", L"a b", L"ab"};
+    for (const std::wstring& lhs : cases)
+        for (const std::wstring& rhs : cases)
+        {
+            SCOPED_TRACE(trace(lhs, rhs));
+            std::wstring kl, kr;
+            obj.transform(lhs.data(), lhs.data() + lhs.size(), std::back_inserter(kl));
+            obj.transform(rhs.data(), rhs.data() + rhs.size(), std::back_inserter(kr));
+            EXPECT_EQ(order(kl <=> kr), compare_ptr(obj, lhs, rhs));
+        }
+}
+
+// "C" compares wchar_t values.  Where they are UTF-16 code units, U+1F600 starts
+// with the high surrogate 0xD83D and so sorts before U+FFFF; where they are code
+// points it sorts after.
+TEST(CollateWchar, TheCLocaleOrdersCharactersOutsideTheBmpByCodeUnit)
+{
+    const collate<wchar_t> obj = facet_for(kPlain);
+#if IOV2_TEST_WINDOWS
+    EXPECT_EQ(compare_ptr(obj, L"\U0001F600", L"\uFFFF"), -1);
+#else
+    EXPECT_EQ(compare_ptr(obj, L"\U0001F600", L"\uFFFF"), 1);
+#endif
+}
+
+// On Windows the two characters are surrogate pairs that share their high half,
+// so the low halves have to be read as part of the character for this to hold.
+TEST(CollateWchar, CharactersOutsideTheBmpCollate)
+{
+#if !IOV2_TEST_MACOS
+    const collate<wchar_t> obj = facet_for(kGerman);
+    EXPECT_EQ(compare_ptr(obj, L"\U0001F600", L"\U0001F601"), -1);
+    EXPECT_EQ(compare_ptr(obj, L"\U0001F601", L"\U0001F600"), 1);
+#else
+    GTEST_SKIP() << "macOS collates every character outside the BMP as equivalent";
+#endif
 }

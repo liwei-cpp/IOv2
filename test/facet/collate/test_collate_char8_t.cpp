@@ -5,16 +5,20 @@
  * The same collation contract as test_collate_char.cpp for char8_t, which
  * routes through the narrow strcoll and strxfrm on its UTF-8 bytes.  That is
  * only correct when the locale's codeset is UTF-8, so collate_conf<char8_t>
- * refuses anything else -- the plain locale here is "C.UTF-8" rather than "C.UTF-8"
+ * refuses anything else -- the plain locale here is "C.UTF-8" rather than "C"
  * for that reason, and the last case in the file is what checks the refusal.
  *
  * "C.UTF-8" collates by code point and keeps strxfrm an identity, so a key is
  * still its own input; de_DE.UTF-8 is where collation order and byte order
- * disagree.
+ * disagree.  Windows has no "C.UTF-8": there the plain locale is en_US.UTF-8,
+ * and the cases that need code-point order or a key equal to its input are
+ * skipped.  The char file runs the same facet code under Windows' "C".
  */
 #include <IOv2/common/defs.h>
 #include <IOv2/facet/collate.h>
 #include <IOv2/facet/collate_details.h>
+
+#include <support/platform_macros.h>
 
 #include <gtest/gtest.h>
 
@@ -33,7 +37,11 @@ namespace
 {
     // The two locales the cases above describe.  Every other string in this file
     // is test data in the character type under test.
+#if !IOV2_TEST_WINDOWS
     constexpr const char* kPlain  = "C.UTF-8";
+#else
+    constexpr const char* kPlain  = "en_US.UTF-8";
+#endif
     constexpr const char* kGerman = "de_DE.UTF-8";
 
     collate<char8_t> facet_for(const char* loc)
@@ -118,10 +126,14 @@ TEST(CollateChar8, AnEmptyRangeSortsBeforeANonEmptyOne)
 // other one on the same pair.
 TEST(CollateChar8, TheCLocaleComparesByByteValue)
 {
+#if !IOV2_TEST_WINDOWS
     const collate<char8_t> obj = facet_for(kPlain);
     EXPECT_EQ(compare_ptr(obj, u8"a", u8"B"), 1);
     EXPECT_EQ(compare_ptr(obj, a_umlaut, u8"b"), 1);
     EXPECT_EQ(compare_ptr(obj, A_umlaut, u8"B"), 1);
+#else
+    GTEST_SKIP() << "Windows has no C.UTF-8, whose code-point order this checks";
+#endif
 }
 
 TEST(CollateChar8, TheFirstUnequalSegmentDecides)
@@ -252,12 +264,16 @@ TEST(CollateChar8, SwappingTheArgumentsReversesTheResult)
 // so the key of an n-character range is n characters long however the '\0's fall.
 TEST(CollateChar8, TheCLocaleKeyIsAsLongAsTheInput)
 {
+#if !IOV2_TEST_WINDOWS
     const collate<char8_t> obj = facet_for(kPlain);
     for (const std::u8string& s : kCases)
     {
         SCOPED_TRACE(::testing::PrintToString(s));
         EXPECT_EQ(obj.transform_length(s.data(), s.data() + s.size()), s.size());
     }
+#else
+    GTEST_SKIP() << "Windows has no C.UTF-8, whose identity key this checks";
+#endif
 }
 
 TEST(CollateChar8, TransformLengthCountsEachSegmentSeparator)
@@ -291,6 +307,7 @@ TEST(CollateChar8, TransformLengthIsTheSameThroughIterators)
 
 TEST(CollateChar8, TheCLocaleKeyIsTheInputItself)
 {
+#if !IOV2_TEST_WINDOWS
     const collate<char8_t> obj = facet_for(kPlain);
     for (const std::u8string& s : kCases)
     {
@@ -301,6 +318,9 @@ TEST(CollateChar8, TheCLocaleKeyIsTheInputItself)
         EXPECT_EQ(it, key.data() + s.size());
         EXPECT_EQ(key, s);
     }
+#else
+    GTEST_SKIP() << "Windows has no C.UTF-8, whose identity key this checks";
+#endif
 }
 
 TEST(CollateChar8, TransformWritesExactlyTransformLengthCharacters)
@@ -419,6 +439,7 @@ TEST(CollateChar8, IteratorsOnBothSidesProduceTheSameKey)
 // character of the second segment.
 TEST(CollateChar8, AMaximumLengthTruncatesTheKey)
 {
+#if !IOV2_TEST_WINDOWS
     const collate<char8_t> obj   = facet_for(kPlain);
     const std::u8string    input(u8"ab\0cd", 5);
     const char8_t*         lo = input.data();
@@ -446,6 +467,9 @@ TEST(CollateChar8, AMaximumLengthTruncatesTheKey)
         EXPECT_EQ(obj.transform(l.begin(), l.end(), std::back_inserter(d), mx).second, mx);
         EXPECT_EQ(d, expected);
     }
+#else
+    GTEST_SKIP() << "Windows has no C.UTF-8, whose identity key makes the cut visible";
+#endif
 }
 
 // 0 used to mean "no limit"; it is refused so that a caller still relying on
@@ -481,6 +505,7 @@ TEST(CollateChar8, DifferentRangesCanBeEquivalent)
 // any small-buffer optimisation; in "C.UTF-8" the result is still exactly the input.
 TEST(CollateChar8, ALargeInputIsTransformedInOnePiece)
 {
+#if !IOV2_TEST_WINDOWS
     const collate<char8_t> obj = facet_for(kPlain);
     const std::u8string    input(std::size_t{1} << 17, u8'a');
 
@@ -490,6 +515,9 @@ TEST(CollateChar8, ALargeInputIsTransformedInOnePiece)
     auto [it, n] = obj.transform(input.data(), input.data() + input.size(), key.data());
     EXPECT_EQ(n, input.size());
     EXPECT_EQ(key, input);
+#else
+    GTEST_SKIP() << "Windows has no C.UTF-8, whose identity key this checks";
+#endif
 }
 
 // The same amount of work spread over many segments instead of one: every
@@ -497,6 +525,7 @@ TEST(CollateChar8, ALargeInputIsTransformedInOnePiece)
 // come out in the right places.
 TEST(CollateChar8, ManySegmentsAreTransformedInOrder)
 {
+#if !IOV2_TEST_WINDOWS
     const collate<char8_t> obj      = facet_for(kPlain);
     const std::size_t      segments = 5000;
     std::u8string          input;
@@ -509,11 +538,15 @@ TEST(CollateChar8, ManySegmentsAreTransformedInOrder)
     auto [it, n] = obj.transform(input.data(), input.data() + input.size(), std::back_inserter(key));
     EXPECT_EQ(n, input.size());
     EXPECT_EQ(key, input);
+#else
+    GTEST_SKIP() << "Windows has no C.UTF-8, whose identity key this checks";
+#endif
 }
 
-// collate_conf<char8_t> probes the locale's CTYPE codeset with mbrtoc32 before
-// accepting it: the narrow strcoll it delegates to reads its argument as bytes,
-// and those bytes only carry the intended characters when the codeset is UTF-8.
+// collate_conf<char8_t> checks the locale's encoding before accepting it: the
+// narrow path it delegates to reads its argument as bytes, and those bytes only
+// carry the intended characters when the encoding is UTF-8.  "POSIX" is no
+// locale name on Windows, which refuses it outright.
 TEST(CollateChar8, ANonUtf8LocaleIsRejected)
 {
     for (const char* name : {"C", "POSIX"})

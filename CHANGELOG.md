@@ -68,6 +68,16 @@
   代理不属于任何类别、大小写不变。宽字符大小写映射经 `LCMapStringEx` 按 Unicode 进行并采用
   语言学规则，与 glibc 一致（`µ` → `Μ`，土耳其语 `i` → `İ`）；不用 UCRT 的 `_towupper_l`，
   它在代码页 locale 下把小于 256 的字符映射错（如 1252 下 `ÿ` → U+009F）。`"C"` 下只映射 ASCII。
+- **`collate` facet 可在 Windows 与 macOS 上构建、运行**，`collate<char32_t>` 仍只在 `wchar_t`
+  为 UTF-32 的平台（glibc）上提供。各平台都不再切换线程 locale，改用接受 locale 参数的函数。
+  Windows 上直接调用 `CompareStringEx` 与 `LCMapStringEx`，比较与排序键用同一套规则：不用
+  UCRT 的 `_strcoll_l`/`_strxfrm_l`，二者对标点的处理不一致（de-DE 下 `"co-op"` 比 `"coat"`
+  小，排序键却比它大）。标点在第一层被忽略，与 glibc 相同。窄字符串按 `LC_COLLATE` 的代码页
+  解读，`"C"` 下按代码单元比较，宽字符的 BMP 以外字符因此排在 U+E000–U+FFFF 之前。Windows 与
+  macOS 上，窄字符串含 locale 编码下的非法字节序列时 `compare`、`transform` 抛 `io_error`；
+  glibc 不报告这种情况。`collate<char8_t>` 判断 locale 是否为 UTF-8 时改看编码名（Windows 上
+  看 `LC_COLLATE` 的代码页），不再用 `mbrtoc32` 探测：UCRT 的 `mbrtoc32` 不论 locale 一律按
+  UTF-8 解码，macOS 则没有这个函数。
 
 #### 变更
 
@@ -337,6 +347,20 @@ have no release line of their own.
   glibc (`µ` -> `Μ`, Turkish `i` -> `İ`); not through the UCRT's `_towupper_l`, which
   maps characters below 256 wrongly under a code-page locale (`ÿ` -> U+009F under 1252,
   say). `"C"` maps ASCII only.
+- **The `collate` facet builds and runs on Windows and macOS**; `collate<char32_t>` is
+  still provided only where `wchar_t` is UTF-32 (glibc). No platform switches the
+  thread's locale any more: the facet calls functions that take a locale argument.
+  Windows calls `CompareStringEx` and `LCMapStringEx` directly, with one set of rules
+  for comparison and keys; not the UCRT's `_strcoll_l`/`_strxfrm_l`, which disagree on
+  punctuation (under de-DE `"co-op"` is less than `"coat"` but its key is greater).
+  Punctuation is ignored at the first level, as on glibc. Narrow strings are read in
+  the code page of `LC_COLLATE`; `"C"` compares by code unit, so for wide strings a
+  character outside the BMP sorts before U+E000-U+FFFF. On Windows and macOS,
+  `compare` and `transform` throw `io_error` on a narrow string holding a byte sequence
+  invalid in the locale's encoding; glibc does not report one. `collate<char8_t>` tells
+  a UTF-8 locale by its encoding name (on Windows, the code page of `LC_COLLATE`)
+  rather than probing `mbrtoc32`, which the UCRT decodes as UTF-8 whatever the locale
+  and macOS does not have.
 
 #### Changed
 

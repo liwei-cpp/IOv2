@@ -18,6 +18,8 @@
 #include <IOv2/facet/collate.h>
 #include <IOv2/facet/collate_details.h>
 
+#include <support/platform_macros.h>
+
 #include <gtest/gtest.h>
 
 #include <compare>
@@ -511,4 +513,53 @@ TEST(CollateChar, ManySegmentsAreTransformedInOrder)
     auto [it, n] = obj.transform(input.data(), input.data() + input.size(), std::back_inserter(key));
     EXPECT_EQ(n, input.size());
     EXPECT_EQ(key, input);
+}
+
+// Where punctuation goes is a choice the locale makes -- glibc and Windows ignore
+// it at the first level, macOS does not -- but keys have to make the same choice
+// as compare().  The UCRT's strcoll and strxfrm do not: under de-DE strcoll puts
+// "co-op" before "coat" and strxfrm's keys put it after.
+TEST(CollateChar, KeysOrderLikeCompareAcrossPunctuation)
+{
+    const collate<char> obj = facet_for(kGerman);
+    const std::string cases[] = {"co-op", "coat", "coop", "it's", "itch", "a b", "ab"};
+    for (const std::string& lhs : cases)
+        for (const std::string& rhs : cases)
+        {
+            SCOPED_TRACE(trace(lhs, rhs));
+            std::string kl, kr;
+            obj.transform(lhs.data(), lhs.data() + lhs.size(), std::back_inserter(kl));
+            obj.transform(rhs.data(), rhs.data() + rhs.size(), std::back_inserter(kr));
+            EXPECT_EQ(order(kl <=> kr), compare_ptr(obj, lhs, rhs));
+        }
+}
+
+// 0xFF is no part of any UTF-8 sequence.  Windows and macOS report it, and the
+// facet passes that on rather than guess an order; glibc collates any bytes.
+TEST(CollateChar, AnInvalidByteSequenceCannotBeCollated)
+{
+#if !IOV2_TEST_LINUX_GLIBC
+    const collate<char> obj = facet_for(kGerman);
+    const std::string bad("a\xFF");
+    EXPECT_THROW(compare_ptr(obj, bad, "a"), io_error);
+    EXPECT_THROW((void)obj.transform_length(bad.data(), bad.data() + bad.size()), io_error);
+    std::string key;
+    EXPECT_THROW(obj.transform(bad.data(), bad.data() + bad.size(), std::back_inserter(key)), io_error);
+#else
+    GTEST_SKIP() << "glibc collates any byte sequence without reporting it";
+#endif
+}
+
+// A code-page locale reads a byte as that code page's character: 0xE4 is U+00E4
+// under 1252, so it collates as the German case above has the UTF-8 one collate.
+TEST(CollateChar, ACodePageLocaleReadsItsOwnBytes)
+{
+#if IOV2_TEST_WINDOWS
+    const collate<char> obj = facet_for("German_Germany.1252");
+    EXPECT_EQ(compare_ptr(obj, "\xE4", "b"), -1);
+    EXPECT_EQ(compare_ptr(obj, "\xE4", "a"), 1);
+    EXPECT_EQ(compare_ptr(obj, "\xC4", "B"), -1);
+#else
+    GTEST_SKIP() << "code-page locale names are Windows'";
+#endif
 }
