@@ -10,6 +10,9 @@
  * 名字解析成具体名字并保存下来：复制即按保存的名字再 `_create_locale` 一次；临时切换线程
  * locale 则让本线程进入 `_ENABLE_PER_THREAD_LOCALE` 模式后 `setlocale`，此时 `setlocale` 只改
  * 本线程，全局 locale 与其他线程不受影响。解析名字时也在这一模式下进行，用完即恢复。
+ *
+ * 解析时还一并保存 `LC_CTYPE` 的 BCP-47 名字（如 `en-US`，取自 `___lc_locale_name_func`），
+ * 供 facet 后端调用 `LCMapStringEx` 等以名字定 locale 的 NLS 函数；`"C"` locale 没有此名字。
  * @endif
  * @lang{EN}
  * Windows (UCRT) backend of `clocale_wrapper`.
@@ -20,6 +23,10 @@
  * locale puts the thread in `_ENABLE_PER_THREAD_LOCALE` mode and calls `setlocale`, which
  * in that mode changes this thread alone, leaving the global locale and other threads
  * untouched. Resolving the name happens in the same mode and is undone at once.
+ *
+ * Resolving also keeps the BCP-47 name of `LC_CTYPE` (`en-US`, say, from
+ * `___lc_locale_name_func`), for facet backends calling `LCMapStringEx` and the other NLS
+ * functions that take a locale by name; the `"C"` locale has no such name.
  * @endif
  */
 
@@ -35,9 +42,10 @@ namespace IOv2::detail
 {
 struct windows_clocale
 {
-    _locale_t   loc = nullptr;
-    std::string all_name;     // setlocale(LC_ALL) after switching to it: rebuilds the locale
-    std::string ctype_name;   // setlocale(LC_CTYPE) likewise: what name() reports
+    _locale_t    loc = nullptr;
+    std::string  all_name;     // setlocale(LC_ALL) after switching to it: rebuilds the locale
+    std::string  ctype_name;   // setlocale(LC_CTYPE) likewise: what name() reports
+    std::wstring ctype_bcp47;  // LC_CTYPE's BCP-47 name ("en-US") for the NLS APIs; empty for "C"
 };
 
 using clocale_handle = windows_clocale*;
@@ -98,6 +106,8 @@ inline clocale_handle clocale_create(const char* name)
         {
             res->all_name   = all;   // copied before the next setlocale reuses the buffer
             res->ctype_name = std::setlocale(LC_CTYPE, nullptr);
+            if (const wchar_t* bcp47 = ___lc_locale_name_func()[LC_CTYPE])
+                res->ctype_bcp47 = bcp47;
         }
     }
     catch (...)
@@ -117,7 +127,8 @@ inline clocale_handle clocale_create(const char* name)
 inline clocale_handle clocale_duplicate(clocale_handle loc)
 {
     auto res = std::make_unique<windows_clocale>(
-        windows_clocale{.all_name = loc->all_name, .ctype_name = loc->ctype_name});
+        windows_clocale{.all_name = loc->all_name, .ctype_name = loc->ctype_name,
+                        .ctype_bcp47 = loc->ctype_bcp47});
     res->loc = _create_locale(LC_ALL, res->all_name.c_str());
     return res->loc ? res.release() : nullptr;
 }

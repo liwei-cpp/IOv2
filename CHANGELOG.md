@@ -62,6 +62,12 @@
   先交出高位代理，写时以高位代理结尾的 `put` 等下一次 `put` 的低位代理；关闭流时高位代理
   仍未配对则报错。UTF-8 的判法与 `char32_t` 版本相同；孤立的代理无法编码。macOS 上仍不提供。
 - `wchar_t_is_utf16`：本平台的 `wchar_t` 是否为 UTF-16 编码单元（Windows 上为真）。
+- **`ctype` facet 可在 Windows 与 macOS 上构建、运行**。Windows 上与 glibc 有两处不同：
+  宽字符分类与 locale 无关，按 Unicode 属性进行（UCRT、MSVC STL 与 libc++ 都如此，根源是
+  `GetStringTypeW` 不接受 locale），因此 `"C"` 下 `L'ä'` 也是字母；`wchar_t` 是 UTF-16，单独的
+  代理不属于任何类别、大小写不变。宽字符大小写映射经 `LCMapStringEx` 按 Unicode 进行并采用
+  语言学规则，与 glibc 一致（`µ` → `Μ`，土耳其语 `i` → `İ`）；不用 UCRT 的 `_towupper_l`，
+  它在代码页 locale 下把小于 256 的字符映射错（如 1252 下 `ÿ` → U+009F）。`"C"` 下只映射 ASCII。
 
 #### 变更
 
@@ -322,6 +328,15 @@ have no release line of their own.
   cannot be encoded. Still not provided on macOS.
 - `wchar_t_is_utf16`: whether this platform's `wchar_t` is a UTF-16 code unit (true
   on Windows).
+- **The `ctype` facet builds and runs on Windows and macOS.** Windows differs from
+  glibc in two ways: wide-character classification does not depend on the locale but
+  follows Unicode properties (as in the UCRT, the MSVC STL and libc++, all because
+  `GetStringTypeW` takes no locale), so `L'ä'` is a letter even in `"C"`; and `wchar_t`
+  is UTF-16, so a lone surrogate belongs to no class and keeps its case. Wide case
+  mapping goes through `LCMapStringEx`, by Unicode with linguistic rules, agreeing with
+  glibc (`µ` -> `Μ`, Turkish `i` -> `İ`); not through the UCRT's `_towupper_l`, which
+  maps characters below 256 wrongly under a code-page locale (`ÿ` -> U+009F under 1252,
+  say). `"C"` maps ASCII only.
 
 #### Changed
 

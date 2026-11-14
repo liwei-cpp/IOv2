@@ -18,6 +18,8 @@
 #include <IOv2/facet/ctype.h>
 #include <IOv2/facet/ctype_details.h>
 
+#include <support/platform_macros.h>
+
 #include <gtest/gtest.h>
 
 #include <locale>
@@ -48,21 +50,31 @@ namespace
         explicit ref_ctype(const char* name) : std::ctype_byname<char>(name) {}
     };
 
-    mask to_iov2(std::ctype_base::mask in)
+    // The reference's classification of c, asked one category at a time.  is(m, c)
+    // means "has any of m" on every implementation, whereas what a std mask's bits
+    // are is each library's own: the MSVC STL makes alpha, print and space
+    // composites of several, so comparing bits would misread it.
+    mask expected_for(const ref_ctype& ref, char c)
     {
         mask res = static_cast<mask>(0);
-        auto copy_bit = [&](std::ctype_base::mask from, mask to)
-        { if ((in & from) == from) res |= to; };
+        auto copy = [&](std::ctype_base::mask from, mask to)
+        { if (ref.is(from, c)) res |= to; };
 
-        copy_bit(std::ctype_base::upper,  CT::upper);
-        copy_bit(std::ctype_base::lower,  CT::lower);
-        copy_bit(std::ctype_base::alpha,  CT::alpha);
-        copy_bit(std::ctype_base::digit,  CT::digit);
-        copy_bit(std::ctype_base::xdigit, CT::xdigit);
-        copy_bit(std::ctype_base::space,  CT::space);
-        copy_bit(std::ctype_base::print,  CT::print);
-        copy_bit(std::ctype_base::cntrl,  CT::cntrl);
-        copy_bit(std::ctype_base::punct,  CT::punct);
+        copy(std::ctype_base::upper,  CT::upper);
+        copy(std::ctype_base::lower,  CT::lower);
+        copy(std::ctype_base::alpha,  CT::alpha);
+        copy(std::ctype_base::digit,  CT::digit);
+        copy(std::ctype_base::xdigit, CT::xdigit);
+        copy(std::ctype_base::space,  CT::space);
+        copy(std::ctype_base::print,  CT::print);
+        copy(std::ctype_base::cntrl,  CT::cntrl);
+        copy(std::ctype_base::punct,  CT::punct);
+
+#if IOV2_TEST_WINDOWS
+        // The MSVC STL takes the UCRT's table as it is, where tab prints under a named
+        // locale; IOv2 does not (ctype_isprint in facet/platform/windows/ctype_backend.h).
+        if (c == '\t') res = static_cast<mask>(res & ~CT::print);
+#endif
         return res;
     }
 
@@ -95,15 +107,12 @@ TEST(CtypeChar, ClassificationMatchesTheStandardFacet)
 {
     const ctype<char> obj = facet_for("en_US.UTF-8");
     const ref_ctype   ref("en_US.UTF-8");
-    const std::string all = every_byte();
-
-    std::vector<std::ctype_base::mask> expected(kByteValues);
-    ref.is(all.data(), all.data() + kByteValues, expected.data());
 
     for (int i = 0; i < kByteValues; ++i)
     {
         SCOPED_TRACE(i);
-        EXPECT_EQ(obj.is(all[i]), to_iov2(expected[i]));
+        const char c = static_cast<char>(i);
+        EXPECT_EQ(obj.is(c), expected_for(ref, c));
     }
 }
 
@@ -116,6 +125,18 @@ TEST(CtypeChar, CaseMappingMatchesTheStandardFacet)
     {
         SCOPED_TRACE(i);
         const char c = static_cast<char>(i);
+#if IOV2_TEST_MACOS
+        // libc++ hands the byte to macOS's toupper_l, which maps it as the code point
+        // of the same value (0xE0 to 0xC0) although under UTF-8 it is no character.
+        // IOv2 keeps such bytes as they are (ctype_byte_is_char in
+        // facet/platform/posix/ctype_backend.h), as glibc does.
+        if (i >= 0x80)
+        {
+            EXPECT_EQ(obj.toupper(c), c);
+            EXPECT_EQ(obj.tolower(c), c);
+            continue;
+        }
+#endif
         EXPECT_EQ(obj.toupper(c), ref.toupper(c));
         EXPECT_EQ(obj.tolower(c), ref.tolower(c));
     }
@@ -131,6 +152,16 @@ TEST(CtypeChar, WidenAndNarrowMatchTheStandardFacet)
         SCOPED_TRACE(i);
         const char c = static_cast<char>(i);
         EXPECT_EQ(obj.widen(c), ref.widen(c));
+#if IOV2_TEST_MACOS
+        // How ctype<char> narrows is up to the implementation: libc++ gives the default
+        // for every non-ASCII byte, IOv2 gives the byte back, as libstdc++ and the MSVC
+        // STL do.
+        if (i >= 0x80)
+        {
+            EXPECT_EQ(obj.narrow(c, 0), c);
+            continue;
+        }
+#endif
         EXPECT_EQ(obj.narrow(c, 0), ref.narrow(c, 0));
     }
 }
@@ -383,4 +414,31 @@ TEST(CtypeChar, NarrowUndoesWiden)
         const char c = static_cast<char>(i);
         EXPECT_EQ(obj.narrow(obj.widen(c), '?'), c);
     }
+}
+
+// Under a single-byte code page the high half holds letters of its own, and the
+// byte table has to know them: é and É are 0xE9 and 0xC9 in 1252, а and А are
+// 0xE0 and 0xC0 in 1251.  Under UTF-8, the locale the other tests use, those
+// bytes are not characters, so only a code-page locale reaches this.
+TEST(CtypeChar, ACodePageLocaleClassifiesAndMapsItsHighBytes)
+{
+#if IOV2_TEST_WINDOWS
+    const ctype<char> western = facet_for("English_United States.1252");
+    EXPECT_TRUE(western.is_any(CT::alpha, '\xE9'));
+    EXPECT_TRUE(western.is_any(CT::lower, '\xE9'));
+    EXPECT_TRUE(western.is_any(CT::upper, '\xC9'));
+    EXPECT_EQ(western.toupper('\xE9'), '\xC9');
+    EXPECT_EQ(western.tolower('\xC9'), '\xE9');
+    // A named locale's table makes tab blank, which the UCRT's isprint counts as printing.
+    EXPECT_TRUE(western.is_any(CT::cntrl, '\t'));
+    EXPECT_FALSE(western.is_any(CT::print, '\t'));
+    EXPECT_TRUE(western.is_any(CT::print, ' '));
+
+    const ctype<char> cyrillic = facet_for("ru-RU");
+    EXPECT_TRUE(cyrillic.is_any(CT::lower, '\xE0'));
+    EXPECT_EQ(cyrillic.toupper('\xE0'), '\xC0');
+    EXPECT_EQ(cyrillic.tolower('\xC0'), '\xE0');
+#else
+    GTEST_SKIP() << "code-page locale names such as English_United States.1252 are the UCRT's";
+#endif
 }
