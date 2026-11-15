@@ -134,7 +134,7 @@ public:
     struct pattern_spec
     {
         int8_t precedes;     ///< @lang{ZH} `*_cs_precedes`：货币符号在数值之前（1）还是之后（0）。 @endif @lang{EN} `*_cs_precedes`: symbol precedes (1) or follows (0) the value. @endif
-        int8_t sep_by_space; ///< @lang{ZH} `*_sep_by_space`：货币符号与数值之间是否有空格。 @endif @lang{EN} `*_sep_by_space`: a space separates symbol and value. @endif
+        int8_t sep_by_space; ///< @lang{ZH} `*_sep_by_space`：0 无空格；1 空格在货币符号（连同贴着它的符号字符串）与数值之间；2 空格在符号字符串旁边（C11 7.11.2.1）。 @endif @lang{EN} `*_sep_by_space`: 0 no space; 1 a space between the symbol (with any sign glued to it) and the value; 2 a space next to the sign string (C11 7.11.2.1). @endif
         int    sign_posn;    ///< @lang{ZH} `*_sign_posn`：符号的位置（0..4）。 @endif @lang{EN} `*_sign_posn`: sign placement (0..4). @endif
     };
 
@@ -166,10 +166,14 @@ protected:
      *   紧贴货币符号之前或之后，随之一同移动，其余取值则由符号字符串包住整个字段
      *   （0、1 在最前，2 在最后）。
      * - 若 `precedes`，则货币符号（连同贴着它的符号字符串）在 `value` 之前；否则相反。
-     * - 若 `sep_by_space`，则 `space` 落在货币符号与金额的接缝处——这也是 `space`
-     *   唯一允许出现的位置（既不能是第一个，也不能是最后一个元素）。
+     * - `sep_by_space` 为 1 时，`space` 落在货币符号（连同贴着它的符号字符串）与金额
+     *   的接缝处。
+     * - `sep_by_space` 为 2 时，`space` 落在符号字符串旁边：符号字符串贴着货币符号时
+     *   在两者之间，否则在符号字符串与金额之间（C11 7.11.2.1 EXAMPLE 2）。`sign_posn`
+     *   为 0 时符号字符串是包住整个字段的括号，不加空格。
+     * - 两种情况下 `space` 都既不是第一个也不是最后一个元素。
      * - 没有 `space` 时字段少一格，由 `none` 补在末尾，这也是 `none` 唯一允许的位置。
-     * - `sign_posn` 超出 0–4 时回退到 `s_default_pattern`。
+     * - `sign_posn` 超出 0–4、或 `sep_by_space` 超出 0–2 时回退到 `s_default_pattern`。
      *
      * @param spec 包含 `precedes`、`sep_by_space` 和 `sign_posn` 的规格结构体。
      * @return 构造出的四元素 `pattern`。
@@ -187,12 +191,17 @@ protected:
      *   for 0 and 1, behind for 2).
      * - If `precedes`, the symbol (with any sign glued to it) comes before `value`;
      *   otherwise reversed.
-     * - If `sep_by_space`, the `space` sits on the seam between symbol and amount,
-     *   which is the only position it is allowed to hold, since it can be neither
-     *   the opening nor the closing element.
+     * - With `sep_by_space` 1, the `space` sits on the seam between the symbol (with
+     *   any sign glued to it) and the amount.
+     * - With `sep_by_space` 2, the `space` sits next to the sign string: between it
+     *   and the symbol when the two are glued together, otherwise between it and the
+     *   amount (C11 7.11.2.1 EXAMPLE 2). With `sign_posn` 0 the sign is the pair of
+     *   parentheses around the whole field, and no space is added.
+     * - Either way the `space` is neither the opening nor the closing element.
      * - Without a space the field is one slot short; `none` fills the tail, which is
      *   the only position it is allowed to hold.
-     * - A `sign_posn` outside 0–4 falls back to `s_default_pattern`.
+     * - A `sign_posn` outside 0–4 or a `sep_by_space` outside 0–2 falls back to
+     *   `s_default_pattern`.
      *
      * @param spec A spec struct containing `precedes`, `sep_by_space`, and `sign_posn`.
      * @return The constructed four-element `pattern`.
@@ -203,10 +212,9 @@ protected:
         using enum part;
         const auto [precedes, sp, posn] = spec;
 
-        // sign_posn is the only field with a range to fall outside of; POSIX fills it
-        // with CHAR_MAX when the locale has nothing to say, and there is nothing to
-        // build a layout from.
-        if (posn < 0 || posn > 4)
+        // POSIX fills sign_posn with CHAR_MAX when the locale has nothing to say; a
+        // value outside either range leaves nothing to build a layout from.
+        if (posn < 0 || posn > 4 || sp < 0 || sp > 2)
             return s_default_pattern;
 
         // Two things get laid out: the amount, and the currency symbol -- which for
@@ -228,20 +236,20 @@ protected:
         if (posn <= 1)
             ret[at++] = sign;
 
-        // The separator lives on the seam between the symbol and the amount, which is
-        // the one place a space is allowed to be: it can open no field and close none.
+        // sep_by_space 1 puts the separator on the seam between the symbol and the
+        // amount.
         if (precedes)
         {
             for (std::size_t k = 0; k < group_len; ++k)
                 ret[at++] = group[k];
-            if (sp)
+            if (sp == 1)
                 ret[at++] = space;
             ret[at++] = value;
         }
         else
         {
             ret[at++] = value;
-            if (sp)
+            if (sp == 1)
                 ret[at++] = space;
             for (std::size_t k = 0; k < group_len; ++k)
                 ret[at++] = group[k];
@@ -249,6 +257,19 @@ protected:
 
         if (posn == 2)
             ret[at++] = sign;
+
+        // sep_by_space 2 puts it next to the sign instead: after a leading sign, before
+        // a trailing one, and between a sign and the symbol it is glued to.
+        if (sp == 2 && posn != 0)
+        {
+            std::size_t gap = 2;
+            if (ret[0] == sign || (ret[1] == sign && ret[0] == symbol))
+                gap = 1;
+            for (std::size_t k = at; k > gap; --k)
+                ret[k] = ret[k - 1];
+            ret[gap] = space;
+            ++at;
+        }
 
         // Without a space the field is one slot short. `none` takes up the slack, and
         // being last is the one position it is allowed to hold.
@@ -295,6 +316,46 @@ protected:
      * @endif
      */
     static int8_t s_norm_flag(char v) { return (v == CHAR_MAX) ? int8_t{0} : static_cast<int8_t>(v); }
+
+    /**
+     * @lang{ZH}
+     * @brief 取 `lconv::int_curr_symbol` 中的货币代码，去掉 C 规定的第 4 个字符。
+     *
+     * C11 7.11.2.1 规定 `int_curr_symbol` 的前三个字符是 ISO 4217 代码，第四个字符是
+     * 国际货币符号与金额之间的分隔符，并且"For int_p_sep_by_space and
+     * int_n_sep_by_space, the fourth character of int_curr_symbol is used instead of a
+     * space"——分隔与否、分隔在哪由 `int_*_sep_by_space` 决定，而不是随符号一同输出。
+     * 因此存下的符号只取代码；分隔一律由 pattern 的 `space` 承担。第四个字符本身不
+     * 保存：已知的数据里它都是空格（glibc 全部 locale），Windows 的 UCRT 只给三个字符。
+     *
+     * @param s `int_curr_symbol` 的原始值，可为空指针。
+     * @return 长度为 4 时去掉最后一个字符，否则原样返回。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Takes the currency code out of `lconv::int_curr_symbol`, dropping the
+     *        fourth character C defines.
+     *
+     * C11 7.11.2.1 makes the first three characters of `int_curr_symbol` the ISO 4217
+     * code and the fourth the separator between the international symbol and the
+     * amount, and says "For int_p_sep_by_space and int_n_sep_by_space, the fourth
+     * character of int_curr_symbol is used instead of a space": whether and where to
+     * separate is `int_*_sep_by_space`'s to say, not something the symbol carries. So
+     * the symbol kept is the code alone, and the pattern's `space` does any separating.
+     * The fourth character itself is not kept: in all known data it is a space (every
+     * glibc locale), and the Windows UCRT gives three characters only.
+     *
+     * @param s The raw `int_curr_symbol`; may be a null pointer.
+     * @return The string less its last character if it is four long, else as it is.
+     * @endif
+     */
+    static std::string s_int_curr_code(const char* s)
+    {
+        std::string res = s ? s : "";
+        if (res.size() == 4)
+            res.pop_back();
+        return res;
+    }
 
     /**
      * @lang{ZH}
@@ -437,7 +498,7 @@ public:
                 m_negative_sign_int = lc->negative_sign;
 
             m_curr_symbol_nat = lc->currency_symbol;
-            m_curr_symbol_int = lc->int_curr_symbol;
+            m_curr_symbol_int = s_int_curr_code(lc->int_curr_symbol);
 
             m_pos_format_nat = s_construct_pattern({.precedes = s_norm_flag(lc->p_cs_precedes), .sep_by_space = s_norm_flag(lc->p_sep_by_space), .sign_posn = lc->p_sign_posn});
             m_neg_format_nat = s_construct_pattern({.precedes = s_norm_flag(lc->n_cs_precedes), .sep_by_space = s_norm_flag(lc->n_sep_by_space), .sign_posn = lc->n_sign_posn});
@@ -524,12 +585,12 @@ public:
 
     /**
      * @lang{ZH}
-     * @brief 返回国际货币符号字符串（如 `"USD "`）。
+     * @brief 返回国际货币符号字符串（如 `"USD"`；C 的 `int_curr_symbol` 第 4 个字符不在其中）。
      * @return 国际货币符号。
      * @endif
      *
      * @lang{EN}
-     * @brief Returns the international currency symbol string (e.g. `"USD "`).
+     * @brief Returns the international currency symbol string (e.g. `"USD"`; the fourth character of C's `int_curr_symbol` is not part of it).
      * @return The international currency symbol.
      * @endif
      */
@@ -839,7 +900,7 @@ public:
             const std::string curr_symbol_raw =
                 lc->currency_symbol ? lc->currency_symbol : "";
             const std::string int_curr_symbol_raw =
-                lc->int_curr_symbol ? lc->int_curr_symbol : "";
+                base_ft<monetary>::s_int_curr_code(lc->int_curr_symbol);
 
             // CHAR_MAX is POSIX's "value not specified by the locale"; map it
             // to 0 fractional digits rather than taking it literally.

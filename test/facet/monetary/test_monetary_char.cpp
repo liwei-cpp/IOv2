@@ -328,14 +328,14 @@ TEST(MonetaryChar, ALocaleWithCurrencyDataDiffersFromTheCLocale)
 // The pattern is not stored by the locale: it is built from the three POSIX
 // lconv flags sign_posn, cs_precedes and sep_by_space.  These four locales are
 // the ones that reach the sign_posn cases 2, 3 and 4 -- with and without the
-// separating space -- and the fifth is the hard-coded default the C locale
-// takes without consulting lconv at all.
+// separating space, da_DK with sep_by_space 2 -- and the fifth is the hard-coded
+// default the C locale takes without consulting lconv at all.
 TEST(MonetaryChar, ThePatternIsBuiltFromThePosixSignPosition)
 {
     const std::pair<const char*, pattern> cases[] = {
         {"ar_AE.UTF-8", {part::symbol, part::space, part::value, part::sign}},
         {"nn_NO.UTF-8", {part::sign, part::symbol, part::value, part::none}},
-        {"da_DK.UTF-8", {part::symbol, part::sign, part::space, part::value}},
+        {"da_DK.UTF-8", {part::symbol, part::space, part::sign, part::value}},
         {"bo_CN.UTF-8", {part::symbol, part::sign, part::value, part::none}},
         {"C.utf8",      {part::symbol, part::sign, part::none, part::value}},
     };
@@ -358,6 +358,16 @@ TEST(MonetaryChar, PatternConstructionHandlesReverseAndUnavailableData)
                   pattern_spec{.precedes = 1, .sep_by_space = 0, .sign_posn = CHAR_MAX}),
               (pattern{part::symbol, part::sign, part::none, part::value}));
 
+    // C defines sep_by_space 0, 1 and 2 only; anything else is as unusable as an
+    // out-of-range sign_posn.
+    for (const int8_t sep : {int8_t{3}, int8_t{-1}})
+    {
+        SCOPED_TRACE(static_cast<int>(sep));
+        EXPECT_EQ(monetary_probe::s_construct_pattern(
+                      pattern_spec{.precedes = 1, .sep_by_space = sep, .sign_posn = 1}),
+                  (pattern{part::symbol, part::sign, part::none, part::value}));
+    }
+
     lconv unavailable{};
     unavailable.frac_digits = CHAR_MAX;
     unavailable.int_frac_digits = CHAR_MAX;
@@ -368,6 +378,61 @@ TEST(MonetaryChar, PatternConstructionHandlesReverseAndUnavailableData)
     char currency[] = "$";
     unavailable.currency_symbol = currency;
     EXPECT_FALSE(monetary_probe::s_monetary_unavailable(&unavailable));
+}
+
+// C11 7.11.2.1 EXAMPLE 2 spells out every combination of cs_precedes,
+// sep_by_space and sign_posn for the amount 1.25, the symbol $ and the sign +
+// (parentheses for sign_posn 0).  Each pattern is rendered the same way and has
+// to come out exactly as the standard prints it.
+TEST(MonetaryChar, ThePatternFollowsTheTableInTheCStandard)
+{
+    using pattern_spec = base_ft<monetary>::pattern_spec;
+
+    // [cs_precedes][sign_posn][sep_by_space], copied from the standard.
+    const char* const table[2][5][3] = {
+        {{"(1.25$)", "(1.25 $)", "(1.25$)"},
+         {"+1.25$",  "+1.25 $",  "+ 1.25$"},
+         {"1.25$+",  "1.25 $+",  "1.25$ +"},
+         {"1.25+$",  "1.25 +$",  "1.25+ $"},
+         {"1.25$+",  "1.25 $+",  "1.25$ +"}},
+        {{"($1.25)", "($ 1.25)", "($1.25)"},
+         {"+$1.25",  "+$ 1.25",  "+ $1.25"},
+         {"$1.25+",  "$ 1.25+",  "$1.25 +"},
+         {"+$1.25",  "+$ 1.25",  "+ $1.25"},
+         {"$+1.25",  "$+ 1.25",  "$ +1.25"}},
+    };
+
+    for (int8_t cs = 0; cs < 2; ++cs)
+        for (int posn = 0; posn < 5; ++posn)
+            for (int8_t sep = 0; sep < 3; ++sep)
+            {
+                SCOPED_TRACE("cs_precedes=" + std::to_string(cs) + " sign_posn=" + std::to_string(posn)
+                             + " sep_by_space=" + std::to_string(sep));
+                const pattern p = monetary_probe::s_construct_pattern(
+                    pattern_spec{.precedes = cs, .sep_by_space = sep, .sign_posn = posn});
+
+                std::string rendered;
+                for (const part slot : p)
+                {
+                    switch (slot)
+                    {
+                    case part::symbol: rendered += '$'; break;
+                    case part::sign:   rendered += (posn == 0) ? '(' : '+'; break;
+                    case part::value:  rendered += "1.25"; break;
+                    case part::space:  rendered += ' '; break;
+                    case part::none:   break;
+                    }
+                }
+                if (posn == 0)
+                    rendered += ')';
+                EXPECT_EQ(rendered, table[cs][posn][sep]);
+
+                // Whatever the flags, the pattern keeps the shape [locale.moneypunct]
+                // requires of it: a space neither first nor last, a none never first.
+                EXPECT_NE(p.front(), part::space);
+                EXPECT_NE(p.back(), part::space);
+                EXPECT_NE(p.front(), part::none);
+            }
 }
 
 // The digits are the smallest units of the currency, so the amount they spell is
@@ -516,6 +581,26 @@ TEST(MonetaryChar, TheInternationalFlagSelectsTheOtherPunctuation)
     EXPECT_NE(national, international);
     EXPECT_NE(national.find(obj.curr_symbol_nat()), std::string::npos);
     EXPECT_NE(international.find(obj.curr_symbol_int()), std::string::npos);
+}
+
+// C11 7.11.2.1: the fourth character of int_curr_symbol separates the symbol from
+// the amount, and is "used instead of a space" where int_*_sep_by_space asks for
+// one.  So the symbol is the three-letter code alone, and the field carries one
+// separator, on whichever side of the symbol the amount is.
+TEST(MonetaryChar, TheInternationalSymbolLeavesTheSeparatorToThePattern)
+{
+    ios_base<char> ios;
+    ios.setf(ios_defs::showbase);
+
+    const monetary<char> us = facet_for("en_US.UTF-8");
+    EXPECT_EQ(us.curr_symbol_int(), "USD");
+    EXPECT_EQ(put_str(us, true, ios, "123456"), "USD 1,234.56");
+    EXPECT_EQ(put_str(us, true, ios, "-123456"), "-USD 1,234.56");
+
+    const monetary<char> de = facet_for("de_DE.UTF-8");
+    EXPECT_EQ(de.curr_symbol_int(), "EUR");
+    EXPECT_EQ(put_str(de, true, ios, "123456"), "1.234,56 EUR");
+    EXPECT_EQ(put_str(de, true, ios, "-123456"), "-1.234,56 EUR");
 }
 
 TEST(MonetaryChar, AShortFieldIsPaddedToTheWidth)
@@ -994,19 +1079,26 @@ TEST(MonetaryChar, AFillThatWouldChangeTheAmountIsRejectedOnTheWayBackIn)
     EXPECT_EQ(digits, "12345");
 }
 
-// A `space` slot owes at least one character, so a field that put() wrote with
-// one has to be read with one.  A `none` slot owes nothing, and a field written
-// from a pattern that ends in one has no space to find.
+// A `space` slot owes at least one character where put() is bound to have
+// written one: with showbase the symbol is there, so is the space beside it, and
+// a field without the space is not one put() wrote.  A `none` slot owes nothing.
 TEST(MonetaryChar, ASpaceSlotIsRequiredAndANoneSlotIsNot)
 {
     const pattern with_space = {part::sign, part::value, part::space, part::symbol};
     const pattern with_none  = {part::sign, part::value, part::symbol, part::none};
 
-    ios_base<char> ios;
+    ios_base<char> shown;
+    shown.setf(ios_defs::showbase);
 
     const monetary<char> spaced(tuned()->fraction(2).point('.').groups({4}).separator(',')
                                        .symbol("$").plus("()").both(with_space).ptr());
-    expect_parses(spaced, false, ios, "(9876.05 $)", "987605");
+    expect_parses(spaced, false, shown, "(9876.05 $)", "987605");
+    expect_rejects(spaced, false, shown, "(9876.05$)");
+
+    // Without showbase the symbol is not written, nor is the space beside it, so
+    // the field may come without the space as well as with it.
+    ios_base<char> ios;
+    expect_parses(spaced, false, ios, "(9876.05)", "987605");
     expect_parses(spaced, false, ios, "(9876.05 )", "987605");
 
     const monetary<char> unspaced(tuned()->fraction(2).point('.').groups({4}).separator(',')
@@ -1017,8 +1109,80 @@ TEST(MonetaryChar, ASpaceSlotIsRequiredAndANoneSlotIsNot)
     // The character a `space` slot owes is the stream's fill, so a field written
     // with the default fill and read back under another one is missing it.
     ios_base<char> other_fill;
+    other_fill.setf(ios_defs::showbase);
     other_fill.fill('*');
     expect_rejects(spaced, false, other_fill, "(9876.05 $)");
+}
+
+// A space only separates what is actually written: it goes with a symbol that
+// showbase leaves out, and with a side of the field that comes out empty -- an
+// empty positive sign at the edge, say.  A space with something on both sides
+// stays, whichever parts those are.
+TEST(MonetaryChar, ASpaceIsWrittenOnlyBetweenThingsThatAreWritten)
+{
+    ios_base<char> plain;
+    ios_base<char> shown;
+    shown.setf(ios_defs::showbase);
+
+    const monetary<char> trailing(tuned()->fraction(0).symbol("EUR").plus("").minus("-")
+                                         .both({part::sign, part::value, part::space, part::symbol})
+                                         .ptr());
+    EXPECT_EQ(put_str(trailing, false, plain, "-12"), "-12");
+    EXPECT_EQ(put_str(trailing, false, shown, "-12"), "-12 EUR");
+    expect_parses(trailing, false, plain, "-12", "-12");
+
+    const monetary<char> glued(tuned()->fraction(0).symbol("$").plus("").minus("-")
+                                      .both({part::symbol, part::sign, part::space, part::value})
+                                      .ptr());
+    EXPECT_EQ(put_str(glued, false, plain, "12"), "12");
+    EXPECT_EQ(put_str(glued, false, plain, "-12"), "- 12");
+    EXPECT_EQ(put_str(glued, false, shown, "12"), "$ 12");
+    EXPECT_EQ(put_str(glued, false, shown, "-12"), "$- 12");
+    expect_parses(glued, false, plain, "12", "12");
+
+    const monetary<char> leading(tuned()->fraction(0).symbol("$").plus("").minus("-")
+                                        .both({part::sign, part::space, part::value, part::symbol})
+                                        .ptr());
+    EXPECT_EQ(put_str(leading, false, shown, "12"), "12$");
+    EXPECT_EQ(put_str(leading, false, shown, "-12"), "- 12$");
+
+    // A space let go still marks where internal padding goes.
+    ios_base<char> padded;
+    padded.setf(ios_defs::internal, ios_defs::adjustfield);
+    padded.fill('*');
+    padded.width(5);
+    EXPECT_EQ(put_str(glued, false, padded, "12"), "***12");
+}
+
+// Every pattern C11 can describe, with and without a positive sign and with and
+// without showbase, reads back what it wrote -- including the fields whose space
+// was let go.
+TEST(MonetaryChar, EveryPatternFromTheCTableRoundTrips)
+{
+    using pattern_spec = base_ft<monetary>::pattern_spec;
+
+    for (int8_t cs = 0; cs < 2; ++cs)
+        for (int posn = 0; posn < 5; ++posn)
+            for (int8_t sep = 0; sep < 3; ++sep)
+                for (const char* plus : {"", "+"})
+                    for (bool showbase : {false, true})
+                        for (const std::string amount : {"0", "123456", "-123456"})
+                        {
+                            SCOPED_TRACE("cs_precedes=" + std::to_string(cs) + " sign_posn="
+                                         + std::to_string(posn) + " sep_by_space=" + std::to_string(sep)
+                                         + " plus=\"" + plus + "\" showbase=" + std::to_string(showbase)
+                                         + " amount=" + amount);
+                            const pattern p = monetary_probe::s_construct_pattern(
+                                pattern_spec{.precedes = cs, .sep_by_space = sep, .sign_posn = posn});
+                            const monetary<char> obj(tuned()->fraction(2).groups({3}).separator(',')
+                                                            .symbol("$").plus(plus)
+                                                            .minus(posn == 0 ? "()" : "-")
+                                                            .both(p).ptr());
+                            ios_base<char> ios;
+                            if (showbase)
+                                ios.setf(ios_defs::showbase);
+                            expect_parses(obj, false, ios, put_str(obj, false, ios, amount), amount);
+                        }
 }
 
 // Without showbase the symbol is optional, and a symbol the parse cannot place
