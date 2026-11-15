@@ -51,6 +51,10 @@ foreach(_gtest_target IN ITEMS gtest gtest_main gmock gmock_main)
     set_target_properties(${_gtest_target} PROPERTIES
         CXX_STANDARD 23
         CXX_EXTENSIONS OFF)
+    # gtest declares cxx_std_17 PUBLIC, which would make CMake put -std=c++17
+    # (/std:c++17) on every test TU ahead of iov2_test_options' C++23 flag: cl
+    # warns D9025 on each. The tests pick their standard themselves, so drop it.
+    set_target_properties(${_gtest_target} PROPERTIES INTERFACE_COMPILE_FEATURES "")
     # Newer compilers warn in gtest's own sources (-Wcharacter-conversion in
     # gtest-printers.h, from clang-cl 21 and Apple clang alike), and on MSVC-ABI
     # toolchains gtest adds -W4 -WX to itself. Its warnings are upstream's, as
