@@ -57,8 +57,6 @@
 
 namespace IOv2::detail
 {
-inline constexpr unsigned int win_cp_utf8 = 65001;   // CP_UTF8
-
 // src, in loc's LC_COLLATE code page, as UTF-16; nullopt if it is invalid there.
 inline std::optional<std::wstring> collate_widen(const char* src, clocale_handle loc)
 {

@@ -11,6 +11,10 @@
  * boolean falls back to, what a locale without a separator groups by -- and the
  * one about the size of the staging buffer a float is formatted into read the
  * same data whatever the character type is, so they stay in the narrow file.
+ *
+ * Only glibc has a UTF-32 wchar_t among the platforms the tests know (macOS
+ * does not promise one, Windows' is UTF-16), and elsewhere numeric_conf<char32_t>
+ * does not exist, so every case is skipped there.
  */
 #include <IOv2/facet/ctype_details.h>
 #include <IOv2/facet/numeric.h>
@@ -22,6 +26,8 @@
 #include <IOv2/io/io_base.h>
 #include <IOv2/io/iochannel.h>
 #include <IOv2/io/iochannel_iterator.h>
+
+#include <support/platform_macros.h>
 
 #include <gtest/gtest.h>
 
@@ -40,6 +46,7 @@
 
 using namespace IOv2;
 
+#if IOV2_TEST_LINUX_GLIBC
 namespace
 {
     // A configuration whose punctuation can be set, so a grouping case describes
@@ -216,14 +223,20 @@ namespace
         return as_chars(std::string(buf, res.ptr));
     }
 }
+#endif
 
 TEST(NumericChar32, TheCharacterTypeIsChar)
 {
+#if IOV2_TEST_LINUX_GLIBC
     static_assert(std::is_same_v<numeric<char32_t>::char_type, char32_t>);
+#else
+    GTEST_SKIP() << "numeric<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(NumericChar32, ThePunctuationComesFromTheLocale)
 {
+#if IOV2_TEST_LINUX_GLIBC
     const numeric<char32_t> plain  = facet_for("C");
     const numeric<char32_t> german = facet_for("de_DE.UTF-8");
 
@@ -237,6 +250,9 @@ TEST(NumericChar32, ThePunctuationComesFromTheLocale)
     EXPECT_FALSE(german.falsename().empty());
     EXPECT_NE(plain.truename(), german.truename());
     EXPECT_NE(plain.falsename(), german.falsename());
+#else
+    GTEST_SKIP() << "numeric<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 // A locale that answers the boolean-name query with an empty string has not
@@ -244,11 +260,15 @@ TEST(NumericChar32, ThePunctuationComesFromTheLocale)
 // nothing at all for a bool.
 TEST(NumericChar32, AnUnnamedBooleanFallsBackToAscii)
 {
+#if IOV2_TEST_LINUX_GLIBC
     const numeric_conf<char32_t> conf("gv_GB.utf8");
     EXPECT_EQ(conf.truename(), U"true");
     EXPECT_EQ(conf.falsename(), U"false");
     EXPECT_EQ(conf.decimal_point(), U'.');
     EXPECT_EQ(conf.thousands_sep(), U',');
+#else
+    GTEST_SKIP() << "numeric<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 // A locale with no thousands separator has no grouping either: there is nothing
@@ -258,32 +278,45 @@ TEST(NumericChar32, AnUnnamedBooleanFallsBackToAscii)
 // to a comma it then never uses, because the grouping beside it is empty.
 TEST(NumericChar32, ALocaleWithNoSeparatorHasNoGrouping)
 {
+#if IOV2_TEST_LINUX_GLIBC
     const numeric_conf<char32_t> conf("gl_ES.utf8");
     EXPECT_EQ(conf.decimal_point(), U',');
     EXPECT_TRUE(conf.grouping().empty());
     EXPECT_EQ(conf.thousands_sep(), U'\0');
+#else
+    GTEST_SKIP() << "numeric<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(NumericChar32, ABooleanIsOneOrZeroWithoutBoolalpha)
 {
+#if IOV2_TEST_LINUX_GLIBC
     ios_base<char32_t>      ios;
     const numeric<char32_t> obj = facet_for("C");
     EXPECT_EQ(put_str(obj, ios, true), U"1");
     EXPECT_EQ(put_str(obj, ios, false), U"0");
+#else
+    GTEST_SKIP() << "numeric<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(NumericChar32, BoolalphaWritesTheLocaleNames)
 {
+#if IOV2_TEST_LINUX_GLIBC
     const numeric<char32_t> obj = facet_of(tuned()->yes(U"ja").no(U"nein").ptr());
     ios_base<char32_t>      ios;
     ios.setf(ios_defs::boolalpha);
 
     EXPECT_EQ(put_str(obj, ios, true), U"ja");
     EXPECT_EQ(put_str(obj, ios, false), U"nein");
+#else
+    GTEST_SKIP() << "numeric<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(NumericChar32, ABooleanNameIsPaddedToTheWidth)
 {
+#if IOV2_TEST_LINUX_GLIBC
     const numeric<char32_t> obj = facet_of(tuned()->yes(U"ja").ptr());
 
     ios_base<char32_t> ios;
@@ -295,6 +328,9 @@ TEST(NumericChar32, ABooleanNameIsPaddedToTheWidth)
     ios.width(6);
     ios.setf(ios_defs::left, ios_defs::adjustfield);
     EXPECT_EQ(put_str(obj, ios, true), U"ja****");
+#else
+    GTEST_SKIP() << "numeric<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 // The digits themselves are std::to_chars's answer, in whichever base the
@@ -303,6 +339,7 @@ TEST(NumericChar32, ABooleanNameIsPaddedToTheWidth)
 // instantiation, so each is checked rather than one standing in for all.
 TEST(NumericChar32, AnIntegerIsWrittenAsToCharsWouldWriteIt)
 {
+#if IOV2_TEST_LINUX_GLIBC
     const numeric<char32_t> obj = facet_for("C");
 
     const std::pair<ios_defs::fmtflags, int> bases[] = {
@@ -345,6 +382,9 @@ TEST(NumericChar32, AnIntegerIsWrittenAsToCharsWouldWriteIt)
     check(std::numeric_limits<unsigned>::max());
     check(std::numeric_limits<unsigned long long>::max());
     check(1294967294UL);
+#else
+    GTEST_SKIP() << "numeric<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 // A negative value in a non-decimal base has no sign: what is written is the
@@ -352,6 +392,7 @@ TEST(NumericChar32, AnIntegerIsWrittenAsToCharsWouldWriteIt)
 // minimum, so this is also where that path is checked.
 TEST(NumericChar32, ANegativeValueOutsideBaseTenIsItsBitPattern)
 {
+#if IOV2_TEST_LINUX_GLIBC
     const numeric<char32_t> obj = facet_for("C");
 
     ios_base<char32_t> ios;
@@ -362,10 +403,14 @@ TEST(NumericChar32, ANegativeValueOutsideBaseTenIsItsBitPattern)
     ios_base<char32_t>  decimal;
     const long long least = std::numeric_limits<long long>::min();
     EXPECT_EQ(put_str(obj, decimal, least), digits_of(least, 10));
+#else
+    GTEST_SKIP() << "numeric<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(NumericChar32, ShowbaseWritesTheBasePrefix)
 {
+#if IOV2_TEST_LINUX_GLIBC
     const numeric<char32_t> obj = facet_for("C");
 
     ios_base<char32_t> hex;
@@ -384,19 +429,27 @@ TEST(NumericChar32, ShowbaseWritesTheBasePrefix)
     ios_base<char32_t> decimal;
     decimal.setf(ios_defs::showbase);
     EXPECT_EQ(put_str(obj, decimal, 255L), U"255");
+#else
+    GTEST_SKIP() << "numeric<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(NumericChar32, UppercaseAffectsTheHexAlphabetAndItsPrefix)
 {
+#if IOV2_TEST_LINUX_GLIBC
     const numeric<char32_t> obj = facet_for("C");
     ios_base<char32_t>      ios;
     ios.setf(ios_defs::hex, ios_defs::basefield);
     ios.setf(ios_defs::showbase | ios_defs::uppercase);
     EXPECT_EQ(put_str(obj, ios, 255L), U"0XFF");
+#else
+    GTEST_SKIP() << "numeric<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(NumericChar32, ShowposWritesAPlusOnANonNegativeDecimal)
 {
+#if IOV2_TEST_LINUX_GLIBC
     const numeric<char32_t> obj = facet_for("C");
     ios_base<char32_t>      ios;
     ios.setf(ios_defs::showpos);
@@ -404,10 +457,14 @@ TEST(NumericChar32, ShowposWritesAPlusOnANonNegativeDecimal)
     EXPECT_EQ(put_str(obj, ios, 42L), U"+42");
     EXPECT_EQ(put_str(obj, ios, 0L), U"+0");
     EXPECT_EQ(put_str(obj, ios, -42L), U"-42");
+#else
+    GTEST_SKIP() << "numeric<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(NumericChar32, GroupingInsertsTheThousandsSeparator)
 {
+#if IOV2_TEST_LINUX_GLIBC
     ios_base<char32_t> ios;
 
     EXPECT_EQ(put_str(facet_of(tuned()->groups({3}).separator(U',').ptr()), ios, 1234567L),
@@ -436,10 +493,14 @@ TEST(NumericChar32, GroupingInsertsTheThousandsSeparator)
     fixed.setf(ios_defs::fixed, ios_defs::floatfield);
     fixed.precision(3);
     EXPECT_EQ(put_str(grouped, fixed, -1234567.5), U"-1,234,567.500");
+#else
+    GTEST_SKIP() << "numeric<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(NumericChar32, AShortFieldIsPaddedToTheWidth)
 {
+#if IOV2_TEST_LINUX_GLIBC
     const numeric<char32_t> obj = facet_for("C");
     ios_base<char32_t>      ios;
     ios.fill(U'*');
@@ -450,12 +511,16 @@ TEST(NumericChar32, AShortFieldIsPaddedToTheWidth)
     ios.width(8);
     ios.setf(ios_defs::left, ios_defs::adjustfield);
     EXPECT_EQ(put_str(obj, ios, 42L), U"42******");
+#else
+    GTEST_SKIP() << "numeric<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 // Under internal the sign stays anchored to the left and the fill goes between
 // it and the digits, which is what lines a column of numbers up by their signs.
 TEST(NumericChar32, InternalPaddingSeparatesTheSignFromTheDigits)
 {
+#if IOV2_TEST_LINUX_GLIBC
     const numeric<char32_t> obj = facet_for("C");
     ios_base<char32_t>      ios;
     ios.fill(U'*');
@@ -464,11 +529,15 @@ TEST(NumericChar32, InternalPaddingSeparatesTheSignFromTheDigits)
 
     const std::u32string out = put_str(obj, ios, -42L);
     EXPECT_EQ(out, U"-*****42");
+#else
+    GTEST_SKIP() << "numeric<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 // width() is one-shot: the field it sized is the only one it sizes.
 TEST(NumericChar32, TheWidthIsConsumedByOnePut)
 {
+#if IOV2_TEST_LINUX_GLIBC
     const numeric<char32_t> obj = facet_for("C");
     ios_base<char32_t>      ios;
     ios.fill(U'*');
@@ -477,12 +546,16 @@ TEST(NumericChar32, TheWidthIsConsumedByOnePut)
     EXPECT_EQ(put_str(obj, ios, 42L), U"******42");
     EXPECT_EQ(ios.width(), 0u);
     EXPECT_EQ(put_str(obj, ios, 42L), U"42");
+#else
+    GTEST_SKIP() << "numeric<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 // The floating-point digits come from the C library, so the check is that the
 // stream's precision and float format reach it unchanged.
 TEST(NumericChar32, AFloatIsWrittenAsPrintfWouldWriteIt)
 {
+#if IOV2_TEST_LINUX_GLIBC
     const numeric<char32_t> obj = facet_for("C");
 
     // long double takes the 'L' length modifier and float is promoted, so the
@@ -515,10 +588,14 @@ TEST(NumericChar32, AFloatIsWrittenAsPrintfWouldWriteIt)
     }
     for (float v : {0.0f, 1.0f, 0.5f, -3.25f, 1234.5678f})
         check(v, "%.*f", "%.*e");
+#else
+    GTEST_SKIP() << "numeric<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(NumericChar32, ShowpointKeepsTheDecimalPoint)
 {
+#if IOV2_TEST_LINUX_GLIBC
     const numeric<char32_t> obj = facet_for("C");
     ios_base<char32_t>      ios;
 
@@ -527,32 +604,44 @@ TEST(NumericChar32, ShowpointKeepsTheDecimalPoint)
     const std::u32string out = put_str(obj, ios, 1.0);
     EXPECT_NE(out.find(U'.'), std::u32string::npos);
     EXPECT_GT(out.size(), 1u);
+#else
+    GTEST_SKIP() << "numeric<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 // The decimal point is the locale's, not the C library's, so a locale that
 // spells it differently has to reach the output.
 TEST(NumericChar32, TheDecimalPointComesFromTheLocale)
 {
+#if IOV2_TEST_LINUX_GLIBC
     const numeric<char32_t> obj = facet_of(tuned()->point(U':').ptr());
     ios_base<char32_t>      ios;
     ios.setf(ios_defs::fixed, ios_defs::floatfield);
     ios.precision(2);
     EXPECT_EQ(put_str(obj, ios, 1.5), U"1:50");
+#else
+    GTEST_SKIP() << "numeric<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 // Grouping is a property of the integer part; the digits after the point are
 // not grouped whatever the locale says.
 TEST(NumericChar32, GroupingAppliesToTheIntegerPartOnly)
 {
+#if IOV2_TEST_LINUX_GLIBC
     const numeric<char32_t> obj = facet_of(tuned()->groups({3}).separator(U',').point(U'.').ptr());
     ios_base<char32_t>      ios;
     ios.setf(ios_defs::fixed, ios_defs::floatfield);
     ios.precision(4);
     EXPECT_EQ(put_str(obj, ios, 1234567.8125), U"1,234,567.8125");
+#else
+    GTEST_SKIP() << "numeric<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(NumericChar32, APointerIsHexadecimalWithItsPrefix)
 {
+#if IOV2_TEST_LINUX_GLIBC
     const numeric<char32_t> obj = facet_for("C");
     ios_base<char32_t>      ios;
 
@@ -562,12 +651,16 @@ TEST(NumericChar32, APointerIsHexadecimalWithItsPrefix)
 
     EXPECT_EQ(out.substr(0, 2), U"0x");
     EXPECT_EQ(out, U"0x" + digits_of(reinterpret_cast<std::uintptr_t>(p), 16));
+#else
+    GTEST_SKIP() << "numeric<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 // Formatting a pointer needs hex and showbase, but it borrows them: the stream
 // is handed back exactly as it was.
 TEST(NumericChar32, FormattingAPointerLeavesTheStreamFlagsAlone)
 {
+#if IOV2_TEST_LINUX_GLIBC
     const numeric<char32_t> obj = facet_for("C");
     ios_base<char32_t>      ios;
     ios.setf(ios_defs::oct, ios_defs::basefield);
@@ -580,22 +673,30 @@ TEST(NumericChar32, FormattingAPointerLeavesTheStreamFlagsAlone)
 
     EXPECT_EQ(ios.flags(), before);
     EXPECT_EQ(put_str(obj, ios, 64L), digits_of(64L, 8));
+#else
+    GTEST_SKIP() << "numeric<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 // Without boolalpha the field is an integer, and only 0 and 1 are booleans.
 // Anything else is out of range, which by LWG 23 stores true and then fails.
 TEST(NumericChar32, WithoutBoolalphaOnlyZeroAndOneAreBooleans)
 {
+#if IOV2_TEST_LINUX_GLIBC
     const numeric<char32_t> obj = facet_for("C");
     ios_base<char32_t>      ios;
 
     expect_parses(obj, ios, U"0", false);
     expect_parses(obj, ios, U"1", true);
     expect_rejects(obj, ios, U"2", true);
+#else
+    GTEST_SKIP() << "numeric<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(NumericChar32, BoolalphaReadsTheLocaleNames)
 {
+#if IOV2_TEST_LINUX_GLIBC
     const numeric<char32_t> obj = facet_of(tuned()->yes(U"ja").no(U"nein").ptr());
     ios_base<char32_t>      ios;
     ios.setf(ios_defs::boolalpha);
@@ -603,23 +704,31 @@ TEST(NumericChar32, BoolalphaReadsTheLocaleNames)
     expect_parses(obj, ios, U"ja", true);
     expect_parses(obj, ios, U"nein", false);
     expect_rejects<bool>(obj, ios, U"vielleicht");
+#else
+    GTEST_SKIP() << "numeric<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 // Two names that are the same word cannot be told apart, so a field matching
 // both is not a boolean.  LWG 23 asks for false to be stored before the failure.
 TEST(NumericChar32, IdenticalBooleanNamesAreAmbiguous)
 {
+#if IOV2_TEST_LINUX_GLIBC
     const numeric<char32_t> obj = facet_of(tuned()->yes(U"same").no(U"same").ptr());
     ios_base<char32_t>      ios;
     ios.setf(ios_defs::boolalpha);
 
     expect_rejects(obj, ios, U"same", false);
+#else
+    GTEST_SKIP() << "numeric<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 // Everything above reads a field the facet wrote through a different code path.
 // This is the case that ties the two together across the bases and the sign.
 TEST(NumericChar32, WhatPutWritesGetReadsBack)
 {
+#if IOV2_TEST_LINUX_GLIBC
     const numeric<char32_t> plain   = facet_for("C");
     const numeric<char32_t> grouped = facet_of(tuned()->groups({3}).separator(U',').ptr());
 
@@ -664,10 +773,14 @@ TEST(NumericChar32, WhatPutWritesGetReadsBack)
     round_trip(static_cast<unsigned>(4000000000U));
     round_trip(static_cast<unsigned long>(4000000000UL));
     round_trip(std::numeric_limits<unsigned long long>::max());
+#else
+    GTEST_SKIP() << "numeric<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(NumericChar32, ALoneSignIsNotANumber)
 {
+#if IOV2_TEST_LINUX_GLIBC
     const numeric<char32_t> obj = facet_for("C");
     ios_base<char32_t>      ios;
 
@@ -675,12 +788,16 @@ TEST(NumericChar32, ALoneSignIsNotANumber)
     expect_rejects<long>(obj, ios, U"+");
     expect_rejects<double>(obj, ios, U"+");
     expect_rejects<long>(obj, ios, U"");
+#else
+    GTEST_SKIP() << "numeric<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 // A "0x" prefix is part of the number only where the base could be sixteen: an
 // explicitly octal stream reads the zero and stops at the 'x'.
 TEST(NumericChar32, TheHexPrefixIsReadOnlyWhereHexIsPossible)
 {
+#if IOV2_TEST_LINUX_GLIBC
     const numeric<char32_t> obj = facet_for("C");
 
     ios_base<char32_t> octal;
@@ -697,10 +814,14 @@ TEST(NumericChar32, TheHexPrefixIsReadOnlyWhereHexIsPossible)
     expect_parses(obj, automatic, U"0x5", 5L);
     expect_parses(obj, automatic, U"010", 8L);
     expect_parses(obj, automatic, U"10", 10L);
+#else
+    GTEST_SKIP() << "numeric<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(NumericChar32, ParsingStopsAtTheFirstForeignCharacter)
 {
+#if IOV2_TEST_LINUX_GLIBC
     const numeric<char32_t> obj = facet_for("C");
     ios_base<char32_t>      ios;
 
@@ -713,23 +834,31 @@ TEST(NumericChar32, ParsingStopsAtTheFirstForeignCharacter)
 
     const numeric<char32_t> grouped = facet_of(tuned()->groups({3}).separator(U',').point(U'.').ptr());
     expect_parses(grouped, ios, U"1,234.5", 1234L, U".5");
+#else
+    GTEST_SKIP() << "numeric<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 // A field larger than the target can hold stores the nearest extreme and then
 // fails, which is what lets a caller tell overflow from a malformed field.
 TEST(NumericChar32, AnIntegerOutOfRangeStoresTheExtremeAndFails)
 {
+#if IOV2_TEST_LINUX_GLIBC
     const numeric<char32_t> obj = facet_for("C");
     ios_base<char32_t>      ios;
 
     expect_rejects(obj, ios, std::u32string(40, U'9'), std::numeric_limits<long>::max());
     expect_rejects(obj, ios, U"-" + std::u32string(40, U'9'), std::numeric_limits<long>::min());
+#else
+    GTEST_SKIP() << "numeric<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 // A group longer than the counter that measures it cannot be checked against
 // the grouping, so it is not a number this locale could have written.
 TEST(NumericChar32, AnOversizedDigitGroupIsRejected)
 {
+#if IOV2_TEST_LINUX_GLIBC
     const numeric<char32_t> obj = facet_of(tuned()->groups({3}).separator(U',').ptr());
     ios_base<char32_t>      ios;
     ios.setf(ios_defs::dec, ios_defs::basefield);
@@ -738,10 +867,14 @@ TEST(NumericChar32, AnOversizedDigitGroupIsRejected)
     // is the group length rather than an overflow.
     expect_rejects<long>(obj, ios, std::u32string(256, U'0') + U",5");
     expect_rejects<long>(obj, ios, U"0," + std::u32string(256, U'0'));
+#else
+    GTEST_SKIP() << "numeric<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(NumericChar32, AFloatingPointFieldRoundTrips)
 {
+#if IOV2_TEST_LINUX_GLIBC
     const numeric<char32_t> obj = facet_for("C");
 
     auto round_trip = [&](auto v)
@@ -763,31 +896,46 @@ TEST(NumericChar32, AFloatingPointFieldRoundTrips)
     }
     for (float v : {0.0f, 1.0f, 0.5f, -3.25f, 1234.5678f})
         round_trip(v);
+#else
+    GTEST_SKIP() << "numeric<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(NumericChar32, ABareZeroIsAFloatingPointNumber)
 {
+#if IOV2_TEST_LINUX_GLIBC
     const numeric<char32_t> obj = facet_for("C");
     ios_base<char32_t>      ios;
     expect_parses(obj, ios, U"0", 0.0);
+#else
+    GTEST_SKIP() << "numeric<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(NumericChar32, AnExponentMarkerNeedsItsDigits)
 {
+#if IOV2_TEST_LINUX_GLIBC
     const numeric<char32_t> obj = facet_for("C");
     ios_base<char32_t>      ios;
     expect_rejects<double>(obj, ios, U"1e");
+#else
+    GTEST_SKIP() << "numeric<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 // A magnitude that rounds to infinity is out of range for the target, so LWG 23
 // applies here too: the finite extreme is stored before the failure.
 TEST(NumericChar32, AFloatOutOfRangeStoresTheFiniteExtremeAndFails)
 {
+#if IOV2_TEST_LINUX_GLIBC
     const numeric<char32_t> obj = facet_for("C");
     ios_base<char32_t>      ios;
 
     expect_rejects(obj, ios, U"1e400", std::numeric_limits<double>::max());
     expect_rejects(obj, ios, U"-1e400", -std::numeric_limits<double>::max());
+#else
+    GTEST_SKIP() << "numeric<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 // The same group-length limit as for integers, checked at each place the parse
@@ -795,6 +943,7 @@ TEST(NumericChar32, AFloatOutOfRangeStoresTheFiniteExtremeAndFails)
 // marker, and the end of the input.
 TEST(NumericChar32, AnOversizedGroupIsRejectedAtEveryBoundary)
 {
+#if IOV2_TEST_LINUX_GLIBC
     const numeric<char32_t> obj = facet_of(tuned()->groups({3}).separator(U',').point(U'.').ptr());
     ios_base<char32_t>      ios;
     const std::u32string    big(256, U'1');
@@ -803,10 +952,14 @@ TEST(NumericChar32, AnOversizedGroupIsRejectedAtEveryBoundary)
     expect_rejects<double>(obj, ios, U"1," + big + U".5");
     expect_rejects<double>(obj, ios, U"1," + big + U"e5");
     expect_rejects<double>(obj, ios, U"1," + big);
+#else
+    GTEST_SKIP() << "numeric<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(NumericChar32, APointerRoundTrips)
 {
+#if IOV2_TEST_LINUX_GLIBC
     const numeric<char32_t> obj = facet_for("C");
 
     int         anchor = 0;
@@ -820,6 +973,9 @@ TEST(NumericChar32, APointerRoundTrips)
     auto           it   = obj.get(field.begin(), field.end(), reader, back);
     EXPECT_EQ(back, p);
     EXPECT_EQ(it, field.end());
+#else
+    GTEST_SKIP() << "numeric<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 // Padding a field whose text begins with a '0' makes the pad path look at what
@@ -828,6 +984,7 @@ TEST(NumericChar32, APointerRoundTrips)
 // reach that probe with something that is not a prefix.
 TEST(NumericChar32, PaddingAValueThatStartsWithAZeroIsNotAPrefix)
 {
+#if IOV2_TEST_LINUX_GLIBC
     const numeric<char32_t> obj = facet_for("C");
 
     ios_base<char32_t> ios;
@@ -843,12 +1000,16 @@ TEST(NumericChar32, PaddingAValueThatStartsWithAZeroIsNotAPrefix)
     internal.fill(U'*');
     internal.width(8);
     EXPECT_EQ(put_str(obj, internal, 255L), U"0x****ff");
+#else
+    GTEST_SKIP() << "numeric<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 // The same rule as for a currency field: a run of fill that a reader would take
 // for part of the number is refused rather than written.
 TEST(NumericChar32, AFillThatWouldChangeTheNumberIsRejected)
 {
+#if IOV2_TEST_LINUX_GLIBC
     const numeric<char32_t> obj = facet_for("C");
 
     auto put = [&obj](char fill, ios_defs::fmtflags adjust, long v)
@@ -889,17 +1050,24 @@ TEST(NumericChar32, AFillThatWouldChangeTheNumberIsRejected)
     // Anything that cannot be read into a number is fine.
     EXPECT_EQ(put(U'*', ios_defs::internal, 42L), U"******42");
     EXPECT_EQ(put(U' ', ios_defs::right, 42L), U"      42");
+#else
+    GTEST_SKIP() << "numeric<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 // A grouped float stops at the first character that is not part of a number,
 // which is the same rule as for an integer but reached through the float scan.
 TEST(NumericChar32, AGroupedFloatAlsoStopsAtTheFirstForeignCharacter)
 {
+#if IOV2_TEST_LINUX_GLIBC
     const numeric<char32_t> obj = facet_of(tuned()->groups({3}).separator(U',').point(U'.').ptr());
     ios_base<char32_t>      ios;
 
     expect_parses(obj, ios, U"1,234.5abc", 1234.5, U"abc");
     expect_parses(obj, ios, U"1,234.5,6", 1234.5, U",6");
+#else
+    GTEST_SKIP() << "numeric<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 // A sign is read in two places -- in front of the mantissa and in front of the
@@ -907,6 +1075,7 @@ TEST(NumericChar32, AGroupedFloatAlsoStopsAtTheFirstForeignCharacter)
 // positions.
 TEST(NumericChar32, AFloatingPointSignIsReadInBothPositions)
 {
+#if IOV2_TEST_LINUX_GLIBC
     const numeric<char32_t> obj = facet_for("C");
     ios_base<char32_t>      ios;
 
@@ -917,6 +1086,9 @@ TEST(NumericChar32, AFloatingPointSignIsReadInBothPositions)
     expect_parses(obj, ios, U"+1.5E+3", 1500.0);
     expect_parses(obj, ios, U"-1.5E-3", -0.0015);
     expect_parses(obj, ios, U"1.5e3", 1500.0);
+#else
+    GTEST_SKIP() << "numeric<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 // A locale is free to nominate a character that is also a sign, and punctuation
@@ -924,9 +1096,13 @@ TEST(NumericChar32, AFloatingPointSignIsReadInBothPositions)
 // number that never arrives.
 TEST(NumericChar32, PunctuationIsNotReadAsASign)
 {
+#if IOV2_TEST_LINUX_GLIBC
     const numeric<char32_t> obj = facet_of(tuned()->point(U'-').groups({}).ptr());
     ios_base<char32_t>      ios;
     expect_parses(obj, ios, U"1-5", 1.5);
+#else
+    GTEST_SKIP() << "numeric<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 // The two names are matched together and the longer win decides, so a name that
@@ -934,6 +1110,7 @@ TEST(NumericChar32, PunctuationIsNotReadAsASign)
 // nothing at all rather than matching immediately.
 TEST(NumericChar32, OneBooleanNameMayBeAPrefixOfTheOther)
 {
+#if IOV2_TEST_LINUX_GLIBC
     ios_base<char32_t> ios;
     ios.setf(ios_defs::boolalpha);
 
@@ -948,6 +1125,9 @@ TEST(NumericChar32, OneBooleanNameMayBeAPrefixOfTheOther)
     const numeric<char32_t> unnamed = facet_of(tuned()->yes(U"true").no(U"").ptr());
     expect_parses(unnamed, ios, U"true", true);
     expect_rejects<bool>(unnamed, ios, U"");
+#else
+    GTEST_SKIP() << "numeric<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 // Grouping splits the text at the decimal point, so a float printed without one
@@ -955,6 +1135,7 @@ TEST(NumericChar32, OneBooleanNameMayBeAPrefixOfTheOther)
 // part.  The sign in front of it is copied across separately, whichever it is.
 TEST(NumericChar32, AGroupedFloatIsGroupedWithOrWithoutAPoint)
 {
+#if IOV2_TEST_LINUX_GLIBC
     const numeric<char32_t> obj = facet_of(tuned()->groups({3}).separator(U',').point(U'.').ptr());
 
     ios_base<char32_t> no_point;
@@ -968,12 +1149,16 @@ TEST(NumericChar32, AGroupedFloatIsGroupedWithOrWithoutAPoint)
     shown.setf(ios_defs::showpos);
     shown.precision(1);
     EXPECT_EQ(put_str(obj, shown, 1234567.5), U"+1,234,567.5");
+#else
+    GTEST_SKIP() << "numeric<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 // Infinity and NaN are words, not numbers, so there is nothing in them to group
 // however the locale would like its thousands separated.
 TEST(NumericChar32, InfinityAndNotANumberAreNotGrouped)
 {
+#if IOV2_TEST_LINUX_GLIBC
     const numeric<char32_t> obj = facet_of(tuned()->groups({3}).separator(U',').point(U'.').ptr());
     ios_base<char32_t>      ios;
 
@@ -982,6 +1167,9 @@ TEST(NumericChar32, InfinityAndNotANumberAreNotGrouped)
     EXPECT_EQ(inf.find(U','), std::u32string::npos);
     EXPECT_EQ(nan.find(U','), std::u32string::npos);
     EXPECT_EQ(put_str(obj, ios, -std::numeric_limits<double>::infinity()), U"-" + inf);
+#else
+    GTEST_SKIP() << "numeric<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 // A leading zero is a base prefix only where the base could still be decided.
@@ -989,6 +1177,7 @@ TEST(NumericChar32, InfinityAndNotANumberAreNotGrouped)
 // the same number.
 TEST(NumericChar32, ALeadingZeroUnderAnExplicitBaseIsJustADigit)
 {
+#if IOV2_TEST_LINUX_GLIBC
     const numeric<char32_t> obj = facet_for("C");
 
     ios_base<char32_t> hex;
@@ -999,12 +1188,16 @@ TEST(NumericChar32, ALeadingZeroUnderAnExplicitBaseIsJustADigit)
     ios_base<char32_t> octal;
     octal.setf(ios_defs::oct, ios_defs::basefield);
     expect_parses(obj, octal, U"017", 15L);
+#else
+    GTEST_SKIP() << "numeric<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 // A field has to hold at least one digit to be a number.  A point or an exponent
 // on its own is not one, and neither is a second point after the first.
 TEST(NumericChar32, AFloatingPointFieldNeedsAtLeastOneDigit)
 {
+#if IOV2_TEST_LINUX_GLIBC
     const numeric<char32_t> obj = facet_for("C");
     ios_base<char32_t>      ios;
 
@@ -1017,6 +1210,9 @@ TEST(NumericChar32, AFloatingPointFieldNeedsAtLeastOneDigit)
     expect_parses(obj, ios, U"1.5.5", 1.5, U".5");
     expect_parses(obj, ios, U"1e5e5", 100000.0, U"e5");
     expect_parses(obj, ios, U"1.5e5.5", 150000.0, U".5");
+#else
+    GTEST_SKIP() << "numeric<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 // A locale may nominate a character that is also a sign.  Punctuation wins, so
@@ -1024,9 +1220,13 @@ TEST(NumericChar32, AFloatingPointFieldNeedsAtLeastOneDigit)
 // than as the sign it looks like.
 TEST(NumericChar32, AnIntegerSignIsNotReadWhenItIsPunctuation)
 {
+#if IOV2_TEST_LINUX_GLIBC
     const numeric<char32_t> obj = facet_of(tuned()->groups({3}).separator(U'-').point(U'.').ptr());
     ios_base<char32_t>      ios;
     expect_parses(obj, ios, U"1-234", 1234L);
+#else
+    GTEST_SKIP() << "numeric<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 // A group is closed and measured at every place the scan can decide one has
@@ -1034,6 +1234,7 @@ TEST(NumericChar32, AnIntegerSignIsNotReadWhenItIsPunctuation)
 // field.  A grouping that does not match at any of them is not this locale's.
 TEST(NumericChar32, AFloatIsGroupCheckedAtEveryBoundary)
 {
+#if IOV2_TEST_LINUX_GLIBC
     const numeric<char32_t> obj = facet_of(tuned()->groups({3}).separator(U',').point(U'.').ptr());
     ios_base<char32_t>      ios;
 
@@ -1043,18 +1244,25 @@ TEST(NumericChar32, AFloatIsGroupCheckedAtEveryBoundary)
     expect_rejects<double>(obj, ios, U"12,34");
     expect_rejects<double>(obj, ios, U"12,34.5");
     expect_rejects<double>(obj, ios, U"12,34e2");
+#else
+    GTEST_SKIP() << "numeric<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 // A name nobody spelled matches nothing: a zero-length name would otherwise
 // match at once, before the other one had a chance to.
 TEST(NumericChar32, AnEmptyBooleanNameMatchesNothing)
 {
+#if IOV2_TEST_LINUX_GLIBC
     ios_base<char32_t> ios;
     ios.setf(ios_defs::boolalpha);
 
     const numeric<char32_t> no_true = facet_of(tuned()->yes(U"").no(U"false").ptr());
     expect_parses(no_true, ios, U"false", false);
     expect_rejects<bool>(no_true, ios, U"true");
+#else
+    GTEST_SKIP() << "numeric<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 // Every floating-point width parses through its own instantiation of the
@@ -1062,6 +1270,7 @@ TEST(NumericChar32, AnEmptyBooleanNameMatchesNothing)
 // them rather than by whichever one happened to be tried.
 TEST(NumericChar32, EveryFloatingPointWidthRefusesTheSameNonNumbers)
 {
+#if IOV2_TEST_LINUX_GLIBC
     const numeric<char32_t> obj = facet_for("C");
     ios_base<char32_t>      ios;
 
@@ -1087,6 +1296,9 @@ TEST(NumericChar32, EveryFloatingPointWidthRefusesTheSameNonNumbers)
     refuses(0.0f);
     refuses(0.0);
     refuses(0.0L);
+#else
+    GTEST_SKIP() << "numeric<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 // The sign test is guarded by the punctuation test in both scanners, so a
@@ -1095,6 +1307,7 @@ TEST(NumericChar32, EveryFloatingPointWidthRefusesTheSameNonNumbers)
 // number at all.
 TEST(NumericChar32, ALeadingPunctuationSignIsNotASign)
 {
+#if IOV2_TEST_LINUX_GLIBC
     const numeric<char32_t> obj = facet_of(tuned()->groups({3}).separator(U'-').point(U'+').ptr());
     ios_base<char32_t>      ios;
 
@@ -1107,12 +1320,16 @@ TEST(NumericChar32, ALeadingPunctuationSignIsNotASign)
     expect_parses(obj, ios, U"1-234", 1234L);
     expect_parses(obj, ios, U"1-234+5", 1234.5);
     expect_parses(obj, ios, U"+5", 0.5);
+#else
+    GTEST_SKIP() << "numeric<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 // A grouping vector ending in zero says "and no further grouping beyond this",
 // so the widths after it are unbounded rather than repeating the last entry.
 TEST(NumericChar32, AZeroEndsTheGroupingRule)
 {
+#if IOV2_TEST_LINUX_GLIBC
     const numeric<char32_t> obj = facet_of(tuned()->groups({3, 0}).separator(U',').ptr());
     ios_base<char32_t>      ios;
 
@@ -1120,4 +1337,7 @@ TEST(NumericChar32, AZeroEndsTheGroupingRule)
     expect_parses(obj, ios, U"1234,567", 1234567L);
     expect_parses(obj, ios, U"1,567", 1567L);
     expect_rejects<long>(obj, ios, U"1234,56");
+#else
+    GTEST_SKIP() << "numeric<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }

@@ -33,6 +33,8 @@
 #include <IOv2/io/iochannel.h>
 #include <IOv2/io/iochannel_iterator.h>
 
+#include <support/platform_macros.h>
+
 #include <gtest/gtest.h>
 
 #include <charconv>
@@ -241,13 +243,21 @@ TEST(NumericChar, ThePunctuationComesFromTheLocale)
     EXPECT_NE(plain.decimal_point(), german.decimal_point());
     EXPECT_NE(plain.thousands_sep(), german.thousands_sep());
     EXPECT_NE(plain.grouping(), german.grouping());
+}
 
-    EXPECT_FALSE(plain.truename().empty());
-    EXPECT_FALSE(plain.falsename().empty());
-    EXPECT_FALSE(german.truename().empty());
-    EXPECT_FALSE(german.falsename().empty());
-    EXPECT_NE(plain.truename(), german.truename());
-    EXPECT_NE(plain.falsename(), german.falsename());
+// The boolean names are the locale's YESSTR/NOSTR -- on macOS the first item of
+// its colon-separated list, "ja:j:JA:J:yes:y:YES:Y" -- and Windows has no such
+// data at all, so the ASCII words stand there.
+TEST(NumericChar, TheBooleanNamesComeFromTheLocale)
+{
+    const numeric_conf<char> conf("de_DE.UTF-8");
+#if IOV2_TEST_WINDOWS
+    EXPECT_EQ(conf.truename(), "true");
+    EXPECT_EQ(conf.falsename(), "false");
+#else
+    EXPECT_EQ(conf.truename(), "ja");
+    EXPECT_EQ(conf.falsename(), "nein");
+#endif
 }
 
 // A locale that answers the boolean-name query with an empty string has not
@@ -255,11 +265,15 @@ TEST(NumericChar, ThePunctuationComesFromTheLocale)
 // nothing at all for a bool.
 TEST(NumericChar, AnUnnamedBooleanFallsBackToAscii)
 {
+#if IOV2_TEST_LINUX_GLIBC
     const numeric_conf<char> conf("gv_GB.utf8");
     EXPECT_EQ(conf.truename(), "true");
     EXPECT_EQ(conf.falsename(), "false");
     EXPECT_EQ(conf.decimal_point(), '.');
     EXPECT_EQ(conf.thousands_sep(), ',');
+#else
+    GTEST_SKIP() << "only glibc has a locale with an empty YESSTR (macOS falls back to C's \"yes\")";
+#endif
 }
 
 // A locale with no thousands separator has no grouping either: there is nothing
@@ -269,10 +283,28 @@ TEST(NumericChar, AnUnnamedBooleanFallsBackToAscii)
 // to a comma it then never uses, because the grouping beside it is empty.
 TEST(NumericChar, ALocaleWithNoSeparatorHasNoGrouping)
 {
+#if IOV2_TEST_LINUX_GLIBC
     const numeric_conf<char> conf("gl_ES.utf8");
     EXPECT_EQ(conf.decimal_point(), ',');
     EXPECT_TRUE(conf.grouping().empty());
     EXPECT_EQ(conf.thousands_sep(), '\0');
+#else
+    GTEST_SKIP() << "gl_ES has no thousands separator only in glibc's data";
+#endif
+}
+
+// Under a code page the narrow separator is whatever byte stands for it there:
+// de-CH's U+2019 is 0x92 in 1252, one byte, so grouping is kept.
+TEST(NumericChar, ACodePageSeparatorIsItsByte)
+{
+#if IOV2_TEST_WINDOWS
+    const numeric_conf<char> conf("de-CH");
+    EXPECT_EQ(conf.decimal_point(), '.');
+    EXPECT_EQ(conf.thousands_sep(), '\x92');
+    EXPECT_FALSE(conf.grouping().empty());
+#else
+    GTEST_SKIP() << "Windows code pages only";
+#endif
 }
 
 TEST(NumericChar, ABooleanIsOneOrZeroWithoutBoolalpha)
@@ -911,8 +943,13 @@ TEST(NumericChar, FloatingPointPaddingHonoursEveryAdjustmentPrefix)
     hexadecimal_internal.setf(ios_defs::uppercase);
     hexadecimal_internal.precision(1);
     hexadecimal_internal.fill('*');
-    hexadecimal_internal.width(12);
-    EXPECT_EQ(put_str(obj, hexadecimal_internal, 1.5), "0X****1.8P+0");
+    // The hex digits are the C library's: "0X1.8P+0" on glibc and macOS, all 13
+    // a double has on the UCRT. Four fill characters go after the prefix either way.
+    char hex[64];
+    std::snprintf(hex, sizeof hex, "%A", 1.5);
+    const std::string hex_text(hex);
+    hexadecimal_internal.width(hex_text.size() + 4);
+    EXPECT_EQ(put_str(obj, hexadecimal_internal, 1.5), "0X****" + hex_text.substr(2));
 
     ios_base<char> excessive;
     excessive.width(ios_defs::max_pad_count + 32);

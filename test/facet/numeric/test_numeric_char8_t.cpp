@@ -23,6 +23,8 @@
 #include <IOv2/io/iochannel.h>
 #include <IOv2/io/iochannel_iterator.h>
 
+#include <support/platform_macros.h>
+
 #include <gtest/gtest.h>
 
 #include <charconv>
@@ -230,13 +232,21 @@ TEST(NumericChar8, ThePunctuationComesFromTheLocale)
     EXPECT_NE(plain.decimal_point(), german.decimal_point());
     EXPECT_NE(plain.thousands_sep(), german.thousands_sep());
     EXPECT_NE(plain.grouping(), german.grouping());
+}
 
-    EXPECT_FALSE(plain.truename().empty());
-    EXPECT_FALSE(plain.falsename().empty());
-    EXPECT_FALSE(german.truename().empty());
-    EXPECT_FALSE(german.falsename().empty());
-    EXPECT_NE(plain.truename(), german.truename());
-    EXPECT_NE(plain.falsename(), german.falsename());
+// The boolean names are the locale's YESSTR/NOSTR -- on macOS the first item of
+// its colon-separated list -- and Windows has no such data, so the ASCII words
+// stand there.
+TEST(NumericChar8, TheBooleanNamesComeFromTheLocale)
+{
+    const numeric_conf<char8_t> conf("de_DE.UTF-8");
+#if IOV2_TEST_WINDOWS
+    EXPECT_EQ(conf.truename(), u8"true");
+    EXPECT_EQ(conf.falsename(), u8"false");
+#else
+    EXPECT_EQ(conf.truename(), u8"ja");
+    EXPECT_EQ(conf.falsename(), u8"nein");
+#endif
 }
 
 // A locale that answers the boolean-name query with an empty string has not
@@ -244,11 +254,15 @@ TEST(NumericChar8, ThePunctuationComesFromTheLocale)
 // nothing at all for a bool.
 TEST(NumericChar8, AnUnnamedBooleanFallsBackToAscii)
 {
+#if IOV2_TEST_LINUX_GLIBC
     const numeric_conf<char8_t> conf("gv_GB.utf8");
     EXPECT_EQ(conf.truename(), u8"true");
     EXPECT_EQ(conf.falsename(), u8"false");
     EXPECT_EQ(conf.decimal_point(), u8'.');
     EXPECT_EQ(conf.thousands_sep(), u8',');
+#else
+    GTEST_SKIP() << "only glibc has a locale with an empty YESSTR (macOS falls back to C's \"yes\")";
+#endif
 }
 
 // A locale with no thousands separator has no grouping either: there is nothing
@@ -258,10 +272,41 @@ TEST(NumericChar8, AnUnnamedBooleanFallsBackToAscii)
 // to a comma it then never uses, because the grouping beside it is empty.
 TEST(NumericChar8, ALocaleWithNoSeparatorHasNoGrouping)
 {
+#if IOV2_TEST_LINUX_GLIBC
     const numeric_conf<char8_t> conf("gl_ES.utf8");
     EXPECT_EQ(conf.decimal_point(), u8',');
     EXPECT_TRUE(conf.grouping().empty());
     EXPECT_EQ(conf.thousands_sep(), u8',');
+#else
+    GTEST_SKIP() << "gl_ES has no thousands separator only in glibc's data";
+#endif
+}
+
+// A locale whose encoding is not UTF-8 goes through the wide configuration,
+// which takes a Unicode wchar_t: glibc's (UTF-32) and Windows' (UTF-16) are,
+// macOS's is not, so there the configuration refuses.
+TEST(NumericChar8, ANonUtf8LocaleIsReadThroughWchar)
+{
+#if IOV2_TEST_LINUX_GLIBC
+    const numeric_conf<char8_t> conf("zh_CN.GBK");
+    EXPECT_EQ(conf.decimal_point(), u8'.');
+    EXPECT_EQ(conf.thousands_sep(), u8',');
+    EXPECT_EQ(conf.truename(), u8"\u662F");          // 是
+    EXPECT_EQ(conf.falsename(), u8"\u4E0D\u662F");   // 不是
+#elif IOV2_TEST_WINDOWS
+    const numeric_conf<char8_t> german("de-DE");     // code page 1252
+    EXPECT_EQ(german.decimal_point(), u8',');
+    EXPECT_EQ(german.thousands_sep(), u8'.');
+    EXPECT_FALSE(german.grouping().empty());
+    EXPECT_EQ(german.truename(), u8"true");
+
+    // U+2019 is no single UTF-8 byte: the comma stands in, grouping goes.
+    const numeric_conf<char8_t> swiss("de-CH");
+    EXPECT_EQ(swiss.thousands_sep(), u8',');
+    EXPECT_TRUE(swiss.grouping().empty());
+#else
+    EXPECT_THROW(numeric_conf<char8_t>("de_DE.ISO8859-1"), io_error);
+#endif
 }
 
 TEST(NumericChar8, ABooleanIsOneOrZeroWithoutBoolalpha)
