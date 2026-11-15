@@ -48,7 +48,8 @@ namespace
 }
 
 // The amount is in the smallest unit, so the facet is what decides where the
-// decimal mark lands and how the integer part is grouped.
+// decimal mark lands and how the integer part is grouped. Without showbase the
+// symbol is left out, and the space that would separate it with it.
 TEST(IoBaseManipMoney, PutMoneyWritesTheAmountTheWayTheFacetSpellsIt)
 {
     if (!have_locale(kGrouped))
@@ -59,7 +60,7 @@ TEST(IoBaseManipMoney, PutMoneyWritesTheAmountTheWayTheFacetSpellsIt)
 
     EXPECT_TRUE(oss.good());
     auto [dev, err] = oss.detach();
-    EXPECT_EQ(dev.str(), "1.234.567,89 ");
+    EXPECT_EQ(dev.str(), "1.234.567,89");
 }
 
 // Whatever put_money wrote, get_money reads back as the same amount. The rvalue
@@ -191,7 +192,7 @@ TEST(IoBaseManipMoney, TheRoundTripHoldsOnAWideStream)
     oss << put_money(std::wstring(L"123456789"));
     EXPECT_TRUE(oss.good());
     auto [written, werr] = oss.detach();
-    EXPECT_EQ(written.str(), L"1.234.567,89 ");
+    EXPECT_EQ(written.str(), L"1.234.567,89");
 
     istream iss{mem_device{written.str()}, locale<wchar_t>(kGrouped)};
     std::wstring back;

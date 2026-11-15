@@ -174,12 +174,12 @@ public:
 
     /**
      * @lang{ZH}
-     * @brief 返回国际货币符号字符串（如 `"USD "`）。
+     * @brief 返回国际货币符号字符串（如 `"USD"`；C 的 `int_curr_symbol` 第 4 个字符不在其中）。
      * @return 国际货币符号。
      * @endif
      *
      * @lang{EN}
-     * @brief Returns the international currency symbol string (e.g. `"USD "`).
+     * @brief Returns the international currency symbol string (e.g. `"USD"`; the fourth character of C's `int_curr_symbol` is not part of it).
      * @return The international currency symbol.
      * @endif
      */
@@ -593,6 +593,72 @@ public:
 private:
     /**
      * @lang{ZH}
+     * @brief 判断 pattern 中的 `space` 在本次输出里是否保留。
+     *
+     * `space` 只用来分隔两侧实际写出的内容，因此以下情况降格为 `none`（不写字符，但仍
+     * 是 `internal` 填充的落点）：
+     * - 紧贴着货币符号，而货币符号没有写出（未置 `showbase`，或符号为空串）。这与 glibc
+     *   `strfmon` 的 `!` 标志一致：不写符号时，符号旁的分隔一并省略。
+     * - 某一侧直到字段边缘都没有写出任何内容（例如正号为空串、符号未写出）。这相当于把
+     *   C++ 对 pattern 的约束"space 既不是第一个也不是最后一个"延伸到实际输出上。
+     *
+     * 多字符符号字符串追加在字段末尾的剩余部分不计入右侧：它属于符号字符串那一槽。
+     * 这一处理在字面上偏离 [locale.moneypunct.general] 对 `space` "at least one space
+     * is required" 的描述；`get` 按同一规则接受省略了空格的输入。
+     *
+     * @param order 本次使用的 pattern。
+     * @param symbol_written 货币符号是否写出。
+     * @param left_writes `space` 左侧的给定 part 是否写出内容。
+     * @param right_writes `space` 右侧的给定 part 是否写出内容。`put` 两侧用同一个判断；
+     *        `get` 走的是负数 pattern，左侧看实际读到了什么，右侧只算必然写出的 part。
+     * @return 若 pattern 没有 `space`，或该 `space` 应当写出，则为 `true`。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Decides whether the pattern's `space` is kept in this output.
+     *
+     * A `space` only separates what is actually written on either side of it, so it
+     * is demoted to `none` (writing nothing, while still taking `internal` fill) when:
+     * - it is next to the currency symbol and the symbol is not written (`showbase`
+     *   is clear, or the symbol is empty). This matches the `!` flag of glibc's
+     *   `strfmon`: leaving the symbol out leaves out the separator beside it;
+     * - nothing at all is written on one side of it, up to the edge of the field
+     *   (an empty positive sign, an unwritten symbol). This carries C++'s rule for
+     *   patterns, that a space is neither first nor last, over to the actual output.
+     *
+     * The remainder of a multi-character sign, appended at the end of the field, does
+     * not count for the right-hand side: it belongs to the sign's slot. This departs
+     * from the letter of [locale.moneypunct.general], where `space` means "at least
+     * one space is required"; `get` accepts input without the space by the same rule.
+     *
+     * @param order The pattern in use.
+     * @param symbol_written Whether the currency symbol is written.
+     * @param left_writes Whether a given part left of the `space` writes anything.
+     * @param right_writes Whether a given part right of the `space` writes anything.
+     *        `put` uses one test for both sides; `get`, which walks the negative
+     *        pattern, goes by what it actually read on the left and counts only the
+     *        parts that are always written on the right.
+     * @return `true` if the pattern has no `space`, or if the `space` is written.
+     * @endif
+     */
+    template <typename TLeft, typename TRight>
+    static bool space_kept(const base_ft<monetary>::pattern& order, bool symbol_written,
+                           TLeft left_writes, TRight right_writes)
+    {
+        using part = base_ft<monetary>::part;
+        const auto at = std::ranges::find(order, part::space);
+        if (at == order.end())
+            return true;
+
+        if (!symbol_written && ((at != order.begin() && at[-1] == part::symbol)
+                                || (at + 1 != order.end() && at[1] == part::symbol)))
+            return false;
+        return std::ranges::any_of(order.begin(), at, left_writes)
+            && std::ranges::any_of(at + 1, order.end(), right_writes);
+    }
+
+    /**
+     * @lang{ZH}
      * @brief 判断一段填充字符是否会改变人从该字段读到的金额。
      *
      * @par 为什么需要这个判断
@@ -716,7 +782,8 @@ private:
      * - 对整数部分按分组规则插入千位分隔符。
      * - 按 `m_frac_digits` 添加小数点和小数部分，不足时补零。
      * - 遍历 pattern，将 `symbol`、`sign`、`value`、`space`/`none` 按序拼接，
-     *   在 `ios_defs::internal` 模式下于 `space`/`none` 位置插入填充字符。
+     *   在 `ios_defs::internal` 模式下于 `space`/`none` 位置插入填充字符。`space`
+     *   旁边没有实际写出的内容时降格为 `none`（见 `space_kept`）。
      * - 追加多字符符号字符串的剩余部分。
      * - 对整体结果应用左对齐或右对齐填充。
      *
@@ -746,7 +813,8 @@ private:
      *   according to `m_frac_digits`.
      * - Traverses the pattern, concatenating `symbol`, `sign`, `value`, and
      *   `space`/`none` in order, inserting fill characters at `space`/`none`
-     *   positions in `ios_defs::internal` mode.
+     *   positions in `ios_defs::internal` mode. A `space` with nothing actually
+     *   written beside it is demoted to `none` (see `space_kept`).
      * - Appends remaining characters of a multi-character sign string.
      * - Applies left or right alignment padding to the overall result.
      *
@@ -862,9 +930,19 @@ private:
         std::size_t run_count = 0;
         std::size_t value_pos = std::basic_string<char_type>::npos;
 
+        // A space only separates things that are there: it is dropped next to a symbol
+        // left out, and where nothing is written on one side of it (see space_kept).
+        const bool symbol_written = show_symbol && !info.m_curr_symbol.empty();
+        const auto writes         = [&](part p) {
+            return p == part::value || (p == part::symbol && symbol_written)
+                || (p == part::sign && !sign.empty());
+        };
+        const bool keep_space = space_kept(order, symbol_written, writes, writes);
+
         // Lay the parts down in the order this locale asks for.
-        for (const part which : order)
+        for (const part slot : order)
         {
+            const part which = (slot == part::space && !keep_space) ? part::none : slot;
             switch (which)
             {
             case part::symbol:
@@ -958,7 +1036,8 @@ private:
      *   若正符号存在而负符号为空，则按 C++ 标准将缺失的符号解读为负号。
      * - **`value`**：提取数字字符（基于 `s_atoms`），处理千位分隔符（计入
      *   分组向量供后续验证）和小数点。首个未知字符终止提取。
-     * - **`space`/`none`**：消耗填充字符，`space` 至少需要一个。
+     * - **`space`/`none`**：消耗填充字符。`space` 仅在 `put` 必然会写出它时至少需要一个：
+     *   左侧已读到内容，右侧有必然写出的 part，且不紧贴未写出的货币符号（见 `space_kept`）。
      *
      * 全部 pattern 处理完毕后：
      * - 消耗多字符符号字符串的剩余部分。
@@ -995,7 +1074,10 @@ private:
      *   thousands separators (recorded in a grouping vector for later
      *   verification) and the decimal point. The first unknown character stops
      *   extraction.
-     * - **`space`/`none`**: Consumes fill characters; `space` requires at least one.
+     * - **`space`/`none`**: Consumes fill characters. `space` requires at least one only
+     *   where `put` is bound to have written it: something was read on its left, a part
+     *   that is always written follows on its right, and it is not next to an unwritten
+     *   currency symbol (see `space_kept`).
      *
      * After processing all pattern parts:
      * - Consumes remaining characters of a multi-character sign string.
@@ -1030,10 +1112,12 @@ private:
 
         // A locale that spells both signs cannot have the field leave one out.
         const bool sign_required = !info.m_positive_sign.empty() && !info.m_negative_sign.empty();
+        const bool symbol_written = show_symbol && !info.m_curr_symbol.empty();
 
         bool negative  = false;   // polarity the sign slot deduced
         bool valid     = true;    // still looking at a well-formed field
         bool saw_point = false;   // the decimal point has gone by
+        bool read_any  = false;   // a symbol, sign or digit has been read
         int  sign_len  = 0;       // length of the sign string the input turned out to carry
 
         // Digits seen since the last structural character. Before the decimal point
@@ -1111,6 +1195,7 @@ private:
                 // showbase promised the symbol would be there.
                 if (taken != symbol.size() && (taken != 0 || show_symbol))
                     valid = false;
+                read_any = read_any || taken != 0;
                 break;
             }
             case part::sign:
@@ -1131,6 +1216,7 @@ private:
                 {
                     negative = (worn == &neg);
                     sign_len = static_cast<int>(worn->size());
+                    read_any = true;
                     ++beg;
                 }
                 else if (pos.empty() != neg.empty())
@@ -1193,16 +1279,26 @@ private:
                 // An amount with no digits at all is not an amount.
                 if (out.empty())
                     valid = false;
+                read_any = true;
                 break;
             case part::space:
-                // This slot owes at least one fill character.
-                if (beg != end && (*beg == io.fill()))
+                // Owed (at least one fill character) only where put is bound to have
+                // written it; otherwise it is read as a `none`.
+                if (space_kept(order, symbol_written, [&](part) { return read_any; },
+                               [&](part p) {
+                                   return p == part::value
+                                       || (p == part::symbol && symbol_written)
+                                       || (p == part::sign && sign_required);
+                               }))
                 {
-                    ++beg;
-                    ate_fill = true;
+                    if (beg != end && (*beg == io.fill()))
+                    {
+                        ++beg;
+                        ate_fill = true;
+                    }
+                    else
+                        valid = false;
                 }
-                else
-                    valid = false;
                 [[fallthrough]];
             case part::none:
                 // Either slot then soaks up whatever further fill follows — except in

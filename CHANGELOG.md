@@ -176,6 +176,18 @@
   `mbrtowc` 把它们悄悄换成 U+FFFD，`wcrtomb_s` 拒绝代理对。这种 locale 下的判法随之改为严格的
   RFC 3629（超长编码、编码过的代理一律无效），转换也不再切换本线程的 locale。其他代码页照旧
   走 UCRT。
+- `monetary` facet 的货币格式按 C 标准（C11 7.11.2.1）的定义构造，Linux 上的输出随之改变：
+  - 国际货币符号只取 `int_curr_symbol` 的三字母代码，第四个字符（分隔符）不再随符号输出，
+    分隔由 `int_*_sep_by_space` 决定：`curr_symbol_int()` 由 `"USD "` 变为 `"USD"`，en_US
+    的国际格式由 `USD  1,234.56`（两个空格）变为 `USD 1,234.56`，de_DE 由 `1.234,56 EUR `
+    变为 `1.234,56 EUR`，zh_CN 由 `CNY 1,234.56` 变为 `CNY1,234.56`。
+  - `sep_by_space` 为 2 时空格放在符号字符串旁边，此前当作 1 处理：nl_NL、da_DK、th_TH 等的
+    负数由 `€- 1.234,56` 变为 `€ -1.234,56`。超出 0–2 的值改用缺省格式。
+  - pattern 中的 `space` 只在两侧都有实际写出的内容时写出：未置 `showbase` 时货币符号旁的
+    空格随符号一同省略（de_DE 由 `-1.234,56 ` 变为 `-1.234,56`），正负号为空串而落在字段
+    一端时它旁边的空格也省略。`get` 相应地只在 `put` 必然写出空格时才要求它。
+  - 正、负格式布局不同的 locale（如 nn_NO、vi_VN；uk_UA、kk_KZ 的国内格式也因上一条加入），
+    置 `showbase` 时仍读不回自己写出的正数：`get` 按标准只按负数格式解析。
 
 #### 废弃
 
@@ -507,6 +519,26 @@ have no release line of their own.
   judged strictly per RFC 3629 (overlong forms and encoded surrogates are invalid), and
   converting no longer switches the thread's locale. Other code pages still go through
   the UCRT.
+- The `monetary` facet builds its formats as the C standard (C11 7.11.2.1) defines
+  them, which changes its output on Linux:
+  - The international symbol is the three-letter code of `int_curr_symbol` alone; the
+    fourth character, the separator, is no longer written with it, and
+    `int_*_sep_by_space` decides the separating. `curr_symbol_int()` becomes `"USD"`
+    instead of `"USD "`; en_US's international format goes from `USD  1,234.56` (two
+    spaces) to `USD 1,234.56`, de_DE's from `1.234,56 EUR ` to `1.234,56 EUR`, and
+    zh_CN's from `CNY 1,234.56` to `CNY1,234.56`.
+  - A `sep_by_space` of 2 puts the space next to the sign string; it used to be taken
+    for 1. Negative amounts in nl_NL, da_DK, th_TH and others go from `€- 1.234,56` to
+    `€ -1.234,56`. A value outside 0–2 now gets the default format.
+  - A pattern's `space` is written only with something actually written on both sides
+    of it: without `showbase` the space beside the currency symbol goes with the symbol
+    (de_DE's `-1.234,56 ` becomes `-1.234,56`), and so does the space beside an empty
+    sign string at an end of the field. `get` in turn requires the space only where
+    `put` is bound to have written it.
+  - A locale whose positive and negative formats are laid out differently (nn_NO,
+    vi_VN; with the previous item, also the national formats of uk_UA and kk_KZ) still
+    does not read back a positive amount it wrote with `showbase`: `get` parses by the
+    negative format alone, as the standard says.
 
 #### Deprecated
 

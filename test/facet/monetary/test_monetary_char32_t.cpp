@@ -409,6 +409,26 @@ TEST(MonetaryChar32, TheInternationalFlagSelectsTheOtherPunctuation)
     EXPECT_NE(international.find(obj.curr_symbol_int()), std::u32string::npos);
 }
 
+// C11 7.11.2.1: the fourth character of int_curr_symbol separates the symbol from
+// the amount, and is "used instead of a space" where int_*_sep_by_space asks for
+// one.  So the symbol is the three-letter code alone, and the field carries one
+// separator, on whichever side of the symbol the amount is.
+TEST(MonetaryChar32, TheInternationalSymbolLeavesTheSeparatorToThePattern)
+{
+    ios_base<char32_t> ios;
+    ios.setf(ios_defs::showbase);
+
+    const monetary<char32_t> us = facet_for("en_US.UTF-8");
+    EXPECT_EQ(us.curr_symbol_int(), U"USD");
+    EXPECT_EQ(put_str(us, true, ios, U"123456"), U"USD 1,234.56");
+    EXPECT_EQ(put_str(us, true, ios, U"-123456"), U"-USD 1,234.56");
+
+    const monetary<char32_t> de = facet_for("de_DE.UTF-8");
+    EXPECT_EQ(de.curr_symbol_int(), U"EUR");
+    EXPECT_EQ(put_str(de, true, ios, U"123456"), U"1.234,56 EUR");
+    EXPECT_EQ(put_str(de, true, ios, U"-123456"), U"-1.234,56 EUR");
+}
+
 TEST(MonetaryChar32, AShortFieldIsPaddedToTheWidth)
 {
     const monetary<char32_t> obj(tuned()->fraction(0).both(kSymbolSignValue).ptr());
@@ -793,19 +813,26 @@ TEST(MonetaryChar32, AFillThatWouldChangeTheAmountIsRejectedOnTheWayBackIn)
     EXPECT_EQ(digits, U"12345");
 }
 
-// A `space` slot owes at least one character, so a field that put() wrote with
-// one has to be read with one.  A `none` slot owes nothing, and a field written
-// from a pattern that ends in one has no space to find.
+// A `space` slot owes at least one character where put() is bound to have
+// written one: with showbase the symbol is there, so is the space beside it, and
+// a field without the space is not one put() wrote.  A `none` slot owes nothing.
 TEST(MonetaryChar32, ASpaceSlotIsRequiredAndANoneSlotIsNot)
 {
     const pattern with_space = {part::sign, part::value, part::space, part::symbol};
     const pattern with_none  = {part::sign, part::value, part::symbol, part::none};
 
-    ios_base<char32_t> ios;
+    ios_base<char32_t> shown;
+    shown.setf(ios_defs::showbase);
 
     const monetary<char32_t> spaced(tuned()->fraction(2).point(U'.').groups({4}).separator(U',')
                                        .symbol(U"$").plus(U"()").both(with_space).ptr());
-    expect_parses(spaced, false, ios, U"(9876.05 $)", U"987605");
+    expect_parses(spaced, false, shown, U"(9876.05 $)", U"987605");
+    expect_rejects(spaced, false, shown, U"(9876.05$)");
+
+    // Without showbase the symbol is not written, nor is the space beside it, so
+    // the field may come without the space as well as with it.
+    ios_base<char32_t> ios;
+    expect_parses(spaced, false, ios, U"(9876.05)", U"987605");
     expect_parses(spaced, false, ios, U"(9876.05 )", U"987605");
 
     const monetary<char32_t> unspaced(tuned()->fraction(2).point(U'.').groups({4}).separator(U',')
@@ -816,8 +843,49 @@ TEST(MonetaryChar32, ASpaceSlotIsRequiredAndANoneSlotIsNot)
     // The character a `space` slot owes is the stream's fill, so a field written
     // with the default fill and read back under another one is missing it.
     ios_base<char32_t> other_fill;
+    other_fill.setf(ios_defs::showbase);
     other_fill.fill(U'*');
     expect_rejects(spaced, false, other_fill, U"(9876.05 $)");
+}
+
+// A space only separates what is actually written: it goes with a symbol that
+// showbase leaves out, and with a side of the field that comes out empty -- an
+// empty positive sign at the edge, say.  A space with something on both sides
+// stays, whichever parts those are.
+TEST(MonetaryChar32, ASpaceIsWrittenOnlyBetweenThingsThatAreWritten)
+{
+    ios_base<char32_t> plain;
+    ios_base<char32_t> shown;
+    shown.setf(ios_defs::showbase);
+
+    const monetary<char32_t> trailing(tuned()->fraction(0).symbol(U"EUR").plus(U"").minus(U"-")
+                                         .both({part::sign, part::value, part::space, part::symbol})
+                                         .ptr());
+    EXPECT_EQ(put_str(trailing, false, plain, U"-12"), U"-12");
+    EXPECT_EQ(put_str(trailing, false, shown, U"-12"), U"-12 EUR");
+    expect_parses(trailing, false, plain, U"-12", U"-12");
+
+    const monetary<char32_t> glued(tuned()->fraction(0).symbol(U"$").plus(U"").minus(U"-")
+                                      .both({part::symbol, part::sign, part::space, part::value})
+                                      .ptr());
+    EXPECT_EQ(put_str(glued, false, plain, U"12"), U"12");
+    EXPECT_EQ(put_str(glued, false, plain, U"-12"), U"- 12");
+    EXPECT_EQ(put_str(glued, false, shown, U"12"), U"$ 12");
+    EXPECT_EQ(put_str(glued, false, shown, U"-12"), U"$- 12");
+    expect_parses(glued, false, plain, U"12", U"12");
+
+    const monetary<char32_t> leading(tuned()->fraction(0).symbol(U"$").plus(U"").minus(U"-")
+                                        .both({part::sign, part::space, part::value, part::symbol})
+                                        .ptr());
+    EXPECT_EQ(put_str(leading, false, shown, U"12"), U"12$");
+    EXPECT_EQ(put_str(leading, false, shown, U"-12"), U"- 12$");
+
+    // A space let go still marks where internal padding goes.
+    ios_base<char32_t> padded;
+    padded.setf(ios_defs::internal, ios_defs::adjustfield);
+    padded.fill(U'*');
+    padded.width(5);
+    EXPECT_EQ(put_str(glued, false, padded, U"12"), U"***12");
 }
 
 // Without showbase the symbol is optional, and a symbol the parse cannot place
