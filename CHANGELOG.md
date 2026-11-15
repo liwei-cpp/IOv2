@@ -78,6 +78,15 @@
   glibc 不报告这种情况。`collate<char8_t>` 判断 locale 是否为 UTF-8 时改看编码名（Windows 上
   看 `LC_COLLATE` 的代码页），不再用 `mbrtoc32` 探测：UCRT 的 `mbrtoc32` 不论 locale 一律按
   UTF-8 解码，macOS 则没有这个函数。
+- **`numeric` facet 可在 Windows 与 macOS 上构建、运行**，`numeric<char32_t>` 仍只在 `wchar_t`
+  为 UTF-32 的平台（glibc）上提供。布尔名称各平台来源不同：glibc 照旧取 `YESSTR`/`NOSTR`；
+  macOS 的 `YESSTR`/`NOSTR` 是冒号分隔的回答列表（如 de_DE 的 `"ja:j:JA:J:yes:y:YES:Y"`），
+  取其首项，缺数据的 locale 得到的是 C locale 的 `"yes"`/`"no"`；Windows 没有这项数据，一律为
+  `"true"`/`"false"`。Windows 上宽字符的小数点与千位分隔符取自 UCRT 的 `_W_decimal_point`、
+  `_W_thousands_sep`，不受代码页影响（`French_France.1252` 的窄千位分隔符是近似的 `0xA0`，宽的
+  是 U+202F）。`numeric<char8_t>` 不再经 `numeric_conf<char32_t>`：UTF-8 locale 直接用窄字符
+  配置的字节，其他 locale 经 `wchar_t` 转换；macOS 的 `wchar_t` 在非 UTF-8 locale 下不是
+  Unicode，故在 macOS 上以非 UTF-8 locale 构造会抛 `io_error`。
 
 #### 变更
 
@@ -361,6 +370,19 @@ have no release line of their own.
   a UTF-8 locale by its encoding name (on Windows, the code page of `LC_COLLATE`)
   rather than probing `mbrtoc32`, which the UCRT decodes as UTF-8 whatever the locale
   and macOS does not have.
+- **The `numeric` facet builds and runs on Windows and macOS**; `numeric<char32_t>` is
+  still provided only where `wchar_t` is UTF-32 (glibc). The boolean names come from a
+  different place on each platform: glibc's `YESSTR`/`NOSTR` as before; on macOS the
+  first item of `YESSTR`/`NOSTR`, which there are colon-separated lists of answers
+  (`"ja:j:JA:J:yes:y:YES:Y"` for de_DE), a locale without the data getting the C
+  locale's `"yes"`/`"no"`; Windows has no such data, so always `"true"`/`"false"`. On
+  Windows the wide decimal point and thousands separator are the UCRT's
+  `_W_decimal_point` and `_W_thousands_sep`, untouched by the code page (the narrow
+  thousands separator of `French_France.1252` is a stand-in `0xA0`, the wide one
+  U+202F). `numeric<char8_t>` no longer goes through `numeric_conf<char32_t>`: a UTF-8
+  locale takes the narrow configuration's bytes as they are, any other goes through
+  `wchar_t`; macOS's `wchar_t` is not Unicode under a non-UTF-8 locale, so on macOS
+  constructing for one throws `io_error`.
 
 #### Changed
 

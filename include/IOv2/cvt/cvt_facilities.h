@@ -253,4 +253,50 @@ namespace IOv2::detail
         if (res.second) std::rethrow_exception(res.second);
         return std::move(res.first).str();
     }
+
+    /**
+     * @lang{ZH}
+     * 将宽字符串转换为 UTF-8 字符串：`wchar_t` 为 UTF-32 时逐个码点编码，为 UTF-16 时先合并
+     * 代理对。
+     *
+     * @param val 输入的宽字符串。
+     *
+     * @return UTF-8 编码的字符串。
+     *
+     * @throws cvt_error 若 `val` 含非 USV 的元素（含孤立代理），则抛出此异常。抛出异常时，
+     *                   不会产生任何可观测的部分结果。
+     * @endif
+     *
+     * @lang{EN}
+     * Convert a wide string to UTF-8: code point by code point where `wchar_t` is UTF-32,
+     * joining surrogate pairs first where it is UTF-16.
+     *
+     * @param val The wide string.
+     *
+     * @return UTF-8 encoded string.
+     *
+     * @throws cvt_error If `val` contains a non-USV element (a lone surrogate included). On
+     *                   throw, no partial result is observable.
+     * @endif
+     *
+     * @note @lang{ZH} 只在 `wchar_t` 为 Unicode（`wchar_t_is_utf32` 或 `wchar_t_is_utf16`）的平台上
+     *       提供。`TWide` 只为让约束依赖模板参数，调用时不必写出。 @endif
+     *       @lang{EN} Available only where `wchar_t` is Unicode (`wchar_t_is_utf32` or
+     *       `wchar_t_is_utf16`). `TWide` only makes the constraint depend on a template
+     *       parameter and need not be spelled out. @endif
+     */
+    template <typename TWide = wchar_t>
+        requires (std::is_same_v<TWide, wchar_t> && (wchar_t_is_utf32 || wchar_t_is_utf16))
+    std::u8string to_u8string(std::basic_string_view<TWide> val)
+    {
+        using cvt_type = code_cvt<rb_root_cvt<mem_device<char8_t>>, TWide>;
+        cvt_type tmp_cvt(rb_root_cvt{mem_device<char8_t>()});
+        tmp_cvt.bos();
+        tmp_cvt.main_cont_beg();
+
+        tmp_cvt.put(val.data(), val.size());
+        auto res = tmp_cvt.detach();
+        if (res.second) std::rethrow_exception(res.second);
+        return std::move(res.first).str();
+    }
 }

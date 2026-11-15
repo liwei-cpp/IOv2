@@ -23,20 +23,31 @@
 #include <IOv2/cvt/cvt_facilities.h>
 #include <IOv2/facet/facet_common.h>
 #include <IOv2/facet/facet_helper.h>
+#include <IOv2/facet/platform/numeric_backend.h>
 
-#include <clocale>
 #include <cstddef>
 #include <cstdint>
 #include <string>
+#include <string_view>
 #include <type_traits>
 #include <vector>
-
-#include <langinfo.h>
 
 namespace IOv2
 {
 template <typename CharT> class numeric_conf;
 template <typename CharT> class numeric;
+
+namespace detail
+{
+// The punctuation of the locale called name, copied out with the thread switched to it. The
+// conversions the configurations make afterwards switch the thread's locale themselves.
+inline numeric_raw_punct numeric_snapshot(const std::string& name)
+{
+    clocale_wrapper loc(name);
+    clocale_user    guard(loc);
+    return numeric_read_punct();
+}
+}
 
 /**
  * @lang{ZH}
@@ -63,9 +74,11 @@ public:
      * @brief 构造函数，从指定的 locale 中读取并初始化所有数值格式化参数。
      *
      * 对于 "C" 和 "POSIX" locale，直接使用标准 ASCII 值。对于其他 locale，
-     * 在 locale 守卫有效期间将所有依赖 locale 的指针（`lconv*`、`nl_langinfo()`）
-     * 快照为原始字符串，以防后续的 `setlocale()`/`uselocale()` 调用使指针失效，
-     * 再于守卫结束后执行字符转换。
+     * 先经平台后端（`facet/platform/`）把 locale 的标点与布尔名称原样复制出来，
+     * 再做字符转换。
+     *
+     * 布尔名称在 POSIX 上取自 `nl_langinfo(YESSTR/NOSTR)`（macOS 取其冒号列表的首项），
+     * 按 locale 的窄字符编码给出；Windows 没有这项数据。缺数据或为空时用 `"true"`/`"false"`。
      *
      * @param name locale 名称字符串（例如 `"zh_CN.UTF-8"`）。
      * @endif
@@ -74,10 +87,13 @@ public:
      * @brief Constructor that reads and initializes all numeric formatting parameters from the specified locale.
      *
      * For "C" and "POSIX" locales, standard ASCII values are assigned directly.
-     * For other locales, all locale-dependent pointers (`lconv*`, `nl_langinfo()`)
-     * are snapshotted into raw strings while the locale guard is active, preventing
-     * invalidation by subsequent `setlocale()`/`uselocale()` calls; character
-     * conversion is then performed after the guard ends.
+     * For other locales, the locale's punctuation and boolean names are first copied
+     * out as they are through the platform backend (`facet/platform/`), and the
+     * character conversions come after.
+     *
+     * The boolean names come from `nl_langinfo(YESSTR/NOSTR)` on POSIX (the first item
+     * of its colon-separated list on macOS), in the locale's narrow encoding; Windows has
+     * no such data. Where they are missing or empty, `"true"`/`"false"` stand in.
      *
      * @param name The locale name string (e.g., `"zh_CN.UTF-8"`).
      * @endif
@@ -94,31 +110,11 @@ public:
             return;
         }
 
-        // Snapshot all locale-dependent strings while the locale guard is
-        // active. The lconv* and nl_langinfo() pointers may be invalidated
-        // by any subsequent setlocale()/uselocale() call (e.g. inside
-        // FacetHelper::string_to_char_convert), so copy first
-        // and convert after.
-        std::string dp_raw, ts_raw, grp_raw, yes_raw, no_raw;
-        bool yes_set = false, no_set = false;
-        {
-            clocale_wrapper inter_locale(name);
-            clocale_user guard(inter_locale);
-            const lconv* lc = localeconv();
-            if (lc->decimal_point) dp_raw  = lc->decimal_point;
-            if (lc->thousands_sep) ts_raw  = lc->thousands_sep;
-            if (lc->grouping)      grp_raw = lc->grouping;
+        const detail::numeric_raw_punct raw = detail::numeric_snapshot(name);
+        const std::string& grp_raw = raw.grouping;
 
-            // Treat empty YESSTR/NOSTR the same as a missing key: an empty
-            // m_true_name / m_false_name would make numeric::get(bool&) fail
-            // unconditionally (zero-length prefix never matches) and let
-            // numeric::put(bool) write nothing but padding.
-            if (auto* p = nl_langinfo(YESSTR); p && *p) { yes_raw = p; yes_set = true; }
-            if (auto* p = nl_langinfo(NOSTR);  p && *p) { no_raw  = p; no_set  = true; }
-        }
-
-        m_decimal_point = FacetHelper::string_to_char_convert(dp_raw, name);
-        m_thousands_sep = FacetHelper::string_to_char_convert(ts_raw, name);
+        m_decimal_point = FacetHelper::string_to_char_convert(raw.decimal_point, name);
+        m_thousands_sep = FacetHelper::string_to_char_convert(raw.thousands_sep, name);
 
         // string_to_char_convert hard-codes '\0' as its failure sentinel. A
         // decimal point of '\0' would later be mistaken for an in-stream
@@ -152,10 +148,11 @@ public:
         if (m_thousands_sep == m_decimal_point)
             m_grouping.clear();
 
-        if (yes_set) m_true_name  = yes_raw;
-        else         m_true_name  = "true";
-        if (no_set)  m_false_name = no_raw;
-        else         m_false_name = "false";
+        // An empty name would make numeric::get(bool&) fail unconditionally (a
+        // zero-length prefix never matches) and numeric::put(bool) write nothing
+        // but padding, so empty counts as missing.
+        m_true_name  = raw.truename.empty()  ? "true"  : raw.truename;
+        m_false_name = raw.falsename.empty() ? "false" : raw.falsename;
     }
 
 public:
@@ -288,9 +285,10 @@ public:
      * @brief 构造函数，从指定的 locale 中读取并初始化所有数值格式化参数。
      *
      * 对于 "C" 和 "POSIX" locale，直接使用标准 ASCII 宽字符值。对于其他 locale，
-     * 在 locale 守卫有效期间将所有依赖 locale 的指针（`lconv*`、`nl_langinfo()`）
-     * 快照为原始窄字符串，以防后续的 `setlocale()`/`uselocale()` 调用使指针失效，
-     * 再于守卫结束后执行宽字符转换。
+     * 先经平台后端（`facet/platform/`）把 locale 的标点与布尔名称原样复制出来，
+     * 再转换为宽字符。C 库自己给出宽字符分隔符时（Windows UCRT 的 `_W_decimal_point`、
+     * `_W_thousands_sep`）直接用它们，不经窄字符转换——代码页装不下的分隔符在窄字段里
+     * 已被近似。布尔名称的来源与回退同 `numeric_conf<char>`。
      *
      * @param name locale 名称字符串（例如 `"zh_CN.UTF-8"`）。
      * @endif
@@ -299,10 +297,13 @@ public:
      * @brief Constructor that reads and initializes all numeric formatting parameters from the specified locale.
      *
      * For "C" and "POSIX" locales, standard ASCII wide-character values are assigned
-     * directly. For other locales, all locale-dependent pointers (`lconv*`, `nl_langinfo()`)
-     * are snapshotted into raw narrow strings while the locale guard is active, preventing
-     * invalidation by subsequent `setlocale()`/`uselocale()` calls; wide-character
-     * conversion is then performed after the guard ends.
+     * directly. For other locales, the locale's punctuation and boolean names are first
+     * copied out as they are through the platform backend (`facet/platform/`), then
+     * converted to wide characters. Where the C library gives the separators in wide form
+     * itself (the Windows UCRT's `_W_decimal_point` and `_W_thousands_sep`), those are used
+     * as they are rather than converted from the narrow ones, in which a separator the code
+     * page cannot hold has already been approximated. The boolean names come and fall back
+     * as in `numeric_conf<char>`.
      *
      * @param name The locale name string (e.g., `"zh_CN.UTF-8"`).
      * @endif
@@ -329,33 +330,21 @@ public:
             return;
         }
 
-        // Snapshot all locale-dependent strings while the locale guard is
-        // active. The lconv* and nl_langinfo() pointers may be invalidated
-        // by any subsequent setlocale()/uselocale() call (e.g. inside
-        // detail::to_wstring / detail::to_u32string), so copy first and
-        // convert after.
-        std::string dp_raw, ts_raw, grp_raw, yes_raw, no_raw;
-        bool yes_set = false, no_set = false;
-        {
-            clocale_wrapper inter_locale(name);
-            clocale_user guard(inter_locale);
-            const lconv* lc = localeconv();
-            if (lc->decimal_point) dp_raw  = lc->decimal_point;
-            if (lc->thousands_sep) ts_raw  = lc->thousands_sep;
-            if (lc->grouping)      grp_raw = lc->grouping;
+        const detail::numeric_raw_punct raw = detail::numeric_snapshot(name);
+        const std::string& grp_raw = raw.grouping;
 
-            // Treat empty YESSTR/NOSTR the same as a missing key: an empty
-            // m_true_name / m_false_name would make numeric::get(bool&) fail
-            // unconditionally (zero-length prefix never matches) and let
-            // numeric::put(bool) write nothing but padding.
-            if (auto* p = nl_langinfo(YESSTR); p && *p) { yes_raw = p; yes_set = true; }
-            if (auto* p = nl_langinfo(NOSTR);  p && *p) { no_raw  = p; no_set  = true; }
-        }
-
-        m_decimal_point = FacetHelper::string_to_widechar_convert<CharT>(
-            dp_raw, name, static_cast<CharT>('.'));
-        m_thousands_sep = FacetHelper::string_to_widechar_convert<CharT>(
-            ts_raw, name, static_cast<CharT>('\0'));
+        // The first character of a separator the C library gave in wide form, or def if empty.
+        const auto first_or = [](const std::wstring& s, CharT def) {
+            return s.empty() ? def : static_cast<CharT>(s[0]);
+        };
+        m_decimal_point = raw.wdecimal_point
+            ? first_or(*raw.wdecimal_point, static_cast<CharT>('.'))
+            : FacetHelper::string_to_widechar_convert<CharT>(
+                  raw.decimal_point, name, static_cast<CharT>('.'));
+        m_thousands_sep = raw.wthousands_sep
+            ? first_or(*raw.wthousands_sep, static_cast<CharT>('\0'))
+            : FacetHelper::string_to_widechar_convert<CharT>(
+                  raw.thousands_sep, name, static_cast<CharT>('\0'));
 
         // string_to_widechar_convert only substitutes default_char on the
         // empty-input / empty-conversion paths; a successful conversion
@@ -389,7 +378,8 @@ public:
         if (m_thousands_sep == m_decimal_point)
             m_grouping.clear();
 
-        if (!yes_set)
+        // Empty counts as missing, as in numeric_conf<char>.
+        if (raw.truename.empty())
         {
             if constexpr (std::is_same_v<CharT, wchar_t>) m_true_name = L"true";
             else                                          m_true_name = U"true";
@@ -397,12 +387,12 @@ public:
         else
         {
             if constexpr(std::is_same_v<CharT, wchar_t>)
-                m_true_name = detail::to_wstring(yes_raw.c_str(), name);
+                m_true_name = detail::to_wstring(raw.truename, name);
             else
-                m_true_name = detail::to_u32string(yes_raw.c_str(), name);
+                m_true_name = detail::to_u32string<CharT>(raw.truename, name);   // <CharT>: see facet_helper.h
         }
 
-        if (!no_set)
+        if (raw.falsename.empty())
         {
             if constexpr (std::is_same_v<CharT, wchar_t>) m_false_name = L"false";
             else                                          m_false_name = U"false";
@@ -410,9 +400,9 @@ public:
         else
         {
             if constexpr(std::is_same_v<CharT, wchar_t>)
-                m_false_name = detail::to_wstring(no_raw.c_str(), name);
+                m_false_name = detail::to_wstring(raw.falsename, name);
             else
-                m_false_name = detail::to_u32string(no_raw.c_str(), name);
+                m_false_name = detail::to_u32string<CharT>(raw.falsename, name);
         }
     }
 
@@ -504,43 +494,32 @@ private:
  * @lang{ZH}
  * @brief `numeric<char8_t>` facet 的配置类。
  *
- * 通过委托给 `numeric_conf<char32_t>` 来获取 locale 参数，再将各参数收窄为单字节
- * UTF-8 字符。若某参数的 UTF-8 编码超过一个字节，或编码结果为 `u8'\0'`，则回退到
- * ASCII 默认值（小数点回退为 `u8'.'`，千位分隔符回退并清空分组规则）。
- * 当两个分隔符回退后重合时，分组规则也会被清空，以避免解析歧义。
+ * 按 locale 的编码选一个配置类委托：编码为 UTF-8 时委托给 `numeric_conf<char>`，其字节本身
+ * 就是 UTF-8；否则委托给 `numeric_conf<wchar_t>`，再把宽字符编码为 UTF-8——这要求 `wchar_t`
+ * 为 Unicode（`wchar_t_is_utf32` 或 `wchar_t_is_utf16`，即 Linux 与 Windows）。macOS 的
+ * `wchar_t` 在非 UTF-8 locale 下不是 Unicode（探针实测 eucCN 下全角句点是 0xA3AE），没有
+ * 可靠的转换途径，故在 macOS 上以非 UTF-8 locale 构造会抛出异常。
  *
- * @note 对非 "C"/"POSIX" locale 的委托依赖 `numeric_conf<char32_t>`（见 `init_from_u32`），
- *       因而要求 `wchar_t` 为 32 位 UTF-32 编码单元（即 `wchar_t_is_utf32` 为真）。该依赖
- *       被置于一个依赖成员函数模板中，仅在实际为非 "C"/"POSIX" locale 构造时才实例化（从不
- *       提前检查，因此不存在 IFNDR 问题）；在 `wchar_t` 非 UTF-32（`numeric_conf<char32_t>`
- *       不可用）的平台上，仅命名该类型或为 "C"/"POSIX" locale 构造仍是良构的，只有非
- *       "C"/"POSIX" 构造路径会编译失败。此完整性要求被刻意不编码为此类上的约束：在
- *       `requires` 从句中对 `numeric_conf<char32_t>` 使用非依赖 `sizeof()` 是硬错误
- *       （而非软约束失败），会破坏无关 `numeric_conf<T>` 的偏特化解析。
+ * 分隔符必须是单字节 UTF-8 字符（即 ASCII），否则回退到 ASCII 默认值：小数点回退为
+ * `u8'.'`，千位分隔符回退为 `u8','` 并清空分组规则。当两个分隔符回退后重合时，分组规则
+ * 也会被清空，以避免解析歧义。
  * @endif
  *
  * @lang{EN}
  * @brief Configuration class for the `numeric<char8_t>` facet.
  *
- * Obtains locale parameters by delegating to `numeric_conf<char32_t>`, then narrows
- * each parameter to a single-byte UTF-8 character. If a parameter's UTF-8 encoding
- * spans more than one byte, or the encoded result is `u8'\0'`, it falls back to an
- * ASCII default (decimal point falls back to `u8'.'`; thousands separator falls back
- * and the grouping is cleared). When the two separators coincide after fallback,
- * the grouping is also cleared to avoid parsing ambiguity.
+ * Delegates to one configuration class chosen by the locale's encoding: to
+ * `numeric_conf<char>` when it is UTF-8, whose bytes are then UTF-8 already; otherwise to
+ * `numeric_conf<wchar_t>`, encoding its wide characters as UTF-8 -- which needs a Unicode
+ * `wchar_t` (`wchar_t_is_utf32` or `wchar_t_is_utf16`, i.e. Linux and Windows). macOS's
+ * `wchar_t` is not Unicode under a non-UTF-8 locale (the probe found the full-width period
+ * to be 0xA3AE under eucCN), leaving no reliable conversion, so constructing for a
+ * non-UTF-8 locale on macOS throws.
  *
- * @note The delegation for non-"C"/"POSIX" locales relies on `numeric_conf<char32_t>`
- *       (see `init_from_u32`), which requires `wchar_t` to be a 32-bit UTF-32 code unit
- *       (i.e., `wchar_t_is_utf32` is true). That dependency lives in a dependent member
- *       function template and is checked only when actually constructing for a
- *       non-"C"/"POSIX" locale (never eagerly, hence not IFNDR); on platforms where
- *       `wchar_t` is not UTF-32 (`numeric_conf<char32_t>` is unavailable), merely naming
- *       the type or constructing for a "C"/"POSIX" locale stays well-formed, and only the
- *       non-"C"/"POSIX" construction path fails to compile. The completeness requirement
- *       is deliberately NOT encoded as a constraint on this class: a non-dependent
- *       `sizeof(numeric_conf<char32_t>)` in the requires-clause is a hard error (not a
- *       soft constraint failure) and would break partial-specialization resolution for
- *       unrelated `numeric_conf<T>`.
+ * A separator must be a single-byte UTF-8 character (that is, ASCII), or it falls back to
+ * an ASCII default: the decimal point to `u8'.'`, the thousands separator to `u8','` with
+ * the grouping cleared. When the two separators coincide after fallback, the grouping is
+ * also cleared to avoid parsing ambiguity.
  * @endif
  */
 template <typename CharT>
@@ -565,21 +544,24 @@ public:
      * @brief 构造函数，从指定的 locale 中读取并初始化所有数值格式化参数。
      *
      * 对于 "C" 和 "POSIX" locale，直接使用标准 ASCII UTF-8 值。对于其他 locale，
-     * 先构造 `numeric_conf<char32_t>` 获取 Unicode 参数，再逐一将其收窄为单字节
-     * UTF-8 字符；若无法收窄则使用默认值。
+     * 按其编码委托给 `numeric_conf<char>`（UTF-8）或 `numeric_conf<wchar_t>`（其他），
+     * 再把各参数转换为 UTF-8；分隔符不是单字节时使用默认值。
      *
      * @param name locale 名称字符串（例如 `"zh_CN.UTF-8"`）。
+     * @throws io_error 在 `wchar_t` 不是 Unicode 的平台（macOS）上，`name` 的编码不是 UTF-8。
      * @endif
      *
      * @lang{EN}
      * @brief Constructor that reads and initializes all numeric formatting parameters from the specified locale.
      *
      * For "C" and "POSIX" locales, standard ASCII UTF-8 values are assigned directly.
-     * For other locales, a `numeric_conf<char32_t>` is constructed first to obtain
-     * Unicode parameters, which are then narrowed one by one to single-byte UTF-8
-     * characters; a default value is used whenever narrowing is not possible.
+     * For other locales, delegates by the encoding to `numeric_conf<char>` (UTF-8) or
+     * `numeric_conf<wchar_t>` (anything else), then converts each parameter to UTF-8; a
+     * separator that is not a single byte gets the default.
      *
      * @param name The locale name string (e.g., `"zh_CN.UTF-8"`).
+     * @throws io_error Where `wchar_t` is not Unicode (macOS), if `name`'s encoding is not
+     *         UTF-8.
      * @endif
      */
     numeric_conf(const std::string& name)
@@ -594,42 +576,54 @@ public:
             return;
         }
 
-        init_from_u32<>(name);
+        if (detail::numeric_snapshot(name).utf8)
+        {
+            // The narrow configuration's bytes are UTF-8 already.
+            const numeric_conf<char> narrow(name);
+            assign(static_cast<unsigned char>(narrow.decimal_point()),
+                   static_cast<unsigned char>(narrow.thousands_sep()), narrow.grouping(),
+                   std::u8string(narrow.truename().begin(), narrow.truename().end()),
+                   std::u8string(narrow.falsename().begin(), narrow.falsename().end()));
+        }
+        else
+            init_from_wide<>(name);
     }
 
 private:
-    // T is defaulted/constrained to char32_t; templating it makes the
-    // numeric_conf<T> reference below dependent, so the whole body is checked
-    // only upon instantiation of this helper (i.e. only on the non-"C"/"POSIX"
-    // construction path), never eagerly.
-    template <typename T = char32_t>
-        requires std::is_same_v<T, char32_t>
-    void init_from_u32(const std::string& name)
+    // W only makes the body dependent, so where wchar_t is not Unicode the
+    // discarded branch, and the to_u8string it names, is never instantiated.
+    template <typename W = wchar_t>
+    void init_from_wide(const std::string& name)
     {
-        numeric_conf<T> numeric_temp(name);
+        if constexpr (wchar_t_is_utf32 || wchar_t_is_utf16)
         {
-            const auto input = numeric_temp.decimal_point();
-            auto output = detail::to_u8string(input);
-            // Fall back to u8'.' when the UTF-8 encoding is not a single
-            // byte OR when it is a single u8'\0' byte. The latter would be
-            // indistinguishable from an in-stream null byte during parsing.
-            m_decimal_point = (output.size() != 1 || output[0] == u8'\0')
-                                  ? u8'.' : output[0];
+            const numeric_conf<W> wide(name);
+            assign(static_cast<char32_t>(wide.decimal_point()),
+                   static_cast<char32_t>(wide.thousands_sep()), wide.grouping(),
+                   detail::to_u8string(std::basic_string_view<W>(wide.truename())),
+                   detail::to_u8string(std::basic_string_view<W>(wide.falsename())));
         }
+        else
+            throw io_error("numeric_conf<char8_t>: " + name +
+                           " is not a UTF-8 locale, and wchar_t is not Unicode on this platform");
+    }
 
-        bool ts_representable = false;
-        {
-            const auto input = numeric_temp.thousands_sep();
-            auto output = detail::to_u8string(input);
-            ts_representable = (output.size() == 1 && output[0] != u8'\0');
-            m_thousands_sep = ts_representable ? output[0] : u8',';
-        }
+    // Takes the delegate's values. A separator stays only if it is one UTF-8 byte,
+    // i.e. ASCII; u8'\0' is no separator either, as it would pass for a NUL in the input.
+    // NOLINTNEXTLINE(bugprone-easily-swappable-parameters): two callers, just above
+    void assign(char32_t dp, char32_t ts, std::vector<uint8_t> grouping,
+                std::u8string truename, std::u8string falsename)
+    {
+        const auto single_byte = [](char32_t c) { return c != 0 && c < 0x80; };
+        m_decimal_point = single_byte(dp) ? static_cast<char8_t>(dp) : u8'.';
 
-        m_true_name = detail::to_u8string(numeric_temp.truename());
-        m_false_name = detail::to_u8string(numeric_temp.falsename());
+        const bool ts_representable = single_byte(ts);
+        m_thousands_sep = ts_representable ? static_cast<char8_t>(ts) : u8',';
 
-        m_grouping = numeric_temp.grouping();
+        m_true_name  = std::move(truename);
+        m_false_name = std::move(falsename);
 
+        m_grouping = std::move(grouping);
         if (!ts_representable)
             m_grouping.clear();
 

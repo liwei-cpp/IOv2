@@ -301,7 +301,9 @@ namespace IOv2::FacetHelper
         }
         else
         {
-            auto wide = detail::to_u32string(narrow.c_str(), locale_name);
+            // <CharT> defers the lookup to instantiation: where wchar_t is not
+            // UTF-32 there is no to_u32string, and this branch is never taken.
+            auto wide = detail::to_u32string<CharT>(narrow.c_str(), locale_name);
             return wide.empty() ? default_char : wide[0];
         }
     }

@@ -831,7 +831,7 @@ private:
     {
         // precision() is now a bounded uint8_t (0-255); there is no negative /
         // out-of-range sentinel to normalise here.
-        const std::streamsize prec = io.precision();
+        const std::uint8_t prec = io.precision();
         const int max_digits = std::numeric_limits<TValue>::digits10;
 
         const std::size_t w = io.width(0);
@@ -1011,7 +1011,7 @@ private:
         if constexpr (std::is_signed_v<TValue>)
         {
             if (dec && v < 0)
-                u = -u;
+                u = unsigned_type(0) - u;   // not -u: MSVC warns (C4146) on unary minus of unsigned
         }
 
         // Even base two would need no more than one character per value bit. Two
@@ -1454,8 +1454,9 @@ private:
     {
         // The notation picks the conversion letter, and with it the one thing
         // that is not a free choice: hexfloat carries no explicit precision,
-        // because `%a` already prints exactly as many hex digits as the value
-        // needs and pinning a precision on it would round the result away.
+        // because `%a` without one prints the value exactly (glibc and macOS
+        // with as few hex digits as it needs, the UCRT with all 13 a double
+        // has) and pinning a precision on it would round the result away.
         // Every other notation takes its precision as a `*` argument, which is
         // what LWG 231 asked for -- unconditionally, rather than only under
         // `fixed` or a non-zero precision as an earlier reading had it.
@@ -1764,7 +1765,8 @@ private:
 
         const unsigned_type magnitude_limit =
             negative && std::is_signed_v<TValue>
-                ? -static_cast<unsigned_type>(std::numeric_limits<TValue>::min())
+                // not -static_cast<...>: MSVC warns (C4146) on unary minus of unsigned
+                ? unsigned_type(0) - static_cast<unsigned_type>(std::numeric_limits<TValue>::min())
                 : static_cast<unsigned_type>(std::numeric_limits<TValue>::max());
         const auto radix_value = static_cast<unsigned_type>(radix);
         const unsigned_type cutoff = magnitude_limit / radix_value;
@@ -1884,7 +1886,8 @@ private:
             success = false;
         }
         else
-            v = negative ? -magnitude : magnitude;
+            // Negated in unsigned_type: -INT_MIN would overflow int, and MSVC warns (C4146) on -magnitude.
+            v = negative ? unsigned_type(0) - magnitude : magnitude;
 
         return {success, beg};
     }

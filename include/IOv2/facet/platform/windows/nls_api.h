@@ -46,6 +46,7 @@ __declspec(dllimport) int __stdcall MultiByteToWideChar(unsigned int CodePage, u
                                                         wchar_t* lpWideCharStr, int cchWideChar);
 }
 
+inline constexpr unsigned int win_cp_utf8 = 65001;                        // CP_UTF8
 inline constexpr unsigned long win_ct_ctype1 = 0x0001;                    // CT_CTYPE1
 inline constexpr unsigned long win_lcmap_lowercase = 0x00000100;          // LCMAP_LOWERCASE
 inline constexpr unsigned long win_lcmap_uppercase = 0x00000200;          // LCMAP_UPPERCASE

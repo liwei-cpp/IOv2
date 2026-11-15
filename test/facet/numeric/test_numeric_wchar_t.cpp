@@ -23,6 +23,14 @@
 #include <IOv2/io/iochannel.h>
 #include <IOv2/io/iochannel_iterator.h>
 
+#include <support/platform_macros.h>
+
+#if IOV2_TEST_WINDOWS
+#define NOMINMAX
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>   // GetLocaleInfoEx, to compare the facet with NLS
+#endif
+
 #include <gtest/gtest.h>
 
 #include <charconv>
@@ -230,13 +238,21 @@ TEST(NumericWchar, ThePunctuationComesFromTheLocale)
     EXPECT_NE(plain.decimal_point(), german.decimal_point());
     EXPECT_NE(plain.thousands_sep(), german.thousands_sep());
     EXPECT_NE(plain.grouping(), german.grouping());
+}
 
-    EXPECT_FALSE(plain.truename().empty());
-    EXPECT_FALSE(plain.falsename().empty());
-    EXPECT_FALSE(german.truename().empty());
-    EXPECT_FALSE(german.falsename().empty());
-    EXPECT_NE(plain.truename(), german.truename());
-    EXPECT_NE(plain.falsename(), german.falsename());
+// The boolean names are the locale's YESSTR/NOSTR -- on macOS the first item of
+// its colon-separated list -- and Windows has no such data, so the ASCII words
+// stand there.
+TEST(NumericWchar, TheBooleanNamesComeFromTheLocale)
+{
+    const numeric_conf<wchar_t> conf("de_DE.UTF-8");
+#if IOV2_TEST_WINDOWS
+    EXPECT_EQ(conf.truename(), L"true");
+    EXPECT_EQ(conf.falsename(), L"false");
+#else
+    EXPECT_EQ(conf.truename(), L"ja");
+    EXPECT_EQ(conf.falsename(), L"nein");
+#endif
 }
 
 // A locale that answers the boolean-name query with an empty string has not
@@ -244,11 +260,15 @@ TEST(NumericWchar, ThePunctuationComesFromTheLocale)
 // nothing at all for a bool.
 TEST(NumericWchar, AnUnnamedBooleanFallsBackToAscii)
 {
+#if IOV2_TEST_LINUX_GLIBC
     const numeric_conf<wchar_t> conf("gv_GB.utf8");
     EXPECT_EQ(conf.truename(), L"true");
     EXPECT_EQ(conf.falsename(), L"false");
     EXPECT_EQ(conf.decimal_point(), L'.');
     EXPECT_EQ(conf.thousands_sep(), L',');
+#else
+    GTEST_SKIP() << "only glibc has a locale with an empty YESSTR (macOS falls back to C's \"yes\")";
+#endif
 }
 
 // A locale with no thousands separator has no grouping either: there is nothing
@@ -258,10 +278,37 @@ TEST(NumericWchar, AnUnnamedBooleanFallsBackToAscii)
 // to a comma it then never uses, because the grouping beside it is empty.
 TEST(NumericWchar, ALocaleWithNoSeparatorHasNoGrouping)
 {
+#if IOV2_TEST_LINUX_GLIBC
     const numeric_conf<wchar_t> conf("gl_ES.utf8");
     EXPECT_EQ(conf.decimal_point(), L',');
     EXPECT_TRUE(conf.grouping().empty());
     EXPECT_EQ(conf.thousands_sep(), L'\0');
+#else
+    GTEST_SKIP() << "gl_ES has no thousands separator only in glibc's data";
+#endif
+}
+
+// The wide separators are the UCRT's own _W_ fields, i.e. what NLS says, not the
+// narrow ones widened back: under fr-FR's code page 1252 the narrow thousands
+// separator is a stand-in 0xA0, while NLS has U+202F on newer Windows.
+TEST(NumericWchar, TheSeparatorsAreWhatNlsSays)
+{
+#if IOV2_TEST_WINDOWS
+    for (const auto& [crt, bcp47] : {std::pair{"fr-FR", L"fr-FR"}, std::pair{"de-CH", L"de-CH"}})
+    {
+        SCOPED_TRACE(crt);
+        wchar_t dp[8] = {}, ts[8] = {};
+        ASSERT_NE(GetLocaleInfoEx(bcp47, LOCALE_SDECIMAL, dp, 8), 0);
+        ASSERT_NE(GetLocaleInfoEx(bcp47, LOCALE_STHOUSAND, ts, 8), 0);
+
+        const numeric_conf<wchar_t> conf(crt);
+        EXPECT_EQ(conf.decimal_point(), dp[0]);
+        EXPECT_EQ(conf.thousands_sep(), ts[0]);
+        EXPECT_FALSE(conf.grouping().empty());
+    }
+#else
+    GTEST_SKIP() << "the UCRT's _W_ separators are Windows only";
+#endif
 }
 
 TEST(NumericWchar, ABooleanIsOneOrZeroWithoutBoolalpha)
