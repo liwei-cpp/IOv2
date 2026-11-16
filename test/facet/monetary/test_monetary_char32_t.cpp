@@ -22,6 +22,8 @@
 #include <IOv2/io/iochannel.h>
 #include <IOv2/io/iochannel_iterator.h>
 
+#include <support/platform_macros.h>
+
 #include <gtest/gtest.h>
 
 #include <cstddef>
@@ -34,6 +36,15 @@
 #include <vector>
 
 using namespace IOv2;
+
+// monetary<char32_t> exists only where wchar_t is UTF-32, i.e. glibc: everything
+// below is compiled there alone, and elsewhere the one case that follows says so.
+#if !IOV2_TEST_LINUX_GLIBC
+TEST(MonetaryChar32, IsGlibcOnly)
+{
+    GTEST_SKIP() << "monetary<char32_t> needs a UTF-32 wchar_t";
+}
+#else
 
 namespace
 {
@@ -1065,3 +1076,4 @@ TEST(MonetaryChar32, AFieldWithNoDigitsIsNotAnInteger)
     EXPECT_THROW((void)obj.get(input.begin(), input.end(), false, ios, units), stream_error);
     EXPECT_EQ(units, 4242);
 }
+#endif

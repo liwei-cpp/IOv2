@@ -25,19 +25,33 @@
 #include <IOv2/cvt/cvt_facilities.h>
 #include <IOv2/facet/facet_common.h>
 #include <IOv2/facet/facet_helper.h>
+#include <IOv2/facet/platform/monetary_backend.h>
 
 #include <array>
 #include <climits>
-#include <clocale>
 #include <cstddef>
 #include <cstdint>
+#include <optional>
 #include <string>
+#include <string_view>
 #include <type_traits>
 #include <vector>
 
 namespace IOv2
 {
 template <typename CharT> class monetary;
+
+namespace detail
+{
+// The monetary data of the locale called name, copied out with the thread switched to it.
+// The conversions the configurations make afterwards switch the thread's locale themselves.
+inline monetary_raw_punct monetary_snapshot(const std::string& name)
+{
+    clocale_wrapper loc(name);
+    clocale_user    guard(loc);
+    return monetary_read_punct();
+}
+}
 
 /**
  * @lang{ZH}
@@ -324,9 +338,10 @@ protected:
      * int_n_sep_by_space, the fourth character of int_curr_symbol is used instead of a
      * space"——分隔与否、分隔在哪由 `int_*_sep_by_space` 决定，而不是随符号一同输出。
      * 因此存下的符号只取代码；分隔一律由 pattern 的 `space` 承担。第四个字符本身不
-     * 保存：已知的数据里它都是空格（glibc 全部 locale），Windows 的 UCRT 只给三个字符。
+     * 保存：已知的数据里它都是空格（glibc 与 macOS 的全部 locale），Windows 的 UCRT
+     * 只给三个字符。宽字符配置在转换之后调用，按字符计数。
      *
-     * @param s `int_curr_symbol` 的原始值，可为空指针。
+     * @param s `int_curr_symbol`，已转换为配置的字符类型。
      * @return 长度为 4 时去掉最后一个字符，否则原样返回。
      * @endif
      *
@@ -341,18 +356,30 @@ protected:
      * separate is `int_*_sep_by_space`'s to say, not something the symbol carries. So
      * the symbol kept is the code alone, and the pattern's `space` does any separating.
      * The fourth character itself is not kept: in all known data it is a space (every
-     * glibc locale), and the Windows UCRT gives three characters only.
+     * glibc and macOS locale), and the Windows UCRT gives three characters only. The wide
+     * configurations call this after converting, so it counts characters.
      *
-     * @param s The raw `int_curr_symbol`; may be a null pointer.
+     * @param s `int_curr_symbol`, already in the configuration's character type.
      * @return The string less its last character if it is four long, else as it is.
      * @endif
      */
-    static std::string s_int_curr_code(const char* s)
+    template <typename CharT>
+    static std::basic_string<CharT> s_int_curr_code(std::basic_string<CharT> s)
     {
-        std::string res = s ? s : "";
-        if (res.size() == 4)
-            res.pop_back();
-        return res;
+        if (s.size() == 4)
+            s.pop_back();
+        return s;
+    }
+
+    /**
+     * @lang{ZH} 由一组原样的 `lconv` 标志构建 pattern：先经 `s_norm_flag` 去掉 `CHAR_MAX`，再交给 `s_construct_pattern`。 @endif
+     * @lang{EN} Builds a pattern from one set of raw `lconv` flags: `s_norm_flag` takes `CHAR_MAX` out, then `s_construct_pattern` lays it out. @endif
+     */
+    static pattern s_pattern(const detail::monetary_raw_flags& f)
+    {
+        return s_construct_pattern({.precedes = s_norm_flag(f.cs_precedes),
+                                    .sep_by_space = s_norm_flag(f.sep_by_space),
+                                    .sign_posn = f.sign_posn});
     }
 
     /**
@@ -368,7 +395,7 @@ protected:
      * 字段可用而其余不可用。因此本函数对本类实际替换的每个字段逐一取合取，而非仅凭
      * 单个字段推断整体。
      *
-     * @param lc `localeconv()` 返回的指针。
+     * @param raw 平台后端复制出的 `lconv` 数据。
      * @return 若符号、货币符号与小数位数均不可用则返回 `true`。
      * @endif
      *
@@ -386,17 +413,16 @@ protected:
      * function conjoins every field this class would substitute rather than
      * inferring the whole from any single one.
      *
-     * @param lc The pointer returned by `localeconv()`.
+     * @param raw The `lconv` data the platform backend copied out.
      * @return `true` if the signs, currency symbols and fractional digits are all unavailable.
      * @endif
      */
-    static bool s_monetary_unavailable(const lconv* lc)
+    static bool s_monetary_unavailable(const detail::monetary_raw_punct& raw)
     {
-        const auto empty = [](const char* s) { return (s == nullptr) || (s[0] == '\0'); };
-        return (lc->frac_digits == CHAR_MAX) && (lc->int_frac_digits == CHAR_MAX)
-            && (lc->n_sign_posn == CHAR_MAX) && (lc->int_n_sign_posn == CHAR_MAX)
-            && empty(lc->negative_sign) && empty(lc->currency_symbol)
-            && empty(lc->int_curr_symbol);
+        return (raw.frac_digits == CHAR_MAX) && (raw.int_frac_digits == CHAR_MAX)
+            && (raw.nat_neg.sign_posn == CHAR_MAX) && (raw.int_neg.sign_posn == CHAR_MAX)
+            && raw.negative_sign.empty() && raw.currency_symbol.empty()
+            && raw.int_curr_symbol.empty();
     }
 };
 
@@ -404,21 +430,21 @@ template <typename CharT> class monetary_conf;
 
 /**
  * @lang{ZH}
- * @brief `monetary_conf` 的 `char` 特化，从 POSIX `lconv` 直接读取货币格式化数据。
+ * @brief `monetary_conf` 的 `char` 特化，从 C 库的 `lconv` 直接读取货币格式化数据。
  *
  * 对于 `"C"` 和 `"POSIX"` 区域设置，使用硬编码的默认值；
- * 对于其他区域设置，通过 `clocale_wrapper` 切换至目标区域设置并调用
- * `localeconv()` 读取数据。各字段按 locale 的窄字符编码原样保存，不做转换。
+ * 对于其他区域设置，经平台后端（`facet/platform/`）把 locale 的货币数据原样复制出来。
+ * 各字段按 locale 的窄字符编码原样保存，不做转换。
  * @endif
  *
  * @lang{EN}
  * @brief Specialization of `monetary_conf` for `char`, reading monetary formatting
- *        data directly from POSIX `lconv`.
+ *        data directly from the C library's `lconv`.
  *
  * For the `"C"` and `"POSIX"` locales, hard-coded defaults are used.
- * For other locales, the target locale is switched via `clocale_wrapper`
- * and `localeconv()` is called to read the data. Every field is kept as it is, in the
- * locale's narrow encoding, with no conversion.
+ * For other locales, the locale's monetary data is copied out as it is through the
+ * platform backend (`facet/platform/`). Every field is kept as it is, in the locale's
+ * narrow encoding, with no conversion.
  * @endif
  */
 template <>
@@ -450,48 +476,36 @@ public:
         }
         else
         {
-            clocale_wrapper inter_locale(name);
-            clocale_user guard(inter_locale);
-            const lconv* lc = localeconv();
-
-            if (s_monetary_unavailable(lc))
+            const detail::monetary_raw_punct raw = detail::monetary_snapshot(name);
+            if (s_monetary_unavailable(raw))
             {
                 init_c_defaults();
                 return;
             }
 
-            m_positive_sign_nat = lc->positive_sign;
-            m_positive_sign_int = m_positive_sign_nat;
+            // Every string is kept as the C library spells it, in the locale's narrow
+            // encoding, however many bytes that takes. A sign position of 0 means
+            // parentheses rather than the negative sign.
+            m_positive_sign_nat = raw.positive_sign;
+            m_positive_sign_int = raw.positive_sign;
+            m_negative_sign_nat = (raw.nat_neg.sign_posn == 0) ? "()" : raw.negative_sign;
+            m_negative_sign_int = (raw.int_neg.sign_posn == 0) ? "()" : raw.negative_sign;
+            m_curr_symbol_nat = raw.currency_symbol;
+            m_curr_symbol_int = s_int_curr_code(raw.int_curr_symbol);
 
-            if (!lc->n_sign_posn)
-                m_negative_sign_nat = "()";
-            else
-                m_negative_sign_nat = lc->negative_sign;
+            m_pos_format_nat = s_pattern(raw.nat_pos);
+            m_neg_format_nat = s_pattern(raw.nat_neg);
+            m_pos_format_int = s_pattern(raw.int_pos);
+            m_neg_format_int = s_pattern(raw.int_neg);
 
-            if (!lc->int_n_sign_posn)
-                m_negative_sign_int = "()";
-            else
-                m_negative_sign_int = lc->negative_sign;
-
-            m_curr_symbol_nat = lc->currency_symbol;
-            m_curr_symbol_int = s_int_curr_code(lc->int_curr_symbol);
-
-            m_pos_format_nat = s_construct_pattern({.precedes = s_norm_flag(lc->p_cs_precedes), .sep_by_space = s_norm_flag(lc->p_sep_by_space), .sign_posn = lc->p_sign_posn});
-            m_neg_format_nat = s_construct_pattern({.precedes = s_norm_flag(lc->n_cs_precedes), .sep_by_space = s_norm_flag(lc->n_sep_by_space), .sign_posn = lc->n_sign_posn});
-            m_pos_format_int = s_construct_pattern({.precedes = s_norm_flag(lc->int_p_cs_precedes), .sep_by_space = s_norm_flag(lc->int_p_sep_by_space), .sign_posn = lc->int_p_sign_posn});
-            m_neg_format_int = s_construct_pattern({.precedes = s_norm_flag(lc->int_n_cs_precedes), .sep_by_space = s_norm_flag(lc->int_n_sep_by_space), .sign_posn = lc->int_n_sign_posn});
-
-            // The separators are kept as the C library spells them, in the locale's
-            // narrow encoding, however many bytes that takes. A locale with no decimal
-            // point has no fractional places either. CHAR_MAX is POSIX's "value not
-            // specified by the locale", which is 0 fractional digits.
-            const std::string point = lc->mon_decimal_point ? lc->mon_decimal_point : "";
-            m_decimal_point = point.empty() ? "." : point;
-            m_thousands_sep = lc->mon_thousands_sep ? lc->mon_thousands_sep : "";
-            m_frac_digits_nat = (point.empty() || lc->frac_digits == CHAR_MAX) ? 0 : lc->frac_digits;
-            m_frac_digits_int = (point.empty() || lc->int_frac_digits == CHAR_MAX) ? 0 : lc->int_frac_digits;
-            m_grouping = FacetHelper::lconv_grouping<char>(lc->mon_grouping ? lc->mon_grouping : "",
-                                                           m_thousands_sep, m_decimal_point);
+            // A locale with no decimal point has no fractional places either. CHAR_MAX
+            // is POSIX's "value not specified by the locale", which is 0 places.
+            const bool point = !raw.mon_decimal_point.empty();
+            m_decimal_point = point ? raw.mon_decimal_point : ".";
+            m_thousands_sep = raw.mon_thousands_sep;
+            m_frac_digits_nat = (!point || raw.frac_digits == CHAR_MAX) ? 0 : raw.frac_digits;
+            m_frac_digits_int = (!point || raw.int_frac_digits == CHAR_MAX) ? 0 : raw.int_frac_digits;
+            m_grouping = FacetHelper::lconv_grouping<char>(raw.mon_grouping, m_thousands_sep, m_decimal_point);
         }
     }
 
@@ -750,9 +764,9 @@ private:
  * @brief `monetary_conf` 的 `wchar_t`/`char32_t` 特化，以宽字符存储货币格式化数据。
  *
  * 对于 `"C"` 和 `"POSIX"` 区域设置，使用硬编码的宽字符默认值；
- * 对于其他区域设置，通过 `clocale_wrapper` 切换至目标区域设置，
- * 从 `localeconv()` 读取所有窄字符字段并将其批量快照，再通过
- * `detail::to_wstring` / `detail::to_u32string` 转换为宽字符。
+ * 对于其他区域设置，先经平台后端（`facet/platform/`）把 locale 的货币数据原样复制出来，
+ * 再转换为宽字符：C 库自己给出宽字符形式时（Windows UCRT 的 `_W_` 字段）直接用它们，
+ * 否则经 `detail::to_wstring` / `detail::to_u32string` 整串转换窄字段。
  * 仅当 `CharT` 为 `wchar_t`，或 `char32_t` 且 `wchar_t` 为 UTF-32 时启用此特化。
  *
  * @tparam CharT 字符类型，必须为 `wchar_t` 或（在 UTF-32 wchar_t 平台上的）`char32_t`。
@@ -763,10 +777,11 @@ private:
  *        monetary formatting data as wide characters.
  *
  * For the `"C"` and `"POSIX"` locales, hard-coded wide-character defaults are used.
- * For other locales, the target locale is switched via `clocale_wrapper`,
- * all narrow fields are read from `localeconv()` and snapshotted in bulk,
- * then converted to wide characters via `detail::to_wstring` / `detail::to_u32string`.
- * This specialization is enabled only when `CharT` is `wchar_t`, or `char32_t`
+ * For other locales, the locale's monetary data is first copied out as it is through the
+ * platform backend (`facet/platform/`), then converted to wide characters: where the C
+ * library gives a string in wide form itself (the Windows UCRT's `_W_` fields) that is
+ * used as it is, otherwise the narrow field is converted whole via `detail::to_wstring` /
+ * `detail::to_u32string`. This specialization is enabled only when `CharT` is `wchar_t`, or `char32_t`
  * on a platform where `wchar_t` is UTF-32.
  *
  * @tparam CharT The character type; must be `wchar_t` or (on a UTF-32 `wchar_t` platform) `char32_t`.
@@ -805,109 +820,52 @@ public:
         }
         else
         {
-            clocale_wrapper inter_locale(name);
-            clocale_user guard(inter_locale);
-            const lconv* lc = localeconv();
-
-            if (base_ft<monetary>::s_monetary_unavailable(lc))
+            using base = base_ft<monetary>;
+            const detail::monetary_raw_punct raw = detail::monetary_snapshot(name);
+            if (base::s_monetary_unavailable(raw))
             {
                 init_c_defaults();
                 return;
             }
 
-            // Snapshot every lconv-derived field up front, BEFORE any
-            // converter runs. detail::to_wstring/to_u32string transitively invoke
-            // setlocale()/uselocale(), which may invalidate every string
-            // pointer inside `lc`. So all narrow source strings are copied
-            // into std::string locals and the value fields into locals
-            // here; every conversion below reads only those snapshots, and
-            // no lc-> access may follow the first conversion.
-            const std::string mon_dp_raw =
-                lc->mon_decimal_point ? lc->mon_decimal_point : "";
-            const std::string mon_ts_raw =
-                lc->mon_thousands_sep ? lc->mon_thousands_sep : "";
-            const std::string positive_sign_raw =
-                lc->positive_sign ? lc->positive_sign : "";
-            const std::string negative_sign_raw =
-                lc->negative_sign ? lc->negative_sign : "";
-            const std::string curr_symbol_raw =
-                lc->currency_symbol ? lc->currency_symbol : "";
-            const std::string int_curr_symbol_raw =
-                base_ft<monetary>::s_int_curr_code(lc->int_curr_symbol);
-
-            // CHAR_MAX is POSIX's "value not specified by the locale"; map it
-            // to 0 fractional digits rather than taking it literally. A locale with
-            // no decimal point has no fractional places either.
-            const int lc_frac_nat = (mon_dp_raw.empty() || lc->frac_digits == CHAR_MAX) ? 0 : lc->frac_digits;
-            const int lc_frac_int = (mon_dp_raw.empty() || lc->int_frac_digits == CHAR_MAX) ? 0 : lc->int_frac_digits;
-            const bool has_n_sign_posn     = lc->n_sign_posn;
-            const bool has_int_n_sign_posn = lc->int_n_sign_posn;
-            const std::string grouping_raw = lc->mon_grouping ? lc->mon_grouping : "";
-
-            m_pos_format_nat = base_ft<monetary>::s_construct_pattern({.precedes = base_ft<monetary>::s_norm_flag(lc->p_cs_precedes), .sep_by_space = base_ft<monetary>::s_norm_flag(lc->p_sep_by_space), .sign_posn = lc->p_sign_posn});
-            m_neg_format_nat = base_ft<monetary>::s_construct_pattern({.precedes = base_ft<monetary>::s_norm_flag(lc->n_cs_precedes), .sep_by_space = base_ft<monetary>::s_norm_flag(lc->n_sep_by_space), .sign_posn = lc->n_sign_posn});
-            m_pos_format_int = base_ft<monetary>::s_construct_pattern({.precedes = base_ft<monetary>::s_norm_flag(lc->int_p_cs_precedes), .sep_by_space = base_ft<monetary>::s_norm_flag(lc->int_p_sep_by_space), .sign_posn = lc->int_p_sign_posn});
-            m_neg_format_int = base_ft<monetary>::s_construct_pattern({.precedes = base_ft<monetary>::s_norm_flag(lc->int_n_cs_precedes), .sep_by_space = base_ft<monetary>::s_norm_flag(lc->int_n_sep_by_space), .sign_posn = lc->int_n_sign_posn});
-
-            // No lc-> access beyond this point: the conversions may
-            // invalidate the lconv pointers. Each separator is converted whole.
-            const auto widen = [&name](const std::string& narrow) {
+            // A string the C library gives in wide form (the UCRT's _W_ fields) is taken
+            // as it is; otherwise the narrow one is converted whole.
+            const auto widen = [&name](const std::string& narrow, const std::optional<std::wstring>& wide) {
+                if (wide)
+                    return std::basic_string<CharT>(wide->begin(), wide->end());
                 if (narrow.empty())
                     return std::basic_string<CharT>();
                 if constexpr (std::is_same_v<CharT, wchar_t>)
                     return detail::to_wstring(narrow, name);
                 else
-                    return detail::to_u32string<CharT>(narrow, name);
+                    return detail::to_u32string<CharT>(narrow, name);   // <CharT>: see facet_helper.h
             };
-            m_decimal_point = widen(mon_dp_raw);
-            if (m_decimal_point.empty())
-                m_decimal_point.assign(1, static_cast<CharT>('.'));
-            m_thousands_sep = widen(mon_ts_raw);
-            m_frac_digits_nat = lc_frac_nat;
-            m_frac_digits_int = lc_frac_int;
-            m_grouping = FacetHelper::lconv_grouping<CharT>(grouping_raw, m_thousands_sep, m_decimal_point);
+            const std::basic_string<CharT> parens{static_cast<CharT>('('), static_cast<CharT>(')')};
 
-            if constexpr (std::is_same_v<CharT, wchar_t>)
-                m_positive_sign_nat = detail::to_wstring(positive_sign_raw, name);
-            else
-                m_positive_sign_nat = detail::to_u32string(positive_sign_raw, name);
+            // A sign position of 0 means parentheses rather than the negative sign.
+            m_positive_sign_nat = widen(raw.positive_sign, raw.wpositive_sign);
             m_positive_sign_int = m_positive_sign_nat;
+            const std::basic_string<CharT> negative = widen(raw.negative_sign, raw.wnegative_sign);
+            m_negative_sign_nat = (raw.nat_neg.sign_posn == 0) ? parens : negative;
+            m_negative_sign_int = (raw.int_neg.sign_posn == 0) ? parens : negative;
+            m_curr_symbol_nat = widen(raw.currency_symbol, raw.wcurrency_symbol);
+            m_curr_symbol_int = base::s_int_curr_code(widen(raw.int_curr_symbol, raw.wint_curr_symbol));
 
-            if (!has_n_sign_posn)
-            {
-                if constexpr (std::is_same_v<CharT, wchar_t>) m_negative_sign_nat = L"()";
-                else m_negative_sign_nat = U"()";
-            }
-            else
-            {
-                if constexpr (std::is_same_v<CharT, wchar_t>)
-                    m_negative_sign_nat = detail::to_wstring(negative_sign_raw, name);
-                else
-                    m_negative_sign_nat = detail::to_u32string(negative_sign_raw, name);
-            }
+            m_pos_format_nat = base::s_pattern(raw.nat_pos);
+            m_neg_format_nat = base::s_pattern(raw.nat_neg);
+            m_pos_format_int = base::s_pattern(raw.int_pos);
+            m_neg_format_int = base::s_pattern(raw.int_neg);
 
-            if (!has_int_n_sign_posn)
-            {
-                if constexpr (std::is_same_v<CharT, wchar_t>) m_negative_sign_int = L"()";
-                else m_negative_sign_int = U"()";
-            }
-            else
-            {
-                if constexpr (std::is_same_v<CharT, wchar_t>)
-                    m_negative_sign_int = detail::to_wstring(negative_sign_raw, name);
-                else
-                    m_negative_sign_int = detail::to_u32string(negative_sign_raw, name);
-            }
-
-            if constexpr (std::is_same_v<CharT, wchar_t>)
-                m_curr_symbol_nat = detail::to_wstring(curr_symbol_raw, name);
-            else
-                m_curr_symbol_nat = detail::to_u32string(curr_symbol_raw, name);
-
-            if constexpr (std::is_same_v<CharT, wchar_t>)
-                m_curr_symbol_int = detail::to_wstring(int_curr_symbol_raw, name);
-            else
-                m_curr_symbol_int = detail::to_u32string(int_curr_symbol_raw, name);
+            // A locale with no decimal point has no fractional places either. CHAR_MAX
+            // is POSIX's "value not specified by the locale", which is 0 places.
+            m_decimal_point = widen(raw.mon_decimal_point, raw.wmon_decimal_point);
+            const bool point = !m_decimal_point.empty();
+            if (!point)
+                m_decimal_point.assign(1, static_cast<CharT>('.'));
+            m_thousands_sep = widen(raw.mon_thousands_sep, raw.wmon_thousands_sep);
+            m_frac_digits_nat = (!point || raw.frac_digits == CHAR_MAX) ? 0 : raw.frac_digits;
+            m_frac_digits_int = (!point || raw.int_frac_digits == CHAR_MAX) ? 0 : raw.int_frac_digits;
+            m_grouping = FacetHelper::lconv_grouping<CharT>(raw.mon_grouping, m_thousands_sep, m_decimal_point);
         }
     }
 
@@ -1172,46 +1130,24 @@ private:
  * @lang{ZH}
  * @brief `monetary_conf` 的 `char8_t` 特化，以 UTF-8 字符串存储货币格式化数据。
  *
- * 对于非 `"C"`/`"POSIX"` 区域设置，此特化通过 `init_from_u32` 委托给
- * `monetary_conf<char32_t>` 来填充数据：先构造一个临时的 `char32_t` conf，
- * 再将各字段转换为 `char8_t`。
- *
- * @note **完整性要求：** 非 `"C"`/`"POSIX"` 路径要求 `monetary_conf<char32_t>`
- *       在 `monetary_conf<char8_t>` 构造时已是完整类型。该委托位于成员函数模板
- *       `init_from_u32` 中，其对 `monetary_conf<T>` 的引用依赖于模板参数，
- *       因此整个函数体仅在该辅助函数被实例化时才检查（即仅在非 `"C"`/`"POSIX"`
- *       构造路径上），而非提前检查（IFNDR）。仅命名或默认构造 `monetary_conf<char8_t>`
- *       即使在 `monetary_conf<char32_t>` 不可用的平台（`wchar_t` 非 UTF-32）上
- *       也是格式良好的；在这些平台上，只有非 `"C"`/`"POSIX"` 构造路径无法编译，
- *       这是有意为之。该完整性要求有意**不**编码为此类上的约束（constraint）：
- *       在 `requires` 子句中对 `sizeof(monetary_conf<char32_t>)` 的非依赖求值
- *       是硬错误（而非软约束失败），会破坏无关 `monetary_conf<T>` 的偏特化解析。
- *
+ * 按 locale 的编码选一个配置类委托：编码为 UTF-8 时委托给 `monetary_conf<char>`，其字节
+ * 本身就是 UTF-8；否则委托给 `monetary_conf<wchar_t>`，再把宽字符编码为 UTF-8——这要求
+ * `wchar_t` 为 Unicode（`wchar_t_is_utf32` 或 `wchar_t_is_utf16`，即 Linux 与 Windows）。
+ * macOS 的 `wchar_t` 在非 UTF-8 locale 下不是 Unicode，没有可靠的转换途径，故在 macOS 上
+ * 以非 UTF-8 locale 构造会抛出异常。做法与 `numeric_conf<char8_t>` 相同。
  * @endif
  *
  * @lang{EN}
  * @brief Specialization of `monetary_conf` for `char8_t`, storing monetary
  *        formatting data as UTF-8 strings.
  *
- * For non-`"C"`/`"POSIX"` locales, this specialization delegates to
- * `monetary_conf<char32_t>` via `init_from_u32`: a temporary `char32_t` conf
- * is constructed and its fields are then converted to `char8_t`.
- *
- * @note **Completeness requirement:** The non-`"C"`/`"POSIX"` path requires
- *       `monetary_conf<char32_t>` to be a complete type when a `char8_t` conf
- *       is constructed. The delegation lives in the member function template
- *       `init_from_u32`, whose reference to `monetary_conf<T>` is dependent on
- *       a template parameter, so the whole body is checked only upon instantiation
- *       of that helper (i.e. only on the non-`"C"`/`"POSIX"` construction path),
- *       never eagerly (hence not IFNDR). Merely naming or default-constructing
- *       `monetary_conf<char8_t>` stays well-formed even on platforms where
- *       `monetary_conf<char32_t>` is unavailable (`wchar_t` is not UTF-32);
- *       there, only the non-`"C"`/`"POSIX"` construction path fails to compile,
- *       which is intended. The completeness requirement is deliberately NOT
- *       encoded as a constraint on this class: a non-dependent
- *       `sizeof(monetary_conf<char32_t>)` in the `requires`-clause is a hard
- *       error (not a soft constraint failure) and would break partial-specialization
- *       resolution for unrelated `monetary_conf<T>`.
+ * Delegates to one configuration class chosen by the locale's encoding: to
+ * `monetary_conf<char>` when it is UTF-8, whose bytes are then UTF-8 already; otherwise
+ * to `monetary_conf<wchar_t>`, encoding its wide characters as UTF-8 -- which needs a
+ * Unicode `wchar_t` (`wchar_t_is_utf32` or `wchar_t_is_utf16`, i.e. Linux and Windows).
+ * macOS's `wchar_t` is not Unicode under a non-UTF-8 locale, leaving no reliable
+ * conversion, so constructing for a non-UTF-8 locale on macOS throws. This is what
+ * `numeric_conf<char8_t>` does.
  * @endif
  */
 template <typename CharT>
@@ -1227,20 +1163,23 @@ public:
      * @brief 构造函数，从指定区域设置名称读取货币格式化数据。
      *
      * 对于 `"C"`/`"POSIX"` 区域设置，直接使用硬编码的 `char8_t` 默认值；
-     * 对于其他区域设置，委托给 `init_from_u32` 通过 `monetary_conf<char32_t>`
-     * 读取并转换数据。
+     * 对于其他区域设置，按其编码委托给 `monetary_conf<char>`（UTF-8）或
+     * `monetary_conf<wchar_t>`（其他），再把各字段转换为 UTF-8。
      *
      * @param name 区域设置名称，或 `"C"`/`"POSIX"` 使用默认值。
+     * @throws io_error 在 `wchar_t` 不是 Unicode 的平台（macOS）上，`name` 的编码不是 UTF-8。
      * @endif
      *
      * @lang{EN}
      * @brief Constructor that reads monetary formatting data from the named locale.
      *
      * For `"C"`/`"POSIX"` locales, hard-coded `char8_t` defaults are used directly.
-     * For other locales, delegates to `init_from_u32` which reads and converts
-     * data via `monetary_conf<char32_t>`.
+     * For other locales, delegates by the encoding to `monetary_conf<char>` (UTF-8) or
+     * `monetary_conf<wchar_t>` (anything else), then converts each field to UTF-8.
      *
      * @param name The locale name, or `"C"`/`"POSIX"` for defaults.
+     * @throws io_error Where `wchar_t` is not Unicode (macOS), if `name`'s encoding is not
+     *         UTF-8.
      * @endif
      */
     monetary_conf(const std::string& name)
@@ -1259,81 +1198,50 @@ public:
             m_pos_format_int = base_ft<monetary>::s_default_pattern;
             m_neg_format_int = base_ft<monetary>::s_default_pattern;
         }
+        else if (detail::monetary_snapshot(name).utf8)
+        {
+            // The narrow configuration's bytes are UTF-8 already.
+            take(monetary_conf<char>(name),
+                 [](const std::string& s) { return std::u8string(s.begin(), s.end()); });
+        }
         else
-            init_from_u32<>(name);
+            init_from_wide<>(name);
     }
 
 private:
-    /**
-     * @lang{ZH}
-     * @brief 委托给 `monetary_conf<char32_t>` 填充数据的私有辅助函数。
-     *
-     * `T` 默认为 `char32_t` 并受约束；将其模板化使函数体中对 `monetary_conf<T>`
-     * 的引用成为依赖名，从而整个函数体仅在此辅助函数被实例化时（即非 `"C"`/`"POSIX"`
-     * 构造路径）才检查，而非提前检查。
-     *
-     * @tparam T 必须为 `char32_t`（默认值）。
-     * @param name 区域设置名称。
-     * @endif
-     *
-     * @lang{EN}
-     * @brief Private helper that delegates to `monetary_conf<char32_t>` to populate data.
-     *
-     * `T` is defaulted and constrained to `char32_t`; templating it makes the
-     * `monetary_conf<T>` reference in the body dependent, so the whole body is
-     * checked only upon instantiation of this helper (i.e. only on the
-     * non-`"C"`/`"POSIX"` construction path), never eagerly.
-     *
-     * @tparam T Must be `char32_t` (the default).
-     * @param name The locale name.
-     * @endif
-     */
-    template <typename T = char32_t>
-        requires std::is_same_v<T, char32_t>
-    void init_from_u32(const std::string& name)
+    // W only makes the body dependent, so where wchar_t is not Unicode the
+    // discarded branch, and the to_u8string it names, is never instantiated.
+    template <typename W = wchar_t>
+    void init_from_wide(const std::string& name)
     {
-        monetary_conf<T> monetary_tmp(name);
+        if constexpr (wchar_t_is_utf32 || wchar_t_is_utf16)
+            take(monetary_conf<W>(name), [](const std::basic_string<W>& s) {
+                return detail::to_u8string(std::basic_string_view<W>(s));
+            });
+        else
+            throw io_error("monetary_conf<char8_t>: " + name +
+                           " is not a UTF-8 locale, and wchar_t is not Unicode on this platform");
+    }
 
-        // The separators are encoded as UTF-8 whole, however many bytes that takes.
-        m_decimal_point = detail::to_u8string(monetary_tmp.decimal_point());
-        m_thousands_sep = detail::to_u8string(monetary_tmp.thousands_sep());
-        m_grouping      = monetary_tmp.grouping();
-
-        m_frac_digits_int = monetary_tmp.frac_digits_int();
-        m_frac_digits_nat = monetary_tmp.frac_digits_nat();
-
-        {
-            const auto& input = monetary_tmp.positive_sign_int();
-            m_positive_sign_int = detail::to_u8string(input);
-        }
-        {
-            const auto& input = monetary_tmp.positive_sign_nat();
-            m_positive_sign_nat = detail::to_u8string(input);
-        }
-
-        {
-            const auto& input = monetary_tmp.negative_sign_int();
-            m_negative_sign_int = detail::to_u8string(input);
-        }
-        {
-            const auto& input = monetary_tmp.negative_sign_nat();
-            m_negative_sign_nat = detail::to_u8string(input);
-        }
-
-        {
-            const auto& input = monetary_tmp.curr_symbol_nat();
-            m_curr_symbol_nat = detail::to_u8string(input);
-        }
-
-        {
-            const auto& input = monetary_tmp.curr_symbol_int();
-            m_curr_symbol_int = detail::to_u8string(input);
-        }
-
-        m_pos_format_nat = monetary_tmp.pos_format_nat();
-        m_pos_format_int = monetary_tmp.pos_format_int();
-        m_neg_format_nat = monetary_tmp.neg_format_nat();
-        m_neg_format_int = monetary_tmp.neg_format_int();
+    // Takes every field of the delegate, its strings through utf8.
+    template <typename TConf, typename TUtf8>
+    void take(const TConf& src, TUtf8 utf8)
+    {
+        m_grouping          = src.grouping();
+        m_curr_symbol_int   = utf8(src.curr_symbol_int());
+        m_curr_symbol_nat   = utf8(src.curr_symbol_nat());
+        m_positive_sign_int = utf8(src.positive_sign_int());
+        m_positive_sign_nat = utf8(src.positive_sign_nat());
+        m_negative_sign_int = utf8(src.negative_sign_int());
+        m_negative_sign_nat = utf8(src.negative_sign_nat());
+        m_pos_format_int    = src.pos_format_int();
+        m_pos_format_nat    = src.pos_format_nat();
+        m_neg_format_int    = src.neg_format_int();
+        m_neg_format_nat    = src.neg_format_nat();
+        m_frac_digits_int   = src.frac_digits_int();
+        m_frac_digits_nat   = src.frac_digits_nat();
+        m_decimal_point     = utf8(src.decimal_point());
+        m_thousands_sep     = utf8(src.thousands_sep());
     }
 
 public:
