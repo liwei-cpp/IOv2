@@ -1198,7 +1198,7 @@ public:
             m_pos_format_int = base_ft<monetary>::s_default_pattern;
             m_neg_format_int = base_ft<monetary>::s_default_pattern;
         }
-        else if (detail::monetary_snapshot(name).utf8)
+        else if (clocale_wrapper(name).is_utf8())
         {
             // The narrow configuration's bytes are UTF-8 already.
             take(monetary_conf<char>(name),

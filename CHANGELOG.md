@@ -99,6 +99,8 @@
   - `monetary<char8_t>` 不再经 `monetary_conf<char32_t>`（只在 glibc 上有）：UTF-8 locale 直接
     用窄字符配置的字节，其他 locale 经 `wchar_t` 转换；在 macOS 上以非 UTF-8 locale 构造会抛
     `io_error`，与 `numeric<char8_t>` 相同。
+- `clocale_wrapper::is_utf8()`：该 locale 的窄字符编码（`LC_CTYPE`）是否为 UTF-8。POSIX 上看
+  `nl_langinfo_l(CODESET, …)`，Windows 上看代码页是否为 65001。
 
 #### 变更
 
@@ -436,6 +438,8 @@ have no release line of their own.
     on glibc only: a UTF-8 locale takes the narrow configuration's bytes as they are,
     any other goes through `wchar_t`; on macOS constructing for a non-UTF-8 locale
     throws `io_error`, as with `numeric<char8_t>`.
+- `clocale_wrapper::is_utf8()`: whether the locale's narrow encoding (`LC_CTYPE`) is UTF-8.
+  On POSIX that is `nl_langinfo_l(CODESET, …)`; on Windows, whether the code page is 65001.
 
 #### Changed
 

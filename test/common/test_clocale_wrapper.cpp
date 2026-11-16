@@ -138,6 +138,34 @@ TEST(ClocaleWrapper, NameSurvivesCopyAndMove)
     EXPECT_THROW((void)loc1.name(), io_error);
 }
 
+// is_utf8() is asked of the locale, not read off the spelling of its name: "C" has no
+// UTF-8 in its name and is none, and a locale of the same language in another encoding
+// is none either. The legacy encoding is named the way each platform names one.
+TEST(ClocaleWrapper, IsUtf8TellsTheEncoding)
+{
+    EXPECT_FALSE(clocale_wrapper("C").is_utf8());
+#if IOV2_TEST_WINDOWS
+    EXPECT_FALSE(clocale_wrapper("German_Germany.1252").is_utf8());
+#else
+    EXPECT_FALSE(clocale_wrapper("zh_CN.GBK").is_utf8());
+    EXPECT_TRUE(clocale_wrapper("C.UTF-8").is_utf8());
+#endif
+    EXPECT_TRUE(clocale_wrapper("zh_CN.UTF-8").is_utf8());
+}
+
+// The answer belongs to the locale, so a copy gives it too -- on Windows a copy is
+// rebuilt from what the original kept -- and the source of a move can no longer be asked.
+TEST(ClocaleWrapper, IsUtf8SurvivesCopyAndMove)
+{
+    clocale_wrapper loc1("zh_CN.UTF-8");
+    clocale_wrapper loc2(loc1);
+    EXPECT_TRUE(loc2.is_utf8());
+
+    clocale_wrapper loc3(std::move(loc1));
+    EXPECT_TRUE(loc3.is_utf8());
+    EXPECT_THROW((void)loc1.is_utf8(), io_error);
+}
+
 TEST(ClocaleWrapper, ClocaleUserRejectsMovedFrom)
 {
     clocale_wrapper loc1("C");

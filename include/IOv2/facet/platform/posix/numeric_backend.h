@@ -5,7 +5,7 @@
  * @file numeric_backend.h
  * @lang{ZH}
  * `numeric` facet 的 POSIX 后端：在 `clocale_user` 切换后的线程 locale 下读 `localeconv()` 与
- * `nl_langinfo(YESSTR/NOSTR/CODESET)`。glibc 没有 `localeconv_l`，故不用 `_l` 形式。
+ * `nl_langinfo(YESSTR/NOSTR)`。glibc 没有 `localeconv_l`，故不用 `_l` 形式。
  *
  * 布尔名称取自 `YESSTR`/`NOSTR`，这是 IOv2 自己的扩展：libstdc++、libc++ 与 MSVC STL 都固定
  * 用 `"true"`/`"false"`。glibc 每个 locale 存一个词（de_DE 为 `"ja"`/`"nein"`），也可能为空
@@ -16,7 +16,7 @@
  * 故那里缺数据的 locale 得到的是 `"yes"`/`"no"`，而不是空串。
  * @endif
  * @lang{EN}
- * POSIX backend of the `numeric` facet: `localeconv()` and `nl_langinfo(YESSTR/NOSTR/CODESET)`,
+ * POSIX backend of the `numeric` facet: `localeconv()` and `nl_langinfo(YESSTR/NOSTR)`,
  * read under the thread locale a `clocale_user` switched to. glibc has no `localeconv_l`, so
  * the `_l` forms are not used.
  *
@@ -61,7 +61,6 @@ struct numeric_raw_punct
     // The C library's own wide forms of the two separators; POSIX has none.
     std::optional<std::wstring> wdecimal_point;
     std::optional<std::wstring> wthousands_sep;
-    bool utf8 = false;           // whether the narrow encoding is UTF-8
 };
 
 // The items of YESSTR and NOSTR. POSIX dropped them in 2001, so the macros hide under a
@@ -101,8 +100,6 @@ inline numeric_raw_punct numeric_read_punct()
     if (lc->grouping)      res.grouping      = lc->grouping;
     res.truename  = numeric_bool_name(nl_langinfo(numeric_yesstr));
     res.falsename = numeric_bool_name(nl_langinfo(numeric_nostr));
-    // glibc and macOS both name the codeset "UTF-8" in every UTF-8 locale.
-    res.utf8 = std::strcmp(nl_langinfo(CODESET), "UTF-8") == 0;
     return res;
 }
 }

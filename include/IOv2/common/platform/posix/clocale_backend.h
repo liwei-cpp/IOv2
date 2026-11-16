@@ -7,13 +7,14 @@
  * `clocale_wrapper` 的 POSIX 后端：`newlocale`/`duplocale`/`freelocale`/`uselocale`。
  * 取 `LC_CTYPE` 名字没有 POSIX 接口，glibc 上用扩展 `nl_langinfo_l(_NL_LOCALE_NAME(LC_CTYPE), …)`，
  * macOS 上用 `querylocale(LC_CTYPE_MASK, …)`（`<xlocale.h>`），其他 libc 不受支持。
+ * `LC_CTYPE` 的编码是否为 UTF-8 则看 `nl_langinfo_l(CODESET, …)`。
  * @endif
  * @lang{EN}
  * POSIX backend of `clocale_wrapper`: `newlocale`/`duplocale`/`freelocale`/`uselocale`.
  * POSIX has no call that names a locale's `LC_CTYPE`, so the name comes from the glibc
  * extension `nl_langinfo_l(_NL_LOCALE_NAME(LC_CTYPE), …)` on glibc and from
  * `querylocale(LC_CTYPE_MASK, …)` (`<xlocale.h>`) on macOS; other C libraries are not
- * supported.
+ * supported. Whether `LC_CTYPE`'s encoding is UTF-8 is read from `nl_langinfo_l(CODESET, …)`.
  * @endif
  */
 
@@ -21,12 +22,13 @@
 
 // glibc defines __GLIBC__ in <features.h>, which <clocale> includes.
 #include <clocale>
-
-#if defined(__GLIBC__)
+#include <cstring>
 #include <langinfo.h>
-#elif defined(__APPLE__)
+
+#if defined(__APPLE__)
 #include <xlocale.h>
-#else
+#include <xlocale/_langinfo.h>
+#elif !defined(__GLIBC__)
 #error "IOv2 common: clocale_wrapper supports glibc and macOS only among POSIX C libraries"
 #endif
 
@@ -59,6 +61,13 @@ inline const char* clocale_ctype_name(clocale_handle loc) noexcept
 #else
     return querylocale(LC_CTYPE_MASK, loc);
 #endif
+}
+
+// Whether loc's LC_CTYPE codeset is UTF-8. glibc names it "UTF-8" in every UTF-8 locale,
+// C.UTF-8 included, and so does macOS.
+inline bool clocale_ctype_is_utf8(clocale_handle loc) noexcept
+{
+    return std::strcmp(nl_langinfo_l(CODESET, loc), "UTF-8") == 0;
 }
 
 // What clocale_use hands back for clocale_restore: the thread's previous locale.

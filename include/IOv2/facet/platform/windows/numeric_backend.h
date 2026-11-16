@@ -35,8 +35,6 @@
 
 #pragma once
 
-#include <IOv2/facet/platform/windows/nls_api.h>
-
 #include <clocale>
 #include <optional>
 #include <string>
@@ -62,7 +60,6 @@ struct numeric_raw_punct
     // The UCRT's own wide forms of the two separators.
     std::optional<std::wstring> wdecimal_point;
     std::optional<std::wstring> wthousands_sep;
-    bool utf8 = false;           // whether the code page is UTF-8
 };
 
 // The punctuation of the calling thread's current locale. Call it under a clocale_user.
@@ -75,7 +72,6 @@ inline numeric_raw_punct numeric_read_punct()
     if (lc->grouping)      res.grouping      = lc->grouping;
     res.wdecimal_point = lc->_W_decimal_point ? lc->_W_decimal_point : L"";
     res.wthousands_sep = lc->_W_thousands_sep ? lc->_W_thousands_sep : L"";
-    res.utf8 = ___lc_codepage_func() == win_cp_utf8;
     return res;
 }
 }

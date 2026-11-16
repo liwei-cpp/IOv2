@@ -516,7 +516,7 @@ public:
             return;
         }
 
-        if (detail::numeric_snapshot(name).utf8)
+        if (clocale_wrapper(name).is_utf8())
         {
             // The narrow configuration's bytes are UTF-8 already.
             const numeric_conf<char> narrow(name);

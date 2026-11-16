@@ -190,6 +190,39 @@ struct clocale_wrapper
         return detail::clocale_ctype_name(c_locale);
     }
 
+    /**
+     * @lang{ZH}
+     * 本 locale 的窄字符编码是否为 UTF-8。
+     *
+     * 看的是 `LC_CTYPE` 类别——编码由它决定，与 `name()` 相同。
+     *
+     * @note POSIX 上看 `nl_langinfo_l(CODESET, …)` 是否为 `"UTF-8"`；Windows 上看构造时保存的
+     *       `LC_CTYPE` 代码页是否为 65001。`"C"` locale 在各平台上都不是 UTF-8。
+     * @return 编码为 UTF-8 时为 `true`。
+     * @throws io_error 若本对象处于 moved-from 状态。
+     * @endif
+     *
+     * @lang{EN}
+     * Whether this locale's narrow encoding is UTF-8.
+     *
+     * It is the `LC_CTYPE` category that is asked, the one that decides the encoding, as for
+     * `name()`.
+     *
+     * @note On POSIX this is whether `nl_langinfo_l(CODESET, …)` is `"UTF-8"`; on Windows,
+     *       whether the `LC_CTYPE` code page kept at construction is 65001. The `"C"` locale
+     *       is not UTF-8 on any platform.
+     * @return `true` if the encoding is UTF-8.
+     * @throws io_error If this object is in a moved-from state.
+     * @endif
+     */
+    [[nodiscard]] bool is_utf8() const
+    {
+        if (!c_locale)
+            throw io_error("clocale_wrapper::is_utf8: wrapper is in moved-from state");
+
+        return detail::clocale_ctype_is_utf8(c_locale);
+    }
+
 private:
     detail::clocale_handle c_locale;
 };

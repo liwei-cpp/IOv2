@@ -5,8 +5,7 @@
  * @file collate_backend.h
  * @lang{ZH}
  * `collate` facet 的 POSIX 后端：POSIX.1-2008 的 `strcoll_l`、`wcscoll_l`、`strxfrm_l`、
- * `wcsxfrm_l`，不切换线程 locale。macOS 上它们与 `nl_langinfo_l` 声明在 `<xlocale/_*.h>` 中，
- * 故此处显式包含。
+ * `wcsxfrm_l`，不切换线程 locale。macOS 上它们声明在 `<xlocale/_*.h>` 中，故此处显式包含。
  *
  * POSIX 没有为这些函数保留表示失败的返回值，只规定失败时可以设置 `errno`。glibc 从不报告
  * 失败；macOS 遇到当前编码下的非法字节序列时设置 `EILSEQ`，返回值却照常。故本后端调用前
@@ -15,8 +14,8 @@
  * @endif
  * @lang{EN}
  * POSIX backend of the `collate` facet: the POSIX.1-2008 `strcoll_l`, `wcscoll_l`, `strxfrm_l`
- * and `wcsxfrm_l`, which leave the thread's locale alone. macOS declares them and
- * `nl_langinfo_l` in `<xlocale/_*.h>`, included here explicitly.
+ * and `wcsxfrm_l`, which leave the thread's locale alone. macOS declares them in
+ * `<xlocale/_*.h>`, included here explicitly.
  *
  * POSIX reserves no return value of these functions for failure; it only lets them set
  * `errno`. glibc never reports a failure; macOS sets `EILSEQ` on a byte sequence invalid in
@@ -34,13 +33,11 @@
 #include <cstddef>
 #include <cstring>
 #include <cwchar>
-#include <langinfo.h>
 #include <optional>
 #include <utility>
 
 #if defined(__APPLE__)
 #include <xlocale.h>
-#include <xlocale/_langinfo.h>
 #include <xlocale/_string.h>
 #include <xlocale/_wchar.h>
 #endif
@@ -87,10 +84,9 @@ inline std::optional<std::size_t> collate_wcsxfrm(wchar_t* dest, const wchar_t* 
     return collate_errno_call([&] { return wcsxfrm_l(dest, src, n, loc); });
 }
 
-// Whether loc's codeset is UTF-8. glibc names it "UTF-8" in every UTF-8 locale, C.UTF-8
-// included, and so does macOS.
+// Whether the encoding narrow strings are read in is UTF-8: on POSIX that is LC_CTYPE's.
 inline bool collate_is_utf8(clocale_handle loc) noexcept
 {
-    return std::strcmp(nl_langinfo_l(CODESET, loc), "UTF-8") == 0;
+    return clocale_ctype_is_utf8(loc);
 }
 }
