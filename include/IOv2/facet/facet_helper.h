@@ -8,11 +8,12 @@
  *
  * 本文件提供以下辅助函数，供各 facet 具体实现（如 `numpunct`、`moneypunct` 等）内部使用：
  * - `is_c_locale_name`：判断区域设置名称是否指代 C/POSIX 区域设置。
- * - `string_to_char_convert`：将窄字符串的首字符转换为 `char`，用于读取 `lconv` /
- *   `nl_langinfo()` 中表示单个用户可见字符的字段。
- * - `string_to_widechar_convert`：将窄字符串的首字符转换为宽字符 `CharT`，适用场景同上。
- * - `add_grouping`：在字符序列中按分组规则插入分隔符，用于数字格式化输出。
+ * - `add_grouping`：在字符序列中按分组规则插入分隔符（可以是多个字符），用于数字格式化输出。
+ * - `punct_distinct`：判断千位分隔符与小数点在输入里能否区分开。
+ * - `take_punct` / `step_back`：在输入中识别（可能多字符的）千位分隔符或小数点，试探读过的
+ *   字符不匹配时尽量退回。
  * - `adjust_grouping`：将原始 POSIX 风格的分组向量规范化为内部约定格式。
+ * - `lconv_grouping`：把 `lconv` 的分组字节转换为内部约定，分隔符无法区分时不分组。
  * - `verify_grouping`：验证已解析的分组序列是否符合 `numpunct::grouping` 的规定。
  * @endif
  *
@@ -22,15 +23,17 @@
  * This file provides the following helper functions for use by concrete facet
  * implementations (e.g. `numpunct`, `moneypunct`):
  * - `is_c_locale_name`: Tests whether a locale name designates the C/POSIX locale.
- * - `string_to_char_convert`: Converts the first character of a narrow string to
- *   `char`, for reading `lconv` / `nl_langinfo()` fields that represent a single
- *   user-visible character.
- * - `string_to_widechar_convert`: Converts the first character of a narrow string to
- *   a wide character `CharT`; applicable in the same contexts.
- * - `add_grouping`: Inserts grouping separators into a character sequence for
- *   formatted numeric output.
+ * - `add_grouping`: Inserts grouping separators (possibly several characters long) into
+ *   a character sequence for formatted numeric output.
+ * - `punct_distinct`: Whether the thousands separator and the decimal point can be told
+ *   apart in input.
+ * - `take_punct` / `step_back`: Recognise a (possibly multi-character) thousands
+ *   separator or decimal point in input, putting back what was read on trial if it does
+ *   not match.
  * - `adjust_grouping`: Normalizes a raw POSIX-style grouping vector to the internal
  *   convention.
+ * - `lconv_grouping`: Turns `lconv`'s grouping bytes into the internal convention, with
+ *   no grouping where the separators cannot be told apart.
  * - `verify_grouping`: Validates a parsed grouping sequence against the
  *   `numpunct::grouping` specification.
  * @endif
@@ -127,189 +130,6 @@ namespace IOv2::FacetHelper
 
     /**
      * @lang{ZH}
-     * 将（可能是多字节的）窄字符串 `narrow` 的第一个字符转换为给定 locale 下的 `char`，
-     * 若 `narrow` 为空或转换结果不可表示则返回 `'\0'`。
-     *
-     * 适用于从 `lconv` / `nl_langinfo()` 读出的、语义上表示单个用户可见字符的字段
-     * （例如 `decimal_point`、`thousands_sep`、`mon_decimal_point`、`mon_thousands_sep`）。
-     *
-     * @par 为何使用 `const std::string&` 而非 `const char*`
-     * `lconv*` 和 `nl_langinfo()` 返回的指针可能被任何 `setlocale()` / `uselocale()` 调用所失效。
-     * 下方转换过程会经由 `detail::to_wstring` 间接执行此类调用，因此输入必须是调用方
-     * 持有的快照，而非指向 libc 所有 locale 数据的借用指针。
-     * 使用 `std::string` 使这一契约在每个调用处都无法忽视。
-     * @endif
-     *
-     * @lang{EN}
-     * Convert the first character of a (possibly multibyte) narrow string
-     * `narrow` to a `char` in the given locale, returning `'\0'` if `narrow`
-     * is empty or conversion is not representable.
-     *
-     * Suitable for fields read out of `lconv` / `nl_langinfo()` that
-     * semantically represent a single user-visible character (e.g.
-     * `decimal_point`, `thousands_sep`, `mon_decimal_point`, `mon_thousands_sep`).
-     *
-     * @par Why `const std::string&` and not `const char*`
-     * `lconv*` and `nl_langinfo()` pointers may be invalidated by any `setlocale()` /
-     * `uselocale()` call. The conversion below transitively performs such
-     * calls (via `detail::to_wstring`), so the input must be a caller-owned
-     * snapshot rather than a borrowed pointer into the libc-owned locale
-     * data. Taking `std::string` makes this contract unmissable at every
-     * call site.
-     * @endif
-     *
-     * @param narrow
-     * @lang{ZH} 待转换的（可能是多字节的）窄字符串。 @endif
-     * @lang{EN} The (possibly multibyte) narrow string to convert. @endif
-     *
-     * @param locale_name
-     * @lang{ZH} 执行转换所使用的 locale 名称。 @endif
-     * @lang{EN} The locale name under which to perform the conversion. @endif
-     *
-     * @return
-     * @lang{ZH}
-     * `narrow` 在给定 locale 下首字符对应的 `char`；若 `narrow` 为空或转换结果不可表示
-     * 则返回 `'\0'`。
-     * @endif
-     * @lang{EN}
-     * The first character of `narrow` converted to `char` in the given locale;
-     * `'\0'` if `narrow` is empty or the conversion is not representable.
-     * @endif
-     */
-    inline char string_to_char_convert(const std::string& narrow,
-                                       const std::string& locale_name)
-    {
-        if (narrow.empty()) return '\0';
-        if (narrow.size() == 1) return narrow[0];
-
-        // Convert (multi-byte) narrow to wchar_t then narrow down
-        std::wstring wide_str = detail::to_wstring(narrow.c_str(), locale_name);
-        if (wide_str.empty()) return '\0';
-
-        // Narrow the first wide character back to a single byte in the target
-        // locale. This reproduces ctype_conf<wchar_t>::narrow() (wctob() under
-        // a thread-local locale switch) directly, instead of building a whole
-        // ctype_conf<wchar_t> facet whose 256-entry widen table and wctype
-        // masks this path never reads. The out_of_wchar_range guard used there
-        // is unnecessary here: the value is a wchar_t and is therefore always
-        // representable as wchar_t.
-        clocale_wrapper loc(locale_name);
-        clocale_user guard(loc);
-        const int c = wctob(static_cast<wint_t>(wide_str[0]));
-        return c == EOF ? '\0' : static_cast<char>(c);
-    }
-
-    /**
-     * @lang{ZH}
-     * 将（可能是多字节的）窄字符串 `narrow` 的第一个字符转换为给定 locale 下的宽字符
-     * `CharT`，若 `narrow` 为空或转换结果不含字符则返回 `default_char`。
-     *
-     * 适用于从 `lconv` / `nl_langinfo()` 读出的、语义上表示单个用户可见字符的字段
-     * （例如 `decimal_point`、`thousands_sep`、`mon_decimal_point`、`mon_thousands_sep`）。
-     *
-     * @par `default_char` 契约
-     * 在输入为空或转换结果为空的路径上原样返回；本函数**不**验证 `default_char` 本身
-     * 在 `locale_name` 下是否可表示、格式是否正确或是否有意义。调用方负责选择合理的
-     * 回退值（通常为 ASCII 范围内的普通字符，如 `L' '`、`L'.'`、`U' '`、`U'.'`）。
-     * 注意与 `string_to_char_convert` 的不对称性：后者使用硬编码的 `'\0'` 回退且不接受
-     * 调用方自定义；本函数将回退值作为参数，目的是让调用方可以选择适合 locale 的替代字符，
-     * 但代价是验证责任由调用方自行承担。
-     *
-     * @par 为何使用 `const std::string&` 而非 `const char*`
-     * `lconv*` 和 `nl_langinfo()` 返回的指针可能被任何 `setlocale()` / `uselocale()` 调用
-     * 所失效。下方转换过程会经由 `detail::to_wstring`/`to_u32string` 间接执行此类调用，
-     * 因此输入必须是调用方持有的快照，而非指向 libc 所有 locale 数据的借用指针。
-     * @endif
-     *
-     * @lang{EN}
-     * Convert the first character of a (possibly multibyte) narrow string
-     * `narrow` to a wide character `CharT` in the given locale, returning
-     * `default_char` when `narrow` is empty or conversion produces no
-     * characters.
-     *
-     * Suitable for fields read out of `lconv` / `nl_langinfo()` that
-     * semantically represent a single user-visible character (e.g.
-     * `decimal_point`, `thousands_sep`, `mon_decimal_point`, `mon_thousands_sep`).
-     *
-     * @par `default_char` contract
-     * Returned verbatim on the empty-input and empty-conversion paths; this
-     * function does NOT validate that `default_char` is itself representable,
-     * well-formed, or otherwise meaningful under `locale_name`. Callers are
-     * responsible for choosing a sensible fallback (typically a plain ASCII-range
-     * value such as `L' '`, `L'.'`, `U' '`, or `U'.'`). Note the asymmetry with
-     * `string_to_char_convert`, which uses a hard-coded `'\0'` fallback and accepts
-     * no caller default: here the fallback is a parameter precisely so callers can
-     * pick a locale-appropriate substitute, but the price is that validation is
-     * their responsibility, not ours.
-     *
-     * @par Why `const std::string&` and not `const char*`
-     * `lconv*` and `nl_langinfo()` pointers may be invalidated by any `setlocale()` /
-     * `uselocale()` call. The conversion below transitively performs such calls
-     * (via `detail::to_wstring`/`to_u32string`), so the input must be a
-     * caller-owned snapshot rather than a borrowed pointer into the
-     * libc-owned locale data. Taking `std::string` makes this contract
-     * unmissable at every call site.
-     * @endif
-     *
-     * @tparam CharT
-     * @lang{ZH}
-     * 目标宽字符类型。须为 `wchar_t`，或在 `char32_t` 与 `wchar_t` 等价的平台上为
-     * `char32_t`（由 `requires` 子句在编译期强制验证）。
-     * @endif
-     * @lang{EN}
-     * The target wide character type. Must be `wchar_t`, or `char32_t` on platforms
-     * where `char32_t` and `wchar_t` are equivalent (enforced at compile time by the
-     * `requires` clause).
-     * @endif
-     *
-     * @param narrow
-     * @lang{ZH} 待转换的（可能是多字节的）窄字符串。 @endif
-     * @lang{EN} The (possibly multibyte) narrow string to convert. @endif
-     *
-     * @param locale_name
-     * @lang{ZH} 执行转换所使用的 locale 名称。 @endif
-     * @lang{EN} The locale name under which to perform the conversion. @endif
-     *
-     * @param default_char
-     * @lang{ZH} 当 `narrow` 为空或转换结果不含字符时返回的回退值。 @endif
-     * @lang{EN} The fallback value returned when `narrow` is empty or conversion
-     * produces no characters. @endif
-     *
-     * @return
-     * @lang{ZH}
-     * `narrow` 在给定 locale 下首字符对应的 `CharT`；若 `narrow` 为空或转换结果不含
-     * 字符则返回 `default_char`。
-     * @endif
-     * @lang{EN}
-     * The first character of `narrow` converted to `CharT` in the given locale;
-     * `default_char` if `narrow` is empty or conversion produces no characters.
-     * @endif
-     */
-    template <typename CharT>
-        requires std::is_same_v<CharT, wchar_t> ||
-            (std::is_same_v<CharT, char32_t> &&
-                wchar_t_is_utf32)
-    inline CharT string_to_widechar_convert(const std::string& narrow,
-                                            const std::string& locale_name,
-                                            CharT default_char)
-    {
-        if (narrow.empty()) return default_char;
-        if constexpr (std::is_same_v<CharT, wchar_t>)
-        {
-            auto wide = detail::to_wstring(narrow.c_str(), locale_name);
-            return wide.empty() ? default_char : wide[0];
-        }
-        else
-        {
-            // <CharT> defers the lookup to instantiation: where wchar_t is not
-            // UTF-32 there is no to_u32string, and this branch is never taken.
-            auto wide = detail::to_u32string<CharT>(narrow.c_str(), locale_name);
-            return wide.empty() ? default_char : wide[0];
-        }
-    }
-
-    /**
-     * @lang{ZH}
      * 在字符序列 `[first, last)` 中按 `grouping` 规则插入分组分隔符 `sep`，将结果写入
      * 以 `out` 为起点的输出缓冲区，并返回写入结束位置的指针。
      *
@@ -318,7 +138,8 @@ namespace IOv2::FacetHelper
      * - `[first, last)` 为合法区间，即 `first <= last`（Debug 模式下通过 `assert` 验证；
      *   若 `first > last`，`last - first` 会被转换为一个巨大的无符号宽度，导致越界写入）。
      * - `out` 指向的输出缓冲区容量足以容纳 `(last - first)` 个字符加上每个非前导分组对应
-     *   的一个分隔符；缓冲区大小由调用方负责保证（不做运行时验证）。
+     *   的一个分隔符（`sep.size()` 个字符）；缓冲区大小由调用方负责保证（不做运行时验证）。
+     *   `(last - first) * (1 + sep.size())` 总是够用。
      * @endif
      *
      * @lang{EN}
@@ -332,9 +153,9 @@ namespace IOv2::FacetHelper
      *   `first > last` converts `last - first` into an enormous unsigned width
      *   and writes far past the output buffer. [asserted in debug builds]
      * - `out` points to an output buffer with sufficient capacity to hold
-     *   `(last - first)` characters plus one separator per non-leading
-     *   group; callers are responsible for sizing the buffer.
-     *   [not validated]
+     *   `(last - first)` characters plus one separator (`sep.size()` characters)
+     *   per non-leading group; callers are responsible for sizing the buffer.
+     *   `(last - first) * (1 + sep.size())` is always enough. [not validated]
      * @endif
      *
      * @tparam CharT
@@ -346,8 +167,9 @@ namespace IOv2::FacetHelper
      * @lang{EN} Pointer to the start of the output buffer. @endif
      *
      * @param sep
-     * @lang{ZH} 插入到各分组之间的分隔符字符。 @endif
-     * @lang{EN} The separator character to insert between groups. @endif
+     * @lang{ZH} 插入到各分组之间的分隔符，可以是多个字符（如 UTF-8 的 U+202F）。 @endif
+     * @lang{EN} The separator to insert between groups; it may be several characters long
+     * (U+202F in UTF-8, say). @endif
      *
      * @param grouping
      * @lang{ZH}
@@ -374,7 +196,8 @@ namespace IOv2::FacetHelper
      * @lang{EN} Pointer to one past the last element written into `out`. @endif
      */
     template <typename CharT>
-    inline CharT* add_grouping(CharT* out, CharT sep, const std::vector<uint8_t>& grouping,
+    inline CharT* add_grouping(CharT* out, std::basic_string_view<CharT> sep,
+                               const std::vector<uint8_t>& grouping,
                                const CharT* first, const CharT* last)
     {
         assert(!grouping.empty());
@@ -404,7 +227,7 @@ namespace IOv2::FacetHelper
 
         // One separator per peeled group, so the finished width is known up front.
         const std::size_t groups = rule + extra;
-        const std::size_t width  = static_cast<std::size_t>(last - first) + groups;
+        const std::size_t width  = static_cast<std::size_t>(last - first) + groups * sep.size();
 
         // Pass 2 -- emit. Fill the buffer from its high-order end, which lets the
         // groups be replayed in the very order pass 1 peeled them off; rule k
@@ -419,10 +242,154 @@ namespace IOv2::FacetHelper
             src -= size;
             dst -= size;
             std::copy_n(src, size, dst);
-            *--dst = sep;
+            dst -= sep.size();
+            std::ranges::copy(sep, dst);
         }
         std::copy_n(first, head, out);
         return out + width;
+    }
+
+    /**
+     * @lang{ZH}
+     * 判断千位分隔符与小数点能否在输入里区分开：两者都非空，且谁也不是谁的前缀。
+     *
+     * 解析时逐字符同时比对两者，读到第一个不同的字符才判定是哪一个。若一个是另一个的前缀
+     * （相等也算），较短的那个永远先匹配完，较长的那个就读不到了；此时只能关掉分组。
+     * @endif
+     *
+     * @lang{EN}
+     * Whether the thousands separator and the decimal point can be told apart in input:
+     * both are non-empty, and neither is a prefix of the other.
+     *
+     * Parsing compares the input against both at once and settles on one at the first
+     * character where they differ. Were one a prefix of the other (equality included),
+     * the shorter would always match first and the longer could never be read, which
+     * leaves turning grouping off as the only option.
+     * @endif
+     *
+     * @return
+     * @lang{ZH} 能区分开则为 `true`。 @endif
+     * @lang{EN} `true` if they can be told apart. @endif
+     */
+    template <typename CharT>
+    inline bool punct_distinct(std::basic_string_view<CharT> sep, std::basic_string_view<CharT> point)
+    {
+        if (sep.empty() || point.empty())
+            return false;
+        const std::size_t n = std::min(sep.size(), point.size());
+        return sep.substr(0, n) != point.substr(0, n);
+    }
+
+    /**
+     * @lang{ZH} `take_punct` 的结果。 @endif
+     * @lang{EN} What `take_punct` found. @endif
+     */
+    enum class punct_kind : std::uint8_t
+    {
+        none,       ///< @lang{ZH} 不是标点；输入位置不变。 @endif @lang{EN} No punctuation; the input position is unchanged. @endif
+        separator,  ///< @lang{ZH} 千位分隔符，已整个读过。 @endif @lang{EN} The thousands separator, read whole. @endif
+        point,      ///< @lang{ZH} 小数点；是否读过见 `take_punct` 的 `consume_point`。 @endif @lang{EN} The decimal point; whether it was read, see `take_punct`'s `consume_point`. @endif
+        torn        ///< @lang{ZH} 读了某个标点的开头几个字符后发现不是它，又无法退回；字段到此为止。 @endif @lang{EN} The first characters of a punctuation were read before it turned out not to be one, and could not be put back; the field ends here. @endif
+    };
+
+    /**
+     * @lang{ZH}
+     * 退回刚读过的 `k` 个字符 `units[0..k)`。双向迭代器后退；有 `putbackc` 的迭代器（IOv2 的
+     * `ichannel_iterator`，压回区不设上限）按逆序压回；其他迭代器无法退回。
+     * @endif
+     * @lang{EN}
+     * Puts back the `k` characters just read, `units[0..k)`. A bidirectional iterator steps
+     * back; an iterator with `putbackc` (IOv2's `ichannel_iterator`, whose putback area is
+     * unbounded) has them pushed back in reverse order; any other iterator cannot.
+     * @endif
+     *
+     * @return
+     * @lang{ZH} 已退回（或 `k` 为 0）则为 `true`。 @endif
+     * @lang{EN} `true` if they were put back (or `k` is 0). @endif
+     */
+    template <typename TIter, typename CharT>
+    inline bool step_back(TIter& beg, std::basic_string_view<CharT> units, std::size_t k)
+    {
+        if constexpr (std::bidirectional_iterator<TIter>)
+        {
+            std::ranges::advance(beg, -static_cast<std::iter_difference_t<TIter>>(k));
+            return true;
+        }
+        else if constexpr (requires(TIter& it, CharT c) { it.putbackc(c); })
+        {
+            while (k != 0)
+                beg.putbackc(units[--k]);
+            return true;
+        }
+        else
+            return k == 0;
+    }
+
+    /**
+     * @lang{ZH}
+     * 在输入的当前位置识别千位分隔符或小数点，两者都可以由多个字符组成。
+     *
+     * 逐字符同时比对两者，读到第一个不同的字符才判定；调用方须保证两者能区分开（见
+     * `punct_distinct`），不参与识别的那个传空串。试探读过的字符若最终不是标点，就用
+     * `step_back` 退回，数字照常在此结束：例如千位分隔符为 U+202F（UTF-8 `E2 80 AF`）时，
+     * `100€`（€ 为 `E2 82 AC`）读出 100，`€` 留在输入里。迭代器无法退回时结果为
+     * `punct_kind::torn`，已读的字符丢失。
+     *
+     * @param consume_point 为 `false` 时，识别出的小数点不读过（多字符的小数点已读的部分
+     *        尽量退回）——整数解析在小数点前停下，把它留在输入里。
+     * @endif
+     *
+     * @lang{EN}
+     * Recognises the thousands separator or the decimal point at the current input
+     * position; either may be several characters long.
+     *
+     * The input is compared against both at once and settled at the first character where
+     * they differ; the caller makes sure the two can be told apart (see `punct_distinct`)
+     * and passes an empty string for one that does not take part. Characters read on trial
+     * that turn out to be no punctuation are put back with `step_back`, and the number ends
+     * there as usual: with U+202F (UTF-8 `E2 80 AF`) as the separator, `100€` (€ being
+     * `E2 82 AC`) reads as 100 and leaves the `€` in the input. Where the iterator cannot
+     * put them back the result is `punct_kind::torn`, and the characters read are lost.
+     *
+     * @param consume_point With `false`, a decimal point found is not read past (the part
+     *        of a multi-character one already read is put back if possible): integer
+     *        parsing stops in front of the point and leaves it in the input.
+     * @endif
+     */
+    template <typename TIter, std::sentinel_for<TIter> TSent, typename CharT>
+    inline punct_kind take_punct(TIter& beg, TSent end, std::basic_string_view<CharT> sep,
+                                 std::basic_string_view<CharT> point, bool consume_point)
+    {
+        bool sep_alive   = !sep.empty();
+        bool point_alive = !point.empty();
+        std::size_t k = 0;
+        while (beg != end)
+        {
+            const CharT c = *beg;
+            const bool s = sep_alive && sep[k] == c;
+            const bool p = point_alive && point[k] == c;
+            if (!s && !p)
+                break;
+            sep_alive   = s;
+            point_alive = p;
+
+            // The point is settled at its last character, before that one is read.
+            if (p && k + 1 == point.size())
+            {
+                if (consume_point)
+                    ++beg;
+                else
+                    step_back(beg, point, k);
+                return punct_kind::point;
+            }
+            ++beg;
+            ++k;
+            if (s && k == sep.size())
+                return punct_kind::separator;
+        }
+
+        const std::basic_string_view<CharT> read = sep_alive ? sep : point;
+        return step_back(beg, read, k) ? punct_kind::none : punct_kind::torn;
     }
 
     /**
@@ -501,6 +468,33 @@ namespace IOv2::FacetHelper
             *stop = 0;
             grouping.erase(std::next(stop), grouping.end());
         }
+    }
+
+    /**
+     * @lang{ZH}
+     * 把 `lconv` 的分组字节（`grouping` 或 `mon_grouping`）转换为内部约定（见
+     * `adjust_grouping`）；千位分隔符与小数点无法区分时（见 `punct_distinct`，空分隔符也算）
+     * 不分组，返回空向量。
+     * @endif
+     * @lang{EN}
+     * Turns `lconv`'s grouping bytes (`grouping` or `mon_grouping`) into the internal
+     * convention (see `adjust_grouping`); where the thousands separator and the decimal
+     * point cannot be told apart (see `punct_distinct`; an empty separator counts), there is
+     * no grouping and the vector comes back empty.
+     * @endif
+     */
+    template <typename CharT>
+    inline std::vector<uint8_t> lconv_grouping(std::string_view raw, std::basic_string_view<CharT> sep,
+                                               std::basic_string_view<CharT> point)
+    {
+        std::vector<uint8_t> res;
+        if (raw.empty() || !punct_distinct(sep, point))
+            return res;
+        res.reserve(raw.size());
+        for (const char c : raw)
+            res.push_back(static_cast<uint8_t>(c));
+        adjust_grouping(res);
+        return res;
     }
 
     /**

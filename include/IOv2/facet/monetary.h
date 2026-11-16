@@ -34,6 +34,7 @@
 #include <iterator>
 #include <limits>
 #include <string>
+#include <string_view>
 #include <tuple>
 #include <type_traits>
 #include <utility>
@@ -150,12 +151,17 @@ public:
                  .m_frac_digits = p_obj->frac_digits_int()};
         m_decimal_point = p_obj->decimal_point();
         m_thousands_sep = p_obj->thousands_sep();
+        if (m_decimal_point.empty())
+            throw io_error("monetary: the decimal point is empty");
 
         // grouping() is contracted to return the INTERNAL convention
         // (1–255 = group size, 0 = stop, last element implicitly repeats).
         // monetary_conf and any user-derived override are both expected to
         // satisfy this contract — POSIX-style normalisation is done at the
-        // POSIX boundary in monetary_conf, not here.
+        // POSIX boundary in monetary_conf, not here. Separators parsing could
+        // not tell apart turn grouping off, as monetary_conf itself does it.
+        if (!FacetHelper::punct_distinct<CharT>(m_thousands_sep, m_decimal_point))
+            m_grouping.clear();
     }
 
     /**
@@ -334,29 +340,33 @@ public:
 
     /**
      * @lang{ZH}
-     * @brief 返回货币小数点字符。
-     * @return 小数点字符。
+     * @brief 返回货币小数点，可以是多个字符。
+     * @return 小数点，非空。
      * @endif
      *
      * @lang{EN}
-     * @brief Returns the monetary decimal point character.
-     * @return The decimal point character.
+     * @brief Returns the monetary decimal point; it may be several characters long.
+     * @return The decimal point, never empty.
      * @endif
      */
-    [[nodiscard]] CharT decimal_point() const { return m_decimal_point; }
+    [[nodiscard]] const std::basic_string<CharT>& decimal_point() const { return m_decimal_point; }
 
     /**
      * @lang{ZH}
-     * @brief 返回千位分隔符字符。
-     * @return 千位分隔符字符。
+     * @brief 返回货币千位分隔符，可以是多个字符。
+     *
+     * 只有 `grouping()` 非空时才用到它。
+     * @return 千位分隔符，可能为空串。
      * @endif
      *
      * @lang{EN}
-     * @brief Returns the thousands separator character.
-     * @return The thousands separator character.
+     * @brief Returns the monetary thousands separator; it may be several characters long.
+     *
+     * It is used only when `grouping()` is non-empty.
+     * @return The thousands separator, possibly empty.
      * @endif
      */
-    [[nodiscard]] CharT thousands_sep() const { return m_thousands_sep; }
+    [[nodiscard]] const std::basic_string<CharT>& thousands_sep() const { return m_thousands_sep; }
 
     /**
      * @lang{ZH}
@@ -761,7 +771,8 @@ private:
         if (trails_value)
             return false;
 
-        if (fill == m_decimal_point)
+        // A fill is one character, so it is held against the first of the point.
+        if (fill == m_decimal_point.front())
             return true;
         if (!info.m_negative_sign.empty() && fill == info.m_negative_sign[0])
             return !negative;
@@ -886,11 +897,12 @@ private:
                 value.assign(first, head);
             else
             {
-                // add_grouping writes at most one separator per digit, so twice the
-                // head is always room enough; the slack is trimmed off afterwards.
-                value.assign(2 * head, char_type());
-                const char_type* const wrote =
-                    FacetHelper::add_grouping(value.data(), m_thousands_sep, m_grouping, first, first + head);
+                // add_grouping writes at most one separator per digit, which bounds
+                // the room it needs; the slack is trimmed off afterwards.
+                value.assign(head * (1 + m_thousands_sep.size()), char_type());
+                const char_type* const wrote = FacetHelper::add_grouping(
+                    value.data(), std::basic_string_view<char_type>(m_thousands_sep), m_grouping,
+                    first, first + head);
                 value.erase(static_cast<std::size_t>(wrote - value.data()));
             }
         }
@@ -1126,6 +1138,10 @@ private:
         int run     = 0;
         int int_run = 0;
 
+        // The separator takes part only while grouping is on.
+        const std::basic_string_view<char_type> sep =
+            m_grouping.empty() ? std::basic_string_view<char_type>() : m_thousands_sep;
+
         // Group widths in the order met, checked against m_grouping once the whole
         // amount is in.
         std::vector<uint8_t> grouping_tmp;
@@ -1231,35 +1247,35 @@ private:
             case part::value:
                 // Digits go straight into the result; the separators between them are
                 // not kept, only the widths of the groups they mark off.
-                for (; beg != end; ++beg)
+                while (beg != end)
                 {
-                    const char_type  c = *beg;
-                    const char_type* d = std::find(digit_table, digit_table + 10, c);
+                    const char_type* d = std::find(digit_table, digit_table + 10, *beg);
                     if (d != digit_table + 10)
                     {
                         out += static_cast<char>('0' + (d - digit_table));
                         ++run;
+                        ++beg;
                         continue;
                     }
 
                     // Punctuation structures the integer part only. Past the decimal
                     // point the fraction is a plain run of digits, so a separator or a
-                    // second point there ends the amount instead of shaping it.
-                    if (saw_point)
-                        break;
-
-                    if (c == m_decimal_point)
+                    // second point there ends the amount instead of shaping it. A locale
+                    // with no fractional places has nothing for a point to introduce.
+                    // Either may be several characters long (see take_punct).
+                    const bool point_on = !saw_point && info.m_frac_digits > 0;
+                    const FacetHelper::punct_kind punct = FacetHelper::take_punct(
+                        beg, end, saw_point ? std::basic_string_view<char_type>() : sep,
+                        point_on ? std::basic_string_view<char_type>(m_decimal_point)
+                                 : std::basic_string_view<char_type>(),
+                        true);
+                    if (punct == FacetHelper::punct_kind::point)
                     {
-                        // A locale with no fractional places has nothing for a decimal
-                        // point to introduce; the character is not ours to consume.
-                        if (info.m_frac_digits <= 0)
-                            break;
-
                         int_run   = run;
                         run       = 0;
                         saw_point = true;
                     }
-                    else if (!m_grouping.empty() && c == m_thousands_sep)
+                    else if (punct == FacetHelper::punct_kind::separator)
                     {
                         // A separator with no preceding digits, or a group
                         // longer than the largest representable group size,
@@ -1267,6 +1283,8 @@ private:
                         // rather than truncating the count.
                         if (run == 0 || std::cmp_greater(run, std::numeric_limits<uint8_t>::max()))
                         {
+                            // The separator that broke the grouping stays in the input.
+                            FacetHelper::step_back(beg, sep, sep.size());
                             valid = false;
                             break;
                         }
@@ -1314,7 +1332,7 @@ private:
                 if (ate_fill
                     && fill_alters_reading(io.fill(), info,
                                             i < value_idx && beg != end
-                                                && (*beg == m_decimal_point
+                                                && (*beg == m_decimal_point.front()
                                                     || std::find(digit_table, digit_table + 10, *beg)
                                                            != digit_table + 10),
                                             i > value_idx, negative))
@@ -1491,8 +1509,8 @@ private:
     std::vector<uint8_t>      m_grouping;
     split_info                m_nat;
     split_info                m_int;
-    CharT                     m_decimal_point;
-    CharT                     m_thousands_sep;
+    std::basic_string<CharT>  m_decimal_point;   // never empty
+    std::basic_string<CharT>  m_thousands_sep;   // used only when m_grouping is non-empty
 
     // char_type representations of '-' and '0'-'9', indexed as:
     //   s_atoms[0]    = '-'

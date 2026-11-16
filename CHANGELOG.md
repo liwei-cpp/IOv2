@@ -188,6 +188,19 @@
     一端时它旁边的空格也省略。`get` 相应地只在 `put` 必然写出空格时才要求它。
   - 正、负格式布局不同的 locale（如 nn_NO、vi_VN；uk_UA、kk_KZ 的国内格式也因上一条加入），
     置 `showbase` 时仍读不回自己写出的正数：`get` 按标准只按负数格式解析。
+- **不兼容**：`numeric` 与 `monetary` 的小数点和千位分隔符改为字符串，可以由多个字符组成。
+  `numeric_conf`、`monetary_conf`（各字符类型）与两个 facet 的 `decimal_point()`、
+  `thousands_sep()` 改为返回 `const std::basic_string<CharT>&`；自定义配置类覆写这两个虚函数时
+  须改签名。千位分隔符为空串表示不分组（此前为 `CharT('\0')`）；小数点不得为空，否则 facet
+  构造时抛 `io_error`；两者无法区分（一个是另一个的前缀，含相等）时不分组。
+  - 窄字符与 `char8_t` 不再丢掉多字节的分隔符：UTF-8 locale 下 fr_FR、ru_RU、pl_PL 等的
+    U+202F、de_CH 的 U+2019 照写照读，数字与金额由不分组（`1234567`）变为分组
+    （`1 234 567`）；fa_IR、ps_AF 等的 U+066B 小数点不再被换成 `'.'`。Windows 上
+    `numeric_conf<char8_t>` 不再把 de-CH 的 U+2019 换成 `','` 并关掉分组。
+  - 读入时逐字符比对分隔符，试探读过的字符不匹配就退回，数字照常结束：千位分隔符为 U+202F
+    时，`100€` 读出 100，`€` 留在流里；整数读到小数点时把它整个留在流里，小数点与千位分隔符
+    共用首字节（U+066B/U+066C）时也是如此。退回只对双向迭代器与 IOv2 的 `ichannel_iterator`
+    做得到；其他输入迭代器上，已读的字符丢失。
 
 #### 废弃
 
@@ -539,6 +552,27 @@ have no release line of their own.
     vi_VN; with the previous item, also the national formats of uk_UA and kk_KZ) still
     does not read back a positive amount it wrote with `showbase`: `get` parses by the
     negative format alone, as the standard says.
+- **Breaking**: the decimal point and thousands separator of `numeric` and `monetary`
+  are strings, and may be several characters long. `decimal_point()` and
+  `thousands_sep()` of `numeric_conf`, `monetary_conf` (every character type) and the two
+  facets return `const std::basic_string<CharT>&`; a custom configuration that overrides
+  the two virtual functions has to change their signatures. An empty thousands separator
+  means no grouping (it used to be `CharT('\0')`); the decimal point must not be empty,
+  or constructing the facet throws `io_error`; where the two cannot be told apart (one a
+  prefix of the other, equality included) there is no grouping.
+  - Narrow and `char8_t` configurations no longer drop a multibyte separator: under
+    UTF-8 locales the U+202F of fr_FR, ru_RU, pl_PL and others and de_CH's U+2019 are
+    written and read, so numbers and amounts go from ungrouped (`1234567`) to grouped
+    (`1 234 567`); the U+066B decimal point of fa_IR, ps_AF and others is no longer
+    replaced by `'.'`. On Windows, `numeric_conf<char8_t>` no longer turns de-CH's U+2019
+    into `','` and switches grouping off.
+  - Input is compared with the separators character by character, and what was read on
+    trial is put back if it does not match, the number ending there as usual: with
+    U+202F as the separator, `100€` reads as 100 and leaves the `€` in the stream; an
+    integer stops in front of a decimal point and leaves all of it in the stream, also
+    where the point and the separator share a first byte (U+066B/U+066C). Putting back
+    works for bidirectional iterators and IOv2's `ichannel_iterator`; on any other input
+    iterator the characters read are lost.
 
 #### Deprecated
 

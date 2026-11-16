@@ -31,6 +31,8 @@
 #include <IOv2/io/iochannel.h>
 #include <IOv2/io/iochannel_iterator.h>
 
+#include <support/platform_macros.h>
+
 #include <gtest/gtest.h>
 
 #include <climits>
@@ -76,8 +78,8 @@ namespace
             , m_neg_format(monetary_conf<char>::neg_format_nat())
         {}
 
-        char decimal_point() const override { return m_decimal_point; }
-        char thousands_sep() const override { return m_thousands_sep; }
+        const std::string& decimal_point() const override { return m_decimal_point; }
+        const std::string& thousands_sep() const override { return m_thousands_sep; }
         const std::vector<uint8_t>& grouping() const override { return m_grouping; }
         const std::string& curr_symbol_nat() const override { return m_curr_symbol; }
         const std::string& positive_sign_nat() const override { return m_positive_sign; }
@@ -86,8 +88,10 @@ namespace
         const pattern& pos_format_nat() const override { return m_pos_format; }
         const pattern& neg_format_nat() const override { return m_neg_format; }
 
-        tunable_conf& point(char c)                       { m_decimal_point = c; return *this; }
-        tunable_conf& separator(char c)                   { m_thousands_sep = c; return *this; }
+        tunable_conf& point(char c)                       { m_decimal_point.assign(1, c); return *this; }
+        tunable_conf& point(std::string s)                { m_decimal_point = std::move(s); return *this; }
+        tunable_conf& separator(char c)                   { m_thousands_sep.assign(1, c); return *this; }
+        tunable_conf& separator(std::string s)            { m_thousands_sep = std::move(s); return *this; }
         tunable_conf& groups(std::vector<uint8_t> g)      { m_grouping = std::move(g); return *this; }
         tunable_conf& symbol(std::string s)               { m_curr_symbol = std::move(s); return *this; }
         tunable_conf& plus(std::string s)                 { m_positive_sign = std::move(s); return *this; }
@@ -102,8 +106,8 @@ namespace
         std::shared_ptr<tunable_conf> ptr()               { return shared_from_this(); }
 
     private:
-        char                 m_decimal_point;
-        char                 m_thousands_sep;
+        std::string          m_decimal_point;
+        std::string          m_thousands_sep;
         std::vector<uint8_t> m_grouping;
         std::string          m_curr_symbol;
         std::string          m_positive_sign;
@@ -251,8 +255,8 @@ TEST(MonetaryChar, TheCLocaleCarriesNoCurrency)
 {
     const monetary<char> obj = facet_for("C");
 
-    EXPECT_EQ(obj.decimal_point(), '.');
-    EXPECT_EQ(obj.thousands_sep(), ',');
+    EXPECT_EQ(obj.decimal_point(), ".");
+    EXPECT_EQ(obj.thousands_sep(), ",");
     EXPECT_TRUE(obj.grouping().empty());
     EXPECT_TRUE(obj.curr_symbol_nat().empty());
     EXPECT_TRUE(obj.curr_symbol_int().empty());
@@ -601,6 +605,47 @@ TEST(MonetaryChar, TheInternationalSymbolLeavesTheSeparatorToThePattern)
     EXPECT_EQ(de.curr_symbol_int(), "EUR");
     EXPECT_EQ(put_str(de, true, ios, "123456"), "1.234,56 EUR");
     EXPECT_EQ(put_str(de, true, ios, "-123456"), "-1.234,56 EUR");
+}
+
+// The punctuation is a string: fr_FR's U+202F is three bytes in UTF-8, all kept,
+// and grouping with it stays on.
+TEST(MonetaryChar, AMultibyteSeparatorIsKeptWhole)
+{
+#if IOV2_TEST_LINUX_GLIBC
+    const monetary<char> obj = facet_for("fr_FR.UTF-8");
+    EXPECT_EQ(obj.thousands_sep(), "\xE2\x80\xAF");
+    EXPECT_FALSE(obj.grouping().empty());
+#else
+    GTEST_SKIP() << "fr_FR's U+202F is glibc's data";
+#endif
+}
+
+// A separator of several characters is written whole and read back whole. The
+// euro sign shares its first byte with U+202F, so where it follows the integer
+// digits directly the bytes read on trial go back and the symbol is found.
+TEST(MonetaryChar, AMultiCharacterSeparatorRoundTrips)
+{
+    ios_base<char> ios;
+    ios.setf(ios_defs::showbase);
+
+    const monetary<char> spaced(tuned()->fraction(2).groups({3}).separator("\xE2\x80\xAF").point(",")
+                                       .symbol("\xE2\x82\xAC").minus("-")
+                                       .both({part::sign, part::value, part::space, part::symbol}).ptr());
+    const std::string field = "-12\xE2\x80\xAF" "345,67 \xE2\x82\xAC";
+    EXPECT_EQ(put_str(spaced, false, ios, "-1234567"), field);
+    expect_parses(spaced, false, ios, field, "-1234567");
+
+    const monetary<char> tight(tuned()->fraction(0).groups({3}).separator("\xE2\x80\xAF")
+                                      .symbol("\xE2\x82\xAC").minus("-")
+                                      .both({part::sign, part::value, part::symbol, part::none}).ptr());
+    const std::string glued = "12\xE2\x80\xAF" "345\xE2\x82\xAC";
+    EXPECT_EQ(put_str(tight, false, ios, "12345"), glued);
+    expect_parses(tight, false, ios, glued, "12345");
+}
+
+TEST(MonetaryChar, AnEmptyDecimalPointIsRejected)
+{
+    EXPECT_THROW((void)monetary<char>(tuned()->point(std::string()).ptr()), io_error);
 }
 
 TEST(MonetaryChar, AShortFieldIsPaddedToTheWidth)

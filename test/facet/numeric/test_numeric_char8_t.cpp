@@ -62,14 +62,16 @@ namespace
         const std::vector<uint8_t>& grouping() const override { return m_grouping; }
         const std::u8string&        truename() const override { return m_truename; }
         const std::u8string&        falsename() const override { return m_falsename; }
-        char8_t                     thousands_sep() const override { return m_thousands_sep; }
-        char8_t                     decimal_point() const override { return m_decimal_point; }
+        const std::u8string&        thousands_sep() const override { return m_thousands_sep; }
+        const std::u8string&        decimal_point() const override { return m_decimal_point; }
 
         tunable_conf& groups(std::vector<uint8_t> g) { m_grouping = std::move(g); return *this; }
         tunable_conf& yes(std::u8string n)             { m_truename = std::move(n); return *this; }
         tunable_conf& no(std::u8string n)              { m_falsename = std::move(n); return *this; }
-        tunable_conf& separator(char8_t c)              { m_thousands_sep = c; return *this; }
-        tunable_conf& point(char8_t c)                  { m_decimal_point = c; return *this; }
+        tunable_conf& separator(char8_t c)             { m_thousands_sep.assign(1, c); return *this; }
+        tunable_conf& separator(std::u8string s)       { m_thousands_sep = std::move(s); return *this; }
+        tunable_conf& point(char8_t c)                 { m_decimal_point.assign(1, c); return *this; }
+        tunable_conf& point(std::u8string s)           { m_decimal_point = std::move(s); return *this; }
 
         // Ends a chain: the facet takes its configuration by shared pointer.
         std::shared_ptr<tunable_conf> ptr() { return shared_from_this(); }
@@ -78,8 +80,8 @@ namespace
         std::vector<uint8_t> m_grouping;
         std::u8string        m_truename;
         std::u8string        m_falsename;
-        char8_t              m_thousands_sep;
-        char8_t              m_decimal_point;
+        std::u8string        m_thousands_sep;
+        std::u8string        m_decimal_point;
     };
 
     std::shared_ptr<ctype<char8_t>> ctype_for(const char* loc)
@@ -258,25 +260,22 @@ TEST(NumericChar8, AnUnnamedBooleanFallsBackToAscii)
     const numeric_conf<char8_t> conf("gv_GB.utf8");
     EXPECT_EQ(conf.truename(), u8"true");
     EXPECT_EQ(conf.falsename(), u8"false");
-    EXPECT_EQ(conf.decimal_point(), u8'.');
-    EXPECT_EQ(conf.thousands_sep(), u8',');
+    EXPECT_EQ(conf.decimal_point(), u8".");
+    EXPECT_EQ(conf.thousands_sep(), u8",");
 #else
     GTEST_SKIP() << "only glibc has a locale with an empty YESSTR (macOS falls back to C's \"yes\")";
 #endif
 }
 
 // A locale with no thousands separator has no grouping either: there is nothing
-// to group with.  What the separator itself is left holding differs by character
-// type -- the narrow and wide configurations keep the '\0' that says "none",
-// while the char8_t one, which has only a single byte to store it in, falls back
-// to a comma it then never uses, because the grouping beside it is empty.
+// to group with, and the separator is the empty string that says "none".
 TEST(NumericChar8, ALocaleWithNoSeparatorHasNoGrouping)
 {
 #if IOV2_TEST_LINUX_GLIBC
     const numeric_conf<char8_t> conf("gl_ES.utf8");
-    EXPECT_EQ(conf.decimal_point(), u8',');
+    EXPECT_EQ(conf.decimal_point(), u8",");
     EXPECT_TRUE(conf.grouping().empty());
-    EXPECT_EQ(conf.thousands_sep(), u8',');
+    EXPECT_EQ(conf.thousands_sep(), u8"");
 #else
     GTEST_SKIP() << "gl_ES has no thousands separator only in glibc's data";
 #endif
@@ -289,23 +288,35 @@ TEST(NumericChar8, ANonUtf8LocaleIsReadThroughWchar)
 {
 #if IOV2_TEST_LINUX_GLIBC
     const numeric_conf<char8_t> conf("zh_CN.GBK");
-    EXPECT_EQ(conf.decimal_point(), u8'.');
-    EXPECT_EQ(conf.thousands_sep(), u8',');
+    EXPECT_EQ(conf.decimal_point(), u8".");
+    EXPECT_EQ(conf.thousands_sep(), u8",");
     EXPECT_EQ(conf.truename(), u8"\u662F");          // 是
     EXPECT_EQ(conf.falsename(), u8"\u4E0D\u662F");   // 不是
 #elif IOV2_TEST_WINDOWS
     const numeric_conf<char8_t> german("de-DE");     // code page 1252
-    EXPECT_EQ(german.decimal_point(), u8',');
-    EXPECT_EQ(german.thousands_sep(), u8'.');
+    EXPECT_EQ(german.decimal_point(), u8",");
+    EXPECT_EQ(german.thousands_sep(), u8".");
     EXPECT_FALSE(german.grouping().empty());
     EXPECT_EQ(german.truename(), u8"true");
 
-    // U+2019 is no single UTF-8 byte: the comma stands in, grouping goes.
+    // U+2019 is three UTF-8 bytes, all of which the separator keeps.
     const numeric_conf<char8_t> swiss("de-CH");
-    EXPECT_EQ(swiss.thousands_sep(), u8',');
-    EXPECT_TRUE(swiss.grouping().empty());
+    EXPECT_EQ(swiss.thousands_sep(), u8"\u2019");
+    EXPECT_FALSE(swiss.grouping().empty());
 #else
     EXPECT_THROW(numeric_conf<char8_t>("de_DE.ISO8859-1"), io_error);
+#endif
+}
+
+// A UTF-8 locale's separator is taken byte for byte, however many bytes it is.
+TEST(NumericChar8, AMultibyteSeparatorIsKeptWhole)
+{
+#if IOV2_TEST_LINUX_GLIBC
+    const numeric_conf<char8_t> conf("fr_FR.UTF-8");
+    EXPECT_EQ(conf.thousands_sep(), u8" ");
+    EXPECT_FALSE(conf.grouping().empty());
+#else
+    GTEST_SKIP() << "fr_FR's U+202F is glibc's data";
 #endif
 }
 
