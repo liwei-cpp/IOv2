@@ -494,6 +494,9 @@ public:
      * @param units 解析成功后存储结果的整数引用。
      * @return 指向已消耗字符之后位置的迭代器。
      * @throw stream_error 如果解析失败或数值超出 `TVal` 范围。
+     *
+     * @note 与数字串版本的 `get` 一样只按负数格式解析，正、负格式布局不同的 locale 里正数
+     *       可能读不回来；详见该重载。
      * @endif
      *
      * @lang{EN}
@@ -513,6 +516,10 @@ public:
      * @param units A reference to the integral variable that receives the result.
      * @return An iterator pointing past the last consumed character.
      * @throw stream_error If parsing fails or the value is out of range for `TVal`.
+     *
+     * @note Like the digit-string `get`, this parses by the negative format alone, so in a
+     *       locale whose positive and negative formats are laid out differently a positive
+     *       amount may not read back; see that overload.
      * @endif
      */
     template <typename TIter, std::sentinel_for<TIter> TSent, std::integral TVal>
@@ -550,6 +557,13 @@ public:
      * @param digits 解析成功后存储结果数字字符串的引用；若无数字则保持不变。
      * @return 指向已消耗字符之后位置的迭代器。
      * @throw stream_error 如果解析失败。
+     *
+     * @note **只按负数格式解析**：与 [locale.money.get.virtuals] 相同，字段一律按负数格式
+     *       （`neg_format_nat()` / `neg_format_int()`）解析，正负由读到的符号字符串决定。
+     *       因此在正、负格式布局不同的 locale 里，置 `showbase` 时 `put` 写出的正数可能读不
+     *       回来。例如 glibc 的 nn_NO，正数格式在货币符号与金额之间有空格，负数格式没有；
+     *       同类的还有 glibc 的 vi_VN（正数金额在前、负数货币符号在前）、fil_PH。
+     *       libstdc++、libc++ 与 MSVC STL 同样如此。
      * @endif
      *
      * @lang{EN}
@@ -570,6 +584,16 @@ public:
      *               left unchanged if no digits are extracted.
      * @return An iterator pointing past the last consumed character.
      * @throw stream_error If parsing fails.
+     *
+     * @note **Parsed by the negative format alone**: as in [locale.money.get.virtuals], the
+     *       field is always parsed by the negative format (`neg_format_nat()` /
+     *       `neg_format_int()`), and the sign string read decides the polarity. So in a
+     *       locale whose positive and negative formats are laid out differently, a positive
+     *       amount `put` wrote with `showbase` may not read back. glibc's nn_NO is one: its
+     *       positive format has a space between the currency symbol and the amount, its
+     *       negative format none. glibc's vi_VN (the amount first when positive, the symbol
+     *       first when negative) and fil_PH are others. libstdc++, libc++ and the MSVC STL
+     *       behave the same way.
      * @endif
      */
     template <typename TIter, std::sentinel_for<TIter> TSent>
