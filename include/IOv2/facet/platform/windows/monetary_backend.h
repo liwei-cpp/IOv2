@@ -40,8 +40,6 @@
 
 #pragma once
 
-#include <IOv2/facet/platform/windows/nls_api.h>
-
 #include <climits>
 #include <clocale>
 #include <optional>
@@ -87,7 +85,6 @@ struct monetary_raw_punct
     // The UCRT's own wide forms of the strings.
     std::optional<std::wstring> wint_curr_symbol, wcurrency_symbol, wmon_decimal_point,
                                 wmon_thousands_sep, wpositive_sign, wnegative_sign;
-    bool utf8 = false;               // whether the code page is UTF-8
 };
 
 // The monetary data of the calling thread's current locale. Call it under a clocale_user.
@@ -118,7 +115,6 @@ inline monetary_raw_punct monetary_read_punct()
     res.wmon_thousands_sep = wstr(lc->_W_mon_thousands_sep);
     res.wpositive_sign     = wstr(lc->_W_positive_sign);
     res.wnegative_sign     = wstr(lc->_W_negative_sign);
-    res.utf8 = ___lc_codepage_func() == win_cp_utf8;
     return res;
 }
 }

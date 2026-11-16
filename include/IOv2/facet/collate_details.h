@@ -90,8 +90,8 @@ public:
      * @brief 构造函数，初始化 `collate_conf` 并绑定到指定的 locale。
      *
      * 当 `CharT` 为 `char8_t` 时，额外验证 `m_inter_locale` 读窄字符串所用的编码是否为
-     * UTF-8（`detail::collate_is_utf8`：POSIX 上看 `CODESET`，Windows 上看 `LC_COLLATE` 的
-     * 代码页）。`collate<char8_t>` 内部经由窄字符路径处理，只有该编码为 UTF-8 时才能正确
+     * UTF-8（`detail::collate_is_utf8`：POSIX 上看 `LC_CTYPE` 的编码，Windows 上看
+     * `LC_COLLATE` 的代码页）。`collate<char8_t>` 内部经由窄字符路径处理，只有该编码为 UTF-8 时才能正确
      * 解析 UTF-8 字节输入。
      *
      * 不用 `mbrtoc32` 探测：UCRT 的 `mbrtoc32` 不论 locale 一律按 UTF-8 解码，macOS 的 libc
@@ -105,8 +105,8 @@ public:
      * @brief Constructor that initializes `collate_conf` and binds it to the specified locale.
      *
      * When `CharT` is `char8_t`, additionally verifies that the encoding `m_inter_locale`
-     * reads narrow strings in is UTF-8 (`detail::collate_is_utf8`: `CODESET` on POSIX, the
-     * code page of `LC_COLLATE` on Windows). `collate<char8_t>` routes internally through
+     * reads narrow strings in is UTF-8 (`detail::collate_is_utf8`: the encoding of `LC_CTYPE`
+     * on POSIX, the code page of `LC_COLLATE` on Windows). `collate<char8_t>` routes internally through
      * the narrow path, which parses UTF-8 byte input correctly only in that case.
      *
      * Not a probe with `mbrtoc32`: the UCRT's decodes UTF-8 whatever the locale, and the

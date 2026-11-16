@@ -4,17 +4,16 @@
 /**
  * @file monetary_backend.h
  * @lang{ZH}
- * `monetary` facet 的 POSIX 后端：在 `clocale_user` 切换后的线程 locale 下读 `localeconv()`
- * 与 `nl_langinfo(CODESET)`。glibc 没有 `localeconv_l`，故不用 `_l` 形式。
+ * `monetary` facet 的 POSIX 后端：在 `clocale_user` 切换后的线程 locale 下读 `localeconv()`。
+ * glibc 没有 `localeconv_l`，故不用 `_l` 形式。
  *
  * POSIX 的 `lconv` 带 C99 的国际格式标志（`int_p_cs_precedes` 等），原样读出。macOS 的这些
  * 标志与国内格式的相同（探针看过的 locale 全是如此），于是那里国际格式的布局与国内格式一样，
  * 例如 en_US 的国际格式没有空格：`USD1,234.56`，而 glibc 是 `USD 1,234.56`。
  * @endif
  * @lang{EN}
- * POSIX backend of the `monetary` facet: `localeconv()` and `nl_langinfo(CODESET)`, read
- * under the thread locale a `clocale_user` switched to. glibc has no `localeconv_l`, so
- * the `_l` forms are not used.
+ * POSIX backend of the `monetary` facet: `localeconv()`, read under the thread locale a
+ * `clocale_user` switched to. glibc has no `localeconv_l`, so the `_l` form is not used.
  *
  * POSIX's `lconv` carries C99's international format flags (`int_p_cs_precedes` and the
  * rest), which are read as they are. macOS sets them to the national ones (in every
@@ -27,8 +26,6 @@
 
 #include <climits>
 #include <clocale>
-#include <cstring>
-#include <langinfo.h>
 #include <optional>
 #include <string>
 
@@ -72,7 +69,6 @@ struct monetary_raw_punct
     // The C library's own wide forms of the strings; POSIX has none.
     std::optional<std::wstring> wint_curr_symbol, wcurrency_symbol, wmon_decimal_point,
                                 wmon_thousands_sep, wpositive_sign, wnegative_sign;
-    bool utf8 = false;               // whether the narrow encoding is UTF-8
 };
 
 // The monetary data of the calling thread's current locale. Call it under a clocale_user.
@@ -98,8 +94,6 @@ inline monetary_raw_punct monetary_read_punct()
                    .sign_posn = lc->int_p_sign_posn};
     res.int_neg = {.cs_precedes = lc->int_n_cs_precedes, .sep_by_space = lc->int_n_sep_by_space,
                    .sign_posn = lc->int_n_sign_posn};
-    // glibc and macOS both name the codeset "UTF-8" in every UTF-8 locale.
-    res.utf8 = std::strcmp(nl_langinfo(CODESET), "UTF-8") == 0;
     return res;
 }
 }

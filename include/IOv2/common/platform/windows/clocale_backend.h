@@ -14,7 +14,8 @@
  * 解析时还一并保存 `LC_CTYPE` 与 `LC_COLLATE` 的 BCP-47 名字（如 `en-US`，取自
  * `___lc_locale_name_func`），供 facet 后端调用 `LCMapStringEx`、`CompareStringEx` 等以名字定
  * locale 的 NLS 函数；`"C"` locale 没有此名字。`LC_COLLATE` 的代码页（`___lc_collate_cp_func`）
- * 也一并保存，`collate` 后端用它把窄字符串转成 UTF-16。
+ * 也一并保存，`collate` 后端用它把窄字符串转成 UTF-16。`LC_CTYPE` 的代码页
+ * （`___lc_codepage_func`）同样保存，用来回答该 locale 的编码是否为 UTF-8。
  * @endif
  * @lang{EN}
  * Windows (UCRT) backend of `clocale_wrapper`.
@@ -30,7 +31,8 @@
  * `___lc_locale_name_func`), for facet backends calling `LCMapStringEx`, `CompareStringEx` and
  * the other NLS functions that take a locale by name; the `"C"` locale has no such name. It
  * keeps the code page of `LC_COLLATE` (`___lc_collate_cp_func`) as well, which the `collate`
- * backend converts narrow strings to UTF-16 with.
+ * backend converts narrow strings to UTF-16 with, and the code page of `LC_CTYPE`
+ * (`___lc_codepage_func`), which answers whether the locale's encoding is UTF-8.
  * @endif
  */
 
@@ -51,6 +53,7 @@ struct windows_clocale
     std::string  ctype_name;   // setlocale(LC_CTYPE) likewise: what name() reports
     std::wstring ctype_bcp47;  // LC_CTYPE's BCP-47 name ("en-US") for the NLS APIs; empty for "C"
     std::wstring collate_bcp47;   // LC_COLLATE's, likewise
+    unsigned int ctype_cp = 0;    // LC_CTYPE's code page; 0 for "C"
     unsigned int collate_cp = 0;  // LC_COLLATE's code page; 0 for "C"
 };
 
@@ -116,6 +119,7 @@ inline clocale_handle clocale_create(const char* name)
                 res->ctype_bcp47 = bcp47;
             if (const wchar_t* bcp47 = ___lc_locale_name_func()[LC_COLLATE])
                 res->collate_bcp47 = bcp47;
+            res->ctype_cp   = ___lc_codepage_func();
             res->collate_cp = ___lc_collate_cp_func();
         }
     }
@@ -138,7 +142,7 @@ inline clocale_handle clocale_duplicate(clocale_handle loc)
     auto res = std::make_unique<windows_clocale>(
         windows_clocale{.all_name = loc->all_name, .ctype_name = loc->ctype_name,
                         .ctype_bcp47 = loc->ctype_bcp47, .collate_bcp47 = loc->collate_bcp47,
-                        .collate_cp = loc->collate_cp});
+                        .ctype_cp = loc->ctype_cp, .collate_cp = loc->collate_cp});
     res->loc = _create_locale(LC_ALL, res->all_name.c_str());
     return res->loc ? res.release() : nullptr;
 }
@@ -155,6 +159,12 @@ inline void clocale_release(clocale_handle loc) noexcept
 inline const char* clocale_ctype_name(clocale_handle loc) noexcept
 {
     return loc->ctype_name.c_str();
+}
+
+// Whether loc's LC_CTYPE code page is UTF-8 (65001, CP_UTF8).
+inline bool clocale_ctype_is_utf8(clocale_handle loc) noexcept
+{
+    return loc->ctype_cp == 65001U;
 }
 
 // Makes loc the calling thread's locale. Throws io_error, with nothing changed, if

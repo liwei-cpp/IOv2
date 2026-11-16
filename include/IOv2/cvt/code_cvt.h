@@ -557,7 +557,7 @@ struct codecvt_kernel<char, TInt>
         // NOLINTNEXTLINE(cppcoreguidelines-prefer-member-initializer)
         m_is_state_dep = (std::mbtowc(nullptr, nullptr, MB_CUR_MAX) != 0);
         if constexpr (s_has_utf16)
-            m_is_utf8 = detail::crt_locale_is_utf8();
+            m_is_utf8 = m_inter_locale.is_utf8();
         init_state();
     }
 
