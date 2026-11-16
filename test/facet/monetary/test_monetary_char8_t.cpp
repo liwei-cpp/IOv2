@@ -22,6 +22,8 @@
 #include <IOv2/io/iochannel.h>
 #include <IOv2/io/iochannel_iterator.h>
 
+#include <support/platform_macros.h>
+
 #include <gtest/gtest.h>
 
 #include <cstddef>
@@ -420,10 +422,19 @@ TEST(MonetaryChar8, TheInternationalSymbolLeavesTheSeparatorToThePattern)
     ios_base<char8_t> ios;
     ios.setf(ios_defs::showbase);
 
+    // en_US's international layout is the C library's; see the char case.
     const monetary<char8_t> us = facet_for("en_US.UTF-8");
     EXPECT_EQ(us.curr_symbol_int(), u8"USD");
+#if IOV2_TEST_LINUX_GLIBC
     EXPECT_EQ(put_str(us, true, ios, u8"123456"), u8"USD 1,234.56");
     EXPECT_EQ(put_str(us, true, ios, u8"-123456"), u8"-USD 1,234.56");
+#elif IOV2_TEST_MACOS
+    EXPECT_EQ(put_str(us, true, ios, u8"123456"), u8"USD1,234.56");
+    EXPECT_EQ(put_str(us, true, ios, u8"-123456"), u8"-USD1,234.56");
+#elif IOV2_TEST_WINDOWS
+    EXPECT_EQ(put_str(us, true, ios, u8"123456"), u8"USD1,234.56");
+    EXPECT_EQ(put_str(us, true, ios, u8"-123456"), u8"(USD1,234.56)");
+#endif
 
     const monetary<char8_t> de = facet_for("de_DE.UTF-8");
     EXPECT_EQ(de.curr_symbol_int(), u8"EUR");
@@ -911,7 +922,10 @@ TEST(MonetaryChar8, AnUnplaceableSymbolEndsTheField)
 // only the sign string it would otherwise use.
 TEST(MonetaryChar8, ASignPositionOfZeroMeansParentheses)
 {
-    const monetary<char8_t> obj = facet_for("en_HK.UTF-8");
+#if IOV2_TEST_MACOS
+    GTEST_SKIP() << "no macOS locale probed puts negative amounts in parentheses";
+#else
+    const monetary<char8_t> obj = facet_for(IOV2_TEST_WINDOWS ? "en_US.UTF-8" : "en_HK.UTF-8");
     EXPECT_EQ(obj.negative_sign_nat(), u8"()");
     EXPECT_EQ(obj.negative_sign_int(), u8"()");
 
@@ -920,6 +934,23 @@ TEST(MonetaryChar8, ASignPositionOfZeroMeansParentheses)
     EXPECT_EQ(field.front(), u8'(');
     EXPECT_EQ(field.back(), u8')');
     expect_parses(obj, false, ios, field, u8"-827364");
+#endif
+}
+
+// A locale whose encoding is not UTF-8 goes through the wide configuration,
+// which takes a Unicode wchar_t: glibc's (UTF-32) and Windows' (UTF-16) are,
+// macOS's is not, so there the configuration refuses.
+TEST(MonetaryChar8, ANonUtf8LocaleIsReadThroughWchar)
+{
+#if IOV2_TEST_LINUX_GLIBC
+    const monetary_conf<char8_t> conf("zh_CN.GBK");
+    EXPECT_EQ(conf.curr_symbol_nat(), u8"￥");    // the full-width yen sign GBK spells A3 A4
+#elif IOV2_TEST_WINDOWS
+    const monetary_conf<char8_t> conf("de-DE");       // code page 1252, where the euro sign is 0x80
+    EXPECT_EQ(conf.curr_symbol_nat(), u8"€");
+#else
+    EXPECT_THROW(monetary_conf<char8_t>("de_DE.ISO8859-1"), io_error);
+#endif
 }
 
 // A `space` slot writes the stream's fill character, not a literal space, and

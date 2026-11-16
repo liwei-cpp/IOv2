@@ -87,6 +87,18 @@
   是 U+202F）。`numeric<char8_t>` 不再经 `numeric_conf<char32_t>`：UTF-8 locale 直接用窄字符
   配置的字节，其他 locale 经 `wchar_t` 转换；macOS 的 `wchar_t` 在非 UTF-8 locale 下不是
   Unicode，故在 macOS 上以非 UTF-8 locale 构造会抛 `io_error`。
+- **`monetary` facet 可在 Windows 与 macOS 上构建、运行**，`monetary<char32_t>` 仍只在 glibc 上
+  提供。各平台的数据来源与差异：
+  - Windows 的 UCRT `lconv` 没有国际格式的标志，以国内格式的标志顶替（与 libc++ 相同），国际
+    小数位数仍取 `int_frac_digits`：en-US 的国际格式为 `USD1,234.56`，负数为 `(USD1,234.56)`。
+    标志取 UCRT 由 NLS 换算的值，这一换算有损：NLS 的负数格式 `$ -1.1`、`1.1- $` 被当成
+    `sep_by_space` 1 而非 2，nl-NL 的负数因此写作 `€- 1.234,56`。宽字符的货币符号、正负号与
+    分隔符取自 UCRT 的 `_W_` 字段，不受代码页影响。
+  - macOS 的国际格式标志与国内格式相同，en_US 的国际格式因此为 `USD1,234.56`（glibc 为
+    `USD 1,234.56`）。
+  - `monetary<char8_t>` 不再经 `monetary_conf<char32_t>`（只在 glibc 上有）：UTF-8 locale 直接
+    用窄字符配置的字节，其他 locale 经 `wchar_t` 转换；在 macOS 上以非 UTF-8 locale 构造会抛
+    `io_error`，与 `numeric<char8_t>` 相同。
 
 #### 变更
 
@@ -408,6 +420,22 @@ have no release line of their own.
   locale takes the narrow configuration's bytes as they are, any other goes through
   `wchar_t`; macOS's `wchar_t` is not Unicode under a non-UTF-8 locale, so on macOS
   constructing for one throws `io_error`.
+- **The `monetary` facet builds and runs on Windows and macOS**; `monetary<char32_t>`
+  is still provided on glibc only. Where the data comes from, and how it differs:
+  - The UCRT's `lconv` has no international format flags; the national ones stand in
+    (as in libc++), the international fractional digits still coming from
+    `int_frac_digits`: en-US's international format is `USD1,234.56`, and
+    `(USD1,234.56)` when negative. The flags are the ones the UCRT works out from NLS,
+    which loses something: NLS's negative formats `$ -1.1` and `1.1- $` come through as
+    a `sep_by_space` of 1 rather than 2, so nl-NL's negative amounts are written
+    `€- 1.234,56`. The wide currency symbols, signs and separators are the UCRT's `_W_`
+    fields, untouched by the code page.
+  - macOS sets the international format flags to the national ones, so en_US's
+    international format is `USD1,234.56` (glibc's is `USD 1,234.56`).
+  - `monetary<char8_t>` no longer goes through `monetary_conf<char32_t>`, which exists
+    on glibc only: a UTF-8 locale takes the narrow configuration's bytes as they are,
+    any other goes through `wchar_t`; on macOS constructing for a non-UTF-8 locale
+    throws `io_error`, as with `numeric<char8_t>`.
 
 #### Changed
 

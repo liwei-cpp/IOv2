@@ -22,6 +22,8 @@
 #include <IOv2/io/iochannel.h>
 #include <IOv2/io/iochannel_iterator.h>
 
+#include <support/platform_macros.h>
+
 #include <gtest/gtest.h>
 
 #include <cstddef>
@@ -420,10 +422,19 @@ TEST(MonetaryWchar, TheInternationalSymbolLeavesTheSeparatorToThePattern)
     ios_base<wchar_t> ios;
     ios.setf(ios_defs::showbase);
 
+    // en_US's international layout is the C library's; see the char case.
     const monetary<wchar_t> us = facet_for("en_US.UTF-8");
     EXPECT_EQ(us.curr_symbol_int(), L"USD");
+#if IOV2_TEST_LINUX_GLIBC
     EXPECT_EQ(put_str(us, true, ios, L"123456"), L"USD 1,234.56");
     EXPECT_EQ(put_str(us, true, ios, L"-123456"), L"-USD 1,234.56");
+#elif IOV2_TEST_MACOS
+    EXPECT_EQ(put_str(us, true, ios, L"123456"), L"USD1,234.56");
+    EXPECT_EQ(put_str(us, true, ios, L"-123456"), L"-USD1,234.56");
+#elif IOV2_TEST_WINDOWS
+    EXPECT_EQ(put_str(us, true, ios, L"123456"), L"USD1,234.56");
+    EXPECT_EQ(put_str(us, true, ios, L"-123456"), L"(USD1,234.56)");
+#endif
 
     const monetary<wchar_t> de = facet_for("de_DE.UTF-8");
     EXPECT_EQ(de.curr_symbol_int(), L"EUR");
@@ -911,7 +922,10 @@ TEST(MonetaryWchar, AnUnplaceableSymbolEndsTheField)
 // only the sign string it would otherwise use.
 TEST(MonetaryWchar, ASignPositionOfZeroMeansParentheses)
 {
-    const monetary<wchar_t> obj = facet_for("en_HK.UTF-8");
+#if IOV2_TEST_MACOS
+    GTEST_SKIP() << "no macOS locale probed puts negative amounts in parentheses";
+#else
+    const monetary<wchar_t> obj = facet_for(IOV2_TEST_WINDOWS ? "en_US.UTF-8" : "en_HK.UTF-8");
     EXPECT_EQ(obj.negative_sign_nat(), L"()");
     EXPECT_EQ(obj.negative_sign_int(), L"()");
 
@@ -920,6 +934,7 @@ TEST(MonetaryWchar, ASignPositionOfZeroMeansParentheses)
     EXPECT_EQ(field.front(), L'(');
     EXPECT_EQ(field.back(), L')');
     expect_parses(obj, false, ios, field, L"-827364");
+#endif
 }
 
 // A `space` slot writes the stream's fill character, not a literal space, and

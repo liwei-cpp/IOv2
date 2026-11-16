@@ -280,12 +280,17 @@ TEST(MonetaryChar, TheCLocaleStillHasANegativeSign)
 // Every spelling whose language segment is C or POSIX names the same locale.
 // glibc normalises the codeset before lookup, so a name matched exactly used to
 // fall through to localeconv() and take the all-unavailable monetary data
-// verbatim -- losing the negative sign above with it.
+// verbatim -- losing the negative sign above with it. The codeset spellings are
+// glibc's: Windows has no C.UTF-8, and macOS spells it one way only.
 TEST(MonetaryChar, EverySpellingOfTheCLocaleCarriesTheSameData)
 {
     const monetary<char> plain = facet_for("C");
 
-    for (const char* name : {"POSIX", "C.UTF-8", "C.utf8", "C.UTF8", "C.UTF-8@euro"})
+    std::vector<const char*> names = {"POSIX"};
+#if IOV2_TEST_LINUX_GLIBC
+    names.insert(names.end(), {"C.UTF-8", "C.utf8", "C.UTF8", "C.UTF-8@euro"});
+#endif
+    for (const char* name : names)
     {
         SCOPED_TRACE(name);
         const monetary<char> obj = facet_for(name);
@@ -312,11 +317,15 @@ TEST(MonetaryChar, EverySpellingOfTheCLocaleCarriesTheSameData)
 // handing back the defaults above.
 TEST(MonetaryChar, ANameTheSystemRejectsIsNotTheCLocale)
 {
+#if IOV2_TEST_LINUX_GLIBC
     for (const char* name : {"C.BOGUS", "C@euro", "C.", "C@", "POSIX.utf8", "POSIX@x"})
     {
         SCOPED_TRACE(name);
         EXPECT_THROW(facet_for(name), io_error);
     }
+#else
+    GTEST_SKIP() << "which C-like names the system rejects is glibc's list";
+#endif
 }
 
 TEST(MonetaryChar, ALocaleWithCurrencyDataDiffersFromTheCLocale)
@@ -329,19 +338,30 @@ TEST(MonetaryChar, ALocaleWithCurrencyDataDiffersFromTheCLocale)
     EXPECT_NE(us.grouping(), plain.grouping());
 }
 
-// The pattern is not stored by the locale: it is built from the three POSIX
-// lconv flags sign_posn, cs_precedes and sep_by_space.  These four locales are
-// the ones that reach the sign_posn cases 2, 3 and 4 -- with and without the
-// separating space, da_DK with sep_by_space 2 -- and the fifth is the hard-coded
-// default the C locale takes without consulting lconv at all.
+// The pattern is not stored by the locale: it is built from the three lconv
+// flags sign_posn, cs_precedes and sep_by_space, whose values differ by C
+// library. glibc's four locales reach the sign_posn cases 2, 3 and 4 -- with and
+// without the separating space, da_DK with sep_by_space 2. macOS's nl_NL has
+// sep_by_space 2 too. On Windows, en-US puts negative amounts in parentheses
+// (sign_posn 0), and nl-NL's "€ -1,10" comes through the UCRT as sep_by_space 1
+// rather than 2. The C locale takes the hard-coded default without consulting
+// lconv at all.
 TEST(MonetaryChar, ThePatternIsBuiltFromThePosixSignPosition)
 {
-    const std::pair<const char*, pattern> cases[] = {
+    const std::vector<std::pair<const char*, pattern>> cases = {
+#if IOV2_TEST_LINUX_GLIBC
         {"ar_AE.UTF-8", {part::symbol, part::space, part::value, part::sign}},
         {"nn_NO.UTF-8", {part::sign, part::symbol, part::value, part::none}},
         {"da_DK.UTF-8", {part::symbol, part::space, part::sign, part::value}},
         {"bo_CN.UTF-8", {part::symbol, part::sign, part::value, part::none}},
-        {"C.utf8",      {part::symbol, part::sign, part::none, part::value}},
+#elif IOV2_TEST_MACOS
+        {"nl_NL.UTF-8", {part::symbol, part::space, part::sign, part::value}},
+        {"de_CH.UTF-8", {part::symbol, part::sign, part::value, part::none}},
+#elif IOV2_TEST_WINDOWS
+        {"en_US.UTF-8", {part::sign, part::symbol, part::value, part::none}},
+        {"nl_NL.UTF-8", {part::symbol, part::sign, part::space, part::value}},
+#endif
+        {"C",           {part::symbol, part::sign, part::none, part::value}},
     };
 
     for (const auto& [name, expected] : cases)
@@ -372,16 +392,12 @@ TEST(MonetaryChar, PatternConstructionHandlesReverseAndUnavailableData)
                   (pattern{part::symbol, part::sign, part::none, part::value}));
     }
 
-    lconv unavailable{};
-    unavailable.frac_digits = CHAR_MAX;
-    unavailable.int_frac_digits = CHAR_MAX;
-    unavailable.n_sign_posn = CHAR_MAX;
-    unavailable.int_n_sign_posn = CHAR_MAX;
-    EXPECT_TRUE(monetary_probe::s_monetary_unavailable(&unavailable));
+    // What the backend copies out of an lconv that names nothing.
+    detail::monetary_raw_punct unavailable{};
+    EXPECT_TRUE(monetary_probe::s_monetary_unavailable(unavailable));
 
-    char currency[] = "$";
-    unavailable.currency_symbol = currency;
-    EXPECT_FALSE(monetary_probe::s_monetary_unavailable(&unavailable));
+    unavailable.currency_symbol = "$";
+    EXPECT_FALSE(monetary_probe::s_monetary_unavailable(unavailable));
 }
 
 // C11 7.11.2.1 EXAMPLE 2 spells out every combination of cs_precedes,
@@ -590,7 +606,10 @@ TEST(MonetaryChar, TheInternationalFlagSelectsTheOtherPunctuation)
 // C11 7.11.2.1: the fourth character of int_curr_symbol separates the symbol from
 // the amount, and is "used instead of a space" where int_*_sep_by_space asks for
 // one.  So the symbol is the three-letter code alone, and the field carries one
-// separator, on whichever side of the symbol the amount is.
+// separator, on whichever side of the symbol the amount is. en_US's international
+// layout is the C library's: glibc separates, macOS copies the national flags
+// (no space), and the UCRT has none, so the national ones stand in -- with
+// parentheses for a negative amount.
 TEST(MonetaryChar, TheInternationalSymbolLeavesTheSeparatorToThePattern)
 {
     ios_base<char> ios;
@@ -598,8 +617,16 @@ TEST(MonetaryChar, TheInternationalSymbolLeavesTheSeparatorToThePattern)
 
     const monetary<char> us = facet_for("en_US.UTF-8");
     EXPECT_EQ(us.curr_symbol_int(), "USD");
+#if IOV2_TEST_LINUX_GLIBC
     EXPECT_EQ(put_str(us, true, ios, "123456"), "USD 1,234.56");
     EXPECT_EQ(put_str(us, true, ios, "-123456"), "-USD 1,234.56");
+#elif IOV2_TEST_MACOS
+    EXPECT_EQ(put_str(us, true, ios, "123456"), "USD1,234.56");
+    EXPECT_EQ(put_str(us, true, ios, "-123456"), "-USD1,234.56");
+#elif IOV2_TEST_WINDOWS
+    EXPECT_EQ(put_str(us, true, ios, "123456"), "USD1,234.56");
+    EXPECT_EQ(put_str(us, true, ios, "-123456"), "(USD1,234.56)");
+#endif
 
     const monetary<char> de = facet_for("de_DE.UTF-8");
     EXPECT_EQ(de.curr_symbol_int(), "EUR");
@@ -611,12 +638,12 @@ TEST(MonetaryChar, TheInternationalSymbolLeavesTheSeparatorToThePattern)
 // and grouping with it stays on.
 TEST(MonetaryChar, AMultibyteSeparatorIsKeptWhole)
 {
-#if IOV2_TEST_LINUX_GLIBC
+#if !IOV2_TEST_WINDOWS
     const monetary<char> obj = facet_for("fr_FR.UTF-8");
     EXPECT_EQ(obj.thousands_sep(), "\xE2\x80\xAF");
     EXPECT_FALSE(obj.grouping().empty());
 #else
-    GTEST_SKIP() << "fr_FR's U+202F is glibc's data";
+    GTEST_SKIP() << "fr-FR's separator depends on the Windows version (U+00A0 on Server 2022)";
 #endif
 }
 
@@ -1248,10 +1275,14 @@ TEST(MonetaryChar, AnUnplaceableSymbolEndsTheField)
 
 // A locale whose sign position is 0 wraps a negative amount in parentheses
 // rather than spelling a sign, so the facet has to supply "()" where lconv has
-// only the sign string it would otherwise use.
+// only the sign string it would otherwise use. glibc's en_HK and Windows' en-US
+// do; macOS's en_HK does not.
 TEST(MonetaryChar, ASignPositionOfZeroMeansParentheses)
 {
-    const monetary<char> obj = facet_for("en_HK.UTF-8");
+#if IOV2_TEST_MACOS
+    GTEST_SKIP() << "no macOS locale probed puts negative amounts in parentheses";
+#else
+    const monetary<char> obj = facet_for(IOV2_TEST_WINDOWS ? "en_US.UTF-8" : "en_HK.UTF-8");
     EXPECT_EQ(obj.negative_sign_nat(), "()");
     EXPECT_EQ(obj.negative_sign_int(), "()");
 
@@ -1260,6 +1291,7 @@ TEST(MonetaryChar, ASignPositionOfZeroMeansParentheses)
     EXPECT_EQ(field.front(), '(');
     EXPECT_EQ(field.back(), ')');
     expect_parses(obj, false, ios, field, "-827364");
+#endif
 }
 
 // A `space` slot writes the stream's fill character, not a literal space, and
