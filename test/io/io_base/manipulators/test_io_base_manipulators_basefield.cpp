@@ -43,10 +43,11 @@ namespace
     {
         grouped_conf() : numeric_conf<C>("C") {}
         const std::vector<std::uint8_t>& grouping() const override { return m_grouping; }
-        C thousands_sep() const override { return C('_'); }
+        const std::basic_string<C>& thousands_sep() const override { return m_sep; }
 
     private:
         std::vector<std::uint8_t> m_grouping = {3};
+        std::basic_string<C>      m_sep = std::basic_string<C>(1, C('_'));
     };
 
     template <typename C>

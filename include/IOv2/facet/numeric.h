@@ -132,6 +132,7 @@ public:
         if (!p_obj || !p_ctype) throw io_error("shared_ptr is empty");
         m_decimal_point = p_obj->decimal_point();
         m_thousands_sep = p_obj->thousands_sep();
+        if (m_decimal_point.empty()) throw io_error("numeric: the decimal point is empty");
         m_true_name = p_obj->truename();
         m_false_name = p_obj->falsename();
         // grouping() is contracted to return the INTERNAL convention
@@ -140,6 +141,10 @@ public:
         // satisfy this contract — POSIX-style normalisation is done at the
         // POSIX boundary in numeric_conf, not here.
         m_grouping = p_obj->grouping();
+        // A user-derived configuration may hand over separators that parsing could not
+        // tell apart; grouping goes, as numeric_conf itself does it.
+        if (!FacetHelper::punct_distinct<CharT>(m_thousands_sep, m_decimal_point))
+            m_grouping.clear();
 
         // Each alphabet is widened whole and every other atom is widened by
         // name, so nothing here depends on a character sitting at a
@@ -198,34 +203,34 @@ public:
 public:
     /**
      * @lang{ZH}
-     * @brief 返回此 locale 的小数点字符。
-     * @return 小数点字符。
+     * @brief 返回此 locale 的小数点，可以是多个字符。
+     * @return 小数点，非空。
      * @endif
      *
      * @lang{EN}
-     * @brief Returns the decimal point character for this locale.
-     * @return The decimal point character.
+     * @brief Returns the decimal point for this locale; it may be several characters long.
+     * @return The decimal point, never empty.
      * @endif
      */
-    CharT decimal_point() const noexcept { return m_decimal_point; }
+    const std::basic_string<CharT>& decimal_point() const noexcept { return m_decimal_point; }
 
     /**
      * @lang{ZH}
-     * @brief 返回此 locale 的千位分隔符字符。
+     * @brief 返回此 locale 的千位分隔符，可以是多个字符。
      *
-     * 若返回值为 `CharT('\0')`，表示不使用分隔符，此时 `grouping()` 必为空。
-     * @return 千位分隔符字符，或 `CharT('\0')`（不使用分隔符时）。
+     * 只有 `grouping()` 非空时才用到它。
+     * @return 千位分隔符，可能为空串。
      * @endif
      *
      * @lang{EN}
-     * @brief Returns the thousands separator character for this locale.
+     * @brief Returns the thousands separator for this locale; it may be several characters
+     *        long.
      *
-     * A return value of `CharT('\0')` indicates that no separator is used,
-     * in which case `grouping()` is always empty.
-     * @return The thousands separator character, or `CharT('\0')` if none is used.
+     * It is used only when `grouping()` is non-empty.
+     * @return The thousands separator, possibly empty.
      * @endif
      */
-    CharT thousands_sep() const noexcept { return m_thousands_sep; }
+    const std::basic_string<CharT>& thousands_sep() const noexcept { return m_thousands_sep; }
 
     /**
      * @lang{ZH}
@@ -902,13 +907,8 @@ private:
         CharT* ws = vec_ws.data();
         m_ctype->widen_seq(cs, cs + len, ws);
 
-        const char* p = std::find(cs, cs + len, '.');
-        CharT* wp = nullptr;
-        if (p != cs + len)
-        {
-            wp = ws + (p - cs);
-            *wp = m_decimal_point;
-        }
+        const char* const p = std::find(cs, cs + len, '.');
+        const bool has_point = p != cs + len;
 
         // Only a real number gets grouped -- "inf", "nan" and exponent-only forms
         // like 2e20 must come through untouched. A decimal point settles it
@@ -916,29 +916,31 @@ private:
         // number, and so is text whose second and third characters are digits.
         const auto is_digit = [](char c) { return c >= '0' && c <= '9'; };
         const bool numeric_text =
-            wp || len < 3u || (is_digit(cs[1]) && is_digit(cs[2]));
+            has_point || len < 3u || (is_digit(cs[1]) && is_digit(cs[2]));
+        const bool grouped = !m_grouping.empty() && numeric_text;
 
-        if (!m_grouping.empty() && numeric_text)
+        if (has_point || grouped)
         {
-            // Worst case one separator per digit, so twice the length is ample.
-            std::vector<CharT> vec_ws2(len * 2);
-            CharT* ws2 = vec_ws2.data();
-
-            // A leading sign is not part of the number being grouped. Copy it
-            // across on its own and hand the grouper only what follows, so the
-            // digit count it works from never has to be unwound afterwards.
+            // The field is rebuilt: sign, integer part (grouped per LWG 282, the integer
+            // part only), this facet's decimal point for printf's '.', then the rest.
+            // Either punctuation may be several characters, so nothing is done in place.
             const std::size_t sign_len = (cs[0] == '-' || cs[0] == '+') ? 1u : 0u;
-            if (sign_len != 0)
-                ws2[0] = ws[0];
-
-            // LWG 282: grouping applies to the integer part only, so the split
-            // happens here and the fraction is handed over to be copied through.
-            const std::size_t digit_len = len - sign_len;
-            const std::size_t int_len   = wp ? static_cast<std::size_t>(wp - (ws + sign_len))
-                                             : digit_len;
-            len = sign_len + group_float(m_grouping, m_thousands_sep, ws2 + sign_len,
-                                         ws + sign_len, int_len, digit_len - int_len);
-            std::swap(vec_ws, vec_ws2);
+            const auto        int_end  = static_cast<std::size_t>(p - cs);
+            std::vector<CharT> rebuilt((int_end - sign_len) * (1 + m_thousands_sep.size())
+                                       + sign_len + m_decimal_point.size() + (len - int_end));
+            CharT* out = std::copy_n(ws, sign_len, rebuilt.data());
+            if (grouped)
+                out = FacetHelper::add_grouping(out, std::basic_string_view<CharT>(m_thousands_sep),
+                                                m_grouping, ws + sign_len, ws + int_end);
+            else
+                out = std::copy(ws + sign_len, ws + int_end, out);
+            if (has_point)
+            {
+                out = std::ranges::copy(m_decimal_point, out).out;
+                out = std::copy(ws + int_end + 1, ws + len, out);
+            }
+            len = static_cast<std::size_t>(out - rebuilt.data());
+            vec_ws = std::move(rebuilt);
             ws = vec_ws.data();
         }
 
@@ -1045,13 +1047,23 @@ private:
 
         const char_type* digits = raw_begin;
         auto digit_len = static_cast<std::size_t>(raw_end - raw_begin);
-        std::array<char_type, digit_capacity * 2> grouped_digits{};
 
+        // A separator of up to three characters (U+202F in UTF-8) is grouped on the stack;
+        // a longer one, which only a user-derived configuration would give, on the heap.
+        constexpr std::size_t inline_sep = 3;
+        std::array<char_type, digit_capacity * (1 + inline_sep)> grouped_digits{};
+        std::basic_string<char_type> grouped_heap;
         if (!m_grouping.empty())
         {
+            char_type* buf = grouped_digits.data();
+            if (m_thousands_sep.size() > inline_sep)
+            {
+                grouped_heap.resize(digit_len * (1 + m_thousands_sep.size()));
+                buf = grouped_heap.data();
+            }
             char_type* const grouped_end = FacetHelper::add_grouping(
-                grouped_digits.data(), m_thousands_sep, m_grouping, raw_begin, raw_end);
-            digits = grouped_digits.data();
+                buf, std::basic_string_view<char_type>(m_thousands_sep), m_grouping, raw_begin, raw_end);
+            digits = buf;
             digit_len = static_cast<std::size_t>(grouped_end - digits);
         }
 
@@ -1266,12 +1278,13 @@ private:
             return !(fill == m_out.lower[0] && leads_digits);
 
         // Past the value only what the parser would take as a continuation matters.
+        // A fill is one character, so it is held against the first of each punctuation.
         if (trails_value)
-            return (!m_grouping.empty() && fill == m_thousands_sep)
+            return (!m_grouping.empty() && fill == m_thousands_sep.front())
                 || (floating ? (fill == m_in.lower_e || fill == m_in.upper_e)
                              : (radix == 16 && (fill == m_in.lower_x || fill == m_in.upper_x)));
 
-        if (fill == m_decimal_point)
+        if (fill == m_decimal_point.front())
             return true;
         if (fill == m_out.minus)
             return !negative;
@@ -1332,7 +1345,8 @@ private:
       // Leading zeros would join the first group and break it, so a field that
       // carries a separator is not one a '0' fill may lead.
       const bool separated = !m_grouping.empty()
-          && std::find(cs, cs + len, m_thousands_sep) != cs + len;
+          && std::basic_string_view<char_type>(cs, len).find(m_thousands_sep)
+                 != std::basic_string_view<char_type>::npos;
       const bool leads_digits = !trails_value && !separated
           && (adjust == ios_defs::internal || !(startSign || start0x));
       if (fill_alters_reading(fill, basefield, leads_digits, trails_value,
@@ -1486,41 +1500,6 @@ private:
 
     /**
      * @lang{ZH}
-     * @brief 将已切分好的整数部分加上千位分隔符写入 `new_buf`，小数部分原样跟随。
-     *
-     * @param grouping 数字分组规则（内部规范化格式）。
-     * @param sep 千位分隔符字符。
-     * @param new_buf 输出缓冲区。
-     * @param src 输入宽字符缓冲区的起始指针，整数部分在前、小数部分紧随其后。
-     * @param int_len 整数部分的字符数。
-     * @param frac_len 小数部分的字符数（含小数点），无小数部分时为 0。
-     * @return 写入 `new_buf` 的字符总数。
-     * @endif
-     *
-     * @lang{EN}
-     * @brief Writes the already-split integer part into `new_buf` with grouping separators, followed by the fractional part verbatim.
-     *
-     * @param grouping Digit grouping rules (internal normalized form).
-     * @param sep The thousands separator character.
-     * @param new_buf Output buffer.
-     * @param src Start of the input wide-character buffer: integer part first, fractional part immediately after.
-     * @param int_len Character count of the integer part.
-     * @param frac_len Character count of the fractional part (including the decimal point); 0 when there is none.
-     * @return The total number of characters written to `new_buf`.
-     * @endif
-     */
-    std::size_t group_float(const std::vector<uint8_t>& grouping, char_type sep,
-                            char_type* new_buf, const char_type* src,
-                            std::size_t int_len, std::size_t frac_len) const
-    {
-        char_type* const grouped_end =
-            FacetHelper::add_grouping(new_buf, sep, grouping, src, src + int_len);
-        std::copy(src + int_len, src + int_len + frac_len, grouped_end);
-        return static_cast<std::size_t>(grouped_end - new_buf) + frac_len;
-    }
-
-    /**
-     * @lang{ZH}
      * @brief 判断某个字符在本 locale 中是否担任标点角色（千位分隔符或小数点）。
      *
      * 两个提取器都要在多处问同一个问题：符号位、前导零扫描、数字累加循环、指数符号。
@@ -1528,6 +1507,7 @@ private:
      * **标点身份优先**。把判断收在一处，四个调用点就不会各自跑偏。
      *
      * `m_grouping` 为空时不启用分组，此时 `m_thousands_sep` 无意义，故只检查小数点。
+     * 标点可以是多个字符，这里比的是它的第一个字符：问的是"这里会不会开始一个标点"。
      * @endif
      *
      * @lang{EN}
@@ -1541,7 +1521,9 @@ private:
      * one place stops the four call sites from drifting apart.
      *
      * An empty `m_grouping` means grouping is off, which makes `m_thousands_sep`
-     * meaningless, so only the decimal point is considered.
+     * meaningless, so only the decimal point is considered. Punctuation may be several
+     * characters long, and this compares its first: the question is whether one could
+     * start here.
      * @endif
      *
      * @param ch
@@ -1554,7 +1536,7 @@ private:
      */
     [[nodiscard]] bool is_punct(char_type ch) const noexcept
     {
-        return (!m_grouping.empty() && ch == m_thousands_sep) || ch == m_decimal_point;
+        return (!m_grouping.empty() && ch == m_thousands_sep.front()) || ch == m_decimal_point.front();
     }
 
     /**
@@ -1650,7 +1632,7 @@ private:
     template <typename TIter, std::sentinel_for<TIter> TSent>
     std::size_t skip_fill(TIter& beg, TSent end, char_type fill, int radix) const
     {
-        if (is_digit_glyph(fill, radix) || fill == m_decimal_point)
+        if (is_digit_glyph(fill, radix) || fill == m_decimal_point.front())
             return 0;
 
         std::size_t n = 0;
@@ -1783,30 +1765,39 @@ private:
         const char_type* const primary_end = digit_atoms + radix;
         const char_type* const uppercase_hex = digit_atoms + s_upper_hex;
 
+        // The separator takes part only while grouping is on.
+        const std::basic_string_view<char_type> sep =
+            m_grouping.empty() ? std::basic_string_view<char_type>() : m_thousands_sep;
+
         while (beg != end)
         {
-            const char_type current = *beg;
-
             // Locale punctuation takes precedence even if widening happened to
-            // give it the same representation as a sign or digit.
-            if (!m_grouping.empty() && current == m_thousands_sep)
+            // give it the same representation as a sign or digit. A decimal point
+            // ends the integer and stays in the input (see take_punct).
+            const FacetHelper::punct_kind punct =
+                FacetHelper::take_punct(beg, end, sep, std::basic_string_view<char_type>(m_decimal_point), false);
+            if (punct == FacetHelper::punct_kind::point || punct == FacetHelper::punct_kind::torn)
+                break;
+            if (punct == FacetHelper::punct_kind::separator)
             {
                 if (digits_in_group == 0
                     || std::cmp_greater(digits_in_group,
                                         std::numeric_limits<uint8_t>::max()))
                 {
+                    // The separator that broke the grouping stays in the input.
+                    FacetHelper::step_back(beg, sep, sep.size());
                     invalid_grouping = true;
                     break;
                 }
 
                 group_widths.push_back(static_cast<uint8_t>(digits_in_group));
                 digits_in_group = 0;
-                ++beg;
                 continue;
             }
-            if (current == m_decimal_point)
+            if (beg == end)
                 break;
 
+            const char_type current = *beg;
             int digit = -1;
             const char_type* match = std::find(digit_atoms, primary_end, current);
             if (match != primary_end)
@@ -2009,30 +2000,38 @@ private:
         bool saw_exp   = false;
         const char_type* const digit_table = m_in.digits.data();
 
+        const std::basic_string_view<char_type> sep =
+            m_grouping.empty() ? std::basic_string_view<char_type>() : m_thousands_sep;
+        const std::basic_string_view<char_type> point = m_decimal_point;
+
         while (!at_end)
         {
             // Punctuation is tested before the digit table, because a locale
-            // may well have nominated a character that appears in both.
-            if (!m_grouping.empty() && c == m_thousands_sep)
+            // may well have nominated a character that appears in both. Both
+            // belong to the integer part alone: past a point or an exponent
+            // neither is looked for, and one there simply ends the field.
+            const bool in_integer = !saw_point && !saw_exp;
+            const FacetHelper::punct_kind punct = FacetHelper::take_punct(
+                beg, end, in_integer ? sep : std::basic_string_view<char_type>(),
+                in_integer ? point : std::basic_string_view<char_type>(), true);
+            if (punct == FacetHelper::punct_kind::torn)
+                break;
+            if (punct == FacetHelper::punct_kind::separator)
             {
-                // Separators belong to the integer part alone; past a point or
-                // an exponent one simply ends the field. A separator also has
-                // to close a group that holds digits, which rules out a leading
-                // separator and two in a row alike.
-                if (saw_point || saw_exp)
-                    break;
+                // A separator has to close a group that holds digits, which rules
+                // out a leading separator and two in a row alike.
                 if (group_len == 0 || !close_group())
                 {
-                    // Leaving `xtrc` empty is what tells convert_to_v to fail.
+                    // Leaving `xtrc` empty is what tells convert_to_v to fail. The
+                    // separator that broke the grouping stays in the input.
+                    FacetHelper::step_back(beg, sep, sep.size());
                     xtrc.clear();
                     break;
                 }
                 group_len = 0;
             }
-            else if (c == m_decimal_point)
+            else if (punct == FacetHelper::punct_kind::point)
             {
-                if (saw_point || saw_exp)
-                    break;
                 // A grouping check only happens if the input used grouping at
                 // all, so the run of digits before the point is worth recording
                 // only when some separator already opened the tally.
@@ -2044,43 +2043,49 @@ private:
                 xtrc += '.';
                 saw_point = true;
             }
-            else
+            if (punct != FacetHelper::punct_kind::none)
             {
-                const char_type* q = std::find(digit_table, digit_table + 10, c);
-                if (q != digit_table + 10)
-                {
-                    xtrc += static_cast<char>('0' + (q - digit_table));
-                    saw_digit = true;
-                    ++group_len;
-                }
-                else if ((c == m_in.lower_e || c == m_in.upper_e)
-                        && !saw_exp && saw_digit)
-                {
-                    // The exponent ends the integer part too, so an open tally
-                    // is closed here for the same reason as at a decimal point
-                    // -- unless a point already did it.
-                    if (!groups_seen.empty() && !saw_point && !close_group())
-                    {
-                        xtrc.clear();
-                        break;
-                    }
-                    xtrc += 'e';
-                    saw_exp = true;
-
-                    if (++beg == end)
-                    {
-                        at_end = true;
-                        break;
-                    }
+                // take_punct has read past it already.
+                at_end = beg == end;
+                if (!at_end)
                     c = *beg;
-                    if (!take_sign(c))
-                        // No exponent sign after all, so `c` is already the next
-                        // character to judge: go round again without advancing.
-                        continue;
-                }
-                else
-                    break;
+                continue;
             }
+
+            const char_type* q = std::find(digit_table, digit_table + 10, c);
+            if (q != digit_table + 10)
+            {
+                xtrc += static_cast<char>('0' + (q - digit_table));
+                saw_digit = true;
+                ++group_len;
+            }
+            else if ((c == m_in.lower_e || c == m_in.upper_e)
+                    && !saw_exp && saw_digit)
+            {
+                // The exponent ends the integer part too, so an open tally
+                // is closed here for the same reason as at a decimal point
+                // -- unless a point already did it.
+                if (!groups_seen.empty() && !saw_point && !close_group())
+                {
+                    xtrc.clear();
+                    break;
+                }
+                xtrc += 'e';
+                saw_exp = true;
+
+                if (++beg == end)
+                {
+                    at_end = true;
+                    break;
+                }
+                c = *beg;
+                if (!take_sign(c))
+                    // No exponent sign after all, so `c` is already the next
+                    // character to judge: go round again without advancing.
+                    continue;
+            }
+            else
+                break;
 
             advance();
         }
@@ -2229,8 +2234,8 @@ private:
 
 private:
     std::shared_ptr<const ctype<CharT>> m_ctype;        ///< @lang{ZH} 用于字符扩宽的 `ctype` facet 共享指针。 @endif @lang{EN} Shared pointer to the `ctype` facet used for character widening. @endif
-    CharT m_decimal_point;                              ///< @lang{ZH} 小数点字符，从 `numeric_conf` 缓存。 @endif @lang{EN} Decimal point character, cached from `numeric_conf`. @endif
-    CharT m_thousands_sep;                              ///< @lang{ZH} 千位分隔符，从 `numeric_conf` 缓存；`CharT('\0')` 表示不分组。 @endif @lang{EN} Thousands separator, cached from `numeric_conf`; `CharT('\0')` means no grouping. @endif
+    std::basic_string<CharT> m_decimal_point;           ///< @lang{ZH} 小数点，从 `numeric_conf` 缓存，非空。 @endif @lang{EN} Decimal point, cached from `numeric_conf`; never empty. @endif
+    std::basic_string<CharT> m_thousands_sep;           ///< @lang{ZH} 千位分隔符，从 `numeric_conf` 缓存；只在 `m_grouping` 非空时使用。 @endif @lang{EN} Thousands separator, cached from `numeric_conf`; used only when `m_grouping` is non-empty. @endif
     std::basic_string<CharT>  m_true_name;              ///< @lang{ZH} `true` 的文本表示，从 `numeric_conf` 缓存。 @endif @lang{EN} Textual representation of `true`, cached from `numeric_conf`. @endif
     std::basic_string<CharT>  m_false_name;             ///< @lang{ZH} `false` 的文本表示，从 `numeric_conf` 缓存。 @endif @lang{EN} Textual representation of `false`, cached from `numeric_conf`. @endif
     std::vector<uint8_t>      m_grouping;               ///< @lang{ZH} 数字分组规则（内部规范化格式），从 `numeric_conf` 缓存；为空时不分组。 @endif @lang{EN} Digit grouping rules (internal normalized form), cached from `numeric_conf`; empty means no grouping. @endif

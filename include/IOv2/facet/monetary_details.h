@@ -31,10 +31,8 @@
 #include <clocale>
 #include <cstddef>
 #include <cstdint>
-#include <cstring>
 #include <string>
 #include <type_traits>
-#include <utility>
 #include <vector>
 
 namespace IOv2
@@ -410,8 +408,7 @@ template <typename CharT> class monetary_conf;
  *
  * 对于 `"C"` 和 `"POSIX"` 区域设置，使用硬编码的默认值；
  * 对于其他区域设置，通过 `clocale_wrapper` 切换至目标区域设置并调用
- * `localeconv()` 读取数据。所有 `lconv` 字段在任何转换操作之前整体快照，
- * 以避免转换器内部的 `setlocale()`/`uselocale()` 调用使 `lconv` 指针失效。
+ * `localeconv()` 读取数据。各字段按 locale 的窄字符编码原样保存，不做转换。
  * @endif
  *
  * @lang{EN}
@@ -420,10 +417,8 @@ template <typename CharT> class monetary_conf;
  *
  * For the `"C"` and `"POSIX"` locales, hard-coded defaults are used.
  * For other locales, the target locale is switched via `clocale_wrapper`
- * and `localeconv()` is called to read the data. All `lconv` fields are
- * snapshotted in bulk before any conversion operation, to prevent the
- * converter's internal `setlocale()`/`uselocale()` calls from invalidating
- * the `lconv` pointers.
+ * and `localeconv()` is called to read the data. Every field is kept as it is, in the
+ * locale's narrow encoding, with no conversion.
  * @endif
  */
 template <>
@@ -465,25 +460,6 @@ public:
                 return;
             }
 
-            // Read every lconv-derived field up front, BEFORE the
-            // string_to_char_convert calls further down. That converter
-            // transitively calls setlocale()/uselocale() (via
-            // detail::to_wstring), which may invalidate the libc-owned
-            // lconv pointers, so no lc-> access may follow it. The two
-            // fields whose use is gated on the converted decimal point /
-            // thousands separator (frac digits and grouping) are stashed
-            // in locals here and applied after the conversion; the
-            // conversion result only selects whether to adopt them, it is
-            // never an input to reading lconv.
-            std::vector<uint8_t> grouping_raw;
-            if (lc->mon_grouping)
-            {
-                const std::size_t len = strlen(lc->mon_grouping);
-                grouping_raw.resize(len);
-                for (std::size_t i = 0; i < len; ++i)
-                    grouping_raw[i] = static_cast<uint8_t>(lc->mon_grouping[i]);
-            }
-
             m_positive_sign_nat = lc->positive_sign;
             m_positive_sign_int = m_positive_sign_nat;
 
@@ -505,66 +481,17 @@ public:
             m_pos_format_int = s_construct_pattern({.precedes = s_norm_flag(lc->int_p_cs_precedes), .sep_by_space = s_norm_flag(lc->int_p_sep_by_space), .sign_posn = lc->int_p_sign_posn});
             m_neg_format_int = s_construct_pattern({.precedes = s_norm_flag(lc->int_n_cs_precedes), .sep_by_space = s_norm_flag(lc->int_n_sep_by_space), .sign_posn = lc->int_n_sign_posn});
 
-            std::string mdp_raw, mts_raw;
-            if (lc->mon_decimal_point) mdp_raw = lc->mon_decimal_point;
-            if (lc->mon_thousands_sep) mts_raw = lc->mon_thousands_sep;
-
-            // CHAR_MAX is POSIX's "value not specified by the locale"; map it
-            // to 0 fractional digits rather than taking it literally.
-            const int lc_frac_nat = (lc->frac_digits == CHAR_MAX) ? 0 : lc->frac_digits;
-            const int lc_frac_int = (lc->int_frac_digits == CHAR_MAX) ? 0 : lc->int_frac_digits;
-
-            // No lc-> access beyond this point: the conversions may
-            // invalidate the lconv pointers.
-            // The decimal point and thousands separator are each stored as a
-            // single char. A locale separator that does not fit in one char
-            // (multibyte) cannot be represented: the convert yields '\0' and
-            // the fallbacks below regress to '.' / ','.
-            //
-            // The two fallbacks are not symmetric, and the ',' one is easy to
-            // misread. A '\0' decimal point really is replaced by '.', which
-            // *changes* the character the output carries (e.g. a locale whose
-            // mon_decimal_point is multibyte). A '\0' thousands separator takes
-            // the `if` below, which means the `else if` that fills m_grouping is
-            // skipped, so m_grouping stays empty and grouping is disabled
-            // outright -- the ',' is stored but never emitted, because nothing
-            // ever asks for a group boundary. In other words the multibyte case
-            // *omits* the separator rather than substituting a wrong one; it
-            // never writes a ',' the locale did not ask for.
-            m_decimal_point = FacetHelper::string_to_char_convert(mdp_raw, name);
-            m_thousands_sep = FacetHelper::string_to_char_convert(mts_raw, name);
-
-            if (m_decimal_point == '\0')
-            {
-                m_decimal_point = '.';
-                if (mdp_raw.empty())
-                {
-                    m_frac_digits_int = 0;
-                    m_frac_digits_nat = 0;
-                }
-                else
-                {
-                    m_frac_digits_nat = lc_frac_nat;
-                    m_frac_digits_int = lc_frac_int;
-                }
-            }
-            else
-            {
-                m_frac_digits_nat = lc_frac_nat;
-                m_frac_digits_int = lc_frac_int;
-            }
-
-            if (m_thousands_sep == '\0') m_thousands_sep = ',';
-            else if (!grouping_raw.empty())
-            {
-                // Normalise raw POSIX grouping bytes into the internal
-                // convention here at the POSIX boundary.
-                m_grouping = std::move(grouping_raw);
-                FacetHelper::adjust_grouping(m_grouping);
-            }
-
-            if (m_thousands_sep == m_decimal_point)
-                m_grouping.clear();
+            // The separators are kept as the C library spells them, in the locale's
+            // narrow encoding, however many bytes that takes. A locale with no decimal
+            // point has no fractional places either. CHAR_MAX is POSIX's "value not
+            // specified by the locale", which is 0 fractional digits.
+            const std::string point = lc->mon_decimal_point ? lc->mon_decimal_point : "";
+            m_decimal_point = point.empty() ? "." : point;
+            m_thousands_sep = lc->mon_thousands_sep ? lc->mon_thousands_sep : "";
+            m_frac_digits_nat = (point.empty() || lc->frac_digits == CHAR_MAX) ? 0 : lc->frac_digits;
+            m_frac_digits_int = (point.empty() || lc->int_frac_digits == CHAR_MAX) ? 0 : lc->int_frac_digits;
+            m_grouping = FacetHelper::lconv_grouping<char>(lc->mon_grouping ? lc->mon_grouping : "",
+                                                           m_thousands_sep, m_decimal_point);
         }
     }
 
@@ -745,29 +672,36 @@ public:
 
     /**
      * @lang{ZH}
-     * @brief 返回货币小数点字符。
-     * @return 小数点字符（如 `'.'`）。
+     * @brief 返回货币小数点，按 locale 的窄字符编码给出，可以是多个字节。
+     * @return 小数点，非空（如 `"."`）。
      * @endif
      *
      * @lang{EN}
-     * @brief Returns the monetary decimal point character.
-     * @return The decimal point character (e.g. `'.'`).
+     * @brief Returns the monetary decimal point, in the locale's narrow encoding; it may be
+     *        several bytes long.
+     * @return The decimal point, never empty (e.g. `"."`).
      * @endif
      */
-    [[nodiscard]] virtual char decimal_point() const { return m_decimal_point; }
+    [[nodiscard]] virtual const std::string& decimal_point() const { return m_decimal_point; }
 
     /**
      * @lang{ZH}
-     * @brief 返回千位分隔符字符。
-     * @return 千位分隔符字符（如 `','`）。
+     * @brief 返回货币千位分隔符，按 locale 的窄字符编码给出，可以是多个字节。
+     *
+     * 为空表示不使用分隔符，此时 `grouping()` 必为空。
+     * @return 千位分隔符（如 `","`），或空串。
      * @endif
      *
      * @lang{EN}
-     * @brief Returns the thousands separator character.
-     * @return The thousands separator character (e.g. `','`).
+     * @brief Returns the monetary thousands separator, in the locale's narrow encoding; it
+     *        may be several bytes long.
+     *
+     * An empty string means no separator is used, in which case `grouping()` is always
+     * empty.
+     * @return The thousands separator (e.g. `","`), or an empty string.
      * @endif
      */
-    [[nodiscard]] virtual char thousands_sep() const { return m_thousands_sep; }
+    [[nodiscard]] virtual const std::string& thousands_sep() const { return m_thousands_sep; }
 
 private:
     /**
@@ -781,8 +715,8 @@ private:
      */
     void init_c_defaults()
     {
-        m_decimal_point = '.';
-        m_thousands_sep = ',';
+        m_decimal_point = ".";
+        m_thousands_sep = ",";
         m_frac_digits_int = 0;
         m_frac_digits_nat = 0;
         m_negative_sign_int = "-";
@@ -807,8 +741,8 @@ private:
     pattern                 m_neg_format_nat{};
     int                     m_frac_digits_int;
     int                     m_frac_digits_nat;
-    char                    m_decimal_point;
-    char                    m_thousands_sep;
+    std::string             m_decimal_point;
+    std::string             m_thousands_sep;
 };
 
 /**
@@ -882,8 +816,7 @@ public:
             }
 
             // Snapshot every lconv-derived field up front, BEFORE any
-            // converter runs. string_to_widechar_convert and
-            // detail::to_wstring/to_u32string all transitively invoke
+            // converter runs. detail::to_wstring/to_u32string transitively invoke
             // setlocale()/uselocale(), which may invalidate every string
             // pointer inside `lc`. So all narrow source strings are copied
             // into std::string locals and the value fields into locals
@@ -903,20 +836,13 @@ public:
                 base_ft<monetary>::s_int_curr_code(lc->int_curr_symbol);
 
             // CHAR_MAX is POSIX's "value not specified by the locale"; map it
-            // to 0 fractional digits rather than taking it literally.
-            const int lc_frac_nat = (lc->frac_digits == CHAR_MAX) ? 0 : lc->frac_digits;
-            const int lc_frac_int = (lc->int_frac_digits == CHAR_MAX) ? 0 : lc->int_frac_digits;
+            // to 0 fractional digits rather than taking it literally. A locale with
+            // no decimal point has no fractional places either.
+            const int lc_frac_nat = (mon_dp_raw.empty() || lc->frac_digits == CHAR_MAX) ? 0 : lc->frac_digits;
+            const int lc_frac_int = (mon_dp_raw.empty() || lc->int_frac_digits == CHAR_MAX) ? 0 : lc->int_frac_digits;
             const bool has_n_sign_posn     = lc->n_sign_posn;
             const bool has_int_n_sign_posn = lc->int_n_sign_posn;
-
-            std::vector<uint8_t> grouping_raw;
-            if (lc->mon_grouping)
-            {
-                const std::size_t len = strlen(lc->mon_grouping);
-                grouping_raw.resize(len);
-                for (std::size_t i = 0; i < len; ++i)
-                    grouping_raw[i] = static_cast<uint8_t>(lc->mon_grouping[i]);
-            }
+            const std::string grouping_raw = lc->mon_grouping ? lc->mon_grouping : "";
 
             m_pos_format_nat = base_ft<monetary>::s_construct_pattern({.precedes = base_ft<monetary>::s_norm_flag(lc->p_cs_precedes), .sep_by_space = base_ft<monetary>::s_norm_flag(lc->p_sep_by_space), .sign_posn = lc->p_sign_posn});
             m_neg_format_nat = base_ft<monetary>::s_construct_pattern({.precedes = base_ft<monetary>::s_norm_flag(lc->n_cs_precedes), .sep_by_space = base_ft<monetary>::s_norm_flag(lc->n_sep_by_space), .sign_posn = lc->n_sign_posn});
@@ -924,60 +850,22 @@ public:
             m_neg_format_int = base_ft<monetary>::s_construct_pattern({.precedes = base_ft<monetary>::s_norm_flag(lc->int_n_cs_precedes), .sep_by_space = base_ft<monetary>::s_norm_flag(lc->int_n_sep_by_space), .sign_posn = lc->int_n_sign_posn});
 
             // No lc-> access beyond this point: the conversions may
-            // invalidate the lconv pointers.
-            // The decimal point and thousands separator are each a single
-            // CharT. A locale separator that does not fit in one code unit
-            // (e.g. multiple code points) cannot be represented: the convert
-            // yields '\0' and the fallbacks below regress to '.' / ','.
-            //
-            // Same asymmetry as in the char specialization: the '.' fallback
-            // really does replace the character, whereas the ',' one takes the
-            // `if` below and so skips the `else if` that fills m_grouping --
-            // grouping ends up disabled and the ',' is never emitted. Note this
-            // branch is much harder to reach here than on the char side: a
-            // separator such as U+202F fits in one wchar_t / char32_t, so it is
-            // stored as-is and grouping keeps working.
-            m_decimal_point = FacetHelper::string_to_widechar_convert<CharT>(
-                mon_dp_raw, name, static_cast<CharT>('\0'));
-            m_thousands_sep = FacetHelper::string_to_widechar_convert<CharT>(
-                mon_ts_raw, name, static_cast<CharT>('\0'));
-
-            if (static_cast<int>(m_decimal_point) == 0)
-            {
-                if constexpr (std::is_same_v<CharT, wchar_t>) m_decimal_point = L'.';
-                else m_decimal_point = U'.';
-                if (mon_dp_raw.empty())
-                {
-                    m_frac_digits_int = 0;
-                    m_frac_digits_nat = 0;
-                }
+            // invalidate the lconv pointers. Each separator is converted whole.
+            const auto widen = [&name](const std::string& narrow) {
+                if (narrow.empty())
+                    return std::basic_string<CharT>();
+                if constexpr (std::is_same_v<CharT, wchar_t>)
+                    return detail::to_wstring(narrow, name);
                 else
-                {
-                    m_frac_digits_nat = lc_frac_nat;
-                    m_frac_digits_int = lc_frac_int;
-                }
-            }
-            else
-            {
-                m_frac_digits_nat = lc_frac_nat;
-                m_frac_digits_int = lc_frac_int;
-            }
-
-            if (static_cast<int>(m_thousands_sep) == 0)
-            {
-                if constexpr (std::is_same_v<CharT, wchar_t>) m_thousands_sep = L',';
-                else m_thousands_sep = U',';
-            }
-            else if (!grouping_raw.empty())
-            {
-                // Normalise raw POSIX grouping bytes into the internal
-                // convention here at the POSIX boundary.
-                m_grouping = std::move(grouping_raw);
-                FacetHelper::adjust_grouping(m_grouping);
-            }
-
-            if (m_thousands_sep == m_decimal_point)
-                m_grouping.clear();
+                    return detail::to_u32string<CharT>(narrow, name);
+            };
+            m_decimal_point = widen(mon_dp_raw);
+            if (m_decimal_point.empty())
+                m_decimal_point.assign(1, static_cast<CharT>('.'));
+            m_thousands_sep = widen(mon_ts_raw);
+            m_frac_digits_nat = lc_frac_nat;
+            m_frac_digits_int = lc_frac_int;
+            m_grouping = FacetHelper::lconv_grouping<CharT>(grouping_raw, m_thousands_sep, m_decimal_point);
 
             if constexpr (std::is_same_v<CharT, wchar_t>)
                 m_positive_sign_nat = detail::to_wstring(positive_sign_raw, name);
@@ -1199,29 +1087,34 @@ public:
 
     /**
      * @lang{ZH}
-     * @brief 返回货币小数点字符。
-     * @return 小数点字符。
+     * @brief 返回货币小数点。
+     * @return 小数点，非空。
      * @endif
      *
      * @lang{EN}
-     * @brief Returns the monetary decimal point character.
-     * @return The decimal point character.
+     * @brief Returns the monetary decimal point.
+     * @return The decimal point, never empty.
      * @endif
      */
-    [[nodiscard]] virtual CharT decimal_point() const { return m_decimal_point; }
+    [[nodiscard]] virtual const std::basic_string<CharT>& decimal_point() const { return m_decimal_point; }
 
     /**
      * @lang{ZH}
-     * @brief 返回千位分隔符字符。
-     * @return 千位分隔符字符。
+     * @brief 返回货币千位分隔符。
+     *
+     * 为空表示不使用分隔符，此时 `grouping()` 必为空。
+     * @return 千位分隔符，或空串。
      * @endif
      *
      * @lang{EN}
-     * @brief Returns the thousands separator character.
-     * @return The thousands separator character.
+     * @brief Returns the monetary thousands separator.
+     *
+     * An empty string means no separator is used, in which case `grouping()` is always
+     * empty.
+     * @return The thousands separator, or an empty string.
      * @endif
      */
-    [[nodiscard]] virtual CharT thousands_sep() const { return m_thousands_sep; }
+    [[nodiscard]] virtual const std::basic_string<CharT>& thousands_sep() const { return m_thousands_sep; }
 
 private:
     /**
@@ -1237,15 +1130,15 @@ private:
     {
         if constexpr (std::is_same_v<CharT, wchar_t>)
         {
-            m_decimal_point = L'.';
-            m_thousands_sep = L',';
+            m_decimal_point = L".";
+            m_thousands_sep = L",";
             m_negative_sign_int = L"-";
             m_negative_sign_nat = L"-";
         }
         else
         {
-            m_decimal_point = U'.';
-            m_thousands_sep = U',';
+            m_decimal_point = U".";
+            m_thousands_sep = U",";
             m_negative_sign_int = U"-";
             m_negative_sign_nat = U"-";
         }
@@ -1271,8 +1164,8 @@ private:
     base_ft<monetary>::pattern      m_neg_format_nat{};
     int                         m_frac_digits_int;
     int                         m_frac_digits_nat;
-    CharT                       m_decimal_point;
-    CharT                       m_thousands_sep;
+    std::basic_string<CharT>    m_decimal_point;
+    std::basic_string<CharT>    m_thousands_sep;
 };
 
 /**
@@ -1355,8 +1248,8 @@ public:
     {
         if (FacetHelper::is_c_locale_name(name))
         { // "C" locale
-            m_decimal_point = u8'.';
-            m_thousands_sep = u8',';
+            m_decimal_point = u8".";
+            m_thousands_sep = u8",";
             m_negative_sign_int = u8"-";
             m_negative_sign_nat = u8"-";
             m_frac_digits_int = 0;
@@ -1379,9 +1272,6 @@ private:
      * 的引用成为依赖名，从而整个函数体仅在此辅助函数被实例化时（即非 `"C"`/`"POSIX"`
      * 构造路径）才检查，而非提前检查。
      *
-     * 小数点和千位分隔符各为单个 `char8_t`（一个 UTF-8 码元），因此只有编码为
-     * 单字节（ASCII）的分隔符才能表示；更宽的分隔符将回退为 `'.'`/`','`。
-     *
      * @tparam T 必须为 `char32_t`（默认值）。
      * @param name 区域设置名称。
      * @endif
@@ -1394,10 +1284,6 @@ private:
      * checked only upon instantiation of this helper (i.e. only on the
      * non-`"C"`/`"POSIX"` construction path), never eagerly.
      *
-     * The decimal point and thousands separator are each a single `char8_t`
-     * (one UTF-8 code unit), so only a separator that encodes to a single byte
-     * (ASCII) fits; anything wider regresses to `'.'` / `','`.
-     *
      * @tparam T Must be `char32_t` (the default).
      * @param name The locale name.
      * @endif
@@ -1408,30 +1294,10 @@ private:
     {
         monetary_conf<T> monetary_tmp(name);
 
-        // The decimal point and thousands separator are each a single char8_t
-        // (one UTF-8 code unit), so only a separator that encodes to a single
-        // byte (ASCII) fits; anything wider regresses to '.' / ','.
-        {
-            const auto& input = monetary_tmp.decimal_point();
-            auto byte_str = detail::to_u8string(input);
-            if (byte_str.size() == 1) m_decimal_point = byte_str[0];
-            else m_decimal_point = u8'.';
-        }
-
-        {
-            const auto& input = monetary_tmp.thousands_sep();
-            auto byte_str = detail::to_u8string(input);
-            if (byte_str.size() == 1 && byte_str[0] != u8'\0')
-            {
-                m_thousands_sep = byte_str[0];
-                m_grouping = monetary_tmp.grouping();
-            }
-            else
-                m_thousands_sep = u8',';
-        }
-
-        if (m_thousands_sep == m_decimal_point)
-            m_grouping.clear();
+        // The separators are encoded as UTF-8 whole, however many bytes that takes.
+        m_decimal_point = detail::to_u8string(monetary_tmp.decimal_point());
+        m_thousands_sep = detail::to_u8string(monetary_tmp.thousands_sep());
+        m_grouping      = monetary_tmp.grouping();
 
         m_frac_digits_int = monetary_tmp.frac_digits_int();
         m_frac_digits_nat = monetary_tmp.frac_digits_nat();
@@ -1646,29 +1512,34 @@ public:
 
     /**
      * @lang{ZH}
-     * @brief 返回货币小数点字符（UTF-8 码元）。
-     * @return 小数点字符。
+     * @brief 返回货币小数点（UTF-8 编码，可以是多个字节）。
+     * @return 小数点，非空。
      * @endif
      *
      * @lang{EN}
-     * @brief Returns the monetary decimal point character (UTF-8 code unit).
-     * @return The decimal point character.
+     * @brief Returns the monetary decimal point (UTF-8; it may be several bytes long).
+     * @return The decimal point, never empty.
      * @endif
      */
-    [[nodiscard]] virtual char8_t decimal_point() const { return m_decimal_point; }
+    [[nodiscard]] virtual const std::basic_string<char8_t>& decimal_point() const { return m_decimal_point; }
 
     /**
      * @lang{ZH}
-     * @brief 返回千位分隔符字符（UTF-8 码元）。
-     * @return 千位分隔符字符。
+     * @brief 返回货币千位分隔符（UTF-8 编码，可以是多个字节）。
+     *
+     * 为空表示不使用分隔符，此时 `grouping()` 必为空。
+     * @return 千位分隔符，或空串。
      * @endif
      *
      * @lang{EN}
-     * @brief Returns the thousands separator character (UTF-8 code unit).
-     * @return The thousands separator character.
+     * @brief Returns the monetary thousands separator (UTF-8; it may be several bytes long).
+     *
+     * An empty string means no separator is used, in which case `grouping()` is always
+     * empty.
+     * @return The thousands separator, or an empty string.
      * @endif
      */
-    [[nodiscard]] virtual char8_t thousands_sep() const { return m_thousands_sep; }
+    [[nodiscard]] virtual const std::basic_string<char8_t>& thousands_sep() const { return m_thousands_sep; }
 
 private:
     std::vector<uint8_t>        m_grouping;
@@ -1684,7 +1555,7 @@ private:
     base_ft<monetary>::pattern      m_neg_format_nat{};
     int                         m_frac_digits_int;
     int                         m_frac_digits_nat;
-    char8_t                     m_decimal_point;
-    char8_t                     m_thousands_sep;
+    std::basic_string<char8_t>  m_decimal_point;
+    std::basic_string<char8_t>  m_thousands_sep;
 };
 }

@@ -76,12 +76,14 @@ namespace
 
         // U+066B ARABIC DECIMAL SEPARATOR and U+2019 RIGHT SINGLE QUOTATION MARK:
         // neither exists in any narrow encoding this test can reach.
-        wchar_t decimal_point() const override { return L'\u066b'; }
-        wchar_t thousands_sep() const override { return L'\u2019'; }
+        const std::wstring& decimal_point() const override { return m_point; }
+        const std::wstring& thousands_sep() const override { return m_sep; }
         const std::vector<std::uint8_t>& grouping() const override { return m_group; }
 
     private:
         std::vector<std::uint8_t> m_group;
+        std::wstring              m_point = L"\u066b";
+        std::wstring              m_sep = L"\u2019";
     };
 
     // A user-defined operator&& yielding bool, at namespace scope because a

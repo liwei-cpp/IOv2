@@ -25,8 +25,8 @@
 #include <IOv2/facet/facet_helper.h>
 #include <IOv2/facet/platform/numeric_backend.h>
 
-#include <cstddef>
 #include <cstdint>
+#include <optional>
 #include <string>
 #include <string_view>
 #include <type_traits>
@@ -103,50 +103,20 @@ public:
     {
         if (FacetHelper::is_c_locale_name(name))
         { // "C" locale
-            m_decimal_point = '.';
-            m_thousands_sep = ',';
+            m_decimal_point = ".";
+            m_thousands_sep = ",";
             m_true_name = "true";
             m_false_name = "false";
             return;
         }
 
         const detail::numeric_raw_punct raw = detail::numeric_snapshot(name);
-        const std::string& grp_raw = raw.grouping;
 
-        m_decimal_point = FacetHelper::string_to_char_convert(raw.decimal_point, name);
-        m_thousands_sep = FacetHelper::string_to_char_convert(raw.thousands_sep, name);
-
-        // string_to_char_convert hard-codes '\0' as its failure sentinel. A
-        // decimal point of '\0' would later be mistaken for an in-stream
-        // null byte during parsing; fall back to '.' so the contract that
-        // m_decimal_point is a real, distinguishable character is preserved.
-        if (m_decimal_point == '\0') m_decimal_point = '.';
-
-        if (m_thousands_sep != '\0' && !grp_raw.empty())
-        {
-            // Copy raw POSIX grouping bytes, then normalise into the
-            // internal convention here at the POSIX boundary.
-            // Downstream (numeric, user-derived numeric_conf) sees
-            // only the internal form.
-            m_grouping.resize(grp_raw.size());
-            for (std::size_t i = 0; i < grp_raw.size(); ++i)
-                m_grouping[i] = static_cast<uint8_t>(grp_raw[i]);
-            FacetHelper::adjust_grouping(m_grouping);
-        }
-
-        // If a locale (or a user-derived numeric_conf that overrides
-        // thousands_sep() / decimal_point()) ends up with the same
-        // character for both separators, downstream extract_int /
-        // extract_float in facet/numeric.h check thousands_sep BEFORE
-        // decimal_point against each input character. An equal pair
-        // makes the decimal-point branch unreachable and groups would
-        // be parsed where a decimal mark was intended. Drop grouping
-        // so parsing falls back to the no-grouping path. Mirrors the
-        // same guard in numeric_conf<char8_t>, which can hit this case
-        // after multi-byte UTF-8 separators collapse onto single-byte
-        // fallbacks.
-        if (m_thousands_sep == m_decimal_point)
-            m_grouping.clear();
+        // The separators are kept as the C library spells them, in the locale's narrow
+        // encoding, however many bytes that takes (U+202F is three in UTF-8).
+        m_decimal_point = raw.decimal_point.empty() ? "." : raw.decimal_point;
+        m_thousands_sep = raw.thousands_sep;
+        m_grouping = FacetHelper::lconv_grouping<char>(raw.grouping, m_thousands_sep, m_decimal_point);
 
         // An empty name would make numeric::get(bool&) fail unconditionally (a
         // zero-length prefix never matches) and numeric::put(bool) write nothing
@@ -158,34 +128,37 @@ public:
 public:
     /**
      * @lang{ZH}
-     * @brief 返回此 locale 的小数点字符。
-     * @return 小数点字符。
+     * @brief 返回此 locale 的小数点，按 locale 的窄字符编码给出，可以是多个字节。
+     * @return 小数点，非空。
      * @endif
      *
      * @lang{EN}
-     * @brief Returns the decimal point character for this locale.
-     * @return The decimal point character.
+     * @brief Returns the decimal point for this locale, in the locale's narrow encoding;
+     *        it may be several bytes long.
+     * @return The decimal point, never empty.
      * @endif
      */
-    [[nodiscard]] virtual char decimal_point() const { return m_decimal_point; }
+    [[nodiscard]] virtual const std::string& decimal_point() const { return m_decimal_point; }
 
     /**
      * @lang{ZH}
-     * @brief 返回此 locale 的千位分隔符字符。
+     * @brief 返回此 locale 的千位分隔符，按 locale 的窄字符编码给出，可以是多个字节
+     *        （UTF-8 locale 下的 U+202F 是三个字节）。
      *
-     * 若返回值为 `'\0'`，表示不使用分隔符，此时 `grouping()` 必为空。
-     * @return 千位分隔符字符，或 `'\0'`（不使用分隔符时）。
+     * 为空表示不使用分隔符，此时 `grouping()` 必为空。
+     * @return 千位分隔符，或空串（不使用分隔符时）。
      * @endif
      *
      * @lang{EN}
-     * @brief Returns the thousands separator character for this locale.
+     * @brief Returns the thousands separator for this locale, in the locale's narrow
+     *        encoding; it may be several bytes long (U+202F is three under a UTF-8 locale).
      *
-     * A return value of `'\0'` indicates that no separator is used,
-     * in which case `grouping()` is always empty.
-     * @return The thousands separator character, or `'\0'` if none is used.
+     * An empty string means no separator is used, in which case `grouping()` is always
+     * empty.
+     * @return The thousands separator, or an empty string if none is used.
      * @endif
      */
-    [[nodiscard]] virtual char thousands_sep() const { return m_thousands_sep; }
+    [[nodiscard]] virtual const std::string& thousands_sep() const { return m_thousands_sep; }
 
     /**
      * @lang{ZH}
@@ -232,8 +205,8 @@ public:
     [[nodiscard]] virtual const std::vector<uint8_t>& grouping() const { return m_grouping; }
 
 private:
-    char m_decimal_point;   ///< @lang{ZH} 小数点字符。 @endif @lang{EN} The decimal point character. @endif
-    char m_thousands_sep;   ///< @lang{ZH} 千位分隔符；`'\0'` 表示不使用分隔符。 @endif @lang{EN} Thousands separator; `'\0'` means no separator. @endif
+    std::string m_decimal_point;          ///< @lang{ZH} 小数点，非空。 @endif @lang{EN} The decimal point, never empty. @endif
+    std::string m_thousands_sep;          ///< @lang{ZH} 千位分隔符；空串表示不使用分隔符。 @endif @lang{EN} Thousands separator; empty means no separator. @endif
     std::string m_true_name;              ///< @lang{ZH} `true` 的文本表示。 @endif @lang{EN} Textual representation of `true`. @endif
     std::string m_false_name;             ///< @lang{ZH} `false` 的文本表示。 @endif @lang{EN} Textual representation of `false`. @endif
     std::vector<uint8_t> m_grouping;      ///< @lang{ZH} 数字分组规则（内部规范化格式）；为空时表示不分组。 @endif @lang{EN} Digit grouping rules (internal normalized form); empty means no grouping. @endif
@@ -315,15 +288,15 @@ public:
         { // "C" locale
             if constexpr (std::is_same_v<CharT, wchar_t>)
             {
-                m_decimal_point = L'.';
-                m_thousands_sep = L',';
+                m_decimal_point = L".";
+                m_thousands_sep = L",";
                 m_true_name = L"true";
                 m_false_name = L"false";
             }
             else
             {
-                m_decimal_point = U'.';
-                m_thousands_sep = U',';
+                m_decimal_point = U".";
+                m_thousands_sep = U",";
                 m_true_name = U"true";
                 m_false_name = U"false";
             }
@@ -331,52 +304,25 @@ public:
         }
 
         const detail::numeric_raw_punct raw = detail::numeric_snapshot(name);
-        const std::string& grp_raw = raw.grouping;
 
-        // The first character of a separator the C library gave in wide form, or def if empty.
-        const auto first_or = [](const std::wstring& s, CharT def) {
-            return s.empty() ? def : static_cast<CharT>(s[0]);
+        // A separator the C library gives in wide form is taken as it is; otherwise the
+        // narrow one is converted whole.
+        const auto widen = [&name](const std::string& narrow,
+                                   const std::optional<std::wstring>& wide) {
+            if (wide)
+                return std::basic_string<CharT>(wide->begin(), wide->end());
+            if (narrow.empty())
+                return std::basic_string<CharT>();
+            if constexpr (std::is_same_v<CharT, wchar_t>)
+                return detail::to_wstring(narrow, name);
+            else
+                return detail::to_u32string<CharT>(narrow, name);   // <CharT>: see facet_helper.h
         };
-        m_decimal_point = raw.wdecimal_point
-            ? first_or(*raw.wdecimal_point, static_cast<CharT>('.'))
-            : FacetHelper::string_to_widechar_convert<CharT>(
-                  raw.decimal_point, name, static_cast<CharT>('.'));
-        m_thousands_sep = raw.wthousands_sep
-            ? first_or(*raw.wthousands_sep, static_cast<CharT>('\0'))
-            : FacetHelper::string_to_widechar_convert<CharT>(
-                  raw.thousands_sep, name, static_cast<CharT>('\0'));
-
-        // string_to_widechar_convert only substitutes default_char on the
-        // empty-input / empty-conversion paths; a successful conversion
-        // that yields CharT('\0') is passed through. Treat that case the
-        // same way and fall back to '.', so m_decimal_point is always a
-        // real, distinguishable character.
-        if (m_decimal_point == static_cast<CharT>('\0'))
-            m_decimal_point = static_cast<CharT>('.');
-
-        if (m_thousands_sep != static_cast<CharT>('\0') && !grp_raw.empty())
-        {
-            // Copy raw POSIX grouping bytes, then normalise into the
-            // internal convention here at the POSIX boundary.
-            m_grouping.resize(grp_raw.size());
-            for (std::size_t i = 0; i < grp_raw.size(); ++i)
-                m_grouping[i] = static_cast<uint8_t>(grp_raw[i]);
-            FacetHelper::adjust_grouping(m_grouping);
-        }
-
-        // If a locale (or a user-derived numeric_conf that overrides
-        // thousands_sep() / decimal_point()) ends up with the same
-        // character for both separators, downstream extract_int /
-        // extract_float in facet/numeric.h check thousands_sep BEFORE
-        // decimal_point against each input character. An equal pair
-        // makes the decimal-point branch unreachable and groups would
-        // be parsed where a decimal mark was intended. Drop grouping
-        // so parsing falls back to the no-grouping path. Mirrors the
-        // same guard in numeric_conf<char8_t>, which can hit this case
-        // after multi-byte UTF-8 separators collapse onto single-byte
-        // fallbacks.
-        if (m_thousands_sep == m_decimal_point)
-            m_grouping.clear();
+        m_decimal_point = widen(raw.decimal_point, raw.wdecimal_point);
+        if (m_decimal_point.empty())
+            m_decimal_point.assign(1, static_cast<CharT>('.'));
+        m_thousands_sep = widen(raw.thousands_sep, raw.wthousands_sep);
+        m_grouping = FacetHelper::lconv_grouping<CharT>(raw.grouping, m_thousands_sep, m_decimal_point);
 
         // Empty counts as missing, as in numeric_conf<char>.
         if (raw.truename.empty())
@@ -409,34 +355,34 @@ public:
 public:
     /**
      * @lang{ZH}
-     * @brief 返回此 locale 的小数点字符。
-     * @return 小数点字符。
+     * @brief 返回此 locale 的小数点。
+     * @return 小数点，非空。
      * @endif
      *
      * @lang{EN}
-     * @brief Returns the decimal point character for this locale.
-     * @return The decimal point character.
+     * @brief Returns the decimal point for this locale.
+     * @return The decimal point, never empty.
      * @endif
      */
-    [[nodiscard]] virtual CharT decimal_point() const { return m_decimal_point; }
+    [[nodiscard]] virtual const std::basic_string<CharT>& decimal_point() const { return m_decimal_point; }
 
     /**
      * @lang{ZH}
-     * @brief 返回此 locale 的千位分隔符字符。
+     * @brief 返回此 locale 的千位分隔符。
      *
-     * 若返回值为 `CharT('\0')`，表示不使用分隔符，此时 `grouping()` 必为空。
-     * @return 千位分隔符字符，或 `CharT('\0')`（不使用分隔符时）。
+     * 为空表示不使用分隔符，此时 `grouping()` 必为空。
+     * @return 千位分隔符，或空串（不使用分隔符时）。
      * @endif
      *
      * @lang{EN}
-     * @brief Returns the thousands separator character for this locale.
+     * @brief Returns the thousands separator for this locale.
      *
-     * A return value of `CharT('\0')` indicates that no separator is used,
-     * in which case `grouping()` is always empty.
-     * @return The thousands separator character, or `CharT('\0')` if none is used.
+     * An empty string means no separator is used, in which case `grouping()` is always
+     * empty.
+     * @return The thousands separator, or an empty string if none is used.
      * @endif
      */
-    [[nodiscard]] virtual CharT thousands_sep() const { return m_thousands_sep; }
+    [[nodiscard]] virtual const std::basic_string<CharT>& thousands_sep() const { return m_thousands_sep; }
 
     /**
      * @lang{ZH}
@@ -483,8 +429,8 @@ public:
     [[nodiscard]] virtual const std::vector<uint8_t>& grouping() const { return m_grouping; }
 
 private:
-    CharT m_decimal_point;                  ///< @lang{ZH} 小数点字符。 @endif @lang{EN} The decimal point character. @endif
-    CharT m_thousands_sep;                  ///< @lang{ZH} 千位分隔符；`CharT('\0')` 表示不使用分隔符。 @endif @lang{EN} Thousands separator; `CharT('\0')` means no separator. @endif
+    std::basic_string<CharT> m_decimal_point;  ///< @lang{ZH} 小数点，非空。 @endif @lang{EN} The decimal point, never empty. @endif
+    std::basic_string<CharT> m_thousands_sep;  ///< @lang{ZH} 千位分隔符；空串表示不使用分隔符。 @endif @lang{EN} Thousands separator; empty means no separator. @endif
     std::basic_string<CharT> m_true_name;   ///< @lang{ZH} `true` 的文本表示。 @endif @lang{EN} Textual representation of `true`. @endif
     std::basic_string<CharT> m_false_name;  ///< @lang{ZH} `false` 的文本表示。 @endif @lang{EN} Textual representation of `false`. @endif
     std::vector<uint8_t>     m_grouping;    ///< @lang{ZH} 数字分组规则（内部规范化格式）；为空时表示不分组。 @endif @lang{EN} Digit grouping rules (internal normalized form); empty means no grouping. @endif
@@ -500,9 +446,7 @@ private:
  * `wchar_t` 在非 UTF-8 locale 下不是 Unicode（探针实测 eucCN 下全角句点是 0xA3AE），没有
  * 可靠的转换途径，故在 macOS 上以非 UTF-8 locale 构造会抛出异常。
  *
- * 分隔符必须是单字节 UTF-8 字符（即 ASCII），否则回退到 ASCII 默认值：小数点回退为
- * `u8'.'`，千位分隔符回退为 `u8','` 并清空分组规则。当两个分隔符回退后重合时，分组规则
- * 也会被清空，以避免解析歧义。
+ * 分隔符原样编码为 UTF-8，可以是多个字节。
  * @endif
  *
  * @lang{EN}
@@ -516,10 +460,7 @@ private:
  * to be 0xA3AE under eucCN), leaving no reliable conversion, so constructing for a
  * non-UTF-8 locale on macOS throws.
  *
- * A separator must be a single-byte UTF-8 character (that is, ASCII), or it falls back to
- * an ASCII default: the decimal point to `u8'.'`, the thousands separator to `u8','` with
- * the grouping cleared. When the two separators coincide after fallback, the grouping is
- * also cleared to avoid parsing ambiguity.
+ * The separators are encoded as UTF-8 as they are, however many bytes that takes.
  * @endif
  */
 template <typename CharT>
@@ -545,7 +486,7 @@ public:
      *
      * 对于 "C" 和 "POSIX" locale，直接使用标准 ASCII UTF-8 值。对于其他 locale，
      * 按其编码委托给 `numeric_conf<char>`（UTF-8）或 `numeric_conf<wchar_t>`（其他），
-     * 再把各参数转换为 UTF-8；分隔符不是单字节时使用默认值。
+     * 再把各参数转换为 UTF-8。
      *
      * @param name locale 名称字符串（例如 `"zh_CN.UTF-8"`）。
      * @throws io_error 在 `wchar_t` 不是 Unicode 的平台（macOS）上，`name` 的编码不是 UTF-8。
@@ -556,8 +497,7 @@ public:
      *
      * For "C" and "POSIX" locales, standard ASCII UTF-8 values are assigned directly.
      * For other locales, delegates by the encoding to `numeric_conf<char>` (UTF-8) or
-     * `numeric_conf<wchar_t>` (anything else), then converts each parameter to UTF-8; a
-     * separator that is not a single byte gets the default.
+     * `numeric_conf<wchar_t>` (anything else), then converts each parameter to UTF-8.
      *
      * @param name The locale name string (e.g., `"zh_CN.UTF-8"`).
      * @throws io_error Where `wchar_t` is not Unicode (macOS), if `name`'s encoding is not
@@ -569,8 +509,8 @@ public:
     {
         if (FacetHelper::is_c_locale_name(name))
         { // "C" locale
-            m_decimal_point = u8'.';
-            m_thousands_sep = u8',';
+            m_decimal_point = u8".";
+            m_thousands_sep = u8",";
             m_true_name = u8"true";
             m_false_name = u8"false";
             return;
@@ -580,10 +520,12 @@ public:
         {
             // The narrow configuration's bytes are UTF-8 already.
             const numeric_conf<char> narrow(name);
-            assign(static_cast<unsigned char>(narrow.decimal_point()),
-                   static_cast<unsigned char>(narrow.thousands_sep()), narrow.grouping(),
-                   std::u8string(narrow.truename().begin(), narrow.truename().end()),
-                   std::u8string(narrow.falsename().begin(), narrow.falsename().end()));
+            const auto bytes = [](const std::string& s) { return std::u8string(s.begin(), s.end()); };
+            m_decimal_point = bytes(narrow.decimal_point());
+            m_thousands_sep = bytes(narrow.thousands_sep());
+            m_grouping      = narrow.grouping();
+            m_true_name     = bytes(narrow.truename());
+            m_false_name    = bytes(narrow.falsename());
         }
         else
             init_from_wide<>(name);
@@ -598,79 +540,52 @@ private:
         if constexpr (wchar_t_is_utf32 || wchar_t_is_utf16)
         {
             const numeric_conf<W> wide(name);
-            assign(static_cast<char32_t>(wide.decimal_point()),
-                   static_cast<char32_t>(wide.thousands_sep()), wide.grouping(),
-                   detail::to_u8string(std::basic_string_view<W>(wide.truename())),
-                   detail::to_u8string(std::basic_string_view<W>(wide.falsename())));
+            const auto utf8 = [](const std::basic_string<W>& s) {
+                return detail::to_u8string(std::basic_string_view<W>(s));
+            };
+            m_decimal_point = utf8(wide.decimal_point());
+            m_thousands_sep = utf8(wide.thousands_sep());
+            m_grouping      = wide.grouping();
+            m_true_name     = utf8(wide.truename());
+            m_false_name    = utf8(wide.falsename());
         }
         else
             throw io_error("numeric_conf<char8_t>: " + name +
                            " is not a UTF-8 locale, and wchar_t is not Unicode on this platform");
     }
 
-    // Takes the delegate's values. A separator stays only if it is one UTF-8 byte,
-    // i.e. ASCII; u8'\0' is no separator either, as it would pass for a NUL in the input.
-    // NOLINTNEXTLINE(bugprone-easily-swappable-parameters): two callers, just above
-    void assign(char32_t dp, char32_t ts, std::vector<uint8_t> grouping,
-                std::u8string truename, std::u8string falsename)
-    {
-        const auto single_byte = [](char32_t c) { return c != 0 && c < 0x80; };
-        m_decimal_point = single_byte(dp) ? static_cast<char8_t>(dp) : u8'.';
-
-        const bool ts_representable = single_byte(ts);
-        m_thousands_sep = ts_representable ? static_cast<char8_t>(ts) : u8',';
-
-        m_true_name  = std::move(truename);
-        m_false_name = std::move(falsename);
-
-        m_grouping = std::move(grouping);
-        if (!ts_representable)
-            m_grouping.clear();
-
-        // After the single-byte fallbacks above, m_thousands_sep may have
-        // collapsed onto u8',' while m_decimal_point also resolved to u8','
-        // (e.g. a locale where decimal_point is ',' and thousands_sep is a
-        // multi-byte UTF-8 codepoint such as U+202F NARROW NO-BREAK SPACE).
-        // When the two separators coincide, downstream extract_int /
-        // extract_float would compare each input byte against both fields
-        // with the same value, making grouping detection ambiguous. Drop
-        // grouping in that case so parsing falls back to the no-grouping
-        // path instead of misclassifying digits.
-        if (m_thousands_sep == m_decimal_point)
-            m_grouping.clear();
-    }
-
 public:
     /**
      * @lang{ZH}
-     * @brief 返回此 locale 的小数点字符（单字节 UTF-8）。
-     * @return 小数点字符。
+     * @brief 返回此 locale 的小数点（UTF-8 编码，可以是多个字节）。
+     * @return 小数点，非空。
      * @endif
      *
      * @lang{EN}
-     * @brief Returns the decimal point character for this locale (single-byte UTF-8).
-     * @return The decimal point character.
+     * @brief Returns the decimal point for this locale (UTF-8; it may be several bytes long).
+     * @return The decimal point, never empty.
      * @endif
      */
-    [[nodiscard]] virtual char8_t decimal_point() const { return m_decimal_point; }
+    [[nodiscard]] virtual const std::basic_string<char8_t>& decimal_point() const { return m_decimal_point; }
 
     /**
      * @lang{ZH}
-     * @brief 返回此 locale 的千位分隔符字符（单字节 UTF-8）。
+     * @brief 返回此 locale 的千位分隔符（UTF-8 编码，可以是多个字节）。
      *
-     * 若返回值为 `u8'\0'`，表示不使用分隔符，此时 `grouping()` 必为空。
-     * @return 千位分隔符字符，或 `u8'\0'`（不使用分隔符时）。
+     * 为空表示不使用分隔符，此时 `grouping()` 必为空。
+     * @return 千位分隔符，或空串（不使用分隔符时）。
      * @endif
      *
      * @lang{EN}
-     * @brief Returns the thousands separator character for this locale (single-byte UTF-8).
+     * @brief Returns the thousands separator for this locale (UTF-8; it may be several
+     *        bytes long).
      *
-     * A return value of `u8'\0'` indicates that no separator is used,
-     * in which case `grouping()` is always empty.
-     * @return The thousands separator character, or `u8'\0'` if none is used.
+     * An empty string means no separator is used, in which case `grouping()` is always
+     * empty.
+     * @return The thousands separator, or an empty string if none is used.
      * @endif
      */
-    [[nodiscard]] virtual char8_t thousands_sep() const { return m_thousands_sep; }
+    [[nodiscard]] virtual const std::basic_string<char8_t>& thousands_sep() const { return m_thousands_sep; }
 
     /**
      * @lang{ZH}
@@ -717,8 +632,8 @@ public:
     [[nodiscard]] virtual const std::vector<uint8_t>& grouping() const { return m_grouping; }
 
 private:
-    char8_t m_decimal_point;                    ///< @lang{ZH} 小数点字符（单字节 UTF-8）。 @endif @lang{EN} The decimal point character (single-byte UTF-8). @endif
-    char8_t m_thousands_sep;                    ///< @lang{ZH} 千位分隔符（单字节 UTF-8）；`u8'\0'` 表示不使用分隔符。 @endif @lang{EN} Thousands separator (single-byte UTF-8); `u8'\0'` means no separator. @endif
+    std::basic_string<char8_t> m_decimal_point; ///< @lang{ZH} 小数点（UTF-8），非空。 @endif @lang{EN} The decimal point (UTF-8), never empty. @endif
+    std::basic_string<char8_t> m_thousands_sep; ///< @lang{ZH} 千位分隔符（UTF-8）；空串表示不使用分隔符。 @endif @lang{EN} Thousands separator (UTF-8); empty means no separator. @endif
     std::basic_string<char8_t> m_true_name;     ///< @lang{ZH} `true` 的 UTF-8 文本表示。 @endif @lang{EN} UTF-8 textual representation of `true`. @endif
     std::basic_string<char8_t> m_false_name;    ///< @lang{ZH} `false` 的 UTF-8 文本表示。 @endif @lang{EN} UTF-8 textual representation of `false`. @endif
     std::vector<uint8_t>       m_grouping;      ///< @lang{ZH} 数字分组规则（内部规范化格式）；为空时表示不分组。 @endif @lang{EN} Digit grouping rules (internal normalized form); empty means no grouping. @endif

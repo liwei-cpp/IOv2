@@ -68,14 +68,16 @@ namespace
         const std::vector<uint8_t>& grouping() const override { return m_grouping; }
         const std::wstring&         truename() const override { return m_truename; }
         const std::wstring&         falsename() const override { return m_falsename; }
-        wchar_t                     thousands_sep() const override { return m_thousands_sep; }
-        wchar_t                     decimal_point() const override { return m_decimal_point; }
+        const std::wstring&         thousands_sep() const override { return m_thousands_sep; }
+        const std::wstring&         decimal_point() const override { return m_decimal_point; }
 
         tunable_conf& groups(std::vector<uint8_t> g) { m_grouping = std::move(g); return *this; }
         tunable_conf& yes(std::wstring n)             { m_truename = std::move(n); return *this; }
         tunable_conf& no(std::wstring n)              { m_falsename = std::move(n); return *this; }
-        tunable_conf& separator(wchar_t c)              { m_thousands_sep = c; return *this; }
-        tunable_conf& point(wchar_t c)                  { m_decimal_point = c; return *this; }
+        tunable_conf& separator(wchar_t c) { m_thousands_sep.assign(1, c); return *this; }
+        tunable_conf& separator(std::wstring s) { m_thousands_sep = std::move(s); return *this; }
+        tunable_conf& point(wchar_t c) { m_decimal_point.assign(1, c); return *this; }
+        tunable_conf& point(std::wstring s) { m_decimal_point = std::move(s); return *this; }
 
         // Ends a chain: the facet takes its configuration by shared pointer.
         std::shared_ptr<tunable_conf> ptr() { return shared_from_this(); }
@@ -84,8 +86,8 @@ namespace
         std::vector<uint8_t> m_grouping;
         std::wstring         m_truename;
         std::wstring         m_falsename;
-        wchar_t              m_thousands_sep;
-        wchar_t              m_decimal_point;
+        std::wstring              m_thousands_sep;
+        std::wstring              m_decimal_point;
     };
 
     std::shared_ptr<ctype<wchar_t>> ctype_for(const char* loc)
@@ -264,25 +266,22 @@ TEST(NumericWchar, AnUnnamedBooleanFallsBackToAscii)
     const numeric_conf<wchar_t> conf("gv_GB.utf8");
     EXPECT_EQ(conf.truename(), L"true");
     EXPECT_EQ(conf.falsename(), L"false");
-    EXPECT_EQ(conf.decimal_point(), L'.');
-    EXPECT_EQ(conf.thousands_sep(), L',');
+    EXPECT_EQ(conf.decimal_point(), L".");
+    EXPECT_EQ(conf.thousands_sep(), L",");
 #else
     GTEST_SKIP() << "only glibc has a locale with an empty YESSTR (macOS falls back to C's \"yes\")";
 #endif
 }
 
 // A locale with no thousands separator has no grouping either: there is nothing
-// to group with.  What the separator itself is left holding differs by character
-// type -- the narrow and wide configurations keep the '\0' that says "none",
-// while the char8_t one, which has only a single byte to store it in, falls back
-// to a comma it then never uses, because the grouping beside it is empty.
+// to group with, and the separator is the empty string that says "none".
 TEST(NumericWchar, ALocaleWithNoSeparatorHasNoGrouping)
 {
 #if IOV2_TEST_LINUX_GLIBC
     const numeric_conf<wchar_t> conf("gl_ES.utf8");
-    EXPECT_EQ(conf.decimal_point(), L',');
+    EXPECT_EQ(conf.decimal_point(), L",");
     EXPECT_TRUE(conf.grouping().empty());
-    EXPECT_EQ(conf.thousands_sep(), L'\0');
+    EXPECT_EQ(conf.thousands_sep(), L"");
 #else
     GTEST_SKIP() << "gl_ES has no thousands separator only in glibc's data";
 #endif
@@ -302,8 +301,8 @@ TEST(NumericWchar, TheSeparatorsAreWhatNlsSays)
         ASSERT_NE(GetLocaleInfoEx(bcp47, LOCALE_STHOUSAND, ts, 8), 0);
 
         const numeric_conf<wchar_t> conf(crt);
-        EXPECT_EQ(conf.decimal_point(), dp[0]);
-        EXPECT_EQ(conf.thousands_sep(), ts[0]);
+        EXPECT_EQ(conf.decimal_point(), std::wstring(dp));
+        EXPECT_EQ(conf.thousands_sep(), std::wstring(ts));
         EXPECT_FALSE(conf.grouping().empty());
     }
 #else

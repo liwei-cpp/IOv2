@@ -69,12 +69,14 @@ namespace
             , m_group(std::move(group))
         {}
 
-        char decimal_point() const override { return '#'; }
-        char thousands_sep() const override { return '_'; }
+        const std::string& decimal_point() const override { return m_point; }
+        const std::string& thousands_sep() const override { return m_sep; }
         const std::vector<std::uint8_t>& grouping() const override { return m_group; }
 
     private:
         std::vector<std::uint8_t> m_group;
+        std::string               m_point = "#";
+        std::string               m_sep = "_";
     };
 
     // A user-defined operator&& yielding bool, at namespace scope because a

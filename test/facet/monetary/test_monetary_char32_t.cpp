@@ -60,8 +60,8 @@ namespace
             , m_neg_format(monetary_conf<char32_t>::neg_format_nat())
         {}
 
-        char32_t                    decimal_point() const override { return m_decimal_point; }
-        char32_t                    thousands_sep() const override { return m_thousands_sep; }
+        const std::u32string& decimal_point() const override { return m_decimal_point; }
+        const std::u32string& thousands_sep() const override { return m_thousands_sep; }
         const std::vector<uint8_t>& grouping() const override { return m_grouping; }
         const std::u32string&       curr_symbol_nat() const override { return m_curr_symbol; }
         const std::u32string&       positive_sign_nat() const override { return m_positive_sign; }
@@ -70,8 +70,10 @@ namespace
         const pattern&              pos_format_nat() const override { return m_pos_format; }
         const pattern&              neg_format_nat() const override { return m_neg_format; }
 
-        tunable_conf& point(char32_t c)                       { m_decimal_point = c; return *this; }
-        tunable_conf& separator(char32_t c)                   { m_thousands_sep = c; return *this; }
+        tunable_conf& point(char32_t c)                       { m_decimal_point.assign(1, c); return *this; }
+        tunable_conf& point(std::u32string s)                 { m_decimal_point = std::move(s); return *this; }
+        tunable_conf& separator(char32_t c)                   { m_thousands_sep.assign(1, c); return *this; }
+        tunable_conf& separator(std::u32string s)             { m_thousands_sep = std::move(s); return *this; }
         tunable_conf& groups(std::vector<uint8_t> g)      { m_grouping = std::move(g); return *this; }
         tunable_conf& symbol(std::u32string s)               { m_curr_symbol = std::move(s); return *this; }
         tunable_conf& plus(std::u32string s)                 { m_positive_sign = std::move(s); return *this; }
@@ -86,8 +88,8 @@ namespace
         std::shared_ptr<tunable_conf> ptr()               { return shared_from_this(); }
 
     private:
-        char32_t             m_decimal_point;
-        char32_t             m_thousands_sep;
+        std::u32string       m_decimal_point;
+        std::u32string       m_thousands_sep;
         std::vector<uint8_t> m_grouping;
         std::u32string       m_curr_symbol;
         std::u32string       m_positive_sign;
@@ -229,8 +231,8 @@ TEST(MonetaryChar32, TheCLocaleCarriesNoCurrency)
 {
     const monetary<char32_t> obj = facet_for("C");
 
-    EXPECT_EQ(obj.decimal_point(), U'.');
-    EXPECT_EQ(obj.thousands_sep(), U',');
+    EXPECT_EQ(obj.decimal_point(), U".");
+    EXPECT_EQ(obj.thousands_sep(), U",");
     EXPECT_TRUE(obj.grouping().empty());
     EXPECT_TRUE(obj.curr_symbol_nat().empty());
     EXPECT_TRUE(obj.curr_symbol_int().empty());

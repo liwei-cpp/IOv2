@@ -73,14 +73,16 @@ namespace
         const std::vector<uint8_t>& grouping() const override { return m_grouping; }
         const std::string& truename() const override { return m_truename; }
         const std::string& falsename() const override { return m_falsename; }
-        char thousands_sep() const override { return m_thousands_sep; }
-        char decimal_point() const override { return m_decimal_point; }
+        const std::string& thousands_sep() const override { return m_thousands_sep; }
+        const std::string& decimal_point() const override { return m_decimal_point; }
 
         tunable_conf& groups(std::vector<uint8_t> g) { m_grouping = std::move(g); return *this; }
         tunable_conf& yes(std::string n)             { m_truename = std::move(n); return *this; }
         tunable_conf& no(std::string n)              { m_falsename = std::move(n); return *this; }
-        tunable_conf& separator(char c)              { m_thousands_sep = c; return *this; }
-        tunable_conf& point(char c)                  { m_decimal_point = c; return *this; }
+        tunable_conf& separator(char c)              { m_thousands_sep.assign(1, c); return *this; }
+        tunable_conf& separator(std::string s)       { m_thousands_sep = std::move(s); return *this; }
+        tunable_conf& point(char c)                  { m_decimal_point.assign(1, c); return *this; }
+        tunable_conf& point(std::string s)           { m_decimal_point = std::move(s); return *this; }
 
         // Ends a chain: the facet takes its configuration by shared pointer.
         std::shared_ptr<tunable_conf> ptr() { return shared_from_this(); }
@@ -89,8 +91,8 @@ namespace
         std::vector<uint8_t> m_grouping;
         std::string          m_truename;
         std::string          m_falsename;
-        char                 m_thousands_sep;
-        char                 m_decimal_point;
+        std::string          m_thousands_sep;
+        std::string          m_decimal_point;
     };
 
     std::shared_ptr<ctype<char>> ctype_for(const char* loc)
@@ -269,25 +271,22 @@ TEST(NumericChar, AnUnnamedBooleanFallsBackToAscii)
     const numeric_conf<char> conf("gv_GB.utf8");
     EXPECT_EQ(conf.truename(), "true");
     EXPECT_EQ(conf.falsename(), "false");
-    EXPECT_EQ(conf.decimal_point(), '.');
-    EXPECT_EQ(conf.thousands_sep(), ',');
+    EXPECT_EQ(conf.decimal_point(), ".");
+    EXPECT_EQ(conf.thousands_sep(), ",");
 #else
     GTEST_SKIP() << "only glibc has a locale with an empty YESSTR (macOS falls back to C's \"yes\")";
 #endif
 }
 
 // A locale with no thousands separator has no grouping either: there is nothing
-// to group with.  What the separator itself is left holding differs by character
-// type -- the narrow and wide configurations keep the '\0' that says "none",
-// while the char8_t one, which has only a single byte to store it in, falls back
-// to a comma it then never uses, because the grouping beside it is empty.
+// to group with, and the separator is the empty string that says "none".
 TEST(NumericChar, ALocaleWithNoSeparatorHasNoGrouping)
 {
 #if IOV2_TEST_LINUX_GLIBC
     const numeric_conf<char> conf("gl_ES.utf8");
-    EXPECT_EQ(conf.decimal_point(), ',');
+    EXPECT_EQ(conf.decimal_point(), ",");
     EXPECT_TRUE(conf.grouping().empty());
-    EXPECT_EQ(conf.thousands_sep(), '\0');
+    EXPECT_EQ(conf.thousands_sep(), "");
 #else
     GTEST_SKIP() << "gl_ES has no thousands separator only in glibc's data";
 #endif
@@ -299,12 +298,82 @@ TEST(NumericChar, ACodePageSeparatorIsItsByte)
 {
 #if IOV2_TEST_WINDOWS
     const numeric_conf<char> conf("de-CH");
-    EXPECT_EQ(conf.decimal_point(), '.');
-    EXPECT_EQ(conf.thousands_sep(), '\x92');
+    EXPECT_EQ(conf.decimal_point(), ".");
+    EXPECT_EQ(conf.thousands_sep(), "\x92");
     EXPECT_FALSE(conf.grouping().empty());
 #else
     GTEST_SKIP() << "Windows code pages only";
 #endif
+}
+
+// The punctuation is a string: a UTF-8 locale's U+202F is three bytes, all of
+// which the narrow configuration keeps, and grouping with it stays on.
+TEST(NumericChar, AMultibyteSeparatorIsKeptWhole)
+{
+#if IOV2_TEST_LINUX_GLIBC
+    const numeric_conf<char> conf("fr_FR.UTF-8");
+    EXPECT_EQ(conf.thousands_sep(), "\xE2\x80\xAF");
+    EXPECT_EQ(conf.decimal_point(), ",");
+    EXPECT_FALSE(conf.grouping().empty());
+#else
+    GTEST_SKIP() << "fr_FR's U+202F is glibc's data";
+#endif
+}
+
+// A separator of several characters is written whole between the groups, and
+// read back whole.
+TEST(NumericChar, AMultiCharacterSeparatorRoundTrips)
+{
+    const numeric<char> obj = facet_of(tuned()->groups({3}).separator("\xE2\x80\xAF").point(",").ptr());
+    ios_base<char>      ios;
+    const std::string   integer = "1\xE2\x80\xAF" "234\xE2\x80\xAF" "567";
+    EXPECT_EQ(put_str(obj, ios, 1234567L), integer);
+    expect_parses(obj, ios, integer, 1234567L);
+
+    ios_base<char> fixed;
+    fixed.setf(ios_defs::fixed);
+    fixed.precision(2);
+    const std::string real = "-1\xE2\x80\xAF" "234\xE2\x80\xAF" "567,25";
+    EXPECT_EQ(put_str(obj, fixed, -1234567.25), real);
+    expect_parses(obj, ios, real, -1234567.25);
+}
+
+// What was read on trial and turned out not to be the separator goes back: with
+// U+202F (E2 80 AF) as the separator, a euro sign (E2 82 AC) after the number is
+// left in the input, on either iterator.
+TEST(NumericChar, APartlyMatchedSeparatorIsPutBack)
+{
+    const numeric<char> obj = facet_of(tuned()->groups({3}).separator("\xE2\x80\xAF").point(",").ptr());
+    ios_base<char>      ios;
+    expect_parses(obj, ios, std::string("100\xE2\x82\xAC"), 100L, "\xE2\x82\xAC");
+    expect_parses(obj, ios, std::string("100\xE2\x82\xAC"), 100.0, "\xE2\x82\xAC");
+}
+
+// The two may share a first character, as U+066C and U+066B do in UTF-8 (D9 AC,
+// D9 AB): the character after it settles which one it is. An integer stops in
+// front of the decimal point and leaves all of it in the input.
+TEST(NumericChar, PunctuationSharingAFirstCharacterIsToldApart)
+{
+    const numeric<char> obj = facet_of(tuned()->groups({3}).separator("\xD9\xAC").point("\xD9\xAB").ptr());
+    ios_base<char>      ios;
+    const std::string   field = "1\xD9\xAC" "234\xD9\xAB" "25";
+    expect_parses(obj, ios, field, 1234L, "\xD9\xAB" "25");
+    expect_parses(obj, ios, field, 1234.25);
+}
+
+// Separators that parsing could not tell apart -- one a prefix of the other --
+// turn grouping off, whoever configured them.
+TEST(NumericChar, SeparatorsThatCannotBeToldApartTurnGroupingOff)
+{
+    const numeric<char> obj = facet_of(tuned()->groups({3}).separator("..").point(".").ptr());
+    EXPECT_TRUE(obj.grouping().empty());
+    ios_base<char> ios;
+    EXPECT_EQ(put_str(obj, ios, 1234567L), "1234567");
+}
+
+TEST(NumericChar, AnEmptyDecimalPointIsRejected)
+{
+    EXPECT_THROW((void)facet_of(tuned()->point(std::string()).ptr()), io_error);
 }
 
 TEST(NumericChar, ABooleanIsOneOrZeroWithoutBoolalpha)

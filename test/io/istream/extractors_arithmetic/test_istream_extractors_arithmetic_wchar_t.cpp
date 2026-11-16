@@ -48,18 +48,18 @@ namespace
         tuned_conf(std::vector<std::uint8_t> g, wchar_t sep = L',', wchar_t point = L'.')
             : numeric_conf<wchar_t>("C")
             , m_group(std::move(g))
-            , m_sep(sep)
-            , m_point(point)
+            , m_sep(1, sep)
+            , m_point(1, point)
         { }
 
         const std::vector<std::uint8_t>& grouping() const override { return m_group; }
-        wchar_t                          thousands_sep() const override { return m_sep; }
-        wchar_t                          decimal_point() const override { return m_point; }
+        const std::wstring&              thousands_sep() const override { return m_sep; }
+        const std::wstring&              decimal_point() const override { return m_point; }
 
     private:
         std::vector<std::uint8_t> m_group;
-        wchar_t                   m_sep;
-        wchar_t                   m_point;
+        std::wstring              m_sep;
+        std::wstring              m_point;
     };
 
     locale<wchar_t> tuned(std::vector<std::uint8_t> g, wchar_t sep = L',', wchar_t point = L'.')
