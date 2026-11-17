@@ -39,7 +39,6 @@
 #include <mutex>
 #include <shared_mutex>
 #include <string>
-#include <type_traits>
 #include <unordered_map>
 #include <utility>
 
@@ -602,8 +601,10 @@ public:
      * facet，返回的新 locale 会以本次绑定的 facet **替换**掉它——即便 domain 相同亦然；
      * 这与 `involve` 对同 id facet 的替换语义一致。`*this` 本身不被修改（写时拷贝）。
      *
-     * 对不支持的字符类型（无 `messages_conf<TChar>` 特化，如 `char16_t` 或非 UTF-32 的
-     * `wchar_t`），本函数是**编译期**错误（见内部 `static_assert`）。
+     * 本重载用于编码与 locale 无关的字符类型：`char8_t`、`char32_t` 与 Unicode 的 `wchar_t`
+     * （Linux、Windows）。`char` 与 macOS 的 `wchar_t` 用下面带 `cvt` 的重载（见
+     * `detail::messages_locale_encoded`）。对不支持的字符类型（无 `messages_conf<TChar>`
+     * 特化，如 `char16_t`），本函数是**编译期**错误（见内部 `static_assert`）。
      *
      * @param domain 文本域名称（`.mo` 文件基名）。
      * @param lang 候选语言字符串；为空（默认）表示按环境变量决定。
@@ -633,9 +634,12 @@ public:
      * bound here -- even when the domain is the same -- mirroring `involve`'s same-id
      * replace semantics. `*this` itself is unchanged (copy-on-write).
      *
-     * For an unsupported character type (no `messages_conf<TChar>` specialization,
-     * e.g. `char16_t` or a non-UTF-32 `wchar_t`) this is a *compile-time* error (see
-     * the internal `static_assert`).
+     * This overload is for character types whose encoding has nothing to do with a
+     * locale: `char8_t`, `char32_t` and a Unicode `wchar_t` (Linux, Windows). `char` and
+     * macOS's `wchar_t` take the overload with `cvt` below (see
+     * `detail::messages_locale_encoded`). For an unsupported character type (no
+     * `messages_conf<TChar>` specialization, e.g. `char16_t`) this is a *compile-time*
+     * error (see the internal `static_assert`).
      *
      * @param domain The text domain name (the `.mo` file's basename).
      * @param lang The candidate language string; empty (the default) defers to the
@@ -662,19 +666,15 @@ public:
      */
     template <std::same_as<bool> B = bool>
     locale involve_msg(const std::string& domain, const std::string& lang = "",
-                       B throw_if_fail = false) const requires (!std::is_same_v<TChar, char>)
+                       B throw_if_fail = false) const requires (!detail::messages_locale_encoded<TChar>)
     {
-        // messages_conf<TChar> is only specialized for char8_t, char32_t and
-        // UTF-32 wchar_t (plus the char overload above); for char16_t or a
-        // non-UTF-32 wchar_t it stays incomplete. Reject those here with a clear
-        // message instead of an opaque "incomplete type" error from make_shared
-        // below. Safe as a completeness check because messages_conf<TChar>'s
-        // completeness is fixed program-wide (a type either has a specialization
-        // everywhere or nowhere).
+        // messages_conf<TChar> exists for char8_t, char32_t and a Unicode wchar_t here
+        // (char, and macOS's wchar_t, take the cvt overload below); for char16_t it stays
+        // incomplete. Reject that with a clear message instead of an opaque "incomplete
+        // type" error from make_shared below.
         static_assert(requires { sizeof(messages_conf<TChar>); },
                       "involve_msg: messages translation is unsupported for this character "
-                      "type -- no messages_conf<TChar> specialization exists (e.g. char16_t, "
-                      "or wchar_t on a non-UTF-32 platform).");
+                      "type -- no messages_conf<TChar> specialization exists (e.g. char16_t).");
         const std::string filtered_lang = base_ft<messages>::filter_lang(domain, lang);
         const std::filesystem::path dirname = base_ft<messages>::get_dirname(domain);
         auto ft = s_ori_facet_buf.try_get_msg<TChar>(domain, filtered_lang, dirname);
@@ -710,16 +710,21 @@ public:
 
     /**
      * @lang{ZH}
-     * @brief `char` 版本：返回一个在 `*this` 基础上绑定了指定文本域消息翻译的**新** locale
-     * （写时拷贝）；额外接受目标编码名 `cvt`。
+     * @brief 编码取决于 locale 的版本（`char`，以及 macOS 的 `wchar_t`）：返回一个在 `*this`
+     * 基础上绑定了指定文本域消息翻译的**新** locale（写时拷贝）；额外接受决定编码的 locale 名
+     * `cvt`。
      *
-     * 同非 `char` 重载：一个 `locale` **最多一个** messages facet；若 `*this` 已含 messages
+     * 跨平台代码使用缺省参数即可在三个平台上写法相同。`wchar_t` 只在 macOS 上走本重载，
+     * 因此按位置给出 `throw_if_fail`（如 `involve_msg("app", "zh_CN", true)`）的写法，
+     * 用于 `wchar_t` 时在 macOS 上编译报错。
+     *
+     * 同另一重载：一个 `locale` **最多一个** messages facet；若 `*this` 已含 messages
      * facet，返回的新 locale 会以本次绑定的 facet **替换**之（同 domain 亦然），与 `involve`
      * 的同 id 替换语义一致；`*this` 本身不被修改（写时拷贝）。
      *
      * @param domain 文本域名称（`.mo` 文件基名）。
      * @param lang 候选语言字符串；为空（默认）表示按环境变量决定。
-     * @param cvt 目标 `char` 编码名；为空（默认）时取程序启动时解析得到的 `LC_CTYPE` 编码，
+     * @param cvt 决定字符串编码的 locale 名；为空（默认）时取程序启动时解析得到的 `LC_CTYPE`，
      *        并以该有效值同时作为缓存键与构造参数。
      * @param throw_if_fail 翻译字典**加载失败**（`filter_lang` 选中的 `.mo` 文件存在但损坏 /
      *        截断，无可用语言，或 `cvt` 编码转换器无法构造 / 转换）时是否抛出。为 `false`（默认）
@@ -738,11 +743,16 @@ public:
      * @endif
      *
      * @lang{EN}
-     * @brief `char` overload: return a *new* locale that, on top of `*this`, binds the
-     * message translations for the given text domain (copy-on-write); additionally
-     * takes a target encoding name `cvt`.
+     * @brief Overload for an encoding that depends on a locale (`char`, and `wchar_t` on
+     * macOS): return a *new* locale that, on top of `*this`, binds the message translations
+     * for the given text domain (copy-on-write); additionally takes `cvt`, the name of the
+     * locale that decides the encoding.
      *
-     * As with the non-`char` overload, a `locale` holds **at most one** messages facet;
+     * Portable code using the default arguments reads the same on all three platforms.
+     * `wchar_t` takes this overload on macOS only, so giving `throw_if_fail` by position
+     * (as in `involve_msg("app", "zh_CN", true)`) fails to compile for `wchar_t` there.
+     *
+     * As with the other overload, a `locale` holds **at most one** messages facet;
      * if `*this` already has one, the returned locale **replaces** it with the one bound
      * here -- even when the domain is the same -- mirroring `involve`'s same-id replace
      * semantics. `*this` itself is unchanged (copy-on-write).
@@ -750,8 +760,8 @@ public:
      * @param domain The text domain name (the `.mo` file's basename).
      * @param lang The candidate language string; empty (the default) defers to the
      *        environment.
-     * @param cvt The target `char` encoding name; empty (the default) maps to the
-     *        `LC_CTYPE` encoding resolved at program startup, and that effective value
+     * @param cvt The name of the locale that decides the strings' encoding; empty (the
+     *        default) maps to the `LC_CTYPE` locale resolved at program startup, and that effective value
      *        is used as both the cache key and the construction argument.
      * @param throw_if_fail Whether to throw when the translation dictionary *fails to
      *        load* (the `.mo` chosen by `filter_lang` exists but is corrupt / truncated,
@@ -775,7 +785,7 @@ public:
      */
     template <std::same_as<bool> B = bool>
     locale involve_msg(const std::string& domain, const std::string& lang = "", // NOLINT(bugprone-easily-swappable-parameters)
-                       const std::string& cvt = "", B throw_if_fail = false) const requires (std::is_same_v<TChar, char>)
+                       const std::string& cvt = "", B throw_if_fail = false) const requires detail::messages_locale_encoded<TChar>
     {
         const std::string filtered_lang = base_ft<messages>::filter_lang(domain, lang);
         // Resolve the encoding up front and use it consistently as both the cache
@@ -786,7 +796,7 @@ public:
         // CTYPE name share the same cache entry as the empty-cvt case.
         const std::string effective_cvt = cvt.empty() ? s_ori_facet_buf.locale_name(LC_CTYPE) : cvt;
         const std::filesystem::path dirname = base_ft<messages>::get_dirname(domain);
-        auto ft = s_ori_facet_buf.try_get_msg<char>(domain, filtered_lang, dirname, effective_cvt);
+        auto ft = s_ori_facet_buf.try_get_msg<TChar>(domain, filtered_lang, dirname, effective_cvt);
         if (!ft)
         {
             // Build strictly so a load failure surfaces as an exception, and intern only
@@ -794,17 +804,17 @@ public:
             // throw_if_fail=true call re-attempts the load and can still throw.
             try
             {
-                ft = std::make_shared<messages_conf<char>>(domain, filtered_lang, effective_cvt, dirname, true);
+                ft = std::make_shared<messages_conf<TChar>>(domain, filtered_lang, effective_cvt, dirname, true);
                 // Caching is separate from the load: a cache-insert failure (e.g. an
                 // allocation failure while interning) must never degrade or drop a
                 // successfully-loaded facet. On such a failure keep it, just uncached.
-                try { ft = s_ori_facet_buf.put_msg<char>(ft, domain, filtered_lang, dirname, effective_cvt); }
+                try { ft = s_ori_facet_buf.put_msg<TChar>(ft, domain, filtered_lang, dirname, effective_cvt); }
                 catch (...) {} // NOLINT(bugprone-empty-catch)
             }
             catch (...)
             {
                 if (throw_if_fail) throw;
-                ft = std::make_shared<messages_conf<char>>(domain, filtered_lang, effective_cvt, dirname, false);
+                ft = std::make_shared<messages_conf<TChar>>(domain, filtered_lang, effective_cvt, dirname, false);
             }
         }
 

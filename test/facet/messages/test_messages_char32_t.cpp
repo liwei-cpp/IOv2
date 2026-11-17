@@ -5,7 +5,8 @@
  * IOv2::messages<char32_t>: the same gettext catalogue, decoded into code
  * points.  The narrow instantiation takes a codeset argument because its result
  * is bytes; this one has no such axis -- a char32_t is already a code point --
- * so what is left to check is the three answers translate() can give.
+ * so what is left to check is the three answers translate() can give, and that a
+ * character outside the BMP stays one code point on every platform.
  */
 #include <IOv2/facet/messages.h>
 #include <IOv2/facet/messages_details.h>
@@ -13,6 +14,7 @@
 #include <gtest/gtest.h>
 
 #include <support/exe_path.h>
+#include <support/mo_catalogue.h>
 
 #include <filesystem>
 #include <memory>
@@ -71,4 +73,14 @@ TEST(MessagesChar32, AnEmptyKeyTranslatesToNothing)
     const messages<char32_t> absent(std::make_shared<messages_conf<char32_t>>("messages", "zh_HK", false));
     EXPECT_EQ(present.translate(U""), U"");
     EXPECT_EQ(absent.translate(U""), U"");
+}
+
+// A character outside the BMP is one code point, whatever the platform's wchar_t is.
+TEST(MessagesChar32, ACharacterOutsideTheBmpIsOneCodePoint)
+{
+    const iov2_test::mo_tree tree(std::filesystem::absolute("messages-char32-astral"), "messages_astral",
+                                  iov2_test::one_entry_mo("smile", "\xF0\x9F\x98\x80"));
+    const messages<char32_t> obj(std::make_shared<messages_conf<char32_t>>(
+        "messages_astral", "zh_CN", tree.root()));
+    EXPECT_EQ(obj.translate(U"smile"), std::u32string(1, char32_t{0x1F600}));
 }

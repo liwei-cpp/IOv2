@@ -179,6 +179,58 @@ namespace IOv2::detail
 
     /**
      * @lang{ZH}
+     * 将 UTF-8 字符串转换为宽字符串：`wchar_t` 为 UTF-32 时逐码点转换，为 UTF-16 时 BMP 以外的
+     * 字符成为代理对。
+     *
+     * @param val 输入的 UTF-8 字节序列。
+     *
+     * @return 解码后的宽字符串。
+     *
+     * @throws cvt_error 规则同 `to_u32string(std::u8string_view)`：不完整或无效的 UTF-8 一律报错，
+     *                   不做尽力转换。
+     * @endif
+     *
+     * @lang{EN}
+     * Convert a UTF-8 string to a wide string: code point by code point where `wchar_t` is
+     * UTF-32, a character outside the BMP becoming a surrogate pair where it is UTF-16.
+     *
+     * @param val Input UTF-8 bytes.
+     *
+     * @return Decoded wide string.
+     *
+     * @throws cvt_error As `to_u32string(std::u8string_view)` does: incomplete or invalid
+     *                   UTF-8 is an error, never converted on a best-effort basis.
+     * @endif
+     *
+     * @note @lang{ZH} 只在 `wchar_t` 为 Unicode（`wchar_t_is_utf32` 或 `wchar_t_is_utf16`）的平台上
+     *       提供。`TWide` 只为让约束依赖模板参数，调用时不必写出。 @endif
+     *       @lang{EN} Available only where `wchar_t` is Unicode (`wchar_t_is_utf32` or
+     *       `wchar_t_is_utf16`). `TWide` only makes the constraint depend on a template
+     *       parameter and need not be spelled out. @endif
+     */
+    template <typename TWide = wchar_t>
+        requires (std::is_same_v<TWide, wchar_t> && (wchar_t_is_utf32 || wchar_t_is_utf16))
+    std::basic_string<TWide> to_wstring(std::u8string_view val)
+    {
+        using cvt_type = code_cvt<rb_root_cvt<mem_device<char8_t>>, TWide>;
+        cvt_type tmp_cvt(rb_root_cvt{mem_device(std::u8string(val))});
+        tmp_cvt.bos();
+        tmp_cvt.main_cont_beg();
+
+        std::basic_string<TWide> res;
+        std::array<TWide, 8> res_buf{};
+        while (true)
+        {
+            auto c = tmp_cvt.get(res_buf.data(), res_buf.size());
+            if (c == 0) break;
+            res.insert(res.size(), res_buf.data(), c);
+        }
+
+        return res;
+    }
+
+    /**
+     * @lang{ZH}
      * 将 UTF-32 字符串转换为 UTF-8 字符串。
      *
      * @param val 输入字符串。每个元素必须是 Unicode 标量值（Unicode Scalar Value，USV）：

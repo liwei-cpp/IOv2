@@ -18,13 +18,16 @@
 #include <gtest/gtest.h>
 
 #include <support/exe_path.h>
+#include <support/mo_catalogue.h>
+#include <support/platform.h>
 #include <support/platform_macros.h>
 
-#include <cstdlib>
+#include <cstddef>
 #include <filesystem>
+#include <fstream>
+#include <iterator>
 #include <memory>
 #include <optional>
-#include <stdlib.h>
 #include <string>
 #include <system_error>
 #include <type_traits>
@@ -47,31 +50,12 @@ namespace
         base_ft<messages>::bind_text_domain("messages", catalogue_dir());
     }
 
-    // A locale tree of its own, holding the zh_CN catalogue under the name domain.mo,
-    // removed with everything in it when the guard goes.
-    struct catalogue_tree
+    // The zh_CN catalogue's bytes, for a case to put in a locale tree of its own.
+    std::string zh_cn_catalogue()
     {
-        catalogue_tree(std::filesystem::path root, const std::string& domain)
-            : m_root(std::move(root))
-        {
-            const std::filesystem::path dir = m_root / "zh_CN" / "LC_MESSAGES";
-            std::filesystem::create_directories(dir);
-            std::filesystem::copy_file(catalogue_dir() / "zh_CN" / "LC_MESSAGES" / "messages.mo",
-                                       dir / (domain + ".mo"),
-                                       std::filesystem::copy_options::overwrite_existing);
-        }
-        catalogue_tree(const catalogue_tree&) = delete;
-        catalogue_tree& operator=(const catalogue_tree&) = delete;
-        ~catalogue_tree()
-        {
-            std::error_code ec;
-            std::filesystem::remove_all(m_root, ec);
-        }
-        const std::filesystem::path& root() const { return m_root; }
-
-    private:
-        std::filesystem::path m_root;
-    };
+        std::ifstream in(catalogue_dir() / "zh_CN" / "LC_MESSAGES" / "messages.mo", std::ios::binary);
+        return {std::istreambuf_iterator<char>(in), std::istreambuf_iterator<char>()};
+    }
 
     messages<char8_t> facet_for(const char* lang)
     {
@@ -92,7 +76,8 @@ namespace
 
     // Selecting a language from the environment means reading process-wide state,
     // so each case takes it over and hands it back exactly as it found it --
-    // including the difference between an unset variable and an empty one.
+    // including, where the platform has one, the difference between an unset
+    // variable and an empty one.
     class MessagesChar8Env : public ::testing::Test
     {
     protected:
@@ -100,9 +85,10 @@ namespace
         {
             for (const char* name : kLanguageVars)
             {
-                const char* value = std::getenv(name);
-                m_saved.push_back(value ? std::optional<std::string>(value) : std::nullopt);
-                ::unsetenv(name);
+                m_saved.push_back(iov2_test::sys::env_is_set(name)
+                                      ? std::optional<std::string>(iov2_test::sys::get_env(name))
+                                      : std::nullopt);
+                iov2_test::sys::unset_env(name);
             }
             bind_catalogue();
         }
@@ -111,8 +97,8 @@ namespace
         {
             for (std::size_t i = 0; i < std::size(kLanguageVars); ++i)
             {
-                if (m_saved[i]) ::setenv(kLanguageVars[i], m_saved[i]->c_str(), 1);
-                else            ::unsetenv(kLanguageVars[i]);
+                if (m_saved[i]) iov2_test::sys::set_env(kLanguageVars[i], *m_saved[i]);
+                else            iov2_test::sys::unset_env(kLanguageVars[i]);
             }
         }
 
@@ -165,8 +151,8 @@ TEST(MessagesChar8, AnEmptyKeyTranslatesToNothing)
 // is found wherever the file system can hold it.
 TEST(MessagesChar8, ADirectoryWithANonAsciiNameIsFound)
 {
-    const catalogue_tree tree(std::filesystem::path(std::u8string(u8"\xe6\xb6\x88\xe6\x81\xaf-dir")),
-                              "messages_non_ascii");
+    const iov2_test::mo_tree tree(std::filesystem::path(std::u8string(u8"\xe6\xb6\x88\xe6\x81\xaf-dir")),
+                                  "messages_non_ascii", zh_cn_catalogue());
     base_ft<messages>::bind_text_domain("messages_non_ascii", tree.root());
 
     const messages<char8_t> obj(std::make_shared<messages_conf<char8_t>>("messages_non_ascii", kPresent));
@@ -179,7 +165,8 @@ TEST(MessagesChar8, ADirectoryWithANonAsciiNameIsFound)
 // that path would find it.
 TEST(MessagesChar8, AnEmptyDirectoryHoldsNoCatalogue)
 {
-    const catalogue_tree tree(std::filesystem::absolute("messages-empty-dir-cwd"), "messages_empty_dir");
+    const iov2_test::mo_tree tree(std::filesystem::absolute("messages-empty-dir-cwd"), "messages_empty_dir",
+                                  zh_cn_catalogue());
     struct cwd_guard
     {
         std::filesystem::path saved = std::filesystem::current_path();
@@ -213,7 +200,7 @@ TEST(MessagesChar8, ALiteralDirectoryIsTakenAsTheDirectory)
 {
     static_assert(!std::is_constructible_v<messages_conf<char8_t>, std::string, std::string, int>);
 
-    const catalogue_tree tree("messages-literal-dir", "messages_literal");
+    const iov2_test::mo_tree tree("messages-literal-dir", "messages_literal", zh_cn_catalogue());
     const messages_conf<char8_t> conf("messages_literal", kPresent, "messages-literal-dir");
     EXPECT_EQ(conf.filtered_lang(), kPresent);
     EXPECT_NE(conf.domain_info().find("messages-literal-dir"), std::string::npos);
@@ -251,7 +238,7 @@ TEST(MessagesChar8, AvailabilityOfAListIsAvailabilityOfAnyEntry)
 
 TEST_F(MessagesChar8Env, LanguageIsReadFirstAndMayItselfBeAList)
 {
-    ::setenv("LANGUAGE", "fr_XX:zh_CN", 1);
+    iov2_test::sys::set_env("LANGUAGE", "fr_XX:zh_CN");
     const messages<char8_t> obj = facet_from_the_environment();
     EXPECT_EQ(obj.filtered_lang(), kPresent);
     EXPECT_EQ(obj.translate(u8"please"), kPlease);
@@ -262,9 +249,9 @@ TEST_F(MessagesChar8Env, TheOtherVariablesAreConsultedInTurn)
     for (const char* name : {"LC_ALL", "LC_MESSAGES", "LANG"})
     {
         SCOPED_TRACE(name);
-        ::setenv(name, kPresent, 1);
+        iov2_test::sys::set_env(name, kPresent);
         EXPECT_EQ(facet_from_the_environment().filtered_lang(), kPresent);
-        ::unsetenv(name);
+        iov2_test::sys::unset_env(name);
     }
 }
 
@@ -272,8 +259,8 @@ TEST_F(MessagesChar8Env, TheOtherVariablesAreConsultedInTurn)
 // variable names a different one.
 TEST_F(MessagesChar8Env, LanguageOutranksTheLocaleVariables)
 {
-    ::setenv("LANGUAGE", kPresent, 1);
-    ::setenv("LC_ALL", kAbsent, 1);
+    iov2_test::sys::set_env("LANGUAGE", kPresent);
+    iov2_test::sys::set_env("LC_ALL", kAbsent);
     EXPECT_EQ(facet_from_the_environment().filtered_lang(), kPresent);
 }
 
@@ -282,7 +269,7 @@ TEST_F(MessagesChar8Env, LanguageOutranksTheLocaleVariables)
 // than a failure to construct.
 TEST_F(MessagesChar8Env, NoAvailableLanguageSelectsNothing)
 {
-    ::setenv("LANG", kAbsent, 1);
+    iov2_test::sys::set_env("LANG", kAbsent);
     const messages<char8_t> obj = facet_from_the_environment(false);
     EXPECT_EQ(obj.filtered_lang(), "");
     EXPECT_EQ(obj.translate(u8"please"), u8"please");

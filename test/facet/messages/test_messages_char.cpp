@@ -10,8 +10,10 @@
  * language is available, the key itself when it is not, and the empty string for
  * an empty key -- and, for the narrow instantiation only, the fact that the
  * codeset is a separate axis from the language: the same zh_CN catalogue comes
- * back as UTF-8 or as GBK depending on what was asked for.
+ * back as UTF-8 or as GBK depending on what was asked for.  Where wchar_t is not
+ * Unicode (macOS) only a UTF-8 locale can be served, and anything else is refused.
  */
+#include <IOv2/common/clocale_wrapper.h>
 #include <IOv2/facet/messages.h>
 #include <IOv2/facet/messages_details.h>
 
@@ -19,17 +21,25 @@
 
 #include <support/exe_path.h>
 #include <support/file_guard.h>
+#include <support/mo_catalogue.h>
+#include <support/platform_macros.h>
 
+#include <cstddef>
 #include <cstdint>
 #include <filesystem>
 #include <memory>
 #include <string>
 #include <type_traits>
+#include <utility>
 
 using namespace IOv2;
 
 namespace
 {
+    using iov2_test::append_u32;
+    using iov2_test::mo_tree;
+    using iov2_test::one_entry_mo;
+
     struct messages_probe : base_ft<messages>
     {
         using base_ft<messages>::get_translate_dictionary;
@@ -52,42 +62,6 @@ namespace
 
     const std::string kPleaseUtf8    = "\xe8\xaf\xb7";              // 请
     const std::string kThankYouUtf8  = "\xe8\xb0\xa2\xe8\xb0\xa2";  // 谢谢
-    const std::string kPleaseGbk     = "\xc7\xeb";                  // 请
-    const std::string kThankYouGbk   = "\xd0\xbb\xd0\xbb";          // 谢谢
-
-    void append_u32(std::string& bytes, std::uint32_t value, bool big_endian)
-    {
-        for (unsigned i = 0; i < 4; ++i)
-        {
-            const unsigned shift = big_endian ? 24 - 8 * i : 8 * i;
-            bytes.push_back(static_cast<char>((value >> shift) & 0xffu));
-        }
-    }
-
-    std::string one_entry_mo(const std::string& original, const std::string& translation,
-                             bool big_endian = false, std::uint32_t revision = 0)
-    {
-        constexpr std::uint32_t header_size = 7 * sizeof(std::uint32_t);
-        constexpr std::uint32_t original_table = header_size;
-        constexpr std::uint32_t translation_table = original_table + 2 * sizeof(std::uint32_t);
-        constexpr std::uint32_t string_data = translation_table + 2 * sizeof(std::uint32_t);
-
-        std::string bytes;
-        append_u32(bytes, 0x950412deu, big_endian);
-        append_u32(bytes, revision, big_endian);
-        append_u32(bytes, 1, big_endian);
-        append_u32(bytes, original_table, big_endian);
-        append_u32(bytes, translation_table, big_endian);
-        append_u32(bytes, 0, big_endian);
-        append_u32(bytes, 0, big_endian);
-        append_u32(bytes, static_cast<std::uint32_t>(original.size()), big_endian);
-        append_u32(bytes, string_data, big_endian);
-        append_u32(bytes, static_cast<std::uint32_t>(translation.size()), big_endian);
-        append_u32(bytes, string_data + static_cast<std::uint32_t>(original.size()), big_endian);
-        bytes += original;
-        bytes += translation;
-        return bytes;
-    }
 
     std::string descriptor_only_mo(std::uint32_t original_length,
                                    std::uint32_t original_offset,
@@ -115,6 +89,22 @@ TEST(MessagesChar, TheCharacterTypeIsChar)
     static_assert(std::is_same_v<messages<char>::char_type, char>);
 }
 
+// Whether translate takes a T. A concept, so that a call that does not compile is an
+// answer rather than an error.
+template <typename T>
+concept translate_takes = requires(const messages<char>& m, T t) { m.translate(t); };
+
+// A C string, a literal included, has an overload of its own returning by value: through
+// a user-defined conversion MSVC finds the three string overloads ambiguous. A null
+// pointer stays a compile error, as it was before that overload existed.
+TEST(MessagesChar, ACStringIsTranslatedByValue)
+{
+    static_assert(std::is_same_v<decltype(std::declval<const messages<char>&>().translate("please")),
+                                 std::string>);
+    static_assert(translate_takes<const char*>);
+    static_assert(!translate_takes<std::nullptr_t>);
+}
+
 // throw_if_fail takes a bool and nothing that merely converts to one, so a directory
 // given as a literal after the codeset is not turned into true (char8_t has the case
 // that runs).
@@ -140,16 +130,39 @@ TEST(MessagesChar, AnAvailableCatalogueHasAHeaderEntry)
     EXPECT_NE(obj.head_entry(), "");
 }
 
+// The codeset is the locale's. GBK is zh_CN.GBK on glibc and zh-CN's code page 936
+// on Windows, reached through a Unicode wchar_t; macOS's wchar_t is not Unicode, so
+// there a locale that is not UTF-8 is refused.
 TEST(MessagesChar, TheCodesetDecidesHowTheTranslationIsEncoded)
 {
     const messages<char> utf8 = facet_for("zh_CN", "zh_CN.UTF-8");
-    const messages<char> gbk  = facet_for("zh_CN", "zh_CN.GBK");
-
     EXPECT_EQ(utf8.translate("please"), kPleaseUtf8);
-    EXPECT_EQ(gbk.translate("please"), kPleaseGbk);
     EXPECT_EQ(utf8.translate("thank you"), kThankYouUtf8);
+
+#if IOV2_TEST_LINUX_GLIBC || IOV2_TEST_WINDOWS
+    const std::string kPleaseGbk   = "\xc7\xeb";          // 请
+    const std::string kThankYouGbk = "\xd0\xbb\xd0\xbb";  // 谢谢
+    const messages<char> gbk = facet_for("zh_CN", IOV2_TEST_WINDOWS ? "zh-CN" : "zh_CN.GBK");
+    EXPECT_EQ(gbk.translate("please"), kPleaseGbk);
     EXPECT_EQ(gbk.translate("thank you"), kThankYouGbk);
     EXPECT_NE(gbk.head_entry(), "");
+#else
+    // The locale exists, so the refusal is about its encoding.
+    ASSERT_NO_THROW((void)clocale_wrapper("de_DE.ISO8859-1"));
+    bind_catalogue();
+    EXPECT_THROW((void)messages_conf<char>("messages", "zh_CN", "de_DE.ISO8859-1"), io_error);
+#endif
+}
+
+// In a UTF-8 locale the catalogue's bytes are taken as they are, unchecked, as
+// messages<char8_t> takes them: a translation that is not valid UTF-8 still loads.
+TEST(MessagesChar, AUtf8LocaleTakesTheBytesUnchecked)
+{
+    const mo_tree tree(std::filesystem::absolute("messages-char-unchecked"), "messages_unchecked",
+                       one_entry_mo("key", std::string("\xff\xfe", 2)));
+    const messages_conf<char> conf("messages_unchecked", "zh_CN", "zh_CN.UTF-8", tree.root());
+    ASSERT_NE(conf.translate("key"), nullptr);
+    EXPECT_EQ(*conf.translate("key"), std::string("\xff\xfe", 2));
 }
 
 // With no catalogue for the language, translate() is the identity: the key is
