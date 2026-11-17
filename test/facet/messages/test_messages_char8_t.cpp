@@ -18,6 +18,7 @@
 #include <gtest/gtest.h>
 
 #include <support/exe_path.h>
+#include <support/platform_macros.h>
 
 #include <cstdlib>
 #include <filesystem>
@@ -25,6 +26,7 @@
 #include <optional>
 #include <stdlib.h>
 #include <string>
+#include <system_error>
 #include <type_traits>
 #include <vector>
 
@@ -32,12 +34,44 @@ using namespace IOv2;
 
 namespace
 {
-    void bind_catalogue()
+    // The catalogue lives beside the test binary, not in the source tree.
+    std::filesystem::path catalogue_dir()
     {
         std::filesystem::path mo_path = exe_path();
         mo_path = mo_path.remove_filename() / ".." / "IOv2TestResources";
-        base_ft<messages>::bind_text_domain("messages", std::filesystem::canonical(mo_path).string());
+        return std::filesystem::canonical(mo_path);
     }
+
+    void bind_catalogue()
+    {
+        base_ft<messages>::bind_text_domain("messages", catalogue_dir());
+    }
+
+    // A locale tree of its own, holding the zh_CN catalogue under the name domain.mo,
+    // removed with everything in it when the guard goes.
+    struct catalogue_tree
+    {
+        catalogue_tree(std::filesystem::path root, const std::string& domain)
+            : m_root(std::move(root))
+        {
+            const std::filesystem::path dir = m_root / "zh_CN" / "LC_MESSAGES";
+            std::filesystem::create_directories(dir);
+            std::filesystem::copy_file(catalogue_dir() / "zh_CN" / "LC_MESSAGES" / "messages.mo",
+                                       dir / (domain + ".mo"),
+                                       std::filesystem::copy_options::overwrite_existing);
+        }
+        catalogue_tree(const catalogue_tree&) = delete;
+        catalogue_tree& operator=(const catalogue_tree&) = delete;
+        ~catalogue_tree()
+        {
+            std::error_code ec;
+            std::filesystem::remove_all(m_root, ec);
+        }
+        const std::filesystem::path& root() const { return m_root; }
+
+    private:
+        std::filesystem::path m_root;
+    };
 
     messages<char8_t> facet_for(const char* lang)
     {
@@ -125,6 +159,65 @@ TEST(MessagesChar8, AnEmptyKeyTranslatesToNothing)
     const messages<char8_t> absent(std::make_shared<messages_conf<char8_t>>("messages", "zh_HK", false));
     EXPECT_EQ(present.translate(u8""), u8"");
     EXPECT_EQ(absent.translate(u8""), u8"");
+}
+
+// The directory is a path, not bytes in some code page: one whose name is not ASCII
+// is found wherever the file system can hold it.
+TEST(MessagesChar8, ADirectoryWithANonAsciiNameIsFound)
+{
+    const catalogue_tree tree(std::filesystem::path(std::u8string(u8"\xe6\xb6\x88\xe6\x81\xaf-dir")),
+                              "messages_non_ascii");
+    base_ft<messages>::bind_text_domain("messages_non_ascii", tree.root());
+
+    const messages<char8_t> obj(std::make_shared<messages_conf<char8_t>>("messages_non_ascii", kPresent));
+    EXPECT_EQ(obj.filtered_lang(), kPresent);
+    EXPECT_EQ(obj.translate(u8"please"), kPlease);
+}
+
+// An empty directory is no directory. Joined to a language it would make a relative
+// path, so the case moves into a directory of its own holding a catalogue right where
+// that path would find it.
+TEST(MessagesChar8, AnEmptyDirectoryHoldsNoCatalogue)
+{
+    const catalogue_tree tree(std::filesystem::absolute("messages-empty-dir-cwd"), "messages_empty_dir");
+    struct cwd_guard
+    {
+        std::filesystem::path saved = std::filesystem::current_path();
+        ~cwd_guard() { std::error_code ec; std::filesystem::current_path(saved, ec); }
+    } guard;
+    std::filesystem::current_path(tree.root());
+    ASSERT_TRUE(std::filesystem::exists("zh_CN/LC_MESSAGES/messages_empty_dir.mo"));
+
+    base_ft<messages>::bind_text_domain("messages_empty_dir", "");
+    EXPECT_FALSE(base_ft<messages>::available("messages_empty_dir", kPresent));
+    EXPECT_THROW((void)messages_conf<char8_t>("messages_empty_dir", kPresent), io_error);
+}
+
+// Where an unbound domain is looked for is the platform's call: glibc systems keep
+// their catalogues in /usr/share/locale, macOS and Windows have no such place.
+TEST(MessagesChar8, AnUnboundDomainGetsThePlatformDefault)
+{
+    const std::filesystem::path dir = base_ft<messages>::get_dirname("messages_never_bound");
+#if IOV2_TEST_LINUX_GLIBC
+    EXPECT_EQ(dir, "/usr/share/locale");
+#else
+    EXPECT_TRUE(dir.empty());
+    EXPECT_FALSE(base_ft<messages>::available("messages_never_bound", kPresent));
+#endif
+}
+
+// throw_if_fail takes a bool and nothing that merely converts to one: a string
+// literal in its place would otherwise turn into true and the directory be lost.
+// The domain is unbound, so only the directory given can find the catalogue.
+TEST(MessagesChar8, ALiteralDirectoryIsTakenAsTheDirectory)
+{
+    static_assert(!std::is_constructible_v<messages_conf<char8_t>, std::string, std::string, int>);
+
+    const catalogue_tree tree("messages-literal-dir", "messages_literal");
+    const messages_conf<char8_t> conf("messages_literal", kPresent, "messages-literal-dir");
+    EXPECT_EQ(conf.filtered_lang(), kPresent);
+    EXPECT_NE(conf.domain_info().find("messages-literal-dir"), std::string::npos);
+    EXPECT_NE(conf.translate(u8"please"), nullptr);
 }
 
 // The list is walked left to right and the first entry with a catalogue wins,

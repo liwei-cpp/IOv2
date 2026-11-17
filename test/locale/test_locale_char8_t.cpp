@@ -122,6 +122,22 @@ TEST(LocaleChar8, Traits)
     SUCCEED();
 }
 
+// Whether involve_msg takes a T third. A concept, so that a call that does not
+// compile is an answer rather than an error.
+template <typename T>
+concept involve_msg_takes = requires(const IOv2::locale<char8_t>& l, T t) { l.involve_msg("d", "l", t); };
+
+// involve_msg's throw_if_fail takes a bool and nothing that merely converts to one:
+// an encoding name written there, as the char overload takes one, would otherwise
+// turn into true.
+TEST(LocaleChar8, InvolveMsgTakesOnlyABoolForThrowIfFail)
+{
+    static_assert(involve_msg_takes<bool>);
+    static_assert(!involve_msg_takes<const char*>);
+    static_assert(!involve_msg_takes<int>);
+    SUCCEED();
+}
+
 TEST(LocaleChar8, ANamedLocaleHoldsTheConfForItsOwnCharType)
 {
     auto loc = IOv2::locale<char8_t>("C.UTF-8");

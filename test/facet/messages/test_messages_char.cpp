@@ -41,7 +41,7 @@ namespace
     {
         std::filesystem::path mo_path = exe_path();
         mo_path = mo_path.remove_filename() / ".." / "IOv2TestResources";
-        base_ft<messages>::bind_text_domain("messages", std::filesystem::canonical(mo_path).string());
+        base_ft<messages>::bind_text_domain("messages", std::filesystem::canonical(mo_path));
     }
 
     messages<char> facet_for(const char* lang, const char* codeset)
@@ -113,6 +113,16 @@ namespace
 TEST(MessagesChar, TheCharacterTypeIsChar)
 {
     static_assert(std::is_same_v<messages<char>::char_type, char>);
+}
+
+// throw_if_fail takes a bool and nothing that merely converts to one, so a directory
+// given as a literal after the codeset is not turned into true (char8_t has the case
+// that runs).
+TEST(MessagesChar, ThrowIfFailTakesOnlyABool)
+{
+    static_assert(!std::is_constructible_v<messages_conf<char>, std::string, std::string, std::string, int>);
+    static_assert(std::is_constructible_v<messages_conf<char>, std::string, std::string, std::string, bool>);
+    static_assert(std::is_constructible_v<messages_conf<char>, std::string, std::string, std::string, const char*>);
 }
 
 TEST(MessagesChar, AnAvailableCatalogueTranslates)

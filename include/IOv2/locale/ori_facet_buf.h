@@ -29,6 +29,7 @@
 #include <clocale>
 #include <cstddef>
 #include <cstdlib>
+#include <filesystem>
 #include <functional>
 #include <memory>
 #include <mutex>
@@ -73,7 +74,7 @@ struct msg_key
 {
     std::string domain;
     std::string lang;
-    std::string dirname;
+    std::filesystem::path dirname;
     std::string cvt;
     bool operator==(const msg_key&) const = default;
 };
@@ -86,15 +87,17 @@ namespace std
  * @brief `detail::msg_key` 的 `std::hash` 特化，供 `lru_cache` 使用。
  *
  * 逐字段哈希 `(domain, lang, dirname, cvt)`，再以 boost 风格的混合式（golden-ratio
- * 常量加移位）合并，从而依赖各分量各自的 `std::hash<std::string>`。
+ * 常量加移位）合并。字符串分量用 `std::hash<std::string>`；`dirname` 用
+ * `std::filesystem::hash_value`，它与 `path` 的 `==`（按路径分量比较）一致。
  * @endif
  *
  * @lang{EN}
  * @brief `std::hash` specialization for `detail::msg_key`, as required by `lru_cache`.
  *
  * Hashes the fields `(domain, lang, dirname, cvt)` individually and combines them with
- * a boost-style mixer (a golden-ratio constant plus shifts), relying on each
- * component's own `std::hash<std::string>`.
+ * a boost-style mixer (a golden-ratio constant plus shifts). The string components use
+ * `std::hash<std::string>`; `dirname` uses `std::filesystem::hash_value`, which agrees
+ * with `path`'s `==` (a comparison by path element).
  * @endif
  */
 template <>
@@ -114,7 +117,7 @@ struct hash<IOv2::detail::msg_key>
         const std::hash<std::string> h;
         std::size_t seed = h(k.domain);
         seed ^= h(k.lang) + golden + (seed << 6) + (seed >> 2);
-        seed ^= h(k.dirname) + golden + (seed << 6) + (seed >> 2);
+        seed ^= std::filesystem::hash_value(k.dirname) + golden + (seed << 6) + (seed >> 2);
         seed ^= h(k.cvt) + golden + (seed << 6) + (seed >> 2);
         return seed;
     }
@@ -258,7 +261,7 @@ public:
      * @endif
      */
     template <typename TChar>
-    std::shared_ptr<messages_conf<TChar>> try_get_msg(const std::string& domain, const std::string& lang, const std::string& dirname, const std::string& cvt = "")
+    std::shared_ptr<messages_conf<TChar>> try_get_msg(const std::string& domain, const std::string& lang, const std::filesystem::path& dirname, const std::string& cvt = "")
     {
         const facet_id_t id = messages_conf<TChar>::id();
 
@@ -307,7 +310,7 @@ public:
      * @endif
      */
     template <typename TChar>
-    std::shared_ptr<messages_conf<TChar>> put_msg(std::shared_ptr<messages_conf<TChar>> ptr, const std::string& domain, const std::string& lang, const std::string& dirname, const std::string& cvt = "")
+    std::shared_ptr<messages_conf<TChar>> put_msg(std::shared_ptr<messages_conf<TChar>> ptr, const std::string& domain, const std::string& lang, const std::filesystem::path& dirname, const std::string& cvt = "")
     {
         if (ptr)
         {

@@ -27,10 +27,13 @@
 #include <IOv2/cvt/cvt_facilities.h>
 #include <IOv2/cvt/root_cvt.h>
 #include <IOv2/device/mem_device.h>
+#include <IOv2/device/platform/file_device_backend.h>
 #include <IOv2/facet/facet_common.h>
+#include <IOv2/facet/platform/messages_backend.h>
 
 #include <array>
 #include <bit>
+#include <concepts>
 #include <cstddef>
 #include <cstdint>
 #include <cstdio>
@@ -40,7 +43,6 @@
 #include <filesystem>
 #include <mutex>
 #include <string>
-#include <string_view>
 #include <unordered_map>
 #include <utility>
 #include <vector>
@@ -101,6 +103,9 @@ public:
      *
      * 如果该域已存在，则更新其目录；否则插入新条目。此操作是线程安全的。
      *
+     * 绑定空路径表示该域没有翻译：不会退回缺省目录，也不会在当前工作目录下查找。相对路径
+     * 在每次查找时按当时的工作目录解析。
+     *
      * @param domain 文本域名称（`.mo` 文件的基名）。
      * @param dirname 存放该域本地化文件的目录路径（gettext 的 `dirname`）。
      * @endif
@@ -111,12 +116,16 @@ public:
      * If the domain already exists, its directory is updated; otherwise a new
      * entry is inserted. This operation is thread-safe.
      *
+     * Binding an empty path gives the domain no translations: neither the default directory
+     * nor the current working directory is looked in. A relative path is resolved against
+     * the working directory of the moment, at each lookup.
+     *
      * @param domain The text domain name (the `.mo` file's basename).
      * @param dirname The directory path holding the locale files for this domain
      *                (gettext's `dirname`).
      * @endif
      */
-    static void bind_text_domain(const std::string& domain, const std::string& dirname)
+    static void bind_text_domain(const std::string& domain, const std::filesystem::path& dirname)
     {
         std::scoped_lock guard(s_domain_mutex);
         auto it = s_domain_dirs.find(domain);
@@ -130,36 +139,39 @@ public:
      * @lang{ZH}
      * @brief 线程安全地查询指定域绑定的目录名。
      *
-     * 如果域未绑定，则返回默认目录 `/usr/share/locale`。
+     * 如果域未绑定，则返回平台的缺省目录：glibc 系统上为 `/usr/share/locale`；macOS 与
+     * Windows 没有约定的位置，返回空路径，即该域没有翻译。
      *
      * 该访问器为公开：缓存层（`involve_msg`）用它把 `dirname` 计入 messages facet
      * 的缓存键——facet 内容依赖该目录，而它可经 `bind_text_domain` 在运行期改写。
      *
      * @param domain 文本域名称。
-     * @return 该域绑定的目录路径，或默认目录。
+     * @return 该域绑定的目录路径，或缺省目录（可能为空）。
      * @endif
      *
      * @lang{EN}
      * @brief Thread-safely looks up the dirname bound to the given domain.
      *
-     * Returns the default directory `/usr/share/locale` if the domain has
-     * not been bound.
+     * Returns the platform's default directory if the domain has not been bound:
+     * `/usr/share/locale` on a glibc system; macOS and Windows have no agreed place, so
+     * it is an empty path there, and the domain has no translations.
      *
      * Public accessor: the cache layer (`involve_msg`) uses it to fold `dirname` into
      * the messages-facet cache key -- the facet's content depends on this directory,
      * which `bind_text_domain` may change at runtime.
      *
      * @param domain The text domain name.
-     * @return The directory path bound to the domain, or the default directory.
+     * @return The directory path bound to the domain, or the default directory (possibly empty).
      * @endif
      */
-    static std::string get_dirname(const std::string& domain)
+    static std::filesystem::path get_dirname(const std::string& domain)
     {
-        static constexpr std::string_view def_dir = "/usr/share/locale";
-
-        std::scoped_lock guard(s_domain_mutex);
-        auto it = s_domain_dirs.find(domain);
-        return (it == s_domain_dirs.end()) ? std::string{def_dir} : it->second;
+        {
+            std::scoped_lock guard(s_domain_mutex);
+            if (auto it = s_domain_dirs.find(domain); it != s_domain_dirs.end())
+                return it->second;
+        }
+        return detail::messages_default_dirname();
     }
 
     /**
@@ -258,7 +270,7 @@ public:
      * @endif
      */
     // NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
-    base_ft(facet_id_t id, const std::string& p_domain, const std::string& p_lang, const std::string& p_dirname = "")
+    base_ft(facet_id_t id, const std::string& p_domain, const std::string& p_lang, const std::filesystem::path& p_dirname = {})
         : abs_ft(id)
         // Fix the dirname first (declared before the members below, so it is
         // initialised first) and feed that same value to filter_lang and into
@@ -271,14 +283,15 @@ public:
         , m_dirname(p_dirname.empty() ? get_dirname(p_domain) : p_dirname)
         , m_filtered_lang(filter_lang({.dirname = m_dirname, .domain = p_domain}, p_lang))
         , m_domain_info('[' + p_domain + "] [" + p_lang + '(' + m_filtered_lang + ')' + "] [" +
-                        m_dirname + "]")
+                        detail::path_for_message(m_dirname) + "]")
     {}
 
     /**
      * @lang{ZH}
      * @brief 返回描述该 facet 实例的域信息字符串。
      *
-     * 格式为 `[domain] [lang(filtered_lang)] [dirname]`，可用于调试和日志记录。
+     * 格式为 `[domain] [lang(filtered_lang)] [dirname]`，可用于调试和日志记录。目录在
+     * Windows 上按当前代码页写出，代码页里没有的字符成为 `?`。
      *
      * @return 包含域、语言和目录信息的字符串。
      * @endif
@@ -287,7 +300,8 @@ public:
      * @brief Returns a string describing this facet instance's domain information.
      *
      * The format is `[domain] [lang(filtered_lang)] [dirname]`, useful for
-     * debugging and logging.
+     * debugging and logging. On Windows the directory is written in the active code page,
+     * with `?` for a character the code page lacks.
      *
      * @return A string containing domain, language, and directory information.
      * @endif
@@ -327,7 +341,7 @@ protected:
      * @return The directory path bound to this domain.
      * @endif
      */
-    [[nodiscard]] const std::string& dirname() const { return m_dirname; }
+    [[nodiscard]] const std::filesystem::path& dirname() const { return m_dirname; }
 
     /**
      * @lang{ZH}
@@ -353,7 +367,7 @@ protected:
      */
     struct text_domain
     {
-        std::string dirname;  ///< @lang{ZH} gettext 目录名：存放本地化文件树的目录。 @endif @lang{EN} gettext dirname: the directory holding the locale tree. @endif
+        std::filesystem::path dirname;  ///< @lang{ZH} gettext 目录名：存放本地化文件树的目录；为空表示没有目录。 @endif @lang{EN} gettext dirname: the directory holding the locale tree; empty for none. @endif
         std::string domain;   ///< @lang{ZH} 文本域名：`.mo` 文件的基名。 @endif @lang{EN} text domain: the `.mo` file's basename. @endif
     };
 
@@ -365,7 +379,7 @@ protected:
      *
      * @param td 包含目录名和域名的 `text_domain` 结构体。
      * @param lang 语言标识符。
-     * @return `.mo` 文件的完整路径字符串。
+     * @return `.mo` 文件的完整路径。
      * @endif
      *
      * @lang{EN}
@@ -375,14 +389,12 @@ protected:
      *
      * @param td A `text_domain` struct containing the dirname and domain name.
      * @param lang The language identifier.
-     * @return The full path string to the `.mo` file.
+     * @return The full path to the `.mo` file.
      * @endif
      */
-    static std::string get_domain_file(const text_domain& td, const std::string& lang)
+    static std::filesystem::path get_domain_file(const text_domain& td, const std::string& lang)
     {
-        std::filesystem::path dom{td.dirname};
-        dom = dom / lang / "LC_MESSAGES" / (td.domain + ".mo");
-        return dom.string();
+        return td.dirname / lang / "LC_MESSAGES" / (td.domain + ".mo");
     }
 
     /**
@@ -454,11 +466,11 @@ protected:
      *                     the string count or length exceeds a reasonable bound.
      * @endif
      */
-    static std::unordered_map<std::u8string, std::u8string> get_translate_dictionary(const std::string& filename)
+    static std::unordered_map<std::u8string, std::u8string> get_translate_dictionary(const std::filesystem::path& filename)
     {
-        std::FILE* fp = fopen(filename.c_str(), "rb"); // NOLINT(cppcoreguidelines-owning-memory)
+        std::FILE* fp = detail::file_open(filename, "rb"); // NOLINT(cppcoreguidelines-owning-memory)
         if (!fp)
-            throw io_error("get_translate_dictionary fail: cannot open file " + filename);
+            throw io_error("get_translate_dictionary fail: cannot open file " + detail::path_for_message(filename));
 
         file_closer guard(fp);
 
@@ -609,6 +621,7 @@ private:
      *
      * 调用者负责在外部解析目录名，此处不再访问 `s_domain_dirs`，
      * 从而避免在语言扫描时重复加锁或递归进入公开重载的 `available()`。
+     * 目录名为空表示没有目录，一律不可用，不会拼成相对路径去当前工作目录下查找。
      *
      * @param td 包含已快照目录名和域名的 `text_domain` 结构体。
      * @param lang 语言标识符。
@@ -621,6 +634,8 @@ private:
      * The caller resolves the dirname before calling here, so `s_domain_dirs`
      * is not accessed, avoiding repeated locking or recursion back into the
      * public overload of `available()` during the language scan.
+     * An empty dirname means no directory: nothing is available, rather than a relative
+     * path being looked up under the current working directory.
      *
      * @param td A `text_domain` struct with an already-snapshotted dirname and domain name.
      * @param lang The language identifier.
@@ -629,6 +644,8 @@ private:
      */
     static bool available(const text_domain& td, const std::string& lang)
     {
+        if (td.dirname.empty())
+            return false;
         if (lang.empty() || lang.find(':') != std::string::npos)
         {
             std::string resolved = filter_lang(td, lang);
@@ -760,15 +777,15 @@ private:
     // A reference to a map that is never deleted: the standard stream objects are
     // not destroyed at exit, so the data their messages facet reaches must not be
     // either (see common/sing_temp.h). The mutex is trivially destructible.
-    inline static std::unordered_map<std::string, std::string>& s_domain_dirs =
-        *new std::unordered_map<std::string, std::string>;
+    inline static std::unordered_map<std::string, std::filesystem::path>& s_domain_dirs =
+        *new std::unordered_map<std::string, std::filesystem::path>;
     inline static copyable_mutex<std::mutex> s_domain_mutex;
 
 private:
     // Declared first: initialised before m_filtered_lang and m_domain_info (both
     // of which depend on this snapshot) because members are initialised in
     // declaration order. See the constructor for the full rationale.
-    const std::string m_dirname;
+    const std::filesystem::path m_dirname;
     const std::string m_filtered_lang;
     const std::string m_domain_info;
 };
@@ -802,7 +819,8 @@ public:
      * @param domain 文本域名称。
      * @param lang 候选语言字符串，或空字符串（使用环境变量）。
      * @param throw_if_fail 如果为 `true`（默认），加载失败时抛出异常；
-     *                      否则静默地使翻译字典为空。
+     *                      否则静默地使翻译字典为空。只接受 `bool`：字符串字面量
+     *                      不会被转成 `bool`，而是作为目录名选中带 `dirname` 的重载。
      * @throw io_error 如果 `throw_if_fail` 为 `true` 且字典加载失败。
      * @endif
      *
@@ -812,13 +830,16 @@ public:
      * @param domain The text domain name.
      * @param lang The candidate language string, or empty (use environment variables).
      * @param throw_if_fail If `true` (default), throws on failure; otherwise silently
-     *                      leaves the dictionary empty.
+     *                      leaves the dictionary empty. Only a `bool` is taken: a string
+     *                      literal is not turned into one, but picks the overload with
+     *                      `dirname` as the directory.
      * @throw io_error If `throw_if_fail` is `true` and dictionary loading fails.
      * @endif
      */
+    template <std::same_as<bool> B = bool>
     // NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
-    messages_conf(const std::string& domain, const std::string& lang, bool throw_if_fail = true)
-        : messages_conf(domain, lang, std::string{}, throw_if_fail)
+    messages_conf(const std::string& domain, const std::string& lang, B throw_if_fail = true)
+        : messages_conf(domain, lang, std::filesystem::path{}, throw_if_fail)
     {}
 
     /**
@@ -832,8 +853,9 @@ public:
      * @param dirname The domain dirname; empty derives it from `domain`, otherwise it is used directly.
      * @endif
      */
+    template <std::same_as<bool> B = bool>
     // NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
-    messages_conf(const std::string& domain, const std::string& lang, const std::string& dirname, bool throw_if_fail = true)
+    messages_conf(const std::string& domain, const std::string& lang, const std::filesystem::path& dirname, B throw_if_fail = true)
         : ft_basic<messages<char8_t>>(domain, lang, dirname)
         , m_dict(init(this->dirname(), domain, this->filtered_lang(), throw_if_fail))
     {}
@@ -894,7 +916,7 @@ private:
      *         (if `throw_if_fail` is `false`).
      * @endif
      */
-    static std::unordered_map<std::u8string, std::u8string> init(const std::string& dirname, const std::string& domain, const std::string& lang, bool throw_if_fail)
+    static std::unordered_map<std::u8string, std::u8string> init(const std::filesystem::path& dirname, const std::string& domain, const std::string& lang, bool throw_if_fail)
     {
         try
         {
@@ -950,7 +972,8 @@ public:
      * @param domain 文本域名称。
      * @param lang 候选语言字符串，或空字符串（使用环境变量）。
      * @param throw_if_fail 如果为 `true`（默认），加载失败时抛出异常；
-     *                      否则静默地使翻译字典为空。
+     *                      否则静默地使翻译字典为空。只接受 `bool`：字符串字面量
+     *                      不会被转成 `bool`，而是作为目录名选中带 `dirname` 的重载。
      * @throw io_error 如果 `throw_if_fail` 为 `true` 且字典加载失败。
      * @endif
      *
@@ -960,13 +983,16 @@ public:
      * @param domain The text domain name.
      * @param lang The candidate language string, or empty (use environment variables).
      * @param throw_if_fail If `true` (default), throws on failure; otherwise silently
-     *                      leaves the dictionary empty.
+     *                      leaves the dictionary empty. Only a `bool` is taken: a string
+     *                      literal is not turned into one, but picks the overload with
+     *                      `dirname` as the directory.
      * @throw io_error If `throw_if_fail` is `true` and dictionary loading fails.
      * @endif
      */
+    template <std::same_as<bool> B = bool>
     // NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
-    messages_conf(const std::string& domain, const std::string& lang, bool throw_if_fail = true)
-        : messages_conf(domain, lang, std::string{}, throw_if_fail)
+    messages_conf(const std::string& domain, const std::string& lang, B throw_if_fail = true)
+        : messages_conf(domain, lang, std::filesystem::path{}, throw_if_fail)
     {}
 
     /**
@@ -980,8 +1006,9 @@ public:
      * @param dirname The domain dirname; empty derives it from `domain`, otherwise it is used directly.
      * @endif
      */
+    template <std::same_as<bool> B = bool>
     // NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
-    messages_conf(const std::string& domain, const std::string& lang, const std::string& dirname, bool throw_if_fail = true)
+    messages_conf(const std::string& domain, const std::string& lang, const std::filesystem::path& dirname, B throw_if_fail = true)
         : ft_basic<messages<CharT>>(domain, lang, dirname)
         , m_dict(init(this->dirname(), domain, this->filtered_lang(), throw_if_fail))
     {}
@@ -1010,7 +1037,7 @@ private:
      *         on failure (if `throw_if_fail` is `false`).
      * @endif
      */
-    static std::unordered_map<TString, TString> init(const std::string& dirname, const std::string& domain, const std::string& lang, bool throw_if_fail)
+    static std::unordered_map<TString, TString> init(const std::filesystem::path& dirname, const std::string& domain, const std::string& lang, bool throw_if_fail)
     {
         try
         {
@@ -1097,7 +1124,8 @@ public:
      * @param lang 候选语言字符串，或空字符串（使用环境变量）。
      * @param cvt_ft `char`↔`wchar_t` 转换 facet 的名称。
      * @param throw_if_fail 如果为 `true`（默认），加载失败时抛出异常；
-     *                      否则静默地使翻译字典为空。
+     *                      否则静默地使翻译字典为空。只接受 `bool`：字符串字面量
+     *                      不会被转成 `bool`，而是作为目录名选中带 `dirname` 的重载。
      * @throw io_error 如果 `throw_if_fail` 为 `true` 且字典加载失败。
      * @endif
      *
@@ -1114,13 +1142,16 @@ public:
      * @param lang The candidate language string, or empty (use environment variables).
      * @param cvt_ft The name of the `char`↔`wchar_t` converter facet.
      * @param throw_if_fail If `true` (default), throws on failure; otherwise silently
-     *                      leaves the dictionary empty.
+     *                      leaves the dictionary empty. Only a `bool` is taken: a string
+     *                      literal is not turned into one, but picks the overload with
+     *                      `dirname` as the directory.
      * @throw io_error If `throw_if_fail` is `true` and dictionary loading fails.
      * @endif
      */
+    template <std::same_as<bool> B = bool>
     // NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
-    messages_conf(const std::string& domain, const std::string& lang, const std::string& cvt_ft, bool throw_if_fail = true)
-        : messages_conf(domain, lang, cvt_ft, std::string{}, throw_if_fail)
+    messages_conf(const std::string& domain, const std::string& lang, const std::string& cvt_ft, B throw_if_fail = true)
+        : messages_conf(domain, lang, cvt_ft, std::filesystem::path{}, throw_if_fail)
     {}
 
     /**
@@ -1134,8 +1165,9 @@ public:
      * @param dirname The domain dirname; empty derives it from `domain`, otherwise it is used directly.
      * @endif
      */
+    template <std::same_as<bool> B = bool>
     // NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
-    messages_conf(const std::string& domain, const std::string& lang, const std::string& cvt_ft, const std::string& dirname, bool throw_if_fail = true)
+    messages_conf(const std::string& domain, const std::string& lang, const std::string& cvt_ft, const std::filesystem::path& dirname, B throw_if_fail = true)
         : ft_basic<messages<char>>(domain, lang, dirname)
         , m_dict(init(this->dirname(), domain, this->filtered_lang(), cvt_ft, throw_if_fail))
     {}
@@ -1197,7 +1229,7 @@ private:
      * @endif
      */
     // NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
-    static std::unordered_map<std::string, std::string> init(const std::string& dirname, const std::string& domain, const std::string& lang, const std::string& cvt_ft, bool throw_if_fail)
+    static std::unordered_map<std::string, std::string> init(const std::filesystem::path& dirname, const std::string& domain, const std::string& lang, const std::string& cvt_ft, bool throw_if_fail)
     {
         try
         {

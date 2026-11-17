@@ -104,6 +104,17 @@
 
 #### 变更
 
+- messages 的目录名改用 `std::filesystem::path`：`base_ft<messages>::bind_text_domain` 收
+  `path`，`get_dirname` 返回 `path`，`messages_conf` 各构造函数的 `dirname` 参数也是 `path`。
+  字面量与 `std::string` 仍可直接传入；接 `get_dirname` 返回值的代码要改类型。`.mo` 文件改经
+  `file_device` 的打开函数读，Windows 上非 ASCII 路径因此可用。
+- messages 的缺省目录按平台定：glibc 系统上仍是 `/usr/share/locale`，macOS 与 Windows 没有
+  缺省，未绑定目录的文本域没有翻译。绑定空路径同样表示没有翻译；此前空目录名会拼成相对
+  路径，在当前工作目录下查找。
+- `messages_conf` 各构造函数与 `locale::involve_msg` 的 `throw_if_fail` 只接受 `bool`。此前把
+  目录写成字符串字面量时，如 `messages_conf<char8_t>("app", "zh_CN", "/opt/app/locale")`，
+  字面量被转成 `true`、目录被丢掉，现在它选中带 `dirname` 的重载；`involve_msg` 那里误写的
+  字符串（如照 `char` 版本写的编码名）现在编译报错。传 `int` 等其他类型的写法不再编译。
 - 与 C stdio 同步的标准输入流（`cin`、`wcin` 的缺省模式）改经 `stdin` 的 `FILE` 读，与 C
   stdio 共用缓冲：`getchar()`、`scanf()` 等预读进 `FILE` 的字节本流接着读得到。此前设备直接
   读 fd 0，终端上一次 `getchar()` 读走的整行本流看不到。随之而来的两处行为变化：到达 EOF
@@ -443,6 +454,21 @@ have no release line of their own.
 
 #### Changed
 
+- The messages directory is a `std::filesystem::path`: `base_ft<messages>::bind_text_domain`
+  takes one, `get_dirname` returns one, and so is the `dirname` parameter of every
+  `messages_conf` constructor. Literals and `std::string`s still go in as they are; code
+  that keeps what `get_dirname` returns has to change its type. `.mo` files are opened
+  through `file_device`'s open function, so non-ASCII paths work on Windows.
+- The default messages directory is the platform's: still `/usr/share/locale` on a glibc
+  system, and none on macOS and Windows, where a text domain bound to no directory has no
+  translations. Binding an empty path means no translations as well; an empty dirname used
+  to make a relative path, looked up under the current working directory.
+- The `throw_if_fail` of every `messages_conf` constructor and of `locale::involve_msg`
+  takes only a `bool`. A directory written as a string literal, as in
+  `messages_conf<char8_t>("app", "zh_CN", "/opt/app/locale")`, used to turn into `true`
+  with the directory lost; it now picks the overload with `dirname`. A string written
+  there by mistake in `involve_msg` (an encoding name, as the `char` overload takes one)
+  is now a compile error. Passing an `int` or another type no longer compiles.
 - A standard input stream synchronized with C stdio (the default mode of `cin`
   and `wcin`) reads through `stdin`'s `FILE`, sharing its buffer with C stdio:
   bytes `getchar()`, `scanf()` and the like have read ahead into the `FILE` are
