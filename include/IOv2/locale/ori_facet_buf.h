@@ -22,13 +22,13 @@
 #include <IOv2/common/defs.h>
 #include <IOv2/common/iov2_export.h>
 #include <IOv2/common/lru_cache.h>
+#include <IOv2/common/platform/env_backend.h>
 #include <IOv2/common/sing_temp.h>
 #include <IOv2/facet/facet_common.h>
 #include <IOv2/facet/messages_details.h>
 
 #include <clocale>
 #include <cstddef>
-#include <cstdlib>
 #include <filesystem>
 #include <functional>
 #include <memory>
@@ -446,7 +446,7 @@ private:
      * 区别仅在于 glibc 对非法名是硬失败，而本函数宽松地降级为 `"C"`。
      *
      * 仅在单例构造期（静态初始化、`main` 之前、单线程）被调用，此时不存在其它线程，
-     * 也没有 `setenv` 写者，因此对 `getenv` 的读取 by-construction 无竞争。
+     * 也没有 `setenv` 写者，因此经 `detail::get_env` 读环境变量 by-construction 无竞争。
      * @endif
      *
      * @lang{EN}
@@ -468,18 +468,19 @@ private:
      *
      * Called only during singleton construction (static-init, before `main`,
      * single-threaded); no other thread and no `setenv` writer exists yet, so these
-     * `getenv` reads are race-free by construction.
+     * environment reads through `detail::get_env` are race-free by construction.
      * @endif
      */
     static std::string resolve_locale(const char* category_var)
     {
-        std::string name = "C";
-        if (const char* all = std::getenv("LC_ALL"); all && *all)
-            name = all;
-        else if (const char* cat = std::getenv(category_var); cat && *cat)
-            name = cat;
-        else if (const char* lang = std::getenv("LANG"); lang && *lang)
-            name = lang;
+        // get_env gives "" for unset and empty alike: the first one set and non-empty wins.
+        std::string name = detail::get_env("LC_ALL");
+        if (name.empty())
+            name = detail::get_env(category_var);
+        if (name.empty())
+            name = detail::get_env("LANG");
+        if (name.empty())
+            name = "C";
 
         // Validate the resolved name against the C library: clocale_wrapper builds a
         // locale_t via newlocale and throws if the name cannot be instantiated. An
