@@ -198,6 +198,21 @@ TEST(LocaleChar, Traits)
     SUCCEED();
 }
 
+// Whether involve_msg takes a T after the encoding name. A concept, so that a call
+// that does not compile is an answer rather than an error.
+template <typename T>
+concept involve_msg_takes = requires(const IOv2::locale<char>& l, T t) { l.involve_msg("d", "l", "zh_CN.UTF-8", t); };
+
+// involve_msg's throw_if_fail takes a bool and nothing that merely converts to one, so
+// a fourth string is a compile error rather than true.
+TEST(LocaleChar, InvolveMsgTakesOnlyABoolForThrowIfFail)
+{
+    static_assert(involve_msg_takes<bool>);
+    static_assert(!involve_msg_takes<const char*>);
+    static_assert(!involve_msg_takes<int>);
+    SUCCEED();
+}
+
 TEST(LocaleChar, ANamedLocaleHoldsTheConfForItsOwnCharType)
 {
     auto loc = IOv2::locale<char>("C.UTF-8");
@@ -436,7 +451,7 @@ TEST(LocaleChar, MessagesCacheKeepsTheFirstNonNullEntryAndIgnoresNullEntries)
     IOv2::base_ft<IOv2::messages>::bind_text_domain("messages", resource_dir("IOv2TestResources"));
 
     const std::string lang = IOv2::base_ft<IOv2::messages>::filter_lang("messages", "zh_CN");
-    const std::string dirname = IOv2::base_ft<IOv2::messages>::get_dirname("messages");
+    const std::filesystem::path dirname = IOv2::base_ft<IOv2::messages>::get_dirname("messages");
     auto loc = IOv2::locale<char>("en_US.UTF-8")
                    .involve_msg("messages", "zh_CN", "zh_CN.UTF-8");
     auto interned = loc.get<IOv2::messages_conf<char>>();

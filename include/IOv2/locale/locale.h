@@ -34,6 +34,7 @@
 
 #include <clocale>
 #include <concepts>
+#include <filesystem>
 #include <memory>
 #include <mutex>
 #include <shared_mutex>
@@ -610,6 +611,7 @@ public:
      *        截断，或无可用语言）时是否抛出。为 `false`（默认）静默降级为空（穿透）facet；为
      *        `true` 抛 `io_error`。**降级 facet 绝不写入缓存**，因此该参数不受此前调用影响：
      *        无论之前是否有 `false` 调用发生过降级，后续 `true` 调用都会重新尝试加载并如实抛出。
+     *        只接受 `bool`：误把编码名等字符串写在这里会编译报错，而不是被转成 `true`。
      * @throws io_error 当 `throw_if_fail` 为 `true` 且翻译字典加载失败时抛出；失败结果不会
      *         被写入缓存。
      * @throws std::filesystem::filesystem_error 解析翻译文件可用性（`filter_lang` →
@@ -644,7 +646,9 @@ public:
      *        empty (passthrough) facet; `true` throws `io_error`. A degraded facet is
      *        *never* cached, so this flag is independent of earlier calls: regardless of
      *        any prior `false` call that degraded, a later `true` call re-attempts the
-     *        load and throws as expected.
+     *        load and throws as expected. Only a `bool` is taken: an encoding name or
+     *        other string written here by mistake fails to compile rather than turning
+     *        into `true`.
      * @throws io_error if `throw_if_fail` is `true` and the translation dictionary
      *         fails to load; the failed result is not cached.
      * @throws std::filesystem::filesystem_error if resolving translation-file
@@ -656,8 +660,9 @@ public:
      * @return A new `locale` carrying that messages facet.
      * @endif
      */
+    template <std::same_as<bool> B = bool>
     locale involve_msg(const std::string& domain, const std::string& lang = "",
-                       bool throw_if_fail = false) const requires (!std::is_same_v<TChar, char>)
+                       B throw_if_fail = false) const requires (!std::is_same_v<TChar, char>)
     {
         // messages_conf<TChar> is only specialized for char8_t, char32_t and
         // UTF-32 wchar_t (plus the char overload above); for char16_t or a
@@ -671,7 +676,7 @@ public:
                       "type -- no messages_conf<TChar> specialization exists (e.g. char16_t, "
                       "or wchar_t on a non-UTF-32 platform).");
         const std::string filtered_lang = base_ft<messages>::filter_lang(domain, lang);
-        const std::string dirname = base_ft<messages>::get_dirname(domain);
+        const std::filesystem::path dirname = base_ft<messages>::get_dirname(domain);
         auto ft = s_ori_facet_buf.try_get_msg<TChar>(domain, filtered_lang, dirname);
         if (!ft)
         {
@@ -720,7 +725,8 @@ public:
      *        截断，无可用语言，或 `cvt` 编码转换器无法构造 / 转换）时是否抛出。为 `false`（默认）
      *        静默降级为空（穿透）facet；为 `true` 抛 `io_error`。**降级 facet 绝不写入缓存**，
      *        因此该参数不受此前调用影响：无论之前是否有 `false` 调用发生过降级，后续 `true` 调用
-     *        都会重新尝试加载并如实抛出。
+     *        都会重新尝试加载并如实抛出。只接受 `bool`：误把字符串写在这里会编译报错，而不是
+     *        被转成 `true`。
      * @throws io_error 当 `throw_if_fail` 为 `true` 且翻译字典加载失败时抛出；失败结果不会
      *         被写入缓存。
      * @throws std::filesystem::filesystem_error 解析翻译文件可用性（`filter_lang` →
@@ -754,7 +760,8 @@ public:
      *        (passthrough) facet; `true` throws `io_error`. A degraded facet is
      *        *never* cached, so this flag is independent of earlier calls: regardless of
      *        any prior `false` call that degraded, a later `true` call re-attempts the
-     *        load and throws as expected.
+     *        load and throws as expected. Only a `bool` is taken: a string written here by
+     *        mistake fails to compile rather than turning into `true`.
      * @throws io_error if `throw_if_fail` is `true` and the translation dictionary
      *         fails to load; the failed result is not cached.
      * @throws std::filesystem::filesystem_error if resolving translation-file
@@ -766,8 +773,9 @@ public:
      * @return A new `locale` carrying that messages facet.
      * @endif
      */
+    template <std::same_as<bool> B = bool>
     locale involve_msg(const std::string& domain, const std::string& lang = "", // NOLINT(bugprone-easily-swappable-parameters)
-                       const std::string& cvt = "", bool throw_if_fail = false) const requires (std::is_same_v<TChar, char>)
+                       const std::string& cvt = "", B throw_if_fail = false) const requires (std::is_same_v<TChar, char>)
     {
         const std::string filtered_lang = base_ft<messages>::filter_lang(domain, lang);
         // Resolve the encoding up front and use it consistently as both the cache
@@ -777,7 +785,7 @@ public:
         // exact encoding it was built with, and lets an explicit cvt equal to the
         // CTYPE name share the same cache entry as the empty-cvt case.
         const std::string effective_cvt = cvt.empty() ? s_ori_facet_buf.locale_name(LC_CTYPE) : cvt;
-        const std::string dirname = base_ft<messages>::get_dirname(domain);
+        const std::filesystem::path dirname = base_ft<messages>::get_dirname(domain);
         auto ft = s_ori_facet_buf.try_get_msg<char>(domain, filtered_lang, dirname, effective_cvt);
         if (!ft)
         {

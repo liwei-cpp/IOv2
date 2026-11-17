@@ -27,7 +27,7 @@ namespace
     {
         std::filesystem::path mo_path = exe_path();
         mo_path = mo_path.remove_filename() / ".." / "IOv2TestResources";
-        base_ft<messages>::bind_text_domain("messages", std::filesystem::canonical(mo_path).string());
+        base_ft<messages>::bind_text_domain("messages", std::filesystem::canonical(mo_path));
     }
 
     messages<char32_t> facet_for(const char* lang)
