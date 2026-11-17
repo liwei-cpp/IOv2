@@ -23,6 +23,7 @@
 #include <IOv2/common/copyable_mutex.h>
 #include <IOv2/common/defs.h>
 #include <IOv2/common/metafunctions.h>
+#include <IOv2/common/platform/env_backend.h>
 #include <IOv2/cvt/code_cvt.h>
 #include <IOv2/cvt/cvt_facilities.h>
 #include <IOv2/cvt/root_cvt.h>
@@ -37,7 +38,6 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstdio>
-#include <cstdlib>
 #include <cstring>
 #include <exception>
 #include <filesystem>
@@ -669,13 +669,13 @@ private:
      * modifier 和地区的名字（`zh_CN.UTF-8` → `zh_CN` → `zh`），在 "C" locale 下也照样读取
      * `LANGUAGE`。需要回退时，把各个名字依次写进 `LANGUAGE`，例如 `zh_CN.UTF-8:zh_CN:zh`。
      *
-     * @note `std::getenv` 在与 `setenv()`/`putenv()` 并发执行时不是线程安全的——
-     *       无论是返回的指针还是其所指向的字节，都可能在读取过程中被另一线程置为无效——
-     *       而 C++ 和 POSIX 均不提供可移植的线程安全环境变量读取方式，
+     * @note 环境变量经 `detail::get_env` 读取（POSIX 上是 `std::getenv`，Windows 上是
+     *       `getenv_s`），未设置与设为空同样对待。它与其他线程并发的 `setenv()`/`putenv()`
+     *       之间不是线程安全的，而 C++ 和 POSIX 均不提供可移植的线程安全读法，
      *       因此此处的锁无法关闭与其他修改线程之间的竞争。
      *       本代码假定进程环境在 `messages` facet 构造期间不会被并发修改
      *       （对于"在启动时配置 locale 一次"的常见用法，此假定成立）。
-     *       每个值在读取后立即复制到 `std::string` 中，以将读取窗口降至最低。
+     *       每个值在读取后立即复制，以将读取窗口降至最低。
      *
      * @param td 包含已快照目录名和域名的 `text_domain` 结构体。
      * @param p_lang 候选语言字符串，或空字符串（使用环境变量）。
@@ -696,14 +696,15 @@ private:
      * (`zh_CN.UTF-8` → `zh_CN` → `zh`), and `LANGUAGE` is read under the "C" locale
      * too. To get a fallback, list the names in `LANGUAGE`, e.g. `zh_CN.UTF-8:zh_CN:zh`.
      *
-     * @note `std::getenv` is not thread-safe against concurrent `setenv()`/`putenv()` calls —
-     *       the returned pointer and the bytes it addresses may be invalidated mid-read —
+     * @note The environment is read through `detail::get_env` (`std::getenv` on POSIX,
+     *       `getenv_s` on Windows), which treats unset and empty alike. It is not
+     *       thread-safe against concurrent `setenv()`/`putenv()` calls on other threads,
      *       and neither C++ nor POSIX offers a portable thread-safe environment read,
      *       so a lock here could not close the race against mutators elsewhere.
      *       This code therefore assumes the process environment is not modified
      *       concurrently during `messages` facet construction (true for the typical
-     *       "configure locale once at startup" usage). Each value is copied into a
-     *       `std::string` at once to keep the read window minimal.
+     *       "configure locale once at startup" usage). Each value is copied out at once
+     *       to keep the read window minimal.
      *
      * @param td A `text_domain` struct with an already-snapshotted dirname and domain name.
      * @param p_lang The candidate language string, or empty (use environment variables).
@@ -733,37 +734,18 @@ private:
 
         if (p_lang.empty())
         {
-            // Environment fallback in gettext's order: LANGUAGE, then
-            // LC_ALL / LC_MESSAGES / LANG; names are used verbatim (see the
-            // doc comment above for how this differs from gettext). std::getenv is NOT synchronised
-            // against a concurrent setenv()/putenv() on another thread — the
-            // returned pointer and the bytes it addresses may be invalidated
-            // mid-read — and neither C++ nor POSIX offers a portable
-            // thread-safe environment read, so a lock here could not close the
-            // race against mutators elsewhere. This code therefore assumes the
-            // process environment is not modified concurrently with messages
-            // facet construction (true for the usual "configure locale once at
-            // startup" usage). Each value is copied into a std::string at once
-            // to keep the read window minimal.
-            std::string res;
-            if (const char* p = std::getenv("LANGUAGE"))
-            {
-                res = match_lang(p);
-                if (!res.empty()) return res;
-            }
+            // Environment fallback in gettext's order, names used verbatim; see the doc
+            // comment above for how this differs from gettext and for concurrent setenv.
+            std::string res = match_lang(detail::get_env("LANGUAGE"));
+            if (!res.empty()) return res;
 
             for (const char* var : {"LC_ALL", "LC_MESSAGES", "LANG"})
             {
-                if (const char* p = std::getenv(var); p && p[0] != '\0')
-                {
-                    res = p;
-                    // Unlike LANGUAGE, these are a single locale name, not a
-                    // ':'-separated list (gettext never splits them). A value
-                    // containing ':' is therefore not a valid locale name:
-                    // skip it and try the next variable.
-                    if (res.find(':') == std::string::npos && base_ft<messages>::available(td, res))
-                        return res;
-                }
+                res = detail::get_env(var);
+                // Unlike LANGUAGE, these are a single locale name, not a ':'-separated
+                // list (gettext never splits them), so a value with ':' is skipped.
+                if (!res.empty() && res.find(':') == std::string::npos && base_ft<messages>::available(td, res))
+                    return res;
             }
 
             return "";
