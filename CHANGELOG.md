@@ -101,6 +101,19 @@
     `io_error`，与 `numeric<char8_t>` 相同。
 - `clocale_wrapper::is_utf8()`：该 locale 的窄字符编码（`LC_CTYPE`）是否为 UTF-8。POSIX 上看
   `nl_langinfo_l(CODESET, …)`，Windows 上看代码页是否为 65001。
+- **messages 可在 Windows 与 macOS 上使用**，各字符类型的情况：
+  - `char8_t`、`char32_t`：三个平台都可用，与 locale 无关。
+  - `wchar_t`：Linux 上是 UTF-32；Windows 上是 UTF-16，BMP 以外的字符成为代理对；macOS 的
+    `wchar_t` 只在 UTF-8 locale 下才是 Unicode 码位，因此 `messages_conf<wchar_t>` 在 macOS 上与
+    `messages_conf<char>` 一样带 locale 名，只支持 UTF-8 locale，其他 locale 抛 `io_error`。
+  - `char`：UTF-8 locale 下直接使用 `.mo` 的字节；其他 locale 经 Unicode 的 `wchar_t` 转换
+    （Linux、Windows，如 Windows 的代码页 936）。macOS 上只支持 UTF-8 locale，其他抛 `io_error`。
+  - `locale::involve_msg` 用于 macOS 的 `wchar_t` 时走带 `cvt` 的重载。使用缺省参数的代码在三个
+    平台上写法相同；按位置给出 `throw_if_fail` 的写法用于 `wchar_t` 时在 macOS 上编译报错。
+  - 读 `.mo` 改用 64 位文件定位，在 `long` 为 32 位的 Windows 上也能定位到任意偏移。
+  - `messages::translate` 新增 `const CharT*` 重载，按值返回：字面量要经用户定义转换才能
+    绑定到原有的三个 `basic_string` 重载，MSVC 判它们有歧义（gcc、clang 选 rvalue 重载）。
+    `translate(nullptr)` 仍编译报错。
 
 #### 变更
 
@@ -115,6 +128,9 @@
   目录写成字符串字面量时，如 `messages_conf<char8_t>("app", "zh_CN", "/opt/app/locale")`，
   字面量被转成 `true`、目录被丢掉，现在它选中带 `dirname` 的重载；`involve_msg` 那里误写的
   字符串（如照 `char` 版本写的编码名）现在编译报错。传 `int` 等其他类型的写法不再编译。
+- `messages<char>` 在 UTF-8 locale 下直接使用 `.mo` 的字节，不再经 `wchar_t` 转换，也不再
+  校验：含非法 UTF-8 的目录此前在 `char` 下整本加载失败，现在照常加载，与 `messages<char8_t>`
+  相同。
 - 与 C stdio 同步的标准输入流（`cin`、`wcin` 的缺省模式）改经 `stdin` 的 `FILE` 读，与 C
   stdio 共用缓冲：`getchar()`、`scanf()` 等预读进 `FILE` 的字节本流接着读得到。此前设备直接
   读 fd 0，终端上一次 `getchar()` 读走的整行本流看不到。随之而来的两处行为变化：到达 EOF
@@ -451,6 +467,24 @@ have no release line of their own.
     throws `io_error`, as with `numeric<char8_t>`.
 - `clocale_wrapper::is_utf8()`: whether the locale's narrow encoding (`LC_CTYPE`) is UTF-8.
   On POSIX that is `nl_langinfo_l(CODESET, …)`; on Windows, whether the code page is 65001.
+- **messages works on Windows and macOS**. By character type:
+  - `char8_t`, `char32_t`: on all three platforms, with nothing to do with a locale.
+  - `wchar_t`: UTF-32 on Linux; UTF-16 on Windows, a character outside the BMP becoming a
+    surrogate pair. macOS's `wchar_t` is a Unicode code point under a UTF-8 locale only, so
+    on macOS `messages_conf<wchar_t>` takes a locale name as `messages_conf<char>` does,
+    serves UTF-8 locales only, and throws `io_error` for any other.
+  - `char`: a UTF-8 locale takes the `.mo` bytes as they are; any other is reached through a
+    Unicode `wchar_t` (Linux, Windows, e.g. Windows' code page 936). On macOS only UTF-8
+    locales are served, and any other throws `io_error`.
+  - `locale::involve_msg` takes the overload with `cvt` for macOS's `wchar_t`. Code using the
+    default arguments reads the same on all three platforms; giving `throw_if_fail` by
+    position fails to compile for `wchar_t` on macOS.
+  - `.mo` files are read with 64-bit file positioning, so any offset can be reached on
+    Windows too, where `long` is 32-bit.
+  - `messages::translate` gains a `const CharT*` overload returning by value: a literal
+    reaches the three existing `basic_string` overloads through a user-defined conversion,
+    and MSVC finds them ambiguous (gcc and clang pick the rvalue one). `translate(nullptr)`
+    still fails to compile.
 
 #### Changed
 
@@ -469,6 +503,9 @@ have no release line of their own.
   with the directory lost; it now picks the overload with `dirname`. A string written
   there by mistake in `involve_msg` (an encoding name, as the `char` overload takes one)
   is now a compile error. Passing an `int` or another type no longer compiles.
+- `messages<char>` in a UTF-8 locale takes the `.mo` bytes as they are, no longer through
+  `wchar_t` and no longer checked: a catalogue with invalid UTF-8 used to fail to load for
+  `char` as a whole, and now loads, as it does for `messages<char8_t>`.
 - A standard input stream synchronized with C stdio (the default mode of `cin`
   and `wcin`) reads through `stdin`'s `FILE`, sharing its buffer with C stdio:
   bytes `getchar()`, `scanf()` and the like have read ahead into the `FILE` are

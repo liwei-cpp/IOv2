@@ -20,6 +20,7 @@
  * @endif
  */
 #pragma once
+#include <IOv2/common/clocale_wrapper.h>
 #include <IOv2/common/copyable_mutex.h>
 #include <IOv2/common/defs.h>
 #include <IOv2/common/metafunctions.h>
@@ -474,12 +475,12 @@ protected:
 
         file_closer guard(fp);
 
-        if (std::fseek(fp, 0, SEEK_END) != 0)
+        if (detail::file_seek(fp, 0, SEEK_END) != 0)
             throw io_error("get_translate_dictionary fail: invalid format");
-        const long file_size = std::ftell(fp);
+        const std::int64_t file_size = detail::file_tell(fp);
         if (file_size < 0)
             throw io_error("get_translate_dictionary fail: file inconsistent");
-        if (std::fseek(fp, 0, SEEK_SET) != 0)
+        if (detail::file_seek(fp, 0, SEEK_SET) != 0)
             throw io_error("get_translate_dictionary fail: invalid format");
 
         auto read_num = [fp](unsigned char* buf, bool need_swap)
@@ -532,15 +533,9 @@ protected:
         if (str_num > static_cast<std::uint64_t>(file_size) / 16u)
             throw io_error("get_translate_dictionary fail: implausible string count");
 
-        // The .mo file offsets (and string lengths) are unsigned 32-bit, but
-        // std::fseek takes a signed long. Where long is 64-bit (e.g. LP64
-        // Linux) every uint32_t is representable, so all seeks below are exact.
-        // On a 32-bit-long platform (LLP64/ILP32) an offset >= 2 GiB would
-        // convert to a negative long and seek wrongly — but that can only arise
-        // from a > 2 GiB or corrupt .mo, and every fseek/fread return value is
-        // checked, so the worst case is a clean "invalid format" throw, never a
-        // misread or out-of-bounds access.
-        if (std::fseek(fp, ori_offset, SEEK_SET) != 0)
+        // The .mo offsets are unsigned 32-bit. file_seek takes a 64-bit offset, so
+        // every one is exact on every platform; std::fseek's long is 32-bit on Windows.
+        if (detail::file_seek(fp, ori_offset, SEEK_SET) != 0)
             throw io_error("get_translate_dictionary fail: invalid format");
 
         // The .mo format stores each string length as an unbounded 32-bit
@@ -555,8 +550,8 @@ protected:
         {
             auto length = read_num(buff.data(), need_swap);
             auto offset = read_num(buff.data(), need_swap);
-            auto cur_pos = std::ftell(fp);
-            if (cur_pos == -1L) throw io_error("get_translate_dictionary fail: file inconsistent");
+            const std::int64_t cur_pos = detail::file_tell(fp);
+            if (cur_pos < 0) throw io_error("get_translate_dictionary fail: file inconsistent");
 
             if (length > k_max_str_len)
                 throw io_error("get_translate_dictionary fail: string too long");
@@ -566,7 +561,7 @@ protected:
             if (str_buf.size() < static_cast<std::size_t>(length) + 1)
                 str_buf.resize(static_cast<std::size_t>(length) + 1);
 
-            if (std::fseek(fp, offset, SEEK_SET) != 0)
+            if (detail::file_seek(fp, offset, SEEK_SET) != 0)
                 throw io_error("get_translate_dictionary fail: invalid format");
 
             if (std::fread(str_buf.data(), 1, length, fp) != length)
@@ -575,11 +570,11 @@ protected:
             str_buf[length] = u8'\0';
             oris.emplace_back(str_buf.data());
 
-            if (std::fseek(fp, cur_pos, SEEK_SET) != 0)
+            if (detail::file_seek(fp, cur_pos, SEEK_SET) != 0)
                 throw io_error("get_translate_dictionary fail: invalid format");
         }
 
-        if (std::fseek(fp, aim_offset, SEEK_SET) != 0)
+        if (detail::file_seek(fp, aim_offset, SEEK_SET) != 0)
             throw io_error("get_translate_dictionary fail: invalid format");
         std::unordered_map<std::u8string, std::u8string> res;
 
@@ -587,8 +582,8 @@ protected:
         {
             auto length = read_num(buff.data(), need_swap);
             auto offset = read_num(buff.data(), need_swap);
-            auto cur_pos = std::ftell(fp);
-            if (cur_pos == -1L) throw io_error("get_translate_dictionary fail: file inconsistent");
+            const std::int64_t cur_pos = detail::file_tell(fp);
+            if (cur_pos < 0) throw io_error("get_translate_dictionary fail: file inconsistent");
 
             if (length > k_max_str_len)
                 throw io_error("get_translate_dictionary fail: string too long");
@@ -598,7 +593,7 @@ protected:
             if (str_buf.size() < static_cast<std::size_t>(length) + 1)
                 str_buf.resize(static_cast<std::size_t>(length) + 1);
 
-            if (std::fseek(fp, offset, SEEK_SET) != 0)
+            if (detail::file_seek(fp, offset, SEEK_SET) != 0)
                 throw io_error("get_translate_dictionary fail: invalid format");
 
             if (std::fread(str_buf.data(), 1, length, fp) != length)
@@ -607,7 +602,7 @@ protected:
             str_buf[length] = u8'\0';
             res.insert({oris[i], str_buf.data()});
 
-            if (std::fseek(fp, cur_pos, SEEK_SET) != 0)
+            if (detail::file_seek(fp, cur_pos, SEEK_SET) != 0)
                 throw io_error("get_translate_dictionary fail: invalid format");
         }
 
@@ -772,6 +767,35 @@ private:
     const std::string m_domain_info;
 };
 
+namespace detail
+{
+/**
+ * @lang{ZH}
+ * @brief `CharT` 的 messages 字符串编码是否取决于 locale。
+ *
+ * `char` 总是如此：它的编码由 locale 决定。`wchar_t` 在既非 UTF-32 也非 UTF-16 的平台上
+ * （macOS）也是如此：那里它的值只在 UTF-8 locale 下才是 Unicode 码位。满足此概念的类型，
+ * 其 `messages_conf` 构造时要带 locale 名，`locale::involve_msg` 也走带 `cvt` 的重载；
+ * 其余类型（`char8_t`、`char32_t`、Unicode 的 `wchar_t`）的编码与 locale 无关。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief Whether the encoding of `CharT`'s messages strings depends on a locale.
+ *
+ * It always does for `char`, whose encoding the locale decides. It does for `wchar_t`
+ * where that is neither UTF-32 nor UTF-16 (macOS), whose values are Unicode code points
+ * under a UTF-8 locale only. A type satisfying this concept constructs its
+ * `messages_conf` with a locale name, and `locale::involve_msg` takes the overload with
+ * `cvt` for it; the encoding of every other type (`char8_t`, `char32_t`, a Unicode
+ * `wchar_t`) has nothing to do with a locale.
+ * @endif
+ */
+template <typename CharT>
+concept messages_locale_encoded =
+    std::is_same_v<CharT, char> ||
+    (std::is_same_v<CharT, wchar_t> && !wchar_t_is_utf32 && !wchar_t_is_utf16);
+}
+
 template <typename CharT> class messages_conf;
 
 /**
@@ -921,28 +945,33 @@ private:
 
 /**
  * @lang{ZH}
- * @brief `messages_conf` 的 `char32_t`/UTF-32 `wchar_t` 特化。
+ * @brief `messages_conf` 的 `char32_t` 与 Unicode `wchar_t` 特化。
  *
- * 从 `.mo` 文件加载 UTF-8 翻译字典，再将所有字符串转换为 `CharT` 类型。
- * 仅当 `CharT` 为 `char32_t`，或 `wchar_t` 且其编码为 UTF-32 时启用此特化。
+ * 从 `.mo` 文件加载 UTF-8 翻译字典，再将所有字符串转换为 `CharT` 类型：`char32_t` 与
+ * UTF-32 的 `wchar_t`（Linux）逐码点，UTF-16 的 `wchar_t`（Windows）中 BMP 以外的字符成为
+ * 代理对。编码与 locale 无关，故构造时不带 locale 名。macOS 的 `wchar_t` 不是 Unicode，
+ * 由带 locale 名的特化处理（见 `detail::messages_locale_encoded`）。
  *
- * @tparam CharT 字符类型，必须为 `char32_t` 或 UTF-32 的 `wchar_t`。
+ * @tparam CharT 字符类型：`char32_t`，或 UTF-32 / UTF-16 的 `wchar_t`。
  * @endif
  *
  * @lang{EN}
- * @brief Specialization of `messages_conf` for `char32_t` / UTF-32 `wchar_t`.
+ * @brief Specialization of `messages_conf` for `char32_t` and a Unicode `wchar_t`.
  *
  * Loads the UTF-8 translation dictionary from a `.mo` file and converts all
- * strings to `CharT`. This specialization is enabled only when `CharT` is
- * `char32_t`, or `wchar_t` with UTF-32 encoding.
+ * strings to `CharT`: code point by code point for `char32_t` and a UTF-32 `wchar_t`
+ * (Linux), a character outside the BMP becoming a surrogate pair for a UTF-16 `wchar_t`
+ * (Windows). The encoding has nothing to do with a locale, so none is named at
+ * construction. macOS's `wchar_t` is not Unicode, and the specialization taking a locale
+ * name handles it (see `detail::messages_locale_encoded`).
  *
- * @tparam CharT The character type; must be `char32_t` or UTF-32 `wchar_t`.
+ * @tparam CharT The character type: `char32_t`, or a UTF-32 / UTF-16 `wchar_t`.
  * @endif
  */
 template <typename CharT>
     requires std::is_same_v<CharT, char32_t> ||
                 (std::is_same_v<CharT, wchar_t> &&
-                 wchar_t_is_utf32)
+                 (wchar_t_is_utf32 || wchar_t_is_utf16))
 class messages_conf<CharT> : public ft_basic<messages<CharT>>
 {
     using TString = std::basic_string<CharT>;
@@ -1026,15 +1055,18 @@ private:
             if (lang.empty())
                 throw io_error("messages_conf init fail: no language available");
 
+            const auto decode = [](const std::u8string& s) -> TString
+            {
+                if constexpr (std::is_same_v<CharT, char32_t>)
+                    return detail::to_u32string(s);
+                else
+                    return detail::to_wstring<CharT>(s);
+            };
+
             std::unordered_map<TString, TString> res;
             auto tmp_dict = base_ft<messages>::get_translate_dictionary(base_ft<messages>::get_domain_file({.dirname = dirname, .domain = domain}, lang));
             for (const auto& [k, v] : tmp_dict)
-            {
-                const std::u32string uk = detail::to_u32string(k.c_str());
-                const std::u32string uv = detail::to_u32string(v.c_str());
-                res.insert({TString(uk.begin(), uk.end()),
-                            TString(uv.begin(), uv.end())});
-            }
+                res.insert({decode(k), decode(v)});
             return res;
         }
         catch(...)
@@ -1074,37 +1106,58 @@ private:
 
 /**
  * @lang{ZH}
- * @brief `messages_conf` 的 `char` 特化，通过 `wchar_t` 转换器进行编码转换。
+ * @brief `messages_conf` 中编码取决于 locale 的特化：`char`，以及 macOS 的 `wchar_t`。
  *
- * 从 `.mo` 文件加载 UTF-8 翻译字典，再通过指定的 `char`↔`wchar_t` 转换 facet
- * 将字符串转换为当前 `char` 编码。仅在 `wchar_t` 为 UTF-32 的平台上支持。
+ * 从 `.mo` 文件加载 UTF-8 翻译字典，再按构造时给出的 locale 名 `cvt_ft` 的编码转换：
+ * - 该 locale 为 UTF-8：`char` 直接使用 `.mo` 的字节，不做校验，与 `messages_conf<char8_t>`
+ *   相同；macOS 的 `wchar_t` 交给该 locale 的 C 库解码。
+ * - 不是 UTF-8：`char` 先转成 Unicode 的 `wchar_t`，再转成该 locale 的编码（Linux、Windows）。
+ *   macOS 的 `wchar_t` 不是 Unicode，没有可靠的转换，`char` 与 `wchar_t` 都抛 `io_error`。
+ *
+ * `wchar_t` 只在 macOS 上带 `cvt_ft` 参数。跨平台代码经 `locale::involve_msg` 并使用缺省
+ * 参数时，三个平台写法相同；像 `involve_msg("app", "zh_CN", true)` 这样按位置给出
+ * `throw_if_fail` 的写法，用于 `wchar_t` 时在 macOS 上编译报错（第三个参数是 locale 名）。
+ *
+ * @tparam CharT `char`，或 macOS 上的 `wchar_t`（见 `detail::messages_locale_encoded`）。
  * @endif
  *
  * @lang{EN}
- * @brief Specialization of `messages_conf` for `char`, with encoding conversion
- *        via a `wchar_t` converter.
+ * @brief Specialization of `messages_conf` whose encoding depends on a locale: `char`, and
+ *        `wchar_t` on macOS.
  *
- * Loads the UTF-8 translation dictionary from a `.mo` file, then converts
- * strings to the current `char` encoding using the specified `char`↔`wchar_t`
- * converter facet. Only supported on platforms where `wchar_t` is UTF-32.
+ * Loads the UTF-8 translation dictionary from a `.mo` file, then converts it to the
+ * encoding of the locale named `cvt_ft` at construction:
+ * - A UTF-8 locale: `char` takes the `.mo` bytes as they are, unchecked, as
+ *   `messages_conf<char8_t>` does; macOS's `wchar_t` has the locale's C library decode them.
+ * - Any other: `char` goes to a Unicode `wchar_t` first and on to the locale's encoding
+ *   (Linux, Windows). macOS's `wchar_t` is not Unicode, so there is no reliable conversion,
+ *   and both `char` and `wchar_t` throw `io_error`.
+ *
+ * Only on macOS does `wchar_t` take `cvt_ft`. Portable code going through
+ * `locale::involve_msg` with the default arguments reads the same on all three platforms;
+ * giving `throw_if_fail` by position, as in `involve_msg("app", "zh_CN", true)`, fails to
+ * compile for `wchar_t` on macOS, where the third parameter is the locale name.
+ *
+ * @tparam CharT `char`, or `wchar_t` on macOS (see `detail::messages_locale_encoded`).
  * @endif
  */
-template <>
-class messages_conf<char> : public ft_basic<messages<char>>
+template <typename CharT>
+    requires detail::messages_locale_encoded<CharT>
+class messages_conf<CharT> : public ft_basic<messages<CharT>>
 {
+    using TString = std::basic_string<CharT>;
 public:
     /**
      * @lang{ZH}
      * @brief 构造函数，加载翻译字典并进行编码转换。
      *
-     * 与其他特化相比，此特化需要额外的 `cvt_ft` 参数来指定
-     * `char`↔`wchar_t` 转换 facet 的名称。这是公开、稳定的构造 API，
-     * 因此不能将参数打包到结构体中，否则会破坏调用者，或与兄弟特化的
-     * `(domain, lang)` 参数形式产生不一致。
+     * 与其他特化相比，此特化需要额外的 `cvt_ft` 参数：决定字符串编码的 locale 名。
+     * 这是公开、稳定的构造 API，因此不能将参数打包到结构体中，否则会破坏调用者，
+     * 或与兄弟特化的 `(domain, lang)` 参数形式产生不一致。
      *
      * @param domain 文本域名称。
      * @param lang 候选语言字符串，或空字符串（使用环境变量）。
-     * @param cvt_ft `char`↔`wchar_t` 转换 facet 的名称。
+     * @param cvt_ft 决定字符串编码的 locale 名（如 `zh_CN.UTF-8`）。
      * @param throw_if_fail 如果为 `true`（默认），加载失败时抛出异常；
      *                      否则静默地使翻译字典为空。只接受 `bool`：字符串字面量
      *                      不会被转成 `bool`，而是作为目录名选中带 `dirname` 的重载。
@@ -1114,15 +1167,15 @@ public:
      * @lang{EN}
      * @brief Constructor that loads the translation dictionary with encoding conversion.
      *
-     * Unlike other specializations, this one requires an extra `cvt_ft` parameter
-     * naming the `char`↔`wchar_t` converter facet. This is the public, stable
+     * Unlike other specializations, this one requires an extra `cvt_ft` parameter: the
+     * name of the locale whose encoding the strings are in. This is the public, stable
      * construction API, so the arguments cannot be bundled into a struct without
      * breaking callers or diverging from the sibling specializations'
      * `(domain, lang)` argument shape.
      *
      * @param domain The text domain name.
      * @param lang The candidate language string, or empty (use environment variables).
-     * @param cvt_ft The name of the `char`↔`wchar_t` converter facet.
+     * @param cvt_ft The name of the locale whose encoding the strings are in (e.g. `zh_CN.UTF-8`).
      * @param throw_if_fail If `true` (default), throws on failure; otherwise silently
      *                      leaves the dictionary empty. Only a `bool` is taken: a string
      *                      literal is not turned into one, but picks the overload with
@@ -1150,7 +1203,7 @@ public:
     template <std::same_as<bool> B = bool>
     // NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
     messages_conf(const std::string& domain, const std::string& lang, const std::string& cvt_ft, const std::filesystem::path& dirname, B throw_if_fail = true)
-        : ft_basic<messages<char>>(domain, lang, dirname)
+        : ft_basic<messages<CharT>>(domain, lang, dirname)
         , m_dict(init(this->dirname(), domain, this->filtered_lang(), cvt_ft, throw_if_fail))
     {}
 
@@ -1170,7 +1223,7 @@ public:
      * @return A pointer to the translation in the dictionary, or `nullptr` if not found.
      * @endif
      */
-    virtual const std::string* translate(const std::string& ori) const
+    virtual const TString* translate(const TString& ori) const
     {
         auto it = m_dict.find(ori);
         return it != m_dict.end() ? &it->second : nullptr;
@@ -1179,89 +1232,131 @@ public:
 private:
     /**
      * @lang{ZH}
-     * @brief 加载翻译字典并将 UTF-8 字符串转换为 `char` 编码的私有工厂函数。
+     * @brief 加载翻译字典并将 UTF-8 字符串转换为 `cvt_ft` 编码的私有工厂函数。
      *
      * 参数形式与公开构造函数一致：`dirname`/`domain` 仅在调用 `get_domain_file`
      * 时才打包为 `text_domain`；`lang` 和 `cvt_ft` 保持独立字符串，
-     * 这是 `char` 专属 API 的固有参数形式。
+     * 这是本特化 API 的固有参数形式。
      *
      * @param dirname 域目录名。
      * @param domain 文本域名称。
      * @param lang 过滤后的语言字符串。
-     * @param cvt_ft `char`↔`wchar_t` 转换 facet 的名称。
+     * @param cvt_ft 决定字符串编码的 locale 名。
      * @param throw_if_fail 失败时是否抛出异常。
      * @return 已加载并转换的翻译字典；若 `throw_if_fail` 为 `false` 且失败，则返回空字典。
      * @endif
      *
      * @lang{EN}
      * @brief Private factory function that loads the translation dictionary and
-     *        converts UTF-8 strings to `char` encoding.
+     *        converts UTF-8 strings to `cvt_ft`'s encoding.
      *
      * The argument shape mirrors the public constructor: `dirname`/`domain` are
      * bundled into a `text_domain` only where `get_domain_file` is called;
-     * `lang` and `cvt_ft` remain distinct strings inherent to this `char`-only API.
+     * `lang` and `cvt_ft` remain distinct strings inherent to this specialization's API.
      *
      * @param dirname The domain directory name.
      * @param domain The text domain name.
      * @param lang The filtered language string.
-     * @param cvt_ft The name of the `char`↔`wchar_t` converter facet.
+     * @param cvt_ft The name of the locale whose encoding the strings are in.
      * @param throw_if_fail Whether to throw on failure.
      * @return The loaded and converted translation dictionary, or an empty dictionary
      *         on failure (if `throw_if_fail` is `false`).
      * @endif
      */
     // NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
-    static std::unordered_map<std::string, std::string> init(const std::filesystem::path& dirname, const std::string& domain, const std::string& lang, const std::string& cvt_ft, bool throw_if_fail)
+    static std::unordered_map<TString, TString> init(const std::filesystem::path& dirname, const std::string& domain, const std::string& lang, const std::string& cvt_ft, bool throw_if_fail)
     {
         try
         {
-            if constexpr (wchar_t_is_utf32)
+            if (lang.empty())
+                throw io_error("messages_conf init fail: no language available");
+
+            const bool utf8 = clocale_wrapper(cvt_ft).is_utf8();
+            if constexpr (!std::is_same_v<CharT, char>)
             {
-                if (lang.empty())
-                    throw io_error("messages_conf init fail: no language available");
+                if (!utf8)
+                    throw io_error("messages_conf<wchar_t> init fail: " + cvt_ft +
+                                   " is not a UTF-8 locale, and wchar_t is not Unicode on this platform");
+            }
 
-                std::unordered_map<std::string, std::string> res;
-                auto tmp_dict = get_translate_dictionary(get_domain_file({.dirname = dirname, .domain = domain}, lang));
+            const auto dict = base_ft<messages>::get_translate_dictionary(
+                base_ft<messages>::get_domain_file({.dirname = dirname, .domain = domain}, lang));
+            if constexpr (std::is_same_v<CharT, char>)
+            {
+                if (!utf8)
+                    return s_through_wide(dict, cvt_ft);
 
-                auto cvt = IOv2::code_cvt_creator<char, wchar_t>(cvt_ft).create(rb_root_cvt{mem_device{""}});
-
-                for (const auto& [k, v] : tmp_dict)
-                {
-                    const std::u32string uk = detail::to_u32string(k.c_str());
-                    const std::u32string uv = detail::to_u32string(v.c_str());
-                    std::wstring wk(uk.begin(), uk.end());
-                    std::wstring wv(uv.begin(), uv.end());
-
-                    cvt.bos(); cvt.main_cont_beg();
-                    cvt.put(wk.data(), wk.size());
-                    auto [dev_k, err_k] = cvt.detach();
-                    cvt.attach(mem_device{""});
-                    if (err_k) std::rethrow_exception(err_k);
-                    std::string ck = dev_k.str();
-
-                    cvt.bos(); cvt.main_cont_beg();
-                    cvt.put(wv.data(), wv.size());
-                    auto [dev_v, err_v] = cvt.detach();
-                    cvt.attach(mem_device{""});
-                    if (err_v) std::rethrow_exception(err_v);
-                    std::string cv = dev_v.str();
-
-                    res.insert({std::move(ck), std::move(cv)});
-                }
+                std::unordered_map<TString, TString> res;
+                for (const auto& [k, v] : dict)
+                    res.insert({TString(k.begin(), k.end()), TString(v.begin(), v.end())});
                 return res;
             }
             else
-                throw io_error("messages_conf init error: unsupported wchar_t / char32_t");
+            {
+                // macOS's wchar_t: the locale's C library decodes, through one converter
+                // that attach() resets for each string.
+                auto cvt = IOv2::code_cvt_creator<char, CharT>(cvt_ft).create(rb_root_cvt{mem_device{""}});
+                const auto decode = [&cvt](const std::u8string& s)
+                {
+                    cvt.attach(mem_device{std::string(s.begin(), s.end())});
+                    cvt.bos(); cvt.main_cont_beg();
+                    TString res;
+                    std::array<CharT, 8> buf{};
+                    while (true)
+                    {
+                        const auto c = cvt.get(buf.data(), buf.size());
+                        if (c == 0) break;
+                        res.append(buf.data(), c);
+                    }
+                    return res;
+                };
+
+                std::unordered_map<TString, TString> res;
+                for (const auto& [k, v] : dict)
+                    res.insert({decode(k), decode(v)});
+                return res;
+            }
         }
         catch(...)
         {
             if (throw_if_fail)
                 throw;
         }
-        return std::unordered_map<std::string, std::string>{};
+        return std::unordered_map<TString, TString>{};
+    }
+
+    // char in a locale that is not UTF-8: UTF-8 to a Unicode wchar_t, then to cvt_ft's
+    // encoding. W only makes the body dependent, so where wchar_t is not Unicode (macOS)
+    // the discarded branch, and the to_wstring it names, is never instantiated.
+    template <typename W = wchar_t>
+    static std::unordered_map<TString, TString> s_through_wide(const std::unordered_map<std::u8string, std::u8string>& dict,
+                                                              const std::string& cvt_ft)
+    {
+        if constexpr (wchar_t_is_utf32 || wchar_t_is_utf16)
+        {
+            auto cvt = IOv2::code_cvt_creator<char, W>(cvt_ft).create(rb_root_cvt{mem_device{""}});
+            const auto encode = [&cvt](const std::u8string& s)
+            {
+                const std::basic_string<W> wide = detail::to_wstring<W>(s);
+                cvt.bos(); cvt.main_cont_beg();
+                cvt.put(wide.data(), wide.size());
+                auto [dev, err] = cvt.detach();
+                cvt.attach(mem_device{""});
+                if (err) std::rethrow_exception(err);
+                return dev.str();
+            };
+
+            std::unordered_map<TString, TString> res;
+            for (const auto& [k, v] : dict)
+                res.insert({encode(k), encode(v)});
+            return res;
+        }
+        else
+            throw io_error("messages_conf<char> init fail: " + cvt_ft +
+                           " is not a UTF-8 locale, and wchar_t is not Unicode on this platform");
     }
 
 private:
-    const std::unordered_map<std::string, std::string> m_dict;
+    const std::unordered_map<TString, TString> m_dict; // NOLINT(cppcoreguidelines-avoid-const-or-ref-data-members)
 };
 }

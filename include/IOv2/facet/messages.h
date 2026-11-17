@@ -24,6 +24,7 @@
 #include <IOv2/facet/facet_common.h>
 #include <IOv2/facet/messages_details.h>
 
+#include <cstddef>
 #include <memory>
 #include <string>
 #include <utility>
@@ -193,6 +194,41 @@ public:
         const auto* p = m_obj->translate(ori);
         return p ? *p : ori;
     }
+
+    /**
+     * @lang{ZH}
+     * @brief 翻译以空字符结尾的字符串（如字面量），按值返回。
+     *
+     * 实参先构造成 `std::basic_string`，再交给上面的 rvalue 重载，语义与之相同。
+     * 没有本重载时，字面量要经用户定义转换才能绑定到上面三个重载；gcc 与 clang 按引用绑定
+     * 规则选 rvalue 重载，MSVC 却判三者有歧义。字面量到指针是精确匹配，因此总落到这里。
+     *
+     * @param ori 指向原始字符串（`msgid`）的指针，不得为空。
+     * @return 翻译字符串或原始字符串（按值）。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Translates a null-terminated string (a literal, say), returning by value.
+     *
+     * The argument is made into a `std::basic_string` and handed to the rvalue overload
+     * above, with the same semantics. Without this overload a literal reaches the three
+     * overloads above through a user-defined conversion; gcc and clang pick the rvalue one
+     * by the reference-binding rules, while MSVC finds the three ambiguous. A literal to a
+     * pointer is an exact match, so a literal always lands here.
+     *
+     * @param ori A pointer to the original string (`msgid`); must not be null.
+     * @return The translated string or the original string (by value).
+     * @endif
+     */
+    std::basic_string<char_type> translate(const char_type* ori) const
+    {
+        return translate(std::basic_string<char_type>(ori));
+    }
+
+    /// @cond
+    // A null pointer would otherwise pick the overload above and build a string from it.
+    std::basic_string<char_type> translate(std::nullptr_t) const = delete;
+    /// @endcond
 
     /**
      * @lang{ZH}
