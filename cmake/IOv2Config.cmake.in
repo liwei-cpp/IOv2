@@ -1,7 +1,8 @@
 # IOv2 CMake package: find_package(IOv2) provides the target IOv2::iov2.
 #
 # Link IOv2::iov2 in either mode; it carries the include root, C++23 and the POSIX
-# feature-test macro, and in shared mode libiov2 itself. The installed headers
+# feature-test macro, on macOS the CoreFoundation framework (the messages facet reads
+# the user's preferred languages through it), and in shared mode libiov2 itself. The installed headers
 # already have IOV2_SHARED switched on in shared mode, so nothing else is needed.
 #
 # zlib and Botan are optional and not pulled in: they are needed only by code that

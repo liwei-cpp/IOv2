@@ -44,6 +44,10 @@ __declspec(dllimport) int __stdcall GetStringTypeW(unsigned long dwInfoType, con
 __declspec(dllimport) int __stdcall MultiByteToWideChar(unsigned int CodePage, unsigned long dwFlags,
                                                         const char* lpMultiByteStr, int cbMultiByte,
                                                         wchar_t* lpWideCharStr, int cchWideChar);
+__declspec(dllimport) int __stdcall GetUserPreferredUILanguages(unsigned long dwFlags,
+                                                                unsigned long* pulNumLanguages,
+                                                                wchar_t* pwszLanguagesBuffer,
+                                                                unsigned long* pcchLanguagesBuffer);
 }
 
 inline constexpr unsigned int win_cp_utf8 = 65001;                        // CP_UTF8
@@ -53,6 +57,7 @@ inline constexpr unsigned long win_lcmap_uppercase = 0x00000200;          // LCM
 inline constexpr unsigned long win_lcmap_sortkey = 0x00000400;            // LCMAP_SORTKEY
 inline constexpr unsigned long win_lcmap_linguistic_casing = 0x01000000;  // LCMAP_LINGUISTIC_CASING
 inline constexpr unsigned long win_mb_err_invalid_chars = 0x00000008;     // MB_ERR_INVALID_CHARS
+inline constexpr unsigned long win_mui_language_name = 0x00000008;        // MUI_LANGUAGE_NAME
 inline constexpr int win_cstr_less_than = 1;                              // CSTR_LESS_THAN
 inline constexpr int win_cstr_equal = 2;                                  // CSTR_EQUAL
 }

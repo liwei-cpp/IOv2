@@ -51,14 +51,15 @@ namespace iov2_test
         return bytes;
     }
 
-    // root/zh_CN/LC_MESSAGES/<domain>.mo holding mo_bytes, removed with everything
+    // root/<lang>/LC_MESSAGES/<domain>.mo holding mo_bytes, removed with everything
     // under root when the guard goes.
     struct mo_tree
     {
-        mo_tree(std::filesystem::path root, const std::string& domain, const std::string& mo_bytes)
+        mo_tree(std::filesystem::path root, const std::string& domain, const std::string& mo_bytes,
+                const std::string& lang = "zh_CN")
             : m_root(std::move(root))
         {
-            const std::filesystem::path dir = m_root / "zh_CN" / "LC_MESSAGES";
+            const std::filesystem::path dir = m_root / lang / "LC_MESSAGES";
             std::filesystem::create_directories(dir);
             std::ofstream out(dir / (domain + ".mo"), std::ios::binary);
             out.write(mo_bytes.data(), static_cast<std::streamsize>(mo_bytes.size()));

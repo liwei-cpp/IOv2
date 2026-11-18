@@ -137,7 +137,7 @@ struct io_traits<TChar, my_point>
 
 IOv2 提供两种发布模式，默认即开箱即用的 header-only：
 
-- **Header-Only（默认）**：像快速开始那样直接 `#include` 即可，无需任何宏或链接库。预定义的标准流对象（`cin/cout/cerr/clog` 及宽字符版本）与本地化缓存等进程级单例，以 C++17 `inline` 变量的形式直接定义在头文件中，效果类似 `std::cout`——包含头文件就能用。**只适用于单一模块**：用到 IOv2 的代码全部链接进同一个可执行文件（或同一个共享库），进程里没有别的模块也用 IOv2。
+- **Header-Only（默认）**：像快速开始那样直接 `#include` 即可，无需任何宏或链接库（macOS 例外：messages facet 经 CoreFoundation 读用户的语言偏好，要链接 `-framework CoreFoundation`，用 CMake 包或 pkg-config 时已自动带上）。预定义的标准流对象（`cin/cout/cerr/clog` 及宽字符版本）与本地化缓存等进程级单例，以 C++17 `inline` 变量的形式直接定义在头文件中，效果类似 `std::cout`——包含头文件就能用。**只适用于单一模块**：用到 IOv2 的代码全部链接进同一个可执行文件（或同一个共享库），进程里没有别的模块也用 IOv2。
 
 - **共享库（多模块时必须使用）**：进程里不止一个模块用到 IOv2——主程序之外还有共享库或 `dlopen` 载入的插件——时，**所有模块都必须使用共享库模式**，链接同一个 `libiov2.so`。此模式把上述进程级单例的唯一定义集中到 `src/iov2_objects.cpp`（等价于 `std::cout` 定义在 libstdc++ 中的做法），保证全进程只有一份。
 
@@ -262,7 +262,7 @@ IOv2 依据 **MIT 许可证**分发，全文见 [`LICENSE`](LICENSE)。
 
 审计方法、结果、有意保留的内容与已知残留，记载于 [`PROVENANCE.md`](PROVENANCE.md)；完整条款与第三方声明见 [`NOTICE`](NOTICE)。
 
-核心 header-only 组件仅依赖 C++ 标准库；可选的 `zlib_cvt` 与 `hash_cvt`
+核心 header-only 组件仅依赖 C++ 标准库（macOS 上另需系统自带的 CoreFoundation 框架）；可选的 `zlib_cvt` 与 `hash_cvt`
 分别要求外部提供 zlib 与 Botan。测试使用 GoogleTest（BSD-3-Clause），由 CMake
 在 configure 阶段拉取，其源码未提交到本 Git 仓库。
 
@@ -391,7 +391,7 @@ Two behavioural changes come with it:
 
 IOv2 ships in two modes; the default is header-only and works out of the box:
 
-- **Header-Only (default)**: just `#include` as shown in Quick Start — no macros, no library to link. The pre-defined standard streams (`cin/cout/cerr/clog` and their wide counterparts) and the localization cache — all process-wide singletons — are defined directly in the headers as C++17 `inline` variables, much like `std::cout`: include the header and use them. **Single module only**: all code that uses IOv2 is linked into one executable (or one shared library), and no other module in the process uses IOv2.
+- **Header-Only (default)**: just `#include` as shown in Quick Start — no macros, no library to link (except on macOS, where the messages facet reads the user's preferred languages through CoreFoundation: link `-framework CoreFoundation`, which the CMake package and pkg-config already add). The pre-defined standard streams (`cin/cout/cerr/clog` and their wide counterparts) and the localization cache — all process-wide singletons — are defined directly in the headers as C++17 `inline` variables, much like `std::cout`: include the header and use them. **Single module only**: all code that uses IOv2 is linked into one executable (or one shared library), and no other module in the process uses IOv2.
 
 - **Shared Library (required with more than one module)**: when more than one module in the process uses IOv2 — shared libraries or `dlopen`ed plugins besides the main program — **every module must use shared-library mode** and link the same `libiov2.so`. This mode concentrates the one definition of each of those process-wide singletons in `src/iov2_objects.cpp` (the same approach `std::cout` uses inside libstdc++), so the process has exactly one.
 
@@ -525,7 +525,8 @@ The audit method, its results, what was deliberately kept, and what is known to
 remain are recorded in [`PROVENANCE.md`](PROVENANCE.md). The full terms and
 third-party notices are in [`NOTICE`](NOTICE).
 
-The core header-only components depend only on the C++ standard library. The
+The core header-only components depend only on the C++ standard library (and, on
+macOS, the system's CoreFoundation framework). The
 optional `zlib_cvt` and `hash_cvt` components require externally supplied zlib
 and Botan, respectively. The tests use GoogleTest (BSD-3-Clause), fetched by
 CMake at configure time; its source is not committed to this Git repository.

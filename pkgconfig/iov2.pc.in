@@ -1,7 +1,9 @@
 # IOv2 pkg-config -- HEADER-ONLY mode.
 #
 # IOv2 is header-only here: there is no library to link. This file provides only
-# the include path and the one feature-test macro the headers require.
+# the include path and the one feature-test macro the headers require, and on macOS
+# the CoreFoundation framework, which the messages facet reads the user's preferred
+# languages through.
 #
 # zlib and Botan are OPTIONAL: they are needed only if your code uses the
 # compression converter (zlib_cvt) or the hashing converter (hash_cvt). This .pc
@@ -17,3 +19,4 @@ Description: C++23 I/O and localization library (header-only mode)
 URL: https://github.com/liwei-cpp/IOv2
 Version: @PROJECT_VERSION@
 Cflags: -I${includedir} -D_POSIX_C_SOURCE=200809L
+Libs: @IOV2_PC_PLATFORM_LIBS@
