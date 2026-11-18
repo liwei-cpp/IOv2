@@ -607,7 +607,7 @@ public:
      * 特化，如 `char16_t`），本函数是**编译期**错误（见内部 `static_assert`）。
      *
      * @param domain 文本域名称（`.mo` 文件基名）。
-     * @param lang 候选语言字符串；为空（默认）表示按环境变量决定。
+     * @param lang 候选语言字符串；为空（默认）表示按环境变量与系统语言偏好决定（见 `filter_lang`）。
      * @param throw_if_fail 翻译字典**加载失败**（`filter_lang` 选中的 `.mo` 文件存在但损坏 /
      *        截断，或无可用语言）时是否抛出。为 `false`（默认）静默降级为空（穿透）facet；为
      *        `true` 抛 `io_error`。**降级 facet 绝不写入缓存**，因此该参数不受此前调用影响：
@@ -643,7 +643,7 @@ public:
      *
      * @param domain The text domain name (the `.mo` file's basename).
      * @param lang The candidate language string; empty (the default) defers to the
-     *        environment.
+     *        environment, then the system's language preference (see `filter_lang`).
      * @param throw_if_fail Whether to throw when the translation dictionary *fails to
      *        load* (the `.mo` chosen by `filter_lang` exists but is corrupt / truncated,
      *        or no language is available). `false` (the default) silently degrades to an
@@ -723,7 +723,7 @@ public:
      * 的同 id 替换语义一致；`*this` 本身不被修改（写时拷贝）。
      *
      * @param domain 文本域名称（`.mo` 文件基名）。
-     * @param lang 候选语言字符串；为空（默认）表示按环境变量决定。
+     * @param lang 候选语言字符串；为空（默认）表示按环境变量与系统语言偏好决定（见 `filter_lang`）。
      * @param cvt 决定字符串编码的 locale 名；为空（默认）时取程序启动时解析得到的 `LC_CTYPE`，
      *        并以该有效值同时作为缓存键与构造参数。
      * @param throw_if_fail 翻译字典**加载失败**（`filter_lang` 选中的 `.mo` 文件存在但损坏 /
@@ -759,7 +759,7 @@ public:
      *
      * @param domain The text domain name (the `.mo` file's basename).
      * @param lang The candidate language string; empty (the default) defers to the
-     *        environment.
+     *        environment, then the system's language preference (see `filter_lang`).
      * @param cvt The name of the locale that decides the strings' encoding; empty (the
      *        default) maps to the `LC_CTYPE` locale resolved at program startup, and that effective value
      *        is used as both the cache key and the construction argument.

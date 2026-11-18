@@ -114,6 +114,14 @@
   - `messages::translate` 新增 `const CharT*` 重载，按值返回：字面量要经用户定义转换才能
     绑定到原有的三个 `basic_string` 重载，MSVC 判它们有歧义（gcc、clang 选 rvalue 重载）。
     `translate(nullptr)` 仍编译报错。
+- **messages 在 Windows 与 macOS 上按系统语言偏好选翻译**：`lang` 留空，且 `LC_ALL`、
+  `LC_MESSAGES`、`LANG` 都没设置时，在环境变量之后再按系统的用户语言偏好逐个查找——Windows
+  的界面语言列表（`GetUserPreferredUILanguages`）、macOS 的首选语言
+  （`CFLocaleCopyPreferredLanguages`）。系统给出的名字展开成两个候选：`zh-CN`、`zh-Hans-CN` 都得到
+  `zh_CN`、`zh`。三者设了任何一个就不看系统：显式设定的语言即便没有翻译也不改用别的语言，
+  与 gettext 相同。Linux 上没有环境变量以外的来源，行为不变。
+  - macOS 上因此要链接 `-framework CoreFoundation`：CMake 目标 `IOv2::iov2` 与 pkg-config 文件
+    已带上；只拷头文件、不经 CMake 或 pkg-config 使用时要自己加。
 
 #### 变更
 
@@ -485,6 +493,17 @@ have no release line of their own.
     reaches the three existing `basic_string` overloads through a user-defined conversion,
     and MSVC finds them ambiguous (gcc and clang pick the rvalue one). `translate(nullptr)`
     still fails to compile.
+- **messages on Windows and macOS picks a translation by the system's language
+  preference**: with `lang` empty and none of `LC_ALL`, `LC_MESSAGES` and `LANG` set, the
+  environment is followed by the system's user language preference, tried in turn --
+  Windows' UI language list (`GetUserPreferredUILanguages`), macOS's preferred languages
+  (`CFLocaleCopyPreferredLanguages`). Each name the system gives becomes two candidates:
+  `zh-CN` and `zh-Hans-CN` both give `zh_CN`, `zh`. Once any of the three is set the system
+  is not asked: a language set explicitly is not swapped for another when it has no
+  catalogue, as in gettext. Linux has no source besides the environment and is unchanged.
+  - macOS therefore links `-framework CoreFoundation`: the CMake target `IOv2::iov2` and
+    the pkg-config files carry it; a user of the headers alone, without CMake or
+    pkg-config, adds it themselves.
 
 #### Changed
 

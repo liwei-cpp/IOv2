@@ -33,6 +33,7 @@
 #include <IOv2/facet/facet_common.h>
 #include <IOv2/facet/platform/messages_backend.h>
 
+#include <algorithm>
 #include <array>
 #include <bit>
 #include <concepts>
@@ -51,6 +52,95 @@
 namespace IOv2
 {
 template <typename CharT> class messages;
+
+namespace detail
+{
+/**
+ * @lang{ZH}
+ * @brief 把系统给出的语言名（BCP-47）换成 `.mo` 目录名的候选，按偏好顺序排列。
+ *
+ * 每个名字展开成 `ll_CC` 与 `ll` 两个候选（没有地区时只有 `ll`），整个列表去重：
+ * `{"zh-CN", "en-US"}` → `zh_CN`、`zh`、`en_US`、`en`。语言是第一个子标签（转为小写）；地区是
+ * 两个字母（转为大写）或三位数字的子标签；文字子标签（如 `Hans`、`Latn`）与变体丢掉；单字母
+ * 子标签开始的扩展与私用部分不看。于是 `zh-Hans-CN` → `zh_CN`、`zh`，`es-419` → `es_419`、`es`。
+ * 第一个子标签不是 2–8 个字母的名字略过。`-` 与 `_` 都当分隔符。
+ *
+ * 系统列表不像 `LANGUAGE` 那样由用户自己写，所以由这里补上去掉地区的回退。已知的不足：
+ * `sr-Latn-RS` 得到 `sr_RS`、`sr`，而 gettext 惯例里拉丁字母的塞尔维亚语是 `sr@latin`。
+ *
+ * @param names 系统给出的语言名，最偏好的在前。
+ * @return 目录名候选，最偏好的在前，不重复。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief Turns the language names a system gives (BCP-47) into candidate `.mo` directory
+ *        names, in order of preference.
+ *
+ * Each name becomes `ll_CC` and `ll` (just `ll` without a region), and the whole list is
+ * deduplicated: `{"zh-CN", "en-US"}` gives `zh_CN`, `zh`, `en_US`, `en`. The language is the
+ * first subtag (lower-cased); the region is a subtag of two letters (upper-cased) or three
+ * digits; script subtags (`Hans`, `Latn`) and variants are dropped; extensions and private
+ * use, which start at a single-character subtag, are not read. So `zh-Hans-CN` gives
+ * `zh_CN`, `zh`, and `es-419` gives `es_419`, `es`. A name whose first subtag is not 2 to 8
+ * letters is skipped. Both `-` and `_` separate subtags.
+ *
+ * The user does not write the system's list the way they write `LANGUAGE`, so the fallback
+ * without the region is added here. A known shortfall: `sr-Latn-RS` gives `sr_RS`, `sr`,
+ * where gettext's convention names Latin-script Serbian `sr@latin`.
+ *
+ * @param names The language names the system gives, most preferred first.
+ * @return The candidate directory names, most preferred first, without repeats.
+ * @endif
+ */
+inline std::vector<std::string> messages_language_candidates(const std::vector<std::string>& names)
+{
+    const auto is_alpha = [](char c) { return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z'); };
+    const auto is_digit = [](char c) { return c >= '0' && c <= '9'; };
+    const auto all_of = [](const std::string& s, auto pred) { return std::all_of(s.begin(), s.end(), pred); };
+
+    std::vector<std::string> res;
+    const auto add = [&res](std::string c)
+    {
+        if (std::find(res.begin(), res.end(), c) == res.end())
+            res.push_back(std::move(c));
+    };
+
+    for (const std::string& name : names)
+    {
+        std::vector<std::string> subtags(1);
+        for (const char c : name)
+        {
+            if (c == '-' || c == '_') subtags.emplace_back();
+            else subtags.back().push_back(c);
+        }
+
+        std::string lang = subtags[0];
+        if (lang.size() < 2 || lang.size() > 8 || !all_of(lang, is_alpha))
+            continue;
+        for (char& c : lang)
+            if (c >= 'A' && c <= 'Z') c = static_cast<char>(c - 'A' + 'a');
+
+        // The region comes before any extension, which a single-character subtag starts.
+        std::string region;
+        for (std::size_t i = 1; i < subtags.size() && subtags[i].size() > 1; ++i)
+        {
+            const std::string& t = subtags[i];
+            if ((t.size() == 2 && all_of(t, is_alpha)) || (t.size() == 3 && all_of(t, is_digit)))
+            {
+                region = t;
+                for (char& c : region)
+                    if (c >= 'a' && c <= 'z') c = static_cast<char>(c - 'a' + 'A');
+                break;
+            }
+        }
+
+        if (!region.empty())
+            add(lang + '_' + region);
+        add(lang);
+    }
+    return res;
+}
+}
 
 /**
  * @lang{ZH}
@@ -184,7 +274,7 @@ public:
      * 单次调用也只观察到一致的目录名。
      *
      * @param domain 文本域名称。
-     * @param lang 语言标识符，或 `:` 分隔的候选语言列表，或空字符串（使用环境变量）。
+     * @param lang 语言标识符，或 `:` 分隔的候选语言列表，或空字符串（按环境变量与系统语言偏好决定，见 `filter_lang`）。
      * @return 如果对应的 `.mo` 文件存在，则返回 `true`。
      * @endif
      *
@@ -198,7 +288,7 @@ public:
      *
      * @param domain The text domain name.
      * @param lang A language identifier, a `:` -separated list of candidate languages,
-     *             or an empty string (falls back to environment variables).
+     *             or an empty string (falls back to the environment, then the system's language preference; see `filter_lang`).
      * @return `true` if the corresponding `.mo` file exists.
      * @endif
      */
@@ -214,7 +304,7 @@ public:
      * 对域的目录名进行一次快照，然后委托给内部重载。
      *
      * @param domain 文本域名称。
-     * @param p_lang 语言标识符或 `:` 分隔的候选列表，或空字符串（使用环境变量）。
+     * @param p_lang 语言标识符或 `:` 分隔的候选列表，或空字符串（按环境变量与系统语言偏好决定，见 `filter_lang`）。
      * @return 第一个可用的语言字符串，若均不可用则返回空字符串。
      * @endif
      *
@@ -226,7 +316,7 @@ public:
      *
      * @param domain The text domain name.
      * @param p_lang A language identifier, a `:` -separated candidate list,
-     *               or an empty string (falls back to environment variables).
+     *               or an empty string (falls back to the environment, then the system's language preference; see `filter_lang`).
      * @return The first available language string, or an empty string if none is available.
      * @endif
      */
@@ -658,7 +748,10 @@ private:
      * 如果 `p_lang` 非空，则在 `:` 分隔的候选列表中找出第一个可用的语言。
      * 如果 `p_lang` 为空，则依次查询环境变量 `LANGUAGE`（按 `:` 分隔），
      * 然后是 `LC_ALL`、`LC_MESSAGES`、`LANG`（均视为单一语言名称，镜像 gettext 的行为），
-     * 返回第一个可用的语言字符串。
+     * 返回第一个可用的语言字符串。`LC_ALL`、`LC_MESSAGES`、`LANG` 都没设置时，再按系统的
+     * 用户语言偏好（Windows 的界面语言列表、macOS 的首选语言；Linux 没有）逐个查找，名字经
+     * `detail::messages_language_candidates` 换成目录名。三者设了任何一个就不看系统：显式
+     * 设定的语言即便没有翻译也不改用别的语言，与 gettext 相同。
      *
      * 与 gettext 不同，每个语言名都原样用作目录名：不会像 gettext 那样依次退到去掉编码、
      * modifier 和地区的名字（`zh_CN.UTF-8` → `zh_CN` → `zh`），在 "C" locale 下也照样读取
@@ -673,7 +766,7 @@ private:
      *       每个值在读取后立即复制，以将读取窗口降至最低。
      *
      * @param td 包含已快照目录名和域名的 `text_domain` 结构体。
-     * @param p_lang 候选语言字符串，或空字符串（使用环境变量）。
+     * @param p_lang 候选语言字符串，或空字符串（按环境变量与系统语言偏好决定，见 `filter_lang`）。
      * @return 第一个可用的语言字符串，若均不可用则返回空字符串。
      * @endif
      *
@@ -684,7 +777,12 @@ private:
      * returns the first available language. If `p_lang` is empty, queries the
      * environment variables `LANGUAGE` (`:` -separated list), then `LC_ALL`,
      * `LC_MESSAGES`, and `LANG` (each treated as a single locale name, mirroring
-     * gettext), and returns the first available one.
+     * gettext), and returns the first available one. When none of `LC_ALL`, `LC_MESSAGES`
+     * and `LANG` is set, the system's user language preference follows (Windows' UI
+     * language list, macOS's preferred languages; Linux has none), its names made into
+     * directory names by `detail::messages_language_candidates`. Once any of the three is
+     * set the system is not asked: a language set explicitly is not swapped for another
+     * when it has no catalogue, as in gettext.
      *
      * Unlike gettext, each name is used verbatim as a directory name: there is no
      * fallback to the name without its codeset, modifier and territory
@@ -702,7 +800,7 @@ private:
      *       to keep the read window minimal.
      *
      * @param td A `text_domain` struct with an already-snapshotted dirname and domain name.
-     * @param p_lang The candidate language string, or empty (use environment variables).
+     * @param p_lang The candidate language string, or empty (use the environment, then the system's language preference; see `filter_lang`).
      * @return The first available language string, or empty if none is available.
      * @endif
      */
@@ -734,13 +832,26 @@ private:
             std::string res = match_lang(detail::get_env("LANGUAGE"));
             if (!res.empty()) return res;
 
+            bool locale_set = false;
             for (const char* var : {"LC_ALL", "LC_MESSAGES", "LANG"})
             {
                 res = detail::get_env(var);
+                if (res.empty())
+                    continue;
+                locale_set = true;
                 // Unlike LANGUAGE, these are a single locale name, not a ':'-separated
                 // list (gettext never splits them), so a value with ':' is skipped.
-                if (!res.empty() && res.find(':') == std::string::npos && base_ft<messages>::available(td, res))
+                if (res.find(':') == std::string::npos && base_ft<messages>::available(td, res))
                     return res;
+            }
+
+            // gettext's rule: only a locale nobody set falls back on the system's list. One
+            // set explicitly asked for its language, catalogue or not.
+            if (!locale_set)
+            {
+                for (const std::string& c : detail::messages_language_candidates(detail::messages_system_languages()))
+                    if (base_ft<messages>::available(td, c))
+                        return c;
             }
 
             return "";
@@ -823,7 +934,7 @@ public:
      * @brief 构造函数，加载指定域和语言的翻译字典。
      *
      * @param domain 文本域名称。
-     * @param lang 候选语言字符串，或空字符串（使用环境变量）。
+     * @param lang 候选语言字符串，或空字符串（按环境变量与系统语言偏好决定，见 `filter_lang`）。
      * @param throw_if_fail 如果为 `true`（默认），加载失败时抛出异常；
      *                      否则静默地使翻译字典为空。只接受 `bool`：字符串字面量
      *                      不会被转成 `bool`，而是作为目录名选中带 `dirname` 的重载。
@@ -834,7 +945,7 @@ public:
      * @brief Constructor that loads the translation dictionary for the given domain and language.
      *
      * @param domain The text domain name.
-     * @param lang The candidate language string, or empty (use environment variables).
+     * @param lang The candidate language string, or empty (use the environment, then the system's language preference; see `filter_lang`).
      * @param throw_if_fail If `true` (default), throws on failure; otherwise silently
      *                      leaves the dictionary empty. Only a `bool` is taken: a string
      *                      literal is not turned into one, but picks the overload with
@@ -981,7 +1092,7 @@ public:
      * @brief 构造函数，加载指定域和语言的翻译字典。
      *
      * @param domain 文本域名称。
-     * @param lang 候选语言字符串，或空字符串（使用环境变量）。
+     * @param lang 候选语言字符串，或空字符串（按环境变量与系统语言偏好决定，见 `filter_lang`）。
      * @param throw_if_fail 如果为 `true`（默认），加载失败时抛出异常；
      *                      否则静默地使翻译字典为空。只接受 `bool`：字符串字面量
      *                      不会被转成 `bool`，而是作为目录名选中带 `dirname` 的重载。
@@ -992,7 +1103,7 @@ public:
      * @brief Constructor that loads the translation dictionary for the given domain and language.
      *
      * @param domain The text domain name.
-     * @param lang The candidate language string, or empty (use environment variables).
+     * @param lang The candidate language string, or empty (use the environment, then the system's language preference; see `filter_lang`).
      * @param throw_if_fail If `true` (default), throws on failure; otherwise silently
      *                      leaves the dictionary empty. Only a `bool` is taken: a string
      *                      literal is not turned into one, but picks the overload with
@@ -1156,7 +1267,7 @@ public:
      * 或与兄弟特化的 `(domain, lang)` 参数形式产生不一致。
      *
      * @param domain 文本域名称。
-     * @param lang 候选语言字符串，或空字符串（使用环境变量）。
+     * @param lang 候选语言字符串，或空字符串（按环境变量与系统语言偏好决定，见 `filter_lang`）。
      * @param cvt_ft 决定字符串编码的 locale 名（如 `zh_CN.UTF-8`）。
      * @param throw_if_fail 如果为 `true`（默认），加载失败时抛出异常；
      *                      否则静默地使翻译字典为空。只接受 `bool`：字符串字面量
@@ -1174,7 +1285,7 @@ public:
      * `(domain, lang)` argument shape.
      *
      * @param domain The text domain name.
-     * @param lang The candidate language string, or empty (use environment variables).
+     * @param lang The candidate language string, or empty (use the environment, then the system's language preference; see `filter_lang`).
      * @param cvt_ft The name of the locale whose encoding the strings are in (e.g. `zh_CN.UTF-8`).
      * @param throw_if_fail If `true` (default), throws on failure; otherwise silently
      *                      leaves the dictionary empty. Only a `bool` is taken: a string

@@ -79,6 +79,10 @@ target_include_directories(iov2 ${IOV2_USAGE}
 target_compile_features(iov2 ${IOV2_USAGE} cxx_std_23)
 target_compile_definitions(iov2 ${IOV2_USAGE}
     $<$<NOT:$<PLATFORM_ID:Windows>>:_POSIX_C_SOURCE=200809L>)
+# On macOS the messages facet reads the user's preferred languages through CoreFoundation
+# (facet/platform/posix/messages_backend.h). A generator expression rather than if(APPLE):
+# the header-only package is architecture-independent, and this is evaluated where it is used.
+target_link_libraries(iov2 ${IOV2_USAGE} "$<$<PLATFORM_ID:Darwin>:-framework CoreFoundation>")
 if(IOV2_BUILD_SHARED)
   # The source tree's iov2_export.h keeps the switch off, so a consumer of this
   # build tree (add_subdirectory, FetchContent) gets it from here instead. The
@@ -150,6 +154,12 @@ install(FILES "${PROJECT_BINARY_DIR}/IOv2Config.cmake"
               "${PROJECT_BINARY_DIR}/IOv2ConfigVersion.cmake"
         DESTINATION "${IOV2_INSTALL_CMAKEDIR}")
 
+# A .pc file cannot say "on macOS only", so it is written for the platform configuring it.
+if(APPLE)
+  set(IOV2_PC_PLATFORM_LIBS "-framework CoreFoundation")
+else()
+  set(IOV2_PC_PLATFORM_LIBS "")
+endif()
 configure_file("pkgconfig/${IOV2_PC_NAME}.pc.in" "${PROJECT_BINARY_DIR}/${IOV2_PC_NAME}.pc" @ONLY)
 install(FILES "${PROJECT_BINARY_DIR}/${IOV2_PC_NAME}.pc"
         DESTINATION "${CMAKE_INSTALL_LIBDIR}/pkgconfig")

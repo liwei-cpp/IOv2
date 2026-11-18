@@ -8,9 +8,11 @@
  * A language argument is not one name: it is a gettext preference list, colon
  * separated, and the first entry with a catalogue wins.  When the argument is
  * empty the list comes from the environment instead, in the order LANGUAGE,
- * LC_ALL, LC_MESSAGES, LANG.  Both paths end at the same question -- is there a
- * catalogue for this language -- so filtered_lang() is what the cases below
- * read: it names the entry that was chosen, or is empty when none was.
+ * LC_ALL, LC_MESSAGES, LANG, and with no locale set from the system's language
+ * list (test_messages_system_languages.cpp has that part).  Both paths end at
+ * the same question -- is there a catalogue for this language -- so
+ * filtered_lang() is what the cases below read: it names the entry that was
+ * chosen, or is empty when none was.
  */
 #include <IOv2/facet/messages.h>
 #include <IOv2/facet/messages_details.h>
@@ -22,6 +24,7 @@
 #include <support/platform.h>
 #include <support/platform_macros.h>
 
+#include <algorithm>
 #include <cstddef>
 #include <filesystem>
 #include <fstream>
@@ -275,8 +278,15 @@ TEST_F(MessagesChar8Env, NoAvailableLanguageSelectsNothing)
     EXPECT_EQ(obj.translate(u8"please"), u8"please");
 }
 
-TEST_F(MessagesChar8Env, AnEmptyEnvironmentSelectsNothing)
+// An empty environment names no language of its own. Where the system keeps a language
+// list (Windows, macOS) the choice falls to it, so what is expected is what the test
+// catalogue has of that list: zh_CN, or nothing (always nothing on Linux).
+TEST_F(MessagesChar8Env, AnEmptyEnvironmentLeavesTheChoiceToTheSystem)
 {
+    const std::vector<std::string> system =
+        detail::messages_language_candidates(detail::messages_system_languages());
+    const bool system_has_zh_cn = std::find(system.begin(), system.end(), kPresent) != system.end();
+
     const messages<char8_t> obj = facet_from_the_environment(false);
-    EXPECT_EQ(obj.filtered_lang(), "");
+    EXPECT_EQ(obj.filtered_lang(), system_has_zh_cn ? kPresent : "");
 }

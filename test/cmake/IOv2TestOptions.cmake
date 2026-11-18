@@ -103,6 +103,12 @@ elseif(IOV2_TEST_MODE STREQUAL "sanitizer")
     target_compile_options(iov2_test_options INTERFACE
         -g -O1 -fsanitize=address,undefined -fno-omit-frame-pointer)
     target_link_options(iov2_test_options INTERFACE -fsanitize=address,undefined)
+    # GoogleTest is instrumented as well, directory-wide as on MSVC above, for the
+    # same reason without the link-time check: libc++ annotates vector under ASan,
+    # and an uninstrumented gtest object can supply the one copy of an inline
+    # member (vector<string>::emplace_back) the tests use too, leaving the
+    # annotations stale. macOS then reports a false container-overflow.
+    add_compile_options(-fsanitize=address -fno-omit-frame-pointer)
   endif()
 elseif(IOV2_TEST_MODE STREQUAL "tsan")
   if(MSVC)
@@ -145,6 +151,11 @@ set(IOV2_TEST_SUBJECT_INCLUDE_DIRS "")
 
 if(IOV2_TEST_CONSUMER STREQUAL "source")
   set(IOV2_TEST_SUBJECT_INCLUDE_DIRS "${IOV2_REPO_ROOT}/include")
+  # As IOv2::iov2 does: the messages facet reads macOS's preferred languages through
+  # CoreFoundation. The installed consumers get it from the .pc file.
+  if(APPLE)
+    target_link_libraries(iov2_test_subject INTERFACE "-framework CoreFoundation")
+  endif()
 else()
   find_package(PkgConfig REQUIRED)
   if(IOV2_TEST_CONSUMER STREQUAL "installed-shared")
