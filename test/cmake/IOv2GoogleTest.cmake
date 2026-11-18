@@ -60,6 +60,15 @@ foreach(_gtest_target IN ITEMS gtest gtest_main gmock gmock_main)
     # toolchains gtest adds -W4 -WX to itself. Its warnings are upstream's, as
     # above, so building it is kept quiet; our sources keep -Werror.
     if(MSVC)
+      # gtest keeps its -W4 -WX in COMPILE_FLAGS, and cl warns D9025 on every gtest
+      # source when /w comes after them. Taken out, /w is the one warning level.
+      get_target_property(_gtest_flags ${_gtest_target} COMPILE_FLAGS)
+      if(_gtest_flags)
+        separate_arguments(_gtest_flags UNIX_COMMAND "${_gtest_flags}")
+        list(REMOVE_ITEM _gtest_flags -W4 -WX /W4 /WX)
+        list(JOIN _gtest_flags " " _gtest_flags)
+        set_target_properties(${_gtest_target} PROPERTIES COMPILE_FLAGS "${_gtest_flags}")
+      endif()
       target_compile_options(${_gtest_target} PRIVATE /w)
     else()
       target_compile_options(${_gtest_target} PRIVATE -w)
