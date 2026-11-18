@@ -1,0 +1,110 @@
+name: Timeio probe
+
+# Timeio port: runs probe/timeio_probe.cpp (the C library's time data per locale, what
+# strftime renders, what the platform's time_put/time_get do, and a scan of every
+# locale) and probe/tzdb_probe.cpp (whether std::chrono has a tz database, what it holds,
+# and what IOv2's %Z trie walk costs) on real Windows, macOS and Linux. Lives on probe/*
+# branches only; never merged.
+on:
+  push:
+    branches: [ 'probe/**' ]
+
+jobs:
+  windows:
+    name: probe (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ windows-latest, windows-2022 ]
+    steps:
+    - uses: actions/checkout@v6
+    - uses: ilammy/msvc-dev-cmd@v1
+    - name: Versions
+      shell: pwsh
+      run: |
+        [System.Environment]::OSVersion.VersionString
+        (Get-Item C:\Windows\System32\ucrtbase.dll).VersionInfo.FileVersion
+        if (Test-Path C:\Windows\System32\icu.dll) { (Get-Item C:\Windows\System32\icu.dll).VersionInfo.FileVersion } else { 'no icu.dll' }
+        Get-Culture | Format-List Name, DisplayName
+        Get-WinSystemLocale | Format-List Name
+        (Get-ItemProperty HKLM:\SYSTEM\CurrentControlSet\Control\Nls\CodePage).ACP
+        tzutil /g
+        cl 2>&1 | Select-Object -First 1
+    - name: Build
+      shell: cmd
+      run: |
+        cl /nologo /std:c++latest /utf-8 /EHsc /W4 /O2 /MD probe\timeio_probe.cpp /Fe:timeio_probe.exe advapi32.lib
+        cl /nologo /std:c++latest /utf-8 /EHsc /W4 /O2 /MD probe\tzdb_probe.cpp /Fe:tzdb_probe.exe
+    - name: Run timeio_probe (per locale)
+      shell: cmd
+      run: timeio_probe.exe
+    - name: Run timeio_probe (scan)
+      shell: cmd
+      run: timeio_probe.exe --scan
+    - name: Run tzdb_probe
+      shell: cmd
+      run: tzdb_probe.exe
+
+  posix:
+    name: probe (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ macos-latest, macos-14, ubuntu-latest ]
+    steps:
+    - uses: actions/checkout@v6
+    - name: Locales and tzdata (Linux)
+      if: runner.os == 'Linux'
+      run: |
+        sudo apt-get update -q
+        sudo apt-get install -y -q locales-all
+        locale -a | wc -l
+        head -1 /usr/share/zoneinfo/tzdata.zi || true
+    - name: Locales, tzdata and libc++ configuration (macOS)
+      if: runner.os == 'macOS'
+      run: |
+        sw_vers
+        xcrun --show-sdk-path
+        sdk=$(xcrun --show-sdk-path)
+        grep -n -i 'TIME_ZONE\|TZDB\|EXPERIMENTAL\|ABI_VERSION' "$sdk/usr/include/c++/v1/__config_site" || true
+        grep -n -i 'TZDB' "$sdk/usr/include/c++/v1/__configuration/availability.h" | head -20 || true
+        ls "$sdk/usr/include/c++/v1/__chrono/" | grep -i 'tz\|zone' || true
+        ls -la /usr/share/zoneinfo | head -5
+        ls /usr/share/zoneinfo | wc -l
+        cat /usr/share/zoneinfo/+VERSION || true
+        ls -la /usr/share/zoneinfo/tzdata.zi /usr/share/zoneinfo/leapseconds /usr/share/zoneinfo/leap-seconds.list 2>&1 || true
+        locale -a | wc -l
+    - name: Versions
+      run: |
+        uname -a
+        c++ --version
+    - name: Build timeio_probe
+      run: |
+        c++ -std=c++20 -Wall -Wextra -O2 probe/timeio_probe.cpp -o timeio_probe.out
+    - name: Strict POSIX build (as IOv2 builds)
+      continue-on-error: true
+      run: |
+        c++ -std=c++20 -D_POSIX_C_SOURCE=200809L -DPROBE_STRICT_POSIX=1 probe/timeio_probe.cpp -o timeio_strict.out
+        ./timeio_strict.out
+    - name: Run timeio_probe (per locale)
+      run: ./timeio_probe.out
+    - name: Run timeio_probe (scan)
+      run: locale -a | ./timeio_probe.out --scan
+    - name: tzdb_probe as the macros say
+      continue-on-error: true
+      run: |
+        c++ -std=c++20 -O2 probe/tzdb_probe.cpp -o tzdb_auto.out
+        ./tzdb_auto.out
+    - name: tzdb_probe forced
+      continue-on-error: true
+      run: |
+        c++ -std=c++20 -O2 -DPROBE_FORCE_TZDB=1 probe/tzdb_probe.cpp -o tzdb_forced.out
+        ./tzdb_forced.out
+    - name: tzdb_probe forced, -fexperimental-library
+      if: runner.os == 'macOS'
+      continue-on-error: true
+      run: |
+        c++ -std=c++20 -O2 -fexperimental-library -DPROBE_FORCE_TZDB=1 probe/tzdb_probe.cpp -o tzdb_exp.out
+        ./tzdb_exp.out
