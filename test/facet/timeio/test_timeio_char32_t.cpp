@@ -97,6 +97,15 @@ namespace
         std::basic_string<TChar> m_format;
     };
 
+    // A value that carries an offset and a zone without needing the tz database: put writes
+    // +0000 and UTC for it on every platform.
+    std::chrono::sys_seconds create_sys_time(int y, unsigned m, unsigned d, int h, int min, int s)
+    {
+        using namespace std::chrono;
+        return sys_days{year{y} / month{m} / day{d}} + hours{h} + minutes{min} + seconds{s};
+    }
+
+#if IOV2_HAS_CHRONO_TZDB
     auto create_zoned_time(int y, unsigned m, unsigned d, int h, int min, int s,
                            const std::string& tz)
     {
@@ -105,6 +114,7 @@ namespace
                                + hours{h} + minutes{min} + seconds{s};
         return zoned_time{locate_zone(tz), lt};
     }
+#endif
 
     timeio<char32_t> facet_for(const char* loc)
     {
@@ -206,13 +216,14 @@ namespace
 }
 
 // Every conversion specifier and both modifiers, against one instant a reader can
-// check by hand: 2024-09-04 13:33:18 in America/Los_Angeles, a Wednesday.  A
-// specifier the value can supply is written; a modifier the locale has no
-// alternative representation for leaves the format text as it was.
+// check by hand: 2024-09-04 13:33:18 UTC, a Wednesday.  A specifier the value can
+// supply is written; a modifier the locale has no alternative representation for
+// leaves the format text as it was.  The value is a sys_time, which carries an
+// offset and a zone without the tz database, so the table holds on every platform.
 TEST(TimeioChar32, CLocaleWritesEveryConversionSpecifier)
 {
     const timeio<char32_t> obj = facet_for("C");
-    const auto             tp  = create_zoned_time(2024, 9, 4, 13, 33, 18, "America/Los_Angeles");
+    const auto             tp  = create_sys_time(2024, 9, 4, 13, 33, 18);
 
     static const conversion kConversions[] = {
         {U'%', 0, U"%"},
@@ -318,15 +329,22 @@ TEST(TimeioChar32, CLocaleWritesEveryConversionSpecifier)
         {U'y', 0, U"24"},
         {U'y', U'E', U"24"},
         {U'y', U'O', U"24"},
-        {U'Z', 0, U"America/Los_Angeles"},
+        {U'Z', 0, U"UTC"},
         {U'Z', U'E', U"%EZ"},
         {U'Z', U'O', U"%OZ"},
-        {U'z', 0, U"-0700"},
+        {U'z', 0, U"+0000"},
         {U'z', U'E', U"%Ez"},
         {U'z', U'O', U"%Oz"},
     };
 
     expect_conversions(obj, tp, kConversions);
+
+#if IOV2_HAS_CHRONO_TZDB
+    // What only a zoned_time writes for %Z: its zone's name, widened into this character type.
+    // The rows above come from a sys_time and write UTC there.
+    const auto zt = create_zoned_time(2024, 9, 4, 13, 33, 18, "America/Los_Angeles");
+    EXPECT_EQ(put_one(obj, zt, std::u32string_view(U"%z %Z")), U"-0700 America/Los_Angeles");
+#endif
 }
 
 // The same instant and the same specifiers under zh_CN, where the words and the
@@ -334,7 +352,7 @@ TEST(TimeioChar32, CLocaleWritesEveryConversionSpecifier)
 TEST(TimeioChar32, ChineseWritesEveryConversionSpecifier)
 {
     const timeio<char32_t> obj = facet_for("zh_CN.UTF-8");
-    const auto             tp  = create_zoned_time(2024, 9, 4, 13, 33, 18, "America/Los_Angeles");
+    const auto             tp  = create_sys_time(2024, 9, 4, 13, 33, 18);
 
     static const conversion kConversions[] = {
         {U'%', 0, U"%"},
@@ -440,10 +458,10 @@ TEST(TimeioChar32, ChineseWritesEveryConversionSpecifier)
         {U'y', 0, U"24"},
         {U'y', U'E', U"24"},
         {U'y', U'O', U"24"},
-        {U'Z', 0, U"America/Los_Angeles"},
+        {U'Z', 0, U"UTC"},
         {U'Z', U'E', U"%EZ"},
         {U'Z', U'O', U"%OZ"},
-        {U'z', 0, U"-0700"},
+        {U'z', 0, U"+0000"},
         {U'z', U'E', U"%Ez"},
         {U'z', U'O', U"%Oz"},
     };
@@ -456,7 +474,7 @@ TEST(TimeioChar32, ChineseWritesEveryConversionSpecifier)
 TEST(TimeioChar32, JapaneseWritesEveryConversionSpecifier)
 {
     const timeio<char32_t> obj = facet_for("ja_JP.UTF-8");
-    const auto             tp  = create_zoned_time(2024, 9, 4, 13, 33, 18, "America/Los_Angeles");
+    const auto             tp  = create_sys_time(2024, 9, 4, 13, 33, 18);
 
     static const conversion kConversions[] = {
         {U'%', 0, U"%"},
@@ -562,10 +580,10 @@ TEST(TimeioChar32, JapaneseWritesEveryConversionSpecifier)
         {U'y', 0, U"24"},
         {U'y', U'E', U"6"},
         {U'y', U'O', U"二十四"},
-        {U'Z', 0, U"America/Los_Angeles"},
+        {U'Z', 0, U"UTC"},
         {U'Z', U'E', U"%EZ"},
         {U'Z', U'O', U"%OZ"},
-        {U'z', 0, U"-0700"},
+        {U'z', 0, U"+0000"},
         {U'z', U'E', U"%Ez"},
         {U'z', U'O', U"%Oz"},
     };
@@ -926,7 +944,7 @@ TEST(TimeioChar32, ABrokenDownTimeWritesEveryConversionSpecifier)
         {U'y', 0, U"24"},
         {U'y', U'E', U"6"},
         {U'y', U'O', U"二十四"},
-        {U'Z', 0, U"UNKNOWN"},
+        {U'Z', 0, time_value_fields<std::tm>::has_zone ? U"UNKNOWN" : U"%Z"},   // echoed without a tzdb
         {U'Z', U'E', U"%EZ"},
         {U'Z', U'O', U"%OZ"},
         {U'z', 0, U"+0000"},
@@ -947,9 +965,11 @@ namespace
     concept can_hint_time = requires (T& c)
     { c.set_hint(std::chrono::hh_mm_ss<std::chrono::seconds>{}); };
 
+#if IOV2_HAS_CHRONO_TZDB
     template <typename T>
     concept can_hint_zone = requires (T& c)
     { c.set_hint(static_cast<const std::chrono::time_zone*>(nullptr)); };
+#endif
 }
 
 // %Z is the one specifier a std::tm answers from a field rather than from the
@@ -960,17 +980,22 @@ TEST(TimeioChar32, ABrokenDownTimeNamesItsZoneOrSaysItCannot)
     const timeio<char32_t> obj = facet_for("ja_JP.UTF-8");
     const std::tm          tp  = calendar_time(2024 - 1900, 9 - 1, 4, 13, 33, 18, 0, 0, 0);
 
-    EXPECT_EQ(put_one(obj, tp, U'Z'), U"UNKNOWN");
+    // Without a tz database to read a name back with, %Z is echoed like any specifier the
+    // value cannot supply.
+    EXPECT_EQ(put_one(obj, tp, U'Z'), time_value_fields<std::tm>::has_zone ? U"UNKNOWN" : U"%Z");
     EXPECT_EQ(put_one(obj, tp, U'z'), U"+0000");
 
 #ifdef __USE_MISC
-    std::tm named = tp;
-    named.tm_zone = "PST";
-    EXPECT_EQ(put_one(obj, named, U'Z'), U"PST");
+    if constexpr (time_value_fields<std::tm>::has_zone)
+    {
+        std::tm named = tp;
+        named.tm_zone = "PST";
+        EXPECT_EQ(put_one(obj, named, U'Z'), U"PST");
 
-    // An empty string is as nameless as a null pointer.
-    named.tm_zone = "";
-    EXPECT_EQ(put_one(obj, named, U'Z'), U"UNKNOWN");
+        // An empty string is as nameless as a null pointer.
+        named.tm_zone = "";
+        EXPECT_EQ(put_one(obj, named, U'Z'), U"UNKNOWN");
+    }
 #endif
 }
 
@@ -981,7 +1006,7 @@ TEST(TimeioChar32, ABrokenDownTimeNamesItsZoneOrSaysItCannot)
 // for.
 TEST(TimeioChar32, AFormatStringIsExpandedSpecifierBySpecifier)
 {
-    const auto tp = create_zoned_time(1971, 4, 4, 12, 0, 0, "America/Los_Angeles");
+    const auto tp = create_sys_time(1971, 4, 4, 12, 0, 0);
 
     for (const char* loc : {"C", "de_DE.UTF-8", "en_HK.UTF-8", "fr_FR.UTF-8", "ja_JP.UTF-8"})
     {
@@ -1003,7 +1028,7 @@ TEST(TimeioChar32, AFormatStringIsExpandedSpecifierBySpecifier)
 TEST(TimeioChar32, PutIntoAnExistingBufferReturnsWhereItStopped)
 {
     const timeio<char32_t> obj = facet_for("C");
-    const auto             tp  = create_zoned_time(1997, 6, 26, 12, 0, 0, "America/Los_Angeles");
+    const auto             tp  = create_sys_time(1997, 6, 26, 12, 0, 0);
 
     std::u32string buffer(50, U'.');
     const auto     end = obj.put(buffer.begin(), tp, std::u32string_view(U"%F %T"));
@@ -1136,10 +1161,10 @@ TEST(TimeioChar32, ACompositeFormatCanExpandPastAConventionalStackBuffer)
     std::shared_ptr<timeio_conf<char32_t>> conf =
         std::make_shared<expanded_composite_conf<char32_t>>();
     timeio obj(conf);
-    auto   zt = create_zoned_time(2022, 11, 17, 21, 47, 26, "America/Los_Angeles");
+    auto   tp = create_sys_time(2022, 11, 17, 21, 47, 26);
 
     std::u32string actual;
-    obj.put(std::back_inserter(actual), zt, U'c');
+    obj.put(std::back_inserter(actual), tp, U'c');
 
     std::u32string expected(140, U'q');
     expected += U"-2022-11-17-21:47:26-";
@@ -1379,8 +1404,12 @@ TEST(TimeioChar32, TheCLocaleReadsEveryConversionSpecifier)
     CheckGet(obj, U"%OY", U'Y', U'O', ios_defs::eofbit);
     CheckGet(obj, U"Y",   U'Y', U'O', ios_defs::strfailbit);
 
+#if IOV2_HAS_CHRONO_TZDB
     EXPECT_TRUE(zone_is(CheckGet(obj, U"America/Los_Angeles", U'Z', 0, ios_defs::eofbit).m_zone_name, "America/Los_Angeles"));
     { auto r = CheckGet(obj, U"PST", U'Z', 0, ios_defs::eofbit); EXPECT_TRUE(r.m_zone_name == nullptr && zone_is(r.m_zone_abbrev, "PST")); }
+#else
+    { auto r = CheckGet(obj, U"UTC", U'Z', 0, ios_defs::eofbit); EXPECT_TRUE(r.m_zone_name == nullptr && zone_is(r.m_zone_abbrev, "UTC")); }
+#endif
     CheckGet(obj, U"America/Los_Angexes", U'Z', 0, ios_defs::strfailbit);
     CheckGet(obj, U"%EZ", U'Z', U'E', ios_defs::eofbit);
     CheckGet(obj, U"Z",   U'Z', U'E', ios_defs::strfailbit);
@@ -1645,8 +1674,12 @@ TEST(TimeioChar32, ChineseReadsEveryConversionSpecifier)
     CheckGet(obj, U"%OY", U'Y', U'O', ios_defs::eofbit);
     CheckGet(obj, U"Y",   U'Y', U'O', ios_defs::strfailbit);
 
+#if IOV2_HAS_CHRONO_TZDB
     EXPECT_TRUE(zone_is(CheckGet(obj, U"America/Los_Angeles", U'Z', 0, ios_defs::eofbit).m_zone_name, "America/Los_Angeles"));
     { auto r = CheckGet(obj, U"PST", U'Z', 0, ios_defs::eofbit); EXPECT_TRUE(r.m_zone_name == nullptr && zone_is(r.m_zone_abbrev, "PST")); }
+#else
+    { auto r = CheckGet(obj, U"UTC", U'Z', 0, ios_defs::eofbit); EXPECT_TRUE(r.m_zone_name == nullptr && zone_is(r.m_zone_abbrev, "UTC")); }
+#endif
     CheckGet(obj, U"America/Los_Angexes", U'Z', 0, ios_defs::strfailbit);
     CheckGet(obj, U"%EZ", U'Z', U'E', ios_defs::eofbit);
     CheckGet(obj, U"Z",   U'Z', U'E', ios_defs::strfailbit);
@@ -1925,8 +1958,12 @@ TEST(TimeioChar32, JapaneseReadsEveryConversionSpecifier)
     CheckGet(obj, U"%OY", U'Y', U'O', ios_defs::eofbit);
     CheckGet(obj, U"Y",   U'Y', U'O', ios_defs::strfailbit);
 
+#if IOV2_HAS_CHRONO_TZDB
     EXPECT_TRUE(zone_is(CheckGet(obj, U"America/Los_Angeles", U'Z', 0, ios_defs::eofbit).m_zone_name, "America/Los_Angeles"));
     { auto r = CheckGet(obj, U"PST", U'Z', 0, ios_defs::eofbit); EXPECT_TRUE(r.m_zone_name == nullptr && zone_is(r.m_zone_abbrev, "PST")); }
+#else
+    { auto r = CheckGet(obj, U"UTC", U'Z', 0, ios_defs::eofbit); EXPECT_TRUE(r.m_zone_name == nullptr && zone_is(r.m_zone_abbrev, "UTC")); }
+#endif
     CheckGet(obj, U"America/Los_Angexes", U'Z', 0, ios_defs::strfailbit);
     CheckGet(obj, U"%EZ", U'Z', U'E', ios_defs::eofbit);
     CheckGet(obj, U"Z",   U'Z', U'E', ios_defs::strfailbit);
@@ -3036,8 +3073,12 @@ TEST(TimeioChar32, ATimeOfDayReadsEveryConversionSpecifierItCanSupply)
     FOri(U"%OY", U'Y', U'O', ios_defs::eofbit);
     FOri(U"Y",   U'Y', U'O', ios_defs::strfailbit);
 
+#if IOV2_HAS_CHRONO_TZDB
     EXPECT_TRUE(zone_is(FOri(U"America/Los_Angeles", U'Z', 0, ios_defs::eofbit).m_zone_name, "America/Los_Angeles"));
     { auto r = FOri(U"PST", U'Z', 0, ios_defs::eofbit); EXPECT_TRUE(r.m_zone_name == nullptr && zone_is(r.m_zone_abbrev, "PST")); }
+#else
+    { auto r = FOri(U"UTC", U'Z', 0, ios_defs::eofbit); EXPECT_TRUE(r.m_zone_name == nullptr && zone_is(r.m_zone_abbrev, "UTC")); }
+#endif
     FOri(U"America/Los_Angexes", U'Z', 0, ios_defs::strfailbit);
     FOri(U"%EZ", U'Z', U'E', ios_defs::eofbit);
     FOri(U"Z",   U'Z', U'E', ios_defs::strfailbit);
@@ -3384,10 +3425,10 @@ TEST(TimeioChar32, AValueThatIsNotAValidTimeIsRejected)
         EXPECT_EQ(res, U"-0001");
     }
 
-    // put(zoned_time) with positive offset: %z outputs '+' (line 2883)
+    // A positive offset: %z writes '+'.
     {
-        auto tp = create_zoned_time(2024, 9, 4, 12, 0, 0, "Asia/Tokyo");
-        res.clear(); obj.put(std::back_inserter(res), tp, std::u32string_view(U"%z"));
+        const local_seconds lt = local_days{year{2024} / month{9} / day{4}} + hours{12};
+        res.clear(); obj.put(std::back_inserter(res), lt, hours{9}, std::u32string_view(U"%z"));
         EXPECT_EQ(res, U"+0900");
     }
 }
@@ -3466,7 +3507,7 @@ TEST(TimeioChar32, TheZoneTierDecidesHowAZoneNameIsParsed)
     // for a value that parses at that tier, so there is nothing to read back.
     EXPECT_TRUE(zone_ok(U"UTC", U"%Z"));
     EXPECT_FALSE(off_ok(U"UTC", U"%Z"));
-    EXPECT_TRUE(zone_ok(U"PDT", U"%Z"));
+    EXPECT_EQ(zone_ok(U"PDT", U"%Z"), IOV2_HAS_CHRONO_TZDB != 0);   // only the tz database knows it
     EXPECT_FALSE(off_ok(U"PDT", U"%Z"));
 
     // A run of letters the database does not know is rejected at both, for different reasons:
@@ -3479,10 +3520,10 @@ TEST(TimeioChar32, TheZoneTierDecidesHowAZoneNameIsParsed)
     EXPECT_FALSE(off_ok(U"%Q", U"%Z"));
 
     // The round trip it exists for: a std::tm with no zone, through a format carrying %Z. Each
-    // platform reads it back at the tier its own std::tm sits at. With tm_zone the field exists
-    // but names nothing, so put writes the unknown-zone token and the zone tier reads it back;
-    // without the extension members the type has no zone at all, put degrades %Z to a literal,
-    // and the tiers below zone match that literal. Either way it closes.
+    // platform reads it back at the tier its own std::tm sits at. At the zone tier (tm_zone and
+    // a tz database) the field exists but names nothing, so put writes the unknown-zone token
+    // and the zone tier reads it back; below it put degrades %Z to a literal, and the tiers
+    // below zone match that literal. Either way it closes.
     {
         std::tm t{};
         t.tm_year = 124; t.tm_mon = 8; t.tm_mday = 4;
@@ -3490,13 +3531,16 @@ TEST(TimeioChar32, TheZoneTierDecidesHowAZoneNameIsParsed)
 
         std::u32string res;
         obj.put(std::back_inserter(res), t, std::u32string_view(U"%F %T %Z"));
-#ifdef __USE_MISC
-        EXPECT_EQ(res, U"2024-09-04 13:33:18 UNKNOWN");
-        EXPECT_TRUE(zone_ok(res, U"%F %T %Z"));
-#else
-        EXPECT_EQ(res, U"2024-09-04 13:33:18 %Z");
-        EXPECT_TRUE(off_ok(res, U"%F %T %Z"));
-#endif
+        if constexpr (time_value_fields<std::tm>::has_zone)
+        {
+            EXPECT_EQ(res, U"2024-09-04 13:33:18 UNKNOWN");
+            EXPECT_TRUE(zone_ok(res, U"%F %T %Z"));
+        }
+        else
+        {
+            EXPECT_EQ(res, U"2024-09-04 13:33:18 %Z");
+            EXPECT_TRUE(off_ok(res, U"%F %T %Z"));
+        }
     }
 
     // The same round trip through a locale whose own %c carries %Z, which is how this reaches
@@ -3510,7 +3554,8 @@ TEST(TimeioChar32, TheZoneTierDecidesHowAZoneNameIsParsed)
         std::u32string res;
         us.put(std::back_inserter(res), t, std::u32string_view(U"%c"));
 
-        time_parse_context<char32_t, true, true, tz_level::zone> ctx;
+        constexpr tz_level tier = time_value_fields<std::tm>::has_zone ? tz_level::zone : tz_level::offset;
+        time_parse_context<char32_t, true, true, tier> ctx;
         EXPECT_EQ(us.get(res.begin(), res.end(), ctx, std::u32string_view(U"%c")), res.end());
     }
 }

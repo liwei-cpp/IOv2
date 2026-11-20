@@ -4,11 +4,12 @@
 /**
  * @file defs.h
  * @lang{ZH}
- * 公共定义：各层共用的异常类型，以及 `IOV2_NO_UNIQUE_ADDRESS`、`SIMD_PADDING_BYTES`。
+ * 公共定义：各层共用的异常类型，以及 `IOV2_NO_UNIQUE_ADDRESS`、`IOV2_HAS_CHRONO_TZDB`、
+ * `SIMD_PADDING_BYTES`。
  * @endif
  * @lang{EN}
- * Common definitions: the exception types every layer uses, plus `IOV2_NO_UNIQUE_ADDRESS`
- * and `SIMD_PADDING_BYTES`.
+ * Common definitions: the exception types every layer uses, plus `IOV2_NO_UNIQUE_ADDRESS`,
+ * `IOV2_HAS_CHRONO_TZDB` and `SIMD_PADDING_BYTES`.
  * @endif
  */
 
@@ -16,6 +17,7 @@
 #include <cstddef>
 #include <stdexcept>
 #include <string>
+#include <version>
 
 /**
  * @lang{ZH}
@@ -34,6 +36,72 @@
 #else
 #define IOV2_NO_UNIQUE_ADDRESS [[no_unique_address]]
 #endif
+
+/**
+ * @lang{ZH}
+ * 标准库的 `<chrono>` 有没有时区数据库（`std::chrono::tzdb`、`time_zone`、`zoned_time`、
+ * `locate_zone` 等）：有为 `1`，没有为 `0`，总有定义，可直接用于 `#if`。
+ *
+ * 为 `0` 时，`timeio` 去掉以 `time_zone` 或 `zoned_time` 为参数的接口；`%Z` 只认得
+ * `base_ft<timeio>::s_unknown_zone` 与 `UTC`（`sys_time` 的 `%Z` 写的就是它）；`std::tm` 的
+ * `%Z` 按"值供不出"退化为字面量，因为 `tm_zone` 里的缩写写出去读不回来。`%z` 不受影响。
+ *
+ * 只能是宏：数据库缺席时 `time_zone`、`zoned_time` 这些类型本身不存在，写出它们的声明
+ * 在解析阶段就出错，`requires` 与 `if constexpr` 都去不掉，只能用 `#if`。
+ *
+ * 未定义时按标准库判断：libc++ 要求时区数据库已编入（`_LIBCPP_HAS_TIME_ZONE_DATABASE`）且
+ * 打开了实验库（`-fexperimental-library`），19 之前的版本没有完整的时区支持——Apple 的 libc++
+ * （Xcode 26）关掉了它；libstdc++ 与 MSVC STL 看 `__cpp_lib_chrono` 是否达到 `201907L`。
+ * 也可以在包含 IOv2 之前自行定义为 `0`，强制当作没有。
+ * @endif
+ *
+ * @lang{EN}
+ * Whether the standard library's `<chrono>` has a time-zone database (`std::chrono::tzdb`,
+ * `time_zone`, `zoned_time`, `locate_zone` and the rest): `1` if it does, `0` if not. Always
+ * defined, so it can go straight into an `#if`.
+ *
+ * At `0`, `timeio` drops the interfaces that take a `time_zone` or a `zoned_time`; `%Z`
+ * recognizes only `base_ft<timeio>::s_unknown_zone` and `UTC` (which is what a `sys_time`'s
+ * `%Z` writes); and a `std::tm`'s `%Z` degrades to a literal as a specifier the value cannot
+ * supply, since the abbreviation in `tm_zone` could be written but not read back. `%z` is
+ * unaffected.
+ *
+ * It has to be a macro: with no database, types such as `time_zone` and `zoned_time` do not
+ * exist at all, so a declaration naming them fails as it is parsed, and neither `requires`
+ * nor `if constexpr` can take it away -- only `#if` can.
+ *
+ * Left undefined, it follows the standard library: libc++ needs the database built in
+ * (`_LIBCPP_HAS_TIME_ZONE_DATABASE`) and the experimental library enabled
+ * (`-fexperimental-library`), and has no complete time-zone support before version 19 --
+ * Apple's libc++ (Xcode 26) leaves it out; libstdc++ and the MSVC STL are judged by
+ * `__cpp_lib_chrono` reaching `201907L`. It may also be defined as `0` before including IOv2,
+ * to have the database treated as absent.
+ * @endif
+ */
+// A macro on purpose (see above), so not the constexpr constant macro-usage asks for.
+// NOLINTBEGIN(cppcoreguidelines-macro-usage)
+#if !defined(IOV2_HAS_CHRONO_TZDB)
+#if defined(_LIBCPP_VERSION)
+#if defined(_LIBCPP_HAS_TIME_ZONE_DATABASE)
+// LLVM 20 and later spell these as 0/1 macros that are always defined.
+#if _LIBCPP_HAS_TIME_ZONE_DATABASE && _LIBCPP_HAS_EXPERIMENTAL_TZDB
+#define IOV2_HAS_CHRONO_TZDB 1
+#else
+#define IOV2_HAS_CHRONO_TZDB 0
+#endif
+#elif _LIBCPP_VERSION < 190000 || defined(_LIBCPP_HAS_NO_TIME_ZONE_DATABASE) \
+      || defined(_LIBCPP_HAS_NO_EXPERIMENTAL_TZDB)
+#define IOV2_HAS_CHRONO_TZDB 0
+#else
+#define IOV2_HAS_CHRONO_TZDB 1
+#endif
+#elif defined(__cpp_lib_chrono) && __cpp_lib_chrono >= 201907L
+#define IOV2_HAS_CHRONO_TZDB 1
+#else
+#define IOV2_HAS_CHRONO_TZDB 0
+#endif
+#endif
+// NOLINTEND(cppcoreguidelines-macro-usage)
 
 namespace IOv2
 {

@@ -273,7 +273,9 @@ namespace IOv2
          *
          * 供 `%Z` 格式说明符的解析使用。若时区数据库在静态初始化期间不可用或格式
          * 有误，树里将只剩 @ref s_unknown_zone 一条，`%Z` 解析会在运行时产生可捕获的
-         * `stream_error` 而非调用 `std::terminate`。
+         * `stream_error` 而非调用 `std::terminate`。标准库根本没有时区数据库
+         * （`IOV2_HAS_CHRONO_TZDB` 为 0）时，建树不去碰它，树里是 @ref s_unknown_zone 与
+         * `UTC` 两条：后者是 `sys_time` 的 `%Z` 写出的内容，必须读得回。
          *
          * @note 分类先在一个 `std::map` 里做完，再一趟灌进树，因此同一个键不可能 `add`
          *       两次——`prefix_tree::add` 的重复冲突在这里结构上不可能发生，不必依赖
@@ -346,7 +348,10 @@ namespace IOv2
          * Used by the `%Z` format specifier during parsing. If the timezone database is
          * unavailable or malformed at static-initialization time, the trie is left holding
          * nothing but @ref s_unknown_zone, and `%Z` parsing produces a catchable `stream_error`
-         * at runtime rather than calling `std::terminate`.
+         * at runtime rather than calling `std::terminate`. With no time-zone database in the
+         * standard library at all (`IOV2_HAS_CHRONO_TZDB` is 0) the builder does not touch one,
+         * and the trie holds two keys, @ref s_unknown_zone and `UTC`: the latter is what a
+         * `sys_time`'s `%Z` writes, and it has to read back.
          *
          * @note The classification is worked out in a `std::map` first and fed to the trie in a
          *       single pass, so no key can ever be `add`ed twice: a duplicate conflict in
@@ -367,6 +372,7 @@ namespace IOv2
             res.add(s_unknown_zone.begin(), s_unknown_zone.end(),
                     zone_ref{.text = std::string{}, .is_name = false, .is_abbrev = true});
 
+#if IOV2_HAS_CHRONO_TZDB
             try
             {
                 const auto& tzdb = std::chrono::get_tzdb();
@@ -442,6 +448,13 @@ namespace IOv2
                 // reports a catchable stream_error at parse time, matching the defensive
                 // behaviour of time_zone_parse_helper.
             }
+#else
+            // No database to ask, but put writes "UTC" for a sys_time's %Z, and that has to
+            // read back. With a database UTC is among the keys anyway.
+            constexpr std::string_view utc = "UTC";
+            res.add(utc.begin(), utc.end(),
+                    zone_ref{.text = std::string{utc}, .is_name = false, .is_abbrev = true});
+#endif
             return res;
         }());
     };
