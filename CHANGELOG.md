@@ -122,6 +122,10 @@
   与 gettext 相同。Linux 上没有环境变量以外的来源，行为不变。
   - macOS 上因此要链接 `-framework CoreFoundation`：CMake 目标 `IOv2::iov2` 与 pkg-config 文件
     已带上；只拷头文件、不经 CMake 或 pkg-config 使用时要自己加。
+- `IOV2_HAS_CHRONO_TZDB`（`<IOv2/common/defs.h>`）：标准库的 `<chrono>` 有没有时区数据库，恒为
+  `0` 或 `1`。按标准库判断：libc++ 要求编入了时区数据库且打开实验库（`-fexperimental-library`），
+  Apple 的 libc++（Xcode 26）没有；libstdc++ 与 MSVC STL 看 `__cpp_lib_chrono`。可在包含 IOv2
+  之前定义为 `0`，强制当作没有。
 
 #### 变更
 
@@ -250,6 +254,19 @@
     时，`100€` 读出 100，`€` 留在流里；整数读到小数点时把它整个留在流里，小数点与千位分隔符
     共用首字节（U+066B/U+066C）时也是如此。退回只对双向迭代器与 IOv2 的 `ichannel_iterator`
     做得到；其他输入迭代器上，已读的字符丢失。
+- `timeio` 不再要求标准库有时区数据库。`IOV2_HAS_CHRONO_TZDB` 为 `0` 时：
+  - 以 `std::chrono::time_zone` 或 `zoned_time` 为参数的接口不提供：`put(zoned_time)`、
+    `time_parse_context` 的 `set_hint(const time_zone*)`、`convert_to(const time_zone*&)` 与
+    `convert_to(zoned_time&)`。
+  - `%Z` 只认得 `UNKNOWN` 与 `UTC`（`sys_time` 的 `%Z` 写的就是它）；解析到 `UTC` 在
+    `convert_to(sys_time&)` 中优先于偏移的回退值。
+  - `std::tm` 的 `%Z` 按"值供不出"退化为字面量，`get_time` 相应按偏移档解析：`tm_zone` 里的
+    缩写写出去读不回来。
+
+  有时区数据库时行为不变。`timeio` 尚未移植到 macOS，这一条是为它做的准备。
+- `timeio` 按成员探测 `std::tm` 的 `tm_gmtoff` 与 `tm_zone`：两个都不带的 `std::tm`（Windows
+  的 UCRT）上 `%z`、`%Z` 按"值供不出"退化为字面量，只带 `tm_gmtoff` 的只有 `%Z` 退化。此前
+  在这样的平台上编译报错。
 
 #### 废弃
 
@@ -504,6 +521,12 @@ have no release line of their own.
   - macOS therefore links `-framework CoreFoundation`: the CMake target `IOv2::iov2` and
     the pkg-config files carry it; a user of the headers alone, without CMake or
     pkg-config, adds it themselves.
+- `IOV2_HAS_CHRONO_TZDB` (`<IOv2/common/defs.h>`): whether the standard library's `<chrono>`
+  has a time-zone database, always `0` or `1`. It follows the standard library: libc++ needs
+  the database built in and the experimental library enabled (`-fexperimental-library`), and
+  Apple's libc++ (Xcode 26) has none; libstdc++ and the MSVC STL are judged by
+  `__cpp_lib_chrono`. Defining it as `0` before including IOv2 has the database treated as
+  absent.
 
 #### Changed
 
@@ -687,6 +710,23 @@ have no release line of their own.
     where the point and the separator share a first byte (U+066B/U+066C). Putting back
     works for bidirectional iterators and IOv2's `ichannel_iterator`; on any other input
     iterator the characters read are lost.
+- `timeio` no longer needs a time-zone database in the standard library. When
+  `IOV2_HAS_CHRONO_TZDB` is `0`:
+  - The interfaces that take a `std::chrono::time_zone` or a `zoned_time` are not provided:
+    `put(zoned_time)`, and `time_parse_context`'s `set_hint(const time_zone*)`,
+    `convert_to(const time_zone*&)` and `convert_to(zoned_time&)`.
+  - `%Z` recognizes only `UNKNOWN` and `UTC` (which is what a `sys_time`'s `%Z` writes); a
+    parsed `UTC` takes precedence over the offset fallback in `convert_to(sys_time&)`.
+  - A `std::tm`'s `%Z` degrades to a literal as a specifier the value cannot supply, and
+    `get_time` parses at the offset tier to match: the abbreviation in `tm_zone` could be
+    written but not read back.
+
+  With a database the behaviour is unchanged. `timeio` is not ported to macOS yet; this
+  prepares for it.
+- `timeio` detects `std::tm`'s `tm_gmtoff` and `tm_zone` member by member: where `std::tm`
+  has neither (the Windows UCRT), `%z` and `%Z` degrade to literals as specifiers the value
+  cannot supply, and where it has `tm_gmtoff` alone only `%Z` does. Such platforms used to
+  fail to compile.
 
 #### Deprecated
 

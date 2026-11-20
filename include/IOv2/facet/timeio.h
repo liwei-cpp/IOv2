@@ -397,7 +397,7 @@ struct date_parse_helper<CharT, true>
                     deduced_year += 1;
                 }
                 int t_mon = 0;
-                while (t_mon < 12 && s_mon_yday[isleap(deduced_year)][t_mon] <= deduced_yday)
+                while (t_mon < 12 && std::cmp_less_equal(s_mon_yday[isleap(deduced_year)][t_mon], deduced_yday))
                     t_mon++;
                 if (!m_have_mon) deduced_month = t_mon;
                 if (!m_have_mday) deduced_mday = (deduced_yday - s_mon_yday[isleap(deduced_year)][deduced_month - 1] + 1);
@@ -446,7 +446,7 @@ struct date_parse_helper<CharT, true>
                         deduced_year += 1;
                     }
                     int t_mon = 0;
-                    while (t_mon < 12 && s_mon_yday[isleap(deduced_year)][t_mon] <= deduced_yday)
+                    while (t_mon < 12 && std::cmp_less_equal(s_mon_yday[isleap(deduced_year)][t_mon], deduced_yday))
                         t_mon++;
                     if (!m_have_mon)
                         deduced_month = t_mon;
@@ -844,7 +844,8 @@ struct time_zone_parse_helper<tz_level::offset>
  * 在 `tz_level::offset` 的存储之上，把那一档记下来的 @ref
  * time_zone_parse_helper<tz_level::offset>::m_zone_name 真正拿去用：在转换时以
  * `std::chrono::locate_zone()` 还原为 `const std::chrono::time_zone*`，并提供解析不出时区
- * 时的回退时区。
+ * 时的回退时区。标准库没有时区数据库（`IOV2_HAS_CHRONO_TZDB` 为 0）时，这两样都不存在，
+ * 本档只记下 `%Z` 的原文。
  *
  * @note 此结构为内部实现细节；请通过 `time_parse_context` 访问其功能。
  * @endif
@@ -855,7 +856,9 @@ struct time_zone_parse_helper<tz_level::offset>
  * On top of the `tz_level::offset` storage, this is the tier that actually puts that tier's
  * @ref time_zone_parse_helper<tz_level::offset>::m_zone_name to use: it resolves it to a
  * `const std::chrono::time_zone*` on conversion via `std::chrono::locate_zone()`, and offers a
- * fallback zone for when the parse yields none.
+ * fallback zone for when the parse yields none. With no time-zone database in the standard
+ * library (`IOV2_HAS_CHRONO_TZDB` is 0) neither exists, and this tier only records the text
+ * `%Z` read.
  *
  * @note This struct is an internal implementation detail; access its functionality
  *       through `time_parse_context`.
@@ -869,6 +872,7 @@ struct time_zone_parse_helper<tz_level::zone>
     using time_zone_parse_helper<tz_level::offset>::convert_to;
     bool operator==(const time_zone_parse_helper&) const = default;  // for test
     /// @endcond
+#if IOV2_HAS_CHRONO_TZDB
     /**
      * @lang{ZH}
      * @brief 将已解析的时区信息转换为 `const std::chrono::time_zone*`，写入 @p out。
@@ -954,6 +958,7 @@ struct time_zone_parse_helper<tz_level::zone>
     {
         m_zone_hint = hint;
     }
+#endif
 
     /**
      * @lang{ZH}
@@ -1042,8 +1047,61 @@ struct time_zone_parse_helper<tz_level::zone>
      */
     const char*          m_zone_abbrev = nullptr;
 
+#if IOV2_HAS_CHRONO_TZDB
     const std::chrono::time_zone* m_zone_hint = nullptr;
+#endif
 };
+
+/// @cond
+namespace detail
+{
+// std::tm's tm_gmtoff and tm_zone are an extension: glibc and macOS have them, the UCRT does
+// not. Tm stays a template parameter so that naming a member is a dependent expression;
+// written against std::tm itself it is an error where the member is missing, even inside a
+// discarded if constexpr branch.
+template <typename Tm>
+concept tm_has_gmtoff = requires(const Tm& t) { t.tm_gmtoff; };
+
+template <typename Tm>
+concept tm_has_zone = requires(const Tm& t) { t.tm_zone; };
+
+// Where the member is missing, a read yields the empty value and a write does nothing.
+template <typename Tm>
+std::chrono::seconds tm_get_gmtoff([[maybe_unused]] const Tm& t)
+{
+    if constexpr (tm_has_gmtoff<Tm>) return std::chrono::seconds{t.tm_gmtoff};
+    else return {};
+}
+
+template <typename Tm>
+const char* tm_get_zone([[maybe_unused]] const Tm& t)
+{
+    if constexpr (tm_has_zone<Tm>) return t.tm_zone;
+    else return nullptr;
+}
+
+template <typename Tm>
+void tm_set_gmtoff([[maybe_unused]] Tm& t, [[maybe_unused]] std::chrono::seconds offset)
+{
+    if constexpr (tm_has_gmtoff<Tm>)
+        t.tm_gmtoff = static_cast<decltype(t.tm_gmtoff)>(offset.count());
+}
+
+template <typename Tm>
+void tm_set_zone([[maybe_unused]] Tm& t, [[maybe_unused]] const char* zone)
+{
+    if constexpr (tm_has_zone<Tm>)
+    {
+        // glibc declares the field const char*, macOS plain char*; neither writes through it,
+        // and Apple's own localtime() casts its const strings into it the same way.
+        if constexpr (std::is_assignable_v<decltype((t.tm_zone)), const char*>)
+            t.tm_zone = zone;
+        else
+            t.tm_zone = const_cast<decltype(t.tm_zone)>(zone); // NOLINT(cppcoreguidelines-pro-type-const-cast)
+    }
+}
+}
+/// @endcond
 
 /**
  * @lang{ZH}
@@ -1250,9 +1308,11 @@ struct time_parse_context
         this->set_offset_hint(hint);
     }
 
+#if IOV2_HAS_CHRONO_TZDB
     /**
      * @lang{ZH}
-     * @brief 设置时区的回退值。仅当 `TzLevel` 为 `tz_level::zone` 时可用。
+     * @brief 设置时区的回退值。仅当 `TzLevel` 为 `tz_level::zone`、且标准库有时区数据库
+     *        （`IOV2_HAS_CHRONO_TZDB` 为 1）时可用。
      *
      * 转发到 `time_zone_parse_helper::set_time_zone_hint()`。注意该 hint 是转换时兜底而非
      * 预置解析字段，因此在 `get()` 之前或之后调用都可以；详见被转发的函数。
@@ -1261,7 +1321,8 @@ struct time_parse_context
      *
      * @lang{EN}
      * @brief Sets the fallback for the time zone. Available only when `TzLevel` is
-     *        `tz_level::zone`.
+     *        `tz_level::zone` and the standard library has a time-zone database
+     *        (`IOV2_HAS_CHRONO_TZDB` is 1).
      *
      * Forwards to `time_zone_parse_helper::set_time_zone_hint()`. Note that this hint is a
      * conversion-time fallback rather than a pre-seeded parse field, so it may be called
@@ -1280,7 +1341,8 @@ struct time_parse_context
      * @brief 将已累积的日期、时间和时区字段转换为 `std::chrono::zoned_time<seconds>`，
      *        写入 @p out。
      *
-     * 仅当 `HaveDate`、`HaveTime` 均为 `true` 且 `TzLevel` 为 `tz_level::zone` 时可用。
+     * 仅当 `HaveDate`、`HaveTime` 均为 `true`、`TzLevel` 为 `tz_level::zone`，且标准库有
+     * 时区数据库（`IOV2_HAS_CHRONO_TZDB` 为 1）时可用。
      *
      * 解析到 `%z` 偏移时，**偏移定瞬间、区域定展示**：瞬间取 `本地时间 - 偏移`，得到的
      * `sys_time` 与区域一起构造 `zoned_time`——这个构造函数是全函数，夏令时折返小时不再
@@ -1296,8 +1358,9 @@ struct time_parse_context
      * @brief Converts the accumulated date, time, and timezone fields to a
      *        `std::chrono::zoned_time<seconds>` in @p out.
      *
-     * Available only when `HaveDate` and `HaveTime` are `true` and `TzLevel` is
-     * `tz_level::zone`.
+     * Available only when `HaveDate` and `HaveTime` are `true`, `TzLevel` is
+     * `tz_level::zone`, and the standard library has a time-zone database
+     * (`IOV2_HAS_CHRONO_TZDB` is 1).
      *
      * Once a `%z` offset has been parsed, **the offset pins the instant and the zone decides
      * the rendering**: the instant is `local time - offset`, and that `sys_time` is paired
@@ -1345,6 +1408,7 @@ struct time_parse_context
         }
         out = zoned_time<seconds>{tz, st};
     }
+#endif
 
     /**
      * @lang{ZH}
@@ -1359,7 +1423,9 @@ struct time_parse_context
      * 4. 2 档：hint 区域，再不然 UTC。
      *
      * 走第 2 / 4 条时用的是本地时间，因此夏令时折返 / 空洞仍由 `<chrono>` 抛出；
-     * 走第 1 / 3 条时偏移已把瞬间钉死，不会有歧义。
+     * 走第 1 / 3 条时偏移已把瞬间钉死，不会有歧义。标准库没有时区数据库
+     * （`IOV2_HAS_CHRONO_TZDB` 为 0）时 `%Z` 只认得 `UTC` 与 `UNKNOWN`：解析到 `UTC` 按第 2 条
+     * 处理（区就是 UTC），第 4 条只剩 UTC。
      * @param out 接收还原出的时间点；抛出时不被写入。
      * @throw stream_error 若日期无效、时区解析失败，或 1 档下既无偏移也无回退偏移。
      * @endif
@@ -1377,7 +1443,10 @@ struct time_parse_context
      * 4. at `tz_level::zone`, the hint zone, and failing that UTC.
      *
      * Steps 2 and 4 go through the local time, so `<chrono>` still throws on a DST fold or
-     * gap; steps 1 and 3 have the instant pinned by an offset and cannot be ambiguous.
+     * gap; steps 1 and 3 have the instant pinned by an offset and cannot be ambiguous. With
+     * no time-zone database in the standard library (`IOV2_HAS_CHRONO_TZDB` is 0) `%Z`
+     * recognizes only `UTC` and `UNKNOWN`: a parsed `UTC` is taken as step 2 (the zone is
+     * UTC), and step 4 is UTC alone.
      * @param out Receives the reconstructed time point; left untouched if this throws.
      * @throw stream_error If the date is invalid, the timezone lookup fails, or
      *        `tz_level::offset` was requested with neither a parsed nor a fallback offset.
@@ -1397,6 +1466,7 @@ struct time_parse_context
         {
             if constexpr (TzLevel == tz_level::zone)
             {
+#if IOV2_HAS_CHRONO_TZDB
                 if (this->m_zone_name || !this->m_have_offset_hint)
                 {
                     const time_zone* tz = nullptr;
@@ -1404,6 +1474,15 @@ struct time_parse_context
                     out = tz->to_sys(lt);
                     return;
                 }
+#else
+                // No database: the only zone %Z reads is UTC, which beats the offset hint as
+                // a parsed name would; and step 4 has only UTC left.
+                if ((this->m_zone_abbrev && *this->m_zone_abbrev) || !this->m_have_offset_hint)
+                {
+                    out = sys_time<seconds>{ lt.time_since_epoch() };
+                    return;
+                }
+#endif
             }
         }
 
@@ -1569,17 +1648,16 @@ struct time_parse_context
         static constexpr std::array<int, 12> days = {-1, 30, 58, 89, 119, 150, 180, 211, 242, 272, 303, 333};
         out.tm_yday = days[out.tm_mon] + out.tm_mday + (isLeap && out.tm_mon >= 2 ? 1 : 0);
 
-        if constexpr ((TzLevel >= tz_level::offset) && (requires { out.tm_gmtoff; }))
+        if constexpr (TzLevel >= tz_level::offset)
         {
             if (this->m_have_offset)
-                out.tm_gmtoff = static_cast<decltype(out.tm_gmtoff)>(
-                    seconds{this->m_offset}.count());
+                detail::tm_set_gmtoff(out, seconds{this->m_offset});
         }
 
-        if constexpr ((TzLevel == tz_level::zone) && (requires { out.tm_zone; }))
+        if constexpr (TzLevel == tz_level::zone)
         {
             const char* zone = this->m_zone_abbrev ? this->m_zone_abbrev : this->m_zone_name;
-            if (zone) out.tm_zone = const_cast<decltype(out.tm_zone)>(zone);
+            if (zone) detail::tm_set_zone(out, zone);
         }
     }
 };
@@ -1588,9 +1666,9 @@ struct time_parse_context
  * @lang{ZH}
  * @brief 某个时间值类型能供出哪几类字段——`timeio::expand_format` 据此裁剪格式串。
  *
- * 每种类型一个特化，四个标志位对应 `timeio::put` 传给 `do_put` 的那几个指针：日期
- * （`ymd` 与随之而来的 `wd`）、时分秒（`hms`）、UTC 偏移（`zi`）、区域身份（`tz` 或非空的
- * `zi->abbrev`）。`put` 对供不出的说明符原样退化，本表把同一件事提前到编译期，好让
+ * 每种类型一个特化，四个标志位对应 `timeio::put` 传给 `do_put` 的那几个参数：日期
+ * （`ymd` 与随之而来的 `wd`）、时分秒（`hms`）、UTC 偏移（`zi`）、区域身份（非空的
+ * `zone_name` 或非空的 `zi->abbrev`）。`put` 对供不出的说明符原样退化，本表把同一件事提前到编译期，好让
  * `expand_format` 不必真去格式化一遍就知道该摘掉谁。
  *
  * 主模板**不定义**：不在 `put` 支持范围内的类型在此报错，而不是悄悄按「什么都供不出」处理。
@@ -1606,9 +1684,9 @@ struct time_parse_context
  * @brief Which groups of fields a time value type can supply -- what `timeio::expand_format`
  *        trims a format string against.
  *
- * One specialization per type, its four flags matching the pointers `timeio::put` hands to
+ * One specialization per type, its four flags matching the arguments `timeio::put` hands to
  * `do_put`: date (`ymd`, and the `wd` that comes with it), time of day (`hms`), UTC offset
- * (`zi`), zone identity (`tz`, or a non-empty `zi->abbrev`). `put` degrades a specifier it
+ * (`zi`), zone identity (a non-empty `zone_name`, or a non-empty `zi->abbrev`). `put` degrades a specifier it
  * cannot supply; this table moves that same decision to compile time, so `expand_format` knows
  * what to remove without formatting anything.
  *
@@ -1627,6 +1705,7 @@ struct time_parse_context
 template <typename TVal>
 struct time_value_fields;
 
+#if IOV2_HAS_CHRONO_TZDB
 template <typename Duration, typename TimeZonePtr>
 struct time_value_fields<std::chrono::zoned_time<Duration, TimeZonePtr>>
 {
@@ -1635,6 +1714,7 @@ struct time_value_fields<std::chrono::zoned_time<Duration, TimeZonePtr>>
     static constexpr bool has_offset = true;
     static constexpr bool has_zone = true;
 };
+#endif
 
 template <typename Duration>
 struct time_value_fields<std::chrono::sys_time<Duration>>
@@ -1677,8 +1757,10 @@ struct time_value_fields<std::tm>
 {
     static constexpr bool has_date = true;
     static constexpr bool has_time = true;
-    static constexpr bool has_offset = requires(const std::tm& t) { t.tm_gmtoff; };
-    static constexpr bool has_zone = has_offset && requires(const std::tm& t) { t.tm_zone; };
+    static constexpr bool has_offset = detail::tm_has_gmtoff<std::tm>;
+    // Without a tz database the abbreviation tm_zone holds could not be read back.
+    static constexpr bool has_zone =
+        has_offset && detail::tm_has_zone<std::tm> && (IOV2_HAS_CHRONO_TZDB != 0);
 };
 
 /**
@@ -1722,9 +1804,10 @@ struct time_value_fields<std::tm>
  *
  * `get` 侧的档位由 `time_parse_context` 的 `TzLevel` 模板参数给出，对应上表"时区档"一列：
  * 低于该档的说明符退化为字面量，达到该档的说明符真的解析。`std::tm` 那两行填的是本平台的档：
- * 它随两个扩展成员的有无而定，两个都有是"区域"，只有 `tm_gmtoff` 是"偏移"，都没有是"无"。
- * 本版本只支持 glibc，两个成员都有，因此总是"区域"；后两档留待移植，眼下的探测在缺少成员的
- * 平台上会编译失败。
+ * 它随两个扩展成员的有无而定，两个都有是"区域"（glibc），只有 `tm_gmtoff` 是"偏移"，都没有是
+ * "无"（Windows 的 UCRT）。标准库没有时区数据库（`IOV2_HAS_CHRONO_TZDB` 为 0）时，`tm_zone`
+ * 写出的缩写读不回来，两个都有也只算"偏移"（macOS）；此时 `%Z` 只认得 `UTC` 与 `UNKNOWN`，
+ * `zoned_time` 那一行也不存在。
  *
  * 能否供出 `%Z` 只看值类型，不看运行期取值：带 `tm_zone` 成员的平台上，`std::tm` 的 `%Z`
  * 对**任何**取值都写得出内容——有名字写名字，`tm_zone` 为空指针或空串则写
@@ -1808,9 +1891,11 @@ struct time_value_fields<std::tm>
  * On the `get` side the tier is the `TzLevel` template argument of `time_parse_context`, matching
  * the "Tier" column above: a specifier needing more than that tier degrades to a literal, and one
  * the tier can hold really parses. The two `std::tm` rows carry this platform's tier; it follows
- * the two extension members -- zone with both, offset with `tm_gmtoff` alone, none with neither.
- * This release supports glibc only, which has both, so the tier is always zone; the other two
- * are left for porting, and the present probes fail to compile where the members are missing.
+ * the two extension members -- zone with both (glibc), offset with `tm_gmtoff` alone, none with
+ * neither (the Windows UCRT). With no time-zone database in the standard library
+ * (`IOV2_HAS_CHRONO_TZDB` is 0) the abbreviation `tm_zone` writes could not be read back, so
+ * both members make only the offset tier (macOS); `%Z` then recognizes only `UTC` and
+ * `UNKNOWN`, and the `zoned_time` row does not exist.
  *
  * Whether `%Z` can be supplied depends on the value's type, not on its run-time value: on a
  * platform whose `std::tm` carries `tm_zone`, `%Z` produces content for **every** `std::tm` -- the
@@ -2385,9 +2470,11 @@ public:
         return put(out, t, fmt.data());
     }
 
+#if IOV2_HAS_CHRONO_TZDB
     /**
      * @lang{ZH}
-     * @brief 将 `std::chrono::zoned_time` 按格式串格式化到输出迭代器。
+     * @brief 将 `std::chrono::zoned_time` 按格式串格式化到输出迭代器。仅当标准库有时区数据库
+     *        （`IOV2_HAS_CHRONO_TZDB` 为 1）时提供。
      * @tparam OutIt       输出迭代器类型。
      * @tparam Duration    `zoned_time` 的时间精度类型。
      * @tparam TimeZonePtr `zoned_time` 的时区指针类型。
@@ -2402,6 +2489,8 @@ public:
      *
      * @lang{EN}
      * @brief Formats a `std::chrono::zoned_time` to an output iterator using a format string.
+     *        Provided only when the standard library has a time-zone database
+     *        (`IOV2_HAS_CHRONO_TZDB` is 1).
      * @tparam OutIt       Output iterator type.
      * @tparam Duration    Duration type of the `zoned_time`.
      * @tparam TimeZonePtr Time-zone pointer type of the `zoned_time`.
@@ -2432,8 +2521,12 @@ public:
         auto time_since_midnight = std::chrono::duration_cast<std::chrono::seconds>(local - local_day);
         std::chrono::hh_mm_ss<std::chrono::seconds> time_of_day{time_since_midnight};
         const zone_info zi{info.offset, info.abbrev};
-        return do_put(out, fmt, &ymd, &wd, &time_of_day, &zi, t.get_time_zone());
+        // Through const time_zone*: a TimeZonePtr of the user's own may convert to a null one,
+        // and %Z then writes the abbreviation instead.
+        const std::chrono::time_zone* const tz = t.get_time_zone();
+        return do_put(out, fmt, &ymd, &wd, &time_of_day, &zi, tz ? tz->name() : std::string_view{});
     }
+#endif
 
     /**
      * @lang{ZH}
@@ -2480,7 +2573,7 @@ public:
             std::chrono::duration_cast<std::chrono::seconds>(t - day)
         };
         const zone_info zi{std::chrono::seconds{0}, "UTC"};
-        return do_put(out, fmt, &ymd, &wd, &time_of_day, &zi, nullptr);
+        return do_put(out, fmt, &ymd, &wd, &time_of_day, &zi, {});
     }
 
     /**
@@ -2544,7 +2637,7 @@ public:
             std::chrono::duration_cast<std::chrono::seconds>(t - day)
         };
         const zone_info zi{offset, {}};
-        return do_put(out, fmt, &ymd, &wd, &time_of_day, &zi, nullptr);
+        return do_put(out, fmt, &ymd, &wd, &time_of_day, &zi, {});
     }
 
     /**
@@ -2580,7 +2673,7 @@ public:
             throw stream_error("timeio put error: year_month_day is not a valid calendar date");
 
         std::chrono::weekday wd(t);
-        return do_put(out, fmt, &t, &wd, nullptr, nullptr, nullptr);
+        return do_put(out, fmt, &t, &wd, nullptr, nullptr, {});
     }
 
     /**
@@ -2626,7 +2719,7 @@ public:
             throw stream_error("timeio put error: hh_mm_ss is not a valid time of day");
 
         const hh_mm_ss<seconds> t_sec{total};
-        return do_put(out, fmt, nullptr, nullptr, &t_sec, nullptr, nullptr);
+        return do_put(out, fmt, nullptr, nullptr, &t_sec, nullptr, {});
     }
 
     /**
@@ -2648,12 +2741,14 @@ public:
      * @note **时区取自扩展成员。** 当前平台的 `std::tm` 带 `tm_gmtoff` 时（POSIX.1-2024 起
      *       是标准成员，glibc / BSD / macOS 一直都有），`%z` 写它的值；带 `tm_zone` 时
      *       `%Z` 写它，`tm_zone` 为空指针或空串则写
-     *       @ref base_ft<timeio>::s_unknown_zone。成员的有无用 `requires` 表达式
-     *       探测，不看平台宏。本版本只支持 glibc，两个成员总是存在；探测不依赖模板参数，
-     *       在 `std::tm` **不带**这两个成员的平台上是编译错误，而不是让 `%z` 与 `%Z` 退化为
-     *       字面量。
-     * @note 因此在带 `tm_zone` 的平台上，`%Z` 对任何 `std::tm` 都写得出内容——这正是
-     *       @ref time_value_fields<std::tm>::has_zone 恒为 `true` 所声明的，两者不会脱节。
+     *       @ref base_ft<timeio>::s_unknown_zone。成员的有无按成员探测，不看平台宏：
+     *       不带 `tm_gmtoff` 的平台（Windows 的 UCRT）上 `%z` 与 `%Z` 都按"值供不出"退化为
+     *       字面量；只带 `tm_gmtoff` 的平台上只有 `%Z` 退化。标准库没有时区数据库
+     *       （`IOV2_HAS_CHRONO_TZDB` 为 0，如 macOS）时 `%Z` 也退化：`tm_zone` 里的缩写
+     *       写出去就读不回来。
+     * @note 因此在带 `tm_zone` 且有时区数据库的平台上，`%Z` 对任何 `std::tm` 都写得出内容
+     *       ——这正是 @ref time_value_fields<std::tm>::has_zone 在这样的平台上为 `true` 所
+     *       声明的，两者不会脱节。
      * @endif
      *
      * @lang{EN}
@@ -2678,13 +2773,15 @@ public:
      *       on glibc / BSD / macOS all along), `%z` writes its value; when it carries
      *       `tm_zone`, `%Z` writes that, or
      *       @ref base_ft<timeio>::s_unknown_zone if `tm_zone` is null or empty. Their
-     *       presence is detected with a `requires` expression rather than a platform macro.
-     *       This release supports glibc only, where both members always exist; the probes do
-     *       not depend on a template parameter, so on a platform whose `std::tm` lacks them
-     *       they are a compile error rather than making `%z` and `%Z` degrade to literals.
-     * @note So on a platform with `tm_zone`, `%Z` produces content for every `std::tm` -- which
-     *       is exactly what @ref time_value_fields<std::tm>::has_zone being unconditionally
-     *       `true` claims, leaving no gap between the two.
+     *       presence is detected member by member rather than by a platform macro: where
+     *       `std::tm` has no `tm_gmtoff` (the Windows UCRT), `%z` and `%Z` both degrade to
+     *       literals as specifiers the value cannot supply; where it has `tm_gmtoff` alone,
+     *       only `%Z` does. With no time-zone database in the standard library
+     *       (`IOV2_HAS_CHRONO_TZDB` is 0, as on macOS) `%Z` degrades as well: the abbreviation
+     *       in `tm_zone` could be written but not read back.
+     * @note So on a platform with `tm_zone` and a time-zone database, `%Z` produces content for
+     *       every `std::tm` -- which is exactly what @ref time_value_fields<std::tm>::has_zone
+     *       being `true` on such a platform claims, leaving no gap between the two.
      * @endif
      */
     template <typename OutIt>
@@ -2721,20 +2818,19 @@ public:
         seconds sec = hours{t.tm_hour} + minutes{t.tm_min} + seconds{t.tm_sec};
         std::chrono::hh_mm_ss hms{sec};
 
-        if constexpr (requires { t.tm_gmtoff; })
+        if constexpr (time_value_fields<std::tm>::has_offset)
         {
             std::string_view abbrev;
-            if constexpr (requires { t.tm_zone; })
+            if constexpr (time_value_fields<std::tm>::has_zone)
             {
-                abbrev = (t.tm_zone && *t.tm_zone)
-                       ? std::string_view{t.tm_zone}
-                       : base_ft<timeio>::s_unknown_zone;
+                const char* const zone = detail::tm_get_zone(t);
+                abbrev = (zone && *zone) ? std::string_view{zone} : base_ft<timeio>::s_unknown_zone;
             }
-            const zone_info zi{seconds{t.tm_gmtoff}, abbrev};
-            return do_put(out, fmt, &ymd, &wd, &hms, &zi, nullptr);
+            const zone_info zi{detail::tm_get_gmtoff(t), abbrev};
+            return do_put(out, fmt, &ymd, &wd, &hms, &zi, {});
         }
         else
-            return do_put(out, fmt, &ymd, &wd, &hms, nullptr, nullptr);
+            return do_put(out, fmt, &ymd, &wd, &hms, nullptr, {});
     }
 
     /**
@@ -4166,7 +4262,7 @@ private:
      * @param wd     星期指针（若不含星期分量则为 `nullptr`）。
      * @param hms    时间指针（若不含时间分量则为 `nullptr`）。
      * @param zi     偏移 + 缩写指针，喂 `%z`（若值不带偏移则为 `nullptr`）。
-     * @param tz     时区身份指针，喂 `%Z`（若值不带区域身份则为 `nullptr`）。
+     * @param zone_name 区名（IANA 名），喂 `%Z`（若值不带区域身份则为空）。
      * @return 写入后的输出迭代器。
      * @note @p format 以落单的 `%` 结尾（或以落单的 `%E` / `%O` 修饰符结尾）时，按「无法解释的
      *       格式内容原样透传」处理：写出 `%`（及修饰符）本身，不视为错误。这与未知说明符
@@ -4191,7 +4287,7 @@ private:
      * @param hms    Time pointer (`nullptr` if no time components are needed).
      * @param zi     Offset + abbreviation pointer feeding `%z` (`nullptr` if the value
      *               carries no offset).
-     * @param tz     Zone-identity pointer feeding `%Z` (`nullptr` if the value carries no
+     * @param zone_name The zone's (IANA) name feeding `%Z` (empty if the value carries no
      *               zone identity).
      * @return The output iterator after writing.
      * @note When @p format ends with a lone `%` (or with a lone `%E` / `%O` modifier), it is
@@ -4209,7 +4305,7 @@ private:
                  const std::chrono::weekday* wd,
                  const std::chrono::hh_mm_ss<std::chrono::seconds>* hms,
                  const zone_info* zi,
-                 const std::chrono::time_zone* tz) const
+                 std::string_view zone_name) const
     {
         auto f = format.cbegin();
         while (f != format.cend())
@@ -4306,7 +4402,7 @@ private:
                 {
                     const std::basic_string<CharT>& subFmt = (modifier == static_cast<CharT>('E')) ?
                                                               m_era_date_time_format : m_date_time_format;
-                    out = do_put(out, subFmt, ymd, wd, hms, zi, tz);
+                    out = do_put(out, subFmt, ymd, wd, hms, zi, zone_name);
                 }
                 break;
 
@@ -4349,7 +4445,7 @@ private:
                     static constexpr std::array subfmt = {static_cast<CharT>('%'), static_cast<CharT>('m'), static_cast<CharT>('/'),
                                                           static_cast<CharT>('%'), static_cast<CharT>('d'), static_cast<CharT>('/'),
                                                           static_cast<CharT>('%'), static_cast<CharT>('y'), CharT()};
-                    out = do_put(out, subfmt.data(), ymd, wd, hms, zi, tz);
+                    out = do_put(out, subfmt.data(), ymd, wd, hms, zi, zone_name);
                 }
                 break;
 
@@ -4370,7 +4466,7 @@ private:
                     static constexpr std::array subfmt = {static_cast<CharT>('%'), static_cast<CharT>('Y'), static_cast<CharT>('-'),
                                                           static_cast<CharT>('%'), static_cast<CharT>('m'), static_cast<CharT>('-'),
                                                           static_cast<CharT>('%'), static_cast<CharT>('d'), CharT()};
-                    out = do_put(out, subfmt.data(), ymd, wd, hms, zi, tz);
+                    out = do_put(out, subfmt.data(), ymd, wd, hms, zi, zone_name);
                 }
                 break;
 
@@ -4468,7 +4564,7 @@ private:
 
             case static_cast<CharT>('r'):
                 if (!hms || modifier) goto bad_format;
-                out = do_put(out, m_am_pm_format, ymd, wd, hms, zi, tz);
+                out = do_put(out, m_am_pm_format, ymd, wd, hms, zi, zone_name);
                 break;
 
             case static_cast<CharT>('R'):
@@ -4476,7 +4572,7 @@ private:
                 {
                     static constexpr std::array subfmt = {static_cast<CharT>('%'), static_cast<CharT>('H'), static_cast<CharT>(':'),
                                                           static_cast<CharT>('%'), static_cast<CharT>('M'), CharT()};
-                    out = do_put(out, subfmt.data(), ymd, wd, hms, zi, tz);
+                    out = do_put(out, subfmt.data(), ymd, wd, hms, zi, zone_name);
                 }
                 break;
 
@@ -4501,7 +4597,7 @@ private:
                     static constexpr std::array subfmt = {static_cast<CharT>('%'), static_cast<CharT>('H'), static_cast<CharT>(':'),
                                                           static_cast<CharT>('%'), static_cast<CharT>('M'), static_cast<CharT>(':'),
                                                           static_cast<CharT>('%'), static_cast<CharT>('S'), CharT()};
-                    out = do_put(out, subfmt.data(), ymd, wd, hms, zi, tz);
+                    out = do_put(out, subfmt.data(), ymd, wd, hms, zi, zone_name);
                 }
                 break;
 
@@ -4574,7 +4670,7 @@ private:
                 {
                     const std::basic_string<CharT>& subFmt = (modifier == static_cast<CharT>('E')) ?
                                                              m_era_date_format : m_date_format;
-                    out = do_put(out, subFmt, ymd, wd, hms, zi, tz);
+                    out = do_put(out, subFmt, ymd, wd, hms, zi, zone_name);
                 }
                 break;
 
@@ -4583,7 +4679,7 @@ private:
                 {
                     const std::basic_string<CharT>& subFmt = (modifier == static_cast<CharT>('E')) ?
                                                              m_era_time_format : m_time_format;
-                    out = do_put(out, subFmt, ymd, wd, hms, zi, tz);
+                    out = do_put(out, subFmt, ymd, wd, hms, zi, zone_name);
                 }
                 break;
 
@@ -4629,7 +4725,7 @@ private:
                     if (era)
                     {
                         const auto& subfmt = era->format;
-                        out = do_put(out, subfmt, ymd, wd, hms, zi, tz);
+                        out = do_put(out, subfmt, ymd, wd, hms, zi, zone_name);
                     }
                     else
                     {
@@ -4671,11 +4767,8 @@ private:
 
             case static_cast<CharT>('Z'):
                 if (modifier) goto bad_format;
-                if (tz)
-                {
-                    auto iana = tz->name();
-                    out = std::copy(iana.begin(), iana.end(), out);
-                }
+                if (!zone_name.empty())
+                    out = std::copy(zone_name.begin(), zone_name.end(), out);
                 else if (zi && !zi->abbrev.empty())
                     out = std::copy(zi->abbrev.begin(), zi->abbrev.end(), out);
                 else
@@ -4705,8 +4798,8 @@ private:
      * @brief @ref expand_format 的实现：把复合说明符换成它们的内容，把供不出的说明符
      *        连同一侧分隔符摘掉，结果追加到 @p result。
      *
-     * 这个 switch 是 `do_put` 那个 switch 的镜像：那里问 `ymd` / `wd` / `hms` / `zi` / `tz`
-     * 五个指针空不空，这里问对应的模板标志，那里 `goto bad_format` 的地方这里
+     * 这个 switch 是 `do_put` 那个 switch 的镜像：那里问 `ymd` / `wd` / `hms` / `zi` 四个指针
+     * 空不空、`zone_name` 空不空，这里问对应的模板标志，那里 `goto bad_format` 的地方这里
      * `goto filter_format`。两边必须一一对应，摘掉的才正好是 put 会退化的那些。
      *
      * 复合说明符只在**供得出**时才展开，否则整个摘掉：展开一个供不出的 `%c` 只会把它的内容
@@ -4730,9 +4823,10 @@ private:
      *        appended to @p result.
      *
      * This switch mirrors the one in `do_put`: there the question is whether the `ymd` / `wd` /
-     * `hms` / `zi` / `tz` pointers are null, here it is the matching template flags, and where
-     * that one says `goto bad_format` this one says `goto filter_format`. The two have to
-     * correspond case for case, or this would not be removing exactly what put degrades.
+     * `hms` / `zi` pointers are null and `zone_name` empty, here it is the matching template
+     * flags, and where that one says `goto bad_format` this one says `goto filter_format`. The
+     * two have to correspond case for case, or this would not be removing exactly what put
+     * degrades.
      *
      * A compound is expanded only when it can be **supplied**, and otherwise removed whole:
      * expanding an unsuppliable `%c` would break it into a crowd of individually removed
