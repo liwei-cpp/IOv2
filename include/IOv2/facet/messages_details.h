@@ -864,7 +864,9 @@ private:
     // Protected by s_domain_mutex; read/write only while holding the lock.
     // A reference to a map that is never deleted: the standard stream objects are
     // not destroyed at exit, so the data their messages facet reaches must not be
-    // either (see common/sing_temp.h). The mutex is trivially destructible.
+    // either (see common/sing_temp.h). The mutex is trivially destructible. Only
+    // bad_alloc can escape the new, at startup, where nothing could handle it anyway.
+    // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
     inline static std::unordered_map<std::string, std::filesystem::path>& s_domain_dirs =
         *new std::unordered_map<std::string, std::filesystem::path>;
     inline static copyable_mutex<std::mutex> s_domain_mutex;

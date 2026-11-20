@@ -61,6 +61,8 @@ namespace detail
  * Pre-constructing it avoids repeated allocation in contexts where memory may be unavailable.
  * @endif
  */
+// Only bad_alloc can escape, at startup, where nothing could handle it anyway.
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 inline const std::exception_ptr runtime_cvt_null_err =
     std::make_exception_ptr(cvt_error("runtime_cvt: null instance"));
 }
