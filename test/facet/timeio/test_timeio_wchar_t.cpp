@@ -20,6 +20,8 @@
 #include <IOv2/io/iochannel.h>
 #include <IOv2/io/iochannel_iterator.h>
 
+#include <support/platform_macros.h>
+
 #include <gtest/gtest.h>
 
 #include <chrono>
@@ -351,6 +353,7 @@ TEST(TimeioWchar, CLocaleWritesEveryConversionSpecifier)
 // composite layouts differ but the rules about what a value can supply do not.
 TEST(TimeioWchar, ChineseWritesEveryConversionSpecifier)
 {
+#if IOV2_TEST_LINUX_GLIBC
     const timeio<wchar_t> obj = facet_for("zh_CN.UTF-8");
     const auto            tp  = create_sys_time(2024, 9, 4, 13, 33, 18);
 
@@ -467,12 +470,16 @@ TEST(TimeioWchar, ChineseWritesEveryConversionSpecifier)
     };
 
     expect_conversions(obj, tp, kConversions);
+#else
+    GTEST_SKIP() << "the expected values are glibc's zh_CN data";
+#endif
 }
 
 // And under ja_JP, which is the locale with an era representation, so %EC, %Ey
 // and %EY are the rows to look at here.
 TEST(TimeioWchar, JapaneseWritesEveryConversionSpecifier)
 {
+#if IOV2_TEST_LINUX_GLIBC
     const timeio<wchar_t> obj = facet_for("ja_JP.UTF-8");
     const auto            tp  = create_sys_time(2024, 9, 4, 13, 33, 18);
 
@@ -589,12 +596,16 @@ TEST(TimeioWchar, JapaneseWritesEveryConversionSpecifier)
     };
 
     expect_conversions(obj, tp, kConversions);
+#else
+    GTEST_SKIP() << "the expected values are glibc's ja_JP data";
+#endif
 }
 
 // A year_month_day is a date and nothing else, so every specifier that asks for a
 // time of day or a zone comes back as the text that asked for it.
 TEST(TimeioWchar, ADateWritesEveryConversionSpecifierItCanSupply)
 {
+#if IOV2_TEST_LINUX_GLIBC
     using namespace std::chrono;
     const timeio<wchar_t>   obj = facet_for("ja_JP.UTF-8");
     const year_month_day tp{year{2024}, month{9}, day{4}};
@@ -712,11 +723,15 @@ TEST(TimeioWchar, ADateWritesEveryConversionSpecifierItCanSupply)
     };
 
     expect_conversions(obj, tp, kConversions);
+#else
+    GTEST_SKIP() << "the expected values are glibc's ja_JP data";
+#endif
 }
 
 // An hh_mm_ss is the mirror image: it has a time of day and no date at all.
 TEST(TimeioWchar, ATimeOfDayWritesEveryConversionSpecifierItCanSupply)
 {
+#if IOV2_TEST_LINUX_GLIBC
     using namespace std::chrono;
     const timeio<wchar_t>    obj = facet_for("ja_JP.UTF-8");
     const hh_mm_ss<seconds> tp{hours{13} + minutes{33} + seconds{18}};
@@ -831,12 +846,16 @@ TEST(TimeioWchar, ATimeOfDayWritesEveryConversionSpecifierItCanSupply)
     };
 
     expect_conversions(obj, tp, kConversions);
+#else
+    GTEST_SKIP() << "the expected values are glibc's ja_JP data";
+#endif
 }
 
 // A std::tm carries both halves, so almost everything is available; what it does
 // not carry is a zone, which the cases after this one take up.
 TEST(TimeioWchar, ABrokenDownTimeWritesEveryConversionSpecifier)
 {
+#if IOV2_TEST_LINUX_GLIBC
     const timeio<wchar_t> obj = facet_for("ja_JP.UTF-8");
     const std::tm         tp  = calendar_time(2024 - 1900, 9 - 1, 4, 13, 33, 18, 0, 0, 0);
 
@@ -953,6 +972,9 @@ TEST(TimeioWchar, ABrokenDownTimeWritesEveryConversionSpecifier)
     };
 
     expect_conversions(obj, tp, kConversions);
+#else
+    GTEST_SKIP() << "the expected values are glibc's ja_JP data";
+#endif
 }
 
 namespace
@@ -1447,6 +1469,7 @@ TEST(TimeioWchar, TheCLocaleReadsEveryConversionSpecifier)
 
 TEST(TimeioWchar, ChineseReadsEveryConversionSpecifier)
 {
+#if IOV2_TEST_LINUX_GLIBC
     std::chrono::year_month_day check_date1{std::chrono::year{2024}, std::chrono::month{9}, std::chrono::day{4}};
     timeio obj(std::make_shared<timeio_conf<wchar_t>>("zh_CN.UTF-8"));
 
@@ -1712,10 +1735,14 @@ TEST(TimeioWchar, ChineseReadsEveryConversionSpecifier)
     // POSIX strptime -- not the wall-clock year, and not whatever the parse context
     // happens to fall back to.
     EXPECT_EQ((CheckGet<year_month_day>(obj, L"20 01 01", L"%C %m %d", ios_defs::eofbit)), (year_month_day{std::chrono::year{2000}, std::chrono::month{1}, std::chrono::day{1}}));
+#else
+    GTEST_SKIP() << "the expected values are glibc's zh_CN data";
+#endif
 }
 
 TEST(TimeioWchar, JapaneseReadsEveryConversionSpecifier)
 {
+#if IOV2_TEST_LINUX_GLIBC
     std::chrono::year_month_day check_date1{std::chrono::year{2024}, std::chrono::month{9}, std::chrono::day{4}};
     timeio obj(std::make_shared<timeio_conf<wchar_t>>("ja_JP.UTF-8"));
 
@@ -1996,6 +2023,9 @@ TEST(TimeioWchar, JapaneseReadsEveryConversionSpecifier)
     // POSIX strptime -- not the wall-clock year, and not whatever the parse context
     // happens to fall back to.
     EXPECT_EQ((CheckGet<year_month_day>(obj, L"20 01 01", L"%C %m %d", ios_defs::eofbit)), (year_month_day{std::chrono::year{2000}, std::chrono::month{1}, std::chrono::day{1}}));
+#else
+    GTEST_SKIP() << "the expected values are glibc's ja_JP data";
+#endif
 }
 
 TEST(TimeioWchar, AWeekdayOrMonthNameIsMatchedAgainstBothSpellings)
@@ -2286,6 +2316,7 @@ TEST(TimeioWchar, AWeekdayOrMonthNameIsMatchedAgainstBothSpellings)
 
 TEST(TimeioWchar, JapaneseReadsEveryConversionSpecifierIntoADate)
 {
+#if IOV2_TEST_LINUX_GLIBC
     std::chrono::year_month_day check_date1{std::chrono::year{2024}, std::chrono::month{9}, std::chrono::day{4}};
     timeio obj(std::make_shared<timeio_conf<wchar_t>>("ja_JP.UTF-8"));
     auto FOri = [&obj](auto&&... args)
@@ -2564,10 +2595,14 @@ TEST(TimeioWchar, JapaneseReadsEveryConversionSpecifierIntoADate)
     // POSIX strptime -- not the wall-clock year, and not whatever the parse context
     // happens to fall back to.
     EXPECT_EQ((FYmd(L"20 01 01", L"%C %m %d", ios_defs::eofbit)), (year_month_day{std::chrono::year{2000}, std::chrono::month{1}, std::chrono::day{1}}));
+#else
+    GTEST_SKIP() << "the expected values are glibc's ja_JP data";
+#endif
 }
 
 TEST(TimeioWchar, JapaneseReadsEveryConversionSpecifierIntoADateWithoutAZone)
 {
+#if IOV2_TEST_LINUX_GLIBC
     std::chrono::year_month_day check_date1{std::chrono::year{2024}, std::chrono::month{9}, std::chrono::day{4}};
     timeio obj(std::make_shared<timeio_conf<wchar_t>>("ja_JP.UTF-8"));
     auto FOri = [&obj](auto&&... args)
@@ -2836,10 +2871,14 @@ TEST(TimeioWchar, JapaneseReadsEveryConversionSpecifierIntoADateWithoutAZone)
     // POSIX strptime -- not the wall-clock year, and not whatever the parse context
     // happens to fall back to.
     EXPECT_EQ((FYmd(L"20 01 01", L"%C %m %d", ios_defs::eofbit)), (year_month_day{std::chrono::year{2000}, std::chrono::month{1}, std::chrono::day{1}}));
+#else
+    GTEST_SKIP() << "the expected values are glibc's ja_JP data";
+#endif
 }
 
 TEST(TimeioWchar, ATimeOfDayReadsEveryConversionSpecifierItCanSupply)
 {
+#if IOV2_TEST_LINUX_GLIBC
     timeio obj(std::make_shared<timeio_conf<wchar_t>>("ja_JP.UTF-8"));
     auto FOri = [&obj](auto&&... args)
     {
@@ -3091,10 +3130,14 @@ TEST(TimeioWchar, ATimeOfDayReadsEveryConversionSpecifierItCanSupply)
     FOri(L"z",  L'z', L'E', ios_defs::strfailbit);
     FOri(L"%Oz", L'z', L'O', ios_defs::eofbit);
     FOri(L"z",  L'z', L'O', ios_defs::strfailbit);
+#else
+    GTEST_SKIP() << "the expected values are glibc's ja_JP data";
+#endif
 }
 
 TEST(TimeioWchar, ATimeOfDayReadsTheSameSpecifiersWithNoZoneTier)
 {
+#if IOV2_TEST_LINUX_GLIBC
     timeio obj(std::make_shared<timeio_conf<wchar_t>>("ja_JP.UTF-8"));
     auto FOri = [&obj](auto&&... args)
     {
@@ -3339,6 +3382,9 @@ TEST(TimeioWchar, ATimeOfDayReadsTheSameSpecifiersWithNoZoneTier)
     FOri(L"z",  L'z', L'E', ios_defs::strfailbit);
     FOri(L"%Oz", L'z', L'O', ios_defs::eofbit);
     FOri(L"z",  L'z', L'O', ios_defs::strfailbit);
+#else
+    GTEST_SKIP() << "the expected values are glibc's ja_JP data";
+#endif
 }
 
 TEST(TimeioWchar, AValueThatIsNotAValidTimeIsRejected)

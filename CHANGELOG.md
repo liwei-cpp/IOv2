@@ -126,6 +126,16 @@
   `0` 或 `1`。按标准库判断：libc++ 要求编入了时区数据库且打开实验库（`-fexperimental-library`），
   Apple 的 libc++（Xcode 26）没有；libstdc++ 与 MSVC STL 看 `__cpp_lib_chrono`。可在包含 IOv2
   之前定义为 `0`，强制当作没有。
+- **`timeio` facet 可在 macOS 上构建、运行**，Windows 尚未移植；`timeio<char32_t>` 仍只在 glibc 上
+  提供。macOS 上：
+  - 没有时区数据库，`IOV2_HAS_CHRONO_TZDB` 为 `0`，`%Z` 等按"变更"中 `timeio` 一条的说明处理。
+  - locale 不带纪元与替代数字（`ERA`、`ALT_DIGITS` 与三个纪元格式都是空串）：`%E`、`%O` 修饰的
+    说明符按 POSIX 退回未修饰的含义，纪元格式由普通格式顶替。
+  - locale 格式串里的补位标志照旧丢弃，macOS 的格式串用得更多：ja_JP 的 `%c` 为
+    `%a %_m/%e %T %Y`，IOv2 按 `%a %m/%e %T %Y` 写，月份补零。
+  - `timeio<char8_t>` 不再经 `timeio_conf<char32_t>`（只在 glibc 上有）：C 与 UTF-8 locale 直接用
+    窄字符配置的字节，其他 locale 经 `wchar_t` 转换；在 macOS 上以非 UTF-8 locale 构造会抛
+    `io_error`，与 `numeric<char8_t>` 相同。
 
 #### 变更
 
@@ -263,7 +273,7 @@
   - `std::tm` 的 `%Z` 按"值供不出"退化为字面量，`get_time` 相应按偏移档解析：`tm_zone` 里的
     缩写写出去读不回来。
 
-  有时区数据库时行为不变。`timeio` 尚未移植到 macOS，这一条是为它做的准备。
+  有时区数据库时行为不变。macOS（Apple 的 libc++）属于没有的情形。
 - `timeio` 按成员探测 `std::tm` 的 `tm_gmtoff` 与 `tm_zone`：两个都不带的 `std::tm`（Windows
   的 UCRT）上 `%z`、`%Z` 按"值供不出"退化为字面量，只带 `tm_gmtoff` 的只有 `%Z` 退化。此前
   在这样的平台上编译报错。
@@ -527,6 +537,20 @@ have no release line of their own.
   Apple's libc++ (Xcode 26) has none; libstdc++ and the MSVC STL are judged by
   `__cpp_lib_chrono`. Defining it as `0` before including IOv2 has the database treated as
   absent.
+- **The `timeio` facet builds and runs on macOS**; Windows is not ported yet, and
+  `timeio<char32_t>` is still provided on glibc only. On macOS:
+  - There is no time-zone database, so `IOV2_HAS_CHRONO_TZDB` is `0`, and `%Z` and the rest
+    behave as the `timeio` entry under Changed describes.
+  - Locales carry no eras or alternative digits (`ERA`, `ALT_DIGITS` and the three era formats
+    are empty strings): the `%E`- and `%O`-modified specifiers fall back to their unmodified
+    meanings as POSIX says, and the plain formats stand in for the era ones.
+  - Padding flags in a locale's format strings are dropped as before, and macOS's use more of
+    them: ja_JP's `%c` is `%a %_m/%e %T %Y`, which IOv2 writes as `%a %m/%e %T %Y`, the month
+    zero-padded.
+  - `timeio<char8_t>` no longer goes through `timeio_conf<char32_t>`, which exists on glibc
+    only: the C locale and UTF-8 locales take the narrow configuration's bytes as they are,
+    any other goes through `wchar_t`; on macOS constructing for a non-UTF-8 locale throws
+    `io_error`, as with `numeric<char8_t>`.
 
 #### Changed
 
@@ -721,8 +745,8 @@ have no release line of their own.
     `get_time` parses at the offset tier to match: the abbreviation in `tm_zone` could be
     written but not read back.
 
-  With a database the behaviour is unchanged. `timeio` is not ported to macOS yet; this
-  prepares for it.
+  With a database the behaviour is unchanged. macOS (Apple's libc++) is a platform without
+  one.
 - `timeio` detects `std::tm`'s `tm_gmtoff` and `tm_zone` member by member: where `std::tm`
   has neither (the Windows UCRT), `%z` and `%Z` degrade to literals as specifiers the value
   cannot supply, and where it has `tm_gmtoff` alone only `%Z` does. Such platforms used to

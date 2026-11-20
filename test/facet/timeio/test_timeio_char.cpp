@@ -30,6 +30,8 @@
 #include <IOv2/io/iochannel.h>
 #include <IOv2/io/iochannel_iterator.h>
 
+#include <support/platform_macros.h>
+
 #include <gtest/gtest.h>
 
 #include <chrono>
@@ -373,6 +375,7 @@ TEST(TimeioChar, CLocaleWritesEveryConversionSpecifier)
 // composite layouts differ but the rules about what a value can supply do not.
 TEST(TimeioChar, ChineseWritesEveryConversionSpecifier)
 {
+#if IOV2_TEST_LINUX_GLIBC
     const timeio<char> obj = facet_for("zh_CN.UTF-8");
     const auto         tp  = create_sys_time(2024, 9, 4, 13, 33, 18);
 
@@ -489,12 +492,16 @@ TEST(TimeioChar, ChineseWritesEveryConversionSpecifier)
     };
 
     expect_conversions(obj, tp, kConversions);
+#else
+    GTEST_SKIP() << "the expected values are glibc's zh_CN data";
+#endif
 }
 
 // And under ja_JP, which is the locale with an era representation, so %EC, %Ey
 // and %EY are the rows to look at here.
 TEST(TimeioChar, JapaneseWritesEveryConversionSpecifier)
 {
+#if IOV2_TEST_LINUX_GLIBC
     const timeio<char> obj = facet_for("ja_JP.UTF-8");
     const auto         tp  = create_sys_time(2024, 9, 4, 13, 33, 18);
 
@@ -611,12 +618,16 @@ TEST(TimeioChar, JapaneseWritesEveryConversionSpecifier)
     };
 
     expect_conversions(obj, tp, kConversions);
+#else
+    GTEST_SKIP() << "the expected values are glibc's ja_JP data";
+#endif
 }
 
 // A year_month_day is a date and nothing else, so every specifier that asks for a
 // time of day or a zone comes back as the text that asked for it.
 TEST(TimeioChar, ADateWritesEveryConversionSpecifierItCanSupply)
 {
+#if IOV2_TEST_LINUX_GLIBC
     using namespace std::chrono;
     const timeio<char>   obj = facet_for("ja_JP.UTF-8");
     const year_month_day tp{year{2024}, month{9}, day{4}};
@@ -734,11 +745,15 @@ TEST(TimeioChar, ADateWritesEveryConversionSpecifierItCanSupply)
     };
 
     expect_conversions(obj, tp, kConversions);
+#else
+    GTEST_SKIP() << "the expected values are glibc's ja_JP data";
+#endif
 }
 
 // An hh_mm_ss is the mirror image: it has a time of day and no date at all.
 TEST(TimeioChar, ATimeOfDayWritesEveryConversionSpecifierItCanSupply)
 {
+#if IOV2_TEST_LINUX_GLIBC
     using namespace std::chrono;
     const timeio<char>    obj = facet_for("ja_JP.UTF-8");
     const hh_mm_ss<seconds> tp{hours{13} + minutes{33} + seconds{18}};
@@ -853,12 +868,16 @@ TEST(TimeioChar, ATimeOfDayWritesEveryConversionSpecifierItCanSupply)
     };
 
     expect_conversions(obj, tp, kConversions);
+#else
+    GTEST_SKIP() << "the expected values are glibc's ja_JP data";
+#endif
 }
 
 // A std::tm carries both halves, so almost everything is available; what it does
 // not carry is a zone, which the cases after this one take up.
 TEST(TimeioChar, ABrokenDownTimeWritesEveryConversionSpecifier)
 {
+#if IOV2_TEST_LINUX_GLIBC
     const timeio<char> obj = facet_for("ja_JP.UTF-8");
     const std::tm      tp  = calendar_time(2024 - 1900, 9 - 1, 4, 13, 33, 18, 0, 0, 0);
 
@@ -975,6 +994,9 @@ TEST(TimeioChar, ABrokenDownTimeWritesEveryConversionSpecifier)
     };
 
     expect_conversions(obj, tp, kConversions);
+#else
+    GTEST_SKIP() << "the expected values are glibc's ja_JP data";
+#endif
 }
 
 namespace
@@ -1624,6 +1646,7 @@ TEST(TimeioChar, TheCLocaleReadsEveryConversionSpecifier)
 
 TEST(TimeioChar, ChineseReadsEveryConversionSpecifier)
 {
+#if IOV2_TEST_LINUX_GLIBC
     std::chrono::year_month_day check_date1{std::chrono::year{2024}, std::chrono::month{9}, std::chrono::day{4}};
     timeio obj(std::make_shared<timeio_conf<char>>("zh_CN.UTF-8"));
 
@@ -1889,10 +1912,14 @@ TEST(TimeioChar, ChineseReadsEveryConversionSpecifier)
     // POSIX strptime -- not the wall-clock year, and not whatever the parse context
     // happens to fall back to.
     EXPECT_EQ((CheckGet<year_month_day>(obj, "20 01 01", "%C %m %d", ios_defs::eofbit)), (year_month_day{std::chrono::year{2000}, std::chrono::month{1}, std::chrono::day{1}}));
+#else
+    GTEST_SKIP() << "the expected values are glibc's zh_CN data";
+#endif
 }
 
 TEST(TimeioChar, JapaneseReadsEveryConversionSpecifier)
 {
+#if IOV2_TEST_LINUX_GLIBC
     std::chrono::year_month_day check_date1{std::chrono::year{2024}, std::chrono::month{9}, std::chrono::day{4}};
     timeio obj(std::make_shared<timeio_conf<char>>("ja_JP.UTF-8"));
 
@@ -2173,6 +2200,9 @@ TEST(TimeioChar, JapaneseReadsEveryConversionSpecifier)
     // POSIX strptime -- not the wall-clock year, and not whatever the parse context
     // happens to fall back to.
     EXPECT_EQ((CheckGet<year_month_day>(obj, "20 01 01", "%C %m %d", ios_defs::eofbit)), (year_month_day{std::chrono::year{2000}, std::chrono::month{1}, std::chrono::day{1}}));
+#else
+    GTEST_SKIP() << "the expected values are glibc's ja_JP data";
+#endif
 }
 
 TEST(TimeioChar, AWeekdayOrMonthNameIsMatchedAgainstBothSpellings)
@@ -2779,6 +2809,7 @@ TEST(TimeioChar, AWeekdayOrMonthNameIsMatchedTheSameWayFromAStream)
 
 TEST(TimeioChar, JapaneseReadsEveryConversionSpecifierIntoADate)
 {
+#if IOV2_TEST_LINUX_GLIBC
     std::chrono::year_month_day check_date1{std::chrono::year{2024}, std::chrono::month{9}, std::chrono::day{4}};
     timeio obj(std::make_shared<timeio_conf<char>>("ja_JP.UTF-8"));
     auto FOri = [&obj](auto&&... args)
@@ -3057,10 +3088,14 @@ TEST(TimeioChar, JapaneseReadsEveryConversionSpecifierIntoADate)
     // POSIX strptime -- not the wall-clock year, and not whatever the parse context
     // happens to fall back to.
     EXPECT_EQ((FYmd("20 01 01", "%C %m %d", ios_defs::eofbit)), (year_month_day{std::chrono::year{2000}, std::chrono::month{1}, std::chrono::day{1}}));
+#else
+    GTEST_SKIP() << "the expected values are glibc's ja_JP data";
+#endif
 }
 
 TEST(TimeioChar, JapaneseReadsEveryConversionSpecifierIntoADateWithoutAZone)
 {
+#if IOV2_TEST_LINUX_GLIBC
     std::chrono::year_month_day check_date1{std::chrono::year{2024}, std::chrono::month{9}, std::chrono::day{4}};
     timeio obj(std::make_shared<timeio_conf<char>>("ja_JP.UTF-8"));
     auto FOri = [&obj](auto&&... args)
@@ -3329,10 +3364,14 @@ TEST(TimeioChar, JapaneseReadsEveryConversionSpecifierIntoADateWithoutAZone)
     // POSIX strptime -- not the wall-clock year, and not whatever the parse context
     // happens to fall back to.
     EXPECT_EQ((FYmd("20 01 01", "%C %m %d", ios_defs::eofbit)), (year_month_day{std::chrono::year{2000}, std::chrono::month{1}, std::chrono::day{1}}));
+#else
+    GTEST_SKIP() << "the expected values are glibc's ja_JP data";
+#endif
 }
 
 TEST(TimeioChar, ATimeOfDayReadsEveryConversionSpecifierItCanSupply)
 {
+#if IOV2_TEST_LINUX_GLIBC
     timeio obj(std::make_shared<timeio_conf<char>>("ja_JP.UTF-8"));
     auto FOri = [&obj](auto&&... args)
     {
@@ -3584,10 +3623,14 @@ TEST(TimeioChar, ATimeOfDayReadsEveryConversionSpecifierItCanSupply)
     FOri("z",  'z', 'E', ios_defs::strfailbit);
     FOri("%Oz", 'z', 'O', ios_defs::eofbit);
     FOri("z",  'z', 'O', ios_defs::strfailbit);
+#else
+    GTEST_SKIP() << "the expected values are glibc's ja_JP data";
+#endif
 }
 
 TEST(TimeioChar, ATimeOfDayReadsTheSameSpecifiersWithNoZoneTier)
 {
+#if IOV2_TEST_LINUX_GLIBC
     timeio obj(std::make_shared<timeio_conf<char>>("ja_JP.UTF-8"));
     auto FOri = [&obj](auto&&... args)
     {
@@ -3832,6 +3875,9 @@ TEST(TimeioChar, ATimeOfDayReadsTheSameSpecifiersWithNoZoneTier)
     FOri("z",  'z', 'E', ios_defs::strfailbit);
     FOri("%Oz", 'z', 'O', ios_defs::eofbit);
     FOri("z",  'z', 'O', ios_defs::strfailbit);
+#else
+    GTEST_SKIP() << "the expected values are glibc's ja_JP data";
+#endif
 }
 
 TEST(TimeioChar, AValueThatIsNotAValidTimeIsRejected)
@@ -3931,8 +3977,10 @@ TEST(TimeioChar, ADateIsAssembledFromWhicheverFieldsWereParsed)
     using namespace std::chrono;
 
     timeio obj(std::make_shared<timeio_conf<char>>("C"));
+#if IOV2_TEST_LINUX_GLIBC   // only glibc's locales carry era data
     timeio obj_ja(std::make_shared<timeio_conf<char>>("ja_JP.UTF-8"));
     timeio obj_zh_tw(std::make_shared<timeio_conf<char>>("zh_TW.UTF-8"));
+#endif
 
     // operator year_month_day() throws for invalid reconstructed date (line 126)
     // Feb 30 parses successfully but is not a valid calendar date
@@ -3941,6 +3989,7 @@ TEST(TimeioChar, ADateIsAssembledFromWhicheverFieldsWereParsed)
         EXPECT_THROW(auto ymd = ctx_to<year_month_day>(ctx); (void)ymd, stream_error);
     }
 
+#if IOV2_TEST_LINUX_GLIBC
     // Era deduction: m_have_mon=true, m_have_mday=false, match found (lines 224-241)
     // 令和6 January: est_year=2024, Jan is within 令和 era -> deduced_year=2024
     {
@@ -4099,6 +4148,7 @@ TEST(TimeioChar, ADateIsAssembledFromWhicheverFieldsWereParsed)
         auto ymd = CheckGet<year_month_day>(obj_ja, "平成 88", "%EC %Oy", ios_defs::eofbit);
         EXPECT_EQ(ymd.year(), year{1988});
     }
+#endif
 
     // The other half of that POSIX sentence: with no era data at all, the E-modified
     // specifiers degrade to their unmodified meanings instead of failing.
@@ -4159,9 +4209,11 @@ TEST(TimeioChar, ADateIsAssembledFromWhicheverFieldsWereParsed)
     // %p AM/PM tree miss (lines 1823-1824)
     CheckGet(obj, "xyz", 'p', (char)0, ios_defs::strfailbit);
 
+#if IOV2_TEST_LINUX_GLIBC
     // %Ey era year out of range: all era items pruned (lines 2035-2036)
     // 平成32: delta=30 exceeds 平成 range=29 -> pruned -> stream_error
     CheckGet(obj_ja, "平成32", "%EC%Ey", ios_defs::strfailbit);
+#endif
 
     // %z failures
     CheckGet(obj, "abc",   'z', (char)0, ios_defs::strfailbit); // not Z/+/- (line 2144)
@@ -4694,25 +4746,28 @@ TEST(TimeioChar, AZoneOrOffsetIsParsedIntoTheContext)
             // The unknown-zone token blanks the field rather than leaving it alone. Leaving it
             // would keep a stale name the text just said was not there, and the next put would
             // write that name back out.
+            // tm_zone is char* on macOS and const char* on glibc; a char array suits both.
+            char stale[] = "STALE";
             std::tm blanked{};
-            blanked.tm_zone = "STALE";
+            blanked.tm_zone = stale;
             parse("2024-09-04 13:33:18 +0800 UNKNOWN", "%F %T %z %Z").convert_to(blanked);
             EXPECT_TRUE(zone_is(blanked.tm_zone, ""));
 
             // No %Z at all is the third state, and the only one that leaves the field be.
+            char kept[] = "KEPT";
             std::tm untouched{};
-            untouched.tm_zone = "KEPT";
+            untouched.tm_zone = kept;
             parse("2024-09-04 13:33:18 +0800", "%F %T %z").convert_to(untouched);
             EXPECT_TRUE(zone_is(untouched.tm_zone, "KEPT"));
 
             // put -> get -> put closes for all three.
-            for (const char* z : {"PST", "America/Los_Angeles", ""})
+            for (std::string z : {"PST", "America/Los_Angeles", ""})
             {
                 std::tm t{};
                 t.tm_year = 124; t.tm_mon = 8; t.tm_mday = 4;
                 t.tm_hour = 13;  t.tm_min = 33; t.tm_sec = 18;
                 t.tm_gmtoff = 8 * 3600;
-                t.tm_zone = z;
+                t.tm_zone = z.data();
 
                 std::string once;
                 obj.put(std::back_inserter(once), t, std::string_view("%F %T %z %Z"));
@@ -4963,11 +5018,12 @@ TEST(TimeioChar, EveryZoneAbbreviationTheDatabaseKnowsIsParsed)
     // The round trip the abbreviation set exists for.
     if constexpr (time_value_fields<std::tm>::has_zone)
     {
+        char ewt[] = "EWT";   // a char array suits both macOS's char* and glibc's const char*
         std::tm t{};
         t.tm_year = 43; t.tm_mon = 6; t.tm_mday = 1;
         t.tm_hour = 12; t.tm_min = 0; t.tm_sec = 0;
         t.tm_gmtoff = -4 * 3600;
-        t.tm_zone = "EWT";
+        t.tm_zone = ewt;
 
         std::string res;
         obj.put(std::back_inserter(res), t, std::string_view("%F %T %z %Z"));
@@ -5283,7 +5339,8 @@ TEST(TimeioChar, ExpandFormatResolvesTheCompositeSpecifiers)
     EXPECT_EQ(obj.expand_format<year_month_day>("%%"), "%%");
 
     // What the whole thing was built for: a locale whose %c carries a %Z, run against a value
-    // that has no zone identity to put in it.
+    // that has no zone identity to put in it. glibc's en_US does; macOS's does not.
+#if IOV2_TEST_LINUX_GLIBC
     {
         timeio us(std::make_shared<timeio_conf<char>>("en_US.UTF-8"));
 
@@ -5309,6 +5366,7 @@ TEST(TimeioChar, ExpandFormatResolvesTheCompositeSpecifiers)
         us.put(std::back_inserter(res), lt, hours{-8}, std::string_view(bare));
         EXPECT_EQ(res.find('%'), std::string::npos);
     }
+#endif
 }
 
 // contains_specifier: the question a caller asks of an expansion before deciding to append a
@@ -5382,8 +5440,9 @@ TEST(TimeioChar, AnUnknownZoneIsATokenOfItsOwn)
         auto it = obj.get(res.cbegin(), res.cend(), ctx, "%Y-%m-%d %H:%M:%S %Z");
         EXPECT_EQ(it, res.cend());
 
+        char preset[] = "PRESET";   // a char array suits both macOS's char* and glibc's const char*
         std::tm out{};
-        out.tm_zone = "PRESET";
+        out.tm_zone = preset;
         ctx.convert_to(out);
         EXPECT_EQ(out.tm_year, 2024 - 1900);
         EXPECT_TRUE(out.tm_hour == 13 && out.tm_min == 33 && out.tm_sec == 18);
@@ -5532,9 +5591,10 @@ TEST(TimeioChar, AnOffsetOutsideItsRangeIsRejected)
 
     auto put_z = [&](long gmtoff)
     {
+        char cst[] = "CST";   // a char array suits both macOS's char* and glibc's const char*
         std::tm tp = calendar_time(2024 - 1900, 9 - 1, 4, 13, 33, 18, 3, 247, 0);
         tp.tm_gmtoff = gmtoff;
-        tp.tm_zone = "CST";
+        tp.tm_zone = cst;
         std::string res;
         obj.put(std::back_inserter(res), tp, "%z");
         return res;
