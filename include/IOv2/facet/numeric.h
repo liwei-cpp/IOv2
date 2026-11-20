@@ -516,7 +516,7 @@ public:
             long l = -1;
             std::tie(success, beg) = extract_int(beg, end, io, l);
 
-            if (l == 0 || l == 1) v = bool(l);
+            if (l == 0 || l == 1) v = static_cast<bool>(l);
             else
             {
                 // LWG 23 resolved that a field which does not fit the target
@@ -1079,7 +1079,7 @@ private:
                     prefix[prefix_len++] = m_out.plus;
             }
         }
-        else if (bool(flags & ios_defs::showbase) && v)
+        else if (static_cast<bool>(flags & ios_defs::showbase) && v)
         {
             prefix[prefix_len++] = m_out.lower[0];
             if (basefield == ios_defs::hex)

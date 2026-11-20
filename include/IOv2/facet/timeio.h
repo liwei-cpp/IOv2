@@ -108,7 +108,7 @@ struct date_parse_helper<CharT, true>
         // to January 1. Day 1 is the only day-of-month valid in every month, so a parse
         // that supplies the month but not the day can never form an invalid calendar
         // date -- e.g. parsing "Feb" must not inherit today's 29/30/31.
-        m_year = int(year_month_day{floor<days>(system_clock::now())}.year());
+        m_year = static_cast<int>(year_month_day{floor<days>(system_clock::now())}.year());
     }
 
     /**
@@ -144,7 +144,7 @@ struct date_parse_helper<CharT, true>
      */
     void set_date_hint(const std::chrono::year_month_day& hint)
     {
-        m_year = int(hint.year());
+        m_year = static_cast<int>(hint.year());
         m_month = static_cast<uint8_t>(static_cast<unsigned>(hint.month()));
         m_mday = static_cast<uint8_t>(static_cast<unsigned>(hint.day()));
     }
@@ -417,7 +417,7 @@ struct date_parse_helper<CharT, true>
                               / day{std::min<unsigned>(deduced_mday, last)}};
                 auto cur = static_cast<int>(weekday{base}.c_encoding());
                 year_month_day snapped{base + days{(static_cast<int>(m_wday) - cur + 7) % 7}};
-                deduced_year  = int(snapped.year());
+                deduced_year  = static_cast<int>(snapped.year());
                 deduced_month = static_cast<uint8_t>(static_cast<unsigned>(snapped.month()));
                 deduced_mday  = static_cast<uint8_t>(static_cast<unsigned>(snapped.day()));
             }
@@ -1629,16 +1629,16 @@ struct time_parse_context
 
         int d = static_cast<int>(static_cast<unsigned>(ymd.day()));
         int m = static_cast<int>(static_cast<unsigned>(ymd.month()));
-        int y = int(ymd.year());
+        int y = static_cast<int>(ymd.year());
 
         out.tm_year = y - 1900;
         out.tm_mon  = m - 1;
         out.tm_mday = d;
 
         // Time fields
-        out.tm_hour = int(hms.hours().count());
-        out.tm_min  = int(hms.minutes().count());
-        out.tm_sec  = int(hms.seconds().count());
+        out.tm_hour = static_cast<int>(hms.hours().count());
+        out.tm_min  = static_cast<int>(hms.minutes().count());
+        out.tm_sec  = static_cast<int>(hms.seconds().count());
 
         out.tm_isdst = -1;   // let the C library figure out DST
 
@@ -3206,7 +3206,7 @@ private:
                     rp = m_month_tree.max_match(rp, rp_end, tmp);
                     if (tmp && (*tmp >= 0) && (*tmp < 12))
                     {
-                        ctx.m_month = (uint8_t)*tmp + 1;
+                        ctx.m_month = static_cast<uint8_t>(*tmp) + 1;
                         ctx.m_have_mon = true;
                     }
                     else
@@ -4477,7 +4477,7 @@ private:
                     std::chrono::sys_days sd{*ymd};
                     std::chrono::sys_days thursday = sd + std::chrono::days{4 - static_cast<int>(wd->iso_encoding())};
                     std::chrono::year_month_day thursday_ymd{thursday};
-                    int val = int(thursday_ymd.year());
+                    int val = static_cast<int>(thursday_ymd.year());
                     if (format_char == static_cast<CharT>('G'))
                     {
                         int yr = val;
@@ -4633,7 +4633,7 @@ private:
                     std::chrono::sys_days jan4{ iso_year / std::chrono::January / 4 };
                     std::chrono::weekday wd_jan4{jan4};
                     std::chrono::sys_days first_thursday = jan4 + std::chrono::days{4 - static_cast<int>(wd_jan4.iso_encoding())};
-                    int week = int((this_thursday - first_thursday) / std::chrono::days{7}) + 1;
+                    int week = static_cast<int>((this_thursday - first_thursday) / std::chrono::days{7}) + 1;
                     if (week < 1) week = 1;
                     if (week > 53) week = 53;
 

@@ -55,25 +55,25 @@ enum class file_open_flag : std::uint8_t
     /// @lang{ZH} 已废弃，不起作用：文件在所有平台上都以二进制打开，不做换行转换。保留只为兼容旧代码，将在 2.0 中删除。 @endif
     /// @lang{EN} Deprecated, no effect: files open in binary on every platform, with no newline translation. Kept only so that existing code compiles; to be removed in 2.0. @endif
     binary [[deprecated("file_device always opens in binary; the flag has no effect")]]
-                = (std::uint8_t)1 << 0,
-    trunc       = (std::uint8_t)1 << 1,         ///< @lang{ZH} 如果文件已存在，则截断它。 @endif @lang{EN} Truncate the file if it already exists. @endif
-    noreplace   = (std::uint8_t)1 << 2          ///< @lang{ZH} 如果文件已存在，则打开失败。 @endif @lang{EN} Fail to open if the file already exists. @endif
+                = 1U << 0,
+    trunc       = 1U << 1,       ///< @lang{ZH} 如果文件已存在，则截断它。 @endif @lang{EN} Truncate the file if it already exists. @endif
+    noreplace   = 1U << 2       ///< @lang{ZH} 如果文件已存在，则打开失败。 @endif @lang{EN} Fail to open if the file already exists. @endif
 };
 
 /// @cond
 constexpr file_open_flag operator | (file_open_flag v1, file_open_flag v2)
 {
-    return (file_open_flag)((std::uint8_t) v1 | (std::uint8_t)v2);
+    return static_cast<file_open_flag>(static_cast<std::uint8_t>(v1) | static_cast<std::uint8_t>(v2));
 }
 
 constexpr file_open_flag operator & (file_open_flag v1, file_open_flag v2)
 {
-    return (file_open_flag)((std::uint8_t) v1 & (std::uint8_t)v2);
+    return static_cast<file_open_flag>(static_cast<std::uint8_t>(v1) & static_cast<std::uint8_t>(v2));
 }
 
 constexpr file_open_flag operator ~ (file_open_flag v1)
 {
-    return (file_open_flag)(~((std::uint8_t) v1));
+    return static_cast<file_open_flag>(~static_cast<std::uint8_t>(v1));
 }
 /// @endcond
 

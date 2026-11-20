@@ -80,7 +80,7 @@ public:
 
     ~copyable_atomic() = default;
 
-    T    load() const noexcept  { return m_value.load(); }
+    [[nodiscard]] T load() const noexcept { return m_value.load(); }
     void store(T value) noexcept { m_value.store(value); }
     T    exchange(T value) noexcept { return m_value.exchange(value); }
 

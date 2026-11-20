@@ -992,7 +992,7 @@ public:
 
     /// @lang{ZH} `cvt_target()` 的 const 版本。 @endif @lang{EN} The const overload of `cvt_target()`. @endif
     template <typename KernelType>
-    const KernelType* cvt_target() const noexcept
+    [[nodiscard]] const KernelType* cvt_target() const noexcept
     {
         return m_cvt.template target<KernelType>();
     }

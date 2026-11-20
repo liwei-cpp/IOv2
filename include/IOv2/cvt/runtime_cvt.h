@@ -119,7 +119,7 @@ public:
      * @return 指向新克隆实例的 `unique_ptr`。
      *         / A `unique_ptr` to the newly cloned instance.
      */
-    virtual std::unique_ptr<abs_runtime_cvt_imp> clone() const & = 0;
+    [[nodiscard]] virtual std::unique_ptr<abs_runtime_cvt_imp> clone() const & = 0;
 
     /// @lang{ZH} 返回底层设备的引用。 @endif @lang{EN} Return a reference to the underlying device. @endif
     virtual device_type& device() = 0;
@@ -234,7 +234,7 @@ public:
      *         / A `unique_ptr` to the newly cloned instance.
      * @throws cvt_error 若内核不支持拷贝构造。 / If the kernel does not support copy construction.
      */
-    std::unique_ptr<BT> clone() const & override
+    [[nodiscard]] std::unique_ptr<BT> clone() const & override
     {
         if constexpr (std::copy_constructible<KernelType>)
             return std::make_unique<runtime_cvt_imp>(*this);
@@ -438,7 +438,7 @@ public:
 
     /// @lang{ZH} 包装着的转换器内核，供 `runtime_cvt::target()` 取出。 @endif @lang{EN} The wrapped converter kernel, for `runtime_cvt::target()` to hand out. @endif
     KernelType& kernel() noexcept { return m_kernel; }
-    const KernelType& kernel() const noexcept { return m_kernel; }
+    [[nodiscard]] const KernelType& kernel() const noexcept { return m_kernel; }
 
 private:
     KernelType m_kernel;
@@ -755,7 +755,7 @@ public:
         requires (io_converter<KernelType> &&
                   std::is_same_v<typename KernelType::device_type, TDevice> &&
                   std::is_same_v<typename KernelType::internal_type, TInt>)
-    const KernelType* target() const noexcept
+    [[nodiscard]] const KernelType* target() const noexcept
     {
         const auto* imp = dynamic_cast<const runtime_cvt_imp<KernelType>*>(m_ptr.get());
         return imp != nullptr ? &imp->kernel() : nullptr;

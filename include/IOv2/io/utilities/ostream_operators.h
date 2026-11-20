@@ -523,6 +523,17 @@ struct out_tie_target : public tie_target
     {
         return static_cast<const T&>(*this).tie();
     }
+
+    ~out_tie_target() override = default;
+
+private:
+    // Only T builds this base, so the down-casts above always land on a real T.
+    out_tie_target() = default;
+    out_tie_target(const out_tie_target&) = default;
+    out_tie_target(out_tie_target&&) = default;
+    out_tie_target& operator=(const out_tie_target&) = default;
+    out_tie_target& operator=(out_tie_target&&) = default;
+    friend T;
 };
 
 template <typename TChar>

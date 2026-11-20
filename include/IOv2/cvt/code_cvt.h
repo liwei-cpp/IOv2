@@ -1599,6 +1599,9 @@ public:
      * after the move (`m_accu_len` is reset to 0).
      * @endif
      */
+    // BT's move constructor takes only the base subobject; this class's members are still
+    // val's to move from afterwards.
+    // NOLINTBEGIN(bugprone-use-after-move)
     code_cvt(code_cvt&& val) noexcept
         : BT(std::move(val))
         , m_cvt_kernel(std::move(val.m_cvt_kernel))
@@ -1606,6 +1609,7 @@ public:
     {
         val.m_accu_len = 0;
     }
+    // NOLINTEND(bugprone-use-after-move)
 
     /**
      * @lang{ZH}

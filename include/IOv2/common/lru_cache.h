@@ -238,15 +238,16 @@ public:
     {
         auto m_it = m_cache_map.find(key);
 
+        // A small value comes by copy and is moved on; moving a const& one still copies.
         if (m_it != m_cache_map.end())
         {
             auto l_it = m_it->second;
-            l_it->second = value;
+            l_it->second = std::move(value);
             m_cache_list.splice(m_cache_list.begin(), m_cache_list, l_it);
             return;
         }
 
-        m_cache_list.emplace_front(key, value);
+        m_cache_list.emplace_front(key, std::move(value));
         try
         {
             m_cache_map.insert({m_cache_list.front().first, m_cache_list.begin()});
