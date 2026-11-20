@@ -9,8 +9,9 @@
  * - `ft_basic<timeio<CharT>>`：`timeio` 的基类模板特化，持有 facet 类型标识；
  * - `TimeioHelper`：日历纪元日期比较的辅助工具函数；
  * - `timeio_conf<CharT>`：各字符类型（`char`、`wchar_t`/`char32_t`、`char8_t`）的
- *   locale 配置类，负责从系统 locale（通过 `nl_langinfo`）或 C/POSIX 硬编码默认值
- *   中加载日期/时间格式串、星期/月份名称、AM/PM 字符串、替代数字及纪元数据。
+ *   locale 配置类，负责从系统 locale（经平台后端，见 `facet/platform/timeio_backend.h`）
+ *   或 C/POSIX 硬编码默认值中加载日期/时间格式串、星期/月份名称、AM/PM 字符串、替代数字
+ *   及纪元数据。
  * @endif
  *
  * @lang{EN}
@@ -23,7 +24,8 @@
  * - `timeio_conf<CharT>`: per-character-type locale configuration classes
  *   (`char`, `wchar_t`/`char32_t`, `char8_t`) that load date/time format strings,
  *   weekday/month names, AM/PM strings, alternative digits, and era data from the
- *   system locale (via `nl_langinfo`) or from C/POSIX hard-coded defaults.
+ *   system locale (through the platform backend, see `facet/platform/timeio_backend.h`)
+ *   or from C/POSIX hard-coded defaults.
  * @endif
  */
 #pragma once
@@ -34,14 +36,12 @@
 #include <IOv2/cvt/cvt_facilities.h>
 #include <IOv2/facet/facet_common.h>
 #include <IOv2/facet/facet_helper.h>
+#include <IOv2/facet/platform/timeio_backend.h>
 
 #include <array>
 #include <chrono>
 #include <cstddef>
 #include <cstdint>
-#include <cstring>
-#include <cwchar>
-#include <limits>
 #include <map>
 #include <optional>
 #include <string>
@@ -49,8 +49,6 @@
 #include <type_traits>
 #include <utility>
 #include <vector>
-
-#include <langinfo.h>
 
 namespace IOv2
 {
@@ -758,6 +756,17 @@ namespace TimeioHelper
 
 template <typename CharT> class timeio_conf;
 
+namespace detail
+{
+// The date and time data of the locale called name, copied out with the thread switched to it.
+inline timeio_raw_data timeio_snapshot(const std::string& name)
+{
+    clocale_wrapper loc(name);
+    clocale_user    guard(loc);
+    return timeio_read_data();
+}
+}
+
 /**
  * @lang{ZH}
  * @brief `timeio` facet 的 `char` 字符类型 locale 配置类。
@@ -767,8 +776,8 @@ template <typename CharT> class timeio_conf;
  * 缩写、AM/PM 字符串及格式、替代数字，以及纪元（era）条目。
  *
  * 当 locale 名称为 `"C"` 或 `"POSIX"` 时，使用硬编码的英语默认值；
- * 其他 locale 名称通过 `clocale_wrapper` 切换线程 locale 后，调用 `nl_langinfo`
- * 获取系统提供的字符串，并调用 `parse_glibc_era_entries` 解码 glibc 纪元数据。
+ * 其他 locale 名称经平台后端（`detail::timeio_read_data`）在切换到该 locale 的线程上读出
+ * C 库的原样数据，再由本类补上空缺项的回退值、规范化格式串与纪元方向。
  * @endif
  *
  * @lang{EN}
@@ -781,9 +790,9 @@ template <typename CharT> class timeio_conf;
  * and era entries.
  *
  * When the locale name is `"C"` or `"POSIX"`, hard-coded English defaults are used.
- * For other locales, `clocale_wrapper` switches the thread locale and `nl_langinfo`
- * is called to retrieve system-provided strings; `parse_glibc_era_entries` is then
- * called to decode the glibc era binary data.
+ * For other locales the platform backend (`detail::timeio_read_data`) reads the C library's
+ * data as it is, on a thread switched to that locale, and this class fills in the fallbacks
+ * for missing items and normalizes the formats and the era directions.
  * @endif
  */
 template <>
@@ -795,8 +804,7 @@ public:
      * @brief 构造函数，根据 locale 名称加载日期时间 locale 数据。
      *
      * 若 `name` 为 `"C"` 或 `"POSIX"`，则使用硬编码的英语默认值（ISO C 标准格式）；
-     * 否则通过 `clocale_wrapper` 切换至指定 locale 后，调用 `nl_langinfo` 及
-     * `parse_glibc_era_entries` 从系统 locale 数据库中加载相应数据。
+     * 否则经平台后端从系统 locale 数据库中加载相应数据。
      * @param name locale 名称（如 `"C"`、`"zh_CN.UTF-8"`）。
      * @endif
      *
@@ -804,9 +812,8 @@ public:
      * @brief Constructor that loads date-time locale data for the given locale name.
      *
      * If `name` is `"C"` or `"POSIX"`, hard-coded English defaults (ISO C standard
-     * formats) are used. Otherwise, `clocale_wrapper` switches to the specified locale
-     * and `nl_langinfo` together with `parse_glibc_era_entries` are called to load
-     * the corresponding data from the system locale database.
+     * formats) are used. Otherwise the corresponding data is loaded from the system locale
+     * database through the platform backend.
      * @param name The locale name (e.g. `"C"`, `"zh_CN.UTF-8"`).
      * @endif
      */
@@ -871,93 +878,31 @@ public:
         }
         else
         {
-            clocale_wrapper inter_locale(name);
-            clocale_user guard(inter_locale);
+            const detail::timeio_raw_data raw = detail::timeio_snapshot(name);
 
-            m_date_format = nl_langinfo(D_FMT);
-            m_era_date_format = nl_langinfo(ERA_D_FMT);  if (m_era_date_format.empty()) m_era_date_format = m_date_format;
-            m_time_format = nl_langinfo(T_FMT);
-            m_era_time_format = nl_langinfo(ERA_T_FMT);  if (m_era_time_format.empty()) m_era_time_format = m_time_format;
+            // An empty era format means the locale has none: the plain one stands in.
+            m_date_format = raw.date_format;
+            m_era_date_format = raw.era_date_format.empty() ? m_date_format : raw.era_date_format;
+            m_time_format = raw.time_format;
+            m_era_time_format = raw.era_time_format.empty() ? m_time_format : raw.era_time_format;
+            m_date_time_format = raw.date_time_format;
+            m_era_date_time_format = raw.era_date_time_format.empty() ? m_date_time_format
+                                                                      : raw.era_date_time_format;
 
-            m_date_time_format = nl_langinfo(D_T_FMT);
-            m_era_date_time_format = nl_langinfo(ERA_D_T_FMT);
-            if (m_era_date_time_format.empty()) m_era_date_time_format = m_date_time_format;
+            m_am = raw.am;
+            m_pm = raw.pm;
+            m_am_pm_format = raw.am_pm_format.empty() ? std::string{"%I:%M:%S %p"} : raw.am_pm_format;
 
-            m_am = nl_langinfo(AM_STR);
-            m_pm = nl_langinfo(PM_STR);
-            m_am_pm_format = nl_langinfo(T_FMT_AMPM);
-            if (m_am_pm_format.empty()) m_am_pm_format = "%I:%M:%S %p";
+            m_day = raw.day;
+            m_abbr_day = raw.abbr_day;
+            m_month = raw.month;
+            m_abbr_month = raw.abbr_month;
+            for (std::size_t i = 0; i < raw.alt_digits.size() && i < m_alt_digits.size(); ++i)
+                m_alt_digits[i] = raw.alt_digits[i];
 
-            m_day[0] = nl_langinfo(DAY_1);
-            m_day[1] = nl_langinfo(DAY_2);
-            m_day[2] = nl_langinfo(DAY_3);
-            m_day[3] = nl_langinfo(DAY_4);
-            m_day[4] = nl_langinfo(DAY_5);
-            m_day[5] = nl_langinfo(DAY_6);
-            m_day[6] = nl_langinfo(DAY_7);
-
-            m_abbr_day[0] = nl_langinfo(ABDAY_1);
-            m_abbr_day[1] = nl_langinfo(ABDAY_2);
-            m_abbr_day[2] = nl_langinfo(ABDAY_3);
-            m_abbr_day[3] = nl_langinfo(ABDAY_4);
-            m_abbr_day[4] = nl_langinfo(ABDAY_5);
-            m_abbr_day[5] = nl_langinfo(ABDAY_6);
-            m_abbr_day[6] = nl_langinfo(ABDAY_7);
-
-            // Full month names, index 0 = January.
-            m_month[0]  = nl_langinfo(MON_1);
-            m_month[1]  = nl_langinfo(MON_2);
-            m_month[2]  = nl_langinfo(MON_3);
-            m_month[3]  = nl_langinfo(MON_4);
-            m_month[4]  = nl_langinfo(MON_5);
-            m_month[5]  = nl_langinfo(MON_6);
-            m_month[6]  = nl_langinfo(MON_7);
-            m_month[7]  = nl_langinfo(MON_8);
-            m_month[8]  = nl_langinfo(MON_9);
-            m_month[9]  = nl_langinfo(MON_10);
-            m_month[10] = nl_langinfo(MON_11);
-            m_month[11] = nl_langinfo(MON_12);
-
-            // Abbreviated month names, same order as above.
-            m_abbr_month[0]  = nl_langinfo(ABMON_1);
-            m_abbr_month[1]  = nl_langinfo(ABMON_2);
-            m_abbr_month[2]  = nl_langinfo(ABMON_3);
-            m_abbr_month[3]  = nl_langinfo(ABMON_4);
-            m_abbr_month[4]  = nl_langinfo(ABMON_5);
-            m_abbr_month[5]  = nl_langinfo(ABMON_6);
-            m_abbr_month[6]  = nl_langinfo(ABMON_7);
-            m_abbr_month[7]  = nl_langinfo(ABMON_8);
-            m_abbr_month[8]  = nl_langinfo(ABMON_9);
-            m_abbr_month[9]  = nl_langinfo(ABMON_10);
-            m_abbr_month[10] = nl_langinfo(ABMON_11);
-            m_abbr_month[11] = nl_langinfo(ABMON_12);
-
-            {// alternative digits
-                // TRUSTED-LOCALE BOUNDARY (same assumption as
-                // parse_glibc_era_entries below): ALT_DIGITS is trusted to be a
-                // sequence of at most 100 consecutive, NUL-terminated narrow
-                // strings, the last followed by a final empty string. The walk
-                // below advances a raw pointer by each string's length and is
-                // UNCHECKED, so malformed or unterminated locale data could read
-                // out of bounds. It is bounded in practice only by the empty-string
-                // sentinel and the 100-entry cap. System locale data is treated as
-                // trusted; if ALT_DIGITS could ever come from an untrusted source,
-                // harden this here. nl_langinfo() is POSIX-guaranteed non-null, but
-                // the null guard below protects against non-conforming platforms.
-                if (char* ptr = nl_langinfo(ALT_DIGITS); ptr)
-                {
-                    for (std::size_t i = 0; i < 100; ++i)
-                    {
-                        if (*ptr == '\0') break;
-                        m_alt_digits[i] = ptr;
-                        ptr += m_alt_digits[i].size() + 1;
-                    }
-                }
-            }
-            // Must run with the target locale active on this thread (the
-            // clocale_user guard above ensures that); see the function's
-            // contract for the trusted glibc layout it assumes.
-            m_era_items = parse_glibc_era_entries();
+            m_era_items.reserve(raw.eras.size());
+            for (const detail::timeio_raw_era& era : raw.eras)
+                m_era_items.push_back(era_from_raw(era));
 
             m_date_format = normalize_time_format(m_date_format).value_or("%m/%d/%y");
             m_era_date_format = normalize_time_format(m_era_date_format).value_or(m_date_format);
@@ -1179,7 +1124,7 @@ private:
      * @lang{ZH}
      * @brief 把 locale 提供的时间格式串归一化为本库 `timeio` 能识别的形式。
      *
-     * `nl_langinfo()` 返回的格式串是 locale 数据，不是用户写的；其中可能出现 glibc 的
+     * C 库给出的格式串（POSIX 上来自 `nl_langinfo()`）是 locale 数据，不是用户写的；其中可能出现 glibc 的
      * 扩展语法，而本库的 `timeio` 只实现 `'%' [E|O]? <说明符>` 这一标准文法。若原样保留，
      * `timeio` 的 put 侧会把不认识的序列连同 `%` 一起字面回显（与 `strftime` 对真正未知
      * 说明符的行为一致），使用户仅写了 `%c` / `%x` 却得到含 `%` 的输出，并可能被 get 侧
@@ -1206,7 +1151,7 @@ private:
      * @brief Normalizes a locale-supplied time format string into the form this
      *        library's `timeio` understands.
      *
-     * A format string from `nl_langinfo()` is locale data, not something the user wrote,
+     * A format string from the C library (`nl_langinfo()` on POSIX) is locale data, not something the user wrote,
      * and it may use glibc's extended syntax, whereas `timeio` implements only the
      * standard grammar `'%' [E|O]? <specifier>`. Left as-is, `timeio`'s put side echoes
      * an unrecognized sequence literally together with its `%` (matching `strftime` for
@@ -1275,184 +1220,76 @@ private:
 
     /**
      * @lang{ZH}
-     * @brief 解析当前活动线程 locale 的 glibc 纪元二进制表，返回解码后的纪元条目列表。
+     * @brief 把后端给出的一个纪元变成 `era_entry`：名称、格式串与日期照搬，方向规范化。
      *
-     * @pre 调用前，调用方必须通过 `clocale_user` / `uselocale` 等方式将目标 locale
-     *      激活于当前线程。`nl_langinfo()` 读取该活动 locale；返回的指针在下一次
-     *      `nl_langinfo()` 调用前保持有效，足以在本函数内完成消费。
+     * `direction` 被规范化为恰好 `+1` / `-1`，使得以下线性公式对所有纪元类型均一致有效：
+     * @code
+     *   era_year = offset + (calendar_year - from_year) * direction
+     * @endcode
+     * 规范化逻辑参照 glibc 的 era.c（约第 98 行，
+     * https://github.com/lattera/glibc/blob/master/time/era.c）：
+     * 前向纪元（from ≤ to，如公元 AD、日本皇纪、泰国佛历）方向标记直接映射，
+     * '+' → +1，'-' → -1；后向纪元（from > to）方向标记取反：from_year 是纪元起点，to_year
+     * 是"负无穷"的哨兵，公历年份离起点越往过去，(calendar - from_year) 越负，取反后的方向把这段
+     * 距离变成正的纪元年份，同一个公式于是对两个时间方向都成立。
      *
-     * @note **输入布局（受信任，不做验证）**
-     *   此函数是唯一一处信任 glibc 纪元二进制布局的地方。
-     *   `nl_langinfo(_NL_TIME_ERA_ENTRIES)` 被假定为指向恰好
-     *   `_NL_TIME_ERA_NUM_ENTRIES` 条连续、格式完整的记录；指针遍历**未作越界检查**，
-     *   因此若 locale 数据库被篡改或截断，可能引发越界读取。
-     *   系统 locale 数据视为受信任数据；若纪元数据可能来自不可信来源，
-     *   应在此函数边界处增加防御性边界检查。
-     *
-     *   每条记录相对于其起始地址（record）的内存布局如下：
-     *   - 8 × int32 头部（通过 memcpy 读取）：
-     *       [0] 方向标记（'+' / '-'）  [1] 偏移量
-     *       [2] from_year - 1900       [3] from_month - 1   [4] from_day
-     *       [5] to_year   - 1900       [6] to_month   - 1   [7] to_day
-     *   - NUL 结尾的窄字符名称，随后是 NUL 结尾的窄字符格式串
-     *   - 填充至相对于 record 的 4 字节对齐边界
-     *   - NUL 结尾的宽字符名称，随后是 NUL 结尾的宽字符格式串
-     *
-     * @note **输出不变量**
-     *   - `from_year` / `to_year` 在加上 1900 时防止 int32 溢出（开放结尾的 "to"
-     *     被规范化为 int32 最大值的 12 月 31 日）。
-     *   - `direction` 被规范化为恰好 `+1` / `-1`，使得以下线性公式对所有纪元类型均一致有效：
-     *     @code
-     *       era_year = offset + (calendar_year - from_year) * direction
-     *     @endcode
-     *     规范化逻辑参照 glibc 的 era.c（约第 98 行，
-     *     https://github.com/lattera/glibc/blob/master/time/era.c）：
-     *     前向纪元（from ≤ to，如公元 AD、日本皇纪、泰国佛历）方向标记直接映射，
-     *     '+' → +1，'-' → -1；
-     *     后向纪元（from > to）方向标记取反，以保证公式一致性（详见 OUTPUT INVARIANTS 说明）。
-     *
-     *     后向纪元路径**会被真实 locale 执行**，并非理论分支：`ja_JP` 的「紀元前」
-     *     以及 `zh_TW` / `cmn_TW` / `hak_TW` / `lzh_TW` / `nan_TW` 的「民前」都是
-     *     后向纪元。以本机 glibc 数据实测，24 个带纪元数据的 locale 共 108 条记录，
-     *     其中 18 条为后向纪元。
-     *
-     * @return 解码后的 `era_entry` 列表；若无纪元数据则返回空 `vector`。
+     * 后向纪元路径**会被真实 locale 执行**，并非理论分支：`ja_JP` 的「紀元前」
+     * 以及 `zh_TW` / `cmn_TW` / `hak_TW` / `lzh_TW` / `nan_TW` 的「民前」都是
+     * 后向纪元。以本机 glibc 数据实测，24 个带纪元数据的 locale 共 108 条记录，
+     * 其中 18 条为后向纪元。
+     * @param raw 后端读出的纪元，方向为原样的 `'+'` / `'-'`。
+     * @return 规范化后的纪元条目。
      * @endif
      *
      * @lang{EN}
-     * @brief Parses the glibc era binary table of the currently active thread locale
-     *        and returns the decoded era entries.
+     * @brief Turns one era the backend gave into an `era_entry`: the name, the format and the
+     *        dates as they are, the direction normalized.
      *
-     * @pre The caller must have made the target locale current on the calling thread
-     *      (e.g. via `clocale_user` / `uselocale`) before invoking this function.
-     *      `nl_langinfo()` reads that active locale; the returned pointers are consumed
-     *      before any further `nl_langinfo()` call, so they remain valid for the
-     *      duration of this function.
+     * `direction` is normalised to exactly `+1` / `-1` so that the linear formula
+     * @code
+     *   era_year = offset + (calendar_year - from_year) * direction
+     * @endcode
+     * is uniformly valid for all era types.
+     * The normalisation mirrors glibc's era.c (≈ line 98,
+     * https://github.com/lattera/glibc/blob/master/time/era.c):
+     * for forward eras (from ≤ to, e.g. AD / Japanese / Thai), the marker maps
+     * directly: '+' → +1, '-' → -1;
+     * for backward eras (from > to), the marker is intentionally inverted.
+     * The reason: in a backward era, from_year is the epoch and to_year is a
+     * sentinel for "negative infinity". As the calendar year moves away from the
+     * epoch toward the past, (calendar - from_year) grows increasingly negative;
+     * the normalised negative direction turns that distance into a positive era
+     * year, so the same formula works in either chronological direction.
      *
-     * @note **Input layout (trusted, not validated)**
-     *   This is the single place where the glibc era binary layout is trusted.
-     *   `nl_langinfo(_NL_TIME_ERA_ENTRIES)` is assumed to point at exactly
-     *   `_NL_TIME_ERA_NUM_ENTRIES` consecutive, well-formed records; the pointer
-     *   walk is **unchecked**, so malformed or truncated locale data (e.g. a tampered
-     *   locale database) can cause out-of-bounds reads. System locale data is treated
-     *   as trusted; if era data could ever originate from an untrusted source, this
-     *   function is the boundary to harden.
-     *
-     *   Each record, relative to its start (record), is laid out as:
-     *   - 8 × int32 header (read via memcpy):
-     *       [0] direction marker ('+' / '-')   [1] offset
-     *       [2] from_year - 1900   [3] from_month - 1   [4] from_day
-     *       [5] to_year   - 1900   [6] to_month   - 1   [7] to_day
-     *   - NUL-terminated narrow name, then NUL-terminated narrow format string
-     *   - padding to the next 4-byte boundary (relative to record)
-     *   - NUL-terminated wide name, then NUL-terminated wide format string
-     *
-     * @note **Output invariants**
-     *   - `from_year` / `to_year` are clamped against int32 overflow on the +1900
-     *     addition (an open-ended "to" is normalised to Dec 31 of the int32 maximum).
-     *   - `direction` is normalised to exactly `+1` / `-1` so that the linear formula
-     *     @code
-     *       era_year = offset + (calendar_year - from_year) * direction
-     *     @endcode
-     *     is uniformly valid for all era types.
-     *     The normalisation mirrors glibc's era.c (≈ line 98,
-     *     https://github.com/lattera/glibc/blob/master/time/era.c):
-     *     for forward eras (from ≤ to, e.g. AD / Japanese / Thai), the marker maps
-     *     directly: '+' → +1, '-' → -1;
-     *     for backward eras (from > to), the marker is intentionally inverted.
-     *     The reason: in a backward era, from_year is the epoch and to_year is a
-     *     sentinel for "negative infinity". As the calendar year moves away from the
-     *     epoch toward the past, (calendar - from_year) grows increasingly negative;
-     *     the normalised negative direction turns that distance into a positive era
-     *     year, so the same formula works in either chronological direction.
-     *
-     *     The backward branch **is reached by real locales**, not just in theory:
-     *     `ja_JP`'s 紀元前 and the 民前 of `zh_TW` / `cmn_TW` / `hak_TW` / `lzh_TW` /
-     *     `nan_TW` are all backward eras. Measured against this machine's glibc data,
-     *     18 of the 108 records across the 24 locales that carry era data are
-     *     backward.
-     *
-     * @return A list of decoded `era_entry` objects; an empty vector if no era data exists.
+     * The backward branch **is reached by real locales**, not just in theory:
+     * `ja_JP`'s 紀元前 and the 民前 of `zh_TW` / `cmn_TW` / `hak_TW` / `lzh_TW` /
+     * `nan_TW` are all backward eras. Measured against this machine's glibc data,
+     * 18 of the 108 records across the 24 locales that carry era data are
+     * backward.
+     * @param raw An era as the backend read it, its direction the `'+'` / `'-'` as written.
+     * @return The era entry, normalized.
      * @endif
      */
-    // NOLINTBEGIN(cppcoreguidelines-pro-type-reinterpret-cast)
-    static std::vector<era_entry> parse_glibc_era_entries()
+    static era_entry era_from_raw(const detail::timeio_raw_era& raw)
     {
-        struct era_wire_header
-        {
-            int32_t direction_marker;
-            int32_t offset;
-            int32_t from_year;
-            int32_t from_month;
-            int32_t from_day;
-            int32_t to_year;
-            int32_t to_month;
-            int32_t to_day;
-        };
-        static_assert(sizeof(era_wire_header) == 8 * sizeof(int32_t));
+        era_entry value{};
+        value.name = raw.name;
+        value.format = raw.format;
+        value.from_year = raw.from_year;
+        value.from_month = raw.from_month;
+        value.from_day = raw.from_day;
+        value.to_year = raw.to_year;
+        value.to_month = raw.to_month;
+        value.to_day = raw.to_day;
+        value.offset = raw.offset;
 
-        std::vector<era_entry> items;
-
-        const auto record_count = static_cast<int32_t>(
-            reinterpret_cast<uintptr_t>(nl_langinfo(_NL_TIME_ERA_NUM_ENTRIES)));
-        if (record_count <= 0)
-            return items;
-
-        items.reserve(static_cast<std::size_t>(record_count));
-        const char* cursor = reinterpret_cast<const char*>(nl_langinfo(_NL_TIME_ERA_ENTRIES));
-        for (int32_t index = 0; index < record_count; ++index)
-        {
-            const char* const record = cursor;
-            era_wire_header header{};
-            std::memcpy(&header, cursor, sizeof header);
-            cursor += sizeof header;
-
-            era_entry value{};
-            constexpr int32_t epoch = 1900;
-            constexpr int32_t last_relative_year = std::numeric_limits<int32_t>::max() - epoch;
-            value.from_year = header.from_year > last_relative_year
-                ? std::numeric_limits<int32_t>::max()
-                : header.from_year + epoch;
-            value.from_month = static_cast<uint8_t>(header.from_month + 1);
-            value.from_day = static_cast<uint8_t>(header.from_day);
-
-            const bool open_ended = header.to_year > last_relative_year;
-            value.to_year = open_ended
-                ? std::numeric_limits<int32_t>::max()
-                : header.to_year + epoch;
-            value.to_month = open_ended ? uint8_t{12}
-                                        : static_cast<uint8_t>(header.to_month + 1);
-            value.to_day = open_ended ? uint8_t{31}
-                                      : static_cast<uint8_t>(header.to_day);
-            value.offset = header.offset;
-
-            const int8_t marked_direction = header.direction_marker == static_cast<int32_t>('+')
-                ? int8_t{1} : int8_t{-1};
-            const bool runs_forward = TimeioHelper::era_small_or_equal(
-                value.from_year, value.from_month, value.from_day,
-                value.to_year, value.to_month, value.to_day);
-            value.direction = runs_forward
-                ? marked_direction : static_cast<int8_t>(-marked_direction);
-
-            value.name = cursor;
-            cursor += std::strlen(cursor) + 1;
-            value.format = cursor;
-            cursor += std::strlen(cursor) + 1;
-
-            constexpr std::size_t wire_alignment = sizeof(int32_t);
-            const auto narrow_size = static_cast<std::size_t>(cursor - record);
-            cursor += (wire_alignment - (narrow_size % wire_alignment)) % wire_alignment;
-
-            const auto* wide_name = reinterpret_cast<const wchar_t*>(cursor);
-            cursor += (std::wcslen(wide_name) + 1) * sizeof(wchar_t);
-            const auto* wide_format = reinterpret_cast<const wchar_t*>(cursor);
-            cursor += (std::wcslen(wide_format) + 1) * sizeof(wchar_t);
-
-            items.push_back(std::move(value));
-        }
-        return items;
+        const int8_t marked_direction = raw.direction == '+' ? int8_t{1} : int8_t{-1};
+        const bool runs_forward = TimeioHelper::era_small_or_equal(
+            value.from_year, value.from_month, value.from_day,
+            value.to_year, value.to_month, value.to_day);
+        value.direction = runs_forward ? marked_direction : static_cast<int8_t>(-marked_direction);
+        return value;
     }
-    // NOLINTEND(cppcoreguidelines-pro-type-reinterpret-cast)
 
     std::array<std::string, 7>   m_day;
     std::array<std::string, 7>   m_abbr_day;
@@ -1525,7 +1362,9 @@ public:
             if constexpr (std::is_same_v<CharT, wchar_t>)
                 return detail::to_wstring(src.c_str(), name);
             else
-                return detail::to_u32string(src.c_str(), name);
+                // <CharT> makes the call dependent: clang resolves a non-dependent call even in a
+                // discarded branch, and to_u32string does not exist where wchar_t is not UTF-32.
+                return detail::to_u32string<CharT>(src.c_str(), name);
         };
 
         m_date_format = convert(tmp_obj.date_format());
@@ -1783,34 +1622,20 @@ private:
  * @lang{ZH}
  * @brief `timeio` facet 的 `char8_t`（UTF-8）locale 配置类。
  *
- * 此特化通过 `init_from_u32` 内部模板辅助函数委托给 `timeio_conf<char32_t>` 来加载数据，
- * 再将所有 UTF-32 字符串转换为 UTF-8（`char8_t`）字符串。
- *
- * @note 对 `timeio_conf<char32_t>` 的引用位于成员函数模板 `init_from_u32` 内部（其类型
- *   为依赖类型），因此仅在该函数被实例化时才进行检查，而不会在类定义解析时进行。
- *   这意味着即使在 `timeio_conf<char32_t>` 不可用的平台上（`wchar_t` 非 UTF-32），
- *   仅命名或默认构造 `timeio_conf<char8_t>` 也不会触发错误；实际的构造路径在这类
- *   平台上会编译失败，此为预期行为。完整性要求未被刻意编码为此类的约束条件：
- *   在 requires 子句中使用非依赖的 `sizeof(timeio_conf<char32_t>)` 是硬错误（而非软
- *   约束失败），会破坏无关 `timeio_conf<T>` 的偏特化解析。
+ * 数据来源与 `numeric_conf<char8_t>` 相同：`"C"` 与 UTF-8 locale 直接使用窄字符配置的字节；
+ * 其他 locale 在 `wchar_t` 为 Unicode 的平台（Linux、Windows）上经 `timeio_conf<wchar_t>`
+ * 转成 UTF-8；macOS 的 `wchar_t` 在非 UTF-8 locale 下不是 Unicode 码位，在那里以非 UTF-8
+ * locale 构造会抛 `io_error`。
  * @endif
  *
  * @lang{EN}
  * @brief Locale configuration class for the `timeio` facet specialised for `char8_t` (UTF-8).
  *
- * This specialization delegates to `timeio_conf<char32_t>` via the `init_from_u32`
- * internal template helper, then converts all UTF-32 strings to UTF-8 (`char8_t`) strings.
- *
- * @note The reference to `timeio_conf<char32_t>` resides inside the member function template
- *   `init_from_u32` (where it is a dependent type), so it is only checked upon instantiation
- *   of that helper — never eagerly at class-definition parse time. This means that merely
- *   naming or default-constructing `timeio_conf<char8_t>` remains well-formed even on
- *   platforms where `timeio_conf<char32_t>` is unavailable (`wchar_t` is not UTF-32); only
- *   the construction path fails to compile there, which is intentional. The completeness
- *   requirement is deliberately NOT encoded as a constraint on this class: a non-dependent
- *   `sizeof(timeio_conf<char32_t>)` in the requires-clause is a hard error (not a soft
- *   constraint failure) and would break partial-specialization resolution for unrelated
- *   `timeio_conf<T>`.
+ * The data comes as it does for `numeric_conf<char8_t>`: for `"C"` and UTF-8 locales, the
+ * narrow configuration's bytes as they are; for other locales, through
+ * `timeio_conf<wchar_t>` converted to UTF-8 where `wchar_t` is Unicode (Linux, Windows).
+ * macOS's `wchar_t` holds no Unicode code points under a non-UTF-8 locale, and constructing
+ * from such a locale throws `io_error` there.
  * @endif
  */
 template <typename CharT>
@@ -1820,101 +1645,96 @@ class timeio_conf<CharT> : public ft_basic<timeio<char8_t>>
 public:
     /**
      * @lang{ZH}
-     * @brief 构造函数，通过 `timeio_conf<char32_t>` 加载 locale 数据并转换为 UTF-8 字符串。
+     * @brief 构造函数，加载 locale 数据并转换为 UTF-8 字符串（来源见类说明）。
      * @param name locale 名称（如 `"C"`、`"zh_CN.UTF-8"`）。
+     * @throw io_error 若 `name` 不是 UTF-8 locale，而本平台的 `wchar_t` 不是 Unicode（macOS）。
      * @endif
      *
      * @lang{EN}
-     * @brief Constructor that loads locale data via `timeio_conf<char32_t>` and converts
-     *        all strings to UTF-8 (`char8_t`) strings.
+     * @brief Constructor that loads locale data and converts all strings to UTF-8 (see the
+     *        class documentation for where it comes from).
      * @param name The locale name (e.g. `"C"`, `"zh_CN.UTF-8"`).
+     * @throw io_error If `name` is not a UTF-8 locale and this platform's `wchar_t` is not
+     *        Unicode (macOS).
      * @endif
      */
     timeio_conf(const std::string& name)
         : ft_basic<timeio<char8_t>>()
     {
-        init_from_u32<>(name);
+        // The narrow configuration's bytes are UTF-8 already, or ASCII for "C".
+        if (FacetHelper::is_c_locale_name(name) || clocale_wrapper(name).is_utf8())
+        {
+            const timeio_conf<char> narrow(name);
+            copy_from(narrow, [](const std::string& s) { return std::u8string(s.begin(), s.end()); });
+        }
+        else
+            init_from_wide<>(name);
     }
 
 private:
-    /**
-     * @lang{ZH}
-     * @brief 委托给 `timeio_conf<char32_t>` 加载数据，并将所有字符串转换为 UTF-8（内部辅助函数）。
-     *
-     * 将 `T`（默认为 `char32_t`）模板化，是为了使函数体内对 `timeio_conf<T>` 的引用成为
-     * 依赖类型，从而仅在该辅助函数被实例化时（即实际构造路径上）才进行检查，而不会在类
-     * 定义解析时进行，避免在 `timeio_conf<char32_t>` 不可用的平台上产生硬错误。
-     * @tparam T 固定为 `char32_t`；通过约束防止其他类型实例化。
-     * @param name locale 名称。
-     * @endif
-     *
-     * @lang{EN}
-     * @brief Delegates to `timeio_conf<char32_t>` to load data, then converts all strings
-     *        to UTF-8 (internal helper).
-     *
-     * Templating on `T` (defaulting to `char32_t`) makes the reference to `timeio_conf<T>`
-     * inside the function body a dependent type, so it is only checked when the helper is
-     * actually instantiated (i.e. on the construction path), not at class-definition parse
-     * time — preventing a hard error on platforms where `timeio_conf<char32_t>` is
-     * unavailable.
-     * @tparam T Fixed to `char32_t`; other types are prevented by the constraint.
-     * @param name The locale name.
-     * @endif
-     */
-    template <typename T = char32_t>
-        requires std::is_same_v<T, char32_t>
-    void init_from_u32(const std::string& name)
+    // A non-UTF-8 locale: through timeio_conf<wchar_t> where wchar_t is Unicode. W only makes
+    // the body dependent, so where wchar_t is not Unicode the discarded branch, and the
+    // to_u8string it names, is never instantiated.
+    template <typename W = wchar_t>
+    void init_from_wide(const std::string& name)
     {
-        timeio_conf<T> tmp_obj(name);
+        if constexpr (wchar_t_is_utf32 || wchar_t_is_utf16)
+        {
+            const timeio_conf<W> wide(name);
+            copy_from(wide, [](const std::basic_string<W>& s) {
+                return detail::to_u8string(std::basic_string_view<W>(s));
+            });
+        }
+        else
+            throw io_error("timeio_conf<char8_t>: " + name +
+                           " is not a UTF-8 locale, and wchar_t is not Unicode on this platform");
+    }
 
-        m_date_format = detail::to_u8string(tmp_obj.date_format());
-        m_era_date_format = detail::to_u8string(tmp_obj.era_date_format());
-        m_time_format = detail::to_u8string(tmp_obj.time_format());
-        m_era_time_format = detail::to_u8string(tmp_obj.era_time_format());
-        m_date_time_format = detail::to_u8string(tmp_obj.date_time_format());
-        m_era_date_time_format = detail::to_u8string(tmp_obj.era_date_time_format());
+    // Every string of another configuration through conv; the era dates as they are.
+    template <typename TConf, typename TConv>
+    void copy_from(const TConf& src, TConv conv)
+    {
+        m_date_format = conv(src.date_format());
+        m_era_date_format = conv(src.era_date_format());
+        m_time_format = conv(src.time_format());
+        m_era_time_format = conv(src.era_time_format());
+        m_date_time_format = conv(src.date_time_format());
+        m_era_date_time_format = conv(src.era_date_time_format());
 
-        m_am = detail::to_u8string(tmp_obj.am_name());
-        m_pm = detail::to_u8string(tmp_obj.pm_name());
-        m_am_pm_format = detail::to_u8string(tmp_obj.am_pm_format());
+        m_am = conv(src.am_name());
+        m_pm = conv(src.pm_name());
+        m_am_pm_format = conv(src.am_pm_format());
 
         for (std::size_t i = 0; i < 7; ++i)
         {
-            m_day[i] = detail::to_u8string(tmp_obj.day_names()[i]);
-            m_abbr_day[i] = detail::to_u8string(tmp_obj.abbr_day_names()[i]);
+            m_day[i] = conv(src.day_names()[i]);
+            m_abbr_day[i] = conv(src.abbr_day_names()[i]);
         }
 
         for (std::size_t i = 0; i < 12; ++i)
         {
-            m_month[i] = detail::to_u8string(tmp_obj.month_names()[i]);
-            m_abbr_month[i] = detail::to_u8string(tmp_obj.abbr_month_names()[i]);
+            m_month[i] = conv(src.month_names()[i]);
+            m_abbr_month[i] = conv(src.abbr_month_names()[i]);
         }
 
         for (std::size_t i = 0; i < 100; ++i)
-        {
-            m_alt_digits[i] = detail::to_u8string(tmp_obj.alt_digit_names()[i]);
-        }
+            m_alt_digits[i] = conv(src.alt_digit_names()[i]);
 
-        const auto& tmp_era = tmp_obj.era_items();
-        if (!tmp_era.empty())
+        m_era_items.reserve(src.era_items().size());
+        for (const auto& era : src.era_items())
         {
-            m_era_items.reserve(tmp_era.size());
-            for (std::size_t i = 0; i < tmp_era.size(); ++i)
-            {
-                const auto& src = tmp_era[i];
-                era_entry aim;
-                aim.name = detail::to_u8string(src.name);
-                aim.format = detail::to_u8string(src.format);
-                aim.from_year = src.from_year;
-                aim.from_month = src.from_month;
-                aim.from_day = src.from_day;
-                aim.to_year = src.to_year;
-                aim.to_month = src.to_month;
-                aim.to_day = src.to_day;
-                aim.offset = src.offset;
-                aim.direction = src.direction;
-                m_era_items.push_back(aim);
-            }
+            era_entry aim;
+            aim.name = conv(era.name);
+            aim.format = conv(era.format);
+            aim.from_year = era.from_year;
+            aim.from_month = era.from_month;
+            aim.from_day = era.from_day;
+            aim.to_year = era.to_year;
+            aim.to_month = era.to_month;
+            aim.to_day = era.to_day;
+            aim.offset = era.offset;
+            aim.direction = era.direction;
+            m_era_items.push_back(std::move(aim));
         }
     }
 

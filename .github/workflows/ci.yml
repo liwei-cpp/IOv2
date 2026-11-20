@@ -674,7 +674,8 @@ jobs:
 
   # The platforms the cross-platform port has reached. Each builds and runs only
   # the components ported so far -- IOV2_TEST_COMPONENTS in its preset, today
-  # common, device, cvt, facet/ctype, facet/collate, facet/numeric, facet/monetary and facet/messages -- and grows as the port does; the Linux jobs above stay the full
+  # common, device, cvt, facet/ctype, facet/collate, facet/numeric, facet/monetary and facet/messages,
+  # with facet/timeio on macOS -- and grows as the port does; the Linux jobs above stay the full
   # gate. No container: the GHCR image is Linux-only, and the point here is the
   # platform's own compiler, standard library and C runtime.
   portability:

@@ -1838,7 +1838,7 @@ struct time_value_fields<std::tm>
  *   读 `2020-05-17 XYZ` 两边都失败。作为交换，本库的失败是原子的：整次提取失败时目标对象
  *   完全不被改写，而 `std` 会留下已写入一半的 `std::tm`。
  *
- * @note 格式串来自 locale 数据库（`nl_langinfo`），其中的自引用（如 `D_T_FMT == "%c"`）
+ * @note 格式串来自 locale 数据库（POSIX 上为 `nl_langinfo`），其中的自引用（如 `D_T_FMT == "%c"`）
  *   在构造时即被拒绝：构造函数检查这些复合格式串构成的图是否有环，有环则抛
  *   `io_error`。因此 `put` / `get` / `expand_format` 的递归展开总是有界的。
  *   参见 `validate_format_recursion`。
@@ -1932,7 +1932,7 @@ struct time_value_fields<std::tm>
  *   exchange the failure here is atomic: a failed extraction leaves the target completely
  *   unmodified, whereas `std` leaves a half-written `std::tm` behind.
  *
- * @note Format strings sourced from the locale database (`nl_langinfo`) are checked for
+ * @note Format strings sourced from the locale database (`nl_langinfo` on POSIX) are checked for
  *   self-reference at construction (e.g. `D_T_FMT == "%c"`): the constructor rejects a
  *   cycle among the compound format strings with `io_error`. The recursive
  *   expansion in `put` / `get` / `expand_format` is therefore always bounded. See

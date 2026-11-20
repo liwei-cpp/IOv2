@@ -193,7 +193,7 @@
       "condition": { "type": "equals", "lhs": "${hostSystemName}", "rhs": "Darwin" },
       "environment": { "CXX": "clang++" },
       "cacheVariables": {
-        "IOV2_TEST_COMPONENTS": "common;device;cvt;facet/ctype;facet/collate;facet/numeric;facet/monetary;facet/messages",
+        "IOV2_TEST_COMPONENTS": "common;device;cvt;facet/ctype;facet/collate;facet/numeric;facet/monetary;facet/messages;facet/timeio",
         "CMAKE_PREFIX_PATH": "/opt/homebrew"
       }
     },

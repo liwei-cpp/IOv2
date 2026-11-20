@@ -10,6 +10,10 @@
  * The cases that read the C library's words, the locale database or the zone
  * trie see the same data whatever the character type is, so they stay in the
  * narrow file.
+ *
+ * Only glibc has a UTF-32 wchar_t among the platforms the tests know (macOS
+ * does not promise one, Windows' is UTF-16), and elsewhere timeio_conf<char32_t>
+ * does not exist, so every case is skipped there.
  */
 #include <IOv2/facet/timeio.h>
 #include <IOv2/facet/timeio_details.h>
@@ -19,6 +23,8 @@
 #include <IOv2/io/io_base.h>
 #include <IOv2/io/iochannel.h>
 #include <IOv2/io/iochannel_iterator.h>
+
+#include <support/platform_macros.h>
 
 #include <gtest/gtest.h>
 
@@ -35,6 +41,7 @@
 
 using namespace IOv2;
 
+#if IOV2_TEST_LINUX_GLIBC
 namespace
 {
     // m_zone_name / m_zone_abbrev point into the time-zone trie rather than owning a
@@ -214,6 +221,7 @@ namespace
         return run_get<T, HaveDate, HaveTime, TzLevel>(obj, input, err_exp, fmt);
     }
 }
+#endif
 
 // Every conversion specifier and both modifiers, against one instant a reader can
 // check by hand: 2024-09-04 13:33:18 UTC, a Wednesday.  A specifier the value can
@@ -222,6 +230,7 @@ namespace
 // offset and a zone without the tz database, so the table holds on every platform.
 TEST(TimeioChar32, CLocaleWritesEveryConversionSpecifier)
 {
+#if IOV2_TEST_LINUX_GLIBC
     const timeio<char32_t> obj = facet_for("C");
     const auto             tp  = create_sys_time(2024, 9, 4, 13, 33, 18);
 
@@ -345,12 +354,16 @@ TEST(TimeioChar32, CLocaleWritesEveryConversionSpecifier)
     const auto zt = create_zoned_time(2024, 9, 4, 13, 33, 18, "America/Los_Angeles");
     EXPECT_EQ(put_one(obj, zt, std::u32string_view(U"%z %Z")), U"-0700 America/Los_Angeles");
 #endif
+#else
+    GTEST_SKIP() << "timeio<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 // The same instant and the same specifiers under zh_CN, where the words and the
 // composite layouts differ but the rules about what a value can supply do not.
 TEST(TimeioChar32, ChineseWritesEveryConversionSpecifier)
 {
+#if IOV2_TEST_LINUX_GLIBC
     const timeio<char32_t> obj = facet_for("zh_CN.UTF-8");
     const auto             tp  = create_sys_time(2024, 9, 4, 13, 33, 18);
 
@@ -467,12 +480,16 @@ TEST(TimeioChar32, ChineseWritesEveryConversionSpecifier)
     };
 
     expect_conversions(obj, tp, kConversions);
+#else
+    GTEST_SKIP() << "timeio<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 // And under ja_JP, which is the locale with an era representation, so %EC, %Ey
 // and %EY are the rows to look at here.
 TEST(TimeioChar32, JapaneseWritesEveryConversionSpecifier)
 {
+#if IOV2_TEST_LINUX_GLIBC
     const timeio<char32_t> obj = facet_for("ja_JP.UTF-8");
     const auto             tp  = create_sys_time(2024, 9, 4, 13, 33, 18);
 
@@ -589,12 +606,16 @@ TEST(TimeioChar32, JapaneseWritesEveryConversionSpecifier)
     };
 
     expect_conversions(obj, tp, kConversions);
+#else
+    GTEST_SKIP() << "timeio<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 // A year_month_day is a date and nothing else, so every specifier that asks for a
 // time of day or a zone comes back as the text that asked for it.
 TEST(TimeioChar32, ADateWritesEveryConversionSpecifierItCanSupply)
 {
+#if IOV2_TEST_LINUX_GLIBC
     using namespace std::chrono;
     const timeio<char32_t>   obj = facet_for("ja_JP.UTF-8");
     const year_month_day tp{year{2024}, month{9}, day{4}};
@@ -712,11 +733,15 @@ TEST(TimeioChar32, ADateWritesEveryConversionSpecifierItCanSupply)
     };
 
     expect_conversions(obj, tp, kConversions);
+#else
+    GTEST_SKIP() << "timeio<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 // An hh_mm_ss is the mirror image: it has a time of day and no date at all.
 TEST(TimeioChar32, ATimeOfDayWritesEveryConversionSpecifierItCanSupply)
 {
+#if IOV2_TEST_LINUX_GLIBC
     using namespace std::chrono;
     const timeio<char32_t>    obj = facet_for("ja_JP.UTF-8");
     const hh_mm_ss<seconds> tp{hours{13} + minutes{33} + seconds{18}};
@@ -831,12 +856,16 @@ TEST(TimeioChar32, ATimeOfDayWritesEveryConversionSpecifierItCanSupply)
     };
 
     expect_conversions(obj, tp, kConversions);
+#else
+    GTEST_SKIP() << "timeio<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 // A std::tm carries both halves, so almost everything is available; what it does
 // not carry is a zone, which the cases after this one take up.
 TEST(TimeioChar32, ABrokenDownTimeWritesEveryConversionSpecifier)
 {
+#if IOV2_TEST_LINUX_GLIBC
     const timeio<char32_t> obj = facet_for("ja_JP.UTF-8");
     const std::tm          tp  = calendar_time(2024 - 1900, 9 - 1, 4, 13, 33, 18, 0, 0, 0);
 
@@ -953,6 +982,9 @@ TEST(TimeioChar32, ABrokenDownTimeWritesEveryConversionSpecifier)
     };
 
     expect_conversions(obj, tp, kConversions);
+#else
+    GTEST_SKIP() << "timeio<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 namespace
@@ -977,6 +1009,7 @@ namespace
 // tm_zone null; a caller can just as well set it to "".  Neither names a zone.
 TEST(TimeioChar32, ABrokenDownTimeNamesItsZoneOrSaysItCannot)
 {
+#if IOV2_TEST_LINUX_GLIBC
     const timeio<char32_t> obj = facet_for("ja_JP.UTF-8");
     const std::tm          tp  = calendar_time(2024 - 1900, 9 - 1, 4, 13, 33, 18, 0, 0, 0);
 
@@ -997,6 +1030,9 @@ TEST(TimeioChar32, ABrokenDownTimeNamesItsZoneOrSaysItCannot)
         EXPECT_EQ(put_one(obj, named, U'Z'), U"UNKNOWN");
     }
 #endif
+#else
+    GTEST_SKIP() << "timeio<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 // A format string is expanded one specifier at a time with the literal text
@@ -1006,6 +1042,7 @@ TEST(TimeioChar32, ABrokenDownTimeNamesItsZoneOrSaysItCannot)
 // for.
 TEST(TimeioChar32, AFormatStringIsExpandedSpecifierBySpecifier)
 {
+#if IOV2_TEST_LINUX_GLIBC
     const auto tp = create_sys_time(1971, 4, 4, 12, 0, 0);
 
     for (const char* loc : {"C", "de_DE.UTF-8", "en_HK.UTF-8", "fr_FR.UTF-8", "ja_JP.UTF-8"})
@@ -1021,12 +1058,16 @@ TEST(TimeioChar32, AFormatStringIsExpandedSpecifierBySpecifier)
         EXPECT_EQ(put_one(obj, tp, std::u32string_view(U"[%Y]")), U"[" + put_one(obj, tp, U'Y') + U"]");
         EXPECT_EQ(put_one(obj, tp, std::u32string_view(U"no specifiers")), U"no specifiers");
     }
+#else
+    GTEST_SKIP() << "timeio<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 // put() writes through an iterator into whatever the caller supplied and returns
 // where it stopped, so everything past that point has to be exactly as it was.
 TEST(TimeioChar32, PutIntoAnExistingBufferReturnsWhereItStopped)
 {
+#if IOV2_TEST_LINUX_GLIBC
     const timeio<char32_t> obj = facet_for("C");
     const auto             tp  = create_sys_time(1997, 6, 26, 12, 0, 0);
 
@@ -1041,6 +1082,9 @@ TEST(TimeioChar32, PutIntoAnExistingBufferReturnsWhereItStopped)
     const auto     one_end = obj.put(one.begin(), tp, U'A');
     EXPECT_EQ(std::u32string(one.begin(), one_end), U"Thursday");
     EXPECT_EQ(one.substr(8), std::u32string(12, U'.'));
+#else
+    GTEST_SKIP() << "timeio<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 // The literal text in a format is part of what has to match: it is how the
@@ -1048,6 +1092,7 @@ TEST(TimeioChar32, PutIntoAnExistingBufferReturnsWhereItStopped)
 // asked for is left for whoever reads next.
 TEST(TimeioChar32, AFormatStringMustMatchTheInputLiterally)
 {
+#if IOV2_TEST_LINUX_GLIBC
     const timeio<char32_t> obj = facet_for("C");
 
     const auto t = ctx_to<std::tm>(
@@ -1072,6 +1117,9 @@ TEST(TimeioChar32, AFormatStringMustMatchTheInputLiterally)
 
     // A single specifier without a format string reads the same field.
     EXPECT_EQ(ctx_to<std::tm>(CheckGet(obj, U"2020", U'Y', 0, ios_defs::eofbit)).tm_year, 120);
+#else
+    GTEST_SKIP() << "timeio<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 // The words a locale writes are the words it reads.  Round-tripping through the
@@ -1079,6 +1127,7 @@ TEST(TimeioChar32, AFormatStringMustMatchTheInputLiterally)
 // to know how any of them spells a month.
 TEST(TimeioChar32, TheNamesTheLocaleWritesAreTheNamesItReads)
 {
+#if IOV2_TEST_LINUX_GLIBC
     using namespace std::chrono;
     const year_month_day date{year{2014}, month{4}, day{14}};
 
@@ -1094,6 +1143,9 @@ TEST(TimeioChar32, TheNamesTheLocaleWritesAreTheNamesItReads)
             EXPECT_EQ(CheckGet<year_month_day>(obj, written, fmt, ios_defs::eofbit), date);
         }
     }
+#else
+    GTEST_SKIP() << "timeio<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 // The specifiers that carry only part of a date -- a week number and a weekday,
@@ -1102,6 +1154,7 @@ TEST(TimeioChar32, TheNamesTheLocaleWritesAreTheNamesItReads)
 // date rather than for a handful with hand-computed week numbers.
 TEST(TimeioChar32, EveryDateReassemblesFromItsPartialSpecifiers)
 {
+#if IOV2_TEST_LINUX_GLIBC
     using namespace std::chrono;
     const timeio<char32_t> obj = facet_for("C");
 
@@ -1124,12 +1177,16 @@ TEST(TimeioChar32, EveryDateReassemblesFromItsPartialSpecifiers)
             EXPECT_EQ(CheckGet<year_month_day>(obj, written, fmt, ios_defs::eofbit), date);
         }
     }
+#else
+    GTEST_SKIP() << "timeio<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 // %I is a clock face: it cannot tell noon from midnight on its own, and %p is
 // what supplies the half of the day it belongs to.  Either order.
 TEST(TimeioChar32, TheTwelveHourClockNeedsItsMeridiem)
 {
+#if IOV2_TEST_LINUX_GLIBC
     using namespace std::chrono;
     const timeio<char32_t> obj = facet_for("C");
 
@@ -1154,10 +1211,14 @@ TEST(TimeioChar32, TheTwelveHourClockNeedsItsMeridiem)
     // is the half of the day a clock face means when nothing says otherwise.
     const auto morning = ctx_to<std::tm>(CheckGet(obj, U"07:05:09", U"%I:%M:%S", ios_defs::eofbit));
     EXPECT_EQ(morning.tm_hour, 7);
+#else
+    GTEST_SKIP() << "timeio<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(TimeioChar32, ACompositeFormatCanExpandPastAConventionalStackBuffer)
 {
+#if IOV2_TEST_LINUX_GLIBC
     std::shared_ptr<timeio_conf<char32_t>> conf =
         std::make_shared<expanded_composite_conf<char32_t>>();
     timeio obj(conf);
@@ -1172,10 +1233,14 @@ TEST(TimeioChar32, ACompositeFormatCanExpandPastAConventionalStackBuffer)
 
     EXPECT_GT(actual.size(), 128u);
     EXPECT_EQ(actual, expected);
+#else
+    GTEST_SKIP() << "timeio<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(TimeioChar32, TheCLocaleReadsEveryConversionSpecifier)
 {
+#if IOV2_TEST_LINUX_GLIBC
     std::chrono::year_month_day check_date1{std::chrono::year{2024}, std::chrono::month{9}, std::chrono::day{4}};
 
     timeio obj(std::make_shared<timeio_conf<char32_t>>("C"));
@@ -1443,10 +1508,14 @@ TEST(TimeioChar32, TheCLocaleReadsEveryConversionSpecifier)
     // POSIX strptime -- not the wall-clock year, and not whatever the parse context
     // happens to fall back to.
     EXPECT_EQ((CheckGet<year_month_day>(obj, U"20 01 01", U"%C %m %d", ios_defs::eofbit)), (year_month_day{std::chrono::year{2000}, std::chrono::month{1}, std::chrono::day{1}}));
+#else
+    GTEST_SKIP() << "timeio<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(TimeioChar32, ChineseReadsEveryConversionSpecifier)
 {
+#if IOV2_TEST_LINUX_GLIBC
     std::chrono::year_month_day check_date1{std::chrono::year{2024}, std::chrono::month{9}, std::chrono::day{4}};
     timeio obj(std::make_shared<timeio_conf<char32_t>>("zh_CN.UTF-8"));
 
@@ -1712,10 +1781,14 @@ TEST(TimeioChar32, ChineseReadsEveryConversionSpecifier)
     // POSIX strptime -- not the wall-clock year, and not whatever the parse context
     // happens to fall back to.
     EXPECT_EQ((CheckGet<year_month_day>(obj, U"20 01 01", U"%C %m %d", ios_defs::eofbit)), (year_month_day{std::chrono::year{2000}, std::chrono::month{1}, std::chrono::day{1}}));
+#else
+    GTEST_SKIP() << "timeio<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(TimeioChar32, JapaneseReadsEveryConversionSpecifier)
 {
+#if IOV2_TEST_LINUX_GLIBC
     std::chrono::year_month_day check_date1{std::chrono::year{2024}, std::chrono::month{9}, std::chrono::day{4}};
     timeio obj(std::make_shared<timeio_conf<char32_t>>("ja_JP.UTF-8"));
 
@@ -1996,10 +2069,14 @@ TEST(TimeioChar32, JapaneseReadsEveryConversionSpecifier)
     // POSIX strptime -- not the wall-clock year, and not whatever the parse context
     // happens to fall back to.
     EXPECT_EQ((CheckGet<year_month_day>(obj, U"20 01 01", U"%C %m %d", ios_defs::eofbit)), (year_month_day{std::chrono::year{2000}, std::chrono::month{1}, std::chrono::day{1}}));
+#else
+    GTEST_SKIP() << "timeio<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(TimeioChar32, AWeekdayOrMonthNameIsMatchedAgainstBothSpellings)
 {
+#if IOV2_TEST_LINUX_GLIBC
     timeio obj(std::make_shared<timeio_conf<char32_t>>("C"));
     {
         std::u32string input = U"Mon";
@@ -2282,10 +2359,14 @@ TEST(TimeioChar32, AWeekdayOrMonthNameIsMatchedAgainstBothSpellings)
         auto time = ctx_to<std::tm>(ctx);
         EXPECT_EQ(time.tm_mon, 9);
     }
+#else
+    GTEST_SKIP() << "timeio<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(TimeioChar32, JapaneseReadsEveryConversionSpecifierIntoADate)
 {
+#if IOV2_TEST_LINUX_GLIBC
     std::chrono::year_month_day check_date1{std::chrono::year{2024}, std::chrono::month{9}, std::chrono::day{4}};
     timeio obj(std::make_shared<timeio_conf<char32_t>>("ja_JP.UTF-8"));
     auto FOri = [&obj](auto&&... args)
@@ -2564,10 +2645,14 @@ TEST(TimeioChar32, JapaneseReadsEveryConversionSpecifierIntoADate)
     // POSIX strptime -- not the wall-clock year, and not whatever the parse context
     // happens to fall back to.
     EXPECT_EQ((FYmd(U"20 01 01", U"%C %m %d", ios_defs::eofbit)), (year_month_day{std::chrono::year{2000}, std::chrono::month{1}, std::chrono::day{1}}));
+#else
+    GTEST_SKIP() << "timeio<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(TimeioChar32, JapaneseReadsEveryConversionSpecifierIntoADateWithoutAZone)
 {
+#if IOV2_TEST_LINUX_GLIBC
     std::chrono::year_month_day check_date1{std::chrono::year{2024}, std::chrono::month{9}, std::chrono::day{4}};
     timeio obj(std::make_shared<timeio_conf<char32_t>>("ja_JP.UTF-8"));
     auto FOri = [&obj](auto&&... args)
@@ -2836,10 +2921,14 @@ TEST(TimeioChar32, JapaneseReadsEveryConversionSpecifierIntoADateWithoutAZone)
     // POSIX strptime -- not the wall-clock year, and not whatever the parse context
     // happens to fall back to.
     EXPECT_EQ((FYmd(U"20 01 01", U"%C %m %d", ios_defs::eofbit)), (year_month_day{std::chrono::year{2000}, std::chrono::month{1}, std::chrono::day{1}}));
+#else
+    GTEST_SKIP() << "timeio<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(TimeioChar32, ATimeOfDayReadsEveryConversionSpecifierItCanSupply)
 {
+#if IOV2_TEST_LINUX_GLIBC
     timeio obj(std::make_shared<timeio_conf<char32_t>>("ja_JP.UTF-8"));
     auto FOri = [&obj](auto&&... args)
     {
@@ -3091,10 +3180,14 @@ TEST(TimeioChar32, ATimeOfDayReadsEveryConversionSpecifierItCanSupply)
     FOri(U"z",  U'z', U'E', ios_defs::strfailbit);
     FOri(U"%Oz", U'z', U'O', ios_defs::eofbit);
     FOri(U"z",  U'z', U'O', ios_defs::strfailbit);
+#else
+    GTEST_SKIP() << "timeio<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(TimeioChar32, ATimeOfDayReadsTheSameSpecifiersWithNoZoneTier)
 {
+#if IOV2_TEST_LINUX_GLIBC
     timeio obj(std::make_shared<timeio_conf<char32_t>>("ja_JP.UTF-8"));
     auto FOri = [&obj](auto&&... args)
     {
@@ -3339,10 +3432,14 @@ TEST(TimeioChar32, ATimeOfDayReadsTheSameSpecifiersWithNoZoneTier)
     FOri(U"z",  U'z', U'E', ios_defs::strfailbit);
     FOri(U"%Oz", U'z', U'O', ios_defs::eofbit);
     FOri(U"z",  U'z', U'O', ios_defs::strfailbit);
+#else
+    GTEST_SKIP() << "timeio<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(TimeioChar32, AValueThatIsNotAValidTimeIsRejected)
 {
+#if IOV2_TEST_LINUX_GLIBC
     using namespace std::chrono;
 
     timeio obj(std::make_shared<timeio_conf<char32_t>>("C"));
@@ -3431,6 +3528,9 @@ TEST(TimeioChar32, AValueThatIsNotAValidTimeIsRejected)
         res.clear(); obj.put(std::back_inserter(res), lt, hours{9}, std::u32string_view(U"%z"));
         EXPECT_EQ(res, U"+0900");
     }
+#else
+    GTEST_SKIP() << "timeio<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 // A format string ending in a lone '%' -- or in a lone '%E' / '%O' modifier -- introduces no
@@ -3442,6 +3542,7 @@ TEST(TimeioChar32, AValueThatIsNotAValidTimeIsRejected)
 // it, so put succeeded on output get could never read.
 TEST(TimeioChar32, ALoneOrUnknownSpecifierIsEchoedVerbatim)
 {
+#if IOV2_TEST_LINUX_GLIBC
     timeio obj(std::make_shared<timeio_conf<char32_t>>("C"));
     const std::tm t = calendar_time(124, 0, 15, 1, 2, 3, 1, 14, 0);
 
@@ -3473,6 +3574,9 @@ TEST(TimeioChar32, ALoneOrUnknownSpecifierIsEchoedVerbatim)
         time_parse_context<char32_t> ctx;
         EXPECT_THROW(obj.get(in.begin(), in.end(), ctx, std::u32string_view(U"%Y%")), stream_error);
     }
+#else
+    GTEST_SKIP() << "timeio<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 // The two tiers pinned apart. Whether %Z parses is the tier's decision and nothing else's:
@@ -3481,6 +3585,7 @@ TEST(TimeioChar32, ALoneOrUnknownSpecifierIsEchoedVerbatim)
 // what the trie happens to contain to decide which of the two it is doing.
 TEST(TimeioChar32, TheZoneTierDecidesHowAZoneNameIsParsed)
 {
+#if IOV2_TEST_LINUX_GLIBC
     using namespace std::chrono;
 
     timeio obj(std::make_shared<timeio_conf<char32_t>>("C"));
@@ -3558,4 +3663,7 @@ TEST(TimeioChar32, TheZoneTierDecidesHowAZoneNameIsParsed)
         time_parse_context<char32_t, true, true, tier> ctx;
         EXPECT_EQ(us.get(res.begin(), res.end(), ctx, std::u32string_view(U"%c")), res.end());
     }
+#else
+    GTEST_SKIP() << "timeio<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
