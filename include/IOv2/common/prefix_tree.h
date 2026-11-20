@@ -199,7 +199,7 @@ public:
      * @throw std::runtime_error If the string already exists with a different value
      * @endif
      */
-    void add(std::basic_string_view<CharT> str, TValue v)
+    void add(std::basic_string_view<CharT> str, const TValue& v)
     {
         add(str.begin(), str.end(), v);
     }
@@ -232,7 +232,7 @@ public:
      * @endif
      */
     template <typename TIter>
-    void add(TIter b, TIter e, TValue v)
+    void add(TIter b, TIter e, const TValue& v)
     {
         node* node_ptr = &m_root;
         while (b != e)

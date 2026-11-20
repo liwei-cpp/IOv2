@@ -1540,9 +1540,10 @@ private:
     //   s_atoms[0]    = '-'
     //   s_atoms[1..10] = '0'..'9'
     static constexpr std::array<char_type, 11> s_atoms = {
-            (char_type)'-', (char_type)'0', (char_type)'1', (char_type)'2',
-            (char_type)'3', (char_type)'4', (char_type)'5', (char_type)'6',
-            (char_type)'7', (char_type)'8', (char_type)'9'
+            static_cast<char_type>('-'), static_cast<char_type>('0'), static_cast<char_type>('1'),
+            static_cast<char_type>('2'), static_cast<char_type>('3'), static_cast<char_type>('4'),
+            static_cast<char_type>('5'), static_cast<char_type>('6'), static_cast<char_type>('7'),
+            static_cast<char_type>('8'), static_cast<char_type>('9')
         };
 };
 

@@ -1583,7 +1583,7 @@ namespace IOv2
                 // Read full external_type chunks
                 while (dest_bytes + ext_size <= dest_bytes_end)
                 {
-                    const std::size_t units_to_read_now = std::min((std::size_t)((dest_bytes_end - dest_bytes) / ext_size), s_bos_chunk);
+                    const std::size_t units_to_read_now = std::min(static_cast<std::size_t>((dest_bytes_end - dest_bytes) / ext_size), s_bos_chunk);
 
                     const auto* src_buf = reader.template get_buf<true>(units_to_read_now);
                     std::memcpy(dest_bytes, src_buf, units_to_read_now * ext_size);

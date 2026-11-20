@@ -71,6 +71,8 @@ namespace ios_defs
      * @lang{ZH} 格式化标志的位掩码类型（16 位）。 @endif
      * @lang{EN} Bitmask type for the formatting flags (16 bits). @endif
      */
+    // Unscoped on purpose, as std::ios_base's: the flags combine with | and test as integers.
+    // NOLINTNEXTLINE(cppcoreguidelines-use-enum-class)
     enum fmtflags : std::uint16_t
     {
         boolalpha   = 1L << 0,    ///< @lang{ZH} 以文本形式（`true`/`false`）而非数字形式表示布尔值。 @endif @lang{EN} Represent bool values as text (`true`/`false`) instead of numbers. @endif
@@ -98,6 +100,8 @@ namespace ios_defs
      * @lang{ZH} 流状态位的位掩码类型（8 位）。 @endif
      * @lang{EN} Bitmask type for the stream state bits (8 bits). @endif
      */
+    // Unscoped on purpose, as fmtflags above.
+    // NOLINTNEXTLINE(cppcoreguidelines-use-enum-class)
     enum iostate : std::uint8_t
     {
         goodbit       = 0,        ///< @lang{ZH} 无错误状态（所有状态位清零）。 @endif @lang{EN} No-error state (all state bits clear). @endif
@@ -483,7 +487,7 @@ public:
      */
     std::uint8_t precision(std::ptrdiff_t prec)
     {
-        if (prec < 0 || prec > std::numeric_limits<std::uint8_t>::max())
+        if (!std::in_range<std::uint8_t>(prec))
             throw stream_error("precision fail: precision out of range (0..255)");
         return m_precision.exchange(static_cast<std::uint8_t>(prec));
     }
@@ -576,7 +580,8 @@ public:
             guard(guard&&) = delete;
             guard& operator=(const guard&) = delete;
             guard& operator=(guard&&) = delete;
-            ~guard() { m_ios.width(0); }
+            // width(0) cannot throw, but only a direct store lets this be seen to be noexcept.
+            ~guard() { m_ios.m_width.store(0); }
         private:
             ios_base& m_ios;
         };
@@ -896,7 +901,7 @@ protected:
      * yielding a non-space fill character). This is a deliberate constraint, not a defect.
      * @endif
      */
-    copyable_atomic<TChar>              m_fill{(TChar)' '};
+    copyable_atomic<TChar>              m_fill{static_cast<TChar>(' ')};
 
     detail::io_lock m_io_lock;                                               ///< @lang{ZH} 本流的对象锁（自带的，或构造时传入的外部锁）；串行化本流的全部操作，包括下面两个容器的访问。`get_pword()` 等只读接口也要加锁，`io_lock::get()` 因此是 `const` 的。详见 `io_mutex()`。 @endif @lang{EN} This stream's object lock (its own, or an external one given at construction); serializes all of the stream's operations, including access to the two containers below. Read-only entry points such as `get_pword()` must lock too, hence `io_lock::get()` is `const`. See `io_mutex()`. @endif
 

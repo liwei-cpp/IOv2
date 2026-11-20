@@ -101,7 +101,7 @@ inline std::vector<std::string> messages_language_candidates(const std::vector<s
     std::vector<std::string> res;
     const auto add = [&res](std::string c)
     {
-        if (std::find(res.begin(), res.end(), c) == res.end())
+        if (std::ranges::find(res, c) == res.end())
             res.push_back(std::move(c));
     };
 
@@ -135,7 +135,7 @@ inline std::vector<std::string> messages_language_candidates(const std::vector<s
         }
 
         if (!region.empty())
-            add(lang + '_' + region);
+            add((lang + '_').append(region));
         add(lang);
     }
     return res;
@@ -646,7 +646,7 @@ protected:
             if (length > k_max_str_len)
                 throw io_error("get_translate_dictionary fail: string too long");
             total_str_bytes += length;
-            if (total_str_bytes > static_cast<std::uint64_t>(file_size))
+            if (std::cmp_greater(total_str_bytes, file_size))
                 throw io_error("get_translate_dictionary fail: total string bytes exceed file size");
             if (str_buf.size() < static_cast<std::size_t>(length) + 1)
                 str_buf.resize(static_cast<std::size_t>(length) + 1);
@@ -678,7 +678,7 @@ protected:
             if (length > k_max_str_len)
                 throw io_error("get_translate_dictionary fail: string too long");
             total_str_bytes += length;
-            if (total_str_bytes > static_cast<std::uint64_t>(file_size))
+            if (std::cmp_greater(total_str_bytes, file_size))
                 throw io_error("get_translate_dictionary fail: total string bytes exceed file size");
             if (str_buf.size() < static_cast<std::size_t>(length) + 1)
                 str_buf.resize(static_cast<std::size_t>(length) + 1);
@@ -1006,7 +1006,7 @@ public:
      * @return A pointer to the translation in the dictionary, or `nullptr` if not found.
      * @endif
      */
-    virtual const std::u8string* translate(const std::u8string& ori) const
+    [[nodiscard]] virtual const std::u8string* translate(const std::u8string& ori) const
     {
         auto it = m_dict.find(ori);
         return it != m_dict.end() ? &it->second : nullptr;

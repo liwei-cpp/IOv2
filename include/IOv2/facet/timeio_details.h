@@ -358,6 +358,9 @@ namespace IOv2
          *       `links`".
          * @endif
          */
+        // The walk below catches its own exceptions: only bad_alloc can escape, at startup,
+        // where nothing could handle it anyway.
+        // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
         inline static const prefix_tree<char, zone_ref>& s_timezone_tree =
         *new prefix_tree<char, zone_ref>([]()
         {
