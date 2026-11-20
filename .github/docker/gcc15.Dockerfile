@@ -36,6 +36,26 @@ RUN apt-get update \
       zlib1g-dev \
  && rm -rf /var/lib/apt/lists/*
 
+# clang-tidy 22 from apt.llvm.org, beside Debian's clang and clang-tidy rather
+# than in place of them: the clang++ leg of the build matrix keeps its compiler,
+# and only a job that asks for clang-tidy-22 by name gets it. 22 is what the
+# Windows clang-tidy job runs (IOV2_WINDOWS_LLVM in ci.yml), so both platforms
+# apply the same checks. The signing key is checked against its fingerprint,
+# as the GoogleTest tarball below is against its digest.
+ARG LLVM_MAJOR=22
+ARG LLVM_KEY_FPR=6084F3CF814B57C1CF12EFD515CF4D18AF4F7421
+RUN install -d -m 0755 /etc/apt/keyrings \
+ && curl -fsSL -o /etc/apt/keyrings/apt.llvm.org.asc https://apt.llvm.org/llvm-snapshot.gpg.key \
+ && gpg --show-keys --with-colons /etc/apt/keyrings/apt.llvm.org.asc \
+      | grep -q "^fpr:::::::::${LLVM_KEY_FPR}:" \
+ && codename="$(. /etc/os-release && echo "$VERSION_CODENAME")" \
+ && echo "deb [signed-by=/etc/apt/keyrings/apt.llvm.org.asc] https://apt.llvm.org/${codename}/ llvm-toolchain-${codename}-${LLVM_MAJOR} main" \
+      > /etc/apt/sources.list.d/llvm-${LLVM_MAJOR}.list \
+ && apt-get update \
+ && apt-get install -y --no-install-recommends clang-tidy-${LLVM_MAJOR} \
+ && rm -rf /var/lib/apt/lists/* \
+ && clang-tidy-${LLVM_MAJOR} --version | grep -q "LLVM version ${LLVM_MAJOR}\."
+
 # GoogleTest, as source rather than a package, and unpacked rather than built.
 #
 # It has to be compiled with the same flags as the code under test, which rules

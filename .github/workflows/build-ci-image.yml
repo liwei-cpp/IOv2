@@ -45,6 +45,9 @@ jobs:
         context: .
         file: .github/docker/gcc15.Dockerfile
         push: ${{ github.event_name != 'pull_request' }}
+        # On a pull request the image goes to the runner's docker instead, for
+        # the comparison below.
+        load: ${{ github.event_name == 'pull_request' }}
         # :latest is what ci.yml consumes; the commit-tagged copy is kept so a
         # bad toolchain bump can be identified and rolled back to by digest.
         tags: |
@@ -54,3 +57,25 @@ jobs:
     - name: Show image digest
       if: github.event_name != 'pull_request'
       run: docker buildx imagetools inspect ghcr.io/liwei-cpp/iov2-ci-gcc15:latest
+
+    # A rebuild takes the gcc:15 and the Debian packages of the day, not only
+    # what the Dockerfile change asked for, and ci.yml on the same pull request
+    # still runs on the published image. So the toolchain of the two is listed
+    # side by side here, to see before merging what else moved.
+    - name: Compare the toolchain with the published image
+      if: github.event_name == 'pull_request'
+      env:
+        VERSIONS: |
+          gcc --version | head -n 1
+          clang --version | head -n 1
+          clang-tidy --version | grep 'LLVM version'
+          clang-tidy-22 --version 2>/dev/null | grep 'LLVM version' || echo 'no clang-tidy-22'
+          cmake --version | head -n 1
+          dpkg-query -W -f='${Package} ${Version}\n' libc6 libbotan-3-dev zlib1g-dev tzdata locales-all valgrind lcov
+      run: |
+        docker pull -q ghcr.io/liwei-cpp/iov2-ci-gcc15:latest
+        docker run --rm ghcr.io/liwei-cpp/iov2-ci-gcc15:latest sh -c "$VERSIONS" > published.txt
+        docker run --rm ghcr.io/liwei-cpp/iov2-ci-gcc15:${{ github.sha }} sh -c "$VERSIONS" > candidate.txt
+        echo '== published :latest';   cat published.txt
+        echo '== this pull request';   cat candidate.txt
+        echo '== differences';         diff published.txt candidate.txt || true
