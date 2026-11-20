@@ -13,6 +13,12 @@ on:
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  # The LLVM that clang-cl and clang-tidy run from on Windows. The image's own
+  # (20.1.8 as of image 20261116) is older than its MSVC STL accepts: STL 14.52
+  # stops every translation unit with STL1000, "expected Clang 22 or newer".
+  # Pinned, so an image update cannot change the compiler under these jobs; raise
+  # it when the STL asks for a newer one. It must be a version Chocolatey has.
+  IOV2_WINDOWS_LLVM: 22.1.8
   IOV2_TIDY_CHECKS: >-
     bugprone-*,performance-*,modernize-*,cppcoreguidelines-*,-modernize-use-trailing-return-type,-cppcoreguidelines-avoid-magic-numbers,-cppcoreguidelines-pro-bounds-pointer-arithmetic,-cppcoreguidelines-pro-bounds-constant-array-index,-cppcoreguidelines-avoid-non-const-global-variables,-cppcoreguidelines-pro-bounds-avoid-unchecked-container-access,-clang-diagnostic-pragma-once-outside-header
 
@@ -596,9 +602,23 @@ jobs:
       with:
         arch: x64
 
+    # Over the image's LLVM in C:\Program Files\LLVM, so PATH stays as it is; see
+    # IOV2_WINDOWS_LLVM.
+    - name: Install LLVM ${{ env.IOV2_WINDOWS_LLVM }}
+      shell: pwsh
+      run: |
+        choco upgrade llvm --version $env:IOV2_WINDOWS_LLVM --yes --no-progress
+        $found = clang-tidy --version | Out-String
+        Write-Output $found
+        if ($found -notmatch "LLVM version $([regex]::Escape($env:IOV2_WINDOWS_LLVM))\b") {
+          throw "clang-tidy on PATH is not LLVM $env:IOV2_WINDOWS_LLVM"
+        }
+
     # zlib's and Botan's headers, for the converters that include them: the same
     # test/vcpkg.json, binary cache and cache steps as the portability jobs (see
-    # there), installed by hand since no CMake runs here.
+    # there), installed by hand since no CMake runs here. clang-tidy reads them as
+    # system headers (-isystem): since LLVM 22 it reports in every other header,
+    # and upstream's code is not ours to fix.
     - name: Point vcpkg at the runner's checkout and a binary cache
       shell: pwsh
       run: |
@@ -649,7 +669,7 @@ jobs:
           include/IOv2/facet/platform/windows/*.h \
           --checks="$IOV2_TIDY_CHECKS" \
           --warnings-as-errors='bugprone-*' \
-          -- -std=c++23 -x c++ -I include -I "$deps" -I "$deps/botan-3" \
+          -- -std=c++23 -x c++ -I include -isystem "$deps" -isystem "$deps/botan-3" \
              --target=x86_64-pc-windows-msvc
 
   # The platforms the cross-platform port has reached. Each builds and runs only
@@ -720,6 +740,20 @@ jobs:
       uses: TheMrMilchmann/setup-msvc-dev@v4
       with:
         arch: ${{ matrix.arch || 'x64' }}
+
+    # Over the image's LLVM in C:\Program Files\LLVM, so PATH stays as it is; see
+    # IOV2_WINDOWS_LLVM. vcpkg builds its packages with cl, so its cache is
+    # untouched.
+    - name: Install LLVM ${{ env.IOV2_WINDOWS_LLVM }}
+      if: matrix.name == 'windows-clang-cl'
+      shell: pwsh
+      run: |
+        choco upgrade llvm --version $env:IOV2_WINDOWS_LLVM --yes --no-progress
+        $found = clang-cl --version | Out-String
+        Write-Output $found
+        if ($found -notmatch "clang version $([regex]::Escape($env:IOV2_WINDOWS_LLVM))\b") {
+          throw "clang-cl on PATH is not LLVM $env:IOV2_WINDOWS_LLVM"
+        }
 
     # zlib and Botan. On Windows the presets install test/vcpkg.json through the
     # runner's vcpkg during configure; building Botan takes minutes, so the built
