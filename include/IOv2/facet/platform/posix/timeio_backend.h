@@ -44,6 +44,7 @@
 #include <cstring>
 #include <cwchar>
 #include <limits>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -76,6 +77,34 @@ struct timeio_raw_era
 
 /**
  * @lang{ZH}
+ * `timeio_raw_data` 中名字与格式串的宽字符形式，成员与之同名。只有原生数据本来就是宽字符串的
+ * 平台（Windows 的 NLS）才提供；宽字符配置有它就直接用，不经代码页转一圈。POSIX 没有。
+ * @endif
+ * @lang{EN}
+ * The wide form of the names and formats in `timeio_raw_data`, under the same member names.
+ * Only a platform whose own data is wide (Windows' NLS) provides it; the wide configurations use
+ * it as it is, rather than round-tripping through a code page. POSIX has none.
+ * @endif
+ */
+struct timeio_raw_wide
+{
+    std::array<std::wstring, 7>  day;
+    std::array<std::wstring, 7>  abbr_day;
+    std::array<std::wstring, 12> month;
+    std::array<std::wstring, 12> abbr_month;
+    std::wstring                 am;
+    std::wstring                 pm;
+    std::wstring                 date_format;
+    std::wstring                 era_date_format;
+    std::wstring                 time_format;
+    std::wstring                 era_time_format;
+    std::wstring                 date_time_format;
+    std::wstring                 era_date_time_format;
+    std::wstring                 am_pm_format;
+};
+
+/**
+ * @lang{ZH}
  * 一个 locale 的日期时间数据，按 C 库给出的原样复制（读完即与 C 库的缓冲区无关）。字符串都是
  * 该 locale 的窄字符编码；星期从周日起，月份从一月起；C 库没有给出的项为空。
  * @endif
@@ -102,6 +131,7 @@ struct timeio_raw_data
     std::string                 era_date_time_format;
     std::string                 am_pm_format;
     std::vector<timeio_raw_era> eras;
+    std::optional<timeio_raw_wide> wide;   // never set here: see timeio_raw_wide
 };
 
 // One langinfo item of the calling thread's locale; POSIX promises a string, this does not rely on it.

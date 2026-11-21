@@ -4458,7 +4458,7 @@ TEST(TimeioChar, ALoneOrUnknownSpecifierIsEchoedVerbatim)
 }
 
 // A format string that came from the locale rather than from the caller is normalized on the way
-// in (timeio_conf<char>::normalize_time_format), because the verbatim-echo rule exercised by
+// in (detail::timeio_normalize_format), because the verbatim-echo rule exercised by
 // put_19 is wrong for it: the caller wrote only "%c" or "%x", so echoing a specifier this facet
 // does not implement turns a gap here into corrupt user-visible output -- and get reads that
 // echo back as a literal, so the round trip silently loses the field. glibc's locale data uses

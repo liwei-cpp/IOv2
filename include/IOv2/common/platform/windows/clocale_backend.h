@@ -15,7 +15,9 @@
  * `___lc_locale_name_func`），供 facet 后端调用 `LCMapStringEx`、`CompareStringEx` 等以名字定
  * locale 的 NLS 函数；`"C"` locale 没有此名字。`LC_COLLATE` 的代码页（`___lc_collate_cp_func`）
  * 也一并保存，`collate` 后端用它把窄字符串转成 UTF-16。`LC_CTYPE` 的代码页
- * （`___lc_codepage_func`）同样保存，用来回答该 locale 的编码是否为 UTF-8。
+ * （`___lc_codepage_func`）同样保存，用来回答该 locale 的编码是否为 UTF-8。`LC_TIME` 的 BCP-47
+ * 名字与代码页供 `timeio` 后端读 NLS 的日期时间数据并窄化；UCRT 没有报 `LC_TIME` 代码页的函数，
+ * 于是把 `LC_CTYPE` 临时设成 `LC_TIME` 的名字，读 `___lc_codepage_func`。
  * @endif
  * @lang{EN}
  * Windows (UCRT) backend of `clocale_wrapper`.
@@ -32,7 +34,10 @@
  * the other NLS functions that take a locale by name; the `"C"` locale has no such name. It
  * keeps the code page of `LC_COLLATE` (`___lc_collate_cp_func`) as well, which the `collate`
  * backend converts narrow strings to UTF-16 with, and the code page of `LC_CTYPE`
- * (`___lc_codepage_func`), which answers whether the locale's encoding is UTF-8.
+ * (`___lc_codepage_func`), which answers whether the locale's encoding is UTF-8. The BCP-47
+ * name and the code page of `LC_TIME` are for the `timeio` backend, which reads NLS's date and
+ * time data and narrows it; the UCRT has no function reporting `LC_TIME`'s code page, so
+ * `LC_CTYPE` is set to `LC_TIME`'s name for a moment and `___lc_codepage_func` read.
  * @endif
  */
 
@@ -53,8 +58,10 @@ struct windows_clocale
     std::string  ctype_name;   // setlocale(LC_CTYPE) likewise: what name() reports
     std::wstring ctype_bcp47;  // LC_CTYPE's BCP-47 name ("en-US") for the NLS APIs; empty for "C"
     std::wstring collate_bcp47;   // LC_COLLATE's, likewise
+    std::wstring time_bcp47;      // LC_TIME's, likewise
     unsigned int ctype_cp = 0;    // LC_CTYPE's code page; 0 for "C"
     unsigned int collate_cp = 0;  // LC_COLLATE's code page; 0 for "C"
+    unsigned int time_cp = 0;     // LC_TIME's code page; 0 for "C"
 };
 
 using clocale_handle = windows_clocale*;
@@ -121,6 +128,15 @@ inline clocale_handle clocale_create(const char* name)
                 res->collate_bcp47 = bcp47;
             res->ctype_cp   = ___lc_codepage_func();
             res->collate_cp = ___lc_collate_cp_func();
+            if (const wchar_t* bcp47 = ___lc_locale_name_func()[LC_TIME])
+            {
+                res->time_bcp47 = bcp47;
+                // No ___lc_*_func reports LC_TIME's code page: let LC_CTYPE take LC_TIME's name.
+                // clocale_restore below puts LC_CTYPE back.
+                const std::string time_name = std::setlocale(LC_TIME, nullptr);
+                if (std::setlocale(LC_CTYPE, time_name.c_str()))
+                    res->time_cp = ___lc_codepage_func();
+            }
         }
     }
     catch (...)
@@ -142,7 +158,8 @@ inline clocale_handle clocale_duplicate(clocale_handle loc)
     auto res = std::make_unique<windows_clocale>(
         windows_clocale{.all_name = loc->all_name, .ctype_name = loc->ctype_name,
                         .ctype_bcp47 = loc->ctype_bcp47, .collate_bcp47 = loc->collate_bcp47,
-                        .ctype_cp = loc->ctype_cp, .collate_cp = loc->collate_cp});
+                        .time_bcp47 = loc->time_bcp47, .ctype_cp = loc->ctype_cp,
+                        .collate_cp = loc->collate_cp, .time_cp = loc->time_cp});
     res->loc = _create_locale(LC_ALL, res->all_name.c_str());
     return res->loc ? res.release() : nullptr;
 }

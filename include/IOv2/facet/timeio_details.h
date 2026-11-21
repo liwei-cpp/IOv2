@@ -768,6 +768,332 @@ inline timeio_raw_data timeio_snapshot(const std::string& name)
     clocale_user    guard(loc);
     return timeio_read_data();
 }
+
+/**
+ * @lang{ZH}
+ * 一个 locale 的名字与格式串，按 `timeio_conf<CharT>` 保存的样子：格式串已补上回退值并规范化。
+ * 由 `timeio_c_text` 或 `timeio_text_from` 生成，窄、宽配置类共用。
+ * @endif
+ * @lang{EN}
+ * A locale's names and formats as `timeio_conf<CharT>` keeps them, the formats completed and
+ * normalized. Built by `timeio_c_text` or `timeio_text_from`, for the narrow and the wide
+ * configurations alike.
+ * @endif
+ */
+template <typename CharT>
+struct timeio_text
+{
+    std::array<std::basic_string<CharT>, 7>  day;
+    std::array<std::basic_string<CharT>, 7>  abbr_day;
+    std::array<std::basic_string<CharT>, 12> month;
+    std::array<std::basic_string<CharT>, 12> abbr_month;
+    std::basic_string<CharT>                 am;
+    std::basic_string<CharT>                 pm;
+    std::basic_string<CharT>                 date_format;
+    std::basic_string<CharT>                 era_date_format;
+    std::basic_string<CharT>                 time_format;
+    std::basic_string<CharT>                 era_time_format;
+    std::basic_string<CharT>                 date_time_format;
+    std::basic_string<CharT>                 era_date_time_format;
+    std::basic_string<CharT>                 am_pm_format;
+};
+
+// The "C" locale's formats: what it uses, and what a locale's format falls back to.
+inline constexpr std::string_view timeio_c_date_format      = "%m/%d/%y";
+inline constexpr std::string_view timeio_c_time_format      = "%H:%M:%S";
+inline constexpr std::string_view timeio_c_date_time_format = "%a %b %e %H:%M:%S %Y";
+inline constexpr std::string_view timeio_c_am_pm_format     = "%I:%M:%S %p";
+
+// ASCII text as a string of any character type.
+template <typename CharT>
+std::basic_string<CharT> timeio_ascii(std::string_view text)
+{
+    return std::basic_string<CharT>(text.begin(), text.end());
+}
+
+/**
+ * @lang{ZH}
+ * @brief 把 locale 提供的时间格式串归一化为本库 `timeio` 能识别的形式。
+ *
+ * C 库给出的格式串（POSIX 上来自 `nl_langinfo()`）是 locale 数据，不是用户写的；其中可能出现 glibc 的
+ * 扩展语法，而本库的 `timeio` 只实现 `'%' [E|O]? <说明符>` 这一标准文法。若原样保留，
+ * `timeio` 的 put 侧会把不认识的序列连同 `%` 一起字面回显（与 `strftime` 对真正未知
+ * 说明符的行为一致），使用户仅写了 `%c` / `%x` 却得到含 `%` 的输出，并可能被 get 侧
+ * 静默读回错值。本函数在 locale 数据进入本库时做一次转换：
+ *
+ * - 丢弃补位标志（`-` `_` `0` `^` `#`）与字段宽度：它们只影响填充与大小写，
+ *   丢弃后字段顺序、分隔符、语言全部保留；
+ * - 把有等价标准说明符的 glibc 扩展改写过去：`%l` → `%I`、`%k` → `%H`、`%P` → `%p`；
+ * - 保留 `E` / `O` 修饰符；
+ * - 末尾落单的 `%`（其后没有说明符）原样保留，以维持第 329 条已钉住的行为。
+ *
+ * 若经上述处理后说明符仍不在支持集内，则返回 `std::nullopt`，由调用方整串回退，宁可丢失
+ * locale 的字段顺序，也不输出本库读不回来的文本。只有 ASCII 字符才可能是说明符。
+ *
+ * @note 本函数只作用于 locale 提供的格式串；用户自己传给 `put_time` / `get_time`
+ *       的格式串不经过这里，其未知说明符仍按原契约回显。
+ *
+ * @tparam CharT 格式串的字符类型；窄、宽配置类共用。
+ * @param fmt locale 提供的格式串。
+ * @return 归一化后的格式串；若含无等价物的说明符，则为 `std::nullopt`，
+ *         由调用方代入整串兜底值。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief Normalizes a locale-supplied time format string into the form this
+ *        library's `timeio` understands.
+ *
+ * A format string from the C library (`nl_langinfo()` on POSIX) is locale data, not something the user wrote,
+ * and it may use glibc's extended syntax, whereas `timeio` implements only the
+ * standard grammar `'%' [E|O]? <specifier>`. Left as-is, `timeio`'s put side echoes
+ * an unrecognized sequence literally together with its `%` (matching `strftime` for
+ * genuinely unknown specifiers), so a user who wrote just `%c` or `%x` gets output
+ * containing a `%`, which the get side may then read back as silently wrong values.
+ * This function converts once, where locale data enters the library:
+ *
+ * - Padding flags (`-` `_` `0` `^` `#`) and field widths are dropped: they affect
+ *   only padding and case, so field order, separators and language all survive;
+ * - glibc extensions that have an equivalent standard specifier are rewritten:
+ *   `%l` to `%I`, `%k` to `%H`, `%P` to `%p`;
+ * - `E` / `O` modifiers are preserved;
+ * - A trailing lone `%` with no specifier after it is kept verbatim, preserving the
+ *   behaviour pinned by entry 329.
+ *
+ * If the specifier is still outside the supported set after that, the result is
+ * `std::nullopt` and the caller falls back for the whole string: losing the locale's field
+ * order is preferable to emitting text this library cannot read back. Only an ASCII
+ * character can be a specifier.
+ *
+ * @note This applies only to locale-supplied format strings. A format string the user
+ *       passes to `put_time` / `get_time` does not go through here, and its unknown
+ *       specifiers are still echoed per the existing contract.
+ *
+ * @tparam CharT The character type of the format, shared by the narrow and the wide
+ *         configurations.
+ * @param fmt The locale-supplied format string.
+ * @return The normalized format string, or `std::nullopt` if it holds a specifier with
+ *         no equivalent, in which case the caller substitutes a whole-string fallback.
+ * @endif
+ */
+template <typename CharT>
+std::optional<std::basic_string<CharT>> timeio_normalize_format(std::basic_string_view<CharT> fmt)
+{
+    constexpr std::string_view supported = "%ABCDFGHIMRSTUVWXYZabcdeghjmnprtuwxyz";
+    // A wide character beyond ASCII must not be narrowed onto a specifier first.
+    const auto is_supported = [supported](CharT c) {
+        return static_cast<std::uint32_t>(c) < 0x80
+            && supported.find(static_cast<char>(c)) != std::string_view::npos;
+    };
+
+    std::basic_string<CharT> out;
+    out.reserve(fmt.size());
+
+    for (std::size_t i = 0; i < fmt.size(); ++i)
+    {
+        if (fmt[i] != '%') { out += fmt[i]; continue; }
+
+        std::size_t j = i + 1;
+        while (j < fmt.size() && (fmt[j] == '-' || fmt[j] == '_' || fmt[j] == '0'
+                                  || fmt[j] == '^' || fmt[j] == '#'))
+            ++j;
+        while (j < fmt.size() && fmt[j] >= '0' && fmt[j] <= '9') ++j;
+
+        CharT modifier{};
+        if (j < fmt.size() && (fmt[j] == 'E' || fmt[j] == 'O')) modifier = fmt[j++];
+
+        if (j >= fmt.size()) { out.append(fmt.substr(i)); break; }
+
+        CharT spec = fmt[j];
+        if (spec == 'l') spec = 'I';
+        else if (spec == 'k') spec = 'H';
+        else if (spec == 'P') spec = 'p';
+
+        if (!is_supported(spec)) return std::nullopt;
+
+        out += static_cast<CharT>('%');
+        if (modifier != CharT{}) out += modifier;
+        out += spec;
+        i = j;
+    }
+
+    return out;
+}
+
+// The names and formats of the "C" locale.
+template <typename CharT>
+timeio_text<CharT> timeio_c_text()
+{
+    static constexpr std::array<std::string_view, 7> days =
+        {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
+    static constexpr std::array<std::string_view, 12> months =
+        {"January", "February", "March", "April", "May", "June",
+         "July", "August", "September", "October", "November", "December"};
+
+    timeio_text<CharT> res;
+    for (std::size_t i = 0; i < days.size(); ++i)
+    {
+        res.day[i] = timeio_ascii<CharT>(days[i]);
+        res.abbr_day[i] = timeio_ascii<CharT>(days[i].substr(0, 3));
+    }
+    for (std::size_t i = 0; i < months.size(); ++i)
+    {
+        res.month[i] = timeio_ascii<CharT>(months[i]);
+        res.abbr_month[i] = timeio_ascii<CharT>(months[i].substr(0, 3));
+    }
+    res.am = timeio_ascii<CharT>("AM");
+    res.pm = timeio_ascii<CharT>("PM");
+    res.date_format = timeio_ascii<CharT>(timeio_c_date_format);
+    res.era_date_format = res.date_format;
+    res.time_format = timeio_ascii<CharT>(timeio_c_time_format);
+    res.era_time_format = res.time_format;
+    res.date_time_format = timeio_ascii<CharT>(timeio_c_date_time_format);
+    res.era_date_time_format = res.date_time_format;
+    res.am_pm_format = timeio_ascii<CharT>(timeio_c_am_pm_format);
+    return res;
+}
+
+/**
+ * @lang{ZH}
+ * @brief 由后端给出的字符串生成一个 locale 的名字与格式串，并补上回退值、规范化格式串。
+ *
+ * 纪元格式为空表示该 locale 没有纪元，由对应的普通格式顶替；`%r` 的格式为空时用
+ * `"%I:%M:%S %p"`；规范化失败的格式串，纪元格式退回规范化后的普通格式，其余退回 C locale 的。
+ * @tparam CharT 生成的字符类型。
+ * @param raw 窄字符的 `timeio_raw_data`，或宽字符的 `timeio_raw_wide`；两者成员同名。
+ * @param conv 把 `raw` 的一个字符串转成 `std::basic_string<CharT>`。
+ * @endif
+ * @lang{EN}
+ * @brief Builds a locale's names and formats from the strings the backend gave, completing and
+ *        normalizing the formats.
+ *
+ * An empty era format means the locale has no eras, and the plain format stands in; an empty
+ * `%r` format becomes `"%I:%M:%S %p"`; a format that fails to normalize falls back to the
+ * normalized plain one if it is an era format, and to the "C" locale's otherwise.
+ * @tparam CharT The character type to build.
+ * @param raw The narrow `timeio_raw_data` or the wide `timeio_raw_wide`, whose members share names.
+ * @param conv Turns one of `raw`'s strings into a `std::basic_string<CharT>`.
+ * @endif
+ */
+template <typename CharT, typename TRaw, typename TConv>
+timeio_text<CharT> timeio_text_from(const TRaw& raw, TConv conv)
+{
+    timeio_text<CharT> res;
+    for (std::size_t i = 0; i < res.day.size(); ++i)
+    {
+        res.day[i] = conv(raw.day[i]);
+        res.abbr_day[i] = conv(raw.abbr_day[i]);
+    }
+    for (std::size_t i = 0; i < res.month.size(); ++i)
+    {
+        res.month[i] = conv(raw.month[i]);
+        res.abbr_month[i] = conv(raw.abbr_month[i]);
+    }
+    res.am = conv(raw.am);
+    res.pm = conv(raw.pm);
+
+    const auto era_or = [&conv](const auto& era, const std::basic_string<CharT>& plain) {
+        return era.empty() ? plain : conv(era);
+    };
+    res.date_format = conv(raw.date_format);
+    res.era_date_format = era_or(raw.era_date_format, res.date_format);
+    res.time_format = conv(raw.time_format);
+    res.era_time_format = era_or(raw.era_time_format, res.time_format);
+    res.date_time_format = conv(raw.date_time_format);
+    res.era_date_time_format = era_or(raw.era_date_time_format, res.date_time_format);
+    res.am_pm_format = raw.am_pm_format.empty() ? timeio_ascii<CharT>(timeio_c_am_pm_format)
+                                                : conv(raw.am_pm_format);
+
+    const auto normalized = [](const std::basic_string<CharT>& fmt, std::basic_string<CharT> fallback) {
+        return timeio_normalize_format<CharT>(fmt).value_or(std::move(fallback));
+    };
+    res.date_format = normalized(res.date_format, timeio_ascii<CharT>(timeio_c_date_format));
+    res.era_date_format = normalized(res.era_date_format, res.date_format);
+    res.time_format = normalized(res.time_format, timeio_ascii<CharT>(timeio_c_time_format));
+    res.era_time_format = normalized(res.era_time_format, res.time_format);
+    res.date_time_format = normalized(res.date_time_format,
+                                      timeio_ascii<CharT>(timeio_c_date_time_format));
+    res.era_date_time_format = normalized(res.era_date_time_format, res.date_time_format);
+    res.am_pm_format = normalized(res.am_pm_format, timeio_ascii<CharT>(timeio_c_am_pm_format));
+    return res;
+}
+
+/**
+ * @lang{ZH}
+ * @brief 把后端给出的一个纪元变成 `era_entry`：名称与格式串经 `conv` 转换，日期照搬，方向规范化。
+ *
+ * `direction` 被规范化为恰好 `+1` / `-1`，使得以下线性公式对所有纪元类型均一致有效：
+ * @code
+ *   era_year = offset + (calendar_year - from_year) * direction
+ * @endcode
+ * 规范化逻辑参照 glibc 的 era.c（约第 98 行，
+ * https://github.com/lattera/glibc/blob/master/time/era.c）：
+ * 前向纪元（from ≤ to，如公元 AD、日本皇纪、泰国佛历）方向标记直接映射，
+ * '+' → +1，'-' → -1；后向纪元（from > to）方向标记取反：from_year 是纪元起点，to_year
+ * 是"负无穷"的哨兵，公历年份离起点越往过去，(calendar - from_year) 越负，取反后的方向把这段
+ * 距离变成正的纪元年份，同一个公式于是对两个时间方向都成立。
+ *
+ * 后向纪元路径**会被真实 locale 执行**，并非理论分支：`ja_JP` 的「紀元前」
+ * 以及 `zh_TW` / `cmn_TW` / `hak_TW` / `lzh_TW` / `nan_TW` 的「民前」都是
+ * 后向纪元。以本机 glibc 数据实测，24 个带纪元数据的 locale 共 108 条记录，
+ * 其中 18 条为后向纪元。
+ * @tparam TEntry 目标配置类的 `era_entry`。
+ * @param raw 后端读出的纪元，方向为原样的 `'+'` / `'-'`。
+ * @param conv 把窄字符串转成 `TEntry` 的字符串类型。
+ * @return 规范化后的纪元条目。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief Turns one era the backend gave into an `era_entry`: the name and the format through
+ *        `conv`, the dates as they are, the direction normalized.
+ *
+ * `direction` is normalised to exactly `+1` / `-1` so that the linear formula
+ * @code
+ *   era_year = offset + (calendar_year - from_year) * direction
+ * @endcode
+ * is uniformly valid for all era types.
+ * The normalisation mirrors glibc's era.c (≈ line 98,
+ * https://github.com/lattera/glibc/blob/master/time/era.c):
+ * for forward eras (from ≤ to, e.g. AD / Japanese / Thai), the marker maps
+ * directly: '+' → +1, '-' → -1;
+ * for backward eras (from > to), the marker is intentionally inverted.
+ * The reason: in a backward era, from_year is the epoch and to_year is a
+ * sentinel for "negative infinity". As the calendar year moves away from the
+ * epoch toward the past, (calendar - from_year) grows increasingly negative;
+ * the normalised negative direction turns that distance into a positive era
+ * year, so the same formula works in either chronological direction.
+ *
+ * The backward branch **is reached by real locales**, not just in theory:
+ * `ja_JP`'s 紀元前 and the 民前 of `zh_TW` / `cmn_TW` / `hak_TW` / `lzh_TW` /
+ * `nan_TW` are all backward eras. Measured against this machine's glibc data,
+ * 18 of the 108 records across the 24 locales that carry era data are
+ * backward.
+ * @tparam TEntry The target configuration's `era_entry`.
+ * @param raw An era as the backend read it, its direction the `'+'` / `'-'` as written.
+ * @param conv Turns a narrow string into `TEntry`'s string type.
+ * @return The era entry, normalized.
+ * @endif
+ */
+template <typename TEntry, typename TConv>
+TEntry timeio_era_from_raw(const timeio_raw_era& raw, TConv conv)
+{
+    TEntry value{};
+    value.name = conv(raw.name);
+    value.format = conv(raw.format);
+    value.from_year = raw.from_year;
+    value.from_month = raw.from_month;
+    value.from_day = raw.from_day;
+    value.to_year = raw.to_year;
+    value.to_month = raw.to_month;
+    value.to_day = raw.to_day;
+    value.offset = raw.offset;
+
+    const int8_t marked_direction = raw.direction == '+' ? int8_t{1} : int8_t{-1};
+    const bool runs_forward = TimeioHelper::era_small_or_equal(
+        value.from_year, value.from_month, value.from_day,
+        value.to_year, value.to_month, value.to_day);
+    value.direction = runs_forward ? marked_direction : static_cast<int8_t>(-marked_direction);
+    return value;
+}
 }
 
 /**
@@ -825,98 +1151,18 @@ public:
     {
         if (FacetHelper::is_c_locale_name(name))
         {
-            m_date_format = "%m/%d/%y";     m_era_date_format = m_date_format;
-            m_time_format = "%H:%M:%S";     m_era_time_format = m_time_format;
-
-            m_date_time_format = "%a %b %e %H:%M:%S %Y";
-            m_era_date_time_format = m_date_time_format;
-
-            m_am = "AM";
-            m_pm = "PM";
-            m_am_pm_format = "%I:%M:%S %p";
-
-            m_day[0] = "Sunday";
-            m_day[1] = "Monday";
-            m_day[2] = "Tuesday";
-            m_day[3] = "Wednesday";
-            m_day[4] = "Thursday";
-            m_day[5] = "Friday";
-            m_day[6] = "Saturday";
-
-            m_abbr_day[0] = "Sun";
-            m_abbr_day[1] = "Mon";
-            m_abbr_day[2] = "Tue";
-            m_abbr_day[3] = "Wed";
-            m_abbr_day[4] = "Thu";
-            m_abbr_day[5] = "Fri";
-            m_abbr_day[6] = "Sat";
-
-            // Full month names, index 0 = January.
-            m_month[0]  = "January";
-            m_month[1]  = "February";
-            m_month[2]  = "March";
-            m_month[3]  = "April";
-            m_month[4]  = "May";
-            m_month[5]  = "June";
-            m_month[6]  = "July";
-            m_month[7]  = "August";
-            m_month[8]  = "September";
-            m_month[9]  = "October";
-            m_month[10] = "November";
-            m_month[11] = "December";
-
-            // Abbreviated month names, same order as above.
-            m_abbr_month[0]  = "Jan";
-            m_abbr_month[1]  = "Feb";
-            m_abbr_month[2]  = "Mar";
-            m_abbr_month[3]  = "Apr";
-            m_abbr_month[4]  = "May";
-            m_abbr_month[5]  = "Jun";
-            m_abbr_month[6]  = "Jul";
-            m_abbr_month[7]  = "Aug";
-            m_abbr_month[8]  = "Sep";
-            m_abbr_month[9]  = "Oct";
-            m_abbr_month[10] = "Nov";
-            m_abbr_month[11] = "Dec";
+            take_text(detail::timeio_c_text<char>());
+            return;
         }
-        else
-        {
-            const detail::timeio_raw_data raw = detail::timeio_snapshot(name);
 
-            // An empty era format means the locale has none: the plain one stands in.
-            m_date_format = raw.date_format;
-            m_era_date_format = raw.era_date_format.empty() ? m_date_format : raw.era_date_format;
-            m_time_format = raw.time_format;
-            m_era_time_format = raw.era_time_format.empty() ? m_time_format : raw.era_time_format;
-            m_date_time_format = raw.date_time_format;
-            m_era_date_time_format = raw.era_date_time_format.empty() ? m_date_time_format
-                                                                      : raw.era_date_time_format;
-
-            m_am = raw.am;
-            m_pm = raw.pm;
-            m_am_pm_format = raw.am_pm_format.empty() ? std::string{"%I:%M:%S %p"} : raw.am_pm_format;
-
-            m_day = raw.day;
-            m_abbr_day = raw.abbr_day;
-            m_month = raw.month;
-            m_abbr_month = raw.abbr_month;
-            for (std::size_t i = 0; i < raw.alt_digits.size() && i < m_alt_digits.size(); ++i)
-                m_alt_digits[i] = raw.alt_digits[i];
-
-            m_era_items.reserve(raw.eras.size());
-            for (const detail::timeio_raw_era& era : raw.eras)
-                m_era_items.push_back(era_from_raw(era));
-
-            m_date_format = normalize_time_format(m_date_format).value_or("%m/%d/%y");
-            m_era_date_format = normalize_time_format(m_era_date_format).value_or(m_date_format);
-            m_time_format = normalize_time_format(m_time_format).value_or("%H:%M:%S");
-            m_era_time_format = normalize_time_format(m_era_time_format).value_or(m_time_format);
-            m_date_time_format = normalize_time_format(m_date_time_format)
-                                     .value_or("%a %b %e %H:%M:%S %Y");
-            m_era_date_time_format = normalize_time_format(m_era_date_time_format)
-                                         .value_or(m_date_time_format);
-            m_am_pm_format = normalize_time_format(m_am_pm_format).value_or("%I:%M:%S %p");
-        }
+        const detail::timeio_raw_data raw = detail::timeio_snapshot(name);
+        const auto same = [](const std::string& src) { return src; };
+        take_text(detail::timeio_text_from<char>(raw, same));
+        for (std::size_t i = 0; i < raw.alt_digits.size() && i < m_alt_digits.size(); ++i)
+            m_alt_digits[i] = raw.alt_digits[i];
+        m_era_items.reserve(raw.eras.size());
+        for (const detail::timeio_raw_era& era : raw.eras)
+            m_era_items.push_back(detail::timeio_era_from_raw<era_entry>(era, same));
     }
 
     /**
@@ -1123,175 +1369,22 @@ public:
     [[nodiscard]] virtual const std::vector<era_entry>& era_items() const { return m_era_items; }
 
 private:
-    /**
-     * @lang{ZH}
-     * @brief 把 locale 提供的时间格式串归一化为本库 `timeio` 能识别的形式。
-     *
-     * C 库给出的格式串（POSIX 上来自 `nl_langinfo()`）是 locale 数据，不是用户写的；其中可能出现 glibc 的
-     * 扩展语法，而本库的 `timeio` 只实现 `'%' [E|O]? <说明符>` 这一标准文法。若原样保留，
-     * `timeio` 的 put 侧会把不认识的序列连同 `%` 一起字面回显（与 `strftime` 对真正未知
-     * 说明符的行为一致），使用户仅写了 `%c` / `%x` 却得到含 `%` 的输出，并可能被 get 侧
-     * 静默读回错值。本函数在 locale 数据进入本库时做一次转换：
-     *
-     * - 丢弃补位标志（`-` `_` `0` `^` `#`）与字段宽度：它们只影响填充与大小写，
-     *   丢弃后字段顺序、分隔符、语言全部保留；
-     * - 把有等价标准说明符的 glibc 扩展改写过去：`%l` → `%I`、`%k` → `%H`、`%P` → `%p`；
-     * - 保留 `E` / `O` 修饰符；
-     * - 末尾落单的 `%`（其后没有说明符）原样保留，以维持第 329 条已钉住的行为。
-     *
-     * 若经上述处理后说明符仍不在支持集内，则整串回退到 `fallback`，宁可丢失 locale
-     * 的字段顺序，也不输出本库读不回来的文本。
-     *
-     * @note 本函数只作用于 locale 提供的格式串；用户自己传给 `put_time` / `get_time`
-     *       的格式串不经过这里，其未知说明符仍按原契约回显。
-     *
-     * @param fmt locale 提供的格式串。
-     * @return 归一化后的格式串；若含无等价物的说明符，则为 `std::nullopt`，
-     *         由调用方代入整串兜底值。
-     * @endif
-     *
-     * @lang{EN}
-     * @brief Normalizes a locale-supplied time format string into the form this
-     *        library's `timeio` understands.
-     *
-     * A format string from the C library (`nl_langinfo()` on POSIX) is locale data, not something the user wrote,
-     * and it may use glibc's extended syntax, whereas `timeio` implements only the
-     * standard grammar `'%' [E|O]? <specifier>`. Left as-is, `timeio`'s put side echoes
-     * an unrecognized sequence literally together with its `%` (matching `strftime` for
-     * genuinely unknown specifiers), so a user who wrote just `%c` or `%x` gets output
-     * containing a `%`, which the get side may then read back as silently wrong values.
-     * This function converts once, where locale data enters the library:
-     *
-     * - Padding flags (`-` `_` `0` `^` `#`) and field widths are dropped: they affect
-     *   only padding and case, so field order, separators and language all survive;
-     * - glibc extensions that have an equivalent standard specifier are rewritten:
-     *   `%l` to `%I`, `%k` to `%H`, `%P` to `%p`;
-     * - `E` / `O` modifiers are preserved;
-     * - A trailing lone `%` with no specifier after it is kept verbatim, preserving the
-     *   behaviour pinned by entry 329.
-     *
-     * If the specifier is still outside the supported set after that, the whole string
-     * falls back to `fallback`: losing the locale's field order is preferable to emitting
-     * text this library cannot read back.
-     *
-     * @note This applies only to locale-supplied format strings. A format string the user
-     *       passes to `put_time` / `get_time` does not go through here, and its unknown
-     *       specifiers are still echoed per the existing contract.
-     *
-     * @param fmt The locale-supplied format string.
-     * @return The normalized format string, or `std::nullopt` if it holds a specifier with
-     *         no equivalent, in which case the caller substitutes a whole-string fallback.
-     * @endif
-     */
-    static std::optional<std::string> normalize_time_format(const std::string& fmt)
+    // Takes the names and formats over from text.
+    void take_text(detail::timeio_text<char> text)
     {
-        constexpr std::string_view supported = "%ABCDFGHIMRSTUVWXYZabcdeghjmnprtuwxyz";
-
-        std::string out;
-        out.reserve(fmt.size());
-
-        for (std::size_t i = 0; i < fmt.size(); ++i)
-        {
-            if (fmt[i] != '%') { out += fmt[i]; continue; }
-
-            std::size_t j = i + 1;
-            while (j < fmt.size() && (fmt[j] == '-' || fmt[j] == '_' || fmt[j] == '0'
-                                      || fmt[j] == '^' || fmt[j] == '#'))
-                ++j;
-            while (j < fmt.size() && fmt[j] >= '0' && fmt[j] <= '9') ++j;
-
-            char modifier = '\0';
-            if (j < fmt.size() && (fmt[j] == 'E' || fmt[j] == 'O')) modifier = fmt[j++];
-
-            if (j >= fmt.size()) { out.append(fmt, i, std::string::npos); break; }
-
-            char spec = fmt[j];
-            if (spec == 'l') spec = 'I';
-            else if (spec == 'k') spec = 'H';
-            else if (spec == 'P') spec = 'p';
-
-            if (supported.find(spec) == std::string_view::npos) return std::nullopt;
-
-            out += '%';
-            if (modifier != '\0') out += modifier;
-            out += spec;
-            i = j;
-        }
-
-        return out;
-    }
-
-    /**
-     * @lang{ZH}
-     * @brief 把后端给出的一个纪元变成 `era_entry`：名称、格式串与日期照搬，方向规范化。
-     *
-     * `direction` 被规范化为恰好 `+1` / `-1`，使得以下线性公式对所有纪元类型均一致有效：
-     * @code
-     *   era_year = offset + (calendar_year - from_year) * direction
-     * @endcode
-     * 规范化逻辑参照 glibc 的 era.c（约第 98 行，
-     * https://github.com/lattera/glibc/blob/master/time/era.c）：
-     * 前向纪元（from ≤ to，如公元 AD、日本皇纪、泰国佛历）方向标记直接映射，
-     * '+' → +1，'-' → -1；后向纪元（from > to）方向标记取反：from_year 是纪元起点，to_year
-     * 是"负无穷"的哨兵，公历年份离起点越往过去，(calendar - from_year) 越负，取反后的方向把这段
-     * 距离变成正的纪元年份，同一个公式于是对两个时间方向都成立。
-     *
-     * 后向纪元路径**会被真实 locale 执行**，并非理论分支：`ja_JP` 的「紀元前」
-     * 以及 `zh_TW` / `cmn_TW` / `hak_TW` / `lzh_TW` / `nan_TW` 的「民前」都是
-     * 后向纪元。以本机 glibc 数据实测，24 个带纪元数据的 locale 共 108 条记录，
-     * 其中 18 条为后向纪元。
-     * @param raw 后端读出的纪元，方向为原样的 `'+'` / `'-'`。
-     * @return 规范化后的纪元条目。
-     * @endif
-     *
-     * @lang{EN}
-     * @brief Turns one era the backend gave into an `era_entry`: the name, the format and the
-     *        dates as they are, the direction normalized.
-     *
-     * `direction` is normalised to exactly `+1` / `-1` so that the linear formula
-     * @code
-     *   era_year = offset + (calendar_year - from_year) * direction
-     * @endcode
-     * is uniformly valid for all era types.
-     * The normalisation mirrors glibc's era.c (≈ line 98,
-     * https://github.com/lattera/glibc/blob/master/time/era.c):
-     * for forward eras (from ≤ to, e.g. AD / Japanese / Thai), the marker maps
-     * directly: '+' → +1, '-' → -1;
-     * for backward eras (from > to), the marker is intentionally inverted.
-     * The reason: in a backward era, from_year is the epoch and to_year is a
-     * sentinel for "negative infinity". As the calendar year moves away from the
-     * epoch toward the past, (calendar - from_year) grows increasingly negative;
-     * the normalised negative direction turns that distance into a positive era
-     * year, so the same formula works in either chronological direction.
-     *
-     * The backward branch **is reached by real locales**, not just in theory:
-     * `ja_JP`'s 紀元前 and the 民前 of `zh_TW` / `cmn_TW` / `hak_TW` / `lzh_TW` /
-     * `nan_TW` are all backward eras. Measured against this machine's glibc data,
-     * 18 of the 108 records across the 24 locales that carry era data are
-     * backward.
-     * @param raw An era as the backend read it, its direction the `'+'` / `'-'` as written.
-     * @return The era entry, normalized.
-     * @endif
-     */
-    static era_entry era_from_raw(const detail::timeio_raw_era& raw)
-    {
-        era_entry value{};
-        value.name = raw.name;
-        value.format = raw.format;
-        value.from_year = raw.from_year;
-        value.from_month = raw.from_month;
-        value.from_day = raw.from_day;
-        value.to_year = raw.to_year;
-        value.to_month = raw.to_month;
-        value.to_day = raw.to_day;
-        value.offset = raw.offset;
-
-        const int8_t marked_direction = raw.direction == '+' ? int8_t{1} : int8_t{-1};
-        const bool runs_forward = TimeioHelper::era_small_or_equal(
-            value.from_year, value.from_month, value.from_day,
-            value.to_year, value.to_month, value.to_day);
-        value.direction = runs_forward ? marked_direction : static_cast<int8_t>(-marked_direction);
-        return value;
+        m_day = std::move(text.day);
+        m_abbr_day = std::move(text.abbr_day);
+        m_month = std::move(text.month);
+        m_abbr_month = std::move(text.abbr_month);
+        m_am = std::move(text.am);
+        m_pm = std::move(text.pm);
+        m_date_format = std::move(text.date_format);
+        m_era_date_format = std::move(text.era_date_format);
+        m_time_format = std::move(text.time_format);
+        m_era_time_format = std::move(text.era_time_format);
+        m_date_time_format = std::move(text.date_time_format);
+        m_era_date_time_format = std::move(text.era_date_time_format);
+        m_am_pm_format = std::move(text.am_pm_format);
     }
 
     std::array<std::string, 7>   m_day;
@@ -1316,8 +1409,9 @@ private:
  * @brief `timeio` facet 的宽字符（`wchar_t` / `char32_t` UTF-32）locale 配置类。
  *
  * 此特化适用于 `wchar_t`，以及在 `wchar_t` 为 UTF-32 的平台上的 `char32_t`。
- * 通过内部构造 `timeio_conf<char>` 临时对象来加载 locale 数据，
- * 再将所有窄字符串转换为对应的宽字符或 UTF-32 字符串。
+ * 经平台后端读出 locale 数据：C 库给出了宽字符形式（Windows 的 NLS）时，名字与格式串直接取用；
+ * 否则把窄字符串转换为对应的宽字符或 UTF-32 字符串。回退值与格式串规范化和 `timeio_conf<char>`
+ * 共用同一份实现。
  *
  * @tparam CharT 字符类型，限定为 `wchar_t` 或（在 `wchar_t` 为 UTF-32 的平台上）`char32_t`。
  * @endif
@@ -1327,9 +1421,10 @@ private:
  *        (`wchar_t` / `char32_t` UTF-32).
  *
  * This specialization applies to `wchar_t`, and to `char32_t` on platforms where
- * `wchar_t` is UTF-32. It loads locale data by internally constructing a
- * `timeio_conf<char>` temporary, then converts all narrow strings to the
- * corresponding wide or UTF-32 strings.
+ * `wchar_t` is UTF-32. It reads the locale data through the platform backend: where the C
+ * library gives the names and formats in wide form (Windows' NLS) they are taken as they are;
+ * otherwise the narrow strings are converted to wide or UTF-32 ones. The fallbacks and the
+ * normalization of the formats share one implementation with `timeio_conf<char>`.
  *
  * @tparam CharT The character type, constrained to `wchar_t` or (on UTF-32 platforms) `char32_t`.
  * @endif
@@ -1345,22 +1440,26 @@ class timeio_conf<CharT> : public ft_basic<timeio<CharT>>
 public:
     /**
      * @lang{ZH}
-     * @brief 构造函数，通过 `timeio_conf<char>` 加载 locale 数据并转换为宽字符串。
+     * @brief 构造函数，经平台后端加载 locale 数据；有宽字符形式就直接用，否则把窄字符串转成宽字符。
      * @param name locale 名称（如 `"C"`、`"ja_JP.UTF-8"`）。
      * @endif
      *
      * @lang{EN}
-     * @brief Constructor that loads locale data via `timeio_conf<char>` and converts
-     *        all strings to wide character strings.
+     * @brief Constructor that loads locale data through the platform backend, taking its wide form
+     *        where there is one and converting the narrow strings otherwise.
      * @param name The locale name (e.g. `"C"`, `"ja_JP.UTF-8"`).
      * @endif
      */
     timeio_conf(const std::string& name)
         : ft_basic<timeio<CharT>>()
     {
-        timeio_conf<char> tmp_obj(name);
+        if (FacetHelper::is_c_locale_name(name))
+        {
+            take_text(detail::timeio_c_text<CharT>());
+            return;
+        }
 
-        auto convert = [&name](const std::string& src) -> std::basic_string<CharT>
+        const auto convert = [&name](const std::string& src) -> std::basic_string<CharT>
         {
             if constexpr (std::is_same_v<CharT, wchar_t>)
                 return detail::to_wstring(src.c_str(), name);
@@ -1370,55 +1469,22 @@ public:
                 return detail::to_u32string<CharT>(src.c_str(), name);
         };
 
-        m_date_format = convert(tmp_obj.date_format());
-        m_era_date_format = convert(tmp_obj.era_date_format());
-        m_time_format = convert(tmp_obj.time_format());
-        m_era_time_format = convert(tmp_obj.era_time_format());
-        m_date_time_format = convert(tmp_obj.date_time_format());
-        m_era_date_time_format = convert(tmp_obj.era_date_time_format());
-
-        m_am = convert(tmp_obj.am_name());
-        m_pm = convert(tmp_obj.pm_name());
-        m_am_pm_format = convert(tmp_obj.am_pm_format());
-
-        for (std::size_t i = 0; i < 7; ++i)
+        const detail::timeio_raw_data raw = detail::timeio_snapshot(name);
+        if (raw.wide)
         {
-            m_day[i] = convert(tmp_obj.day_names()[i]);
-            m_abbr_day[i] = convert(tmp_obj.abbr_day_names()[i]);
+            const auto same = [](const std::wstring& src) {
+                return std::basic_string<CharT>(src.begin(), src.end());
+            };
+            take_text(detail::timeio_text_from<CharT>(*raw.wide, same));
         }
+        else
+            take_text(detail::timeio_text_from<CharT>(raw, convert));
 
-        for (std::size_t i = 0; i < 12; ++i)
-        {
-            m_month[i] = convert(tmp_obj.month_names()[i]);
-            m_abbr_month[i] = convert(tmp_obj.abbr_month_names()[i]);
-        }
-
-        for (std::size_t i = 0; i < 100; ++i)
-        {
-            m_alt_digits[i] = convert(tmp_obj.alt_digit_names()[i]);
-        }
-
-        const auto& tmp_era = tmp_obj.era_items();
-        if (!tmp_era.empty())
-        {
-            m_era_items.reserve(tmp_era.size());
-            for (const auto& src : tmp_era)
-            {
-                era_entry cur_entry;
-                cur_entry.name = convert(src.name);
-                cur_entry.format = convert(src.format);
-                cur_entry.from_year = src.from_year;
-                cur_entry.from_month = src.from_month;
-                cur_entry.from_day = src.from_day;
-                cur_entry.to_year = src.to_year;
-                cur_entry.to_month = src.to_month;
-                cur_entry.to_day = src.to_day;
-                cur_entry.offset = src.offset;
-                cur_entry.direction = src.direction;
-                m_era_items.push_back(std::move(cur_entry));
-            }
-        }
-
+        for (std::size_t i = 0; i < raw.alt_digits.size() && i < m_alt_digits.size(); ++i)
+            m_alt_digits[i] = convert(raw.alt_digits[i]);
+        m_era_items.reserve(raw.eras.size());
+        for (const detail::timeio_raw_era& era : raw.eras)
+            m_era_items.push_back(detail::timeio_era_from_raw<era_entry>(era, convert));
     }
 
     /**
@@ -1604,6 +1670,24 @@ public:
     [[nodiscard]] virtual const std::vector<era_entry>& era_items() const { return m_era_items; }
 
 private:
+    // Takes the names and formats over from text.
+    void take_text(detail::timeio_text<CharT> text)
+    {
+        m_day = std::move(text.day);
+        m_abbr_day = std::move(text.abbr_day);
+        m_month = std::move(text.month);
+        m_abbr_month = std::move(text.abbr_month);
+        m_am = std::move(text.am);
+        m_pm = std::move(text.pm);
+        m_date_format = std::move(text.date_format);
+        m_era_date_format = std::move(text.era_date_format);
+        m_time_format = std::move(text.time_format);
+        m_era_time_format = std::move(text.era_time_format);
+        m_date_time_format = std::move(text.date_time_format);
+        m_era_date_time_format = std::move(text.era_date_time_format);
+        m_am_pm_format = std::move(text.am_pm_format);
+    }
+
     std::array<std::basic_string<CharT>, 7>   m_day;
     std::array<std::basic_string<CharT>, 7>   m_abbr_day;
     std::array<std::basic_string<CharT>, 12>  m_month;
