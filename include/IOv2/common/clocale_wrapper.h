@@ -43,6 +43,7 @@ struct clocale_wrapper
     friend struct clocale_user;
     template <typename CharT> friend class ctype_conf;
     template <typename CharT> friend class collate_conf;
+    template <typename CharT> friend class timeio_conf;
 
     /**
      * @lang{ZH}

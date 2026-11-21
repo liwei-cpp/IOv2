@@ -100,11 +100,13 @@ namespace IOv2
  * @endcode
  * @endif
  */
+// The MSVC STL's unordered_map allocates in its move constructor, so on Windows moving a tree
+// (or a node) can throw bad_alloc; nothing relies on that move being noexcept.
 template <unordered_key CharT, std::equality_comparable TValue>
-class prefix_tree
+class prefix_tree   // NOLINT(bugprone-exception-escape)
 {
     /// @cond INTERNAL
-    struct node
+    struct node   // NOLINT(bugprone-exception-escape): as for prefix_tree above
     {
         std::unordered_map<CharT, std::unique_ptr<node>> children;
         std::optional<TValue> val;

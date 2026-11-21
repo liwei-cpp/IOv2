@@ -399,8 +399,9 @@ struct date_parse_helper<CharT, true>
                 int t_mon = 0;
                 while (t_mon < 12 && std::cmp_less_equal(s_mon_yday[isleap(deduced_year)][t_mon], deduced_yday))
                     t_mon++;
-                if (!m_have_mon) deduced_month = t_mon;
-                if (!m_have_mday) deduced_mday = (deduced_yday - s_mon_yday[isleap(deduced_year)][deduced_month - 1] + 1);
+                if (!m_have_mon) deduced_month = static_cast<uint8_t>(t_mon);
+                if (!m_have_mday)
+                    deduced_mday = static_cast<uint8_t>(deduced_yday - s_mon_yday[isleap(deduced_year)][deduced_month - 1] + 1);
             }
             else if (wday_snaps)
             {
@@ -408,13 +409,13 @@ struct date_parse_helper<CharT, true>
                 // week is known. Resolve it as the first matching weekday on or after the
                 // fallback date, so the result stays within six days of the fallback
                 // instead of jumping to whichever week of the year happens to match.
-                auto last = static_cast<unsigned>(
+                auto last_day = static_cast<unsigned>(
                     year_month_day_last{year{deduced_year},
                                         month_day_last{month{static_cast<unsigned>(deduced_month)}}}
                         .day());
                 sys_days base{year{deduced_year}
                               / month{static_cast<unsigned>(deduced_month)}
-                              / day{std::min<unsigned>(deduced_mday, last)}};
+                              / day{std::min<unsigned>(deduced_mday, last_day)}};
                 auto cur = static_cast<int>(weekday{base}.c_encoding());
                 year_month_day snapped{base + days{(static_cast<int>(m_wday) - cur + 7) % 7}};
                 deduced_year  = static_cast<int>(snapped.year());
@@ -449,9 +450,9 @@ struct date_parse_helper<CharT, true>
                     while (t_mon < 12 && std::cmp_less_equal(s_mon_yday[isleap(deduced_year)][t_mon], deduced_yday))
                         t_mon++;
                     if (!m_have_mon)
-                        deduced_month = t_mon;
+                        deduced_month = static_cast<uint8_t>(t_mon);
                     if (!m_have_mday)
-                        deduced_mday = (deduced_yday - s_mon_yday[isleap(deduced_year)][deduced_month - 1] + 1);
+                        deduced_mday = static_cast<uint8_t>(deduced_yday - s_mon_yday[isleap(deduced_year)][deduced_month - 1] + 1);
                 }
             }
         }
@@ -463,12 +464,12 @@ struct date_parse_helper<CharT, true>
         // invalid.
         if (mday_is_fallback && deduced_month >= 1 && deduced_month <= 12)
         {
-            auto last = static_cast<unsigned>(
+            auto last_day = static_cast<unsigned>(
                 year_month_day_last{year{deduced_year},
                                     month_day_last{month{static_cast<unsigned>(deduced_month)}}}
                     .day());
-            if (static_cast<unsigned>(deduced_mday) > last)
-                deduced_mday = static_cast<uint8_t>(last);
+            if (static_cast<unsigned>(deduced_mday) > last_day)
+                deduced_mday = static_cast<uint8_t>(last_day);
         }
 
         return year_month_day{ year{deduced_year}, month{static_cast<uint8_t>(deduced_month)}, day{static_cast<uint8_t>(deduced_mday)} };
@@ -1398,7 +1399,7 @@ struct time_parse_context
         sys_time<seconds> st{ lt.time_since_epoch() - this->m_offset };
         if (this->m_zone_name)
         {
-            const minutes actual = duration_cast<minutes>(tz->get_info(st).offset);
+            const auto actual = duration_cast<minutes>(tz->get_info(st).offset);
             if (actual != this->m_offset)
                 throw stream_error(
                     "timeio get error: UTC offset of "
@@ -3184,7 +3185,7 @@ private:
                     rp = m_day_tree.max_match(rp, rp_end, tmp);
                     if (tmp)
                     {
-                        ctx.m_wday = *tmp;
+                        ctx.m_wday = static_cast<uint8_t>(*tmp);
                         ctx.m_have_wday = true;
                     }
                     else
@@ -3280,7 +3281,7 @@ private:
                     else
                         rp = scan_int_field(rp, rp_end, mem, 1, 31, 2, succ);
                     if (!succ) return rp;
-                    ctx.m_mday = mem;
+                    ctx.m_mday = static_cast<uint8_t>(mem);
                     ctx.m_have_mday = true;
                 }
                 break;
@@ -3298,7 +3299,7 @@ private:
                     else
                         rp = scan_int_field(rp, rp_end, mem, 1, 31, 2, succ);
                     if (!succ) return rp;
-                    ctx.m_mday = mem;
+                    ctx.m_mday = static_cast<uint8_t>(mem);
                     ctx.m_have_mday = true;
                 }
                 break;
@@ -3367,7 +3368,7 @@ private:
                     else
                         rp= scan_int_field(rp, rp_end, mem, 0, 23, 2, succ);
                     if (!succ) return rp;
-                    ctx.m_hour = mem;
+                    ctx.m_hour = static_cast<uint8_t>(mem);
                     ctx.m_have_I = false;
                 }
                 break;
@@ -3397,7 +3398,7 @@ private:
                     int mem = 0;
                     rp = scan_int_field(rp, rp_end, mem, 1, 366, 3, succ);
                     if (!succ) return rp;
-                    ctx.m_yday = mem - 1;
+                    ctx.m_yday = static_cast<unsigned short>(mem - 1);
                     ctx.m_have_yday = true;
                 }
                 break;
@@ -3414,7 +3415,7 @@ private:
                     else
                         rp = scan_int_field(rp, rp_end, mem, 1, 12, 2, succ);
                     if (!succ) return rp;
-                    ctx.m_month = mem;
+                    ctx.m_month = static_cast<uint8_t>(mem);
                     ctx.m_have_mon = true;
                 }
                 break;
@@ -3430,7 +3431,7 @@ private:
                     else
                         rp = scan_int_field(rp, rp_end, mem, 0, 59, 2, succ);
                     if (!succ) return rp;
-                    ctx.m_minute = mem;
+                    ctx.m_minute = static_cast<uint8_t>(mem);
                 }
                 break;
 
@@ -3503,7 +3504,7 @@ private:
                     else
                         rp = scan_int_field(rp, rp_end, mem, 0, 59, 2, succ);
                     if (!succ) return rp;
-                    ctx.m_second = mem;
+                    ctx.m_second = static_cast<uint8_t>(mem);
                 }
                 break;
 
@@ -3547,7 +3548,7 @@ private:
                     else
                         rp = scan_int_field(rp, rp_end, mem, 0, 53, 2, succ);
                     if (!succ) return rp;
-                    ctx.m_week_no = mem;
+                    ctx.m_week_no = static_cast<uint8_t>(mem);
                     ctx.m_have_uweek = true;
                     ctx.m_have_wweek = false;
                 }
@@ -3564,7 +3565,7 @@ private:
                     else
                         rp = scan_int_field(rp, rp_end, mem, 1, 53, 2, succ);
                     if (!succ) return rp;
-                    ctx.m_iso_8601_week = mem;
+                    ctx.m_iso_8601_week = static_cast<uint8_t>(mem);
                     ctx.m_have_iso_8601_week = true;
                 }
                 break;
@@ -3581,7 +3582,7 @@ private:
                     else
                         rp = scan_int_field(rp, rp_end, mem, 0, 6, 1, succ);
                     if (!succ) return rp;
-                    ctx.m_wday = mem;
+                    ctx.m_wday = static_cast<uint8_t>(mem);
                     ctx.m_have_wday = 1;
                 }
                 break;
@@ -3597,7 +3598,7 @@ private:
                     else
                         rp = scan_int_field(rp, rp_end, mem, 0, 53, 2, succ);
                     if (!succ) return rp;
-                    ctx.m_week_no = mem;
+                    ctx.m_week_no = static_cast<uint8_t>(mem);
                     ctx.m_have_wweek = true;
                     ctx.m_have_uweek = false;
                 }
@@ -4214,7 +4215,7 @@ private:
         for (std::size_t i = 0; i < 100; ++i)
         {
             if (!m_alt_digits[i].empty())
-                m_alt_digits_tree.add(m_alt_digits[i], i);
+                m_alt_digits_tree.add(m_alt_digits[i], static_cast<int>(i));
         }
     }
 
@@ -4614,7 +4615,7 @@ private:
                 if (!ymd || !wd || modifier == static_cast<CharT>('E')) goto bad_format;
                 {
                     std::chrono::sys_days sd{*ymd};
-                    std::chrono::sys_days jan1 = {ymd->year()/std::chrono::January/1};
+                    const std::chrono::sys_days jan1{ymd->year()/std::chrono::January/1};
                     int doy = static_cast<int>((sd - jan1).count());
                     int wday = static_cast<int>(wd->c_encoding());
                     int val = (doy - wday + 7) / 7;
@@ -4971,13 +4972,19 @@ private:
             case static_cast<CharT>('G'):
             case static_cast<CharT>('j'):
                 if constexpr (!has_date) goto filter_format;
-                if (modifier) goto filter_format;
+                else
+                {
+                    if (modifier) goto filter_format;
+                }
                 break;
 
             case static_cast<CharT>('C'):
             case static_cast<CharT>('Y'):
                 if constexpr (!has_date) goto filter_format;
-                if (modifier == static_cast<CharT>('O')) goto filter_format;
+                else
+                {
+                    if (modifier == static_cast<CharT>('O')) goto filter_format;
+                }
                 break;
 
             case static_cast<CharT>('d'):
@@ -4989,7 +4996,10 @@ private:
             case static_cast<CharT>('V'):
             case static_cast<CharT>('W'):
                 if constexpr (!has_date) goto filter_format;
-                if (modifier == static_cast<CharT>('E')) goto filter_format;
+                else
+                {
+                    if (modifier == static_cast<CharT>('E')) goto filter_format;
+                }
                 break;
 
             case static_cast<CharT>('y'):
@@ -4998,7 +5008,10 @@ private:
 
             case static_cast<CharT>('p'):
                 if constexpr (!has_time) goto filter_format;
-                if (modifier) goto filter_format;
+                else
+                {
+                    if (modifier) goto filter_format;
+                }
                 break;
 
             case static_cast<CharT>('H'):
@@ -5006,99 +5019,124 @@ private:
             case static_cast<CharT>('M'):
             case static_cast<CharT>('S'):
                 if constexpr (!has_time) goto filter_format;
-                if (modifier == static_cast<CharT>('E')) goto filter_format;
+                else
+                {
+                    if (modifier == static_cast<CharT>('E')) goto filter_format;
+                }
                 break;
 
             case static_cast<CharT>('z'):
                 if constexpr (!has_offset) goto filter_format;
-                if (modifier) goto filter_format;
+                else
+                {
+                    if (modifier) goto filter_format;
+                }
                 break;
 
             case static_cast<CharT>('Z'):
                 if constexpr (!has_zone) goto filter_format;
-                if (modifier) goto filter_format;
+                else
+                {
+                    if (modifier) goto filter_format;
+                }
                 break;
 
             case static_cast<CharT>('c'):
                 if constexpr (!has_date || !has_time) goto filter_format;
-                if (modifier == static_cast<CharT>('O')) goto filter_format;
-                expand_and_filter<has_date, has_time, has_offset, has_zone>(
-                    result, (modifier == static_cast<CharT>('E')) ? m_era_date_time_format
-                                                                  : m_date_time_format);
-                ++f;
-                continue;
+                else
+                {
+                    if (modifier == static_cast<CharT>('O')) goto filter_format;
+                    expand_and_filter<has_date, has_time, has_offset, has_zone>(
+                        result, (modifier == static_cast<CharT>('E')) ? m_era_date_time_format
+                                                                      : m_date_time_format);
+                    ++f;
+                    continue;
+                }
 
             case static_cast<CharT>('x'):
                 if constexpr (!has_date) goto filter_format;
-                if (modifier == static_cast<CharT>('O')) goto filter_format;
-                expand_and_filter<has_date, has_time, has_offset, has_zone>(
-                    result, (modifier == static_cast<CharT>('E')) ? m_era_date_format
-                                                                  : m_date_format);
-                ++f;
-                continue;
+                else
+                {
+                    if (modifier == static_cast<CharT>('O')) goto filter_format;
+                    expand_and_filter<has_date, has_time, has_offset, has_zone>(
+                        result, (modifier == static_cast<CharT>('E')) ? m_era_date_format
+                                                                      : m_date_format);
+                    ++f;
+                    continue;
+                }
 
             case static_cast<CharT>('X'):
                 if constexpr (!has_time) goto filter_format;
-                if (modifier == static_cast<CharT>('O')) goto filter_format;
-                expand_and_filter<has_date, has_time, has_offset, has_zone>(
-                    result, (modifier == static_cast<CharT>('E')) ? m_era_time_format
-                                                                  : m_time_format);
-                ++f;
-                continue;
+                else
+                {
+                    if (modifier == static_cast<CharT>('O')) goto filter_format;
+                    expand_and_filter<has_date, has_time, has_offset, has_zone>(
+                        result, (modifier == static_cast<CharT>('E')) ? m_era_time_format
+                                                                      : m_time_format);
+                    ++f;
+                    continue;
+                }
 
             case static_cast<CharT>('r'):
                 if constexpr (!has_time) goto filter_format;
-                if (modifier) goto filter_format;
-                expand_and_filter<has_date, has_time, has_offset, has_zone>(result, m_am_pm_format);
-                ++f;
-                continue;
+                else
+                {
+                    if (modifier) goto filter_format;
+                    expand_and_filter<has_date, has_time, has_offset, has_zone>(result, m_am_pm_format);
+                    ++f;
+                    continue;
+                }
 
             case static_cast<CharT>('D'):
                 if constexpr (!has_date) goto filter_format;
-                if (modifier) goto filter_format;
+                else
                 {
+                    if (modifier) goto filter_format;
                     static constexpr std::array subfmt = {static_cast<CharT>('%'), static_cast<CharT>('m'), static_cast<CharT>('/'),
                                                           static_cast<CharT>('%'), static_cast<CharT>('d'), static_cast<CharT>('/'),
                                                           static_cast<CharT>('%'), static_cast<CharT>('y'), CharT()};
                     expand_and_filter<has_date, has_time, has_offset, has_zone>(result, subfmt.data());
+                    ++f;
+                    continue;
                 }
-                ++f;
-                continue;
 
             case static_cast<CharT>('F'):
                 if constexpr (!has_date) goto filter_format;
-                if (modifier) goto filter_format;
+                else
                 {
+                    if (modifier) goto filter_format;
                     static constexpr std::array subfmt = {static_cast<CharT>('%'), static_cast<CharT>('Y'), static_cast<CharT>('-'),
                                                           static_cast<CharT>('%'), static_cast<CharT>('m'), static_cast<CharT>('-'),
                                                           static_cast<CharT>('%'), static_cast<CharT>('d'), CharT()};
                     expand_and_filter<has_date, has_time, has_offset, has_zone>(result, subfmt.data());
+                    ++f;
+                    continue;
                 }
-                ++f;
-                continue;
 
             case static_cast<CharT>('R'):
                 if constexpr (!has_time) goto filter_format;
-                if (modifier) goto filter_format;
+                else
                 {
+                    if (modifier) goto filter_format;
                     static constexpr std::array subfmt = {static_cast<CharT>('%'), static_cast<CharT>('H'), static_cast<CharT>(':'),
                                                           static_cast<CharT>('%'), static_cast<CharT>('M'), CharT()};
                     expand_and_filter<has_date, has_time, has_offset, has_zone>(result, subfmt.data());
+                    ++f;
+                    continue;
                 }
-                ++f;
-                continue;
 
             case static_cast<CharT>('T'):
                 if constexpr (!has_time) goto filter_format;
-                if (modifier) goto filter_format;
+                else
                 {
+                    if (modifier) goto filter_format;
                     static constexpr std::array subfmt = {static_cast<CharT>('%'), static_cast<CharT>('H'), static_cast<CharT>(':'),
                                                           static_cast<CharT>('%'), static_cast<CharT>('M'), static_cast<CharT>(':'),
                                                           static_cast<CharT>('%'), static_cast<CharT>('S'), CharT()};
                     expand_and_filter<has_date, has_time, has_offset, has_zone>(result, subfmt.data());
+                    ++f;
+                    continue;
                 }
-                ++f;
-                continue;
 
             default:
             filter_format:
@@ -5128,8 +5166,8 @@ private:
     const era_entry* get_era_entry(const std::chrono::year_month_day& ymd) const
     {
         int year  = static_cast<int>(ymd.year());
-        uint8_t month = static_cast<unsigned>(ymd.month());
-        uint8_t day   = static_cast<unsigned>(ymd.day());
+        uint8_t month = static_cast<uint8_t>(static_cast<unsigned>(ymd.month()));
+        uint8_t day   = static_cast<uint8_t>(static_cast<unsigned>(ymd.day()));
 
         using namespace TimeioHelper;
         for (std::size_t i = 0; i < m_era_master.size(); ++i)

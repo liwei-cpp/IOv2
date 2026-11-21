@@ -151,8 +151,9 @@ namespace
             SCOPED_TRACE(std::string("%") + (c.mod ? std::string(1, static_cast<char>(c.mod))
                                                    : std::string())
                          + static_cast<char>(c.spec));
-            EXPECT_EQ(c.mod ? put_one(obj, tp, c.spec, c.mod) : put_one(obj, tp, c.spec),
-                      c.expected);
+            const char spec = static_cast<char>(c.spec);
+            const char mod  = static_cast<char>(c.mod);
+            EXPECT_EQ(mod ? put_one(obj, tp, spec, mod) : put_one(obj, tp, spec), c.expected);
         }
     }
 
@@ -1003,20 +1004,20 @@ TEST(TimeioWchar, ABrokenDownTimeNamesItsZoneOrSaysItCannot)
     const std::tm         tp  = calendar_time(2024 - 1900, 9 - 1, 4, 13, 33, 18, 0, 0, 0);
 
     // Without a tz database to read a name back with, %Z is echoed like any specifier the
-    // value cannot supply.
-    EXPECT_EQ(put_one(obj, tp, L'Z'), time_value_fields<std::tm>::has_zone ? L"UNKNOWN" : L"%Z");
-    EXPECT_EQ(put_one(obj, tp, L'z'), L"+0000");
+    // value cannot supply; so is %z where std::tm has no tm_gmtoff (the UCRT's).
+    EXPECT_EQ(put_one(obj, tp, 'Z'), time_value_fields<std::tm>::has_zone ? L"UNKNOWN" : L"%Z");
+    EXPECT_EQ(put_one(obj, tp, 'z'), time_value_fields<std::tm>::has_offset ? L"+0000" : L"%z");
 
 #ifdef __USE_MISC
     if constexpr (time_value_fields<std::tm>::has_zone)
     {
         std::tm named = tp;
         named.tm_zone = "PST";
-        EXPECT_EQ(put_one(obj, named, L'Z'), L"PST");
+        EXPECT_EQ(put_one(obj, named, 'Z'), L"PST");
 
         // An empty string is as nameless as a null pointer.
         named.tm_zone = "";
-        EXPECT_EQ(put_one(obj, named, L'Z'), L"UNKNOWN");
+        EXPECT_EQ(put_one(obj, named, 'Z'), L"UNKNOWN");
     }
 #endif
 }
@@ -1036,11 +1037,11 @@ TEST(TimeioWchar, AFormatStringIsExpandedSpecifierBySpecifier)
         const timeio<wchar_t> obj = facet_for(loc);
 
         EXPECT_EQ(put_one(obj, tp, std::wstring_view(L"%A, week %W of %B")),
-                  put_one(obj, tp, L'A') + L", week " + put_one(obj, tp, L'W')
-                                        + L" of " + put_one(obj, tp, L'B'));
+                  put_one(obj, tp, 'A') + L", week " + put_one(obj, tp, 'W')
+                                        + L" of " + put_one(obj, tp, 'B'));
 
         // Literal text alone, and a format that is nothing but literal text.
-        EXPECT_EQ(put_one(obj, tp, std::wstring_view(L"[%Y]")), L"[" + put_one(obj, tp, L'Y') + L"]");
+        EXPECT_EQ(put_one(obj, tp, std::wstring_view(L"[%Y]")), L"[" + put_one(obj, tp, 'Y') + L"]");
         EXPECT_EQ(put_one(obj, tp, std::wstring_view(L"no specifiers")), L"no specifiers");
     }
 }
@@ -1060,7 +1061,7 @@ TEST(TimeioWchar, PutIntoAnExistingBufferReturnsWhereItStopped)
     // The same for a single specifier, whose length the caller cannot know in
     // advance because it is a word the locale chose.
     std::wstring one(20, L'.');
-    const auto   one_end = obj.put(one.begin(), tp, L'A');
+    const auto   one_end = obj.put(one.begin(), tp, 'A');
     EXPECT_EQ(std::wstring(one.begin(), one_end), L"Thursday");
     EXPECT_EQ(one.substr(8), std::wstring(12, L'.'));
 }
@@ -1186,7 +1187,7 @@ TEST(TimeioWchar, ACompositeFormatCanExpandPastAConventionalStackBuffer)
     auto   tp = create_sys_time(2022, 11, 17, 21, 47, 26);
 
     std::wstring actual;
-    obj.put(std::back_inserter(actual), tp, L'c');
+    obj.put(std::back_inserter(actual), tp, 'c');
 
     std::wstring expected(140, L'q');
     expected += L"-2022-11-17-21:47:26-";
@@ -1428,7 +1429,7 @@ TEST(TimeioWchar, TheCLocaleReadsEveryConversionSpecifier)
 
 #if IOV2_HAS_CHRONO_TZDB
     EXPECT_TRUE(zone_is(CheckGet(obj, L"America/Los_Angeles", L'Z', 0, ios_defs::eofbit).m_zone_name, "America/Los_Angeles"));
-    { auto r = CheckGet(obj, L"PST", L'Z', 0, ios_defs::eofbit); EXPECT_TRUE(r.m_zone_name == nullptr && zone_is(r.m_zone_abbrev, "PST")); }
+    { auto r = CheckGet(obj, L"PDT", L'Z', 0, ios_defs::eofbit); EXPECT_TRUE(r.m_zone_name == nullptr && zone_is(r.m_zone_abbrev, "PDT")); }   // not PST: a zone ID in ICU
 #else
     { auto r = CheckGet(obj, L"UTC", L'Z', 0, ios_defs::eofbit); EXPECT_TRUE(r.m_zone_name == nullptr && zone_is(r.m_zone_abbrev, "UTC")); }
 #endif
@@ -1699,7 +1700,7 @@ TEST(TimeioWchar, ChineseReadsEveryConversionSpecifier)
 
 #if IOV2_HAS_CHRONO_TZDB
     EXPECT_TRUE(zone_is(CheckGet(obj, L"America/Los_Angeles", L'Z', 0, ios_defs::eofbit).m_zone_name, "America/Los_Angeles"));
-    { auto r = CheckGet(obj, L"PST", L'Z', 0, ios_defs::eofbit); EXPECT_TRUE(r.m_zone_name == nullptr && zone_is(r.m_zone_abbrev, "PST")); }
+    { auto r = CheckGet(obj, L"PDT", L'Z', 0, ios_defs::eofbit); EXPECT_TRUE(r.m_zone_name == nullptr && zone_is(r.m_zone_abbrev, "PDT")); }   // not PST: a zone ID in ICU
 #else
     { auto r = CheckGet(obj, L"UTC", L'Z', 0, ios_defs::eofbit); EXPECT_TRUE(r.m_zone_name == nullptr && zone_is(r.m_zone_abbrev, "UTC")); }
 #endif
@@ -1987,7 +1988,7 @@ TEST(TimeioWchar, JapaneseReadsEveryConversionSpecifier)
 
 #if IOV2_HAS_CHRONO_TZDB
     EXPECT_TRUE(zone_is(CheckGet(obj, L"America/Los_Angeles", L'Z', 0, ios_defs::eofbit).m_zone_name, "America/Los_Angeles"));
-    { auto r = CheckGet(obj, L"PST", L'Z', 0, ios_defs::eofbit); EXPECT_TRUE(r.m_zone_name == nullptr && zone_is(r.m_zone_abbrev, "PST")); }
+    { auto r = CheckGet(obj, L"PDT", L'Z', 0, ios_defs::eofbit); EXPECT_TRUE(r.m_zone_name == nullptr && zone_is(r.m_zone_abbrev, "PDT")); }   // not PST: a zone ID in ICU
 #else
     { auto r = CheckGet(obj, L"UTC", L'Z', 0, ios_defs::eofbit); EXPECT_TRUE(r.m_zone_name == nullptr && zone_is(r.m_zone_abbrev, "UTC")); }
 #endif

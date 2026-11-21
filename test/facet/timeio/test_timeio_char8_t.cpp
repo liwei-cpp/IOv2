@@ -1003,9 +1003,9 @@ TEST(TimeioChar8, ABrokenDownTimeNamesItsZoneOrSaysItCannot)
     const std::tm         tp  = calendar_time(2024 - 1900, 9 - 1, 4, 13, 33, 18, 0, 0, 0);
 
     // Without a tz database to read a name back with, %Z is echoed like any specifier the
-    // value cannot supply.
+    // value cannot supply; so is %z where std::tm has no tm_gmtoff (the UCRT's).
     EXPECT_EQ(put_one(obj, tp, u8'Z'), time_value_fields<std::tm>::has_zone ? u8"UNKNOWN" : u8"%Z");
-    EXPECT_EQ(put_one(obj, tp, u8'z'), u8"+0000");
+    EXPECT_EQ(put_one(obj, tp, u8'z'), time_value_fields<std::tm>::has_offset ? u8"+0000" : u8"%z");
 
 #ifdef __USE_MISC
     if constexpr (time_value_fields<std::tm>::has_zone)
@@ -1428,7 +1428,7 @@ TEST(TimeioChar8, TheCLocaleReadsEveryConversionSpecifier)
 
 #if IOV2_HAS_CHRONO_TZDB
     EXPECT_TRUE(zone_is(CheckGet(obj, u8"America/Los_Angeles", u8'Z', 0, ios_defs::eofbit).m_zone_name, "America/Los_Angeles"));
-    { auto r = CheckGet(obj, u8"PST", u8'Z', 0, ios_defs::eofbit); EXPECT_TRUE(r.m_zone_name == nullptr && zone_is(r.m_zone_abbrev, "PST")); }
+    { auto r = CheckGet(obj, u8"PDT", u8'Z', 0, ios_defs::eofbit); EXPECT_TRUE(r.m_zone_name == nullptr && zone_is(r.m_zone_abbrev, "PDT")); }   // not PST: a zone ID in ICU
 #else
     { auto r = CheckGet(obj, u8"UTC", u8'Z', 0, ios_defs::eofbit); EXPECT_TRUE(r.m_zone_name == nullptr && zone_is(r.m_zone_abbrev, "UTC")); }
 #endif
@@ -1699,7 +1699,7 @@ TEST(TimeioChar8, ChineseReadsEveryConversionSpecifier)
 
 #if IOV2_HAS_CHRONO_TZDB
     EXPECT_TRUE(zone_is(CheckGet(obj, u8"America/Los_Angeles", u8'Z', 0, ios_defs::eofbit).m_zone_name, "America/Los_Angeles"));
-    { auto r = CheckGet(obj, u8"PST", u8'Z', 0, ios_defs::eofbit); EXPECT_TRUE(r.m_zone_name == nullptr && zone_is(r.m_zone_abbrev, "PST")); }
+    { auto r = CheckGet(obj, u8"PDT", u8'Z', 0, ios_defs::eofbit); EXPECT_TRUE(r.m_zone_name == nullptr && zone_is(r.m_zone_abbrev, "PDT")); }   // not PST: a zone ID in ICU
 #else
     { auto r = CheckGet(obj, u8"UTC", u8'Z', 0, ios_defs::eofbit); EXPECT_TRUE(r.m_zone_name == nullptr && zone_is(r.m_zone_abbrev, "UTC")); }
 #endif
@@ -1987,7 +1987,7 @@ TEST(TimeioChar8, JapaneseReadsEveryConversionSpecifier)
 
 #if IOV2_HAS_CHRONO_TZDB
     EXPECT_TRUE(zone_is(CheckGet(obj, u8"America/Los_Angeles", u8'Z', 0, ios_defs::eofbit).m_zone_name, "America/Los_Angeles"));
-    { auto r = CheckGet(obj, u8"PST", u8'Z', 0, ios_defs::eofbit); EXPECT_TRUE(r.m_zone_name == nullptr && zone_is(r.m_zone_abbrev, "PST")); }
+    { auto r = CheckGet(obj, u8"PDT", u8'Z', 0, ios_defs::eofbit); EXPECT_TRUE(r.m_zone_name == nullptr && zone_is(r.m_zone_abbrev, "PDT")); }   // not PST: a zone ID in ICU
 #else
     { auto r = CheckGet(obj, u8"UTC", u8'Z', 0, ios_defs::eofbit); EXPECT_TRUE(r.m_zone_name == nullptr && zone_is(r.m_zone_abbrev, "UTC")); }
 #endif

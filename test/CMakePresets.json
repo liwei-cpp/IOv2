@@ -110,10 +110,10 @@
       "name": "win-clangcl-xwin",
       "hidden": true,
       "inherits": "base",
-      "description": "Cross-built on Linux for Windows (MSVC ABI) and run under Wine; see cmake/toolchains/windows-clangcl-xwin.cmake. IOV2_TEST_COMPONENTS lists the components, and the suites of partly ported ones, ported so far.",
+      "description": "Cross-built on Linux for Windows (MSVC ABI) and run under Wine; see cmake/toolchains/windows-clangcl-xwin.cmake. IOV2_TEST_COMPONENTS lists the components ported so far.",
       "generator": "Ninja",
       "toolchainFile": "${sourceDir}/cmake/toolchains/windows-clangcl-xwin.cmake",
-      "cacheVariables": { "IOV2_TEST_COMPONENTS": "common;device;cvt;facet/ctype;facet/collate;facet/numeric;facet/monetary;facet/messages" }
+      "cacheVariables": { "IOV2_TEST_COMPONENTS": "common;device;cvt;facet" }
     },
     {
       "name": "win-clangcl-xwin-release",
@@ -141,12 +141,12 @@
       "name": "windows",
       "hidden": true,
       "inherits": "base",
-      "description": "Native Windows, from a shell where the MSVC environment is set up (vcvars, or ilammy/msvc-dev-cmd in CI) and VCPKG_ROOT names a vcpkg checkout: zlib and Botan come from vcpkg.json. IOV2_TEST_COMPONENTS lists the components, and the suites of partly ported ones, ported so far.",
+      "description": "Native Windows, from a shell where the MSVC environment is set up (vcvars, or ilammy/msvc-dev-cmd in CI) and VCPKG_ROOT names a vcpkg checkout: zlib and Botan come from vcpkg.json. IOV2_TEST_COMPONENTS lists the components ported so far.",
       "generator": "Ninja",
       "condition": { "type": "equals", "lhs": "${hostSystemName}", "rhs": "Windows" },
       "toolchainFile": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
       "cacheVariables": {
-        "IOV2_TEST_COMPONENTS": "common;device;cvt;facet/ctype;facet/collate;facet/numeric;facet/monetary;facet/messages",
+        "IOV2_TEST_COMPONENTS": "common;device;cvt;facet",
         "VCPKG_TARGET_TRIPLET": "x64-windows",
         "VCPKG_APPLOCAL_DEPS": "OFF"
       }
@@ -189,11 +189,11 @@
       "name": "macos",
       "hidden": true,
       "inherits": "base",
-      "description": "zlib comes with the SDK and Botan from Homebrew (brew install botan), found under /opt/homebrew on Apple silicon and /usr/local on Intel. IOV2_TEST_COMPONENTS lists the components, and the suites of partly ported ones, ported so far.",
+      "description": "zlib comes with the SDK and Botan from Homebrew (brew install botan), found under /opt/homebrew on Apple silicon and /usr/local on Intel. IOV2_TEST_COMPONENTS lists the components ported so far.",
       "condition": { "type": "equals", "lhs": "${hostSystemName}", "rhs": "Darwin" },
       "environment": { "CXX": "clang++" },
       "cacheVariables": {
-        "IOV2_TEST_COMPONENTS": "common;device;cvt;facet/ctype;facet/collate;facet/numeric;facet/monetary;facet/messages;facet/timeio",
+        "IOV2_TEST_COMPONENTS": "common;device;cvt;facet",
         "CMAKE_PREFIX_PATH": "/opt/homebrew"
       }
     },

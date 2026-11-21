@@ -38,6 +38,8 @@
 // First: on glibc it brings in <features.h>, which defines __GLIBC__.
 #include <langinfo.h>
 
+#include <IOv2/common/platform/clocale_backend.h>
+
 #include <array>
 #include <cstddef>
 #include <cstdint>
@@ -294,8 +296,9 @@ inline std::vector<std::string> timeio_read_alt_digits()
     return res;
 }
 
-// The date and time data of the calling thread's current locale. Call it under a clocale_user.
-inline timeio_raw_data timeio_read_data()
+// The date and time data of the calling thread's current locale. Call it under a clocale_user
+// for loc: nl_langinfo reads the thread's locale, so loc itself goes unused here.
+inline timeio_raw_data timeio_read_data(clocale_handle /*loc*/)
 {
     static constexpr std::array<nl_item, 7> day_items =
         {DAY_1, DAY_2, DAY_3, DAY_4, DAY_5, DAY_6, DAY_7};
