@@ -669,15 +669,7 @@ jobs:
         clang-tidy include/IOv2/common/*.h include/IOv2/common/platform/windows/*.h \
           include/IOv2/device/*.h include/IOv2/device/platform/windows/*.h \
           $(find include/IOv2/cvt -name '*.h' -not -path '*/platform/posix/*') \
-          include/IOv2/facet/ctype.h include/IOv2/facet/ctype_details.h \
-          include/IOv2/facet/collate.h include/IOv2/facet/collate_details.h \
-          include/IOv2/facet/numeric.h include/IOv2/facet/numeric_details.h \
-          include/IOv2/facet/monetary.h include/IOv2/facet/monetary_details.h \
-          include/IOv2/facet/messages.h include/IOv2/facet/messages_details.h \
-          include/IOv2/facet/platform/ctype_backend.h include/IOv2/facet/platform/collate_backend.h \
-          include/IOv2/facet/platform/numeric_backend.h include/IOv2/facet/platform/monetary_backend.h \
-          include/IOv2/facet/platform/messages_backend.h \
-          include/IOv2/facet/platform/windows/*.h \
+          $(find include/IOv2/facet -name '*.h' -not -path '*/platform/posix/*') \
           --checks="$IOV2_TIDY_CHECKS" \
           --config="$IOV2_TIDY_CONFIG" \
           --warnings-as-errors='bugprone-*' \
@@ -686,8 +678,7 @@ jobs:
 
   # The platforms the cross-platform port has reached. Each builds and runs only
   # the components ported so far -- IOV2_TEST_COMPONENTS in its preset, today
-  # common, device, cvt, facet/ctype, facet/collate, facet/numeric, facet/monetary and facet/messages,
-  # with facet/timeio on macOS -- and grows as the port does; the Linux jobs above stay the full
+  # common, device, cvt and facet -- and grows as the port does; the Linux jobs above stay the full
   # gate. No container: the GHCR image is Linux-only, and the point here is the
   # platform's own compiler, standard library and C runtime.
   portability:

@@ -38,6 +38,7 @@
 #include <IOv2/facet/facet_helper.h>
 #include <IOv2/facet/platform/timeio_backend.h>
 
+#include <algorithm>
 #include <array>
 #include <chrono>
 #include <cstddef>
@@ -270,10 +271,11 @@ namespace IOv2
          * 树经这个静态引用可达，泄漏检测器不会报它。
          *
          * 供 `%Z` 格式说明符的解析使用。若时区数据库在静态初始化期间不可用或格式
-         * 有误，树里将只剩 @ref s_unknown_zone 一条，`%Z` 解析会在运行时产生可捕获的
-         * `stream_error` 而非调用 `std::terminate`。标准库根本没有时区数据库
-         * （`IOV2_HAS_CHRONO_TZDB` 为 0）时，建树不去碰它，树里是 @ref s_unknown_zone 与
-         * `UTC` 两条：后者是 `sys_time` 的 `%Z` 写出的内容，必须读得回。
+         * 有误（如 Windows 上没有 `icu.dll`），树里只剩 @ref s_unknown_zone 与 `UTC` 两条，
+         * 其余的 `%Z` 解析会在运行时产生可捕获的 `stream_error` 而非调用 `std::terminate`。
+         * 标准库根本没有时区数据库（`IOV2_HAS_CHRONO_TZDB` 为 0）时，建树不去碰它，树里同样
+         * 是这两条。`UTC` 是 `sys_time` 的 `%Z` 写出的内容，有没有数据库都必须读得回；有数据库时
+         * 它本就在键里，带着数据库给的标记（既是名字也是缩写）。
          *
          * @note 分类先在一个 `std::map` 里做完，再一趟灌进树，因此同一个键不可能 `add`
          *       两次——`prefix_tree::add` 的重复冲突在这里结构上不可能发生，不必依赖
@@ -344,12 +346,14 @@ namespace IOv2
          * static reference, so leak checkers do not report it.
          *
          * Used by the `%Z` format specifier during parsing. If the timezone database is
-         * unavailable or malformed at static-initialization time, the trie is left holding
-         * nothing but @ref s_unknown_zone, and `%Z` parsing produces a catchable `stream_error`
-         * at runtime rather than calling `std::terminate`. With no time-zone database in the
-         * standard library at all (`IOV2_HAS_CHRONO_TZDB` is 0) the builder does not touch one,
-         * and the trie holds two keys, @ref s_unknown_zone and `UTC`: the latter is what a
-         * `sys_time`'s `%Z` writes, and it has to read back.
+         * unavailable or malformed at static-initialization time (no `icu.dll` on Windows, say),
+         * the trie is left holding @ref s_unknown_zone and `UTC` alone, and any other `%Z`
+         * parse produces a catchable `stream_error` at runtime rather than calling
+         * `std::terminate`. With no time-zone database in the standard library at all
+         * (`IOV2_HAS_CHRONO_TZDB` is 0) the builder does not touch one, and the trie holds the
+         * same two keys. `UTC` is what a `sys_time`'s `%Z` writes, and it has to read back with a
+         * database or without; with one it is among the keys anyway, with the database's flags
+         * (both a name and an abbreviation).
          *
          * @note The classification is worked out in a `std::map` first and fed to the trie in a
          *       single pass, so no key can ever be `add`ed twice: a duplicate conflict in
@@ -373,6 +377,8 @@ namespace IOv2
             res.add(s_unknown_zone.begin(), s_unknown_zone.end(),
                     zone_ref{.text = std::string{}, .is_name = false, .is_abbrev = true});
 
+            constexpr std::string_view utc = "UTC";
+            bool has_utc = false;
 #if IOV2_HAS_CHRONO_TZDB
             try
             {
@@ -436,9 +442,19 @@ namespace IOv2
                         "timeio: the tz database has a zone or abbreviation named '"
                         + std::string{s_unknown_zone} + "', colliding with the unknown-zone token");
 
+                // An ICU abbreviation (Windows) follows ICU's default locale and may not be ASCII;
+                // the trie matches bytes, so such a key would never match a wide stream.
+                const auto is_ascii = [](const std::string& key) {
+                    return std::ranges::all_of(key, [](char c) { return static_cast<unsigned char>(c) < 0x80; });
+                };
                 for (const auto& [key, ident] : entries)
+                {
+                    if (!is_ascii(key))
+                        continue;
                     res.add(key.begin(), key.end(),
                             zone_ref{.text = key, .is_name = ident.is_name, .is_abbrev = ident.is_abbrev});
+                    has_utc = has_utc || key == utc;
+                }
             }
             catch (...) // NOLINT(bugprone-empty-catch)
             {
@@ -449,13 +465,12 @@ namespace IOv2
                 // reports a catchable stream_error at parse time, matching the defensive
                 // behaviour of time_zone_parse_helper.
             }
-#else
-            // No database to ask, but put writes "UTC" for a sys_time's %Z, and that has to
-            // read back. With a database UTC is among the keys anyway.
-            constexpr std::string_view utc = "UTC";
-            res.add(utc.begin(), utc.end(),
-                    zone_ref{.text = std::string{utc}, .is_name = false, .is_abbrev = true});
 #endif
+            // put writes "UTC" for a sys_time's %Z, and that has to read back with or without a
+            // database. Added last, so a database's own UTC entry (a name too) is not refused.
+            if (!has_utc)
+                res.add(utc.begin(), utc.end(),
+                        zone_ref{.text = std::string{utc}, .is_name = false, .is_abbrev = true});
             return res;
         }());
     };
@@ -761,14 +776,6 @@ template <typename CharT> class timeio_conf;
 
 namespace detail
 {
-// The date and time data of the locale called name, copied out with the thread switched to it.
-inline timeio_raw_data timeio_snapshot(const std::string& name)
-{
-    clocale_wrapper loc(name);
-    clocale_user    guard(loc);
-    return timeio_read_data();
-}
-
 /**
  * @lang{ZH}
  * 一个 locale 的名字与格式串，按 `timeio_conf<CharT>` 保存的样子：格式串已补上回退值并规范化。
@@ -1155,7 +1162,12 @@ public:
             return;
         }
 
-        const detail::timeio_raw_data raw = detail::timeio_snapshot(name);
+        // Copied out with the thread switched to the locale; the backend may need loc itself.
+        const detail::timeio_raw_data raw = [&name] {
+            clocale_wrapper loc(name);
+            clocale_user    guard(loc);
+            return detail::timeio_read_data(loc.c_locale);
+        }();
         const auto same = [](const std::string& src) { return src; };
         take_text(detail::timeio_text_from<char>(raw, same));
         for (std::size_t i = 0; i < raw.alt_digits.size() && i < m_alt_digits.size(); ++i)
@@ -1469,7 +1481,12 @@ public:
                 return detail::to_u32string<CharT>(src.c_str(), name);
         };
 
-        const detail::timeio_raw_data raw = detail::timeio_snapshot(name);
+        // Copied out with the thread switched to the locale; the backend may need loc itself.
+        const detail::timeio_raw_data raw = [&name] {
+            clocale_wrapper loc(name);
+            clocale_user    guard(loc);
+            return detail::timeio_read_data(loc.c_locale);
+        }();
         if (raw.wide)
         {
             const auto same = [](const std::wstring& src) {

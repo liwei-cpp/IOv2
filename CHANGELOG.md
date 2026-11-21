@@ -126,16 +126,34 @@
   `0` 或 `1`。按标准库判断：libc++ 要求编入了时区数据库且打开实验库（`-fexperimental-library`），
   Apple 的 libc++（Xcode 26）没有；libstdc++ 与 MSVC STL 看 `__cpp_lib_chrono`。可在包含 IOv2
   之前定义为 `0`，强制当作没有。
-- **`timeio` facet 可在 macOS 上构建、运行**，Windows 尚未移植；`timeio<char32_t>` 仍只在 glibc 上
-  提供。macOS 上：
+- **`timeio` facet 可在 Windows 与 macOS 上构建、运行**，`timeio<char32_t>` 仍只在 glibc 上提供。
+  `timeio<char8_t>` 不再经 `timeio_conf<char32_t>`（只在 glibc 上有）：C 与 UTF-8 locale 直接用
+  窄字符配置的字节，其他 locale 经 `wchar_t` 转换；在 macOS 上以非 UTF-8 locale 构造会抛
+  `io_error`，与 `numeric<char8_t>` 相同。Windows 上：
+  - 数据取自 NLS（`GetLocaleInfoEx`，按 `LC_TIME` 的 locale 名），与 UCRT 同源。宽字符配置直接用
+    NLS 的 UTF-16 字符串，窄字符串按 `LC_TIME` 的代码页转换，与 UCRT 的窄字符数据相同。
+  - `%x`、`%X`、`%c` 取 NLS 的短日期格式与时间格式（`%c` 为两者以空格相连），NLS 的图片格式翻成
+    说明符。不补零的记号也写成补零：en-US 的 `%x` 写作 `03/05/2026`（UCRT 为 `3/5/2026`），读入时
+    两种写法都认。含纪元（`gg`）或其它无法翻译记号的格式整串退回 C locale 的。
+  - `%r` 只在时间格式本身是 12 小时制时取它，否则为 `"%I:%M:%S %p"`；UCRT 的 `%r` 照搬时间格式，
+    de-DE 因此是 24 小时制。
+  - 月份名用主格，与 UCRT 的 `%B` 相同；glibc 与 macOS 是属格。俄语的 `"%d %B %Y"` 在 Windows 上
+    因此写作 `"5 Март 2026"`。
+  - 只用公历：缺省日历不是公历的 locale（th-TH 的佛历、fa-IR 的波斯历等）也按公历输出，与 UCRT 的
+    `%x` 不同。没有纪元与替代数字，`%E`、`%O` 修饰的说明符退回未修饰的含义。
+  - `%Z` 认得的缩写来自 MSVC STL 的时区数据库，由 ICU 按其缺省 locale 给出：en-US 下柏林是
+    `GMT+1`，de-DE 下是 `MEZ`。同一进程里写出的能读回，界面语言不同的机器之间未必；不是 ASCII 的
+    缩写不收。运行时拿不到时区数据库（如系统没有 `icu.dll`）时，`%Z` 与没有数据库时一样只认得
+    `UNKNOWN` 与 `UTC`，`sys_time` 写出的 `UTC` 照样能读回。
+  - UCRT 的 `std::tm` 没有 `tm_gmtoff` 与 `tm_zone`，`%z`、`%Z` 按"变更"中 `timeio` 一条的说明
+    退化为字面量。
+
+  macOS 上：
   - 没有时区数据库，`IOV2_HAS_CHRONO_TZDB` 为 `0`，`%Z` 等按"变更"中 `timeio` 一条的说明处理。
   - locale 不带纪元与替代数字（`ERA`、`ALT_DIGITS` 与三个纪元格式都是空串）：`%E`、`%O` 修饰的
     说明符按 POSIX 退回未修饰的含义，纪元格式由普通格式顶替。
   - locale 格式串里的补位标志照旧丢弃，macOS 的格式串用得更多：ja_JP 的 `%c` 为
     `%a %_m/%e %T %Y`，IOv2 按 `%a %m/%e %T %Y` 写，月份补零。
-  - `timeio<char8_t>` 不再经 `timeio_conf<char32_t>`（只在 glibc 上有）：C 与 UTF-8 locale 直接用
-    窄字符配置的字节，其他 locale 经 `wchar_t` 转换；在 macOS 上以非 UTF-8 locale 构造会抛
-    `io_error`，与 `numeric<char8_t>` 相同。
 
 #### 变更
 
@@ -537,8 +555,37 @@ have no release line of their own.
   Apple's libc++ (Xcode 26) has none; libstdc++ and the MSVC STL are judged by
   `__cpp_lib_chrono`. Defining it as `0` before including IOv2 has the database treated as
   absent.
-- **The `timeio` facet builds and runs on macOS**; Windows is not ported yet, and
-  `timeio<char32_t>` is still provided on glibc only. On macOS:
+- **The `timeio` facet builds and runs on Windows and macOS**; `timeio<char32_t>` is still
+  provided on glibc only. `timeio<char8_t>` no longer goes through `timeio_conf<char32_t>`, which
+  exists on glibc only: the C locale and UTF-8 locales take the narrow configuration's bytes as
+  they are, any other goes through `wchar_t`; on macOS constructing for a non-UTF-8 locale throws
+  `io_error`, as with `numeric<char8_t>`. On Windows:
+  - The data comes from NLS (`GetLocaleInfoEx`, by `LC_TIME`'s locale name), the UCRT's own
+    source. The wide configurations take NLS's UTF-16 strings as they are; the narrow strings are
+    converted by `LC_TIME`'s code page, which is what the UCRT's narrow data is.
+  - `%x`, `%X` and `%c` come from NLS's short date and time formats (`%c` the two joined by a
+    space), its picture formats translated into specifiers. The unpadded tokens are written
+    padded too: en-US's `%x` is `03/05/2026` (the UCRT's `3/5/2026`), and reading accepts either.
+    A format with an era (`gg`) or any other token that cannot be translated falls back to the C
+    locale's as a whole.
+  - `%r` takes the time format only where it is a 12-hour one, and is `"%I:%M:%S %p"` otherwise;
+    the UCRT's `%r` copies the time format, so de-DE's is 24-hour.
+  - Month names are nominative, as the UCRT's `%B`; glibc's and macOS's are genitive. Russian
+    `"%d %B %Y"` is therefore `"5 Март 2026"` on Windows.
+  - Gregorian only: a locale whose default calendar is not (th-TH's Buddhist, fa-IR's Persian and
+    others) is still written in the Gregorian calendar, unlike the UCRT's `%x`. There are no eras
+    or alternative digits; the `%E`- and `%O`-modified specifiers fall back to their unmodified
+    meanings.
+  - The abbreviations `%Z` knows come from the MSVC STL's time-zone database, which ICU gives in
+    its default locale: Berlin is `GMT+1` under en-US and `MEZ` under de-DE. What a process writes
+    it reads back; between machines with different display languages it may not. An abbreviation
+    that is not ASCII is left out. Where the database cannot be loaded at run time (no `icu.dll`
+    on the system, say), `%Z` knows `UNKNOWN` and `UTC` alone, as without a database, so the
+    `UTC` a `sys_time` writes still reads back.
+  - The UCRT's `std::tm` has neither `tm_gmtoff` nor `tm_zone`, so `%z` and `%Z` degrade to
+    literals as the `timeio` entry under Changed describes.
+
+  On macOS:
   - There is no time-zone database, so `IOV2_HAS_CHRONO_TZDB` is `0`, and `%Z` and the rest
     behave as the `timeio` entry under Changed describes.
   - Locales carry no eras or alternative digits (`ERA`, `ALT_DIGITS` and the three era formats
@@ -547,10 +594,6 @@ have no release line of their own.
   - Padding flags in a locale's format strings are dropped as before, and macOS's use more of
     them: ja_JP's `%c` is `%a %_m/%e %T %Y`, which IOv2 writes as `%a %m/%e %T %Y`, the month
     zero-padded.
-  - `timeio<char8_t>` no longer goes through `timeio_conf<char32_t>`, which exists on glibc
-    only: the C locale and UTF-8 locales take the narrow configuration's bytes as they are,
-    any other goes through `wchar_t`; on macOS constructing for a non-UTF-8 locale throws
-    `io_error`, as with `numeric<char8_t>`.
 
 #### Changed
 

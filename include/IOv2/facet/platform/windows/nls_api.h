@@ -48,6 +48,12 @@ __declspec(dllimport) int __stdcall GetUserPreferredUILanguages(unsigned long dw
                                                                 unsigned long* pulNumLanguages,
                                                                 wchar_t* pwszLanguagesBuffer,
                                                                 unsigned long* pcchLanguagesBuffer);
+__declspec(dllimport) int __stdcall GetLocaleInfoEx(const wchar_t* lpLocaleName, unsigned long LCType,
+                                                    wchar_t* lpLCData, int cchData);
+__declspec(dllimport) int __stdcall WideCharToMultiByte(unsigned int CodePage, unsigned long dwFlags,
+                                                        const wchar_t* lpWideCharStr, int cchWideChar,
+                                                        char* lpMultiByteStr, int cbMultiByte,
+                                                        const char* lpDefaultChar, int* lpUsedDefaultChar);
 }
 
 inline constexpr unsigned int win_cp_utf8 = 65001;                        // CP_UTF8
@@ -60,4 +66,15 @@ inline constexpr unsigned long win_mb_err_invalid_chars = 0x00000008;     // MB_
 inline constexpr unsigned long win_mui_language_name = 0x00000008;        // MUI_LANGUAGE_NAME
 inline constexpr int win_cstr_less_than = 1;                              // CSTR_LESS_THAN
 inline constexpr int win_cstr_equal = 2;                                  // CSTR_EQUAL
+
+// GetLocaleInfoEx items. The weekday ranges run Monday to Sunday, the month ranges January to
+// December, each over consecutive values from the one named here.
+inline constexpr unsigned long win_locale_sshortdate = 0x0000001F;        // LOCALE_SSHORTDATE
+inline constexpr unsigned long win_locale_stimeformat = 0x00001003;       // LOCALE_STIMEFORMAT
+inline constexpr unsigned long win_locale_sam = 0x00000028;               // LOCALE_SAM (S1159)
+inline constexpr unsigned long win_locale_spm = 0x00000029;               // LOCALE_SPM (S2359)
+inline constexpr unsigned long win_locale_sdayname1 = 0x0000002A;         // LOCALE_SDAYNAME1..7
+inline constexpr unsigned long win_locale_sabbrevdayname1 = 0x00000031;   // LOCALE_SABBREVDAYNAME1..7
+inline constexpr unsigned long win_locale_smonthname1 = 0x00000038;       // LOCALE_SMONTHNAME1..12
+inline constexpr unsigned long win_locale_sabbrevmonthname1 = 0x00000044; // LOCALE_SABBREVMONTHNAME1..12
 }

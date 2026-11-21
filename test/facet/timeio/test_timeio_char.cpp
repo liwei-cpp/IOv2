@@ -1103,9 +1103,9 @@ TEST(TimeioChar, ABrokenDownTimeNamesItsZoneOrSaysItCannot)
     const std::tm      tp  = calendar_time(2024 - 1900, 9 - 1, 4, 13, 33, 18, 0, 0, 0);
 
     // Without a tz database to read a name back with, %Z is echoed like any specifier the
-    // value cannot supply.
+    // value cannot supply; so is %z where std::tm has no tm_gmtoff (the UCRT's).
     EXPECT_EQ(put_one(obj, tp, 'Z'), time_value_fields<std::tm>::has_zone ? "UNKNOWN" : "%Z");
-    EXPECT_EQ(put_one(obj, tp, 'z'), "+0000");
+    EXPECT_EQ(put_one(obj, tp, 'z'), time_value_fields<std::tm>::has_offset ? "+0000" : "%z");
 
 #ifdef __USE_MISC
     if constexpr (time_value_fields<std::tm>::has_zone)
@@ -1141,8 +1141,11 @@ TEST(TimeioChar, TheLocaleDecidesItsWordsAndLayouts)
         // so the two cannot be told apart.  %c and %X, because several locales
         // spell a zone into them, and the zone is what the value carries rather
         // than what the locale says -- a sys_time names "UTC" where strftime,
-        // handed a std::tm, names the zone the process runs in.
-        for (char spec : {'a', 'A', 'b', 'B', 'h', 'x'})
+        // handed a std::tm, names the zone the process runs in. On Windows %x too:
+        // NLS's short dates leave days and months unpadded (en-HK's d/M/yyyy) and
+        // IOv2 pads them, by design.
+        constexpr std::string_view specs = IOV2_TEST_WINDOWS ? "aAbBh" : "aAbBhx";
+        for (char spec : specs)
         {
             SCOPED_TRACE(spec);
             const std::string fmt = std::string("%") + spec;
@@ -1605,7 +1608,7 @@ TEST(TimeioChar, TheCLocaleReadsEveryConversionSpecifier)
 
 #if IOV2_HAS_CHRONO_TZDB
     EXPECT_TRUE(zone_is(CheckGet(obj, "America/Los_Angeles", 'Z', 0, ios_defs::eofbit).m_zone_name, "America/Los_Angeles"));
-    { auto r = CheckGet(obj, "PST", 'Z', 0, ios_defs::eofbit); EXPECT_TRUE(r.m_zone_name == nullptr && zone_is(r.m_zone_abbrev, "PST")); }
+    { auto r = CheckGet(obj, "PDT", 'Z', 0, ios_defs::eofbit); EXPECT_TRUE(r.m_zone_name == nullptr && zone_is(r.m_zone_abbrev, "PDT")); }   // not PST: a zone ID in ICU
 #else
     { auto r = CheckGet(obj, "UTC", 'Z', 0, ios_defs::eofbit); EXPECT_TRUE(r.m_zone_name == nullptr && zone_is(r.m_zone_abbrev, "UTC")); }
 #endif
@@ -1876,7 +1879,7 @@ TEST(TimeioChar, ChineseReadsEveryConversionSpecifier)
 
 #if IOV2_HAS_CHRONO_TZDB
     EXPECT_TRUE(zone_is(CheckGet(obj, "America/Los_Angeles", 'Z', 0, ios_defs::eofbit).m_zone_name, "America/Los_Angeles"));
-    { auto r = CheckGet(obj, "PST", 'Z', 0, ios_defs::eofbit); EXPECT_TRUE(r.m_zone_name == nullptr && zone_is(r.m_zone_abbrev, "PST")); }
+    { auto r = CheckGet(obj, "PDT", 'Z', 0, ios_defs::eofbit); EXPECT_TRUE(r.m_zone_name == nullptr && zone_is(r.m_zone_abbrev, "PDT")); }   // not PST: a zone ID in ICU
 #else
     { auto r = CheckGet(obj, "UTC", 'Z', 0, ios_defs::eofbit); EXPECT_TRUE(r.m_zone_name == nullptr && zone_is(r.m_zone_abbrev, "UTC")); }
 #endif
@@ -2164,7 +2167,7 @@ TEST(TimeioChar, JapaneseReadsEveryConversionSpecifier)
 
 #if IOV2_HAS_CHRONO_TZDB
     EXPECT_TRUE(zone_is(CheckGet(obj, "America/Los_Angeles", 'Z', 0, ios_defs::eofbit).m_zone_name, "America/Los_Angeles"));
-    { auto r = CheckGet(obj, "PST", 'Z', 0, ios_defs::eofbit); EXPECT_TRUE(r.m_zone_name == nullptr && zone_is(r.m_zone_abbrev, "PST")); }
+    { auto r = CheckGet(obj, "PDT", 'Z', 0, ios_defs::eofbit); EXPECT_TRUE(r.m_zone_name == nullptr && zone_is(r.m_zone_abbrev, "PDT")); }   // not PST: a zone ID in ICU
 #else
     { auto r = CheckGet(obj, "UTC", 'Z', 0, ios_defs::eofbit); EXPECT_TRUE(r.m_zone_name == nullptr && zone_is(r.m_zone_abbrev, "UTC")); }
 #endif
@@ -4682,11 +4685,12 @@ TEST(TimeioChar, AZoneOrOffsetIsParsedIntoTheContext)
 #if IOV2_HAS_CHRONO_TZDB
     // %Z keeps the text and resolves nothing at this tier, but it does file it by what the
     // tzdb says it is: a name the database knows lands in m_zone_name, a bare abbreviation in
-    // m_zone_abbrev, and the eight tokens that are both land in both.
+    // m_zone_abbrev, and the eight tokens that are both land in both. PDT rather than PST for
+    // the bare abbreviation: ICU, behind the MSVC STL's database, keeps PST as a zone ID.
     { auto r = parse("America/Los_Angeles", "%Z");
       EXPECT_TRUE(zone_is(r.m_zone_name, "America/Los_Angeles") && r.m_zone_abbrev == nullptr); }
-    { auto r = parse("PST", "%Z");
-      EXPECT_TRUE(r.m_zone_name == nullptr && zone_is(r.m_zone_abbrev, "PST")); }
+    { auto r = parse("PDT", "%Z");
+      EXPECT_TRUE(r.m_zone_name == nullptr && zone_is(r.m_zone_abbrev, "PDT")); }
     { auto r = parse("EST", "%Z");
       EXPECT_TRUE(zone_is(r.m_zone_name, "EST") && zone_is(r.m_zone_abbrev, "EST")); }
 
@@ -4726,7 +4730,8 @@ TEST(TimeioChar, AZoneOrOffsetIsParsedIntoTheContext)
     // platform has those members and, for the zone, a tz database to read it back with.
     // tm_zone can be written because the text it points at lives in the time-zone trie, which
     // outlives every parse -- the field has no release call, so nothing shorter-lived may go
-    // in it.
+    // in it. The UCRT's std::tm has neither member, and a discarded branch is still compiled here.
+#if !IOV2_TEST_WINDOWS
     if constexpr (time_value_fields<std::tm>::has_offset)
     {
         std::tm out{};
@@ -4807,6 +4812,7 @@ TEST(TimeioChar, AZoneOrOffsetIsParsedIntoTheContext)
         ctx2.convert_to(back);
         EXPECT_EQ(back.tm_gmtoff, -7 * 3600);
     }
+#endif
 }
 
 // convert_to(sys_time&) resolves the instant in a fixed order, and convert_to(local_time&)
@@ -4915,7 +4921,8 @@ TEST(TimeioChar, AParsedZoneAndOffsetResolveToAnInstant)
         EXPECT_THROW(parse_zone("2024-09-04 12:00:00 +0800 Asia/Tokyo", "%F %T %z %Z").convert_to(zt), stream_error);
         // An abbreviation that names no single zone is an error even with an offset present:
         // the offset does not excuse the ambiguity, it only would have pinned the instant.
-        EXPECT_THROW(parse_zone("2024-09-04 12:00:00 -0700 PST", "%F %T %z %Z").convert_to(zt), stream_error);
+        // (PDT, as PST is also a zone ID in ICU.)
+        EXPECT_THROW(parse_zone("2024-09-04 12:00:00 -0700 PDT", "%F %T %z %Z").convert_to(zt), stream_error);
     }
 #endif
 
@@ -4962,12 +4969,16 @@ TEST(TimeioChar, EveryZoneAbbreviationTheDatabaseKnowsIsParsed)
     // Daylight-saving abbreviations, both hemispheres.
     EXPECT_TRUE(parses("PDT"));
     EXPECT_TRUE(parses("EDT"));
+#if !IOV2_TEST_WINDOWS
+    // IANA's abbreviations. ICU, behind the MSVC STL's database, spells these zones GMT+2,
+    // GMT+10:30 and the like in its default locale; the walk below covers what it does write.
     EXPECT_TRUE(parses("CEST"));
     EXPECT_TRUE(parses("ACDT"));
     EXPECT_TRUE(parses("NZST"));
 
     // Retired decades ago, and still what localtime() reports for a 1943 instant.
     EXPECT_TRUE(parses("EWT"));
+#endif
 
     // Standard-time abbreviations and full zone names.
     EXPECT_TRUE(parses("PST"));
@@ -5015,7 +5026,8 @@ TEST(TimeioChar, EveryZoneAbbreviationTheDatabaseKnowsIsParsed)
         EXPECT_EQ(ctx.m_offset, minutes{480});
     }
 
-    // The round trip the abbreviation set exists for.
+    // The round trip the abbreviation set exists for. The UCRT's std::tm has no tm_zone.
+#if !IOV2_TEST_WINDOWS
     if constexpr (time_value_fields<std::tm>::has_zone)
     {
         char ewt[] = "EWT";   // a char array suits both macOS's char* and glibc's const char*
@@ -5033,6 +5045,7 @@ TEST(TimeioChar, EveryZoneAbbreviationTheDatabaseKnowsIsParsed)
         EXPECT_EQ(obj.get(res.begin(), res.end(), ctx, std::string_view("%F %T %z %Z")), res.end());
         EXPECT_EQ(ctx.m_offset, -minutes{240});
     }
+#endif
 }
 
 // The two tiers pinned apart. Whether %Z parses is the tier's decision and nothing else's:
@@ -5429,7 +5442,8 @@ TEST(TimeioChar, AnUnknownZoneIsATokenOfItsOwn)
 
     // Whatever put writes for %Z must parse back through the trie: that is the whole
     // reason the token is registered there rather than being print-only. A std::tm writes the
-    // token only at the zone tier, with tm_zone and a tz database.
+    // token only at the zone tier, with tm_zone and a tz database; the UCRT's has no tm_zone.
+#if !IOV2_TEST_WINDOWS
     if constexpr (time_value_fields<std::tm>::has_zone)
     {
         std::string res;
@@ -5460,6 +5474,7 @@ TEST(TimeioChar, AnUnknownZoneIsATokenOfItsOwn)
         EXPECT_EQ(again, res);
 #endif
     }
+#endif
 
     // A real abbreviation still round-trips, and is not swallowed by the new branch.
 #ifdef __USE_MISC
@@ -5587,6 +5602,8 @@ TEST(TimeioChar, AnOffsetOutsideItsRangeIsRejected)
 
     // %z can only spell four digits of +/-hhmm, so an offset it cannot express is pinned
     // to the widest one the parse side accepts rather than being rejected or truncated.
+    // Through a std::tm's tm_gmtoff, which the UCRT's std::tm does not have.
+#if !IOV2_TEST_WINDOWS
     constexpr long max_off = 23L * 3600 + 59 * 60 + 59;   // 23:59:59
 
     auto put_z = [&](long gmtoff)
@@ -5643,6 +5660,7 @@ TEST(TimeioChar, AnOffsetOutsideItsRangeIsRejected)
         const long clamped = off > max_off ? max_off : off < -max_off ? -max_off : off;
         EXPECT_EQ(out.tm_gmtoff, (clamped / 60) * 60);
     }
+#endif
 
     // The local_time overload takes its offset straight from the caller, so it needs the
     // same guard; seconds is 64-bit there, which is how a value wraps to the wrong sign.
