@@ -1,0 +1,15 @@
+<map id="IOv2::ios_state&lt; TChar &gt;" name="IOv2::ios_state&lt; TChar &gt;">
+<area shape="rect" id="Node000001" title="Component that adds the stream state bits and their associated exceptions on top of the formatting st..." alt="" coords="543,152,729,180"/>
+<area shape="rect" id="Node000002" href="$classIOv2_1_1ios__base.html" title="Base class holding the formatting state of every stream." alt="" coords="311,152,494,180"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="509,164,545,166,540,167,510,169"/>
+<area shape="rect" id="Node000003" href="$classIOv2_1_1copyable__atomic.html" title=" " alt="" coords="5,5,176,50"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="190,49,240,65,288,85,343,118,386,152,381,152,340,122,285,90,238,70,191,54"/>
+<area shape="rect" id="Node000004" href="$classIOv2_1_1copyable__atomic.html" title=" " alt="" coords="5,75,176,119"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="191,113,287,133,353,151,347,152,286,138,191,118"/>
+<area shape="rect" id="Node000005" href="$classIOv2_1_1copyable__atomic.html" title=" " alt="" coords="5,144,176,189"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="191,164,312,165,308,168,192,169"/>
+<area shape="rect" id="Node000006" href="$classIOv2_1_1copyable__atomic.html" title=" " alt="" coords="5,213,176,258"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="190,215,286,194,352,180,347,182,287,199,192,220"/>
+<area shape="rect" id="Node000007" href="$classIOv2_1_1detail_1_1io__lock.html" title="A stream&#39;s object lock: its own by default, or, given at construction, an external one,..." alt="" coords="15,282,166,310"/>
+<area shape="poly" id="edge6_Node000002_Node000007" title=" " alt="" coords="180,277,233,262,286,242,340,210,382,182,387,179,343,215,288,247,235,267,181,282"/>
+</map>

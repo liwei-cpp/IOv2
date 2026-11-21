@@ -1,0 +1,204 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=11"/>
+<meta name="generator" content="Doxygen 1.15.0"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>IOv2: IOv2::io_traits&lt; TChar, put_money_t&lt; TMoney &gt; &gt; 模板结构体 参考</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<script type="text/javascript" src="clipboard.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<script type="text/javascript" src="cookie.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr id="projectrow">
+  <td id="projectalign">
+   <div id="projectname">IOv2
+   </div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 制作者 Doxygen 1.15.0 -->
+<script type="text/javascript">
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+</script>
+<script type="text/javascript">
+$(function() { codefold.init(); });
+</script>
+<script type="text/javascript" src="menudata.js"></script>
+<script type="text/javascript" src="menu.js"></script>
+<script type="text/javascript">
+$(function() {
+  initMenu('',true,false,'search.php','搜索',true);
+  $(function() { init_search(); });
+});
+</script>
+<div id="main-nav"></div>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+$(function(){initNavTree('structIOv2_1_1io__traits_3_01TChar_00_01put__money__t_3_01TMoney_01_4_01_4.html','','structIOv2_1_1io__traits_3_01TChar_00_01put__money__t_3_01TMoney_01_4_01_4-members'); });
+</script>
+<div id="container">
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">载入中...</div>
+<div class="SRStatus" id="Searching">搜索中...</div>
+<div class="SRStatus" id="NoMatches">未找到</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="header">
+  <div class="headertitle"><div class="title">IOv2::io_traits&lt; TChar, put_money_t&lt; TMoney &gt; &gt; 模板结构体 参考</div></div>
+</div><!--header-->
+<div class="contents">
+
+<p><span class="tt"><a class="el" href="namespaceIOv2.html#a98dfc906f2d5da328ea9bb28ef3a96ef">put_money</a></span> 的扩展点特化：只提供 <span class="tt"><a class="el" href="#a9c58c63b7ebe55a14a49b0281dbc345c" title="按 locale 的货币格式将 f.m_mon 写出。">swrite</a></span>，故只能插入——<span class="tt">is &gt;&gt; <a class="el" href="namespaceIOv2.html#a98dfc906f2d5da328ea9bb28ef3a96ef">put_money(x)</a></span> 不满足 提取运算符的约束、没有可行重载，编译不过。方向为何这样表达，见 <span class="tt"><a class="el" href="structIOv2_1_1io__traits.html" title="把 TChar 流的读写逻辑接到类型 T 上的扩展点。主模板故意不定义；见本文件头部。">io_traits</a>&lt;TChar, <a class="el" href="structIOv2_1_1resetiosflags__t.html" title="resetiosflags 操纵符的类型。">resetiosflags_t</a>&gt;</span>。  
+ <a href="#details">更多...</a></p>
+
+<p><code>#include &lt;<a class="el" href="io__manip_8h_source.html">io_manip.h</a>&gt;</code></p>
+<table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 id="header-pub-static-methods" class="groupheader"><a id="pub-static-methods" name="pub-static-methods"></a>
+静态 Public 成员函数</h2></td></tr>
+<tr class="memitem:a9c58c63b7ebe55a14a49b0281dbc345c" id="r_a9c58c63b7ebe55a14a49b0281dbc345c"><td class="memTemplParams" colspan="2">template&lt;typename TIter&gt; <br />
+requires (char_sink_for&lt;TIter, TChar&gt;)</td></tr>
+<tr class="memitem:a9c58c63b7ebe55a14a49b0281dbc345c template"><td class="memItemLeft" align="right" valign="top">static TIter&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a9c58c63b7ebe55a14a49b0281dbc345c">swrite</a> (TIter s, <a class="el" href="classIOv2_1_1ios__base.html">ios_base</a>&lt; TChar &gt; &amp;io, const <a class="el" href="classIOv2_1_1locale.html">locale</a>&lt; TChar &gt; &amp;loc, <a class="el" href="structIOv2_1_1put__money__t.html">put_money_t</a>&lt; TMoney &gt; f)</td></tr>
+<tr class="memdesc:a9c58c63b7ebe55a14a49b0281dbc345c"><td class="mdescLeft">&#160;</td><td class="mdescRight">按 locale 的货币格式将 <span class="tt">f.m_mon</span> 写出。  <br /></td></tr>
+</table>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">详细描述</h2>
+<div class="textblock"><div class="compoundTemplParams">template&lt;typename TChar, typename TMoney&gt;<br />
+requires ((std::integral&lt;TMoney&gt; &amp;&amp; !std::same_as&lt;std::remove_cv_t&lt;TMoney&gt;, bool&gt;) || std::same_as&lt;TMoney, std::basic_string&lt;TChar&gt;&gt;)<br />
+struct IOv2::io_traits&lt; TChar, put_money_t&lt; TMoney &gt; &gt;</div><p><span class="tt"><a class="el" href="namespaceIOv2.html#a98dfc906f2d5da328ea9bb28ef3a96ef">put_money</a></span> 的扩展点特化：只提供 <span class="tt"><a class="el" href="#a9c58c63b7ebe55a14a49b0281dbc345c" title="按 locale 的货币格式将 f.m_mon 写出。">swrite</a></span>，故只能插入——<span class="tt">is &gt;&gt; <a class="el" href="namespaceIOv2.html#a98dfc906f2d5da328ea9bb28ef3a96ef">put_money(x)</a></span> 不满足 提取运算符的约束、没有可行重载，编译不过。方向为何这样表达，见 <span class="tt"><a class="el" href="structIOv2_1_1io__traits.html" title="把 TChar 流的读写逻辑接到类型 T 上的扩展点。主模板故意不定义；见本文件头部。">io_traits</a>&lt;TChar, <a class="el" href="structIOv2_1_1resetiosflags__t.html" title="resetiosflags 操纵符的类型。">resetiosflags_t</a>&gt;</span>。 </p>
+<dl class="section note"><dt>注解</dt><dd>与调整格式状态的那几个操纵符不同，本特化提供的是 <span class="tt"><a class="el" href="#a9c58c63b7ebe55a14a49b0281dbc345c" title="按 locale 的货币格式将 f.m_mon 写出。">swrite</a></span> 的**迭代器形式**：加锁、 哨兵与 <span class="tt">handle_exception</span> 都由通用的格式化插入运算符负责，这里只管往迭代器上写。 </dd></dl>
+<dl class="tparams"><dt>模板参数</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">TChar</td><td>流的字符类型。 </td></tr>
+    <tr><td class="paramname">TMoney</td><td>货币值的类型：整型（<span class="tt">bool</span> 除外）或 <span class="tt">std::basic_string&lt;TChar&gt;</span>；取值域与理由 见 <span class="tt"><a class="el" href="namespaceIOv2.html#a98dfc906f2d5da328ea9bb28ef3a96ef">put_money</a></span>。 </td></tr>
+  </table>
+  </dd>
+</dl>
+</div><a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">成员函数说明</h2>
+<a id="a9c58c63b7ebe55a14a49b0281dbc345c" name="a9c58c63b7ebe55a14a49b0281dbc345c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9c58c63b7ebe55a14a49b0281dbc345c">&#9670;&#160;</a></span>swrite()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename TChar, typename TMoney&gt; </div>
+<div class="memtemplate">
+template&lt;typename TIter&gt; <br />
+requires (char_sink_for&lt;TIter, TChar&gt;)</div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">TIter <a class="el" href="structIOv2_1_1io__traits.html">IOv2::io_traits</a>&lt; TChar, <a class="el" href="structIOv2_1_1put__money__t.html">put_money_t</a>&lt; TMoney &gt; &gt;::swrite </td>
+          <td>(</td>
+          <td class="paramtype">TIter</td>          <td class="paramname"><span class="paramname"><em>s</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classIOv2_1_1ios__base.html">ios_base</a>&lt; TChar &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>io</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="classIOv2_1_1locale.html">locale</a>&lt; TChar &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>loc</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structIOv2_1_1put__money__t.html">put_money_t</a>&lt; TMoney &gt;</td>          <td class="paramname"><span class="paramname"><em>f</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel static">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>按 locale 的货币格式将 <span class="tt">f.m_mon</span> 写出。 </p>
+<dl class="section note"><dt>注解</dt><dd><b>缺少 <span class="tt"><a class="el" href="classIOv2_1_1monetary.html" title="货币格式化与解析的用户端 facet。">monetary</a></span> facet 不是编译期错误，而是运行期失败。</b> 这个特化只按 <span class="tt">TMoney</span> 约束（整型且非 <span class="tt">bool</span>，或 <span class="tt">std::basic_string&lt;TChar&gt;</span>），流的 locale 里有没有 <span class="tt"><a class="el" href="classIOv2_1_1monetary.html" title="货币格式化与解析的用户端 facet。">monetary</a>&lt;TChar&gt;</span> 要到这里才知道。取不到就抛 <span class="tt"><a class="el" href="structIOv2_1_1stream__error.html">stream_error</a></span>，由 <span class="tt">operator&lt;&lt;</span> 接住、 经 <span class="tt">handle_exception</span> 归为 <span class="tt">strfailbit</span>：什么都不写出，此后该流上的插入一律被哨兵 挡下，直到显式 <span class="tt">clear()</span>。默认构造的 <span class="tt"><a class="el" href="classIOv2_1_1locale.html" title="管理一组 facet 的本地化对象。">locale</a>&lt;TChar&gt;</span> 是带 <span class="tt"><a class="el" href="classIOv2_1_1monetary.html" title="货币格式化与解析的用户端 facet。">monetary</a></span> 的，这条主要 出现在自行拼装 facet 的 locale 上。 </dd></dl>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">s</td><td>写出所用的输出迭代器。 </td></tr>
+    <tr><td class="paramname">io</td><td>流的 <span class="tt"><a class="el" href="classIOv2_1_1ios__base.html" title="所有流的格式化状态基类。">ios_base</a></span>，格式标志、字段宽度与填充字符由它提供。 </td></tr>
+    <tr><td class="paramname">loc</td><td>流的 locale，<span class="tt"><a class="el" href="classIOv2_1_1monetary.html" title="货币格式化与解析的用户端 facet。">monetary</a>&lt;TChar&gt;</span> facet 即从中取出。 </td></tr>
+    <tr><td class="paramname">f</td><td>待写出的货币值与 <span class="tt">intl</span> 标志；取值域见 <span class="tt"><a class="el" href="namespaceIOv2.html#a98dfc906f2d5da328ea9bb28ef3a96ef">put_money</a></span>。 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd>指向最后一个写入位置之后的输出迭代器。 </dd></dl>
+<dl class="exception"><dt>异常</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname"><a class="el" href="structIOv2_1_1stream__error.html">stream_error</a></td><td>若 locale 中缺少 <span class="tt"><a class="el" href="classIOv2_1_1monetary.html" title="货币格式化与解析的用户端 facet。">monetary</a>&lt;TChar&gt;</span> facet，或 <span class="tt"><a class="el" href="classIOv2_1_1monetary.html#aa945db6817ec6bbe3eb3fcd8ebf51888" title="将整数货币值格式化为字符序列，写入输出迭代器。">monetary::put</a></span> 自身失败 （填充字符会改变这段文本读起来是几，见 <span class="tt"><a class="el" href="namespaceIOv2.html#ae5345dc5ab6f852ab3f472e0407d42ec" title="构造设置填充字符的操纵符；填充字符用于字段宽度大于内容时补齐。">setfill</a></span>；或填充数超过 <span class="tt"><a class="el" href="namespaceIOv2_1_1ios__defs.html#afcde3641107552ea42fed8ec8924b3e8" title="单次插入允许写出的填充字符数上限；width() 本身仍不设上限。">ios_defs::max_pad_count</a></span>）。 </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<hr/>该结构体的文档由以下文件生成:<ul>
+<li>include/IOv2/io/<a class="el" href="io__manip_8h_source.html">io_manip.h</a></li>
+</ul>
+</div><!-- contents -->
+</div><!-- doc-content -->
+<div id="page-nav" class="page-nav-panel">
+<div id="page-nav-resize-handle"></div>
+<div id="page-nav-tree">
+<div id="page-nav-contents">
+</div><!-- page-nav-contents -->
+</div><!-- page-nav-tree -->
+</div><!-- page-nav -->
+</div><!-- container -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><a href="namespaceIOv2.html">IOv2</a></li><li class="navelem"><a href="structIOv2_1_1io__traits_3_01TChar_00_01put__money__t_3_01TMoney_01_4_01_4.html">io_traits&lt; TChar, put_money_t&lt; TMoney &gt; &gt;</a></li>
+    <li class="footer">制作者 <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.15.0 </li>
+  </ul>
+</div>
+</body>
+</html>

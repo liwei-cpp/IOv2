@@ -1,0 +1,191 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=11"/>
+<meta name="generator" content="Doxygen 1.15.0"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>IOv2: IOv2::io_traits&lt; char, const char * &gt;结构体 参考</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<script type="text/javascript" src="clipboard.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<script type="text/javascript" src="cookie.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr id="projectrow">
+  <td id="projectalign">
+   <div id="projectname">IOv2
+   </div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 制作者 Doxygen 1.15.0 -->
+<script type="text/javascript">
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+</script>
+<script type="text/javascript">
+$(function() { codefold.init(); });
+</script>
+<script type="text/javascript" src="menudata.js"></script>
+<script type="text/javascript" src="menu.js"></script>
+<script type="text/javascript">
+$(function() {
+  initMenu('',true,false,'search.php','搜索',true);
+  $(function() { init_search(); });
+});
+</script>
+<div id="main-nav"></div>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+$(function(){initNavTree('structIOv2_1_1io__traits_3_01char_00_01const_01char_01_5_01_4.html','','structIOv2_1_1io__traits_3_01char_00_01const_01char_01_5_01_4-members'); });
+</script>
+<div id="container">
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">载入中...</div>
+<div class="SRStatus" id="Searching">搜索中...</div>
+<div class="SRStatus" id="NoMatches">未找到</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="header">
+  <div class="headertitle"><div class="title">IOv2::io_traits&lt; char, const char * &gt;结构体 参考</div></div>
+</div><!--header-->
+<div class="contents">
+
+<p><span class="tt"><a class="el" href="structIOv2_1_1io__traits.html" title="把 TChar 流的读写逻辑接到类型 T 上的扩展点。主模板故意不定义；见本文件头部。">io_traits</a>&lt;char, char*&gt;</span> 的 <span class="tt">const</span> 指针版本，全部转交后者。  
+ <a href="#details">更多...</a></p>
+
+<p><code>#include &lt;<a class="el" href="char__and__str_8h_source.html">char_and_str.h</a>&gt;</code></p>
+<table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 id="header-pub-static-methods" class="groupheader"><a id="pub-static-methods" name="pub-static-methods"></a>
+静态 Public 成员函数</h2></td></tr>
+<tr class="memitem:a058ae41a21cb3af07ce45d2304a08a06" id="r_a058ae41a21cb3af07ce45d2304a08a06"><td class="memTemplParams" colspan="2">template&lt;typename TIter&gt; <br />
+requires (char_sink_for&lt;TIter, char&gt;)</td></tr>
+<tr class="memitem:a058ae41a21cb3af07ce45d2304a08a06 template"><td class="memItemLeft" align="right" valign="top">static TIter&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a058ae41a21cb3af07ce45d2304a08a06">swrite</a> (TIter iter, <a class="el" href="classIOv2_1_1ios__base.html">ios_base</a>&lt; char &gt; &amp;io, const <a class="el" href="classIOv2_1_1locale.html">locale</a>&lt; char &gt; &amp;loc, const char *c)</td></tr>
+<tr class="memdesc:a058ae41a21cb3af07ce45d2304a08a06"><td class="mdescLeft">&#160;</td><td class="mdescRight">转交 <span class="tt"><a class="el" href="structIOv2_1_1io__traits.html" title="把 TChar 流的读写逻辑接到类型 T 上的扩展点。主模板故意不定义；见本文件头部。">io_traits</a>&lt;char, char*&gt;::<a class="el" href="#a058ae41a21cb3af07ce45d2304a08a06" title="转交 io_traits&lt;char, char*&gt;::swrite。">swrite</a></span>。  <br /></td></tr>
+</table>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">详细描述</h2>
+<div class="textblock"><p><span class="tt"><a class="el" href="structIOv2_1_1io__traits.html" title="把 TChar 流的读写逻辑接到类型 T 上的扩展点。主模板故意不定义；见本文件头部。">io_traits</a>&lt;char, char*&gt;</span> 的 <span class="tt">const</span> 指针版本，全部转交后者。 </p>
+</div><a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">成员函数说明</h2>
+<a id="a058ae41a21cb3af07ce45d2304a08a06" name="a058ae41a21cb3af07ce45d2304a08a06"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a058ae41a21cb3af07ce45d2304a08a06">&#9670;&#160;</a></span>swrite()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename TIter&gt; <br />
+requires (char_sink_for&lt;TIter, char&gt;)</div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">TIter <a class="el" href="structIOv2_1_1io__traits.html">IOv2::io_traits</a>&lt; char, const char * &gt;::swrite </td>
+          <td>(</td>
+          <td class="paramtype">TIter</td>          <td class="paramname"><span class="paramname"><em>iter</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classIOv2_1_1ios__base.html">ios_base</a>&lt; char &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>io</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="classIOv2_1_1locale.html">locale</a>&lt; char &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>loc</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *</td>          <td class="paramname"><span class="paramname"><em>c</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel static">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>转交 <span class="tt"><a class="el" href="structIOv2_1_1io__traits.html" title="把 TChar 流的读写逻辑接到类型 T 上的扩展点。主模板故意不定义；见本文件头部。">io_traits</a>&lt;char, char*&gt;::<a class="el" href="#a058ae41a21cb3af07ce45d2304a08a06" title="转交 io_traits&lt;char, char*&gt;::swrite。">swrite</a></span>。 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">iter</td><td>输出迭代器。 </td></tr>
+    <tr><td class="paramname">io</td><td>提供 <span class="tt">width()</span> / <span class="tt">fill()</span> / <span class="tt">adjustfield</span> 的流。 </td></tr>
+    <tr><td class="paramname">loc</td><td>未使用，仅为转交。 </td></tr>
+    <tr><td class="paramname">c</td><td>以空字符结尾的字符串。 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd>写完之后的输出迭代器。 </dd></dl>
+<dl class="exception"><dt>异常</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname"><a class="el" href="structIOv2_1_1stream__error.html">stream_error</a></td><td>若 <span class="tt">c</span> 为空指针，或所需填充量超过 <span class="tt"><a class="el" href="namespaceIOv2_1_1ios__defs.html#afcde3641107552ea42fed8ec8924b3e8" title="单次插入允许写出的填充字符数上限；width() 本身仍不设上限。">ios_defs::max_pad_count</a></span>。 </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<hr/>该结构体的文档由以下文件生成:<ul>
+<li>include/IOv2/io/traits/<a class="el" href="char__and__str_8h_source.html">char_and_str.h</a></li>
+</ul>
+</div><!-- contents -->
+</div><!-- doc-content -->
+<div id="page-nav" class="page-nav-panel">
+<div id="page-nav-resize-handle"></div>
+<div id="page-nav-tree">
+<div id="page-nav-contents">
+</div><!-- page-nav-contents -->
+</div><!-- page-nav-tree -->
+</div><!-- page-nav -->
+</div><!-- container -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><a href="namespaceIOv2.html">IOv2</a></li><li class="navelem"><a href="structIOv2_1_1io__traits_3_01char_00_01const_01char_01_5_01_4.html">io_traits&lt; char, const char * &gt;</a></li>
+    <li class="footer">制作者 <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.15.0 </li>
+  </ul>
+</div>
+</body>
+</html>

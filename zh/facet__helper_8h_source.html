@@ -1,0 +1,378 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=11"/>
+<meta name="generator" content="Doxygen 1.15.0"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>IOv2: include/IOv2/facet/facet_helper.h 源文件</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<script type="text/javascript" src="clipboard.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<script type="text/javascript" src="cookie.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr id="projectrow">
+  <td id="projectalign">
+   <div id="projectname">IOv2
+   </div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 制作者 Doxygen 1.15.0 -->
+<script type="text/javascript">
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+</script>
+<script type="text/javascript">
+$(function() { codefold.init(); });
+</script>
+<script type="text/javascript" src="menudata.js"></script>
+<script type="text/javascript" src="menu.js"></script>
+<script type="text/javascript">
+$(function() {
+  initMenu('',true,false,'search.php','搜索',true);
+  $(function() { init_search(); });
+});
+</script>
+<div id="main-nav"></div>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+$(function(){initNavTree('facet__helper_8h_source.html','',''); });
+</script>
+<div id="container">
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">载入中...</div>
+<div class="SRStatus" id="Searching">搜索中...</div>
+<div class="SRStatus" id="NoMatches">未找到</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="header">
+  <div class="headertitle"><div class="title">facet_helper.h</div></div>
+</div><!--header-->
+<div class="contents">
+<a href="facet__helper_8h.html">浏览该文件的文档.</a><div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span><span class="comment">// SPDX-FileCopyrightText: 2026 liwei &lt;liwei.cpp@gmail.com&gt;</span></div>
+<div class="line"><a id="l00002" name="l00002"></a><span class="lineno">    2</span><span class="comment">// SPDX-License-Identifier: MIT</span></div>
+<div class="line"><a id="l00003" name="l00003"></a><span class="lineno">    3</span></div>
+<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span> </div>
+<div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span><span class="preprocessor">#pragma once</span></div>
+<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span><span class="preprocessor">#include &lt;<a class="code" href="clocale__wrapper_8h.html">IOv2/common/clocale_wrapper.h</a>&gt;</span></div>
+<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span><span class="preprocessor">#include &lt;<a class="code" href="metafunctions_8h.html">IOv2/common/metafunctions.h</a>&gt;</span></div>
+<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span><span class="preprocessor">#include &lt;<a class="code" href="cvt__facilities_8h.html">IOv2/cvt/cvt_facilities.h</a>&gt;</span></div>
+<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span> </div>
+<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span><span class="preprocessor">#include &lt;algorithm&gt;</span></div>
+<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span><span class="preprocessor">#include &lt;cassert&gt;</span></div>
+<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span><span class="preprocessor">#include &lt;cstddef&gt;</span></div>
+<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span><span class="preprocessor">#include &lt;cstdint&gt;</span></div>
+<div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span><span class="preprocessor">#include &lt;cstdio&gt;</span></div>
+<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span><span class="preprocessor">#include &lt;cwchar&gt;</span></div>
+<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span><span class="preprocessor">#include &lt;iterator&gt;</span></div>
+<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span><span class="preprocessor">#include &lt;limits&gt;</span></div>
+<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span><span class="preprocessor">#include &lt;string&gt;</span></div>
+<div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span><span class="preprocessor">#include &lt;string_view&gt;</span></div>
+<div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span><span class="preprocessor">#include &lt;type_traits&gt;</span></div>
+<div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span><span class="preprocessor">#include &lt;vector&gt;</span></div>
+<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span> </div>
+<div class="foldopen" id="foldopen00060" data-start="{" data-end="}">
+<div class="line"><a id="l00060" name="l00060"></a><span class="lineno"><a class="line" href="namespaceIOv2_1_1FacetHelper.html">   60</a></span><span class="keyword">namespace </span><a class="code hl_namespace" href="namespaceIOv2_1_1FacetHelper.html">IOv2::FacetHelper</a></div>
+<div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span>{</div>
+<div class="foldopen" id="foldopen00117" data-start="{" data-end="}">
+<div class="line"><a id="l00117" name="l00117"></a><span class="lineno"><a class="line" href="namespaceIOv2_1_1FacetHelper.html#aeeaf823306d47434b547c57d4971393b">  117</a></span>    <span class="keyword">inline</span> <span class="keywordtype">bool</span> <a class="code hl_function" href="namespaceIOv2_1_1FacetHelper.html#aeeaf823306d47434b547c57d4971393b">is_c_locale_name</a>(<span class="keyword">const</span> std::string&amp; name)</div>
+<div class="line"><a id="l00118" name="l00118"></a><span class="lineno">  118</span>    {</div>
+<div class="line"><a id="l00119" name="l00119"></a><span class="lineno">  119</span>        <span class="keywordflow">if</span> ((name == <span class="stringliteral">&quot;C&quot;</span>) || (name == <span class="stringliteral">&quot;POSIX&quot;</span>))</div>
+<div class="line"><a id="l00120" name="l00120"></a><span class="lineno">  120</span>            <span class="keywordflow">return</span> <span class="keyword">true</span>;</div>
+<div class="line"><a id="l00121" name="l00121"></a><span class="lineno">  121</span> </div>
+<div class="line"><a id="l00122" name="l00122"></a><span class="lineno">  122</span>        <span class="keyword">const</span> std::string_view head =</div>
+<div class="line"><a id="l00123" name="l00123"></a><span class="lineno">  123</span>            std::string_view(name).substr(0, name.find_first_of(<span class="stringliteral">&quot;.@&quot;</span>));</div>
+<div class="line"><a id="l00124" name="l00124"></a><span class="lineno">  124</span>        <span class="keywordflow">if</span> ((head != <span class="stringliteral">&quot;C&quot;</span>) &amp;&amp; (head != <span class="stringliteral">&quot;POSIX&quot;</span>))</div>
+<div class="line"><a id="l00125" name="l00125"></a><span class="lineno">  125</span>            <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
+<div class="line"><a id="l00126" name="l00126"></a><span class="lineno">  126</span> </div>
+<div class="line"><a id="l00127" name="l00127"></a><span class="lineno">  127</span>        <a class="code hl_struct" href="structIOv2_1_1clocale__wrapper.html">clocale_wrapper</a> probe(name);</div>
+<div class="line"><a id="l00128" name="l00128"></a><span class="lineno">  128</span>        <span class="keywordflow">return</span> <span class="keyword">true</span>;</div>
+<div class="line"><a id="l00129" name="l00129"></a><span class="lineno">  129</span>    }</div>
+</div>
+<div class="line"><a id="l00130" name="l00130"></a><span class="lineno">  130</span></div>
+<div class="line"><a id="l00198" name="l00198"></a><span class="lineno">  198</span>    <span class="keyword">template</span> &lt;<span class="keyword">typename</span> CharT&gt;</div>
+<div class="foldopen" id="foldopen00199" data-start="{" data-end="}">
+<div class="line"><a id="l00199" name="l00199"></a><span class="lineno"><a class="line" href="namespaceIOv2_1_1FacetHelper.html#ab7f74e36f74db96a9e71f634fc929f96">  199</a></span>    <span class="keyword">inline</span> CharT* <a class="code hl_function" href="namespaceIOv2_1_1FacetHelper.html#ab7f74e36f74db96a9e71f634fc929f96">add_grouping</a>(CharT* out, std::basic_string_view&lt;CharT&gt; sep,</div>
+<div class="line"><a id="l00200" name="l00200"></a><span class="lineno">  200</span>                               <span class="keyword">const</span> std::vector&lt;uint8_t&gt;&amp; grouping,</div>
+<div class="line"><a id="l00201" name="l00201"></a><span class="lineno">  201</span>                               <span class="keyword">const</span> CharT* first, <span class="keyword">const</span> CharT* last)</div>
+<div class="line"><a id="l00202" name="l00202"></a><span class="lineno">  202</span>    {</div>
+<div class="line"><a id="l00203" name="l00203"></a><span class="lineno">  203</span>        assert(!grouping.empty());</div>
+<div class="line"><a id="l00204" name="l00204"></a><span class="lineno">  204</span>        assert(first &lt;= last);</div>
+<div class="line"><a id="l00205" name="l00205"></a><span class="lineno">  205</span> </div>
+<div class="line"><a id="l00206" name="l00206"></a><span class="lineno">  206</span>        <span class="keyword">const</span> std::size_t last_rule = grouping.size() - 1;</div>
+<div class="line"><a id="l00207" name="l00207"></a><span class="lineno">  207</span> </div>
+<div class="line"><a id="l00208" name="l00208"></a><span class="lineno">  208</span>        <span class="comment">// Pass 1 -- measure. Peel whole groups off the low-order end for as long</span></div>
+<div class="line"><a id="l00209" name="l00209"></a><span class="lineno">  209</span>        <span class="comment">// as what is left over can still fill one more. `rule` records how far</span></div>
+<div class="line"><a id="l00210" name="l00210"></a><span class="lineno">  210</span>        <span class="comment">// the walk got into `grouping`; once it reaches the final entry that</span></div>
+<div class="line"><a id="l00211" name="l00211"></a><span class="lineno">  211</span>        <span class="comment">// entry keeps applying, and `extra` counts how many further times it did.</span></div>
+<div class="line"><a id="l00212" name="l00212"></a><span class="lineno">  212</span>        <span class="comment">// `head` is left holding the width of the leading, possibly short, group.</span></div>
+<div class="line"><a id="l00213" name="l00213"></a><span class="lineno">  213</span>        std::size_t rule  = 0;</div>
+<div class="line"><a id="l00214" name="l00214"></a><span class="lineno">  214</span>        std::size_t extra = 0;</div>
+<div class="line"><a id="l00215" name="l00215"></a><span class="lineno">  215</span>        <span class="keyword">auto</span>        head  = <span class="keyword">static_cast&lt;</span>std::size_t<span class="keyword">&gt;</span>(last - first);</div>
+<div class="line"><a id="l00216" name="l00216"></a><span class="lineno">  216</span>        <span class="keywordflow">while</span> (<span class="keyword">true</span>)</div>
+<div class="line"><a id="l00217" name="l00217"></a><span class="lineno">  217</span>        {</div>
+<div class="line"><a id="l00218" name="l00218"></a><span class="lineno">  218</span>            <span class="keyword">const</span> std::size_t size = grouping[rule];</div>
+<div class="line"><a id="l00219" name="l00219"></a><span class="lineno">  219</span>            <span class="keywordflow">if</span> (size == 0 || head &lt;= size)</div>
+<div class="line"><a id="l00220" name="l00220"></a><span class="lineno">  220</span>                <span class="keywordflow">break</span>;</div>
+<div class="line"><a id="l00221" name="l00221"></a><span class="lineno">  221</span>            head -= size;</div>
+<div class="line"><a id="l00222" name="l00222"></a><span class="lineno">  222</span>            <span class="keywordflow">if</span> (rule &lt; last_rule)</div>
+<div class="line"><a id="l00223" name="l00223"></a><span class="lineno">  223</span>                ++rule;</div>
+<div class="line"><a id="l00224" name="l00224"></a><span class="lineno">  224</span>            <span class="keywordflow">else</span></div>
+<div class="line"><a id="l00225" name="l00225"></a><span class="lineno">  225</span>                ++extra;</div>
+<div class="line"><a id="l00226" name="l00226"></a><span class="lineno">  226</span>        }</div>
+<div class="line"><a id="l00227" name="l00227"></a><span class="lineno">  227</span> </div>
+<div class="line"><a id="l00228" name="l00228"></a><span class="lineno">  228</span>        <span class="comment">// One separator per peeled group, so the finished width is known up front.</span></div>
+<div class="line"><a id="l00229" name="l00229"></a><span class="lineno">  229</span>        <span class="keyword">const</span> std::size_t groups = rule + extra;</div>
+<div class="line"><a id="l00230" name="l00230"></a><span class="lineno">  230</span>        <span class="keyword">const</span> std::size_t width  = <span class="keyword">static_cast&lt;</span>std::size_t<span class="keyword">&gt;</span>(last - first) + groups * sep.size();</div>
+<div class="line"><a id="l00231" name="l00231"></a><span class="lineno">  231</span> </div>
+<div class="line"><a id="l00232" name="l00232"></a><span class="lineno">  232</span>        <span class="comment">// Pass 2 -- emit. Fill the buffer from its high-order end, which lets the</span></div>
+<div class="line"><a id="l00233" name="l00233"></a><span class="lineno">  233</span>        <span class="comment">// groups be replayed in the very order pass 1 peeled them off; rule k</span></div>
+<div class="line"><a id="l00234" name="l00234"></a><span class="lineno">  234</span>        <span class="comment">// governs the k-th group up from the bottom, saturating at `last_rule`.</span></div>
+<div class="line"><a id="l00235" name="l00235"></a><span class="lineno">  235</span>        <span class="comment">// `head &gt;= 1` whenever `groups &gt; 0`, so the leading separator write can</span></div>
+<div class="line"><a id="l00236" name="l00236"></a><span class="lineno">  236</span>        <span class="comment">// never run off the front of the buffer.</span></div>
+<div class="line"><a id="l00237" name="l00237"></a><span class="lineno">  237</span>        CharT*       dst = out + width;</div>
+<div class="line"><a id="l00238" name="l00238"></a><span class="lineno">  238</span>        <span class="keyword">const</span> CharT* src = last;</div>
+<div class="line"><a id="l00239" name="l00239"></a><span class="lineno">  239</span>        <span class="keywordflow">for</span> (std::size_t k = 0; k &lt; groups; ++k)</div>
+<div class="line"><a id="l00240" name="l00240"></a><span class="lineno">  240</span>        {</div>
+<div class="line"><a id="l00241" name="l00241"></a><span class="lineno">  241</span>            <span class="keyword">const</span> std::size_t size = grouping[std::min(k, last_rule)];</div>
+<div class="line"><a id="l00242" name="l00242"></a><span class="lineno">  242</span>            src -= size;</div>
+<div class="line"><a id="l00243" name="l00243"></a><span class="lineno">  243</span>            dst -= size;</div>
+<div class="line"><a id="l00244" name="l00244"></a><span class="lineno">  244</span>            std::copy_n(src, size, dst);</div>
+<div class="line"><a id="l00245" name="l00245"></a><span class="lineno">  245</span>            dst -= sep.size();</div>
+<div class="line"><a id="l00246" name="l00246"></a><span class="lineno">  246</span>            std::ranges::copy(sep, dst);</div>
+<div class="line"><a id="l00247" name="l00247"></a><span class="lineno">  247</span>        }</div>
+<div class="line"><a id="l00248" name="l00248"></a><span class="lineno">  248</span>        std::copy_n(first, head, out);</div>
+<div class="line"><a id="l00249" name="l00249"></a><span class="lineno">  249</span>        <span class="keywordflow">return</span> out + width;</div>
+<div class="line"><a id="l00250" name="l00250"></a><span class="lineno">  250</span>    }</div>
+</div>
+<div class="line"><a id="l00251" name="l00251"></a><span class="lineno">  251</span></div>
+<div class="line"><a id="l00274" name="l00274"></a><span class="lineno">  274</span>    <span class="keyword">template</span> &lt;<span class="keyword">typename</span> CharT&gt;</div>
+<div class="foldopen" id="foldopen00275" data-start="{" data-end="}">
+<div class="line"><a id="l00275" name="l00275"></a><span class="lineno"><a class="line" href="namespaceIOv2_1_1FacetHelper.html#a66ef272b51de0f737422a73b2960e511">  275</a></span>    <span class="keyword">inline</span> <span class="keywordtype">bool</span> <a class="code hl_function" href="namespaceIOv2_1_1FacetHelper.html#a66ef272b51de0f737422a73b2960e511">punct_distinct</a>(std::basic_string_view&lt;CharT&gt; sep, std::basic_string_view&lt;CharT&gt; <a class="code hl_enumvalue" href="namespaceIOv2_1_1FacetHelper.html#a80e28fd500705780f2e8e4a2b3c0e429a78ee54aa8f813885fe2fe20d232518b9">point</a>)</div>
+<div class="line"><a id="l00276" name="l00276"></a><span class="lineno">  276</span>    {</div>
+<div class="line"><a id="l00277" name="l00277"></a><span class="lineno">  277</span>        <span class="keywordflow">if</span> (sep.empty() || <a class="code hl_enumvalue" href="namespaceIOv2_1_1FacetHelper.html#a80e28fd500705780f2e8e4a2b3c0e429a78ee54aa8f813885fe2fe20d232518b9">point</a>.empty())</div>
+<div class="line"><a id="l00278" name="l00278"></a><span class="lineno">  278</span>            <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
+<div class="line"><a id="l00279" name="l00279"></a><span class="lineno">  279</span>        <span class="keyword">const</span> std::size_t n = std::min(sep.size(), <a class="code hl_enumvalue" href="namespaceIOv2_1_1FacetHelper.html#a80e28fd500705780f2e8e4a2b3c0e429a78ee54aa8f813885fe2fe20d232518b9">point</a>.size());</div>
+<div class="line"><a id="l00280" name="l00280"></a><span class="lineno">  280</span>        <span class="keywordflow">return</span> sep.substr(0, n) != <a class="code hl_enumvalue" href="namespaceIOv2_1_1FacetHelper.html#a80e28fd500705780f2e8e4a2b3c0e429a78ee54aa8f813885fe2fe20d232518b9">point</a>.substr(0, n);</div>
+<div class="line"><a id="l00281" name="l00281"></a><span class="lineno">  281</span>    }</div>
+</div>
+<div class="line"><a id="l00282" name="l00282"></a><span class="lineno">  282</span></div>
+<div class="foldopen" id="foldopen00287" data-start="{" data-end="};">
+<div class="line"><a id="l00287" name="l00287"></a><span class="lineno"><a class="line" href="namespaceIOv2_1_1FacetHelper.html#a80e28fd500705780f2e8e4a2b3c0e429">  287</a></span>    <span class="keyword">enum class</span> <a class="code hl_enumeration" href="namespaceIOv2_1_1FacetHelper.html#a80e28fd500705780f2e8e4a2b3c0e429">punct_kind</a> : std::uint8_t</div>
+<div class="line"><a id="l00288" name="l00288"></a><span class="lineno">  288</span>    {</div>
+<div class="line"><a id="l00289" name="l00289"></a><span class="lineno"><a class="line" href="namespaceIOv2_1_1FacetHelper.html#a80e28fd500705780f2e8e4a2b3c0e429a334c4a4c42fdb79d7ebc3e73b517e6f8">  289</a></span>        <a class="code hl_enumvalue" href="namespaceIOv2_1_1FacetHelper.html#a80e28fd500705780f2e8e4a2b3c0e429a334c4a4c42fdb79d7ebc3e73b517e6f8">none</a>,       </div>
+<div class="line"><a id="l00290" name="l00290"></a><span class="lineno"><a class="line" href="namespaceIOv2_1_1FacetHelper.html#a80e28fd500705780f2e8e4a2b3c0e429aa0f0bc95016c862498bbad29d1f4d9d4">  290</a></span>        <a class="code hl_enumvalue" href="namespaceIOv2_1_1FacetHelper.html#a80e28fd500705780f2e8e4a2b3c0e429aa0f0bc95016c862498bbad29d1f4d9d4">separator</a>,  </div>
+<div class="line"><a id="l00291" name="l00291"></a><span class="lineno"><a class="line" href="namespaceIOv2_1_1FacetHelper.html#a80e28fd500705780f2e8e4a2b3c0e429a78ee54aa8f813885fe2fe20d232518b9">  291</a></span>        <a class="code hl_enumvalue" href="namespaceIOv2_1_1FacetHelper.html#a80e28fd500705780f2e8e4a2b3c0e429a78ee54aa8f813885fe2fe20d232518b9">point</a>,      </div>
+<div class="line"><a id="l00292" name="l00292"></a><span class="lineno"><a class="line" href="namespaceIOv2_1_1FacetHelper.html#a80e28fd500705780f2e8e4a2b3c0e429a7d8acaac2172f18a4be11b0caded5c1c">  292</a></span>        <a class="code hl_enumvalue" href="namespaceIOv2_1_1FacetHelper.html#a80e28fd500705780f2e8e4a2b3c0e429a7d8acaac2172f18a4be11b0caded5c1c">torn</a>        </div>
+<div class="line"><a id="l00293" name="l00293"></a><span class="lineno">  293</span>    };</div>
+</div>
+<div class="line"><a id="l00294" name="l00294"></a><span class="lineno">  294</span></div>
+<div class="line"><a id="l00310" name="l00310"></a><span class="lineno">  310</span>    <span class="keyword">template</span> &lt;<span class="keyword">typename</span> TIter, <span class="keyword">typename</span> CharT&gt;</div>
+<div class="foldopen" id="foldopen00311" data-start="{" data-end="}">
+<div class="line"><a id="l00311" name="l00311"></a><span class="lineno"><a class="line" href="namespaceIOv2_1_1FacetHelper.html#a229acaee9cf2233494bc2022b621d443">  311</a></span>    <span class="keyword">inline</span> <span class="keywordtype">bool</span> <a class="code hl_function" href="namespaceIOv2_1_1FacetHelper.html#a229acaee9cf2233494bc2022b621d443">step_back</a>(TIter&amp; beg, std::basic_string_view&lt;CharT&gt; units, std::size_t k)</div>
+<div class="line"><a id="l00312" name="l00312"></a><span class="lineno">  312</span>    {</div>
+<div class="line"><a id="l00313" name="l00313"></a><span class="lineno">  313</span>        <span class="keywordflow">if</span> <span class="keyword">constexpr</span> (std::bidirectional_iterator&lt;TIter&gt;)</div>
+<div class="line"><a id="l00314" name="l00314"></a><span class="lineno">  314</span>        {</div>
+<div class="line"><a id="l00315" name="l00315"></a><span class="lineno">  315</span>            std::ranges::advance(beg, -<span class="keyword">static_cast&lt;</span>std::iter_difference_t&lt;TIter&gt;<span class="keyword">&gt;</span>(k));</div>
+<div class="line"><a id="l00316" name="l00316"></a><span class="lineno">  316</span>            <span class="keywordflow">return</span> <span class="keyword">true</span>;</div>
+<div class="line"><a id="l00317" name="l00317"></a><span class="lineno">  317</span>        }</div>
+<div class="line"><a id="l00318" name="l00318"></a><span class="lineno">  318</span>        <span class="keywordflow">else</span> <span class="keywordflow">if</span> <span class="keyword">constexpr</span> (<span class="keyword">requires</span>(TIter&amp; it, CharT c) { it.putbackc(c); })</div>
+<div class="line"><a id="l00319" name="l00319"></a><span class="lineno">  319</span>        {</div>
+<div class="line"><a id="l00320" name="l00320"></a><span class="lineno">  320</span>            <span class="keywordflow">while</span> (k != 0)</div>
+<div class="line"><a id="l00321" name="l00321"></a><span class="lineno">  321</span>                beg.putbackc(units[--k]);</div>
+<div class="line"><a id="l00322" name="l00322"></a><span class="lineno">  322</span>            <span class="keywordflow">return</span> <span class="keyword">true</span>;</div>
+<div class="line"><a id="l00323" name="l00323"></a><span class="lineno">  323</span>        }</div>
+<div class="line"><a id="l00324" name="l00324"></a><span class="lineno">  324</span>        <span class="keywordflow">else</span></div>
+<div class="line"><a id="l00325" name="l00325"></a><span class="lineno">  325</span>            <span class="keywordflow">return</span> k == 0;</div>
+<div class="line"><a id="l00326" name="l00326"></a><span class="lineno">  326</span>    }</div>
+</div>
+<div class="line"><a id="l00327" name="l00327"></a><span class="lineno">  327</span></div>
+<div class="line"><a id="l00359" name="l00359"></a><span class="lineno">  359</span>    <span class="keyword">template</span> &lt;<span class="keyword">typename</span> TIter, std::sentinel_for&lt;TIter&gt; TSent, <span class="keyword">typename</span> CharT&gt;</div>
+<div class="foldopen" id="foldopen00360" data-start="{" data-end="}">
+<div class="line"><a id="l00360" name="l00360"></a><span class="lineno"><a class="line" href="namespaceIOv2_1_1FacetHelper.html#a677837c5f1623f6c62515f7b679e3cb2">  360</a></span>    <span class="keyword">inline</span> <a class="code hl_enumeration" href="namespaceIOv2_1_1FacetHelper.html#a80e28fd500705780f2e8e4a2b3c0e429">punct_kind</a> <a class="code hl_function" href="namespaceIOv2_1_1FacetHelper.html#a677837c5f1623f6c62515f7b679e3cb2">take_punct</a>(TIter&amp; beg, TSent end, std::basic_string_view&lt;CharT&gt; sep,</div>
+<div class="line"><a id="l00361" name="l00361"></a><span class="lineno">  361</span>                                 std::basic_string_view&lt;CharT&gt; <a class="code hl_enumvalue" href="namespaceIOv2_1_1FacetHelper.html#a80e28fd500705780f2e8e4a2b3c0e429a78ee54aa8f813885fe2fe20d232518b9">point</a>, <span class="keywordtype">bool</span> consume_point)</div>
+<div class="line"><a id="l00362" name="l00362"></a><span class="lineno">  362</span>    {</div>
+<div class="line"><a id="l00363" name="l00363"></a><span class="lineno">  363</span>        <span class="keywordtype">bool</span> sep_alive   = !sep.empty();</div>
+<div class="line"><a id="l00364" name="l00364"></a><span class="lineno">  364</span>        <span class="keywordtype">bool</span> point_alive = !<a class="code hl_enumvalue" href="namespaceIOv2_1_1FacetHelper.html#a80e28fd500705780f2e8e4a2b3c0e429a78ee54aa8f813885fe2fe20d232518b9">point</a>.empty();</div>
+<div class="line"><a id="l00365" name="l00365"></a><span class="lineno">  365</span>        std::size_t k = 0;</div>
+<div class="line"><a id="l00366" name="l00366"></a><span class="lineno">  366</span>        <span class="keywordflow">while</span> (beg != end)</div>
+<div class="line"><a id="l00367" name="l00367"></a><span class="lineno">  367</span>        {</div>
+<div class="line"><a id="l00368" name="l00368"></a><span class="lineno">  368</span>            <span class="keyword">const</span> CharT c = *beg;</div>
+<div class="line"><a id="l00369" name="l00369"></a><span class="lineno">  369</span>            <span class="keyword">const</span> <span class="keywordtype">bool</span> s = sep_alive &amp;&amp; sep[k] == c;</div>
+<div class="line"><a id="l00370" name="l00370"></a><span class="lineno">  370</span>            <span class="keyword">const</span> <span class="keywordtype">bool</span> p = point_alive &amp;&amp; <a class="code hl_enumvalue" href="namespaceIOv2_1_1FacetHelper.html#a80e28fd500705780f2e8e4a2b3c0e429a78ee54aa8f813885fe2fe20d232518b9">point</a>[k] == c;</div>
+<div class="line"><a id="l00371" name="l00371"></a><span class="lineno">  371</span>            <span class="keywordflow">if</span> (!s &amp;&amp; !p)</div>
+<div class="line"><a id="l00372" name="l00372"></a><span class="lineno">  372</span>                <span class="keywordflow">break</span>;</div>
+<div class="line"><a id="l00373" name="l00373"></a><span class="lineno">  373</span>            sep_alive   = s;</div>
+<div class="line"><a id="l00374" name="l00374"></a><span class="lineno">  374</span>            point_alive = p;</div>
+<div class="line"><a id="l00375" name="l00375"></a><span class="lineno">  375</span> </div>
+<div class="line"><a id="l00376" name="l00376"></a><span class="lineno">  376</span>            <span class="comment">// The point is settled at its last character, before that one is read.</span></div>
+<div class="line"><a id="l00377" name="l00377"></a><span class="lineno">  377</span>            <span class="keywordflow">if</span> (p &amp;&amp; k + 1 == <a class="code hl_enumvalue" href="namespaceIOv2_1_1FacetHelper.html#a80e28fd500705780f2e8e4a2b3c0e429a78ee54aa8f813885fe2fe20d232518b9">point</a>.size())</div>
+<div class="line"><a id="l00378" name="l00378"></a><span class="lineno">  378</span>            {</div>
+<div class="line"><a id="l00379" name="l00379"></a><span class="lineno">  379</span>                <span class="keywordflow">if</span> (consume_point)</div>
+<div class="line"><a id="l00380" name="l00380"></a><span class="lineno">  380</span>                    ++beg;</div>
+<div class="line"><a id="l00381" name="l00381"></a><span class="lineno">  381</span>                <span class="keywordflow">else</span></div>
+<div class="line"><a id="l00382" name="l00382"></a><span class="lineno">  382</span>                    <a class="code hl_function" href="namespaceIOv2_1_1FacetHelper.html#a229acaee9cf2233494bc2022b621d443">step_back</a>(beg, <a class="code hl_enumvalue" href="namespaceIOv2_1_1FacetHelper.html#a80e28fd500705780f2e8e4a2b3c0e429a78ee54aa8f813885fe2fe20d232518b9">point</a>, k);</div>
+<div class="line"><a id="l00383" name="l00383"></a><span class="lineno">  383</span>                <span class="keywordflow">return</span> <a class="code hl_enumvalue" href="namespaceIOv2_1_1FacetHelper.html#a80e28fd500705780f2e8e4a2b3c0e429a78ee54aa8f813885fe2fe20d232518b9">punct_kind::point</a>;</div>
+<div class="line"><a id="l00384" name="l00384"></a><span class="lineno">  384</span>            }</div>
+<div class="line"><a id="l00385" name="l00385"></a><span class="lineno">  385</span>            ++beg;</div>
+<div class="line"><a id="l00386" name="l00386"></a><span class="lineno">  386</span>            ++k;</div>
+<div class="line"><a id="l00387" name="l00387"></a><span class="lineno">  387</span>            <span class="keywordflow">if</span> (s &amp;&amp; k == sep.size())</div>
+<div class="line"><a id="l00388" name="l00388"></a><span class="lineno">  388</span>                <span class="keywordflow">return</span> <a class="code hl_enumvalue" href="namespaceIOv2_1_1FacetHelper.html#a80e28fd500705780f2e8e4a2b3c0e429aa0f0bc95016c862498bbad29d1f4d9d4">punct_kind::separator</a>;</div>
+<div class="line"><a id="l00389" name="l00389"></a><span class="lineno">  389</span>        }</div>
+<div class="line"><a id="l00390" name="l00390"></a><span class="lineno">  390</span> </div>
+<div class="line"><a id="l00391" name="l00391"></a><span class="lineno">  391</span>        <span class="keyword">const</span> std::basic_string_view&lt;CharT&gt; read = sep_alive ? sep : <a class="code hl_enumvalue" href="namespaceIOv2_1_1FacetHelper.html#a80e28fd500705780f2e8e4a2b3c0e429a78ee54aa8f813885fe2fe20d232518b9">point</a>;</div>
+<div class="line"><a id="l00392" name="l00392"></a><span class="lineno">  392</span>        <span class="keywordflow">return</span> <a class="code hl_function" href="namespaceIOv2_1_1FacetHelper.html#a229acaee9cf2233494bc2022b621d443">step_back</a>(beg, read, k) ? <a class="code hl_enumvalue" href="namespaceIOv2_1_1FacetHelper.html#a80e28fd500705780f2e8e4a2b3c0e429a334c4a4c42fdb79d7ebc3e73b517e6f8">punct_kind::none</a> : <a class="code hl_enumvalue" href="namespaceIOv2_1_1FacetHelper.html#a80e28fd500705780f2e8e4a2b3c0e429a7d8acaac2172f18a4be11b0caded5c1c">punct_kind::torn</a>;</div>
+<div class="line"><a id="l00393" name="l00393"></a><span class="lineno">  393</span>    }</div>
+</div>
+<div class="line"><a id="l00394" name="l00394"></a><span class="lineno">  394</span></div>
+<div class="foldopen" id="foldopen00442" data-start="{" data-end="}">
+<div class="line"><a id="l00442" name="l00442"></a><span class="lineno"><a class="line" href="namespaceIOv2_1_1FacetHelper.html#a75720f297a2b8ae2ab2ec32196cb2f28">  442</a></span>    <span class="keyword">inline</span> <span class="keywordtype">void</span> <a class="code hl_function" href="namespaceIOv2_1_1FacetHelper.html#a75720f297a2b8ae2ab2ec32196cb2f28">adjust_grouping</a>(std::vector&lt;uint8_t&gt;&amp; grouping)</div>
+<div class="line"><a id="l00443" name="l00443"></a><span class="lineno">  443</span>    {</div>
+<div class="line"><a id="l00444" name="l00444"></a><span class="lineno">  444</span>        <span class="comment">// Step 1: POSIX &quot;0 = repeat previous&quot; → drop the 0 and the tail.</span></div>
+<div class="line"><a id="l00445" name="l00445"></a><span class="lineno">  445</span>        <span class="keyword">auto</span> zero = std::ranges::find(grouping, uint8_t{0});</div>
+<div class="line"><a id="l00446" name="l00446"></a><span class="lineno">  446</span>        grouping.erase(zero, grouping.end());</div>
+<div class="line"><a id="l00447" name="l00447"></a><span class="lineno">  447</span> </div>
+<div class="line"><a id="l00448" name="l00448"></a><span class="lineno">  448</span>        <span class="comment">// Step 2: POSIX CHAR_MAX (= stop) → internal 0 sentinel, plus</span></div>
+<div class="line"><a id="l00449" name="l00449"></a><span class="lineno">  449</span>        <span class="comment">// canonical-form cleanup. After step 1 there are no 0s in the vector,</span></div>
+<div class="line"><a id="l00450" name="l00450"></a><span class="lineno">  450</span>        <span class="comment">// so the FIRST CHAR_MAX is the only point at which we introduce one,</span></div>
+<div class="line"><a id="l00451" name="l00451"></a><span class="lineno">  451</span>        <span class="comment">// and three cases fully cover the outcome:</span></div>
+<div class="line"><a id="l00452" name="l00452"></a><span class="lineno">  452</span>        <span class="comment">//   - at begin():   grouping would start with the stop sentinel,</span></div>
+<div class="line"><a id="l00453" name="l00453"></a><span class="lineno">  453</span>        <span class="comment">//                   i.e. no usable leading group ⇒ discard.</span></div>
+<div class="line"><a id="l00454" name="l00454"></a><span class="lineno">  454</span>        <span class="comment">//                   (This also subsumes the empty-vector case left</span></div>
+<div class="line"><a id="l00455" name="l00455"></a><span class="lineno">  455</span>        <span class="comment">//                   by step 1, since find on an empty range returns</span></div>
+<div class="line"><a id="l00456" name="l00456"></a><span class="lineno">  456</span>        <span class="comment">//                   end() == begin().)</span></div>
+<div class="line"><a id="l00457" name="l00457"></a><span class="lineno">  457</span>        <span class="comment">//   - in the tail:  rewrite to 0 and drop everything after it; those</span></div>
+<div class="line"><a id="l00458" name="l00458"></a><span class="lineno">  458</span>        <span class="comment">//                   bytes are dead code anyway because add_grouping</span></div>
+<div class="line"><a id="l00459" name="l00459"></a><span class="lineno">  459</span>        <span class="comment">//                   short-circuits on 0.</span></div>
+<div class="line"><a id="l00460" name="l00460"></a><span class="lineno">  460</span>        <span class="comment">//   - not found:    nothing to do.</span></div>
+<div class="line"><a id="l00461" name="l00461"></a><span class="lineno">  461</span>        <span class="keyword">constexpr</span> <span class="keyword">auto</span> posix_sentinel =</div>
+<div class="line"><a id="l00462" name="l00462"></a><span class="lineno">  462</span>            <span class="keyword">static_cast&lt;</span>uint8_t<span class="keyword">&gt;</span>(std::numeric_limits&lt;char&gt;::max());</div>
+<div class="line"><a id="l00463" name="l00463"></a><span class="lineno">  463</span>        <span class="keyword">auto</span> stop = std::ranges::find(grouping, posix_sentinel);</div>
+<div class="line"><a id="l00464" name="l00464"></a><span class="lineno">  464</span>        <span class="keywordflow">if</span> (stop == grouping.begin())</div>
+<div class="line"><a id="l00465" name="l00465"></a><span class="lineno">  465</span>            grouping.clear();</div>
+<div class="line"><a id="l00466" name="l00466"></a><span class="lineno">  466</span>        <span class="keywordflow">else</span> <span class="keywordflow">if</span> (stop != grouping.end())</div>
+<div class="line"><a id="l00467" name="l00467"></a><span class="lineno">  467</span>        {</div>
+<div class="line"><a id="l00468" name="l00468"></a><span class="lineno">  468</span>            *stop = 0;</div>
+<div class="line"><a id="l00469" name="l00469"></a><span class="lineno">  469</span>            grouping.erase(std::next(stop), grouping.end());</div>
+<div class="line"><a id="l00470" name="l00470"></a><span class="lineno">  470</span>        }</div>
+<div class="line"><a id="l00471" name="l00471"></a><span class="lineno">  471</span>    }</div>
+</div>
+<div class="line"><a id="l00472" name="l00472"></a><span class="lineno">  472</span></div>
+<div class="line"><a id="l00486" name="l00486"></a><span class="lineno">  486</span>    <span class="keyword">template</span> &lt;<span class="keyword">typename</span> CharT&gt;</div>
+<div class="foldopen" id="foldopen00487" data-start="{" data-end="}">
+<div class="line"><a id="l00487" name="l00487"></a><span class="lineno"><a class="line" href="namespaceIOv2_1_1FacetHelper.html#a8371b6c50028d80d9c5e86e0828af856">  487</a></span>    <span class="keyword">inline</span> std::vector&lt;uint8_t&gt; <a class="code hl_function" href="namespaceIOv2_1_1FacetHelper.html#a8371b6c50028d80d9c5e86e0828af856">lconv_grouping</a>(std::string_view raw, std::basic_string_view&lt;CharT&gt; sep,</div>
+<div class="line"><a id="l00488" name="l00488"></a><span class="lineno">  488</span>                                               std::basic_string_view&lt;CharT&gt; <a class="code hl_enumvalue" href="namespaceIOv2_1_1FacetHelper.html#a80e28fd500705780f2e8e4a2b3c0e429a78ee54aa8f813885fe2fe20d232518b9">point</a>)</div>
+<div class="line"><a id="l00489" name="l00489"></a><span class="lineno">  489</span>    {</div>
+<div class="line"><a id="l00490" name="l00490"></a><span class="lineno">  490</span>        std::vector&lt;uint8_t&gt; res;</div>
+<div class="line"><a id="l00491" name="l00491"></a><span class="lineno">  491</span>        <span class="keywordflow">if</span> (raw.empty() || !<a class="code hl_function" href="namespaceIOv2_1_1FacetHelper.html#a66ef272b51de0f737422a73b2960e511">punct_distinct</a>(sep, <a class="code hl_enumvalue" href="namespaceIOv2_1_1FacetHelper.html#a80e28fd500705780f2e8e4a2b3c0e429a78ee54aa8f813885fe2fe20d232518b9">point</a>))</div>
+<div class="line"><a id="l00492" name="l00492"></a><span class="lineno">  492</span>            <span class="keywordflow">return</span> res;</div>
+<div class="line"><a id="l00493" name="l00493"></a><span class="lineno">  493</span>        res.reserve(raw.size());</div>
+<div class="line"><a id="l00494" name="l00494"></a><span class="lineno">  494</span>        <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keywordtype">char</span> c : raw)</div>
+<div class="line"><a id="l00495" name="l00495"></a><span class="lineno">  495</span>            res.push_back(<span class="keyword">static_cast&lt;</span>uint8_t<span class="keyword">&gt;</span>(c));</div>
+<div class="line"><a id="l00496" name="l00496"></a><span class="lineno">  496</span>        <a class="code hl_function" href="namespaceIOv2_1_1FacetHelper.html#a75720f297a2b8ae2ab2ec32196cb2f28">adjust_grouping</a>(res);</div>
+<div class="line"><a id="l00497" name="l00497"></a><span class="lineno">  497</span>        <span class="keywordflow">return</span> res;</div>
+<div class="line"><a id="l00498" name="l00498"></a><span class="lineno">  498</span>    }</div>
+</div>
+<div class="line"><a id="l00499" name="l00499"></a><span class="lineno">  499</span></div>
+<div class="foldopen" id="foldopen00546" data-start="{" data-end="}">
+<div class="line"><a id="l00546" name="l00546"></a><span class="lineno"><a class="line" href="namespaceIOv2_1_1FacetHelper.html#a2022722cef469d24506a2c3f690cf32b">  546</a></span>    <span class="keyword">inline</span> <span class="keywordtype">bool</span> <a class="code hl_function" href="namespaceIOv2_1_1FacetHelper.html#a2022722cef469d24506a2c3f690cf32b">verify_grouping</a>(<span class="keyword">const</span> std::vector&lt;uint8_t&gt;&amp; grouping,</div>
+<div class="line"><a id="l00547" name="l00547"></a><span class="lineno">  547</span>                                <span class="keyword">const</span> std::vector&lt;uint8_t&gt;&amp; grouping_tmp)</div>
+<div class="line"><a id="l00548" name="l00548"></a><span class="lineno">  548</span>    {</div>
+<div class="line"><a id="l00549" name="l00549"></a><span class="lineno">  549</span>        assert(!grouping.empty());</div>
+<div class="line"><a id="l00550" name="l00550"></a><span class="lineno">  550</span>        assert(!grouping_tmp.empty());</div>
+<div class="line"><a id="l00551" name="l00551"></a><span class="lineno">  551</span> </div>
+<div class="line"><a id="l00552" name="l00552"></a><span class="lineno">  552</span>        <span class="keyword">const</span> std::size_t last_rule = grouping.size() - 1;</div>
+<div class="line"><a id="l00553" name="l00553"></a><span class="lineno">  553</span> </div>
+<div class="line"><a id="l00554" name="l00554"></a><span class="lineno">  554</span>        <span class="comment">// Walk the observed groups from the low-order end upwards, advancing a</span></div>
+<div class="line"><a id="l00555" name="l00555"></a><span class="lineno">  555</span>        <span class="comment">// cursor through the rules alongside. The cursor stalls on the final</span></div>
+<div class="line"><a id="l00556" name="l00556"></a><span class="lineno">  556</span>        <span class="comment">// rule, which is what makes that rule govern every group beyond the</span></div>
+<div class="line"><a id="l00557" name="l00557"></a><span class="lineno">  557</span>        <span class="comment">// explicit ones. Every group but the leading one has to be exactly as</span></div>
+<div class="line"><a id="l00558" name="l00558"></a><span class="lineno">  558</span>        <span class="comment">// wide as the rule facing it.</span></div>
+<div class="line"><a id="l00559" name="l00559"></a><span class="lineno">  559</span>        std::size_t rule = 0;</div>
+<div class="line"><a id="l00560" name="l00560"></a><span class="lineno">  560</span>        <span class="keywordflow">for</span> (std::size_t k = grouping_tmp.size() - 1; k &gt; 0; --k)</div>
+<div class="line"><a id="l00561" name="l00561"></a><span class="lineno">  561</span>        {</div>
+<div class="line"><a id="l00562" name="l00562"></a><span class="lineno">  562</span>            <span class="keywordflow">if</span> (grouping_tmp[k] != grouping[rule])</div>
+<div class="line"><a id="l00563" name="l00563"></a><span class="lineno">  563</span>                <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
+<div class="line"><a id="l00564" name="l00564"></a><span class="lineno">  564</span>            <span class="keywordflow">if</span> (rule &lt; last_rule)</div>
+<div class="line"><a id="l00565" name="l00565"></a><span class="lineno">  565</span>                ++rule;</div>
+<div class="line"><a id="l00566" name="l00566"></a><span class="lineno">  566</span>        }</div>
+<div class="line"><a id="l00567" name="l00567"></a><span class="lineno">  567</span> </div>
+<div class="line"><a id="l00568" name="l00568"></a><span class="lineno">  568</span>        <span class="comment">// The cursor now faces the leading group, which is allowed to fall short</span></div>
+<div class="line"><a id="l00569" name="l00569"></a><span class="lineno">  569</span>        <span class="comment">// of its rule, and is unbounded above when that rule is the stop sentinel.</span></div>
+<div class="line"><a id="l00570" name="l00570"></a><span class="lineno">  570</span>        <span class="keywordflow">return</span> grouping[rule] == 0 || grouping_tmp[0] &lt;= grouping[rule];</div>
+<div class="line"><a id="l00571" name="l00571"></a><span class="lineno">  571</span>    }</div>
+</div>
+<div class="line"><a id="l00572" name="l00572"></a><span class="lineno">  572</span>}</div>
+</div>
+<div class="ttc" id="aclocale__wrapper_8h_html"><div class="ttname"><a href="clocale__wrapper_8h.html">clocale_wrapper.h</a></div></div>
+<div class="ttc" id="acvt__facilities_8h_html"><div class="ttname"><a href="cvt__facilities_8h.html">cvt_facilities.h</a></div></div>
+<div class="ttc" id="ametafunctions_8h_html"><div class="ttname"><a href="metafunctions_8h.html">metafunctions.h</a></div></div>
+<div class="ttc" id="anamespaceIOv2_1_1FacetHelper_html"><div class="ttname"><a href="namespaceIOv2_1_1FacetHelper.html">IOv2::FacetHelper</a></div><div class="ttdef"><b>定义</b> facet_helper.h:61</div></div>
+<div class="ttc" id="anamespaceIOv2_1_1FacetHelper_html_a2022722cef469d24506a2c3f690cf32b"><div class="ttname"><a href="namespaceIOv2_1_1FacetHelper.html#a2022722cef469d24506a2c3f690cf32b">IOv2::FacetHelper::verify_grouping</a></div><div class="ttdeci">bool verify_grouping(const std::vector&lt; uint8_t &gt; &amp;grouping, const std::vector&lt; uint8_t &gt; &amp;grouping_tmp)</div><div class="ttdef"><b>定义</b> facet_helper.h:546</div></div>
+<div class="ttc" id="anamespaceIOv2_1_1FacetHelper_html_a229acaee9cf2233494bc2022b621d443"><div class="ttname"><a href="namespaceIOv2_1_1FacetHelper.html#a229acaee9cf2233494bc2022b621d443">IOv2::FacetHelper::step_back</a></div><div class="ttdeci">bool step_back(TIter &amp;beg, std::basic_string_view&lt; CharT &gt; units, std::size_t k)</div><div class="ttdef"><b>定义</b> facet_helper.h:311</div></div>
+<div class="ttc" id="anamespaceIOv2_1_1FacetHelper_html_a66ef272b51de0f737422a73b2960e511"><div class="ttname"><a href="namespaceIOv2_1_1FacetHelper.html#a66ef272b51de0f737422a73b2960e511">IOv2::FacetHelper::punct_distinct</a></div><div class="ttdeci">bool punct_distinct(std::basic_string_view&lt; CharT &gt; sep, std::basic_string_view&lt; CharT &gt; point)</div><div class="ttdef"><b>定义</b> facet_helper.h:275</div></div>
+<div class="ttc" id="anamespaceIOv2_1_1FacetHelper_html_a677837c5f1623f6c62515f7b679e3cb2"><div class="ttname"><a href="namespaceIOv2_1_1FacetHelper.html#a677837c5f1623f6c62515f7b679e3cb2">IOv2::FacetHelper::take_punct</a></div><div class="ttdeci">punct_kind take_punct(TIter &amp;beg, TSent end, std::basic_string_view&lt; CharT &gt; sep, std::basic_string_view&lt; CharT &gt; point, bool consume_point)</div><div class="ttdef"><b>定义</b> facet_helper.h:360</div></div>
+<div class="ttc" id="anamespaceIOv2_1_1FacetHelper_html_a75720f297a2b8ae2ab2ec32196cb2f28"><div class="ttname"><a href="namespaceIOv2_1_1FacetHelper.html#a75720f297a2b8ae2ab2ec32196cb2f28">IOv2::FacetHelper::adjust_grouping</a></div><div class="ttdeci">void adjust_grouping(std::vector&lt; uint8_t &gt; &amp;grouping)</div><div class="ttdef"><b>定义</b> facet_helper.h:442</div></div>
+<div class="ttc" id="anamespaceIOv2_1_1FacetHelper_html_a80e28fd500705780f2e8e4a2b3c0e429"><div class="ttname"><a href="namespaceIOv2_1_1FacetHelper.html#a80e28fd500705780f2e8e4a2b3c0e429">IOv2::FacetHelper::punct_kind</a></div><div class="ttdeci">punct_kind</div><div class="ttdef"><b>定义</b> facet_helper.h:288</div></div>
+<div class="ttc" id="anamespaceIOv2_1_1FacetHelper_html_a80e28fd500705780f2e8e4a2b3c0e429a334c4a4c42fdb79d7ebc3e73b517e6f8"><div class="ttname"><a href="namespaceIOv2_1_1FacetHelper.html#a80e28fd500705780f2e8e4a2b3c0e429a334c4a4c42fdb79d7ebc3e73b517e6f8">IOv2::FacetHelper::punct_kind::none</a></div><div class="ttdeci">@ none</div><div class="ttdoc">不是标点；输入位置不变。</div><div class="ttdef"><b>定义</b> facet_helper.h:289</div></div>
+<div class="ttc" id="anamespaceIOv2_1_1FacetHelper_html_a80e28fd500705780f2e8e4a2b3c0e429a78ee54aa8f813885fe2fe20d232518b9"><div class="ttname"><a href="namespaceIOv2_1_1FacetHelper.html#a80e28fd500705780f2e8e4a2b3c0e429a78ee54aa8f813885fe2fe20d232518b9">IOv2::FacetHelper::punct_kind::point</a></div><div class="ttdeci">@ point</div><div class="ttdoc">小数点；是否读过见 take_punct 的 consume_point。</div><div class="ttdef"><b>定义</b> facet_helper.h:291</div></div>
+<div class="ttc" id="anamespaceIOv2_1_1FacetHelper_html_a80e28fd500705780f2e8e4a2b3c0e429a7d8acaac2172f18a4be11b0caded5c1c"><div class="ttname"><a href="namespaceIOv2_1_1FacetHelper.html#a80e28fd500705780f2e8e4a2b3c0e429a7d8acaac2172f18a4be11b0caded5c1c">IOv2::FacetHelper::punct_kind::torn</a></div><div class="ttdeci">@ torn</div><div class="ttdoc">读了某个标点的开头几个字符后发现不是它，又无法退回；字段到此为止。</div><div class="ttdef"><b>定义</b> facet_helper.h:292</div></div>
+<div class="ttc" id="anamespaceIOv2_1_1FacetHelper_html_a80e28fd500705780f2e8e4a2b3c0e429aa0f0bc95016c862498bbad29d1f4d9d4"><div class="ttname"><a href="namespaceIOv2_1_1FacetHelper.html#a80e28fd500705780f2e8e4a2b3c0e429aa0f0bc95016c862498bbad29d1f4d9d4">IOv2::FacetHelper::punct_kind::separator</a></div><div class="ttdeci">@ separator</div><div class="ttdoc">千位分隔符，已整个读过。</div><div class="ttdef"><b>定义</b> facet_helper.h:290</div></div>
+<div class="ttc" id="anamespaceIOv2_1_1FacetHelper_html_a8371b6c50028d80d9c5e86e0828af856"><div class="ttname"><a href="namespaceIOv2_1_1FacetHelper.html#a8371b6c50028d80d9c5e86e0828af856">IOv2::FacetHelper::lconv_grouping</a></div><div class="ttdeci">std::vector&lt; uint8_t &gt; lconv_grouping(std::string_view raw, std::basic_string_view&lt; CharT &gt; sep, std::basic_string_view&lt; CharT &gt; point)</div><div class="ttdef"><b>定义</b> facet_helper.h:487</div></div>
+<div class="ttc" id="anamespaceIOv2_1_1FacetHelper_html_ab7f74e36f74db96a9e71f634fc929f96"><div class="ttname"><a href="namespaceIOv2_1_1FacetHelper.html#ab7f74e36f74db96a9e71f634fc929f96">IOv2::FacetHelper::add_grouping</a></div><div class="ttdeci">CharT * add_grouping(CharT *out, std::basic_string_view&lt; CharT &gt; sep, const std::vector&lt; uint8_t &gt; &amp;grouping, const CharT *first, const CharT *last)</div><div class="ttdef"><b>定义</b> facet_helper.h:199</div></div>
+<div class="ttc" id="anamespaceIOv2_1_1FacetHelper_html_aeeaf823306d47434b547c57d4971393b"><div class="ttname"><a href="namespaceIOv2_1_1FacetHelper.html#aeeaf823306d47434b547c57d4971393b">IOv2::FacetHelper::is_c_locale_name</a></div><div class="ttdeci">bool is_c_locale_name(const std::string &amp;name)</div><div class="ttdef"><b>定义</b> facet_helper.h:117</div></div>
+<div class="ttc" id="astructIOv2_1_1clocale__wrapper_html"><div class="ttname"><a href="structIOv2_1_1clocale__wrapper.html">IOv2::clocale_wrapper</a></div><div class="ttdef"><b>定义</b> clocale_wrapper.h:42</div></div>
+</div><!-- fragment --></div><!-- contents -->
+</div><!-- doc-content -->
+</div><!-- container -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><a href="dir_d44c64559bbebec7f509842c48db8b23.html">include</a></li><li class="navelem"><a href="dir_1157f564aec2b3a7d6bde4eba89ab805.html">IOv2</a></li><li class="navelem"><a href="dir_86635f995fd9ec725e3aec943495dac7.html">facet</a></li><li class="navelem"><a href="facet__helper_8h.html">facet_helper.h</a></li>
+    <li class="footer">制作者 <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.15.0 </li>
+  </ul>
+</div>
+</body>
+</html>

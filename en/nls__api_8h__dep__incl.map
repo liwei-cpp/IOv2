@@ -1,0 +1,9 @@
+<map id="include/IOv2/facet/platform/windows/nls_api.h" name="include/IOv2/facet/platform/windows/nls_api.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="209,5,413,50"/>
+<area shape="rect" id="Node000002" href="$windows_2collate__backend_8h.html" title=" " alt="" coords="5,98,196,160"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="254,56,166,100,164,95,249,58"/>
+<area shape="rect" id="Node000003" href="$windows_2ctype__backend_8h.html" title=" " alt="" coords="220,98,402,160"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="313,64,313,99,309,96,309,67"/>
+<area shape="rect" id="Node000004" href="$windows_2messages__backend_8h.html" title=" " alt="" coords="426,98,639,160"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="374,54,467,97,462,97,373,59"/>
+</map>

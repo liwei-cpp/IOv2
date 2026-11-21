@@ -1,0 +1,226 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=11"/>
+<meta name="generator" content="Doxygen 1.15.0"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>IOv2: include/IOv2/facet/messages.h 源文件</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<script type="text/javascript" src="clipboard.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<script type="text/javascript" src="cookie.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr id="projectrow">
+  <td id="projectalign">
+   <div id="projectname">IOv2
+   </div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 制作者 Doxygen 1.15.0 -->
+<script type="text/javascript">
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+</script>
+<script type="text/javascript">
+$(function() { codefold.init(); });
+</script>
+<script type="text/javascript" src="menudata.js"></script>
+<script type="text/javascript" src="menu.js"></script>
+<script type="text/javascript">
+$(function() {
+  initMenu('',true,false,'search.php','搜索',true);
+  $(function() { init_search(); });
+});
+</script>
+<div id="main-nav"></div>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+$(function(){initNavTree('messages_8h_source.html','',''); });
+</script>
+<div id="container">
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">载入中...</div>
+<div class="SRStatus" id="Searching">搜索中...</div>
+<div class="SRStatus" id="NoMatches">未找到</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="header">
+  <div class="headertitle"><div class="title">messages.h</div></div>
+</div><!--header-->
+<div class="contents">
+<a href="messages_8h.html">浏览该文件的文档.</a><div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span><span class="comment">// SPDX-FileCopyrightText: 2026 liwei &lt;liwei.cpp@gmail.com&gt;</span></div>
+<div class="line"><a id="l00002" name="l00002"></a><span class="lineno">    2</span><span class="comment">// SPDX-License-Identifier: MIT</span></div>
+<div class="line"><a id="l00003" name="l00003"></a><span class="lineno">    3</span></div>
+<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span><span class="preprocessor">#pragma once</span></div>
+<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span><span class="preprocessor">#include &lt;<a class="code" href="defs_8h.html">IOv2/common/defs.h</a>&gt;</span></div>
+<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span><span class="preprocessor">#include &lt;<a class="code" href="metafunctions_8h.html">IOv2/common/metafunctions.h</a>&gt;</span></div>
+<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span><span class="preprocessor">#include &lt;<a class="code" href="facet__common_8h.html">IOv2/facet/facet_common.h</a>&gt;</span></div>
+<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span><span class="preprocessor">#include &lt;<a class="code" href="messages__details_8h.html">IOv2/facet/messages_details.h</a>&gt;</span></div>
+<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span> </div>
+<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span><span class="preprocessor">#include &lt;cstddef&gt;</span></div>
+<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span><span class="preprocessor">#include &lt;memory&gt;</span></div>
+<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span><span class="preprocessor">#include &lt;string&gt;</span></div>
+<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span><span class="preprocessor">#include &lt;utility&gt;</span></div>
+<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span> </div>
+<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span><span class="keyword">namespace </span><a class="code hl_namespace" href="namespaceIOv2.html">IOv2</a></div>
+<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span>{</div>
+<div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> CharT&gt;</div>
+<div class="foldopen" id="foldopen00064" data-start="{" data-end="};">
+<div class="line"><a id="l00064" name="l00064"></a><span class="lineno"><a class="line" href="classIOv2_1_1messages.html">   64</a></span><span class="keyword">class </span><a class="code hl_function" href="classIOv2_1_1messages.html#aa78ffe2b8f1e3849e32e8b4c59a78dfe">messages</a></div>
+<div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span>{</div>
+<div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span><span class="keyword">public</span>:</div>
+<div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span>    <span class="keyword">using </span>create_rules = <a class="code hl_struct" href="structIOv2_1_1facet__create__rule.html">facet_create_rule&lt;messages_conf&lt;CharT&gt;</a>&gt;;</div>
+<div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span> </div>
+<div class="line"><a id="l00071" name="l00071"></a><span class="lineno"><a class="line" href="classIOv2_1_1messages.html#a0e264f29924f3a02296771eaf9fffccd">   71</a></span>    <span class="keyword">using </span><a class="code hl_typedef" href="classIOv2_1_1messages.html#a0e264f29924f3a02296771eaf9fffccd">char_type</a> = CharT; </div>
+<div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span></div>
+<div class="line"><a id="l00090" name="l00090"></a><span class="lineno">   90</span>    <span class="keyword">template</span> &lt;shared_ptr_to&lt;messages_conf&lt;CharT&gt;&gt; TConfPtr&gt;</div>
+<div class="foldopen" id="foldopen00091" data-start="{" data-end="}">
+<div class="line"><a id="l00091" name="l00091"></a><span class="lineno"><a class="line" href="classIOv2_1_1messages.html#aa78ffe2b8f1e3849e32e8b4c59a78dfe">   91</a></span>    <a class="code hl_function" href="classIOv2_1_1messages.html#aa78ffe2b8f1e3849e32e8b4c59a78dfe">messages</a>(TConfPtr p_obj)</div>
+<div class="line"><a id="l00092" name="l00092"></a><span class="lineno">   92</span>        : m_obj(p_obj)</div>
+<div class="line"><a id="l00093" name="l00093"></a><span class="lineno">   93</span>    { <span class="keywordflow">if</span> (!m_obj) <span class="keywordflow">throw</span> <a class="code hl_struct" href="structIOv2_1_1io__error.html">io_error</a>(<span class="stringliteral">&quot;shared_ptr is empty&quot;</span>); }</div>
+</div>
+<div class="line"><a id="l00094" name="l00094"></a><span class="lineno">   94</span></div>
+<div class="foldopen" id="foldopen00123" data-start="{" data-end="}">
+<div class="line"><a id="l00123" name="l00123"></a><span class="lineno"><a class="line" href="classIOv2_1_1messages.html#a4140cbdd164364d214070f198b910e5f">  123</a></span>    <span class="keyword">const</span> std::basic_string&lt;char_type&gt;&amp; <a class="code hl_function" href="classIOv2_1_1messages.html#a4140cbdd164364d214070f198b910e5f">translate</a>(<span class="keyword">const</span> std::basic_string&lt;char_type&gt;&amp; ori)<span class="keyword"> const</span></div>
+<div class="line"><a id="l00124" name="l00124"></a><span class="lineno">  124</span><span class="keyword">    </span>{</div>
+<div class="line"><a id="l00125" name="l00125"></a><span class="lineno">  125</span>        <span class="keywordflow">if</span> (ori.empty()) <span class="keywordflow">return</span> ori;</div>
+<div class="line"><a id="l00126" name="l00126"></a><span class="lineno">  126</span> </div>
+<div class="line"><a id="l00127" name="l00127"></a><span class="lineno">  127</span>        <span class="keyword">const</span> <span class="keyword">auto</span>* p = m_obj-&gt;translate(ori);</div>
+<div class="line"><a id="l00128" name="l00128"></a><span class="lineno">  128</span>        <span class="keywordflow">return</span> p ? *p : ori;</div>
+<div class="line"><a id="l00129" name="l00129"></a><span class="lineno">  129</span>    }</div>
+</div>
+<div class="line"><a id="l00130" name="l00130"></a><span class="lineno">  130</span></div>
+<div class="foldopen" id="foldopen00154" data-start="{" data-end="}">
+<div class="line"><a id="l00154" name="l00154"></a><span class="lineno"><a class="line" href="classIOv2_1_1messages.html#abd7eda003e81ce4370be9e15f64c0d2a">  154</a></span>    std::basic_string&lt;char_type&gt; <a class="code hl_function" href="classIOv2_1_1messages.html#abd7eda003e81ce4370be9e15f64c0d2a">translate</a>(std::basic_string&lt;char_type&gt;&amp;&amp; ori)<span class="keyword"> const</span></div>
+<div class="line"><a id="l00155" name="l00155"></a><span class="lineno">  155</span><span class="keyword">    </span>{</div>
+<div class="line"><a id="l00156" name="l00156"></a><span class="lineno">  156</span>        <span class="keywordflow">if</span> (ori.empty()) <span class="keywordflow">return</span> {};</div>
+<div class="line"><a id="l00157" name="l00157"></a><span class="lineno">  157</span> </div>
+<div class="line"><a id="l00158" name="l00158"></a><span class="lineno">  158</span>        <span class="keyword">const</span> <span class="keyword">auto</span>* p = m_obj-&gt;translate(ori);</div>
+<div class="line"><a id="l00159" name="l00159"></a><span class="lineno">  159</span>        <span class="keywordflow">return</span> p ? *p : std::move(ori);</div>
+<div class="line"><a id="l00160" name="l00160"></a><span class="lineno">  160</span>    }</div>
+</div>
+<div class="line"><a id="l00161" name="l00161"></a><span class="lineno">  161</span></div>
+<div class="foldopen" id="foldopen00190" data-start="{" data-end="}">
+<div class="line"><a id="l00190" name="l00190"></a><span class="lineno"><a class="line" href="classIOv2_1_1messages.html#aea1c473ae336e143b7b668342bc7befd">  190</a></span>    std::basic_string&lt;char_type&gt; <a class="code hl_function" href="classIOv2_1_1messages.html#aea1c473ae336e143b7b668342bc7befd">translate</a>(<span class="keyword">const</span> std::basic_string&lt;char_type&gt;&amp;&amp; ori)<span class="keyword"> const</span></div>
+<div class="line"><a id="l00191" name="l00191"></a><span class="lineno">  191</span><span class="keyword">    </span>{</div>
+<div class="line"><a id="l00192" name="l00192"></a><span class="lineno">  192</span>        <span class="keywordflow">if</span> (ori.empty()) <span class="keywordflow">return</span> {};</div>
+<div class="line"><a id="l00193" name="l00193"></a><span class="lineno">  193</span> </div>
+<div class="line"><a id="l00194" name="l00194"></a><span class="lineno">  194</span>        <span class="keyword">const</span> <span class="keyword">auto</span>* p = m_obj-&gt;translate(ori);</div>
+<div class="line"><a id="l00195" name="l00195"></a><span class="lineno">  195</span>        <span class="keywordflow">return</span> p ? *p : ori;</div>
+<div class="line"><a id="l00196" name="l00196"></a><span class="lineno">  196</span>    }</div>
+</div>
+<div class="line"><a id="l00197" name="l00197"></a><span class="lineno">  197</span></div>
+<div class="foldopen" id="foldopen00223" data-start="{" data-end="}">
+<div class="line"><a id="l00223" name="l00223"></a><span class="lineno"><a class="line" href="classIOv2_1_1messages.html#ad3bbdc8b278d55b004f1134a3b55fdf3">  223</a></span>    std::basic_string&lt;char_type&gt; <a class="code hl_function" href="classIOv2_1_1messages.html#ad3bbdc8b278d55b004f1134a3b55fdf3">translate</a>(<span class="keyword">const</span> <a class="code hl_typedef" href="classIOv2_1_1messages.html#a0e264f29924f3a02296771eaf9fffccd">char_type</a>* ori)<span class="keyword"> const</span></div>
+<div class="line"><a id="l00224" name="l00224"></a><span class="lineno">  224</span><span class="keyword">    </span>{</div>
+<div class="line"><a id="l00225" name="l00225"></a><span class="lineno">  225</span>        <span class="keywordflow">return</span> <a class="code hl_function" href="classIOv2_1_1messages.html#a4140cbdd164364d214070f198b910e5f">translate</a>(std::basic_string&lt;char_type&gt;(ori));</div>
+<div class="line"><a id="l00226" name="l00226"></a><span class="lineno">  226</span>    }</div>
+</div>
+<div class="line"><a id="l00227" name="l00227"></a><span class="lineno">  227</span></div>
+<div class="line"><a id="l00229" name="l00229"></a><span class="lineno">  229</span>    <span class="comment">// A null pointer would otherwise pick the overload above and build a string from it.</span></div>
+<div class="line"><a id="l00230" name="l00230"></a><span class="lineno">  230</span>    std::basic_string&lt;char_type&gt; <a class="code hl_function" href="classIOv2_1_1messages.html#a4140cbdd164364d214070f198b910e5f">translate</a>(std::nullptr_t) <span class="keyword">const</span> = <span class="keyword">delete</span>;</div>
+<div class="line"><a id="l00232" name="l00232"></a><span class="lineno">  232</span></div>
+<div class="foldopen" id="foldopen00244" data-start="{" data-end="}">
+<div class="line"><a id="l00244" name="l00244"></a><span class="lineno"><a class="line" href="classIOv2_1_1messages.html#a4975032f298bd132d6dcee328b577c8e">  244</a></span>    [[nodiscard]] <span class="keyword">const</span> std::string&amp; <a class="code hl_function" href="classIOv2_1_1messages.html#a4975032f298bd132d6dcee328b577c8e">filtered_lang</a>()<span class="keyword"> const</span></div>
+<div class="line"><a id="l00245" name="l00245"></a><span class="lineno">  245</span><span class="keyword">    </span>{</div>
+<div class="line"><a id="l00246" name="l00246"></a><span class="lineno">  246</span>        <span class="keywordflow">return</span> m_obj-&gt;filtered_lang();</div>
+<div class="line"><a id="l00247" name="l00247"></a><span class="lineno">  247</span>    }</div>
+</div>
+<div class="line"><a id="l00248" name="l00248"></a><span class="lineno">  248</span></div>
+<div class="foldopen" id="foldopen00267" data-start="{" data-end="}">
+<div class="line"><a id="l00267" name="l00267"></a><span class="lineno"><a class="line" href="classIOv2_1_1messages.html#a7d6fee9ec720f22a84b35e615c1903e8">  267</a></span>    [[nodiscard]] <span class="keyword">const</span> std::string&amp; <a class="code hl_function" href="classIOv2_1_1messages.html#a7d6fee9ec720f22a84b35e615c1903e8">domain_info</a>()<span class="keyword"> const</span></div>
+<div class="line"><a id="l00268" name="l00268"></a><span class="lineno">  268</span><span class="keyword">    </span>{</div>
+<div class="line"><a id="l00269" name="l00269"></a><span class="lineno">  269</span>        <span class="keywordflow">return</span> m_obj-&gt;domain_info();</div>
+<div class="line"><a id="l00270" name="l00270"></a><span class="lineno">  270</span>    }</div>
+</div>
+<div class="line"><a id="l00271" name="l00271"></a><span class="lineno">  271</span></div>
+<div class="foldopen" id="foldopen00296" data-start="{" data-end="}">
+<div class="line"><a id="l00296" name="l00296"></a><span class="lineno"><a class="line" href="classIOv2_1_1messages.html#afa997cf419fab210e67dca75ea7129e9">  296</a></span>    <span class="keyword">const</span> std::basic_string&lt;char_type&gt;&amp; <a class="code hl_function" href="classIOv2_1_1messages.html#afa997cf419fab210e67dca75ea7129e9">head_entry</a>()<span class="keyword"> const</span></div>
+<div class="line"><a id="l00297" name="l00297"></a><span class="lineno">  297</span><span class="keyword">    </span>{</div>
+<div class="line"><a id="l00298" name="l00298"></a><span class="lineno">  298</span>        <span class="comment">// Returned by reference, so it must never be destroyed: a reference to a</span></div>
+<div class="line"><a id="l00299" name="l00299"></a><span class="lineno">  299</span>        <span class="comment">// leaked string, not a static string (see common/sing_temp.h on exit).</span></div>
+<div class="line"><a id="l00300" name="l00300"></a><span class="lineno">  300</span>        <span class="keyword">static</span> <span class="keyword">const</span> <span class="keyword">auto</span>&amp; empty_msgid = *<span class="keyword">new</span> std::basic_string&lt;char_type&gt;();</div>
+<div class="line"><a id="l00301" name="l00301"></a><span class="lineno">  301</span>        <span class="keyword">const</span> <span class="keyword">auto</span>* p = m_obj-&gt;translate(empty_msgid);</div>
+<div class="line"><a id="l00302" name="l00302"></a><span class="lineno">  302</span>        <span class="keywordflow">return</span> p ? *p : empty_msgid;</div>
+<div class="line"><a id="l00303" name="l00303"></a><span class="lineno">  303</span>    }</div>
+</div>
+<div class="line"><a id="l00304" name="l00304"></a><span class="lineno">  304</span> </div>
+<div class="line"><a id="l00305" name="l00305"></a><span class="lineno">  305</span><span class="keyword">private</span>:</div>
+<div class="line"><a id="l00306" name="l00306"></a><span class="lineno">  306</span>    std::shared_ptr&lt;const messages_conf&lt;CharT&gt;&gt; m_obj;</div>
+<div class="line"><a id="l00307" name="l00307"></a><span class="lineno">  307</span>};</div>
+</div>
+<div class="line"><a id="l00308" name="l00308"></a><span class="lineno">  308</span></div>
+<div class="line"><a id="l00310" name="l00310"></a><span class="lineno">  310</span><span class="keyword">template</span>&lt;<span class="keyword">typename</span> TConfPtr&gt;</div>
+<div class="line"><a id="l00311" name="l00311"></a><span class="lineno">  311</span>messages(TConfPtr) -&gt; messages&lt;typename TConfPtr::element_type::char_type&gt;;</div>
+<div class="line"><a id="l00313" name="l00313"></a><span class="lineno">  313</span>}</div>
+<div class="ttc" id="aclassIOv2_1_1messages_html_a0e264f29924f3a02296771eaf9fffccd"><div class="ttname"><a href="classIOv2_1_1messages.html#a0e264f29924f3a02296771eaf9fffccd">IOv2::messages::char_type</a></div><div class="ttdeci">CharT char_type</div><div class="ttdoc">此 facet 使用的字符类型。</div><div class="ttdef"><b>定义</b> messages.h:71</div></div>
+<div class="ttc" id="aclassIOv2_1_1messages_html_a4140cbdd164364d214070f198b910e5f"><div class="ttname"><a href="classIOv2_1_1messages.html#a4140cbdd164364d214070f198b910e5f">IOv2::messages::translate</a></div><div class="ttdeci">const std::basic_string&lt; char_type &gt; &amp; translate(const std::basic_string&lt; char_type &gt; &amp;ori) const</div><div class="ttdoc">翻译 lvalue 字符串（借用语义，零拷贝）。</div><div class="ttdef"><b>定义</b> messages.h:123</div></div>
+<div class="ttc" id="aclassIOv2_1_1messages_html_a4975032f298bd132d6dcee328b577c8e"><div class="ttname"><a href="classIOv2_1_1messages.html#a4975032f298bd132d6dcee328b577c8e">IOv2::messages::filtered_lang</a></div><div class="ttdeci">const std::string &amp; filtered_lang() const</div><div class="ttdoc">返回构造时确定的有效语言标识符。</div><div class="ttdef"><b>定义</b> messages.h:244</div></div>
+<div class="ttc" id="aclassIOv2_1_1messages_html_a7d6fee9ec720f22a84b35e615c1903e8"><div class="ttname"><a href="classIOv2_1_1messages.html#a7d6fee9ec720f22a84b35e615c1903e8">IOv2::messages::domain_info</a></div><div class="ttdeci">const std::string &amp; domain_info() const</div><div class="ttdoc">返回描述该 facet 实例的域信息字符串。</div><div class="ttdef"><b>定义</b> messages.h:267</div></div>
+<div class="ttc" id="aclassIOv2_1_1messages_html_aa78ffe2b8f1e3849e32e8b4c59a78dfe"><div class="ttname"><a href="classIOv2_1_1messages.html#aa78ffe2b8f1e3849e32e8b4c59a78dfe">IOv2::messages::messages</a></div><div class="ttdeci">messages(TConfPtr p_obj)</div><div class="ttdoc">构造函数，从指向 messages_conf&lt;CharT&gt; 的共享指针创建 facet。</div><div class="ttdef"><b>定义</b> messages.h:91</div></div>
+<div class="ttc" id="aclassIOv2_1_1messages_html_abd7eda003e81ce4370be9e15f64c0d2a"><div class="ttname"><a href="classIOv2_1_1messages.html#abd7eda003e81ce4370be9e15f64c0d2a">IOv2::messages::translate</a></div><div class="ttdeci">std::basic_string&lt; char_type &gt; translate(std::basic_string&lt; char_type &gt; &amp;&amp;ori) const</div><div class="ttdoc">翻译 rvalue 字符串，按值返回以确保结果不悬空。</div><div class="ttdef"><b>定义</b> messages.h:154</div></div>
+<div class="ttc" id="aclassIOv2_1_1messages_html_ad3bbdc8b278d55b004f1134a3b55fdf3"><div class="ttname"><a href="classIOv2_1_1messages.html#ad3bbdc8b278d55b004f1134a3b55fdf3">IOv2::messages::translate</a></div><div class="ttdeci">std::basic_string&lt; char_type &gt; translate(const char_type *ori) const</div><div class="ttdoc">翻译以空字符结尾的字符串（如字面量），按值返回。</div><div class="ttdef"><b>定义</b> messages.h:223</div></div>
+<div class="ttc" id="aclassIOv2_1_1messages_html_aea1c473ae336e143b7b668342bc7befd"><div class="ttname"><a href="classIOv2_1_1messages.html#aea1c473ae336e143b7b668342bc7befd">IOv2::messages::translate</a></div><div class="ttdeci">std::basic_string&lt; char_type &gt; translate(const std::basic_string&lt; char_type &gt; &amp;&amp;ori) const</div><div class="ttdoc">翻译 const rvalue 字符串，按值返回以确保结果不悬空。</div><div class="ttdef"><b>定义</b> messages.h:190</div></div>
+<div class="ttc" id="aclassIOv2_1_1messages_html_afa997cf419fab210e67dca75ea7129e9"><div class="ttname"><a href="classIOv2_1_1messages.html#afa997cf419fab210e67dca75ea7129e9">IOv2::messages::head_entry</a></div><div class="ttdeci">const std::basic_string&lt; char_type &gt; &amp; head_entry() const</div><div class="ttdoc">返回 .mo 文件的头部条目。</div><div class="ttdef"><b>定义</b> messages.h:296</div></div>
+<div class="ttc" id="adefs_8h_html"><div class="ttname"><a href="defs_8h.html">defs.h</a></div></div>
+<div class="ttc" id="afacet__common_8h_html"><div class="ttname"><a href="facet__common_8h.html">facet_common.h</a></div></div>
+<div class="ttc" id="amessages__details_8h_html"><div class="ttname"><a href="messages__details_8h.html">messages_details.h</a></div></div>
+<div class="ttc" id="ametafunctions_8h_html"><div class="ttname"><a href="metafunctions_8h.html">metafunctions.h</a></div></div>
+<div class="ttc" id="anamespaceIOv2_html"><div class="ttname"><a href="namespaceIOv2.html">IOv2</a></div><div class="ttdef"><b>定义</b> clocale_wrapper.h:22</div></div>
+<div class="ttc" id="astructIOv2_1_1facet__create__rule_html"><div class="ttname"><a href="structIOv2_1_1facet__create__rule.html">IOv2::facet_create_rule</a></div><div class="ttdef"><b>定义</b> facet_common.h:330</div></div>
+<div class="ttc" id="astructIOv2_1_1io__error_html"><div class="ttname"><a href="structIOv2_1_1io__error.html">IOv2::io_error</a></div><div class="ttdef"><b>定义</b> defs.h:134</div></div>
+</div><!-- fragment --></div><!-- contents -->
+</div><!-- doc-content -->
+</div><!-- container -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><a href="dir_d44c64559bbebec7f509842c48db8b23.html">include</a></li><li class="navelem"><a href="dir_1157f564aec2b3a7d6bde4eba89ab805.html">IOv2</a></li><li class="navelem"><a href="dir_86635f995fd9ec725e3aec943495dac7.html">facet</a></li><li class="navelem"><a href="messages_8h.html">messages.h</a></li>
+    <li class="footer">制作者 <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.15.0 </li>
+  </ul>
+</div>
+</body>
+</html>
