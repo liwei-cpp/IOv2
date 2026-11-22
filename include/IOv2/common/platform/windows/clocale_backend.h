@@ -132,10 +132,11 @@ inline clocale_handle clocale_create(const char* name)
             {
                 res->time_bcp47 = bcp47;
                 // No ___lc_*_func reports LC_TIME's code page: let LC_CTYPE take LC_TIME's name.
-                // clocale_restore below puts LC_CTYPE back.
+                // clocale_restore below puts LC_CTYPE back. A name the CRT cannot read back
+                // (see below) leaves LC_CTYPE's code page, the same for a locale named whole.
                 const std::string time_name = std::setlocale(LC_TIME, nullptr);
-                if (std::setlocale(LC_CTYPE, time_name.c_str()))
-                    res->time_cp = ___lc_codepage_func();
+                res->time_cp = std::setlocale(LC_CTYPE, time_name.c_str()) ? ___lc_codepage_func()
+                                                                           : res->ctype_cp;
             }
         }
     }
@@ -149,6 +150,15 @@ inline clocale_handle clocale_create(const char* name)
         return nullptr;
 
     res->loc = _create_locale(LC_ALL, res->all_name.c_str());
+    if (!res->loc)
+    {
+        // The CRT reports some locales by a name it cannot read back: "quc" comes back as
+        // "K'iche'_Guatemala.1252", the apostrophe defeating its own parser. The caller's
+        // name was read just now, so that one is kept instead.
+        res->loc = _create_locale(LC_ALL, name);
+        if (res->loc)
+            res->all_name = res->ctype_name = name;
+    }
     return res->loc ? res.release() : nullptr;
 }
 

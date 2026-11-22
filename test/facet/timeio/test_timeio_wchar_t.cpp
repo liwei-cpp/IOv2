@@ -22,11 +22,19 @@
 
 #include <support/platform_macros.h>
 
+#if IOV2_TEST_WINDOWS
+#define NOMINMAX
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>   // EnumSystemLocalesEx and GetLocaleInfoEx, to compare the facet with the UCRT
+#endif
+
 #include <gtest/gtest.h>
 
 #include <chrono>
+#include <clocale>
 #include <cstddef>
 #include <ctime>
+#include <cwchar>
 #include <iterator>
 #include <limits>
 #include <list>
@@ -34,6 +42,7 @@
 #include <string>
 #include <string_view>
 #include <type_traits>
+#include <vector>
 
 using namespace IOv2;
 
@@ -3605,4 +3614,86 @@ TEST(TimeioWchar, TheZoneTierDecidesHowAZoneNameIsParsed)
         time_parse_context<wchar_t, true, true, tier> ctx;
         EXPECT_EQ(us.get(res.begin(), res.end(), ctx, std::wstring_view(L"%c")), res.end());
     }
+}
+
+#if IOV2_TEST_WINDOWS
+namespace
+{
+    // EnumSystemLocalesEx's callback: collects each locale's name.
+    BOOL CALLBACK collect_locale(LPWSTR name, DWORD, LPARAM names)
+    {
+        if (name != nullptr && *name != L'\0')
+            reinterpret_cast<std::vector<std::wstring>*>(names)->emplace_back(name);
+        return TRUE;
+    }
+}
+#endif
+
+// On Windows %x, %X and %c are built from the NLS data the UCRT's strftime uses, by the same
+// rules, so in every system locale whose default calendar is Gregorian IOv2 writes what
+// wcsftime writes. 2061-12-31 23:55:59 is a Saturday whose fields are all distinct two-digit
+// numbers, so IOv2 padding the tokens NLS leaves unpadded changes nothing. Left out: locales on
+// another calendar (IOv2 stays Gregorian), pictures with an era (gg, which fall back to C's),
+// and %r, which IOv2 keeps 12-hour where the UCRT copies the time format.
+TEST(TimeioWchar, TheCompositeFormatsMatchTheUcrtInEveryGregorianLocale)
+{
+#if IOV2_TEST_WINDOWS
+    std::vector<std::wstring> names;
+    ASSERT_TRUE(EnumSystemLocalesEx(collect_locale, LOCALE_WINDOWS, reinterpret_cast<LPARAM>(&names), nullptr));
+
+    const std::tm tp = calendar_time(2061 - 1900, 12 - 1, 31, 23, 55, 59, 6, 364, 0);
+    int compared = 0;
+    int mismatches = 0;
+    for (const std::wstring& bcp47 : names)
+    {
+        DWORD calendar = 0;
+        GetLocaleInfoEx(bcp47.c_str(), LOCALE_ICALENDARTYPE | LOCALE_RETURN_NUMBER,
+                        reinterpret_cast<LPWSTR>(&calendar), static_cast<int>(sizeof calendar / sizeof(wchar_t)));
+        wchar_t date[128] = {};
+        wchar_t time[128] = {};
+        GetLocaleInfoEx(bcp47.c_str(), LOCALE_SSHORTDATE, date, 128);
+        GetLocaleInfoEx(bcp47.c_str(), LOCALE_STIMEFORMAT, time, 128);
+        if (calendar != CAL_GREGORIAN || std::wcsstr(date, L"gg") || std::wcsstr(time, L"gg"))
+            continue;
+
+        // BCP-47 names are ASCII. The UCRT takes a locale with no ANSI code page by its UTF-8 name only.
+        std::string name;
+        for (const wchar_t c : bcp47)
+            name += static_cast<char>(c);
+        std::unique_ptr<std::remove_pointer_t<_locale_t>, decltype(&_free_locale)> ucrt(
+            _create_locale(LC_ALL, name.c_str()), &_free_locale);
+        if (!ucrt)
+        {
+            name += ".UTF-8";
+            ucrt.reset(_create_locale(LC_ALL, name.c_str()));
+        }
+        if (!ucrt)
+            continue;
+
+        try
+        {
+            const timeio<wchar_t> obj(std::make_shared<timeio_conf<wchar_t>>(name));
+            for (const std::wstring_view fmt : {L"%x", L"%X", L"%c"})
+            {
+                wchar_t want[256] = {};
+                const std::size_t n = _wcsftime_l(want, 256, fmt.data(), &tp, ucrt.get());
+                const std::wstring got = put_one(obj, tp, fmt);
+                if (got != std::wstring_view(want, n) && ++mismatches <= 20)
+                    ADD_FAILURE() << name << ' ' << std::wstring(fmt) << ": IOv2 \"" << got
+                                  << "\", UCRT \"" << std::wstring(want, n) << '"';
+            }
+        }
+        catch (const std::exception& e)
+        {
+            ADD_FAILURE() << name << ": " << e.what();
+        }
+        ++compared;
+    }
+
+    RecordProperty("locales_compared", compared);
+    EXPECT_EQ(mismatches, 0) << "of " << compared << " locales; the first 20 are listed above";
+    EXPECT_GT(compared, 100);   // the enumeration really found the system's locales
+#else
+    GTEST_SKIP() << "compares IOv2 with the UCRT's wcsftime";
+#endif
 }
