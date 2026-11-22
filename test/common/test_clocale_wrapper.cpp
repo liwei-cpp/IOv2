@@ -299,6 +299,22 @@ TEST(ClocaleWrapperWindows, NameIsTheCrtSpelling)
 #endif
 }
 
+// The CRT reports quc as "K'iche'_Guatemala.1252" and cannot read that back, so the wrapper
+// keeps the name it was built from: it builds, copies, names itself and switches a thread
+// like any other locale.
+TEST(ClocaleWrapperWindows, ALocaleTheCrtCannotNameBackStillBuilds)
+{
+#if IOV2_TEST_WINDOWS
+    const clocale_wrapper loc("quc");
+    EXPECT_EQ(loc.name(), "quc");
+    EXPECT_EQ(clocale_wrapper(loc).name(), "quc");
+    EXPECT_EQ(clocale_wrapper(loc.name()).name(), "quc");
+    EXPECT_NO_THROW({ const clocale_user user(loc); });
+#else
+    GTEST_SKIP() << "the CRT's locale names";
+#endif
+}
+
 // Resolving a name goes through setlocale, in per-thread mode; the thread's locale and
 // mode are as they were afterwards.
 TEST(ClocaleWrapperWindows, ConstructionLeavesTheThreadLocaleAlone)

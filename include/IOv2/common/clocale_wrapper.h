@@ -148,7 +148,8 @@ struct clocale_wrapper
      *       它能交给 `newlocale(LC_CTYPE_MASK, …)`，但本类构造用的 `newlocale(LC_ALL_MASK, …)`
      *       拒绝它。
      * @note Windows 上名字是 CRT 的写法，如 `"English_United States.1252"`；CRT 不认 `"POSIX"`，
-     *       以它构造会抛异常。
+     *       以它构造会抛异常。少数 locale CRT 报回的名字它自己读不回（`"quc"` 报作
+     *       `"K'iche'_Guatemala.1252"`），这时报的是构造时给的名字，同样能交回本类。
      * @return 已解析的 locale 名字。
      * @throws io_error 若本对象处于 moved-from 状态。
      * @endif
@@ -178,7 +179,9 @@ struct clocale_wrapper
      *       `LC_CTYPE=UTF-8` -- `newlocale(LC_CTYPE_MASK, …)` takes it, but the
      *       `newlocale(LC_ALL_MASK, …)` this class constructs with rejects it.
      * @note On Windows the name is spelled the CRT's way, e.g. `"English_United States.1252"`;
-     *       the CRT does not know `"POSIX"`, so constructing from it throws.
+     *       the CRT does not know `"POSIX"`, so constructing from it throws. For the few locales
+     *       the CRT reports by a name it cannot read back (`"quc"` as `"K'iche'_Guatemala.1252"`)
+     *       the name is the one the wrapper was built from, which can be handed back just the same.
      * @return The resolved locale name.
      * @throws io_error If this object is in a moved-from state.
      * @endif
