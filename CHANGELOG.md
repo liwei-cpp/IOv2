@@ -156,7 +156,12 @@
   - locale 格式串里的补位标志照旧丢弃，macOS 的格式串用得更多：ja_JP 的 `%c` 为
     `%a %_m/%e %T %Y`，IOv2 按 `%a %m/%e %T %Y` 写，月份补零。
 - **`locale` 可在 Windows 与 macOS 上构建、运行**，`locale<char32_t>` 只在 glibc 上提供：别处没有
-  `char32_t` 的 facet 配置，构造它是编译期错误，错误信息会说明这一点。
+  `char32_t` 的 facet 配置，构造它是编译期错误，错误信息会说明这一点。初始 locale（`locale` 的缺省
+  构造、`initial_locale_name`）仍依次看 `LC_ALL`、`LC_<类别>`、`LANG`；三者都未设置时取本地环境的
+  缺省 locale，即没有这些变量时 `setlocale(类别, "")` 的结果：glibc 与 macOS 上照旧是 `"C"`，Windows
+  上是用户缺省 locale 加 ANSI 代码页（如 `"Chinese (Simplified)_China.936"`），与 MSVC STL 的
+  `std::locale("")` 相同。UCRT 本身不读这些环境变量，IOv2 先看它们，与 messages 选语言的顺序一致。
+  变量所指的名字无法实例化时仍回退为 `"C"`。
 
 #### 变更
 
@@ -601,7 +606,14 @@ have no release line of their own.
     zero-padded.
 - **`locale` builds and runs on Windows and macOS**; `locale<char32_t>` is provided on glibc
   only: elsewhere there are no `char32_t` facet configurations, and constructing one is a
-  compile-time error whose message says so.
+  compile-time error whose message says so. The initial locales (a default-constructed
+  `locale`, `initial_locale_name`) still read `LC_ALL`, `LC_<category>` and `LANG` in that
+  order; where none is set they take the native environment's default, what
+  `setlocale(category, "")` gives without those variables: `"C"` on glibc and macOS as before,
+  and on Windows the user's default locale with the ANSI code page
+  (`"Chinese (Simplified)_China.936"`, say), as the MSVC STL's `std::locale("")` does. The UCRT
+  itself reads none of these variables; IOv2 reads them first, in the order messages picks its
+  language in. A name a variable gives that cannot be instantiated still falls back to `"C"`.
 
 #### Changed
 

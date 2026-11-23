@@ -8,6 +8,9 @@
  * 取 `LC_CTYPE` 名字没有 POSIX 接口，glibc 上用扩展 `nl_langinfo_l(_NL_LOCALE_NAME(LC_CTYPE), …)`，
  * macOS 上用 `querylocale(LC_CTYPE_MASK, …)`（`<xlocale.h>`），其他 libc 不受支持。
  * `LC_CTYPE` 的编码是否为 UTF-8 则看 `nl_langinfo_l(CODESET, …)`。
+ *
+ * `clocale_native_name` 供 `ori_facet_buf` 解析初始 locale：没有设置任何 locale 环境变量时
+ * `setlocale(category, "")` 给出的名字，glibc 与 macOS 上都是 `"C"`。
  * @endif
  * @lang{EN}
  * POSIX backend of `clocale_wrapper`: `newlocale`/`duplocale`/`freelocale`/`uselocale`.
@@ -15,6 +18,10 @@
  * extension `nl_langinfo_l(_NL_LOCALE_NAME(LC_CTYPE), …)` on glibc and from
  * `querylocale(LC_CTYPE_MASK, …)` (`<xlocale.h>`) on macOS; other C libraries are not
  * supported. Whether `LC_CTYPE`'s encoding is UTF-8 is read from `nl_langinfo_l(CODESET, …)`.
+ *
+ * `clocale_native_name` is for `ori_facet_buf`'s initial locales: the name
+ * `setlocale(category, "")` gives when no locale variable is set, `"C"` on glibc and macOS
+ * alike.
  * @endif
  */
 
@@ -23,6 +30,7 @@
 // glibc defines __GLIBC__ in <features.h>, which <clocale> includes.
 #include <clocale>
 #include <cstring>
+#include <string>
 #include <langinfo.h>
 
 #if defined(__APPLE__)
@@ -83,5 +91,12 @@ inline clocale_saved clocale_use(clocale_handle loc) noexcept
 inline void clocale_restore(clocale_saved old) noexcept
 {
     uselocale(old);
+}
+
+// The name setlocale(category, "") gives when no locale variable is set: "C", on glibc
+// and macOS alike. The variables themselves are the caller's to read.
+inline std::string clocale_native_name(int /*category*/)
+{
+    return "C";
 }
 }

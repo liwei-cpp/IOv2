@@ -207,6 +207,17 @@ namespace
         p = p.remove_filename() / ".." / leaf;
         return std::filesystem::canonical(p).string();
     }
+
+    // What the C library takes for the native environment in category,
+    // setlocale(category, ""), with the process locale put back after.
+    std::string native_locale_name(int category)
+    {
+        const std::string saved = std::setlocale(LC_ALL, nullptr);
+        const char* name = std::setlocale(category, "");
+        std::string res = name != nullptr ? name : "C";
+        std::setlocale(LC_ALL, saved.c_str());
+        return res;
+    }
 }
 
 TEST(LocaleChar, Traits)
@@ -559,15 +570,31 @@ TEST(LocaleChar, InitialLocaleNamesFollowTheEnvironment)
             EXPECT_EQ(IOv2::initial_locale_name(LC_TIME), expected);
         };
 
+        // A category no variable names takes the native environment's default.
+        const auto expect_native = [](int category) {
+            EXPECT_EQ(IOv2::initial_locale_name(category), native_locale_name(category));
+        };
+
         if (mode == "all" || mode == "lang")
             expect_all(kUtf8);
         else if (mode == "category")
         {
             EXPECT_EQ(IOv2::initial_locale_name(LC_CTYPE), kUtf8);
-            EXPECT_EQ(IOv2::initial_locale_name(LC_COLLATE), "C");
+            expect_native(LC_COLLATE);
+        }
+        else if (mode == "empty")
+        {
+            for (int category : {LC_CTYPE, LC_COLLATE, LC_MONETARY, LC_NUMERIC, LC_TIME})
+                expect_native(category);
+#if IOV2_TEST_WINDOWS
+            // The user's default locale: the UCRT reads no variable for it.
+            EXPECT_NE(IOv2::initial_locale_name(LC_CTYPE), "C");
+#else
+            EXPECT_EQ(IOv2::initial_locale_name(LC_CTYPE), "C");
+#endif
         }
         else
-            expect_all("C"); // empty variables and an invalid LC_ALL both fall back
+            expect_all("C"); // an invalid LC_ALL falls back to "C", not to the default
 
         if (mode == "all")
         {
