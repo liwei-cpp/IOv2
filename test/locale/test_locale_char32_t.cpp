@@ -14,6 +14,7 @@
 #include <IOv2/locale/locale.h>
 
 #include <support/exe_path.h>
+#include <support/platform_macros.h>
 
 #include <gtest/gtest.h>
 
@@ -23,6 +24,9 @@
 #include <type_traits>
 #include <utility>
 
+// char32_t's facet configurations need wchar_t_is_utf32, which only glibc gives:
+// elsewhere a locale<char32_t> cannot be constructed, and every case but Traits skips.
+#if IOV2_TEST_LINUX_GLIBC
 namespace
 {
     // A composite facet is built by whichever of its create_rules the locale can
@@ -114,6 +118,7 @@ namespace
         return std::filesystem::canonical(p).string();
     }
 }
+#endif
 
 TEST(LocaleChar32, Traits)
 {
@@ -124,38 +129,55 @@ TEST(LocaleChar32, Traits)
 
 TEST(LocaleChar32, ANamedLocaleHoldsTheConfForItsOwnCharType)
 {
+#if IOV2_TEST_LINUX_GLIBC
     auto loc = IOv2::locale<char32_t>("C.UTF-8");
 
     EXPECT_TRUE(loc.has<IOv2::ctype_conf<char32_t>>());
     EXPECT_TRUE(loc.get<IOv2::ctype_conf<char32_t>>());
+#else
+    GTEST_SKIP() << "locale<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(LocaleChar32, AConfForAnotherCharTypeIsAbsent)
 {
+#if IOV2_TEST_LINUX_GLIBC
     auto loc = IOv2::locale<char32_t>("C.UTF-8");
 
     EXPECT_FALSE(loc.has<IOv2::ctype_conf<char>>());
     EXPECT_FALSE(loc.get<IOv2::ctype_conf<char>>());
+#else
+    GTEST_SKIP() << "locale<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(LocaleChar32, RemoveDropsTheConf)
 {
+#if IOV2_TEST_LINUX_GLIBC
     auto loc = IOv2::locale<char32_t>("C.UTF-8");
 
     auto loc_r = loc.remove<IOv2::ctype_conf<char32_t>>();
     EXPECT_FALSE(loc_r.has<IOv2::ctype_conf<char32_t>>());
     EXPECT_FALSE(loc_r.get<IOv2::ctype_conf<char32_t>>());
+#else
+    GTEST_SKIP() << "locale<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(LocaleChar32, InvolveInstallsAConfiguredConf)
 {
+#if IOV2_TEST_LINUX_GLIBC
     auto loc = IOv2::locale<char32_t>("C.UTF-8").involve(std::make_shared<IOv2::ctype_conf<char32_t>>("zh_CN.UTF-8"));
 
     EXPECT_TRUE(loc.has<IOv2::ctype_conf<char32_t>>());
+#else
+    GTEST_SKIP() << "locale<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(LocaleChar32, ADerivedFacetIsBuiltOnceAndCached)
 {
+#if IOV2_TEST_LINUX_GLIBC
     auto loc1 = IOv2::locale<char32_t>("zh_CN.UTF-8");
 
     EXPECT_TRUE(loc1.has<IOv2::ctype<char32_t>>());
@@ -165,27 +187,39 @@ TEST(LocaleChar32, ADerivedFacetIsBuiltOnceAndCached)
     // The second get<>() must hand back the interned object, not rebuild it.
     auto p2 = loc1.get<IOv2::ctype<char32_t>>();
     EXPECT_EQ(p1, p2);
+#else
+    GTEST_SKIP() << "locale<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(LocaleChar32, RemovingTheConfRemovesTheDerivedFacet)
 {
+#if IOV2_TEST_LINUX_GLIBC
     auto loc2 = IOv2::locale<char32_t>("zh_CN.UTF-8").remove<IOv2::ctype_conf<char32_t>>();
 
     EXPECT_FALSE(loc2.has<IOv2::ctype<char32_t>>());
     EXPECT_FALSE(loc2.get<IOv2::ctype<char32_t>>());
+#else
+    GTEST_SKIP() << "locale<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(LocaleChar32, InvolvingTheConfAgainRestoresTheDerivedFacet)
 {
+#if IOV2_TEST_LINUX_GLIBC
     auto loc2 = IOv2::locale<char32_t>("zh_CN.UTF-8").remove<IOv2::ctype_conf<char32_t>>();
     auto loc3 = loc2.involve(std::make_shared<IOv2::ctype_conf<char32_t>>("zh_CN.UTF-8"));
 
     EXPECT_TRUE(loc3.has<IOv2::ctype<char32_t>>());
     EXPECT_TRUE(loc3.get<IOv2::ctype<char32_t>>());
+#else
+    GTEST_SKIP() << "locale<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(LocaleChar32, ACompositeTakesTheFirstRuleItCanSatisfy)
 {
+#if IOV2_TEST_LINUX_GLIBC
     auto loc1 = IOv2::locale<char32_t>("en_US.UTF-8");
 
     EXPECT_TRUE(loc1.has<test_ext1>());
@@ -194,10 +228,14 @@ TEST(LocaleChar32, ACompositeTakesTheFirstRuleItCanSatisfy)
 
     EXPECT_TRUE(p->m_p1);
     EXPECT_FALSE(p->m_p2);
+#else
+    GTEST_SKIP() << "locale<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(LocaleChar32, ACompositeFallsBackWhenTheFirstRuleCannotBeSatisfied)
 {
+#if IOV2_TEST_LINUX_GLIBC
     auto loc2 = IOv2::locale<char32_t>("en_US.UTF-8").remove<IOv2::collate_conf<char32_t>>();
 
     EXPECT_TRUE(loc2.has<test_ext1>());
@@ -206,10 +244,14 @@ TEST(LocaleChar32, ACompositeFallsBackWhenTheFirstRuleCannotBeSatisfied)
 
     EXPECT_FALSE(p->m_p1);
     EXPECT_TRUE(p->m_p2);
+#else
+    GTEST_SKIP() << "locale<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(LocaleChar32, ACompositeIsBuiltFromTheLocalesOwnConfs)
 {
+#if IOV2_TEST_LINUX_GLIBC
     auto loc1 = IOv2::locale<char32_t>("en_US.UTF-8");
 
     EXPECT_TRUE(loc1.has<test_ext2>());
@@ -218,10 +260,14 @@ TEST(LocaleChar32, ACompositeIsBuiltFromTheLocalesOwnConfs)
 
     EXPECT_EQ(ptr2->m_obj1, loc1.get<IOv2::ctype_conf<char32_t>>());
     EXPECT_EQ(ptr2->m_obj2, loc1.get<IOv2::collate_conf<char32_t>>());
+#else
+    GTEST_SKIP() << "locale<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(LocaleChar32, ANestedRuleTakesItsSingleFacetBranchFirst)
 {
+#if IOV2_TEST_LINUX_GLIBC
     auto loc1 = IOv2::locale<char32_t>("en_US.UTF-8");
 
     EXPECT_TRUE(loc1.has<test_ext3>());
@@ -232,10 +278,14 @@ TEST(LocaleChar32, ANestedRuleTakesItsSingleFacetBranchFirst)
     EXPECT_EQ(ptr->m_obj1, loc1.get<IOv2::timeio_conf<char32_t>>());
     EXPECT_FALSE(ptr->m_obj2);
     EXPECT_FALSE(ptr->m_obj3);
+#else
+    GTEST_SKIP() << "locale<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(LocaleChar32, ANestedRuleFallsBackToThePackOfComposites)
 {
+#if IOV2_TEST_LINUX_GLIBC
     auto loc2 = IOv2::locale<char32_t>("en_US.UTF-8").remove<IOv2::timeio_conf<char32_t>>();
 
     EXPECT_TRUE(loc2.has<test_ext3>());
@@ -245,10 +295,14 @@ TEST(LocaleChar32, ANestedRuleFallsBackToThePackOfComposites)
     EXPECT_FALSE(ptr->m_obj1);
     EXPECT_TRUE(ptr->m_obj2);
     EXPECT_TRUE(ptr->m_obj3);
+#else
+    GTEST_SKIP() << "locale<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(LocaleChar32, RemovingOneConfLeavesTheOthersDerivable)
 {
+#if IOV2_TEST_LINUX_GLIBC
     auto loc1 = IOv2::locale<char32_t>("en_US.UTF-8");
     auto loc2 = loc1.remove<IOv2::timeio_conf<char32_t>>();
 
@@ -257,20 +311,28 @@ TEST(LocaleChar32, RemovingOneConfLeavesTheOthersDerivable)
 
     EXPECT_TRUE(loc2.has<IOv2::ctype<char32_t>>());
     EXPECT_TRUE(loc2.get<IOv2::ctype<char32_t>>());
+#else
+    GTEST_SKIP() << "locale<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(LocaleChar32, AFacetWithNoCreateRuleIsNeverSynthesised)
 {
+#if IOV2_TEST_LINUX_GLIBC
     // test_ext4 derives from a conf the locale does hold, but declares no
     // create_rules of its own, so there is nothing to build it from.
     auto loc1 = IOv2::locale<char32_t>("en_US.UTF-8");
 
     EXPECT_FALSE(loc1.has<test_ext4>());
     EXPECT_FALSE(loc1.get<test_ext4>());
+#else
+    GTEST_SKIP() << "locale<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(LocaleChar32, ARuleSpanningTwoCharTypesTakesTheBranchItCanSatisfy)
 {
+#if IOV2_TEST_LINUX_GLIBC
     // A default-constructed locale<char32_t> holds no ctype_conf<char>, so the first
     // alternative of the rule cannot fire and the char32_t one does.
     IOv2::locale<char32_t> loc1;
@@ -281,10 +343,14 @@ TEST(LocaleChar32, ARuleSpanningTwoCharTypesTakesTheBranchItCanSatisfy)
 
     EXPECT_TRUE(p->m_p1);
     EXPECT_FALSE(p->m_p2);
+#else
+    GTEST_SKIP() << "locale<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(LocaleChar32, InvolvingTheOtherCharTypesConfSwitchesTheBranch)
 {
+#if IOV2_TEST_LINUX_GLIBC
     IOv2::locale<char32_t> loc1;
     auto loc2 = loc1.involve(std::make_shared<IOv2::ctype_conf<char>>("zh_CN.UTF-8"));
 
@@ -294,10 +360,14 @@ TEST(LocaleChar32, InvolvingTheOtherCharTypesConfSwitchesTheBranch)
 
     EXPECT_FALSE(p->m_p1);
     EXPECT_TRUE(p->m_p2);
+#else
+    GTEST_SKIP() << "locale<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(LocaleChar32, RemovingTheOtherCharTypesConfSwitchesTheBranchBack)
 {
+#if IOV2_TEST_LINUX_GLIBC
     IOv2::locale<char32_t> loc1;
     auto loc2 = loc1.involve(std::make_shared<IOv2::ctype_conf<char>>("zh_CN.UTF-8"));
     auto loc3 = loc2.remove<IOv2::ctype_conf<char>>();
@@ -308,10 +378,14 @@ TEST(LocaleChar32, RemovingTheOtherCharTypesConfSwitchesTheBranchBack)
 
     EXPECT_TRUE(p->m_p1);
     EXPECT_FALSE(p->m_p2);
+#else
+    GTEST_SKIP() << "locale<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(LocaleChar32, RemovingBothConfsLeavesTheCompositeUnbuildable)
 {
+#if IOV2_TEST_LINUX_GLIBC
     IOv2::locale<char32_t> loc1;
     auto loc2 = loc1.involve(std::make_shared<IOv2::ctype_conf<char>>("zh_CN.UTF-8"));
     auto loc3 = loc2.remove<IOv2::ctype_conf<char>>();
@@ -319,10 +393,14 @@ TEST(LocaleChar32, RemovingBothConfsLeavesTheCompositeUnbuildable)
 
     EXPECT_FALSE(loc4.has<test_ext5>());
     EXPECT_FALSE(loc4.get<test_ext5>());
+#else
+    GTEST_SKIP() << "locale<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(LocaleChar32, MessagesTranslateThroughTheBoundCatalogue)
 {
+#if IOV2_TEST_LINUX_GLIBC
     IOv2::base_ft<IOv2::messages>::bind_text_domain("messages", resource_dir("IOv2TestResources"));
 
     // No conversion name is given, so the facet has to reach the UTF-8 catalogue
@@ -337,10 +415,14 @@ TEST(LocaleChar32, MessagesTranslateThroughTheBoundCatalogue)
     EXPECT_EQ(msg->translate(U"thank you"), ref2);
     EXPECT_EQ(msg->translate(U""), U"");
     EXPECT_NE(msg->head_entry(), U"");
+#else
+    GTEST_SKIP() << "locale<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(LocaleChar32, AMissingCatalogueLeavesEveryMessageUntranslated)
 {
+#if IOV2_TEST_LINUX_GLIBC
     // The directory above bin/ holds no catalogue, so every lookup falls back to
     // the msgid and the header entry stays empty.
     IOv2::base_ft<IOv2::messages>::bind_text_domain("messages", resource_dir("."));
@@ -353,4 +435,7 @@ TEST(LocaleChar32, AMissingCatalogueLeavesEveryMessageUntranslated)
     EXPECT_EQ(msg->translate(U"thank you"), U"thank you");
     EXPECT_EQ(msg->translate(U""), U"");
     EXPECT_EQ(msg->head_entry(), U"");
+#else
+    GTEST_SKIP() << "locale<char32_t> needs wchar_t_is_utf32 (glibc)";
+#endif
 }

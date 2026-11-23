@@ -15,26 +15,34 @@
 #include <IOv2/locale/locale.h>
 
 #include <support/exe_path.h>
+#include <support/platform.h>
+#include <support/platform_macros.h>
+#include <support/test_child.h>
 
 #include <gtest/gtest.h>
 
 #include <array>
 #include <barrier>
 #include <clocale>
-#include <cstdlib>
+#include <cstddef>
 #include <filesystem>
 #include <memory>
+#include <optional>
 #include <string>
-#include <string_view>
 #include <thread>
 #include <type_traits>
 #include <utility>
-
-#include <sys/wait.h>
-#include <unistd.h>
+#include <vector>
 
 namespace
 {
+    // A UTF-8 locale every platform has. Windows has no "C.UTF-8".
+#if !IOV2_TEST_WINDOWS
+    constexpr const char* kUtf8 = "C.UTF-8";
+#else
+    constexpr const char* kUtf8 = "en_US.UTF-8";
+#endif
+
     // A composite facet is built by whichever of its create_rules the locale can
     // satisfy, in the order the rule lists them: collate<char> first, ctype<char>
     // only if the collate branch cannot be taken.
@@ -137,50 +145,60 @@ namespace
         "LC_NUMERIC", "LC_TIME", "LANG",
     };
 
-    void clear_locale_environment()
+    // Clears the locale variables while it lives, then puts back what was there.
+    // A child started meanwhile inherits the cleared set; this process resolved
+    // its own names at startup and does not see the change.
+    class cleared_locale_environment
     {
-        for (const char* name : locale_environment)
-            ::unsetenv(name);
-    }
-
-    int run_locale_environment_child(const char* mode)
-    {
-        const std::string executable = exe_path();
-        const pid_t child = ::fork();
-        if (child == -1)
-            return -1;
-
-        if (child == 0)
+    public:
+        cleared_locale_environment()
         {
-            clear_locale_environment();
-            ::setenv("IOV2_LOCALE_ENV_CHILD", mode, 1);
-
-            const std::string_view selected(mode);
-            if (selected == "all")
-                ::setenv("LC_ALL", "C.UTF-8", 1);
-            else if (selected == "category")
-                ::setenv("LC_CTYPE", "C.UTF-8", 1);
-            else if (selected == "lang")
-                ::setenv("LANG", "C.UTF-8", 1);
-            else if (selected == "empty")
+            for (const char* name : locale_environment)
             {
-                ::setenv("LC_ALL", "", 1);
-                ::setenv("LC_CTYPE", "", 1);
-                ::setenv("LANG", "", 1);
+                m_saved.push_back(iov2_test::sys::env_is_set(name)
+                                      ? std::optional<std::string>(iov2_test::sys::get_env(name))
+                                      : std::nullopt);
+                iov2_test::sys::unset_env(name);
             }
-            else if (selected == "invalid")
-                ::setenv("LC_ALL", "IOv2.locale.does.not.exist", 1);
-
-            ::execl(executable.c_str(), executable.c_str(),
-                    "--gtest_filter=LocaleChar.InitialLocaleNamesFollowTheEnvironment",
-                    "--gtest_color=no", static_cast<char*>(nullptr));
-            ::_exit(127);
         }
 
-        int status = 0;
-        if (::waitpid(child, &status, 0) != child || !WIFEXITED(status))
-            return -1;
-        return WEXITSTATUS(status);
+        ~cleared_locale_environment()
+        {
+            for (std::size_t i = 0; i < locale_environment.size(); ++i)
+            {
+                if (m_saved[i])
+                    iov2_test::sys::set_env(locale_environment[i], *m_saved[i]);
+                else
+                    iov2_test::sys::unset_env(locale_environment[i]);
+            }
+        }
+
+        cleared_locale_environment(const cleared_locale_environment&) = delete;
+        cleared_locale_environment& operator=(const cleared_locale_environment&) = delete;
+
+    private:
+        std::vector<std::optional<std::string>> m_saved;
+    };
+
+    int run_locale_environment_child(const std::string& mode)
+    {
+        const cleared_locale_environment cleared;
+        if (mode == "all")
+            iov2_test::sys::set_env("LC_ALL", kUtf8);
+        else if (mode == "category")
+            iov2_test::sys::set_env("LC_CTYPE", kUtf8);
+        else if (mode == "lang")
+            iov2_test::sys::set_env("LANG", kUtf8);
+        else if (mode == "empty")
+        {
+            // On Windows setting a variable to "" removes it, which resolves the same.
+            for (const char* name : {"LC_ALL", "LC_CTYPE", "LANG"})
+                iov2_test::sys::set_env(name, "");
+        }
+        else if (mode == "invalid")
+            iov2_test::sys::set_env("LC_ALL", "IOv2.locale.does.not.exist");
+
+        return run_test_child("LocaleChar.InitialLocaleNamesFollowTheEnvironment", mode);
     }
 
     std::string resource_dir(const char* leaf)
@@ -215,7 +233,7 @@ TEST(LocaleChar, InvolveMsgTakesOnlyABoolForThrowIfFail)
 
 TEST(LocaleChar, ANamedLocaleHoldsTheConfForItsOwnCharType)
 {
-    auto loc = IOv2::locale<char>("C.UTF-8");
+    auto loc = IOv2::locale<char>(kUtf8);
 
     EXPECT_TRUE(loc.has<IOv2::ctype_conf<char>>());
     EXPECT_TRUE(loc.get<IOv2::ctype_conf<char>>());
@@ -223,7 +241,7 @@ TEST(LocaleChar, ANamedLocaleHoldsTheConfForItsOwnCharType)
 
 TEST(LocaleChar, AConfForAnotherCharTypeIsAbsent)
 {
-    auto loc = IOv2::locale<char>("C.UTF-8");
+    auto loc = IOv2::locale<char>(kUtf8);
 
     EXPECT_FALSE(loc.has<IOv2::ctype_conf<wchar_t>>());
     EXPECT_FALSE(loc.get<IOv2::ctype_conf<wchar_t>>());
@@ -231,7 +249,7 @@ TEST(LocaleChar, AConfForAnotherCharTypeIsAbsent)
 
 TEST(LocaleChar, RemoveDropsTheConf)
 {
-    auto loc = IOv2::locale<char>("C.UTF-8");
+    auto loc = IOv2::locale<char>(kUtf8);
 
     auto loc_r = loc.remove<IOv2::ctype_conf<char>>();
     EXPECT_FALSE(loc_r.has<IOv2::ctype_conf<char>>());
@@ -240,7 +258,7 @@ TEST(LocaleChar, RemoveDropsTheConf)
 
 TEST(LocaleChar, InvolveInstallsAConfiguredConf)
 {
-    auto loc = IOv2::locale<char>("C.UTF-8").involve(std::make_shared<IOv2::ctype_conf<char>>("zh_CN.UTF-8"));
+    auto loc = IOv2::locale<char>(kUtf8).involve(std::make_shared<IOv2::ctype_conf<char>>("zh_CN.UTF-8"));
 
     EXPECT_TRUE(loc.has<IOv2::ctype_conf<char>>());
 }
@@ -511,7 +529,7 @@ TEST(LocaleChar, ConcurrentFirstBaseFacetRequestsShareTheInternedObject)
 
 TEST(LocaleChar, ConcurrentFirstCompositeRequestsShareThePublishedObject)
 {
-    IOv2::locale<char> loc("C.UTF-8");
+    IOv2::locale<char> loc(kUtf8);
     std::barrier gate(2);
     synchronised_composite::construction_gate = &gate;
 
@@ -530,9 +548,9 @@ TEST(LocaleChar, ConcurrentFirstCompositeRequestsShareThePublishedObject)
 
 TEST(LocaleChar, InitialLocaleNamesFollowTheEnvironment)
 {
-    if (const char* child_mode = std::getenv("IOV2_LOCALE_ENV_CHILD"))
+    if (in_test_child())
     {
-        const std::string_view mode(child_mode);
+        const std::string mode = test_child_arg();
         const auto expect_all = [](const char* expected) {
             EXPECT_EQ(IOv2::initial_locale_name(LC_CTYPE), expected);
             EXPECT_EQ(IOv2::initial_locale_name(LC_COLLATE), expected);
@@ -542,10 +560,10 @@ TEST(LocaleChar, InitialLocaleNamesFollowTheEnvironment)
         };
 
         if (mode == "all" || mode == "lang")
-            expect_all("C.UTF-8");
+            expect_all(kUtf8);
         else if (mode == "category")
         {
-            EXPECT_EQ(IOv2::initial_locale_name(LC_CTYPE), "C.UTF-8");
+            EXPECT_EQ(IOv2::initial_locale_name(LC_CTYPE), kUtf8);
             EXPECT_EQ(IOv2::initial_locale_name(LC_COLLATE), "C");
         }
         else
@@ -555,10 +573,10 @@ TEST(LocaleChar, InitialLocaleNamesFollowTheEnvironment)
         {
             IOv2::base_ft<IOv2::messages>::bind_text_domain(
                 "messages", resource_dir("IOv2TestResources"));
-            auto implicit = IOv2::locale<char>("C.UTF-8")
+            auto implicit = IOv2::locale<char>(kUtf8)
                                 .involve_msg("messages", "zh_CN");
-            auto explicit_name = IOv2::locale<char>("C.UTF-8")
-                                     .involve_msg("messages", "zh_CN", "C.UTF-8");
+            auto explicit_name = IOv2::locale<char>(kUtf8)
+                                     .involve_msg("messages", "zh_CN", kUtf8);
             EXPECT_EQ(implicit.get<IOv2::messages_conf<char>>(),
                       explicit_name.get<IOv2::messages_conf<char>>());
         }

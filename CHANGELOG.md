@@ -155,6 +155,8 @@
     说明符按 POSIX 退回未修饰的含义，纪元格式由普通格式顶替。
   - locale 格式串里的补位标志照旧丢弃，macOS 的格式串用得更多：ja_JP 的 `%c` 为
     `%a %_m/%e %T %Y`，IOv2 按 `%a %m/%e %T %Y` 写，月份补零。
+- **`locale` 可在 Windows 与 macOS 上构建、运行**，`locale<char32_t>` 只在 glibc 上提供：别处没有
+  `char32_t` 的 facet 配置，构造它是编译期错误，错误信息会说明这一点。
 
 #### 变更
 
@@ -597,6 +599,9 @@ have no release line of their own.
   - Padding flags in a locale's format strings are dropped as before, and macOS's use more of
     them: ja_JP's `%c` is `%a %_m/%e %T %Y`, which IOv2 writes as `%a %m/%e %T %Y`, the month
     zero-padded.
+- **`locale` builds and runs on Windows and macOS**; `locale<char32_t>` is provided on glibc
+  only: elsewhere there are no `char32_t` facet configurations, and constructing one is a
+  compile-time error whose message says so.
 
 #### Changed
 
