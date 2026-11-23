@@ -46,7 +46,9 @@ namespace IOv2
 {
 /**
  * @lang{ZH}
- * 返回某个 `LC_*` 类别在**程序启动时由环境变量解析得到**的初始 locale 名称。
+ * 返回某个 `LC_*` 类别在**程序启动时由环境解析得到**的初始 locale 名称：依次看 `LC_ALL`、
+ * `LC_<category>`、`LANG`，都未设置时取本地环境的缺省 locale——glibc 与 macOS 上是 `"C"`，
+ * Windows 上是用户缺省 locale 加 ANSI 代码页（UCRT 的 `setlocale(category, "")`）。
  *
  * 这是对 `ori_facet_buf::locale_name` 的薄转发，使得仅依赖 `<IOv2/locale/locale.h>`
  * 的代码（如 stdio 流对象）无需直接看到 `ori_facet_buf` 即可获取该初始名称。
@@ -63,7 +65,9 @@ namespace IOv2
  *
  * @lang{EN}
  * Return the *initial* locale name for an `LC_*` category, as resolved from the
- * environment at program startup.
+ * environment at program startup: `LC_ALL`, then `LC_<category>`, then `LANG`, and where
+ * none is set the native environment's default -- `"C"` on glibc and macOS, the user's
+ * default locale with the ANSI code page on Windows (the UCRT's `setlocale(category, "")`).
  *
  * A thin forwarder over `ori_facet_buf::locale_name` so that code depending
  * only on `<IOv2/locale/locale.h>` (e.g. the stdio stream objects) can obtain this
@@ -356,22 +360,23 @@ class locale
 public:
     /**
      * @lang{ZH}
-     * @brief 构造 locale；`name` 为空串（默认）表示使用**程序启动时由环境变量解析得到**
-     * 的各 `LC_*` locale，否则其全部 facet 均使用调用方显式给定的 `name`。
+     * @brief 构造 locale；`name` 为空串（默认）表示使用**程序启动时由环境解析得到**
+     * 的各 `LC_*` locale（见 `initial_locale_name`），否则其全部 facet 均使用调用方显式给定的
+     * `name`。
      *
      * - **`name` 为空串 `""`（含默认实参）**：等价于"环境 / 默认 locale"。每个 facet 的
      *   locale 名称逐类别取自 `ori_facet_buf::locale_name(LC_*)`；这些名称在单例构造期已由
      *   `resolve_locale` 校验过（无法实例化的名称已回退为 `"C"`）。因此这种情形**不会**因
      *   "locale 名称非法"而抛异常——其名称来源始终可用。注意：空串是表示"环境 / 默认"的
-     *   **显式哨兵**，**不会**被原样传给 `newlocale`。
+     *   **显式哨兵**，**不会**被原样交给 C 库。
      * - **`name` 非空**：全部 facet 均使用该名称，且**不**做"回退到 `"C"`"处理。既然调用方
      *   显式要求某个特定 locale，则当该名称无法被 C 库实例化时（如拼写错误、宿主未安装该
      *   locale），应当**显式失败**而非静默降级。校验在底层 facet 构造中完成
-     *   （`clocale_wrapper` → `newlocale`）；首个失败的 facet 即抛出异常，其余 facet 不再
+     *   （`clocale_wrapper`）；首个失败的 facet 即抛出异常，其余 facet 不再
      *   构造，半构造的 `locale` 随构造函数栈展开而销毁（不泄漏、不留下污染缓存）。
      *
-     * @param name 一个在宿主上可被实例化的 locale 名称（语义同 `newlocale`）；为空串
-     *        （默认）时表示使用环境 / 默认 locale。
+     * @param name 一个在宿主上可被实例化的 locale 名称（POSIX 上语义同 `newlocale`，Windows
+     *        上同 `setlocale`）；为空串（默认）时表示使用环境 / 默认 locale。
      * @throws io_error 当**非空** `name` 无法被 C 库实例化，或该 locale 的数据不能用来构造某个
      *         facet 时抛出（`io_error` 派生自 `std::runtime_error`）。空 `name` 不会因名字无效
      *         而抛出。
@@ -379,8 +384,8 @@ public:
      *
      * @lang{EN}
      * @brief Construct a locale; an empty `name` (the default) selects the per-`LC_*`
-     * locales resolved from the environment at program startup, otherwise every facet
-     * uses the caller-supplied `name`.
+     * locales resolved from the environment at program startup (see
+     * `initial_locale_name`), otherwise every facet uses the caller-supplied `name`.
      *
      * - **`name` is the empty string `""` (including the default argument)**: equivalent
      *   to the "environment / default locale". Each facet's locale name is taken
@@ -389,17 +394,18 @@ public:
      *   be instantiated has already fallen back to `"C"`). This case therefore never
      *   throws because of an *invalid locale name* -- its name source is always usable.
      *   Note the empty string is an explicit sentinel for "environment / default"; it is
-     *   never passed through to `newlocale`.
+     *   never passed through to the C library.
      * - **`name` is non-empty**: every facet uses that name and does *not* fall back to
      *   `"C"`. Since the caller explicitly asked for a specific locale, an unknown or
      *   uninstantiable name (a typo, or a locale not installed on the host) fails loudly
      *   rather than silently degrading. Validation happens in the underlying facet
-     *   construction (`clocale_wrapper` -> `newlocale`); the first failing facet throws,
+     *   construction (`clocale_wrapper`); the first failing facet throws,
      *   the remaining facets are not constructed, and the partially-built `locale` is
      *   destroyed as the constructor unwinds (no leak, no poisoned cache entry).
      *
-     * @param name A locale name instantiable on the host (as by `newlocale`); empty (the
-     *        default) selects the environment / default locale.
+     * @param name A locale name instantiable on the host (as by `newlocale` on POSIX,
+     *        `setlocale` on Windows); empty (the default) selects the environment / default
+     *        locale.
      * @throws io_error if a *non-empty* `name` cannot be instantiated by the C library, or
      *         that locale's data cannot build one of the facets (`io_error` derives from
      *         `std::runtime_error`). An empty `name` never throws for an invalid name.

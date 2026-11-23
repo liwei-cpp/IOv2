@@ -5,7 +5,7 @@
  * @file ori_facet_buf.h
  * @lang{ZH}
  * 定义了 `ori_facet_buf` 单例——基础 facet 与 messages facet 的进程级缓存 / 驻留
- * （interning）池，并在程序启动时从环境变量解析各 `LC_*` 类别的初始 locale 名称。
+ * （interning）池，并在程序启动时从环境解析各 `LC_*` 类别的初始 locale 名称。
  * 同时定义 messages 缓存的键类型 `detail::msg_key` 及其 `std::hash` 特化。
  * @endif
  *
@@ -137,7 +137,7 @@ namespace IOv2
  *   程序中最多构建一次并被共享。缓存以 `lru_cache` 有界（每种 facet 类型至多
  *   `s_cache_capacity` 条），因此即便 locale 名称 / 消息键来自可变（外部）输入，内存
  *   也保持有界。
- * - **初始 locale 名称**：构造时经 `resolve_locale` 从环境变量一次性解析各 `LC_*` 类别
+ * - **初始 locale 名称**：构造时经 `resolve_locale` 从环境一次性解析各 `LC_*` 类别
  *   的名称，之后经 `locale_name` 只读提供。
  *
  * @note 线程安全由内部 `m_mutex` 提供；但 facet 的**构造发生在锁外**（见 `try_get`），
@@ -329,15 +329,15 @@ public:
 
     /**
      * @lang{ZH}
-     * 返回某个 `LC_*` 类别在**程序启动时由环境变量解析得到**的 locale 名称。
+     * 返回某个 `LC_*` 类别在**程序启动时由环境解析得到**的 locale 名称（规则见 `resolve_locale`）。
      *
      * 这些名称在单例构造（静态初始化期、`main` 之前、单线程）时由
      * `resolve_locale` 一次性解析并保存，此后只读、不再变化；因此该访问器返回的是
      * 不可变成员的常量引用，无需加锁，也不会与 `setlocale` 写者发生数据竞争——
      * 它根本不读取进程级全局 C locale。
      *
-     * @note 这意味着本库的 locale 来源是**环境变量**，而**不**跟随运行期对
-     * `std::setlocale` 的编程式修改。
+     * @note 这意味着本库的 locale 来源是**启动时的环境**（环境变量；都未设置时为本地环境的
+     * 缺省 locale），而**不**跟随运行期对 `std::setlocale` 的编程式修改。
      *
      * @throws io_error 当 `category` 不是已解析的五个类别之一
      *         （`LC_CTYPE` / `LC_COLLATE` / `LC_MONETARY` / `LC_NUMERIC` / `LC_TIME`）时抛出，
@@ -346,7 +346,7 @@ public:
      *
      * @lang{EN}
      * Return the locale name for an `LC_*` category as *resolved from the
-     * environment at program startup*.
+     * environment at program startup* (by the rules of `resolve_locale`).
      *
      * The names are resolved once by `resolve_locale` during singleton
      * construction (static-init time, before `main`, single-threaded) and are
@@ -354,8 +354,9 @@ public:
      * immutable member, so it needs no lock and cannot race a `setlocale` writer
      * -- it never reads the process-wide global C locale at all.
      *
-     * @note Consequently the library's locale source is the *environment*; it does
-     * *not* follow runtime programmatic changes via `std::setlocale`.
+     * @note Consequently the library's locale source is the *environment at startup*
+     * (the locale variables, or the native default where none is set); it does *not*
+     * follow runtime programmatic changes via `std::setlocale`.
      *
      * @throws io_error if `category` is not one of the five resolved categories
      *         (`LC_CTYPE` / `LC_COLLATE` / `LC_MONETARY` / `LC_NUMERIC` / `LC_TIME`),
@@ -402,7 +403,7 @@ public:
 private:
     /**
      * @lang{ZH}
-     * @brief 私有构造：单例创建时经 `resolve_locale` 从环境变量解析五个 `LC_*` 类别的
+     * @brief 私有构造：单例创建时经 `resolve_locale` 从环境解析五个 `LC_*` 类别的
      * 初始 locale 名称。仅 `sing_temp`（友元）可调用。
      *
      * 登记的退出钩子为空操作：本单例在进程退出时**不析构**。标准流对象退出时同样不析构，
@@ -424,20 +425,24 @@ private:
      */
     ori_facet_buf()
         : sing_temp<ori_facet_buf>([](ori_facet_buf*) noexcept {}),
-          m_ctype(resolve_locale("LC_CTYPE")),
-          m_collate(resolve_locale("LC_COLLATE")),
-          m_monetary(resolve_locale("LC_MONETARY")),
-          m_numeric(resolve_locale("LC_NUMERIC")),
-          m_time(resolve_locale("LC_TIME"))
+          m_ctype(resolve_locale(LC_CTYPE, "LC_CTYPE")),
+          m_collate(resolve_locale(LC_COLLATE, "LC_COLLATE")),
+          m_monetary(resolve_locale(LC_MONETARY, "LC_MONETARY")),
+          m_numeric(resolve_locale(LC_NUMERIC, "LC_NUMERIC")),
+          m_time(resolve_locale(LC_TIME, "LC_TIME"))
     {
     }
 
     /**
      * @lang{ZH}
      * 按 POSIX/glibc 中 `setlocale(category, "")` 的解析顺序，从环境变量推导出某个
-     * 类别应使用的 locale 名称：`LC_ALL` > `LC_<category>` > `LANG` > `"C"`，其中
-     * 每一级都要求该变量**已设置且非空**才被采用。解析出的名称随后会经 C 库校验
-     * （`newlocale`）：若无法实例化（如非法的 `LANG`），回退为 `"C"`。
+     * 类别应使用的 locale 名称：`LC_ALL` > `LC_<category>` > `LANG` > 本地环境的缺省 locale，
+     * 其中每一级都要求该变量**已设置且非空**才被采用。缺省 locale 是没有设置任何 locale
+     * 环境变量时 `setlocale(category, "")` 给出的名字（`detail::clocale_native_name`）：
+     * glibc 与 macOS 上是 `"C"`；Windows 上是用户缺省 locale 加 ANSI 代码页（如
+     * `"English_United States.1252"`），UCRT 自己不读环境变量，这里先看环境变量是为了与
+     * messages 选语言的顺序一致，也让程序能像在 POSIX 上一样经环境变量指定。解析出的名称随后会经
+     * C 库校验（`clocale_wrapper`）：若无法实例化（如非法的 `LANG`），回退为 `"C"`。
      *
      * @note 优先级是**短路**的，且校验在选定之后才进行：一旦较高优先级的变量已设置且非空，
      * 即采用其值，**不再**下探更低优先级的变量。因此当较高优先级的变量被设为一个无法实例化
@@ -447,15 +452,23 @@ private:
      *
      * 仅在单例构造期（静态初始化、`main` 之前、单线程）被调用，此时不存在其它线程，
      * 也没有 `setenv` 写者，因此经 `detail::get_env` 读环境变量 by-construction 无竞争。
+     * Windows 上取缺省 locale 要调 `setlocale`，但在 per-thread 模式下进行、随即恢复，进程级
+     * 全局 locale 不受影响。
      * @endif
      *
      * @lang{EN}
      * Derive the locale name for a category from the environment, following the
      * same precedence as POSIX/glibc `setlocale(category, "")`:
-     * `LC_ALL` > `LC_<category>` > `LANG` > `"C"`, where each level is used only if
-     * that variable is *set and non-empty*. The resolved name is then validated via
-     * the C library (`newlocale`); if it cannot be instantiated (e.g. a bogus
-     * `LANG`) it falls back to `"C"`.
+     * `LC_ALL` > `LC_<category>` > `LANG` > the native environment's default locale,
+     * where each level is used only if that variable is *set and non-empty*. The default
+     * is the name `setlocale(category, "")` gives when no locale variable is set
+     * (`detail::clocale_native_name`): `"C"` on glibc and macOS; on Windows the user's
+     * default locale with the ANSI code page (`"English_United States.1252"`, say). The
+     * UCRT reads no environment variable itself; reading them first here keeps the order
+     * messages picks its language in, and lets a program be pointed at a locale through
+     * the environment as on POSIX. The resolved name is then validated via the C library
+     * (`clocale_wrapper`); if it cannot be instantiated (e.g. a bogus `LANG`) it falls
+     * back to `"C"`.
      *
      * @note The precedence short-circuits, and validation happens *after* selection:
      * the first variable that is set and non-empty wins, and lower-precedence variables
@@ -468,10 +481,12 @@ private:
      *
      * Called only during singleton construction (static-init, before `main`,
      * single-threaded); no other thread and no `setenv` writer exists yet, so these
-     * environment reads through `detail::get_env` are race-free by construction.
+     * environment reads through `detail::get_env` are race-free by construction. On
+     * Windows reading the default calls `setlocale`, but in per-thread mode and undone at
+     * once, so the process-wide global locale is untouched.
      * @endif
      */
-    static std::string resolve_locale(const char* category_var)
+    static std::string resolve_locale(int category, const char* category_var)
     {
         // get_env gives "" for unset and empty alike: the first one set and non-empty wins.
         std::string name = detail::get_env("LC_ALL");
@@ -480,12 +495,12 @@ private:
         if (name.empty())
             name = detail::get_env("LANG");
         if (name.empty())
-            name = "C";
+            name = detail::clocale_native_name(category);   // "C" on POSIX
 
         // Validate the resolved name against the C library: clocale_wrapper builds a
-        // locale_t via newlocale and throws if the name cannot be instantiated. An
-        // unusable name (e.g. a bogus LANG) falls back to the neutral "C". Done here,
-        // once per category at construction, so locale_name stays a plain O(1) read.
+        // locale and throws if the name cannot be instantiated. An unusable name (e.g. a
+        // bogus LANG) falls back to the neutral "C". Done here, once per category at
+        // construction, so locale_name stays a plain O(1) read.
         try
         {
             clocale_wrapper probe(name);
@@ -499,7 +514,7 @@ private:
 
 private:
     /**
-     * @lang{ZH} 各 `LC_*` 类别在构造时从环境变量解析得到的 locale 名称（见
+     * @lang{ZH} 各 `LC_*` 类别在构造时从环境解析得到的 locale 名称（见
      * `resolve_locale` / `locale_name`）。静态初始化期写入一次，此后不可变——可无锁
      * 并发读取。 @endif
      * @lang{EN} Per-category locale names resolved from the environment at construction

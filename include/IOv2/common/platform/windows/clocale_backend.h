@@ -18,6 +18,9 @@
  * （`___lc_codepage_func`）同样保存，用来回答该 locale 的编码是否为 UTF-8。`LC_TIME` 的 BCP-47
  * 名字与代码页供 `timeio` 后端读 NLS 的日期时间数据并窄化；UCRT 没有报 `LC_TIME` 代码页的函数，
  * 于是把 `LC_CTYPE` 临时设成 `LC_TIME` 的名字，读 `___lc_codepage_func`。
+ *
+ * `clocale_native_name` 供 `ori_facet_buf` 解析初始 locale：同样在 per-thread 模式下取
+ * `setlocale(category, "")` 的结果，即用户缺省 locale 加 ANSI 代码页（UCRT 不读环境变量）。
  * @endif
  * @lang{EN}
  * Windows (UCRT) backend of `clocale_wrapper`.
@@ -38,6 +41,10 @@
  * name and the code page of `LC_TIME` are for the `timeio` backend, which reads NLS's date and
  * time data and narrows it; the UCRT has no function reporting `LC_TIME`'s code page, so
  * `LC_CTYPE` is set to `LC_TIME`'s name for a moment and `___lc_codepage_func` read.
+ *
+ * `clocale_native_name` is for `ori_facet_buf`'s initial locales: what
+ * `setlocale(category, "")` gives, read in per-thread mode as well -- the user's default
+ * locale with the ANSI code page (the UCRT reads no environment variable).
  * @endif
  */
 
@@ -205,5 +212,26 @@ inline clocale_saved clocale_use(clocale_handle loc)
         throw io_error("clocale_user: setlocale rejected " + loc->all_name);
     }
     return old;
+}
+
+// The name setlocale(category, "") gives: the user's default locale with the ANSI code
+// page. The UCRT reads no environment variable for it. "C" if the CRT refuses. Only this
+// thread's locale is touched, and it is put back.
+inline std::string clocale_native_name(int category)
+{
+    const clocale_saved old = clocale_enter_thread_mode();
+    std::string res;
+    try
+    {
+        if (const char* name = std::setlocale(category, ""))
+            res = name;
+    }
+    catch (...)
+    {
+        clocale_restore(old);
+        throw;
+    }
+    clocale_restore(old);
+    return res.empty() ? "C" : res;
 }
 }
