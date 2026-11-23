@@ -670,6 +670,7 @@ jobs:
           include/IOv2/device/*.h include/IOv2/device/platform/windows/*.h \
           $(find include/IOv2/cvt -name '*.h' -not -path '*/platform/posix/*') \
           $(find include/IOv2/facet -name '*.h' -not -path '*/platform/posix/*') \
+          include/IOv2/locale/*.h \
           --checks="$IOV2_TIDY_CHECKS" \
           --config="$IOV2_TIDY_CONFIG" \
           --warnings-as-errors='bugprone-*' \
@@ -678,7 +679,7 @@ jobs:
 
   # The platforms the cross-platform port has reached. Each builds and runs only
   # the components ported so far -- IOV2_TEST_COMPONENTS in its preset, today
-  # common, device, cvt and facet -- and grows as the port does; the Linux jobs above stay the full
+  # common, device, cvt, facet and locale -- and grows as the port does; the Linux jobs above stay the full
   # gate. No container: the GHCR image is Linux-only, and the point here is the
   # platform's own compiler, standard library and C runtime.
   portability:

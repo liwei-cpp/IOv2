@@ -14,6 +14,7 @@
 #include <IOv2/locale/locale.h>
 
 #include <support/exe_path.h>
+#include <support/platform_macros.h>
 
 #include <gtest/gtest.h>
 
@@ -25,6 +26,13 @@
 
 namespace
 {
+    // A UTF-8 locale every platform has. Windows has no "C.UTF-8".
+#if !IOV2_TEST_WINDOWS
+    constexpr const char* kUtf8 = "C.UTF-8";
+#else
+    constexpr const char* kUtf8 = "en_US.UTF-8";
+#endif
+
     // A composite facet is built by whichever of its create_rules the locale can
     // satisfy, in the order the rule lists them: collate<char8_t> first, ctype<char8_t>
     // only if the collate branch cannot be taken.
@@ -140,7 +148,7 @@ TEST(LocaleChar8, InvolveMsgTakesOnlyABoolForThrowIfFail)
 
 TEST(LocaleChar8, ANamedLocaleHoldsTheConfForItsOwnCharType)
 {
-    auto loc = IOv2::locale<char8_t>("C.UTF-8");
+    auto loc = IOv2::locale<char8_t>(kUtf8);
 
     EXPECT_TRUE(loc.has<IOv2::ctype_conf<char8_t>>());
     EXPECT_TRUE(loc.get<IOv2::ctype_conf<char8_t>>());
@@ -148,7 +156,7 @@ TEST(LocaleChar8, ANamedLocaleHoldsTheConfForItsOwnCharType)
 
 TEST(LocaleChar8, AConfForAnotherCharTypeIsAbsent)
 {
-    auto loc = IOv2::locale<char8_t>("C.UTF-8");
+    auto loc = IOv2::locale<char8_t>(kUtf8);
 
     EXPECT_FALSE(loc.has<IOv2::ctype_conf<char>>());
     EXPECT_FALSE(loc.get<IOv2::ctype_conf<char>>());
@@ -156,7 +164,7 @@ TEST(LocaleChar8, AConfForAnotherCharTypeIsAbsent)
 
 TEST(LocaleChar8, RemoveDropsTheConf)
 {
-    auto loc = IOv2::locale<char8_t>("C.UTF-8");
+    auto loc = IOv2::locale<char8_t>(kUtf8);
 
     auto loc_r = loc.remove<IOv2::ctype_conf<char8_t>>();
     EXPECT_FALSE(loc_r.has<IOv2::ctype_conf<char8_t>>());
@@ -165,7 +173,7 @@ TEST(LocaleChar8, RemoveDropsTheConf)
 
 TEST(LocaleChar8, InvolveInstallsAConfiguredConf)
 {
-    auto loc = IOv2::locale<char8_t>("C.UTF-8").involve(std::make_shared<IOv2::ctype_conf<char8_t>>("zh_CN.UTF-8"));
+    auto loc = IOv2::locale<char8_t>(kUtf8).involve(std::make_shared<IOv2::ctype_conf<char8_t>>("zh_CN.UTF-8"));
 
     EXPECT_TRUE(loc.has<IOv2::ctype_conf<char8_t>>());
 }
@@ -289,7 +297,7 @@ TEST(LocaleChar8, ARuleSpanningTwoCharTypesTakesTheBranchItCanSatisfy)
 {
     // A locale<char8_t> holds no ctype_conf<char>, so the first alternative of the
     // rule cannot fire and the char8_t one does.
-    IOv2::locale<char8_t> loc1("C.UTF-8");
+    IOv2::locale<char8_t> loc1(kUtf8);
 
     EXPECT_TRUE(loc1.has<test_ext5>());
     auto p = loc1.get<test_ext5>();
@@ -301,7 +309,7 @@ TEST(LocaleChar8, ARuleSpanningTwoCharTypesTakesTheBranchItCanSatisfy)
 
 TEST(LocaleChar8, InvolvingTheOtherCharTypesConfSwitchesTheBranch)
 {
-    IOv2::locale<char8_t> loc1("C.UTF-8");
+    IOv2::locale<char8_t> loc1(kUtf8);
     auto loc2 = loc1.involve(std::make_shared<IOv2::ctype_conf<char>>("zh_CN.UTF-8"));
 
     EXPECT_TRUE(loc2.has<test_ext5>());
@@ -314,7 +322,7 @@ TEST(LocaleChar8, InvolvingTheOtherCharTypesConfSwitchesTheBranch)
 
 TEST(LocaleChar8, RemovingTheOtherCharTypesConfSwitchesTheBranchBack)
 {
-    IOv2::locale<char8_t> loc1("C.UTF-8");
+    IOv2::locale<char8_t> loc1(kUtf8);
     auto loc2 = loc1.involve(std::make_shared<IOv2::ctype_conf<char>>("zh_CN.UTF-8"));
     auto loc3 = loc2.remove<IOv2::ctype_conf<char>>();
 
@@ -328,7 +336,7 @@ TEST(LocaleChar8, RemovingTheOtherCharTypesConfSwitchesTheBranchBack)
 
 TEST(LocaleChar8, RemovingBothConfsLeavesTheCompositeUnbuildable)
 {
-    IOv2::locale<char8_t> loc1("C.UTF-8");
+    IOv2::locale<char8_t> loc1(kUtf8);
     auto loc2 = loc1.involve(std::make_shared<IOv2::ctype_conf<char>>("zh_CN.UTF-8"));
     auto loc3 = loc2.remove<IOv2::ctype_conf<char>>();
     auto loc4 = loc3.remove<IOv2::ctype_conf<char8_t>>();

@@ -169,8 +169,13 @@ inline const std::string& initial_locale_name(int category)
  * @endif
  *
  * @tparam TChar
- * @lang{ZH} 该 locale 各 facet 所用的字符类型。 @endif
- * @lang{EN} The character type used by this locale's facets. @endif
+ * @lang{ZH} 该 locale 各 facet 所用的字符类型：`char`、`wchar_t`、`char8_t`，以及仅在
+ * `wchar_t_is_utf32` 成立的平台（glibc）上可用的 `char32_t`——别处没有 `char32_t` 的
+ * facet 配置，构造 `locale<char32_t>` 是编译期错误。 @endif
+ * @lang{EN} The character type used by this locale's facets: `char`, `wchar_t`,
+ * `char8_t`, and `char32_t` only where `wchar_t_is_utf32` holds (glibc) -- elsewhere
+ * there are no `char32_t` facet configurations, and constructing a `locale<char32_t>`
+ * is a compile-time error. @endif
  */
 template <typename TChar>
 class locale
@@ -402,6 +407,11 @@ public:
      */
     explicit locale(const std::string& name = "")
     {
+        // char32_t's confs exist only where wchar_t_is_utf32 holds (glibc). Say so here
+        // rather than through an incomplete ctype_conf<char32_t> below.
+        static_assert(requires { sizeof(ctype_conf<TChar>); },
+                      "locale<TChar>: this character type has no facet configurations on this "
+                      "platform (locale<char32_t> needs wchar_t_is_utf32, i.e. glibc).");
         if (name.empty())
         {
             init<ctype_conf>(s_ori_facet_buf.locale_name(LC_CTYPE));

@@ -14,6 +14,7 @@
 #include <IOv2/locale/locale.h>
 
 #include <support/exe_path.h>
+#include <support/platform_macros.h>
 
 #include <gtest/gtest.h>
 
@@ -25,6 +26,13 @@
 
 namespace
 {
+    // A UTF-8 locale every platform has. Windows has no "C.UTF-8".
+#if !IOV2_TEST_WINDOWS
+    constexpr const char* kUtf8 = "C.UTF-8";
+#else
+    constexpr const char* kUtf8 = "en_US.UTF-8";
+#endif
+
     // A composite facet is built by whichever of its create_rules the locale can
     // satisfy, in the order the rule lists them: collate<wchar_t> first, ctype<wchar_t>
     // only if the collate branch cannot be taken.
@@ -113,6 +121,17 @@ namespace
         p = p.remove_filename() / ".." / leaf;
         return std::filesystem::canonical(p).string();
     }
+
+    // Binds the "messages" catalogue in zh_CN. Where wchar_t is Unicode no locale
+    // name is taken; on macOS its encoding is a locale's, so a UTF-8 one is named.
+    IOv2::locale<wchar_t> involve_zh_cn_messages(const IOv2::locale<wchar_t>& loc)
+    {
+#if IOV2_TEST_MACOS
+        return loc.involve_msg("messages", "zh_CN", kUtf8);
+#else
+        return loc.involve_msg("messages", "zh_CN");
+#endif
+    }
 }
 
 TEST(LocaleWchar, Traits)
@@ -124,7 +143,7 @@ TEST(LocaleWchar, Traits)
 
 TEST(LocaleWchar, ANamedLocaleHoldsTheConfForItsOwnCharType)
 {
-    auto loc = IOv2::locale<wchar_t>("C.UTF-8");
+    auto loc = IOv2::locale<wchar_t>(kUtf8);
 
     EXPECT_TRUE(loc.has<IOv2::ctype_conf<wchar_t>>());
     EXPECT_TRUE(loc.get<IOv2::ctype_conf<wchar_t>>());
@@ -132,7 +151,7 @@ TEST(LocaleWchar, ANamedLocaleHoldsTheConfForItsOwnCharType)
 
 TEST(LocaleWchar, AConfForAnotherCharTypeIsAbsent)
 {
-    auto loc = IOv2::locale<wchar_t>("C.UTF-8");
+    auto loc = IOv2::locale<wchar_t>(kUtf8);
 
     EXPECT_FALSE(loc.has<IOv2::ctype_conf<char>>());
     EXPECT_FALSE(loc.get<IOv2::ctype_conf<char>>());
@@ -140,7 +159,7 @@ TEST(LocaleWchar, AConfForAnotherCharTypeIsAbsent)
 
 TEST(LocaleWchar, RemoveDropsTheConf)
 {
-    auto loc = IOv2::locale<wchar_t>("C.UTF-8");
+    auto loc = IOv2::locale<wchar_t>(kUtf8);
 
     auto loc_r = loc.remove<IOv2::ctype_conf<wchar_t>>();
     EXPECT_FALSE(loc_r.has<IOv2::ctype_conf<wchar_t>>());
@@ -149,7 +168,7 @@ TEST(LocaleWchar, RemoveDropsTheConf)
 
 TEST(LocaleWchar, InvolveInstallsAConfiguredConf)
 {
-    auto loc = IOv2::locale<wchar_t>("C.UTF-8").involve(std::make_shared<IOv2::ctype_conf<wchar_t>>("zh_CN.UTF-8"));
+    auto loc = IOv2::locale<wchar_t>(kUtf8).involve(std::make_shared<IOv2::ctype_conf<wchar_t>>("zh_CN.UTF-8"));
 
     EXPECT_TRUE(loc.has<IOv2::ctype_conf<wchar_t>>());
 }
@@ -325,9 +344,7 @@ TEST(LocaleWchar, MessagesTranslateThroughTheBoundCatalogue)
 {
     IOv2::base_ft<IOv2::messages>::bind_text_domain("messages", resource_dir("IOv2TestResources"));
 
-    // No conversion name is given, so the facet has to reach the UTF-8 catalogue
-    // through the locale's own converter rather than a named one.
-    auto loc = IOv2::locale<wchar_t>("en_US.UTF-8").involve_msg("messages", "zh_CN");
+    auto loc = involve_zh_cn_messages(IOv2::locale<wchar_t>("en_US.UTF-8"));
     auto msg = loc.get<IOv2::messages<wchar_t>>();
     ASSERT_TRUE(msg);
 
@@ -345,7 +362,7 @@ TEST(LocaleWchar, AMissingCatalogueLeavesEveryMessageUntranslated)
     // the msgid and the header entry stays empty.
     IOv2::base_ft<IOv2::messages>::bind_text_domain("messages", resource_dir("."));
 
-    auto loc = IOv2::locale<wchar_t>("en_US.UTF-8").involve_msg("messages", "zh_CN");
+    auto loc = involve_zh_cn_messages(IOv2::locale<wchar_t>("en_US.UTF-8"));
     auto msg = loc.get<IOv2::messages<wchar_t>>();
     ASSERT_TRUE(msg);
 
