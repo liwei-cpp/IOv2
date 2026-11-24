@@ -11,7 +11,8 @@
  * char and wchar_t files.
  *
  * locale<char8_t>("C") throws from collate_conf and a default-constructed one follows the
- * environment, so the char8_t cases name "C.UTF-8" explicitly.
+ * environment, so the char8_t cases name a UTF-8 locale explicitly. char32_t streams exist on
+ * glibc alone (wchar_t_is_utf32).
  */
 #include <IOv2/device/mem_device.h>
 #include <IOv2/io/io_base.h>
@@ -20,6 +21,7 @@
 #include <IOv2/io/traits/char_and_str.h>
 
 #include <support/failing_device.h>
+#include <support/platform_macros.h>
 
 #include <gtest/gtest.h>
 
@@ -27,10 +29,20 @@
 
 using namespace IOv2;
 
+namespace
+{
+    // A UTF-8 locale every platform has. Windows has no "C.UTF-8".
+#if !IOV2_TEST_WINDOWS
+    constexpr const char* kUtf8 = "C.UTF-8";
+#else
+    constexpr const char* kUtf8 = "en_US.UTF-8";
+#endif
+}
+
 TEST(OstreamFlushUtf, BufferedTextReachesTheDeviceIntact)
 {
     {
-        auto os = ostream(mem_device{std::u8string()}, locale<char8_t>("C.UTF-8"));
+        auto os = ostream(mem_device{std::u8string()}, locale<char8_t>(kUtf8));
         os << u8"中é漢字ξ";
         os.flush();
 
@@ -38,6 +50,7 @@ TEST(OstreamFlushUtf, BufferedTextReachesTheDeviceIntact)
         EXPECT_EQ(os.device().str(), std::u8string(u8"中é漢字ξ"));
         EXPECT_EQ(os.device().str().size(), 3u + 2u + 3u + 3u + 2u);
     }
+#if IOV2_TEST_LINUX_GLIBC
     {
         auto os = ostream(mem_device{std::u32string()}, locale<char32_t>("C"));
         os << U"中é漢字ξ";
@@ -47,13 +60,14 @@ TEST(OstreamFlushUtf, BufferedTextReachesTheDeviceIntact)
         EXPECT_EQ(os.device().str(), std::u32string(U"中é漢字ξ"));
         EXPECT_EQ(os.device().str().size(), 5u);
     }
+#endif
 }
 
 TEST(OstreamFlushUtf, FlushingWithNothingPendingLeavesTheDeviceAlone)
 {
     const std::u8string seeded(u8"already there");
 
-    auto os = ostream(mem_device{seeded}, locale<char8_t>("C.UTF-8"));
+    auto os = ostream(mem_device{seeded}, locale<char8_t>(kUtf8));
     os.flush();
 
     EXPECT_TRUE(os.good());
@@ -65,12 +79,13 @@ TEST(OstreamFlushUtf, FlushingWithNothingPendingLeavesTheDeviceAlone)
 TEST(OstreamFlushUtf, ADeviceThatRefusesToFlushIsReportedAsDevfailbit)
 {
     {
-        ostream out(failing_device<char8_t>{std::u8string(), true}, locale<char8_t>("C.UTF-8"));
+        ostream out(failing_device<char8_t>{std::u8string(), true}, locale<char8_t>(kUtf8));
         out << u8"abc";
 
         EXPECT_NO_THROW(out.flush());
         EXPECT_TRUE(out.rdstate() & ios_defs::devfailbit);
     }
+#if IOV2_TEST_LINUX_GLIBC
     {
         ostream out(failing_device<char32_t>{std::u32string(), true}, locale<char32_t>("C"));
         out << U"abc";
@@ -78,4 +93,5 @@ TEST(OstreamFlushUtf, ADeviceThatRefusesToFlushIsReportedAsDevfailbit)
         EXPECT_NO_THROW(out.flush());
         EXPECT_TRUE(out.rdstate() & ios_defs::devfailbit);
     }
+#endif
 }

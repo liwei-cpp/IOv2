@@ -296,7 +296,8 @@ struct istream_operators;
  * `ios_state<char_type>` 与 `istream_operators<char_type>`。
  * @note `ios_state` 与 `ios_base` 两条是必需的，不只是描述性的：本概念约束下的代码会直接调用
  *       `handle_exception()` 与 `operator bool`；而带有两个 `ios_base` 子对象的类型在这里就被
- *       拒掉。
+ *       拒掉。例外是 MSVC 兼容模式下的 clang（clang-cl）：它把到二义基类的转换当作合法，
+ *       `std::derived_from` 因而为真，这样的类型能通过本概念，要到使用处才报二义。
  * @note `in_iter_type` 必须是 `i_iter()` 的返回类型（`i_iter()` 的返回类型就写成它，因此两者
  *       不会漂移）。之所以要把这个**类型**公开出来，理由与插入侧的 `out_iter_type` 相同，
  *       详见 `ostream_operators.h` 中 `ostream_type` 的对应说明。
@@ -312,7 +313,10 @@ struct istream_operators;
  * `istream_operators<char_type>`.
  * @note The `ios_state` and `ios_base` clauses are requirements, not just descriptions: code
  *       constrained by this concept calls `handle_exception()` and `operator bool` directly, and
- *       a type carrying two `ios_base` subobjects is rejected here rather than later.
+ *       a type carrying two `ios_base` subobjects is rejected here rather than later. The
+ *       exception is clang in MSVC-compatible mode (clang-cl): it takes a conversion to an
+ *       ambiguous base as valid, so `std::derived_from` holds and such a type satisfies the
+ *       concept, failing only where it is used.
  * @note `in_iter_type` must be the return type of `i_iter()` -- which is spelled as exactly that
  *       type, so the two cannot drift apart. The type is public for the same reason as
  *       `out_iter_type` on the insertion side; see the matching note on `ostream_type` in

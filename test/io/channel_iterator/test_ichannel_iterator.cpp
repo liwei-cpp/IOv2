@@ -32,7 +32,6 @@
 #include <string>
 #include <thread>
 #include <type_traits>
-#include <unistd.h>
 
 using namespace IOv2;
 
@@ -345,7 +344,7 @@ TEST(IchannelIterator, EndDetectionWaitsForTheWriterRatherThanGuessing)
     pipe_iguard g("ab");
     std::thread closer([&g]{ std::this_thread::sleep_for(std::chrono::seconds(1)); g.close_write(); });
 
-    ichannel in{std_device<STDIN_FILENO>{}};
+    ichannel in{std_input_device{}};
     std::string got;
     bool threw = false;
     try

@@ -28,6 +28,7 @@
 #include <gtest/gtest.h>
 
 #include <string>
+#include <type_traits>
 #include <utility>
 
 namespace
@@ -189,15 +190,34 @@ struct StatefulOs : IOv2::ios_state<char>
 // subobjects. That is what the concept's now-redundant derived_from<T, ios_base<char_type>>
 // clause is there to reject: base ambiguity makes the conversion, and so the clause, false.
 // This build would reject the shape one step earlier via -Winaccessible-base; the warning is
-// silenced here so the concept itself is what gets tested.
+// silenced here so the concept itself is what gets tested. clang in MSVC-compatible mode
+// (clang-cl) accepts a conversion to an ambiguous base, so there the clause cannot see the
+// second base; the probe says which kind of compiler this is.
+#if defined(__GNUC__) || defined(__clang__)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Winaccessible-base"
+#endif
+#if defined(_MSC_VER)
+#pragma warning(push)
+#pragma warning(disable : 4584)   // a base class that is already a base of another
+#endif
 struct DoubleBaseOs : StatefulOs, IOv2::ios_base<char> {};
+
+struct ProbeBase {};
+struct ProbeLeft : ProbeBase {};
+struct ProbeBoth : ProbeLeft, ProbeBase {};
+#if defined(_MSC_VER)
+#pragma warning(pop)
+#endif
+#if defined(__GNUC__) || defined(__clang__)
 #pragma GCC diagnostic pop
+#endif
+
+constexpr bool ambiguous_base_refused = !std::is_convertible_v<ProbeBoth*, ProbeBase*>;
 
 static_assert( IOv2::ostream_type<IOv2::ostream<IOv2::mem_device<char>, char>> );
 static_assert( IOv2::ostream_type<IOv2::iostream<IOv2::mem_device<char>, char>> );
 static_assert(!IOv2::ostream_type<StatelessOs> );
 static_assert( IOv2::ostream_type<StatefulOs> );
-static_assert(!IOv2::ostream_type<DoubleBaseOs> );
+static_assert(!ambiguous_base_refused || !IOv2::ostream_type<DoubleBaseOs> );
 }

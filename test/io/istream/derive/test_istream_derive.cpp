@@ -31,6 +31,7 @@
 #include <gtest/gtest.h>
 
 #include <string>
+#include <type_traits>
 
 using namespace IOv2;
 
@@ -78,17 +79,37 @@ namespace
     };
 
     // Two ios_base subobjects: rejected through base ambiguity by the concept's
-    // derived_from<T, ios_base<char_type>> clause.
+    // derived_from<T, ios_base<char_type>> clause -- where the compiler refuses a
+    // conversion to an ambiguous base. clang in MSVC-compatible mode (clang-cl)
+    // accepts it, so the clause cannot see the second base there; the probe says
+    // which kind of compiler this is.
+#if defined(__GNUC__) || defined(__clang__)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Winaccessible-base"
+#endif
+#if defined(_MSC_VER)
+#pragma warning(push)
+#pragma warning(disable : 4584)   // a base class that is already a base of another
+#endif
     struct double_base_is : stateful_is, ios_base<char> {};
+
+    struct probe_base {};
+    struct probe_left : probe_base {};
+    struct probe_both : probe_left, probe_base {};
+#if defined(_MSC_VER)
+#pragma warning(pop)
+#endif
+#if defined(__GNUC__) || defined(__clang__)
 #pragma GCC diagnostic pop
+#endif
+
+    constexpr bool ambiguous_base_refused = !std::is_convertible_v<probe_both*, probe_base*>;
 
     static_assert(istream_type<istream<mem_device<char>, char>>);
     static_assert(istream_type<iostream<mem_device<char>, char>>);
     static_assert(istream_type<stateful_is>);
     static_assert(!istream_type<stateless_is>);
-    static_assert(!istream_type<double_base_is>);
+    static_assert(!ambiguous_base_refused || !istream_type<double_base_is>);
 }
 
 TEST(IstreamDerive, TheConceptDemandsStateAndOneUnambiguousBase)

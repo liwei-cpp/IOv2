@@ -22,7 +22,9 @@
 #include <ctime>
 #include <iterator>
 #include <limits>
+#if __has_include(<stdfloat>)   // libc++ has none
 #include <stdfloat>
+#endif
 #include <string>
 #include <type_traits>
 

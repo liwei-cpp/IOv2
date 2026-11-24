@@ -162,6 +162,12 @@
   上是用户缺省 locale 加 ANSI 代码页（如 `"Chinese (Simplified)_China.936"`），与 MSVC STL 的
   `std::locale("")` 相同。UCRT 本身不读这些环境变量，IOv2 先看它们，与 messages 选语言的顺序一致。
   变量所指的名字无法实例化时仍回退为 `"C"`。
+- **io 层（标准流对象除外）可在 Windows 与 macOS 上构建、运行**：流、通道、操纵符与各插入/提取
+  运算符；`cout`、`cin` 等标准流对象尚未移植。char32_t 的流只在 glibc 上提供（没有 char32_t 的
+  facet 配置，见上面 `locale` 一条）。与 glibc 的差异来自各平台的 C 库：`hexfloat` 的位数由
+  C 库的 `%a` 决定，UCRT 总写满 13 位（`40.0` 写作 `0x1.4000000000000p+5`，glibc 为 `0x1.4p+5`）；
+  `istream_type`、`ostream_type` 在 clang-cl 上不能拒绝带两个 `ios_base` 子对象的类型（MSVC 兼容
+  模式把到二义基类的转换当作合法），这样的类型要到使用处才报错。
 
 #### 变更
 
@@ -614,6 +620,15 @@ have no release line of their own.
   (`"Chinese (Simplified)_China.936"`, say), as the MSVC STL's `std::locale("")` does. The UCRT
   itself reads none of these variables; IOv2 reads them first, in the order messages picks its
   language in. A name a variable gives that cannot be instantiated still falls back to `"C"`.
+- **The io layer, the standard stream objects aside, builds and runs on Windows and macOS**:
+  the streams, the channels, the manipulators and the inserters and extractors; `cout`, `cin`
+  and the other standard stream objects are not ported yet. char32_t streams are provided on
+  glibc only (there are no char32_t facet configurations; see the `locale` entry above). Where
+  the output differs from glibc's, the platform's C library decides: `hexfloat` gets as many
+  digits as the C library's `%a` gives, and the UCRT always writes all thirteen (`40.0` is
+  `0x1.4000000000000p+5`, glibc's `0x1.4p+5`); on clang-cl `istream_type` and `ostream_type`
+  cannot reject a type carrying two `ios_base` subobjects (MSVC-compatible mode takes a
+  conversion to an ambiguous base as valid), so such a type fails only where it is used.
 
 #### Changed
 

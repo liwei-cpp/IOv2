@@ -41,7 +41,9 @@
 #include <iterator>
 #include <limits>
 #include <memory>
+#if __has_include(<stdfloat>)   // libc++ has none
 #include <stdfloat>
+#endif
 #include <string>
 #include <type_traits>
 #include <utility>

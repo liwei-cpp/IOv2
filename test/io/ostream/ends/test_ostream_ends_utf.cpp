@@ -9,8 +9,8 @@
  * measured alike and a widening bug would show as a length change.
  *
  * A char8_t locale must be a UTF-8 one: locale<char8_t>("C") throws from collate_conf and a
- * default-constructed one follows the environment, so it throws under LC_ALL=C. "C.UTF-8" is
- * named explicitly for that reason.
+ * default-constructed one follows the environment, so it throws under LC_ALL=C. A UTF-8 locale
+ * is named explicitly for that reason. char32_t streams exist on glibc alone (wchar_t_is_utf32).
  */
 #include <IOv2/device/mem_device.h>
 #include <IOv2/io/io_base.h>
@@ -18,38 +18,53 @@
 #include <IOv2/io/ostream.h>
 #include <IOv2/io/traits/char_and_str.h>
 
+#include <support/platform_macros.h>
+
 #include <gtest/gtest.h>
 
 #include <string>
 
 using namespace IOv2;
 
+namespace
+{
+    // A UTF-8 locale every platform has. Windows has no "C.UTF-8".
+#if !IOV2_TEST_WINDOWS
+    constexpr const char* kUtf8 = "C.UTF-8";
+#else
+    constexpr const char* kUtf8 = "en_US.UTF-8";
+#endif
+}
+
 TEST(OstreamEndsUtf, EndsWritesOneNullCodeUnit)
 {
     {
-        auto os = ostream(mem_device{std::u8string()}, locale<char8_t>("C.UTF-8"));
+        auto os = ostream(mem_device{std::u8string()}, locale<char8_t>(kUtf8));
         os << ends;
         EXPECT_TRUE(os.good());
         EXPECT_EQ(os.device().str(), std::u8string(1, u8'\0'));
     }
+#if IOV2_TEST_LINUX_GLIBC
     {
         auto os = ostream(mem_device{std::u32string()}, locale<char32_t>("C"));
         os << ends;
         EXPECT_TRUE(os.good());
         EXPECT_EQ(os.device().str(), std::u32string(1, U'\0'));
     }
+#endif
 }
 
 TEST(OstreamEndsUtf, EachEndsAddsExactlyOneUnitBesideMultiByteText)
 {
     {
-        auto os = ostream(mem_device{std::u8string()}, locale<char8_t>("C.UTF-8"));
+        auto os = ostream(mem_device{std::u8string()}, locale<char8_t>(kUtf8));
         os << u8"中" << ends << u8"é" << ends;
 
         const std::u8string want = std::u8string(u8"中") + u8'\0' + std::u8string(u8"é") + u8'\0';
         EXPECT_EQ(os.device().str(), want);
         EXPECT_EQ(os.device().str().size(), 3u + 1u + 2u + 1u);
     }
+#if IOV2_TEST_LINUX_GLIBC
     {
         auto os = ostream(mem_device{std::u32string()}, locale<char32_t>("C"));
         os << U"中" << ends << U"é" << ends;
@@ -58,11 +73,12 @@ TEST(OstreamEndsUtf, EachEndsAddsExactlyOneUnitBesideMultiByteText)
         EXPECT_EQ(os.device().str(), want);
         EXPECT_EQ(os.device().str().size(), 4u);
     }
+#endif
 }
 
 TEST(OstreamEndsUtf, EndsReturnsTheStreamSoItChains)
 {
-    auto os = ostream(mem_device{std::u8string()}, locale<char8_t>("C.UTF-8"));
+    auto os = ostream(mem_device{std::u8string()}, locale<char8_t>(kUtf8));
 
     os << ends << ends << ends;
 

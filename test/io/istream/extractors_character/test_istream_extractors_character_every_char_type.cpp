@@ -26,6 +26,8 @@
 #include <IOv2/io/traits/char_and_str.h>
 #include <IOv2/locale/locale.h>
 
+#include <support/platform_macros.h>
+
 #include <gtest/gtest.h>
 
 #include <cstddef>
@@ -36,6 +38,13 @@
 
 namespace
 {
+// A UTF-8 locale every platform has. Windows has no "C.UTF-8".
+#if !IOV2_TEST_WINDOWS
+constexpr const char* kUtf8 = "C.UTF-8";
+#else
+constexpr const char* kUtf8 = "en_US.UTF-8";
+#endif
+
 template <typename C>
 using is_t = IOv2::istream<IOv2::mem_device<C>, C>;
 
@@ -61,7 +70,7 @@ template <typename C>
 is_t<C> stream_over(const std::string& text)
 {
     if constexpr (std::is_same_v<C, char8_t>)
-        return is_t<C>{IOv2::mem_device<C>{widen<C>(text)}, IOv2::locale<C>("C.UTF-8")};
+        return is_t<C>{IOv2::mem_device<C>{widen<C>(text)}, IOv2::locale<C>(kUtf8)};
     else
         return is_t<C>{IOv2::mem_device<C>{widen<C>(text)}, IOv2::locale<C>("C")};
 }
@@ -152,7 +161,11 @@ TEST(IstreamExtractCharacterEveryCharType, AChar8StreamAgreesWithTheCharStreamCe
 
 TEST(IstreamExtractCharacterEveryCharType, AChar32StreamAgreesWithTheCharStreamCellByCell)
 {
+#if IOV2_TEST_LINUX_GLIBC
     expect_same_as_char<char32_t>();
+#else
+    GTEST_SKIP() << "char32_t streams need wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 // The matrix is only worth something if its cells are not all alike: the char

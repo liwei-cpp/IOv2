@@ -27,14 +27,19 @@
 #include <IOv2/io/traits/char_and_str.h>
 #include <IOv2/locale/locale.h>
 
+#include <support/platform_macros.h>
+
 #include <gtest/gtest.h>
 
 #include <algorithm>
+#include <cstddef>
 #include <cstdint>
 #include <cstdio>
 #include <limits>
 #include <memory>
+#if __has_include(<stdfloat>)   // libc++ has none
 #include <stdfloat>
+#endif
 #include <string>
 #include <type_traits>
 #include <utility>
@@ -44,6 +49,16 @@ using namespace IOv2;
 
 namespace
 {
+    // A single-byte German locale: '.' groups and ',' is the decimal mark. Each C
+    // library spells it its own way; the UCRT takes no ISO 8859 name, so code page 1252.
+#if IOV2_TEST_WINDOWS
+    constexpr const char* kGerman = "de-DE";
+#elif IOV2_TEST_MACOS
+    constexpr const char* kGerman = "de_DE.ISO8859-1";
+#else
+    constexpr const char* kGerman = "de_DE.ISO-8859-1";
+#endif
+
     // The base-N spelling of a value, so the expectations below are derived
     // rather than copied out of a table.
     std::string in_base(unsigned long long v, unsigned base)
@@ -273,22 +288,37 @@ TEST(OstreamInsertArithmeticChar, AdjustfieldDecidesWhereTheFillGoes)
 // announces itself with "0x" and has no sign, so the marker is what gets
 // pinned; give it a sign and the sign is pinned instead and the marker moves
 // along with the digits.
+//
+// How many hex digits a double gets is the C library's: glibc drops the
+// trailing zeros ("0x1.4p+5"), the UCRT writes all thirteen. So each field is
+// sized from the unpadded text, five wider.
 TEST(OstreamInsertArithmeticChar, InternalPinsTheSignOrElseTheBaseMarker)
 {
     auto helper = []<template <typename, typename> class T>()
     {
-        auto render = [](double value, ios_defs::fmtflags adjust) {
+        auto render = [](double value, ios_defs::fmtflags adjust, std::ptrdiff_t width) {
             T os(mem_device{""}, locale<char>("C"));
-            os << hexfloat << setw(13) << setfill('~');
+            os << hexfloat << setw(width) << setfill('~');
             os.setf(adjust, ios_defs::adjustfield);
             os << value;
             return os.device().str();
         };
 
-        EXPECT_EQ(render(40.0, ios_defs::internal), "0x~~~~~1.4p+5");
-        EXPECT_EQ(render(-40.0, ios_defs::internal), "-~~~~0x1.4p+5");
+        const std::string pos  = render(40.0, ios_defs::right, 0);
+        const std::string neg  = render(-40.0, ios_defs::right, 0);
+        const auto        wide = [](const std::string& s) { return static_cast<std::ptrdiff_t>(s.size()) + 5; };
+        ASSERT_EQ(pos.substr(0, 2), "0x");
+        ASSERT_EQ(neg, "-" + pos);
+#if IOV2_TEST_LINUX_GLIBC
+        EXPECT_EQ(pos, "0x1.4p+5");
+#elif IOV2_TEST_WINDOWS
+        EXPECT_EQ(pos, "0x1.4000000000000p+5");
+#endif
+
+        EXPECT_EQ(render(40.0, ios_defs::internal, wide(pos)), "0x~~~~~" + pos.substr(2));
+        EXPECT_EQ(render(-40.0, ios_defs::internal, wide(neg)), "-~~~~~" + neg.substr(1));
         // right pins nothing, so the whole value moves to the end.
-        EXPECT_EQ(render(40.0, ios_defs::right), "~~~~~0x1.4p+5");
+        EXPECT_EQ(render(40.0, ios_defs::right, wide(pos)), "~~~~~" + pos);
     };
 
     helper.operator()<ostream>();
@@ -302,11 +332,11 @@ TEST(OstreamInsertArithmeticChar, ARealSystemLocaleSuppliesItsOwnPunctuation)
     locale<char> de("C");
     try
     {
-        de = locale<char>("de_DE.ISO-8859-1");
+        de = locale<char>(kGerman);
     }
-    catch (const cvt_error&)
+    catch (const io_error&)
     {
-        GTEST_SKIP() << "de_DE.ISO-8859-1 is not installed here";
+        GTEST_SKIP() << kGerman << " is not installed here";
     }
 
     ostream os(mem_device{""}, de);
