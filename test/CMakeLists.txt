@@ -49,8 +49,8 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 # are the ones test/Makefile's valgrind target passed.
 #
 # These apply to every test. The one option that must not is --fair-sched=yes,
-# which only the concur suite needs; it is passed through VALGRIND_OPTS on that
-# test alone, below.
+# which only the concur module's suites need; it is passed through VALGRIND_OPTS
+# on those tests alone, below.
 find_program(MEMORYCHECK_COMMAND valgrind)
 set(MEMORYCHECK_COMMAND_OPTIONS
     "--error-exitcode=1 --leak-check=full --max-stackframe=6000000")
@@ -220,8 +220,8 @@ foreach(suite_dir IN LISTS IOV2_TEST_SUITE_DIRS)
     list(APPEND suite_labels "thread")
     # Valgrind runs one thread at a time and by default hands the turn over only
     # every ~100k basic blocks, so a thread spinning on another one burns whole
-    # quanta doing nothing. This is the only suite with threads to starve, and
-    # measurably so: in one CI run it took 42s under gcc and 862s under clang
+    # quanta doing nothing. This is the only module with threads to starve, and
+    # measurably so: in one CI run concur took 42s under gcc and 862s under clang
     # against a 0.16s uninstrumented run, where every other suite lands near 30x.
     #
     # VALGRIND_OPTS is the per-test hook. MEMORYCHECK_COMMAND_OPTIONS applies to

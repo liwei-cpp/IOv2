@@ -39,7 +39,7 @@ ctest --preset gcc-release --parallel "$(nproc)"          # 运行全部
 | `gcc-release` / `clang-release` | `-O3 -g -DNDEBUG` | 默认，CI 的主力 |
 | `gcc-debug` / `clang-debug` | `-g -O0` | 本地调试 |
 | `gcc-sanitizer` / `clang-sanitizer` | `-O1 -g` + ASan/UBSan（**无** `NDEBUG`） | 越界、未定义行为 |
-| `gcc-tsan` | `-O1 -g` + TSan，只编 `concur` | 数据竞争 |
+| `gcc-tsan` | `-O1 -g` + TSan，只编 `concur` 模块 | 数据竞争 |
 | `gcc-coverage` | `-O0 -g --coverage` | 覆盖率 |
 | `gcc-installed-shared` | release，链接已安装的 `libiov2.so` | 验证安装产物 |
 | `gcc-installed-header-only` | release，只用已安装的头文件 | 验证安装产物 |
@@ -57,7 +57,7 @@ ctest --preset gcc-release --rerun-failed      # 只重跑上次失败的
 ```
 
 可用标签：`all`（每个套件都有）、七个模块名 `common` `concur` `cvt` `device`
-`facet` `io` `locale`，以及 `thread`（只有 `concur`）。
+`facet` `io` `locale`，以及 `thread`（只有 `concur` 模块的套件）。
 
 只编不跑某个套件，用目标名（点换成下划线并加 `test_` 前缀）：
 
@@ -106,7 +106,7 @@ cmake --build --preset gcc-tsan --parallel "$(nproc)"
 ctest --preset gcc-tsan
 ```
 
-只编 `concur`：其它套件不起线程，TSan 无可观察。test preset 自带 `until-fail` 重复
+只编 `concur` 模块（`concur` 与 `concur.streams` 两个套件）：其它套件不起线程，TSan 无可观察。test preset 自带 `until-fail` 重复
 10 次——竞争只有在调度真的撞上时才会被报出来，跑一次干净说明不了什么。反方向是可靠的：
 TSan 是 happens-before 检测器，不会凭空造出竞争，所以报红就是真缺陷。
 
@@ -189,7 +189,7 @@ only a handful of targets are ever ready together.
 | `gcc-release` / `clang-release` | `-O3 -g -DNDEBUG` | default; what CI runs |
 | `gcc-debug` / `clang-debug` | `-g -O0` | local debugging |
 | `gcc-sanitizer` / `clang-sanitizer` | `-O1 -g` + ASan/UBSan (**no** `NDEBUG`) | out-of-bounds, UB |
-| `gcc-tsan` | `-O1 -g` + TSan, builds `concur` only | data races |
+| `gcc-tsan` | `-O1 -g` + TSan, builds the `concur` module only | data races |
 | `gcc-coverage` | `-O0 -g --coverage` | coverage |
 | `gcc-installed-shared` | release, against an installed `libiov2.so` | validates the install |
 | `gcc-installed-header-only` | release, against installed headers only | validates the install |
@@ -208,7 +208,7 @@ ctest --preset gcc-release --rerun-failed      # only what failed last time
 ```
 
 Labels: `all` (on every suite), the seven module names `common` `concur` `cvt`
-`device` `facet` `io` `locale`, and `thread` (on `concur` alone).
+`device` `facet` `io` `locale`, and `thread` (on the `concur` module's suites alone).
 
 To build one suite without running it, use its target name -- dots become
 underscores, with a `test_` prefix:
@@ -263,8 +263,8 @@ cmake --build --preset gcc-tsan --parallel "$(nproc)"
 ctest --preset gcc-tsan
 ```
 
-Only `concur` is built: no other suite starts a thread, so TSan has nothing to
-observe. The test preset repeats it ten times with `until-fail` -- a race is only
+Only the `concur` module is built (the `concur` and `concur.streams` suites): no
+other suite starts a thread, so TSan has nothing to observe. The test preset repeats it ten times with `until-fail` -- a race is only
 reported when the schedule actually exercises it, so one clean run is weak evidence.
 The reverse direction is reliable: TSan is a happens-before detector and does not
 invent races, so a red result is a real defect.
