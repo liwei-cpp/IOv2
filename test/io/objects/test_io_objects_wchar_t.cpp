@@ -66,6 +66,18 @@ namespace
 #else
     constexpr const char* kGbk = "zh_CN.GBK";
 #endif
+
+    // Wide text read or written as GBK. Under a locale other than UTF-8, macOS's wchar_t
+    // holds a character's code in that encoding, not its Unicode code point.
+#if IOV2_TEST_MACOS
+    constexpr const wchar_t* kXuanInGbk   = L"\xE8AF";
+    constexpr const wchar_t* kXieXieInGbk = L"\xD0BB\xD0BB";
+    constexpr const wchar_t* kZhongInGbk  = L"\xD6D0";
+#else
+    [[maybe_unused]] constexpr const wchar_t* kXuanInGbk = L"璇";   // Windows skips its one case
+    constexpr const wchar_t* kXieXieInGbk = L"谢谢";
+    constexpr const wchar_t* kZhongInGbk  = L"中";
+#endif
 }
 
 TEST(IoObjectsWchar, EachStreamWritesToItsOwnDestination)
@@ -208,7 +220,7 @@ TEST(IoObjectsWchar, TheInputEncodingCanBeSwitchedMidStream)
     EXPECT_EQ(IOv2::wcin.code(), kGbk);
 
     EXPECT_EQ(first, L"\u8bf7");
-    EXPECT_EQ(second, L"\u8c22\u8c22");
+    EXPECT_EQ(second, kXieXieInGbk);
 }
 
 // Switching wcin to synchronized rebuilds nothing: the bytes the unsynchronized stream
@@ -500,7 +512,7 @@ TEST(IoObjectsWchar, TheOutputEncodingCanBeSwitchedMidStream)
     EXPECT_EQ(IOv2::wcout.code(), "zh_CN.UTF-8");
 
     IOv2::wcout.switch_code(kGbk);
-    IOv2::wcout << L"\u8c22\u8c22" << IOv2::flush;
+    IOv2::wcout << kXieXieInGbk << IOv2::flush;
     EXPECT_EQ(IOv2::wcout.code(), kGbk);
 
     EXPECT_EQ(out.contents(), "\xe8\xaf\xb7 \xd0\xbb\xd0\xbb");
@@ -510,13 +522,15 @@ TEST(IoObjectsWchar, TheOutputEncodingCanBeSwitchedMidStream)
 // the state bits, clear() them, carry on. The converter was tainted by the
 // unencodable character and reattaches the same fd by itself; nothing before
 // the bad character is lost and nothing after it needs reset().
+// The character is a lone low surrogate: a high one is held on Windows for its
+// low half, so it fails only with whatever comes next.
 TEST(IoObjectsWchar, WcoutRecoversFromAnUnencodableCharacterWithClear)
 {
     oguard<true> out;
     IOv2::wcout.reset();
     IOv2::wcout.switch_code("zh_CN.UTF-8");
 
-    IOv2::wcout << L"a" << L'\xD800';
+    IOv2::wcout << L"a" << L'\xDC00';
     EXPECT_TRUE(IOv2::wcout.cvt_fail());
 
     IOv2::wcout << L"x";   // refused while the stream is failed
@@ -535,14 +549,14 @@ TEST(IoObjectsWchar, WcoutCanSwitchEncodingRightAfterAnUnencodableCharacter)
     IOv2::wcout.reset();
     IOv2::wcout.switch_code("zh_CN.UTF-8");
 
-    IOv2::wcout << L'\xD800';
+    IOv2::wcout << L'\xDC00';
     EXPECT_TRUE(IOv2::wcout.cvt_fail());
     IOv2::wcout.clear();
 
     IOv2::wcout.switch_code(kGbk);
     EXPECT_TRUE(IOv2::wcout.good());
     EXPECT_EQ(IOv2::wcout.code(), kGbk);
-    IOv2::wcout << L"中" << IOv2::flush;
+    IOv2::wcout << kZhongInGbk << IOv2::flush;
     EXPECT_TRUE(IOv2::wcout.good());
     EXPECT_EQ(out.contents(), "\xd6\xd0"); // 中 in GBK
 
@@ -756,6 +770,7 @@ TEST(IoObjectsWchar, SwitchCodeReportsAFullBufferedStdoutFailureBeforeSwitching)
 // after clear() the next token is 谢谢, not 沸恍, and the number after it reads.
 TEST(IoObjectsWchar, WcinStaysAlignedAfterAnInvalidSequence)
 {
+#if !IOV2_TEST_WINDOWS
     iguard g("\xe8\xaf\xb7\x20\xd0\xbb\xd0\xbb\x0a" "42\n");
     IOv2::wcin.reset();
     IOv2::wcin.switch_code(kGbk);
@@ -765,23 +780,27 @@ TEST(IoObjectsWchar, WcinStaysAlignedAfterAnInvalidSequence)
     int          n = -1;
 
     IOv2::wcin >> first;
-    EXPECT_EQ(first, L"璇");
+    EXPECT_EQ(first, kXuanInGbk);
     EXPECT_TRUE(IOv2::wcin.cvt_fail());
 
     IOv2::wcin.clear();
     IOv2::wcin >> second;
     IOv2::wcin >> n;
-    EXPECT_EQ(second, L"谢谢");
+    EXPECT_EQ(second, kXieXieInGbk);
     EXPECT_EQ(n, 42);
     EXPECT_TRUE(IOv2::wcin.good());
 
     IOv2::wcin.switch_code("zh_CN.UTF-8");
+#else
+    GTEST_SKIP() << "the UCRT decodes a GBK lead byte and the byte after it as '?' without an error";
+#endif
 }
 
 // ... and switching encoding after the error is accepted too: the decoder's state
 // is back to initial, so there is no half character to reinterpret.
 TEST(IoObjectsWchar, WcinCanSwitchEncodingRightAfterAnInvalidSequence)
 {
+#if !IOV2_TEST_WINDOWS
     iguard g("\xb7\x20" "\xe8\xaf\xb7\n");
     IOv2::wcin.reset();
     IOv2::wcin.switch_code(kGbk);
@@ -797,6 +816,9 @@ TEST(IoObjectsWchar, WcinCanSwitchEncodingRightAfterAnInvalidSequence)
     IOv2::wcin >> w;
     EXPECT_EQ(w, L"请");
     EXPECT_TRUE(IOv2::wcin.good());
+#else
+    GTEST_SKIP() << "the UCRT decodes a GBK lead byte and the byte after it as '?' without an error";
+#endif
 }
 
 // "" is not an encoding name, it is a request for the C library's native locale, and the
