@@ -22,7 +22,7 @@
 
 #include <gtest/gtest.h>
 
-#include <ios>
+#include <cstddef>
 #include <limits>
 #include <string>
 
@@ -32,7 +32,8 @@ namespace
 {
     const std::wstring kDigits = L"0123456789abcdef";
 
-    constexpr auto kUnbounded = std::numeric_limits<std::streamsize>::max();
+    // ignore() counts in std::ptrdiff_t; std::streamsize is wider on a 32-bit MSVC target.
+    constexpr auto kUnbounded = std::numeric_limits<std::ptrdiff_t>::max();
 }
 
 TEST(IstreamIgnoreWchar, IgnoreDiscardsOneCharacterByDefaultAndNCharactersOnRequest)

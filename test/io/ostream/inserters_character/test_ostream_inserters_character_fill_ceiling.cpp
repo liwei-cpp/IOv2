@@ -12,7 +12,7 @@
  * characters go through, one more is refused before anything is written, and
  * the width is spent either way.
  *
- * The edge is expressed as a width of `cap + length`, so each case has to know
+ * The edge is expressed as a width of `pad_cap + length`, so each case has to know
  * how long its value is -- which is also what makes the widened string path
  * worth its own case: its length is counted after widening, not before.
  */
@@ -31,7 +31,9 @@ using namespace IOv2;
 
 namespace
 {
-    constexpr std::size_t cap = ios_defs::max_pad_count;
+    // Not `cap`: mem_device has a local of that name, and cl.exe reports one hiding
+    // the other (C4459) wherever this file instantiates it.
+    constexpr std::size_t pad_cap = ios_defs::max_pad_count;
 
     template <typename C>
     using os_t = ostream<mem_device<C>, C>;
@@ -43,14 +45,14 @@ namespace
     {
         {
             os_t<C> os{mem_device<C>{}, locale<C>("C")};
-            os << setw(static_cast<std::ptrdiff_t>(cap + length)) << value;
+            os << setw(static_cast<std::ptrdiff_t>(pad_cap + length)) << value;
             EXPECT_FALSE(os.str_fail());
-            EXPECT_EQ(os.device().str().size(), cap + length);
+            EXPECT_EQ(os.device().str().size(), pad_cap + length);
             EXPECT_EQ(os.width(), 0u);
         }
         {
             os_t<C> os{mem_device<C>{}, locale<C>("C")};
-            os << setw(static_cast<std::ptrdiff_t>(cap + length + 1)) << value;
+            os << setw(static_cast<std::ptrdiff_t>(pad_cap + length + 1)) << value;
             EXPECT_TRUE(os.str_fail());
             EXPECT_TRUE(os.device().str().empty()) << "the check runs before the first character";
             EXPECT_EQ(os.width(), 0u);

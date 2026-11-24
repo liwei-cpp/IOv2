@@ -39,13 +39,16 @@ TEST(OstreamInsertTimeWchar, ATmIsWrittenInTheDefaultFormatOfTheCLocale)
 
         auto [dev, err] = f.detach();
 
-        // A tm with no zone still writes the unknown-zone token, which reads
-        // back as an empty tm_zone rather than as nothing at all.
-#ifdef __USE_MISC
-        EXPECT_EQ(dev.str(), L"Wed Sep  4 13:33:18 2024 +0000 (UNKNOWN)");
-#else
-        EXPECT_EQ(dev.str(), L"Wed Sep  4 13:33:18 2024");
-#endif
+        // What is appended follows time_value_fields<std::tm>: glibc both, macOS the
+        // offset alone (no tz database to read a zone back with), the UCRT neither. A tm
+        // with no zone still writes the unknown-zone token, which reads back as an empty
+        // tm_zone rather than as nothing at all.
+        std::wstring want = L"Wed Sep  4 13:33:18 2024";
+        if constexpr (time_value_fields<std::tm>::has_offset)
+            want += L" +0000";
+        if constexpr (time_value_fields<std::tm>::has_zone)
+            want += L" (UNKNOWN)";
+        EXPECT_EQ(dev.str(), want);
     };
 
     helper.template operator()<ostream>();

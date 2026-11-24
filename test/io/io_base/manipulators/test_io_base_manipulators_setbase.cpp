@@ -21,7 +21,9 @@
 
 #include <gtest/gtest.h>
 
+#include <climits>
 #include <cstddef>
+#include <cstdint>
 #include <limits>
 #include <string>
 
@@ -81,9 +83,11 @@ TEST(IoBaseManipSetbase, OnlyEightTenAndSixteenNameABase)
 }
 
 // The parameter is a std::ptrdiff_t so that a wider argument cannot be truncated onto 8, 10
-// or 16 and thereby look like it selected that base.
+// or 16 and thereby look like it selected that base -- where ptrdiff_t is wider than int. On
+// a 32-bit target it is not, and nothing wider than int reaches setbase whole.
 TEST(IoBaseManipSetbase, AWiderArgumentIsNotTruncatedOntoAValidBase)
 {
+#if PTRDIFF_MAX > INT_MAX
     // Each of these has the low 32 bits of a valid base. Narrowed to int they would select
     // oct / dec / hex; kept whole they are just "some other value".
     EXPECT_EQ(base_of(8LL  + (1LL << 32)), ios_defs::fmtflags(0));
@@ -96,6 +100,7 @@ TEST(IoBaseManipSetbase, AWiderArgumentIsNotTruncatedOntoAValidBase)
 
     // The stored value is the one that was passed in, not a truncation of it.
     EXPECT_EQ(setbase(8LL + (1LL << 32)).m_base, 8LL + (1LL << 32));
+#endif
     EXPECT_EQ(setbase(-1).m_base, -1);
 
     // Extreme values are stored and applied like any other non-base, without failing.
@@ -149,6 +154,7 @@ TEST(IoBaseManipSetbase, ExtractionGoesThroughTheSameMapping)
         EXPECT_EQ(dec, 42);
     }
 
+#if PTRDIFF_MAX > INT_MAX
     // A truncating argument must not turn this into a hex read.
     {
         istream iss{mem_device{std::string("017")}};
@@ -159,6 +165,7 @@ TEST(IoBaseManipSetbase, ExtractionGoesThroughTheSameMapping)
         EXPECT_FALSE(iss.str_fail());
         EXPECT_EQ(v, 15);        // read as octal by its leading 0, not as 0x17
     }
+#endif
 
 }
 
@@ -170,7 +177,11 @@ TEST(IoBaseManipSetbase, TheSameMappingHoldsOnAWideStream)
     woss << setbase(16) << 255;
     EXPECT_EQ((woss.flags() & ios_defs::basefield), ios_defs::hex);
 
+#if PTRDIFF_MAX > INT_MAX
     woss << L' ' << setbase(16LL + (1LL << 32)) << 255;
+#else
+    woss << L' ' << setbase(7) << 255;   // nothing wider than int reaches setbase here
+#endif
     EXPECT_EQ((woss.flags() & ios_defs::basefield), ios_defs::fmtflags(0));
 
     EXPECT_TRUE(woss.good());

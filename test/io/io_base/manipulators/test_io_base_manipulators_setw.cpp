@@ -33,6 +33,14 @@ using namespace IOv2;
 
 namespace
 {
+    // The top bit of a size_t: the smallest value that is negative as a ptrdiff_t.
+    constexpr std::size_t kTopBit = std::size_t(1) << (std::numeric_limits<std::size_t>::digits - 1);
+
+    // A valid width an int could not hold where ptrdiff_t is 64 bits; on a 32-bit target,
+    // as large a power of two as stays well clear of the top.
+    constexpr std::size_t kHugeWidth =
+        std::size_t(1) << (std::numeric_limits<std::ptrdiff_t>::digits > 40 ? 40 : 29);
+
     // setw() only stores its argument; the rejection happens when the manipulator is
     // applied to a stream, so it goes through the stream's error model like any other
     // failure. Returns true when applying the width was rejected.
@@ -40,7 +48,9 @@ namespace
     bool rejects_width(TStream& s, TWidth n)
     {
         const size_t before = s.width();
-        s << setw(n);
+        // The value setw's std::ptrdiff_t parameter would receive anyway, spelled out so a
+        // long long on a 32-bit target is not a narrowing warning (C4244).
+        s << setw(static_cast<std::ptrdiff_t>(n));
         const bool rejected = s.str_fail() && s.width() == before;
         s.clear();
         return rejected;
@@ -83,9 +93,9 @@ TEST(IoBaseManipSetw, ANegativeWidthIsRejectedHoweverItIsSpelled)
         size_t a = 10, b = 20;
         EXPECT_TRUE(rejects_width(oss, a - b));
     }
-    // A size_t at or above 2^63 maps to a negative ptrdiff_t and is rejected too.
+    // A size_t with its top bit set maps to a negative ptrdiff_t and is rejected too.
     {
-        size_t w = size_t(1) << 63;
+        size_t w = kTopBit;
         EXPECT_TRUE(rejects_width(oss, w));
     }
     {
@@ -154,8 +164,8 @@ TEST(IoBaseManipSetw, AValidWidthIsStoredExactlyAndConsumedOnce)
     oss << setw(50000000);
     EXPECT_EQ(oss.width(), 50000000u);
 
-    oss << setw(size_t(1) << 40);
-    EXPECT_EQ(oss.width(), (size_t(1) << 40));
+    oss << setw(kHugeWidth);
+    EXPECT_EQ(oss.width(), kHugeWidth);
 
     oss << setw(std::numeric_limits<std::ptrdiff_t>::max());
     EXPECT_EQ(oss.width(), static_cast<size_t>(std::numeric_limits<std::ptrdiff_t>::max()));
@@ -184,7 +194,7 @@ TEST(IoBaseManipSetw, OnExtractionTheWidthIsOnlyAnUpperBound)
         istream iss{mem_device{"short text"}};
         iss.locale(locale<char>("C"));
         std::string s;
-        iss >> setw(size_t(1) << 40) >> s;
+        iss >> setw(kHugeWidth) >> s;
         EXPECT_EQ(s, "short");
     }
     // width still tightens a character array's own bound.
@@ -216,8 +226,8 @@ TEST(IoBaseManipSetw, TheSameRulesHoldOnAWideStream)
         EXPECT_TRUE(rejects_width(woss, total - label.size()));
     }
 
-    woss << setw(size_t(1) << 40);
-    EXPECT_EQ(woss.width(), (size_t(1) << 40));
+    woss << setw(kHugeWidth);
+    EXPECT_EQ(woss.width(), kHugeWidth);
     woss.width(0);
 
     woss << setfill(L'*') << setw(6) << L"ab";

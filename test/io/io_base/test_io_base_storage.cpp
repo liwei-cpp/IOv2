@@ -37,14 +37,14 @@ namespace
 
 TEST(IosBaseStorage, XallocNeverHandsOutTheSameIndexTwice)
 {
-    const int first  = ios_base<char>::xalloc();
-    const int second = ios_base<char>::xalloc();
+    const auto first  = ios_base<char>::xalloc();
+    const auto second = ios_base<char>::xalloc();
     EXPECT_NE(first, second);
 
     // The counters are per character type, so a wide allocation cannot collide
     // with a narrow one that is already in use.
-    const int wide = ios_base<wchar_t>::xalloc();
-    const int again = ios_base<wchar_t>::xalloc();
+    const auto wide  = ios_base<wchar_t>::xalloc();
+    const auto again = ios_base<wchar_t>::xalloc();
     EXPECT_NE(wide, again);
 }
 
