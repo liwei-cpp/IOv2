@@ -903,9 +903,10 @@ private:
 
         // Widen into char_type, then apply the two things the C locale could
         // not know about: this facet's decimal point, and its grouping.
+        // Not `ws`: that would hide the io manipulator, which C4459 reports under /W4.
         std::vector<CharT> vec_ws(len);
-        CharT* ws = vec_ws.data();
-        m_ctype->widen_seq(cs, cs + len, ws);
+        CharT* wide = vec_ws.data();
+        m_ctype->widen_seq(cs, cs + len, wide);
 
         const char* const p = std::find(cs, cs + len, '.');
         const bool has_point = p != cs + len;
@@ -928,20 +929,20 @@ private:
             const auto        int_end  = static_cast<std::size_t>(p - cs);
             std::vector<CharT> rebuilt((int_end - sign_len) * (1 + m_thousands_sep.size())
                                        + sign_len + m_decimal_point.size() + (len - int_end));
-            CharT* out = std::copy_n(ws, sign_len, rebuilt.data());
+            CharT* out = std::copy_n(wide, sign_len, rebuilt.data());
             if (grouped)
                 out = FacetHelper::add_grouping(out, std::basic_string_view<CharT>(m_thousands_sep),
-                                                m_grouping, ws + sign_len, ws + int_end);
+                                                m_grouping, wide + sign_len, wide + int_end);
             else
-                out = std::copy(ws + sign_len, ws + int_end, out);
+                out = std::copy(wide + sign_len, wide + int_end, out);
             if (has_point)
             {
                 out = std::ranges::copy(m_decimal_point, out).out;
-                out = std::copy(ws + int_end + 1, ws + len, out);
+                out = std::copy(wide + int_end + 1, wide + len, out);
             }
             len = static_cast<std::size_t>(out - rebuilt.data());
             vec_ws = std::move(rebuilt);
-            ws = vec_ws.data();
+            wide = vec_ws.data();
         }
 
         // Pad.
@@ -952,19 +953,19 @@ private:
 
             std::vector<CharT> vec_ws3(w);
             CharT* ws3 = vec_ws3.data();
-            bool startSign = (ws[0] == m_out.minus) || (ws[0] == m_out.plus);
-            bool start0x = (ws[0] == m_out.lower[0]) && (len > 1u) &&
-                           ((ws[1] == m_out.lower_x) || (ws[1] == m_out.upper_x));
+            bool startSign = (wide[0] == m_out.minus) || (wide[0] == m_out.plus);
+            bool start0x = (wide[0] == m_out.lower[0]) && (len > 1u) &&
+                           ((wide[1] == m_out.lower_x) || (wide[1] == m_out.upper_x));
             const ios_defs::fmtflags adjust = io.flags() & ios_defs::adjustfield;
             pad(io.fill(), w, adjust, io.flags() & ios_defs::basefield,
-                ws3, ws, len, startSign, start0x);
+                ws3, wide, len, startSign, start0x);
 
             std::swap(vec_ws, vec_ws3);
-            ws = vec_ws.data();
+            wide = vec_ws.data();
         }
 
         // Nothing is left to decide; hand the finished field to the caller.
-        return std::copy(ws, ws + len, s);
+        return std::copy(wide, wide + len, s);
     }
 
     /**

@@ -29,6 +29,17 @@
 
 using namespace IOv2;
 
+namespace
+{
+    // The top bit of a size_t: the smallest value that is negative as a ptrdiff_t.
+    constexpr std::size_t kTopBit = std::size_t(1) << (std::numeric_limits<std::size_t>::digits - 1);
+
+    // A valid width an int could not hold where ptrdiff_t is 64 bits; on a 32-bit target,
+    // as large a power of two as stays well clear of the top.
+    constexpr std::ptrdiff_t kHugeWidth =
+        std::ptrdiff_t(1) << (std::numeric_limits<std::ptrdiff_t>::digits > 40 ? 40 : 29);
+}
+
 // The setter rejects negative widths, including the ones that arrive already
 // wrapped as unsigned, and leaves the previous width in place when it does.
 TEST(IosBaseWidth, ANegativeWidthIsRejectedHoweverItIsSpelled)
@@ -53,7 +64,7 @@ TEST(IosBaseWidth, ANegativeWidthIsRejectedHoweverItIsSpelled)
 
     // The same value arriving already wrapped, with no sign left to look at.
     EXPECT_THROW(ios.width(size_t(10) - size_t(20)), stream_error);
-    EXPECT_THROW(ios.width(size_t(1) << 63), stream_error);
+    EXPECT_THROW(ios.width(kTopBit), stream_error);
     EXPECT_THROW(ios.width(std::numeric_limits<size_t>::max()), stream_error);
 
     EXPECT_EQ(ios.width(), 12u);
@@ -70,11 +81,11 @@ TEST(IosBaseWidth, AValidWidthRoundTripsExactly)
     ios.width(50000000);
     EXPECT_EQ(ios.width(), 50000000u);
 
-    ios.width(std::ptrdiff_t(1) << 40);
-    EXPECT_EQ(ios.width(), (size_t(1) << 40));
+    ios.width(kHugeWidth);
+    EXPECT_EQ(ios.width(), static_cast<size_t>(kHugeWidth));
 
     const auto pmax = std::numeric_limits<std::ptrdiff_t>::max();
-    EXPECT_EQ(ios.width(pmax), (size_t(1) << 40));
+    EXPECT_EQ(ios.width(pmax), static_cast<size_t>(kHugeWidth));
     EXPECT_EQ(ios.width(), static_cast<size_t>(pmax));
 
     // A width read back from the getter can be fed to the setter unchanged.
@@ -127,8 +138,8 @@ TEST(IosBaseWidth, TheSameHoldsForAWideStream)
     EXPECT_THROW(ios.width(-1), stream_error);
     EXPECT_EQ(ios.width(), 7u);
 
-    ios.width(std::ptrdiff_t(1) << 40);
-    EXPECT_EQ(ios.width(), (size_t(1) << 40));
+    ios.width(kHugeWidth);
+    EXPECT_EQ(ios.width(), static_cast<size_t>(kHugeWidth));
 
     ios.width(0);
     EXPECT_EQ(ios.width(), 0u);

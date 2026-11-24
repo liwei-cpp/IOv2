@@ -631,7 +631,22 @@ TEST(OstreamInsertArithmeticChar, TheSignOfANaNIsWritten)
         os << -nan;
         auto [dev, err] = os.detach();
         ASSERT_FALSE(dev.str().empty());
+
+        // Whether a NaN shows its sign is the C library's to say: glibc and the UCRT write
+        // "-nan", Apple's libc "nan". What IOv2 must not do is lose a sign it was given.
+        char c_text[32] = {};
+        std::snprintf(c_text, sizeof c_text, "%g", static_cast<double>(-nan));
+        if (c_text[0] == '-')
+        {
+            EXPECT_EQ(dev.str()[0], '-');
+        }
+        else
+        {
+            EXPECT_NE(dev.str()[0], '-');
+        }
+#if IOV2_TEST_LINUX_GLIBC || IOV2_TEST_WINDOWS
         EXPECT_EQ(dev.str()[0], '-');
+#endif
     };
 
     helper.template operator()<ostream>();

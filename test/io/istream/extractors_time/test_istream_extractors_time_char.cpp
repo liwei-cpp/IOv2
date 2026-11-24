@@ -18,6 +18,7 @@
 #include <gtest/gtest.h>
 
 #include <ctime>
+#include <string>
 #include <string_view>
 
 using namespace IOv2;
@@ -27,12 +28,16 @@ TEST(IstreamExtractorsTimeChar, ABrokenDownTimeIsReadWholeFromTheStream)
     // Both stream shapes reach the same extractor, so both are asked.
     auto expect_extracted = []<template <typename, typename> class T>()
     {
+        // The format asks for an offset and a zone only where this tm can hold them
+        // (time_value_fields<std::tm>): glibc both, macOS the offset alone, the UCRT neither.
+        std::string in = "Wed Sep  4 13:33:18 2024";
+        if constexpr (time_value_fields<std::tm>::has_offset)
+            in += " +0800";
+        if constexpr (time_value_fields<std::tm>::has_zone)
+            in += " (CST)";
+
         std::tm tp{};
-#ifdef __USE_MISC
-        T f(mem_device{"Wed Sep  4 13:33:18 2024 +0800 (CST)"}, locale<char>("C"));
-#else
-        T f(mem_device{"Wed Sep  4 13:33:18 2024"}, locale<char>("C"));
-#endif
+        T f(mem_device{in}, locale<char>("C"));
 
         f >> tp;
         EXPECT_TRUE(static_cast<bool>(f));
@@ -43,12 +48,16 @@ TEST(IstreamExtractorsTimeChar, ABrokenDownTimeIsReadWholeFromTheStream)
         EXPECT_EQ(tp.tm_min, 33);
         EXPECT_EQ(tp.tm_sec, 18);
 
-#ifdef __USE_MISC
-        // The two fields the format only asks for because this tm can hold them.
-        EXPECT_EQ(tp.tm_gmtoff, 8 * 3600);
-        ASSERT_NE(tp.tm_zone, nullptr);
-        EXPECT_EQ(std::string_view(tp.tm_zone), "CST");
-#endif
+        // The fields the format only asks for because this tm can hold them.
+        if constexpr (time_value_fields<std::tm>::has_offset)
+        {
+            EXPECT_EQ(detail::tm_get_gmtoff(tp).count(), 8 * 3600);
+        }
+        if constexpr (time_value_fields<std::tm>::has_zone)
+        {
+            ASSERT_NE(detail::tm_get_zone(tp), nullptr);
+            EXPECT_EQ(std::string_view(detail::tm_get_zone(tp)), "CST");
+        }
     };
 
     expect_extracted.template operator()<istream>();

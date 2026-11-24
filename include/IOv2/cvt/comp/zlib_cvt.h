@@ -1022,7 +1022,7 @@ private:
      * 让 `deflate` 把至多 `CHUNK` 字节直接写进 `writer` 的缓冲，再提交，没用完的部分退回。
      * 供 `put_main` 之外写下层的路径使用，那里没有 `abs_cvt::put` 替它提交。
      * @param writer 写下层的 `cvt_writer`。
-     * @param flush 传给 `deflate` 的刷出模式。
+     * @param flush_mode 传给 `deflate` 的刷出模式。
      * @param what 失败时的报错前缀。
      * @return `deflate` 的返回值。
      * @endif
@@ -1032,12 +1032,13 @@ private:
      * unused part back and commits. For the paths that write the layer below outside
      * `put_main`, where no `abs_cvt::put` commits for them.
      * @param writer The `cvt_writer` on the layer below.
-     * @param flush The flush mode passed to `deflate`.
+     * @param flush_mode The flush mode passed to `deflate`.
      * @param what The prefix of the message on failure.
      * @return What `deflate` returned.
      * @endif
      */
-    int deflate_chunk(cvt_writer<KernelType>& writer, int flush, const char* what)
+    // Not `flush`: that would hide the io manipulator, which C4459 reports under /W4.
+    int deflate_chunk(cvt_writer<KernelType>& writer, int flush_mode, const char* what)
         requires (cvt_cpt::support_put<KernelType>)
     {
         m_strm->next_out = reinterpret_cast<unsigned char*>(writer.put_buf(CHUNK)); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
@@ -1045,7 +1046,7 @@ private:
         int ret = Z_OK;
         {
             put_buf_guard guard{writer, static_cast<std::size_t>(CHUNK)};
-            ret = deflate(m_strm.get(), flush);
+            ret = deflate(m_strm.get(), flush_mode);
             guard.used(static_cast<std::size_t>(CHUNK - m_strm->avail_out));
             zerr(what, ret);
         }

@@ -34,7 +34,6 @@
 #include <support/file_guard.h>
 
 #include <cstddef>
-#include <ios>
 #include <limits>
 #include <string>
 
@@ -44,7 +43,8 @@ namespace
 {
     const std::string kDigits = "0123456789abcdef";
 
-    constexpr auto kUnbounded = std::numeric_limits<std::streamsize>::max();
+    // ignore() counts in std::ptrdiff_t; std::streamsize is wider on a 32-bit MSVC target.
+    constexpr auto kUnbounded = std::numeric_limits<std::ptrdiff_t>::max();
 }
 
 TEST(IstreamIgnoreChar, IgnoreDiscardsOneCharacterByDefaultAndNCharactersOnRequest)
@@ -308,8 +308,8 @@ TEST(IstreamIgnoreChar, ACountLargerThanTheBufferStopsWhereItWasTold)
 
         // Each count is a whole number of lines, so what is left under the
         // cursor names how far the call went.
-        for (const std::streamsize n : {std::streamsize{11}, std::streamsize{110},
-                                        std::streamsize{1100}, std::streamsize{11000}})
+        for (const std::ptrdiff_t n : {std::ptrdiff_t{11}, std::ptrdiff_t{110},
+                                       std::ptrdiff_t{1100}, std::ptrdiff_t{11000}})
         {
             SCOPED_TRACE(n);
             is.ignore(n);

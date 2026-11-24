@@ -437,17 +437,17 @@ TEST(IoBaseManipTime, ExtractingATmDirectlyGetsTheSameTreatment)
 {
     // `is >> tm` goes through parse_context_type<char, std::tm> and gets the same
     // treatment. The C locale's %c is %a %b %e %H:%M:%S %Y, and the stream format appends
-    // %z and (%Z) where the platform's tm carries tm_gmtoff and tm_zone, so the input
-    // carries an offset and a zone token too.
+    // %z and (%Z) where time_value_fields<std::tm> says the platform's tm can carry them
+    // (glibc both, macOS the offset alone, the UCRT neither), so the input carries those too.
     {
+        std::string in = "Tue Feb  6 07:08:09 2018";
+        if constexpr (time_value_fields<std::tm>::has_offset)
+            in += " +0530";
+        if constexpr (time_value_fields<std::tm>::has_zone)
+            in += " (IST)";
+
         std::tm parsed = calendar_time(120, 4, 17, 9, 8, 7, 0, 0, 1);
-#ifdef __USE_MISC
-        istream iss{mem_device{std::string("Tue Feb  6 07:08:09 2018 +0530 (IST)")},
-                          locale<char>("C")};
-#else
-        istream iss{mem_device{std::string("Tue Feb  6 07:08:09 2018")},
-                          locale<char>("C")};
-#endif
+        istream iss{mem_device{in}, locale<char>("C")};
         iss >> parsed;
         EXPECT_FALSE(iss.str_fail());
         EXPECT_EQ(parsed.tm_year, 118);
@@ -460,11 +460,15 @@ TEST(IoBaseManipTime, ExtractingATmDirectlyGetsTheSameTreatment)
         EXPECT_EQ(parsed.tm_yday, 36);
         // The point of appending them: the offset and the zone reach the tm rather than
         // being dropped. Each restores its own member; neither substitutes for the other.
-#ifdef __USE_MISC
-        EXPECT_EQ(parsed.tm_gmtoff, 5 * 3600 + 30 * 60);
-        EXPECT_NE(parsed.tm_zone, nullptr);
-        EXPECT_EQ(std::string_view(parsed.tm_zone), "IST");
-#endif
+        if constexpr (time_value_fields<std::tm>::has_offset)
+        {
+            EXPECT_EQ(detail::tm_get_gmtoff(parsed).count(), 5 * 3600 + 30 * 60);
+        }
+        if constexpr (time_value_fields<std::tm>::has_zone)
+        {
+            ASSERT_NE(detail::tm_get_zone(parsed), nullptr);
+            EXPECT_EQ(std::string_view(detail::tm_get_zone(parsed)), "IST");
+        }
     }
 
     // Types without a parse context of their own keep extracting as before.
