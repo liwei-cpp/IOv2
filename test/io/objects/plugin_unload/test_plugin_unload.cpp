@@ -27,9 +27,13 @@
 #include <iterator>
 #include <string>
 
+// Both cases exist only in the installed-shared consumer, which is Linux's; elsewhere they
+// skip and need none of this.
+#if defined(IOV2_TEST_UNLOAD_PLUGIN) || defined(IOV2_SHARED)
 #include <dlfcn.h>
 #include <sys/wait.h>
 #include <unistd.h>
+#endif
 
 TEST(PluginUnload, AFacetCachedByAnUnloadedPluginStaysUsable)
 {

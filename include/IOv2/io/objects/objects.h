@@ -36,6 +36,17 @@
  *       `std::ios_base::Init` 的习惯另外构造一个是无害的，它不重建、也不提前收尾正在使用的流
  *       （见 `IOv2/common/sing_temp.h` 的 `init`）。`IOV2_SHARED` 下不要构造：消费者模块里
  *       它会另造一份流，`get()` 拿到的不是 `libiov2.so` 里的那一个。
+ * @note **Windows 上的换行与控制台**：八个流站在 CRT 的 fd 0/1/2 上，沿用它们的翻译模式，本库
+ *       不调 `_setmode`（那会改变进程全局状态，影响程序自己的 C stdio）。缺省的文本模式下，读时
+ *       `\r\n` 变成 `\n`，0x1A（Ctrl+Z）当作文件结束——管道与重定向的文件上也是；写时 `\n`
+ *       变成 `\r\n`。这与 C stdio、MSVC STL 的 `std::cout` 一致。要经标准流传二进制数据，程序须
+ *       自己把相应 fd `_setmode` 成 `_O_BINARY`，这同时影响它的 C stdio。
+ *       宽字符流按初始 `LC_CTYPE` 编码（见 `initial_locale_name`；没有设置 locale 环境变量时是
+ *       用户缺省 locale 的 ANSI 代码页），窄字符流原样写字节；控制台则按自己的代码页
+ *       （`GetConsoleOutputCP`，缺省为 OEM 代码页）解释收到的字节。两者不同时（如西文系统上
+ *       1252 对 437），非 ASCII 字符在控制台上显示错，重定向到文件或管道时不受影响。这与 C
+ *       stdio、MSVC STL 一样；可用 `chcp 65001` 配合 UTF-8 的 locale，或由程序调用
+ *       `SetConsoleOutputCP`。
  * @endif
  *
  * @lang{EN}
@@ -86,6 +97,22 @@
  *       use (see `init` in `IOv2/common/sing_temp.h`). Do not construct one under
  *       `IOV2_SHARED`: in a consumer module it builds a separate stream, and `get()` returns
  *       that one, not the one in `libiov2.so`.
+ * @note **Newlines and the console on Windows**: the eight streams sit on the CRT's fds
+ *       0/1/2 and keep their translation mode; this library does not call `_setmode`, which
+ *       would change process-wide state the program's own C stdio relies on. In the default
+ *       text mode a read turns `\r\n` into `\n` and takes 0x1A (Ctrl+Z) as end of file --
+ *       on pipes and redirected files too -- and a write turns `\n` into `\r\n`, as C stdio
+ *       and the MSVC STL's `std::cout` do. To pass binary data through a standard stream, a
+ *       program has to `_setmode` that fd to `_O_BINARY` itself, which affects its C stdio
+ *       as well.
+ *       The wide streams encode by the initial `LC_CTYPE` (see `initial_locale_name`; with no
+ *       locale variable set, the ANSI code page of the user's default locale), the narrow
+ *       ones write their bytes as they are, and a console reads what it receives in its own
+ *       code page (`GetConsoleOutputCP`, the OEM code page by default). Where the two differ
+ *       (1252 against 437 on a Western system, say), characters beyond ASCII show wrongly on
+ *       the console; output redirected to a file or a pipe is unaffected. C stdio and the
+ *       MSVC STL behave the same; `chcp 65001` with a UTF-8 locale, or the program calling
+ *       `SetConsoleOutputCP`, are the remedies.
  * @endif
  */
 #pragma once

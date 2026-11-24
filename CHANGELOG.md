@@ -162,12 +162,21 @@
   上是用户缺省 locale 加 ANSI 代码页（如 `"Chinese (Simplified)_China.936"`），与 MSVC STL 的
   `std::locale("")` 相同。UCRT 本身不读这些环境变量，IOv2 先看它们，与 messages 选语言的顺序一致。
   变量所指的名字无法实例化时仍回退为 `"C"`。
-- **io 层（标准流对象除外）可在 Windows 与 macOS 上构建、运行**：流、通道、操纵符与各插入/提取
-  运算符；`cout`、`cin` 等标准流对象尚未移植。char32_t 的流只在 glibc 上提供（没有 char32_t 的
-  facet 配置，见上面 `locale` 一条）。与 glibc 的差异来自各平台的 C 库：`hexfloat` 的位数由
-  C 库的 `%a` 决定，UCRT 总写满 13 位（`40.0` 写作 `0x1.4000000000000p+5`，glibc 为 `0x1.4p+5`）；
-  `istream_type`、`ostream_type` 在 clang-cl 上不能拒绝带两个 `ios_base` 子对象的类型（MSVC 兼容
-  模式把到二义基类的转换当作合法），这样的类型要到使用处才报错。
+- **io 层可在 Windows 与 macOS 上构建、运行**：流、通道、操纵符、各插入/提取运算符，以及 `cout`、
+  `cin` 等八个标准流对象。char32_t 的流只在 glibc 上提供（没有 char32_t 的 facet 配置，见上面
+  `locale` 一条）。与 glibc 的差异来自各平台的 C 库：`hexfloat` 的位数由 C 库的 `%a` 决定，UCRT
+  总写满 13 位（`40.0` 写作 `0x1.4000000000000p+5`，glibc 为 `0x1.4p+5`）；负的 NaN 是否写出负号
+  也随 C 库（Apple libc 写作 `nan`）；`istream_type`、`ostream_type` 在 clang-cl 上不能拒绝带两个
+  `ios_base` 子对象的类型（MSVC 兼容模式把到二义基类的转换当作合法），这样的类型要到使用处才
+  报错。Windows 上的标准流：
+  - 沿用 CRT 对 fd 0/1/2 的翻译模式，本库不调 `_setmode`：缺省的文本模式下读时 `\r\n` 变成
+    `\n`、0x1A 当作文件结束，写时 `\n` 变成 `\r\n`，与 C stdio、MSVC STL 一致。
+  - 宽字符流按初始 `LC_CTYPE` 编码（没有设置 locale 环境变量时是用户 locale 的 ANSI 代码页），
+    控制台按自己的代码页（缺省为 OEM 代码页）显示；两者不同时非 ASCII 字符在控制台上显示错，
+    重定向时不受影响。见 `objects.h`。
+  - 同步模式下偷看、压回的字符无法交还给 C stdio（UCRT 的 stdin 不接受退回），留在流自己的缓冲
+    里：C stdio 看不到，流接着读得到，不丢字节。
+  - `switch_code("")` 取用户缺省 locale，不看环境变量。
 
 #### 变更
 
@@ -620,15 +629,27 @@ have no release line of their own.
   (`"Chinese (Simplified)_China.936"`, say), as the MSVC STL's `std::locale("")` does. The UCRT
   itself reads none of these variables; IOv2 reads them first, in the order messages picks its
   language in. A name a variable gives that cannot be instantiated still falls back to `"C"`.
-- **The io layer, the standard stream objects aside, builds and runs on Windows and macOS**:
-  the streams, the channels, the manipulators and the inserters and extractors; `cout`, `cin`
-  and the other standard stream objects are not ported yet. char32_t streams are provided on
-  glibc only (there are no char32_t facet configurations; see the `locale` entry above). Where
-  the output differs from glibc's, the platform's C library decides: `hexfloat` gets as many
-  digits as the C library's `%a` gives, and the UCRT always writes all thirteen (`40.0` is
-  `0x1.4000000000000p+5`, glibc's `0x1.4p+5`); on clang-cl `istream_type` and `ostream_type`
-  cannot reject a type carrying two `ios_base` subobjects (MSVC-compatible mode takes a
-  conversion to an ambiguous base as valid), so such a type fails only where it is used.
+- **The io layer builds and runs on Windows and macOS**: the streams, the channels, the
+  manipulators, the inserters and extractors, and the eight standard stream objects (`cout`,
+  `cin` and the rest). char32_t streams are provided on glibc only (there are no char32_t facet
+  configurations; see the `locale` entry above). Where the output differs from glibc's, the
+  platform's C library decides: `hexfloat` gets as many digits as the C library's `%a` gives,
+  and the UCRT always writes all thirteen (`40.0` is `0x1.4000000000000p+5`, glibc's
+  `0x1.4p+5`); whether a negative NaN shows its sign is the C library's too (Apple's libc writes
+  `nan`); on clang-cl `istream_type` and `ostream_type` cannot reject a type carrying two
+  `ios_base` subobjects (MSVC-compatible mode takes a conversion to an ambiguous base as valid),
+  so such a type fails only where it is used. The standard streams on Windows:
+  - They keep the CRT's translation mode of fds 0/1/2; this library does not call `_setmode`.
+    In the default text mode a read turns `\r\n` into `\n` and takes 0x1A as end of file, and
+    a write turns `\n` into `\r\n`, as C stdio and the MSVC STL do.
+  - The wide streams encode by the initial `LC_CTYPE` (with no locale variable set, the ANSI
+    code page of the user's locale) while a console shows bytes in its own code page (the OEM
+    code page by default); where the two differ, characters beyond ASCII show wrongly on the
+    console, and redirected output is unaffected. See `objects.h`.
+  - Synchronized, what a stream peeked at or had put back cannot go back to C stdio (the
+    UCRT's stdin takes no pushback). It stays in the stream's own buffer: out of C stdio's
+    sight, read next by the stream, no byte lost.
+  - `switch_code("")` takes the user's default locale and reads no environment variable.
 
 #### Changed
 
