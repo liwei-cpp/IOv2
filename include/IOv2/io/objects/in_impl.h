@@ -678,11 +678,13 @@ public:
      * 解码失败之后不必先 `reset()`，`clear()` 后照常可用。缓冲里还没解码的字节（包括输入在
      * 字符中间到达 EOF 后留着的那半个字符）留在原处，切换后按新编码解码。
      *
-     * @param new_code 新的编码名，须为 `newlocale()` 接受的 locale 名。`""` 按 POSIX 规则
-     *        查环境（`LC_ALL` > `LC_CTYPE` > `LANG` > `"C"`）：查在此刻发生，切换成功后
-     *        `code()` 报的是查到的具体名字，不是 `""`。环境变量指向不存在的 locale 时，`""`
-     *        会失败（置 `cvtfailbit`），而启动时的同一环境是宽松地回退到 `"C"`；要回到启动时
-     *        的编码，传 `IOv2::initial_locale_name(LC_CTYPE)`。
+     * @param new_code 新的编码名，须为 C 库接受的 locale 名（POSIX 上同 `newlocale()`，Windows
+     *        上同 `setlocale()`）。`""` 表示 C 库的本地环境：POSIX 上按规则查环境变量（`LC_ALL` >
+     *        `LC_CTYPE` > `LANG` > `"C"`），Windows 上是用户缺省 locale（UCRT 不看环境变量，这与
+     *        先看环境变量的初始 locale 不同）。查在此刻发生，切换成功后 `code()` 报的是查到的具体
+     *        名字，不是 `""`。POSIX 上环境变量指向不存在的 locale 时，`""` 会失败（置
+     *        `cvtfailbit`），而启动时的同一环境是宽松地回退到 `"C"`；要回到启动时的编码，传
+     *        `IOv2::initial_locale_name(LC_CTYPE)`。
      * @return 调用前的编码名；失败时它仍是当前编码名。判断成败请在进入前保证 `good()`，之后查
      *         `cvt_fail()`；或者直接比较 `code()` 与目标——本函数不设 `good()` 门槛，状态位已置时
      *         照常切换、位不变。
@@ -707,10 +709,13 @@ public:
      * not decoded yet (the half character left when input reached EOF in the middle of one
      * among them) stay where they are and decode by the new encoding after the switch.
      *
-     * @param new_code The new encoding name; must be a locale name `newlocale()` accepts.
-     *        `""` means "look at the environment" per POSIX (`LC_ALL` > `LC_CTYPE` > `LANG` >
-     *        `"C"`); the lookup happens at this moment, and once the switch succeeds `code()`
-     *        reports the concrete name it resolved to, not `""`. When the environment names a
+     * @param new_code The new encoding name; must be a locale name the C library accepts (as
+     *        by `newlocale()` on POSIX, `setlocale()` on Windows). `""` means the C library's
+     *        native locale: on POSIX the environment is looked at (`LC_ALL` > `LC_CTYPE` >
+     *        `LANG` > `"C"`), on Windows it is the user's default locale -- the UCRT reads no
+     *        environment variable, unlike the initial locale, which looks at them first. The
+     *        lookup happens at this moment, and once the switch succeeds `code()` reports the
+     *        concrete name it resolved to, not `""`. On POSIX, when the environment names a
      *        locale that does not exist, `""` fails (setting `cvtfailbit`), whereas startup
      *        falls back leniently to `"C"` in the same environment; to return to the startup
      *        encoding, pass `IOv2::initial_locale_name(LC_CTYPE)`.

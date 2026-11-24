@@ -15,10 +15,14 @@
  *
  * Each case runs in a child process (support/test_child.h): what is checked is what
  * the child's exit() writes, and fd 2 is pointed at a file for the run.
+ *
+ * The cases need an atexit function registered ahead of IOv2's initializers, which an ELF
+ * constructor priority provides; elsewhere they skip.
  */
 #include <IOv2/io/objects/objects.h>
 #include <IOv2/io/traits/char_and_str.h>
 
+#include <support/platform_macros.h>
 #include <support/test_child.h>
 
 #include <gtest/gtest.h>
@@ -32,6 +36,7 @@
 #include <string>
 #include <thread>
 
+#if IOV2_TEST_LINUX_GLIBC
 #include <fcntl.h>
 #include <sys/resource.h>
 #include <unistd.h>
@@ -153,9 +158,11 @@ namespace
     // this atexit function runs after their exit hooks.
     __attribute__((constructor(101))) void register_early() { std::atexit(write_late); }
 }
+#endif
 
 TEST(IoObjectsAfterExitHook, ALateInsertionStillReachesTheDevice)
 {
+#if IOV2_TEST_LINUX_GLIBC
     if (in_test_child())
     {
         redirect_stderr_to_file();
@@ -171,10 +178,14 @@ TEST(IoObjectsAfterExitHook, ALateInsertionStillReachesTheDevice)
         EXPECT_EQ(run_case("IoObjectsAfterExitHook.ALateInsertionStillReachesTheDevice", mode),
                   "main\nlate\n");
     }
+#else
+    GTEST_SKIP() << "needs an ELF constructor priority to run after IOv2's exit hooks";
+#endif
 }
 
 TEST(IoObjectsAfterExitHook, SwitchingOffAfterTheHookDoesNotLoseLaterInsertions)
 {
+#if IOV2_TEST_LINUX_GLIBC
     if (in_test_child())
     {
         redirect_stderr_to_file();
@@ -190,10 +201,14 @@ TEST(IoObjectsAfterExitHook, SwitchingOffAfterTheHookDoesNotLoseLaterInsertions)
         EXPECT_EQ(run_case("IoObjectsAfterExitHook.SwitchingOffAfterTheHookDoesNotLoseLaterInsertions", mode),
                   "main\nlate\n");
     }
+#else
+    GTEST_SKIP() << "needs an ELF constructor priority to run after IOv2's exit hooks";
+#endif
 }
 
 TEST(IoObjectsAfterExitHook, BytesTheHookLeftBehindGoOutOnALaterSwitchBack)
 {
+#if IOV2_TEST_LINUX_GLIBC
     if (in_test_child())
     {
         redirect_stderr_to_file();
@@ -207,12 +222,16 @@ TEST(IoObjectsAfterExitHook, BytesTheHookLeftBehindGoOutOnALaterSwitchBack)
 
     EXPECT_EQ(run_case("IoObjectsAfterExitHook.BytesTheHookLeftBehindGoOutOnALaterSwitchBack", "1"),
               "pre\n");
+#else
+    GTEST_SKIP() << "needs an ELF constructor priority to run after IOv2's exit hooks";
+#endif
 }
 
 // Unsynchronized, an insertion holds the lock while the hook runs, so the hook gives up; the
 // insertion ends after it and hands everything buffered to stdio.
 TEST(IoObjectsAfterExitHook, AnInsertionInProgressWhileTheHookRunsStillReachesTheDevice)
 {
+#if IOV2_TEST_LINUX_GLIBC
     if (in_test_child())
     {
         redirect_stderr_to_file();
@@ -227,12 +246,16 @@ TEST(IoObjectsAfterExitHook, AnInsertionInProgressWhileTheHookRunsStillReachesTh
 
     EXPECT_EQ(run_case("IoObjectsAfterExitHook.AnInsertionInProgressWhileTheHookRunsStillReachesTheDevice", "1"),
               "head|AB");
+#else
+    GTEST_SKIP() << "needs an ELF constructor priority to run after IOv2's exit hooks";
+#endif
 }
 
 // Synchronized, a write that stops at a 5-byte file size limit keeps "56789" in the stream's
 // buffer and fails the stream; the late atexit function lifts the limit and recovers.
 TEST(IoObjectsAfterExitHook, BytesAFailedSynchronizedWriteLeftGoOutOnALaterSyncWithStdio)
 {
+#if IOV2_TEST_LINUX_GLIBC
     if (in_test_child())
     {
         redirect_stderr_to_file();
@@ -249,6 +272,9 @@ TEST(IoObjectsAfterExitHook, BytesAFailedSynchronizedWriteLeftGoOutOnALaterSyncW
 
     EXPECT_EQ(run_case("IoObjectsAfterExitHook.BytesAFailedSynchronizedWriteLeftGoOutOnALaterSyncWithStdio", "1"),
               "0123456789");
+#else
+    GTEST_SKIP() << "needs an ELF constructor priority to run after IOv2's exit hooks";
+#endif
 }
 
 // An insertion after the hook hands its bytes to stdio, but on another thread it may end
@@ -264,6 +290,8 @@ TEST(IoObjectsAfterExitHook, AnInsertionAfterStdiosLastFlushStillReachesTheDevic
 {
 #if defined(IOV2_SHARED)
     GTEST_SKIP() << "shared mode runs the exit hooks after this program's atexit functions";
+#elif !IOV2_TEST_LINUX_GLIBC
+    GTEST_SKIP() << "needs an ELF constructor priority to run after IOv2's exit hooks";
 #else
     if (in_test_child())
     {

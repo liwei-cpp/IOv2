@@ -35,8 +35,12 @@
 #include <IOv2/io/traits/char_and_str.h>
 #include <IOv2/locale/locale.h>
 
-#include <support/stateful_locale.h>
+#include <support/platform_macros.h>
 #include <support/stdio_guard.h>
+
+#if IOV2_TEST_LINUX_GLIBC
+#include <support/stateful_locale.h>
+#endif
 
 #include <gtest/gtest.h>
 
@@ -48,8 +52,21 @@
 #include <string>
 #include <thread>
 
+#if !IOV2_TEST_WINDOWS
 #include <fcntl.h>
 #include <unistd.h>
+#endif
+
+namespace
+{
+    // GBK, a multibyte encoding that is not UTF-8. The UCRT takes no "zh_CN.GBK": its
+    // zh-CN is code page 936, which is GBK.
+#if IOV2_TEST_WINDOWS
+    constexpr const char* kGbk = "zh-CN";
+#else
+    constexpr const char* kGbk = "zh_CN.GBK";
+#endif
+}
 
 TEST(IoObjectsWchar, EachStreamWritesToItsOwnDestination)
 {
@@ -186,9 +203,9 @@ TEST(IoObjectsWchar, TheInputEncodingCanBeSwitchedMidStream)
     IOv2::wcin >> first;
     EXPECT_EQ(IOv2::wcin.code(), "zh_CN.UTF-8");
 
-    IOv2::wcin.switch_code("zh_CN.GBK");
+    IOv2::wcin.switch_code(kGbk);
     IOv2::wcin >> second;
-    EXPECT_EQ(IOv2::wcin.code(), "zh_CN.GBK");
+    EXPECT_EQ(IOv2::wcin.code(), kGbk);
 
     EXPECT_EQ(first, L"\u8bf7");
     EXPECT_EQ(second, L"\u8c22\u8c22");
@@ -221,12 +238,12 @@ TEST(IoObjectsWchar, SwitchingToSynchronizedKeepsTheInputReadAhead)
 TEST(IoObjectsWchar, AdjustingWithStdinSyncIsSyncWithStdio)
 {
     int pipefds[2];
-    ASSERT_NE(::pipe(pipefds), -1);
-    const int saved_stdin = ::dup(STDIN_FILENO);
-    ::dup2(pipefds[0], STDIN_FILENO);
+    ASSERT_NE(sys::pipe(pipefds), -1);
+    const int saved_stdin = sys::dup(sys::stdin_fd);
+    sys::dup2(pipefds[0], sys::stdin_fd);
 
-    EXPECT_EQ(::write(pipefds[1], "12345X", 6), 6);
-    ::close(pipefds[1]);                           // no more input: read() cannot block
+    EXPECT_EQ(sys::write(pipefds[1], "12345X", 6), 6);
+    sys::close(pipefds[1]);                        // no more input: read() cannot block
 
     IOv2::wcin.reset();
     IOv2::wcin.adjust(IOv2::stdin_sync{false});
@@ -239,9 +256,9 @@ TEST(IoObjectsWchar, AdjustingWithStdinSyncIsSyncWithStdio)
 
     EXPECT_EQ(drain_stdin(), "X");                  // synchronized: left for C stdio
 
-    ::dup2(saved_stdin, STDIN_FILENO);
-    ::close(saved_stdin);
-    ::close(pipefds[0]);
+    sys::dup2(saved_stdin, sys::stdin_fd);
+    sys::close(saved_stdin);
+    sys::close(pipefds[0]);
     IOv2::wcin.reset();
 }
 
@@ -254,22 +271,22 @@ namespace
     std::string left_on_stdin(const std::string& input, Op op)
     {
         int pipefds[2];
-        if (::pipe(pipefds) == -1)
+        if (sys::pipe(pipefds) == -1)
             return "<pipe failed>";
-        const int saved_stdin = ::dup(STDIN_FILENO);
-        ::dup2(pipefds[0], STDIN_FILENO);
-        ::close(pipefds[0]);
-        const bool written = ::write(pipefds[1], input.data(), input.size())
-                             == static_cast<ssize_t>(input.size());
-        ::close(pipefds[1]);
+        const int saved_stdin = sys::dup(sys::stdin_fd);
+        sys::dup2(pipefds[0], sys::stdin_fd);
+        sys::close(pipefds[0]);
+        const bool written = sys::write(pipefds[1], input.data(), input.size())
+                             == static_cast<long long>(input.size());
+        sys::close(pipefds[1]);
 
         IOv2::wcin.reset();
         IOv2::wcin.sync_with_stdio(true);
         op();
 
         const std::string rest = drain_stdin();
-        ::dup2(saved_stdin, STDIN_FILENO);
-        ::close(saved_stdin);
+        sys::dup2(saved_stdin, sys::stdin_fd);
+        sys::close(saved_stdin);
         IOv2::wcin.clear();
         IOv2::wcin.reset();
         return written ? rest : "<write failed>";
@@ -365,6 +382,7 @@ TEST(IoObjectsWchar, WhatWcinPeekedAtIsThereForCin)
 // more, so reset() does not drop it.
 TEST(IoObjectsWchar, SynchronizedWcinHandsThePeekedDelimiterBackToCStdio)
 {
+#if !IOV2_TEST_WINDOWS
     pipe_iguard g("12x34y\n");
     g.close_write();
     stdin_full_buffer b;
@@ -380,12 +398,16 @@ TEST(IoObjectsWchar, SynchronizedWcinHandsThePeekedDelimiterBackToCStdio)
     EXPECT_EQ(std::getchar(), 'y');
 
     IOv2::wcin.reset();
+#else
+    GTEST_SKIP() << "the UCRT's stdin takes no pushback; see IoObjectsChar.WhereStdinTakesNoPushbackWhatCinPeekedAtStaysWithCin";
+#endif
 }
 
 // A character goes back as the bytes of the current encoding, however many that takes, and
 // characters put back one after another keep their order.
 TEST(IoObjectsWchar, SynchronizedWcinHandsBackAMultibyteCharacterAsItsBytes)
 {
+#if !IOV2_TEST_WINDOWS
     pipe_iguard g("\xc3\xa9z");
     g.close_write();
     stdin_full_buffer b;
@@ -406,6 +428,9 @@ TEST(IoObjectsWchar, SynchronizedWcinHandsBackAMultibyteCharacterAsItsBytes)
 
     IOv2::wcin.reset();
     IOv2::wcin.switch_code(old);
+#else
+    GTEST_SKIP() << "the UCRT's stdin takes no pushback; see IoObjectsChar.WhereStdinTakesNoPushbackWhatCinPeekedAtStaysWithCin";
+#endif
 }
 
 // Unsynchronized the bytes wait in the shared buffer, and wcin decodes them back.
@@ -474,9 +499,9 @@ TEST(IoObjectsWchar, TheOutputEncodingCanBeSwitchedMidStream)
     IOv2::wcout << L"\u8bf7 ";
     EXPECT_EQ(IOv2::wcout.code(), "zh_CN.UTF-8");
 
-    IOv2::wcout.switch_code("zh_CN.GBK");
+    IOv2::wcout.switch_code(kGbk);
     IOv2::wcout << L"\u8c22\u8c22" << IOv2::flush;
-    EXPECT_EQ(IOv2::wcout.code(), "zh_CN.GBK");
+    EXPECT_EQ(IOv2::wcout.code(), kGbk);
 
     EXPECT_EQ(out.contents(), "\xe8\xaf\xb7 \xd0\xbb\xd0\xbb");
 }
@@ -514,9 +539,9 @@ TEST(IoObjectsWchar, WcoutCanSwitchEncodingRightAfterAnUnencodableCharacter)
     EXPECT_TRUE(IOv2::wcout.cvt_fail());
     IOv2::wcout.clear();
 
-    IOv2::wcout.switch_code("zh_CN.GBK");
+    IOv2::wcout.switch_code(kGbk);
     EXPECT_TRUE(IOv2::wcout.good());
-    EXPECT_EQ(IOv2::wcout.code(), "zh_CN.GBK");
+    EXPECT_EQ(IOv2::wcout.code(), kGbk);
     IOv2::wcout << L"中" << IOv2::flush;
     EXPECT_TRUE(IOv2::wcout.good());
     EXPECT_EQ(out.contents(), "\xd6\xd0"); // 中 in GBK
@@ -577,8 +602,9 @@ namespace
     // out. If a moved-from std_device still flushed in its destructor, that
     // temporary would take the one fflush that can fail, swallow the error, and
     // leave reset() with nothing to report -- in either synchronization mode.
-    void reset_reports_a_full_buffered_stdout_failure(bool sync_mode)
+    void reset_reports_a_full_buffered_stdout_failure([[maybe_unused]] bool sync_mode)
     {
+#if IOV2_TEST_LINUX_GLIBC
         const int full = ::open("/dev/full", O_WRONLY);
         if (full == -1) GTEST_SKIP() << "no /dev/full here";
 
@@ -610,6 +636,9 @@ namespace
         EXPECT_NE(out.contents().find("AFTER"), std::string::npos);
 
         IOv2::wcout.sync_with_stdio(sync);
+#else
+        GTEST_SKIP() << "needs Linux's /dev/full";
+#endif
     }
 }
 
@@ -631,6 +660,7 @@ TEST(IoObjectsWchar, ResetReportsAFlushFailureFromAFullBufferedStdoutWhenUnsynch
 // never anything left for reset() to lose.
 TEST(IoObjectsWchar, ResetReportsAFlushFailureFromAFullBufferedStderr)
 {
+#if IOV2_TEST_LINUX_GLIBC
     const int full = ::open("/dev/full", O_WRONLY);
     if (full == -1) GTEST_SKIP() << "no /dev/full here";
 
@@ -662,6 +692,9 @@ TEST(IoObjectsWchar, ResetReportsAFlushFailureFromAFullBufferedStderr)
     EXPECT_NE(err.contents().find("AFTER"), std::string::npos);
 
     IOv2::wclog.sync_with_stdio(sync);
+#else
+    GTEST_SKIP() << "needs Linux's /dev/full";
+#endif
 }
 
 // A tainted converter recovers before switch_code() commits the new encoding.
@@ -671,6 +704,7 @@ TEST(IoObjectsWchar, ResetReportsAFlushFailureFromAFullBufferedStderr)
 // while the bytes disappear.
 TEST(IoObjectsWchar, SwitchCodeReportsAFullBufferedStdoutFailureBeforeSwitching)
 {
+#if IOV2_TEST_LINUX_GLIBC
     const int full = ::open("/dev/full", O_WRONLY);
     if (full == -1) GTEST_SKIP() << "no /dev/full here";
 
@@ -712,6 +746,9 @@ TEST(IoObjectsWchar, SwitchCodeReportsAFullBufferedStdoutFailureBeforeSwitching)
     EXPECT_NE(out.contents().find("AFTER"), std::string::npos);
 
     IOv2::wcout.sync_with_stdio(sync);
+#else
+    GTEST_SKIP() << "needs Linux's /dev/full";
+#endif
 }
 
 // GBK: 璇 | b7 20 (a lead byte the space cannot complete) | 谢谢 | newline | 42.
@@ -721,7 +758,7 @@ TEST(IoObjectsWchar, WcinStaysAlignedAfterAnInvalidSequence)
 {
     iguard g("\xe8\xaf\xb7\x20\xd0\xbb\xd0\xbb\x0a" "42\n");
     IOv2::wcin.reset();
-    IOv2::wcin.switch_code("zh_CN.GBK");
+    IOv2::wcin.switch_code(kGbk);
 
     std::wstring first;
     std::wstring second;
@@ -747,7 +784,7 @@ TEST(IoObjectsWchar, WcinCanSwitchEncodingRightAfterAnInvalidSequence)
 {
     iguard g("\xb7\x20" "\xe8\xaf\xb7\n");
     IOv2::wcin.reset();
-    IOv2::wcin.switch_code("zh_CN.GBK");
+    IOv2::wcin.switch_code(kGbk);
 
     std::wstring w;
     IOv2::wcin >> w;
@@ -762,28 +799,36 @@ TEST(IoObjectsWchar, WcinCanSwitchEncodingRightAfterAnInvalidSequence)
     EXPECT_TRUE(IOv2::wcin.good());
 }
 
-// "" is not an encoding name, it is a request to look at the environment, and the
+// "" is not an encoding name, it is a request for the C library's native locale, and the
 // lookup happens once -- at the call. What the stream reports afterwards is the
 // concrete locale that was found, so a later change to the environment cannot move
 // the stream's encoding under it. Were "" kept verbatim instead, the rebuild inside
 // sync_with_stdio() would resolve it again against a hostile LC_ALL and abort.
+// POSIX reads the native locale from the environment; the UCRT ignores the environment
+// and takes the user's default locale.
 TEST(IoObjectsWchar, SwitchCodeResolvesTheEmptyNameAtTheCallAndKeepsTheConcreteOne)
 {
     // The CI runner sets LC_ALL for the whole suite; put it back the way it was.
-    const char* const saved = std::getenv("LC_ALL");
-    const std::string previous = saved ? saved : "";
+    const bool        had      = sys::env_is_set("LC_ALL");
+    const std::string previous = sys::get_env("LC_ALL");
 
-    ::setenv("LC_ALL", "zh_CN.GBK", 1);
+    sys::set_env("LC_ALL", kGbk);
     IOv2::wcin.switch_code("");
-    EXPECT_EQ(IOv2::wcin.code(), "zh_CN.GBK");
+#if IOV2_TEST_WINDOWS
+    EXPECT_EQ(IOv2::wcin.code(), IOv2::clocale_wrapper("").name());
+#else
+    EXPECT_EQ(IOv2::wcin.code(), kGbk);
+#endif
+    const std::string resolved = IOv2::wcin.code();
+    EXPECT_FALSE(resolved.empty());
 
-    ::setenv("LC_ALL", "xx_YY.NOPE", 1);
+    sys::set_env("LC_ALL", "xx_YY.NOPE");
     const bool sync = IOv2::wcin.sync_with_stdio(false);
-    EXPECT_EQ(IOv2::wcin.code(), "zh_CN.GBK");
+    EXPECT_EQ(IOv2::wcin.code(), resolved);
     IOv2::wcin.sync_with_stdio(sync);
 
-    if (saved) ::setenv("LC_ALL", previous.c_str(), 1);
-    else       ::unsetenv("LC_ALL");
+    if (had) sys::set_env("LC_ALL", previous);
+    else     sys::unset_env("LC_ALL");
     IOv2::wcin.switch_code("zh_CN.UTF-8");
 }
 
@@ -793,6 +838,7 @@ TEST(IoObjectsWchar, SwitchCodeResolvesTheEmptyNameAtTheCallAndKeepsTheConcreteO
 // started under an ISO-2022-JP LC_ALL, all four fall back to "C".
 TEST(IoObjectsWchar, WideStreamsFallBackToCUnderAStateDependentEnvironment)
 {
+#if IOV2_TEST_LINUX_GLIBC
     if (!in_stateful_child())
     {
         EXPECT_EQ(run_stateful_child("IoObjectsWchar.WideStreamsFallBackToCUnderAStateDependentEnvironment",
@@ -807,6 +853,9 @@ TEST(IoObjectsWchar, WideStreamsFallBackToCUnderAStateDependentEnvironment)
     EXPECT_EQ(IOv2::wcout.code(), "C");
     EXPECT_EQ(IOv2::wcerr.code(), "C");
     EXPECT_EQ(IOv2::wclog.code(), "C");
+#else
+    GTEST_SKIP() << "needs a stateful locale, which only glibc's localedef can build";
+#endif
 }
 
 // Started with an LC_ALL that names no locale, the wide streams fall back to "C"
@@ -814,6 +863,7 @@ TEST(IoObjectsWchar, WideStreamsFallBackToCUnderAStateDependentEnvironment)
 // gives back what startup settled on.
 TEST(IoObjectsWchar, SwitchCodeReturnsToTheStartupEncodingThroughInitialLocaleName)
 {
+#if IOV2_TEST_LINUX_GLIBC
     if (!in_stateful_child())
     {
         EXPECT_EQ(run_stateful_child("IoObjectsWchar.SwitchCodeReturnsToTheStartupEncodingThroughInitialLocaleName",
@@ -834,6 +884,9 @@ TEST(IoObjectsWchar, SwitchCodeReturnsToTheStartupEncodingThroughInitialLocaleNa
     IOv2::wcout.switch_code(IOv2::initial_locale_name(LC_CTYPE));
     EXPECT_TRUE(IOv2::wcout.good());
     EXPECT_EQ(IOv2::wcout.code(), "C");
+#else
+    GTEST_SKIP() << "runs in the stateful-locale child, which needs glibc's localedef";
+#endif
 }
 
 // Two threads switch the same stream from "C" to two other encodings at once: whichever
@@ -841,7 +894,7 @@ TEST(IoObjectsWchar, SwitchCodeReturnsToTheStartupEncodingThroughInitialLocaleNa
 // lock apart, so both could read "C" and both return it -- about one round in four.
 TEST(IoObjectsWchar, ConcurrentSwitchCodesEachReturnTheEncodingBeforeThem)
 {
-    const std::string base = "C", x = "zh_CN.UTF-8", y = "zh_CN.GBK";
+    const std::string base = "C", x = "zh_CN.UTF-8", y = kGbk;
     const auto check = [&](auto& stream)
     {
         const std::string startup = stream.code();
@@ -875,6 +928,7 @@ TEST(IoObjectsWchar, ConcurrentSwitchCodesEachReturnTheEncodingBeforeThem)
 
 TEST(IoObjectsWchar, SwitchCodeRefusesAStateDependentEncoding)
 {
+#if IOV2_TEST_LINUX_GLIBC
     if (!in_stateful_child())
     {
         EXPECT_EQ(run_stateful_child("IoObjectsWchar.SwitchCodeRefusesAStateDependentEncoding"), 0)
@@ -901,6 +955,9 @@ TEST(IoObjectsWchar, SwitchCodeRefusesAStateDependentEncoding)
     IOv2::wcout.flush();
     EXPECT_EQ(out.contents(), "ab");
     EXPECT_TRUE(IOv2::wcout.good());
+#else
+    GTEST_SKIP() << "needs a stateful locale, which only glibc's localedef can build";
+#endif
 }
 
 // Input cut off in the middle of a character is a decode failure, not a plain
@@ -909,7 +966,8 @@ TEST(IoObjectsWchar, SwitchCodeRefusesAStateDependentEncoding)
 // character goes back to C stdio, and every read takes it up again, so clear()
 // does not get past it -- get() and ignore() alike keep failing and never reach
 // eof. reset() cannot drop it either, as it is C stdio's now: once getchar() has
-// taken it, wcin reaches eof.
+// taken it, wcin reaches eof. Where stdin takes no pushback (Windows) it stays in
+// wcin's buffer instead, as in_impl.h says, and reset() does drop it.
 TEST(IoObjectsWchar, WcinHandsOutWhatCameBeforeACutOffCharacter)
 {
     iguard g("ab\xe6");
@@ -937,7 +995,7 @@ TEST(IoObjectsWchar, WcinHandsOutWhatCameBeforeACutOffCharacter)
 
     IOv2::wcin.clear();
     IOv2::wcin.reset();
-    EXPECT_EQ(std::getchar(), 0xe6);
+    EXPECT_EQ(std::getchar(), IOV2_TEST_WINDOWS ? EOF : 0xe6);
     wchar_t c = 0;
     EXPECT_FALSE(IOv2::wcin.get(c));
     EXPECT_TRUE(IOv2::wcin.eof());

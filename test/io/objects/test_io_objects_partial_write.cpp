@@ -9,10 +9,12 @@
  *
  * Each case runs in a child process (support/test_child.h): the file size limit
  * applies to the whole process, and fd 2 is pointed at a file for the run.
+ * Windows has no file size limit to stop a write partway, so there they skip.
  */
 #include <IOv2/io/objects/objects.h>
 #include <IOv2/io/traits/char_and_str.h>
 
+#include <support/platform_macros.h>
 #include <support/test_child.h>
 
 #include <gtest/gtest.h>
@@ -22,6 +24,7 @@
 #include <iterator>
 #include <string>
 
+#if !IOV2_TEST_WINDOWS
 #include <fcntl.h>
 #include <sys/resource.h>
 #include <unistd.h>
@@ -73,24 +76,37 @@ namespace
         }
     }
 }
+#endif
 
 TEST(IoObjectsPartialWrite, ClogResumesExactlyOnce)
 {
+#if !IOV2_TEST_WINDOWS
     if (in_test_child())
         return write_through_a_limit(IOv2::clog, "0123456789");
     expect_exactly_once("IoObjectsPartialWrite.ClogResumesExactlyOnce");
+#else
+    GTEST_SKIP() << "needs RLIMIT_FSIZE to stop a write partway";
+#endif
 }
 
 TEST(IoObjectsPartialWrite, CerrResumesExactlyOnce)
 {
+#if !IOV2_TEST_WINDOWS
     if (in_test_child())
         return write_through_a_limit(IOv2::cerr, "0123456789");
     expect_exactly_once("IoObjectsPartialWrite.CerrResumesExactlyOnce");
+#else
+    GTEST_SKIP() << "needs RLIMIT_FSIZE to stop a write partway";
+#endif
 }
 
 TEST(IoObjectsPartialWrite, WcerrResumesExactlyOnce)
 {
+#if !IOV2_TEST_WINDOWS
     if (in_test_child())
         return write_through_a_limit(IOv2::wcerr, L"0123456789");
     expect_exactly_once("IoObjectsPartialWrite.WcerrResumesExactlyOnce");
+#else
+    GTEST_SKIP() << "needs RLIMIT_FSIZE to stop a write partway";
+#endif
 }

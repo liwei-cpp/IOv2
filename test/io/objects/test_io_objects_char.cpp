@@ -26,6 +26,7 @@
 #include <IOv2/io/traits/char_and_str.h>
 
 #include <support/failing_device.h>
+#include <support/platform_macros.h>
 #include <support/stdio_guard.h>
 #include <support/test_child.h>
 
@@ -42,11 +43,13 @@
 #include <thread>
 #include <type_traits>
 
+#if !IOV2_TEST_WINDOWS
 #include <fcntl.h>
 #include <poll.h>
 #include <signal.h>
 #include <sys/wait.h>
 #include <unistd.h>
+#endif
 
 // The two implementation templates exist for the fixed-fd devices only: every
 // "cannot fail" argument in their headers assumes std_device<0/1/2>. Naming the
@@ -58,13 +61,13 @@ namespace
     template <typename Dev>
     concept stdout_api_accepts = requires { typename IOv2::stdout_api<Dev, char>; };
 
-    static_assert(stdin_api_accepts<IOv2::std_device<STDIN_FILENO>>);
-    static_assert(!stdin_api_accepts<IOv2::std_device<STDOUT_FILENO>>);
-    static_assert(!stdin_api_accepts<IOv2::std_device<STDERR_FILENO>>);
+    static_assert(stdin_api_accepts<IOv2::std_device<sys::stdin_fd>>);
+    static_assert(!stdin_api_accepts<IOv2::std_device<sys::stdout_fd>>);
+    static_assert(!stdin_api_accepts<IOv2::std_device<sys::stderr_fd>>);
 
-    static_assert(stdout_api_accepts<IOv2::std_device<STDOUT_FILENO>>);
-    static_assert(stdout_api_accepts<IOv2::std_device<STDERR_FILENO>>);
-    static_assert(!stdout_api_accepts<IOv2::std_device<STDIN_FILENO>>);
+    static_assert(stdout_api_accepts<IOv2::std_device<sys::stdout_fd>>);
+    static_assert(stdout_api_accepts<IOv2::std_device<sys::stderr_fd>>);
+    static_assert(!stdout_api_accepts<IOv2::std_device<sys::stdin_fd>>);
 
     // A slice of a standard stream must not be copied or moved out of it.
     template <typename T>
@@ -73,8 +76,8 @@ namespace
                                                && !std::is_copy_assignable_v<T>
                                                && !std::is_move_assignable_v<T>;
 
-    static_assert(neither_copyable_nor_movable<IOv2::stdout_api<IOv2::std_device<STDOUT_FILENO>, char>>);
-    static_assert(neither_copyable_nor_movable<IOv2::stdin_api<IOv2::std_device<STDIN_FILENO>, char>>);
+    static_assert(neither_copyable_nor_movable<IOv2::stdout_api<IOv2::std_device<sys::stdout_fd>, char>>);
+    static_assert(neither_copyable_nor_movable<IOv2::stdin_api<IOv2::std_device<sys::stdin_fd>, char>>);
 
     // The eight stream types declare no special member of their own: they get this from the base.
     static_assert(neither_copyable_nor_movable<IOv2::cin_t> && neither_copyable_nor_movable<IOv2::wcin_t>);
@@ -250,21 +253,21 @@ TEST(IoObjectsChar, CinReadsAndPutsBack)
 TEST(IoObjectsChar, UnsyncedIgnoreReturnsOnTheByteItFoundWithoutWaitingForMore)
 {
     int pipefds[2];
-    ASSERT_NE(::pipe(pipefds), -1);
-    const int saved_stdin = ::dup(STDIN_FILENO);
-    ::dup2(pipefds[0], STDIN_FILENO);
+    ASSERT_NE(sys::pipe(pipefds), -1);
+    const int saved_stdin = sys::dup(sys::stdin_fd);
+    sys::dup2(pipefds[0], sys::stdin_fd);
 
     IOv2::cin.reset();
     const bool sync = IOv2::cin.sync_with_stdio(false);
 
-    ASSERT_EQ(::write(pipefds[1], "\n", 1), 1);   // the empty line, and nothing else yet
+    ASSERT_EQ(sys::write(pipefds[1], "\n", 1), 1);   // the empty line, and nothing else yet
 
     std::atomic<bool> more_arrived{false};
     std::thread late_writer([&, write_fd = pipefds[1]]
     {
         std::this_thread::sleep_for(std::chrono::milliseconds(500));
         more_arrived.store(true);
-        (void)::write(write_fd, "x\n", 2);
+        (void)sys::write(write_fd, "x\n", 2);
     });
 
     IOv2::cin.ignore();
@@ -275,10 +278,10 @@ TEST(IoObjectsChar, UnsyncedIgnoreReturnsOnTheByteItFoundWithoutWaitingForMore)
     EXPECT_EQ(IOv2::cin.get(), 'x');              // and nothing was lost in between
 
     IOv2::cin.sync_with_stdio(sync);
-    ::dup2(saved_stdin, STDIN_FILENO);
-    ::close(saved_stdin);
-    ::close(pipefds[0]);
-    ::close(pipefds[1]);
+    sys::dup2(saved_stdin, sys::stdin_fd);
+    sys::close(saved_stdin);
+    sys::close(pipefds[0]);
+    sys::close(pipefds[1]);
     IOv2::cin.reset();
 }
 
@@ -293,12 +296,12 @@ TEST(IoObjectsChar, SynchronizedReadsNoFurtherThanTheOperationNeeds)
     auto sixth_byte_left_for_stdio = [](bool sync)
     {
         int pipefds[2];
-        EXPECT_NE(::pipe(pipefds), -1);
-        const int saved_stdin = ::dup(STDIN_FILENO);
-        ::dup2(pipefds[0], STDIN_FILENO);
+        EXPECT_NE(sys::pipe(pipefds), -1);
+        const int saved_stdin = sys::dup(sys::stdin_fd);
+        sys::dup2(pipefds[0], sys::stdin_fd);
 
-        EXPECT_EQ(::write(pipefds[1], "12345X", 6), 6);
-        ::close(pipefds[1]);                      // no more input: read() cannot block
+        EXPECT_EQ(sys::write(pipefds[1], "12345X", 6), 6);
+        sys::close(pipefds[1]);                   // no more input: read() cannot block
 
         IOv2::cin.reset();
         const bool old = IOv2::cin.sync_with_stdio(sync);
@@ -310,9 +313,9 @@ TEST(IoObjectsChar, SynchronizedReadsNoFurtherThanTheOperationNeeds)
         const std::string rest = drain_stdin();
 
         IOv2::cin.sync_with_stdio(old);
-        ::dup2(saved_stdin, STDIN_FILENO);
-        ::close(saved_stdin);
-        ::close(pipefds[0]);
+        sys::dup2(saved_stdin, sys::stdin_fd);
+        sys::close(saved_stdin);
+        sys::close(pipefds[0]);
         IOv2::cin.reset();
         return rest == "X";
     };
@@ -345,6 +348,7 @@ TEST(IoObjectsChar, SynchronizedCinReadsOnWhereCStdioStopped)
 // It is not cin's any more, so reset() does not drop it.
 TEST(IoObjectsChar, SynchronizedCinHandsThePeekedDelimiterBackToCStdio)
 {
+#if !IOV2_TEST_WINDOWS
     pipe_iguard g("12x34y\n");
     g.close_write();
     stdin_full_buffer b;
@@ -362,11 +366,15 @@ TEST(IoObjectsChar, SynchronizedCinHandsThePeekedDelimiterBackToCStdio)
 
     IOv2::cin.sync_with_stdio(old);
     IOv2::cin.reset();
+#else
+    GTEST_SKIP() << "the UCRT's stdin takes no pushback; see WhereStdinTakesNoPushbackWhatCinPeekedAtStaysWithCin";
+#endif
 }
 
 // peek() and putback() leave the character with C stdio too, in stream order.
 TEST(IoObjectsChar, SynchronizedPeekAndPutbackAreVisibleToCStdio)
 {
+#if !IOV2_TEST_WINDOWS
     pipe_iguard g("abc");
     g.close_write();
     stdin_full_buffer b;
@@ -384,6 +392,35 @@ TEST(IoObjectsChar, SynchronizedPeekAndPutbackAreVisibleToCStdio)
 
     IOv2::cin.sync_with_stdio(old);
     IOv2::cin.reset();
+#else
+    GTEST_SKIP() << "the UCRT's stdin takes no pushback; see WhereStdinTakesNoPushbackWhatCinPeekedAtStaysWithCin";
+#endif
+}
+
+// Windows' std_device refuses dunget (the UCRT's ungetc can overwrite unread bytes and still
+// report success), so a synchronized cin cannot give C stdio back what it peeked at. As
+// in_impl.h says, the byte then waits in the shared byte buffer: C stdio reads on past it,
+// cin reads it next, and nothing is lost.
+TEST(IoObjectsChar, WhereStdinTakesNoPushbackWhatCinPeekedAtStaysWithCin)
+{
+#if IOV2_TEST_WINDOWS
+    pipe_iguard g("12x34y\n");
+    g.close_write();
+    stdin_full_buffer b;
+    IOv2::cin.reset();
+    const bool old = IOv2::cin.sync_with_stdio(true);
+
+    int n = 0;
+    IOv2::cin >> n;
+    EXPECT_EQ(n, 12);
+    EXPECT_EQ(std::getchar(), '3');                 // past the 'x' cin peeked at
+    EXPECT_EQ(IOv2::cin.get(), 'x');                // which cin still has
+
+    IOv2::cin.sync_with_stdio(old);
+    IOv2::cin.reset();
+#else
+    GTEST_SKIP() << "stdin takes the peeked bytes back here";
+#endif
 }
 
 // Bytes read ahead before the switch come after the one handed back, so it cannot go to C
@@ -494,6 +531,7 @@ TEST(IoObjectsChar, SwitchingBackInsideAnInsertionSplitsIt)
 // been replaced and the converter is initialized, not left half-way.
 TEST(IoObjectsChar, ResetReportsAFailedFlushOfTheDroppedBytesAndStaysUsable)
 {
+#if IOV2_TEST_LINUX_GLIBC
     const int full = ::open("/dev/full", O_WRONLY);
     if (full == -1) GTEST_SKIP() << "no /dev/full here";
 
@@ -518,6 +556,9 @@ TEST(IoObjectsChar, ResetReportsAFailedFlushOfTheDroppedBytesAndStaysUsable)
     EXPECT_EQ(out.contents(), "AFTER");
 
     IOv2::cout.sync_with_stdio(sync);
+#else
+    GTEST_SKIP() << "needs Linux's /dev/full";
+#endif
 }
 
 // In synchronized mode an insertion can leave this stream's bytes in stdout's
@@ -525,6 +566,7 @@ TEST(IoObjectsChar, ResetReportsAFailedFlushOfTheDroppedBytesAndStaysUsable)
 // reset() must report that later failure too, before discarding the old device.
 TEST(IoObjectsChar, ResetReportsAFlushFailureFromAFullBufferedStdout)
 {
+#if IOV2_TEST_LINUX_GLIBC
     const int full = ::open("/dev/full", O_WRONLY);
     if (full == -1) GTEST_SKIP() << "no /dev/full here";
 
@@ -556,6 +598,9 @@ TEST(IoObjectsChar, ResetReportsAFlushFailureFromAFullBufferedStdout)
     EXPECT_NE(out.contents().find("AFTER"), std::string::npos);
 
     IOv2::cout.sync_with_stdio(sync);
+#else
+    GTEST_SKIP() << "needs Linux's /dev/full";
+#endif
 }
 
 // sync_with_stdio changes how the objects reach the C streams, not which
@@ -637,12 +682,12 @@ TEST(IoObjectsChar, SwitchingToSynchronizedKeepsTheInputReadAhead)
 TEST(IoObjectsChar, AdjustingWithStdinSyncIsSyncWithStdio)
 {
     int pipefds[2];
-    ASSERT_NE(::pipe(pipefds), -1);
-    const int saved_stdin = ::dup(STDIN_FILENO);
-    ::dup2(pipefds[0], STDIN_FILENO);
+    ASSERT_NE(sys::pipe(pipefds), -1);
+    const int saved_stdin = sys::dup(sys::stdin_fd);
+    sys::dup2(pipefds[0], sys::stdin_fd);
 
-    EXPECT_EQ(::write(pipefds[1], "12345X", 6), 6);
-    ::close(pipefds[1]);                          // no more input: read() cannot block
+    EXPECT_EQ(sys::write(pipefds[1], "12345X", 6), 6);
+    sys::close(pipefds[1]);                       // no more input: read() cannot block
 
     IOv2::cin.reset();
     IOv2::cin.adjust(IOv2::stdin_sync{false});
@@ -655,9 +700,9 @@ TEST(IoObjectsChar, AdjustingWithStdinSyncIsSyncWithStdio)
 
     EXPECT_EQ(drain_stdin(), "X");                 // synchronized: left for C stdio
 
-    ::dup2(saved_stdin, STDIN_FILENO);
-    ::close(saved_stdin);
-    ::close(pipefds[0]);
+    sys::dup2(saved_stdin, sys::stdin_fd);
+    sys::close(saved_stdin);
+    sys::close(pipefds[0]);
     IOv2::cin.reset();
 }
 
@@ -669,22 +714,22 @@ namespace
     std::string left_on_stdin(const std::string& input, Op op)
     {
         int pipefds[2];
-        if (::pipe(pipefds) == -1)
+        if (sys::pipe(pipefds) == -1)
             return "<pipe failed>";
-        const int saved_stdin = ::dup(STDIN_FILENO);
-        ::dup2(pipefds[0], STDIN_FILENO);
-        ::close(pipefds[0]);
-        const bool written = ::write(pipefds[1], input.data(), input.size())
-                             == static_cast<ssize_t>(input.size());
-        ::close(pipefds[1]);
+        const int saved_stdin = sys::dup(sys::stdin_fd);
+        sys::dup2(pipefds[0], sys::stdin_fd);
+        sys::close(pipefds[0]);
+        const bool written = sys::write(pipefds[1], input.data(), input.size())
+                             == static_cast<long long>(input.size());
+        sys::close(pipefds[1]);
 
         IOv2::cin.reset();
         IOv2::cin.sync_with_stdio(true);
         op();
 
         const std::string rest = drain_stdin();
-        ::dup2(saved_stdin, STDIN_FILENO);
-        ::close(saved_stdin);
+        sys::dup2(saved_stdin, sys::stdin_fd);
+        sys::close(saved_stdin);
         IOv2::cin.clear();
         IOv2::cin.reset();
         return written ? rest : "<write failed>";
@@ -772,12 +817,13 @@ TEST(IoObjectsChar, SynchronizedGetlineLooksAtOneMoreOnlyToDecide)
     EXPECT_EQ(std::string(b), "ab");
 
     // The character it looked at to find the overflow goes back, even though the call fails.
+    // Where stdin takes no pushback (Windows) it stays with cin instead, out of C stdio's sight.
     bool failed = false;
     EXPECT_EQ(left_on_stdin("abcd\n", [&] {
                   IOv2::cin.get<IOv2::cons_sep, IOv2::app_zt>(b, 3);
                   failed = IOv2::cin.str_fail();
               }),
-              "cd\n");
+              IOV2_TEST_WINDOWS ? "d\n" : "cd\n");
     EXPECT_TRUE(failed);
 
     EXPECT_EQ(left_on_stdin("\nx", [&] {
@@ -895,6 +941,21 @@ namespace
     // Re-runs `test` in a child whose fd 0 or fd 1 is broken before exec, so that the stream
     // objects are constructed over it; `mode` names the breakage and reaches the child as
     // test_child_arg(). Returns the child's exit status, or -1 if it did not exit.
+#if IOV2_TEST_WINDOWS
+    // No fork: this process closes its own fd for as long as the spawn takes, and the child
+    // inherits it closed. Only the two closed modes are run here.
+    int run_with_broken_fd(const std::string& test, const std::string& mode)
+    {
+        const int fd = mode.starts_with("stdin") ? sys::stdin_fd : sys::stdout_fd;
+        std::fflush(stdout);
+        const int saved = sys::dup(fd);
+        sys::close(fd);
+        const int status = run_test_child(test, mode);
+        sys::dup2(saved, fd);
+        sys::close(saved);
+        return status;
+    }
+#else
     int run_with_broken_fd(const std::string& test, const std::string& mode)
     {
         const std::string filter = "--gtest_filter=" + test;
@@ -924,17 +985,20 @@ namespace
             return -1;
         return WEXITSTATUS(status);
     }
+#endif
 }
 
 // fd 0 or fd 1 broken when the process starts: closed, a directory, or open in the wrong
 // direction. Constructing the stream objects over it must neither abort nor hang, and the
 // first operation reports the device failure through devfailbit. Only a review probe had
-// run these.
+// run these. Windows runs the closed modes alone.
 TEST(IoObjectsChar, AStandardStreamOverABrokenFdFailsItsFirstOperation)
 {
     if (in_test_child())
     {
+#if !IOV2_TEST_WINDOWS
         ::alarm(10);                               // a hang fails the case instead of the run
+#endif
         const std::string mode = test_child_arg();
         bool dev_failed = false;
         if (mode.starts_with("stdin"))
@@ -952,8 +1016,12 @@ TEST(IoObjectsChar, AStandardStreamOverABrokenFdFailsItsFirstOperation)
         std::_Exit(dev_failed ? 0 : 1);
     }
 
+#if IOV2_TEST_WINDOWS
+    for (const char* mode : {"stdin-closed", "stdout-closed"})
+#else
     for (const char* mode : {"stdin-closed", "stdin-directory", "stdin-write-only",
                              "stdout-closed", "stdout-read-only"})
+#endif
         EXPECT_EQ(run_with_broken_fd("IoObjectsChar.AStandardStreamOverABrokenFdFailsItsFirstOperation", mode), 0)
             << mode;
 }
@@ -1079,6 +1147,7 @@ TEST(IoObjectsChar, SwitchingBackToSyncOnAFailedStreamStillHandsOverItsBytes)
 // error on a failed fflush).
 TEST(IoObjectsChar, SwitchingBackToSyncDoesNotFlushStdioForOthers)
 {
+#if IOV2_TEST_LINUX_GLIBC
     const int full = ::open("/dev/full", O_WRONLY);
     if (full == -1) GTEST_SKIP() << "no /dev/full here";
 
@@ -1105,6 +1174,9 @@ TEST(IoObjectsChar, SwitchingBackToSyncDoesNotFlushStdioForOthers)
 
     EXPECT_EQ(out.contents(), "P");
     IOv2::cout.sync_with_stdio(sync);
+#else
+    GTEST_SKIP() << "needs Linux's /dev/full";
+#endif
 }
 
 // The eight streams are independent, so the free function attempts all of them
@@ -1114,6 +1186,7 @@ TEST(IoObjectsChar, SwitchingBackToSyncDoesNotFlushStdioForOthers)
 // default mask nothing throws at all.
 TEST(IoObjectsChar, SyncWithStdioReportsEveryStreamThatFailed)
 {
+#if IOV2_TEST_LINUX_GLIBC
     const int full = ::open("/dev/full", O_WRONLY);
     if (full == -1) GTEST_SKIP() << "no /dev/full here";
 
@@ -1169,6 +1242,9 @@ TEST(IoObjectsChar, SyncWithStdioReportsEveryStreamThatFailed)
     EXPECT_NO_THROW(IOv2::sync_with_stdio(false));
     EXPECT_NO_THROW(IOv2::sync_with_stdio(true));
     EXPECT_TRUE(IOv2::cout.good());
+#else
+    GTEST_SKIP() << "needs Linux's /dev/full";
+#endif
 }
 
 // A multithreaded program forks while another thread is in the middle of writing to cerr,
@@ -1181,6 +1257,7 @@ TEST(IoObjectsChar, SyncWithStdioReportsEveryStreamThatFailed)
 // happens.
 TEST(IoObjectsChar, AChildForkedWhileAnotherThreadHoldsCerrCanStillWriteToIt)
 {
+#if !IOV2_TEST_WINDOWS
     std::atomic<bool> held{false}, release{false};
     std::thread holder([&] {
         IOv2::sync g(IOv2::cerr);
@@ -1222,4 +1299,7 @@ TEST(IoObjectsChar, AChildForkedWhileAnotherThreadHoldsCerrCanStillWriteToIt)
     holder.join();
 
     EXPECT_EQ(got, "child\n");
+#else
+    GTEST_SKIP() << "fork() is POSIX's";
+#endif
 }
