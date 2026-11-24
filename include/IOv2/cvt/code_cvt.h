@@ -451,7 +451,8 @@ namespace detail
  *       字符悄悄换成 U+FFFD、`wcrtomb_s` 拒绝代理，16 位 `wchar_t` 因此表示不了这些字符。
  *       这时本内核不走 C 库，改用与 `codecvt_kernel<char8_t, wchar_t>` 相同的转换
  *       （`detail::utf8_utf16_codec`）：严格按 RFC 3629，BMP 以外的字符读写为代理对，也不再
- *       进出 `clocale_user`。其他代码页照旧走 C 库。
+ *       进出 `clocale_user`。其他代码页照旧走 C 库，非法序列的判定也随它：UCRT 在双字节代码页
+ *       （如 936）下把前导字节连同其后的任一字节（换行也一样）解成 `?`（U+003F），不报错。
  * @endif
  *
  * @lang{EN}
@@ -493,7 +494,9 @@ namespace detail
  *       leaves the C library aside and converts as `codecvt_kernel<char8_t, wchar_t>` does
  *       (`detail::utf8_utf16_codec`): strictly per RFC 3629, a character outside the BMP read
  *       and written as a surrogate pair, and without entering a `clocale_user`. Other code
- *       pages go through the C library as before.
+ *       pages go through the C library as before, invalid sequences included: under a
+ *       double-byte code page (936, say) the UCRT decodes a lead byte together with whatever
+ *       byte follows it -- a newline too -- as `?` (U+003F), without an error.
  * @endif
  */
 template <typename TInt>

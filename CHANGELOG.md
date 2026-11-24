@@ -168,7 +168,8 @@
   总写满 13 位（`40.0` 写作 `0x1.4000000000000p+5`，glibc 为 `0x1.4p+5`）；负的 NaN 是否写出负号
   也随 C 库（Apple libc 写作 `nan`）；`istream_type`、`ostream_type` 在 clang-cl 上不能拒绝带两个
   `ios_base` 子对象的类型（MSVC 兼容模式把到二义基类的转换当作合法），这样的类型要到使用处才
-  报错。Windows 上的标准流：
+  报错；macOS 上宽字符流在 UTF-8 以外的编码下读写的 `wchar_t` 是字符在该编码里的码，不是
+  Unicode 码位。Windows 上的标准流：
   - 沿用 CRT 对 fd 0/1/2 的翻译模式，本库不调 `_setmode`：缺省的文本模式下读时 `\r\n` 变成
     `\n`、0x1A 当作文件结束，写时 `\n` 变成 `\r\n`，与 C stdio、MSVC STL 一致。
   - 宽字符流按初始 `LC_CTYPE` 编码（没有设置 locale 环境变量时是用户 locale 的 ANSI 代码页），
@@ -279,7 +280,8 @@
   以外的字符了，读写为代理对，与 `code_cvt_creator<char8_t, wchar_t>` 相同。此前 UCRT 的
   `mbrtowc` 把它们悄悄换成 U+FFFD，`wcrtomb_s` 拒绝代理对。这种 locale 下的判法随之改为严格的
   RFC 3629（超长编码、编码过的代理一律无效），转换也不再切换本线程的 locale。其他代码页照旧
-  走 UCRT。
+  走 UCRT，非法序列也随它：双字节代码页（如 936）下前导字节连同其后的任一字节（换行也一样）
+  被解成 `?`，不报错。
 - `monetary` facet 的货币格式按 C 标准（C11 7.11.2.1）的定义构造，Linux 上的输出随之改变：
   - 国际货币符号只取 `int_curr_symbol` 的三字母代码，第四个字符（分隔符）不再随符号输出，
     分隔由 `int_*_sep_by_space` 决定：`curr_symbol_int()` 由 `"USD "` 变为 `"USD"`，en_US
@@ -638,7 +640,9 @@ have no release line of their own.
   `0x1.4p+5`); whether a negative NaN shows its sign is the C library's too (Apple's libc writes
   `nan`); on clang-cl `istream_type` and `ostream_type` cannot reject a type carrying two
   `ios_base` subobjects (MSVC-compatible mode takes a conversion to an ambiguous base as valid),
-  so such a type fails only where it is used. The standard streams on Windows:
+  so such a type fails only where it is used; on macOS the `wchar_t` a wide stream reads or
+  writes under an encoding other than UTF-8 is the character's code in that encoding, not its
+  Unicode code point. The standard streams on Windows:
   - They keep the CRT's translation mode of fds 0/1/2; this library does not call `_setmode`.
     In the default text mode a read turns `\r\n` into `\n` and takes 0x1A as end of file, and
     a write turns `\n` into `\r\n`, as C stdio and the MSVC STL do.
@@ -791,7 +795,8 @@ have no release line of their own.
   into U+FFFD and `wcrtomb_s` rejected surrogate pairs. Under such a locale UTF-8 is now
   judged strictly per RFC 3629 (overlong forms and encoded surrogates are invalid), and
   converting no longer switches the thread's locale. Other code pages still go through
-  the UCRT.
+  the UCRT, invalid sequences included: under a double-byte code page (936, say) a lead
+  byte and whatever byte follows it -- a newline too -- decode as `?`, without an error.
 - The `monetary` facet builds its formats as the C standard (C11 7.11.2.1) defines
   them, which changes its output on Linux:
   - The international symbol is the three-letter code of `int_curr_symbol` alone; the
