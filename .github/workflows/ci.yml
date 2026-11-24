@@ -232,7 +232,8 @@ jobs:
     - name: Run concurrency tests under ThreadSanitizer
       working-directory: test
       run: |
-        # Only the concur suite is built. It collects every test that actually
+        # Only the concur module is built: the concur and concur.streams suites.
+        # They collect every test that actually
         # runs threads -- TSan has nothing to observe in a single-threaded test,
         # so building the rest would cost minutes to inspect executions that
         # cannot race. Devices/converters/facets document concurrency as a
@@ -244,11 +245,11 @@ jobs:
         # is a happens-before detector and does not invent races, so a red here
         # is a real defect rather than CI flake.
         #
-        # Deliberately not --parallel: the preset selects a single test, so
-        # there is nothing to overlap, and leaving the other cores idle is the
+        # Deliberately not --parallel: the two suites run one after the other,
+        # and leaving the other cores idle is the
         # point -- the ten repeats are looking for a schedule that exposes a
-        # race, and competing for cores with nothing would only change that
-        # schedule for reasons unrelated to the code under test.
+        # race, and competing for cores with the other suite would only change
+        # that schedule for reasons unrelated to the code under test.
         cmake --preset gcc-tsan
         cmake --build --preset gcc-tsan --parallel $(nproc)
         ctest --preset gcc-tsan
@@ -680,8 +681,9 @@ jobs:
 
   # The platforms the cross-platform port has reached. Each builds and runs only
   # the components ported so far -- IOV2_TEST_COMPONENTS in its preset, today
-  # common, device, cvt, facet, locale and io without the standard stream objects
-  # (io/objects) -- and grows as the port does; the Linux jobs above stay the full
+  # common, device, cvt, facet, locale, and io and concur without the standard
+  # stream objects (io/objects, all of concur but concur/streams) -- and grows as
+  # the port does; the Linux jobs above stay the full
   # gate. No container: the GHCR image is Linux-only, and the point here is the
   # platform's own compiler, standard library and C runtime.
   portability:
