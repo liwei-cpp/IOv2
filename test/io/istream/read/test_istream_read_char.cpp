@@ -37,7 +37,6 @@
 #include <limits>
 #include <string>
 #include <thread>
-#include <unistd.h>
 
 using namespace IOv2;
 
@@ -289,7 +288,7 @@ TEST(IstreamReadChar, ASatisfiedReadDoesNotGoBackToTheDevice)
         guard.close_write();
     });
 
-    istream is{std_device<STDIN_FILENO>{}};
+    istream is{std_input_device{}};
 
     char       buf[3] = {};
     const auto start   = std::chrono::steady_clock::now();

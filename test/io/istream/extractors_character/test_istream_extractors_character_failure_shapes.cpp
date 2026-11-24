@@ -57,6 +57,11 @@ struct capped_alloc
 {
     using value_type = T;
 
+    // Max is not a type, so allocator_traits cannot rebind this by itself; libc++ and the
+    // MSVC STL insist on it, libstdc++ does not.
+    template <class U>
+    struct rebind { using other = capped_alloc<U, Max>; };
+
     capped_alloc() = default;
     template <class U>
     explicit capped_alloc(const capped_alloc<U, Max>&) noexcept

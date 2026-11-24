@@ -113,7 +113,7 @@
       "description": "Cross-built on Linux for Windows (MSVC ABI) and run under Wine; see cmake/toolchains/windows-clangcl-xwin.cmake. IOV2_TEST_COMPONENTS lists the components ported so far.",
       "generator": "Ninja",
       "toolchainFile": "${sourceDir}/cmake/toolchains/windows-clangcl-xwin.cmake",
-      "cacheVariables": { "IOV2_TEST_COMPONENTS": "common;device;cvt;facet;locale" }
+      "cacheVariables": { "IOV2_TEST_COMPONENTS": "common;device;cvt;facet;locale;io/channel;io/channel_iterator;io/ctad;io/io_base;io/ios_state;io/iostream;io/istream;io/newline_cvt;io/ostream;io/traits" }
     },
     {
       "name": "win-clangcl-xwin-release",
@@ -146,7 +146,7 @@
       "condition": { "type": "equals", "lhs": "${hostSystemName}", "rhs": "Windows" },
       "toolchainFile": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
       "cacheVariables": {
-        "IOV2_TEST_COMPONENTS": "common;device;cvt;facet;locale",
+        "IOV2_TEST_COMPONENTS": "common;device;cvt;facet;locale;io/channel;io/channel_iterator;io/ctad;io/io_base;io/ios_state;io/iostream;io/istream;io/newline_cvt;io/ostream;io/traits",
         "VCPKG_TARGET_TRIPLET": "x64-windows",
         "VCPKG_APPLOCAL_DEPS": "OFF"
       }
@@ -193,7 +193,7 @@
       "condition": { "type": "equals", "lhs": "${hostSystemName}", "rhs": "Darwin" },
       "environment": { "CXX": "clang++" },
       "cacheVariables": {
-        "IOV2_TEST_COMPONENTS": "common;device;cvt;facet;locale",
+        "IOV2_TEST_COMPONENTS": "common;device;cvt;facet;locale;io/channel;io/channel_iterator;io/ctad;io/io_base;io/ios_state;io/iostream;io/istream;io/newline_cvt;io/ostream;io/traits",
         "CMAKE_PREFIX_PATH": "/opt/homebrew"
       }
     },

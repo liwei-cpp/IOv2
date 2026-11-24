@@ -23,6 +23,8 @@
 #include <IOv2/io/ostream.h>
 #include <IOv2/io/traits/char_and_str.h>
 
+#include <support/platform_macros.h>
+
 #include <cstddef>
 #include <string>
 #include <type_traits>
@@ -34,13 +36,20 @@ namespace
 template <typename C>
 using os_t = IOv2::ostream<IOv2::mem_device<C>, C>;
 
+// A UTF-8 locale every platform has. Windows has no "C.UTF-8".
+#if !IOV2_TEST_WINDOWS
+constexpr const char* kUtf8 = "C.UTF-8";
+#else
+constexpr const char* kUtf8 = "en_US.UTF-8";
+#endif
+
 // char8_t is UTF-8 by definition, so its collate facet refuses to build over a
 // non-UTF-8 locale -- "C" throws where it works for every other character type.
 template <typename C>
 os_t<C> make_stream()
 {
     if constexpr (std::is_same_v<C, char8_t>)
-        return os_t<C>{IOv2::mem_device<C>{}, IOv2::locale<C>("C.UTF-8")};
+        return os_t<C>{IOv2::mem_device<C>{}, IOv2::locale<C>(kUtf8)};
     else
         return os_t<C>{IOv2::mem_device<C>{}, IOv2::locale<C>("C")};
 }
@@ -84,12 +93,14 @@ TEST(OstreamInsertCharacterWideningEdges, TheSamePathHoldsForEveryWideCharacterT
         EXPECT_FALSE(os.str_fail());
         EXPECT_EQ(os.device().str(), std::u8string(u8"ok"));
     }
+#if IOV2_TEST_LINUX_GLIBC   // char32_t streams need wchar_t_is_utf32
     {
         auto os = make_stream<char32_t>();
         os << "" << "ok";
         EXPECT_FALSE(os.str_fail());
         EXPECT_EQ(os.device().str(), std::u32string(U"ok"));
     }
+#endif
 }
 
 TEST(OstreamInsertCharacterWideningEdges, ANarrowStreamTakesTheByteWiseRouteInstead)
@@ -169,5 +180,7 @@ TEST(OstreamInsertCharacterWideningEdges, LongAndPaddedNarrowStringsWidenOnEvery
 
     expect_widened.template operator()<wchar_t>();
     expect_widened.template operator()<char8_t>();
+#if IOV2_TEST_LINUX_GLIBC   // char32_t streams need wchar_t_is_utf32
     expect_widened.template operator()<char32_t>();
+#endif
 }

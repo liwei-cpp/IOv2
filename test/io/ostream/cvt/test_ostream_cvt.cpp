@@ -14,6 +14,9 @@
  * The last test is the other half of that: appmode needs to reposition to the
  * end before every insertion, which a variable-length encoding cannot do, so
  * the combination has to fail rather than write somewhere wrong.
+ *
+ * The streams here are char32_t ones over code_cvt into char32_t, which exist
+ * on glibc alone (wchar_t_is_utf32); elsewhere those cases skip.
  */
 #include <IOv2/cvt/code_cvt.h>
 #include <IOv2/cvt/crypt/vigenere_cvt.h>
@@ -26,6 +29,8 @@
 #include <IOv2/io/traits/char_and_str.h>
 #include <IOv2/locale/locale.h>
 
+#include <support/platform_macros.h>
+
 #include <gtest/gtest.h>
 
 #include <cstddef>
@@ -34,6 +39,7 @@
 
 using namespace IOv2;
 
+#if IOV2_TEST_LINUX_GLIBC
 namespace
 {
     // "李伟" as UTF-8, which is what the cipher stage is handed.
@@ -52,9 +58,11 @@ namespace
         return out;
     }
 }
+#endif
 
 TEST(OstreamCvt, APipelineRunsItsStagesInOrder)
 {
+#if IOV2_TEST_LINUX_GLIBC
     auto creator = Crypt::Classic::vigenere_cvt_creator(kKey) |
                    code_cvt_creator<char, char32_t>("zh_CN.UTF-8");
 
@@ -72,10 +80,14 @@ TEST(OstreamCvt, APipelineRunsItsStagesInOrder)
 
     helper.operator()<ostream>();
     helper.operator()<iostream>();
+#else
+    GTEST_SKIP() << "char32_t streams need wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 TEST(OstreamCvt, TheSameHoldsThroughTheSyncView)
 {
+#if IOV2_TEST_LINUX_GLIBC
     auto creator = Crypt::Classic::vigenere_cvt_creator(kKey) |
                    code_cvt_creator<char, char32_t>("zh_CN.UTF-8");
 
@@ -93,6 +105,9 @@ TEST(OstreamCvt, TheSameHoldsThroughTheSyncView)
 
     helper.operator()<ostream>();
     helper.operator()<iostream>();
+#else
+    GTEST_SKIP() << "char32_t streams need wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 // Appmode requires a fixed-length, state-independent encoding so the output sentry can
@@ -102,6 +117,7 @@ TEST(OstreamCvt, TheSameHoldsThroughTheSyncView)
 // set nothing escapes to the caller. This drives the appmode/cvt_error branch of out_sentry.
 TEST(OstreamCvt, AppmodeOverAVariableLengthEncodingIsRefused)
 {
+#if IOV2_TEST_LINUX_GLIBC
     auto helper = []<template <typename, typename> class T>()
     {
         auto creator = code_cvt_creator<char, char32_t>("zh_CN.UTF-8");
@@ -121,6 +137,9 @@ TEST(OstreamCvt, AppmodeOverAVariableLengthEncodingIsRefused)
 
     helper.operator()<ostream>();
     helper.operator()<iostream>();
+#else
+    GTEST_SKIP() << "char32_t streams need wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 // An iostream over unread input starts in read mode, so its first appmode insertion has to
@@ -130,6 +149,7 @@ TEST(OstreamCvt, AppmodeOverAVariableLengthEncodingIsRefused)
 // rather than the switch complaining about the unread input.
 TEST(OstreamCvt, AppmodeRepositionsBeforeSwitchingDirection)
 {
+#if IOV2_TEST_LINUX_GLIBC
     auto     creator = code_cvt_creator<char, char32_t>("zh_CN.UTF-8");
     iostream ios(mem_device{"\xE6\x9D\x8E"}, creator, locale<char32_t>("C"));
     ios.exceptions(ios_defs::cvtfailbit);
@@ -146,6 +166,9 @@ TEST(OstreamCvt, AppmodeRepositionsBeforeSwitchingDirection)
     }
     EXPECT_NE(what.find("appmode"), std::string::npos) << what;
     EXPECT_TRUE(ios.rdstate() & ios_defs::cvtfailbit);
+#else
+    GTEST_SKIP() << "char32_t streams need wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 // An ostream over existing content starts out facing input. It switches to output on its
@@ -154,6 +177,7 @@ TEST(OstreamCvt, AppmodeRepositionsBeforeSwitchingDirection)
 // gets refused -- by the insertion, into cvtfailbit.
 TEST(OstreamCvt, OverExistingContentTheSwitchWaitsForTheFirstWrite)
 {
+#if IOV2_TEST_LINUX_GLIBC
     ostream os(mem_device<char8_t>{u8"李"}, code_cvt_creator<char8_t, char32_t>{},
                locale<char32_t>("C"));
     EXPECT_TRUE(os.good());
@@ -163,6 +187,9 @@ TEST(OstreamCvt, OverExistingContentTheSwitchWaitsForTheFirstWrite)
     os << U"X";
     EXPECT_TRUE(os.rdstate() & ios_defs::cvtfailbit);
     EXPECT_EQ(os.device().str(), u8"李");
+#else
+    GTEST_SKIP() << "char32_t streams need wchar_t_is_utf32 (glibc)";
+#endif
 }
 
 // Without such a converter the deferred switch changes nothing: a seek before the first

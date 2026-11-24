@@ -25,6 +25,8 @@
 #include <IOv2/io/traits/arithmetic.h>
 #include <IOv2/locale/locale.h>
 
+#include <support/platform_macros.h>
+
 #include <gtest/gtest.h>
 
 #include <memory>
@@ -34,6 +36,13 @@ using namespace IOv2;
 
 namespace
 {
+    // A UTF-8 locale every platform has. Windows has no "C.UTF-8".
+#if !IOV2_TEST_WINDOWS
+    constexpr const char* kUtf8 = "C.UTF-8";
+#else
+    constexpr const char* kUtf8 = "en_US.UTF-8";
+#endif
+
     // widen(' ') answers with a tab, so a fill that were re-derived from the
     // locale would stop being a space and the difference would be visible.
     template <typename C>
@@ -230,19 +239,19 @@ TEST(IosBaseFill, TheSameCriterionHoldsOnAWideStream)
 //
 // A char8_t locale has to be a UTF-8 one -- locale<char8_t>("C") throws from collate_conf -- and
 // the default-constructed locale would be whatever the environment says, which is not something
-// a criterion test should depend on. Hence the explicit "C.UTF-8" here and the bare default for
-// char32_t, which takes "C" happily.
+// a criterion test should depend on. Hence an explicit UTF-8 locale here and "C" for char32_t,
+// which takes it happily. char32_t streams exist on glibc alone (wchar_t_is_utf32).
 TEST(IosBaseFill, TheSameCriterionHoldsOnUtf8AndUtf32Streams)
 {
     {
-        ostream out{mem_device<char8_t>{}, locale<char8_t>("C.UTF-8")};
+        ostream out{mem_device<char8_t>{}, locale<char8_t>(kUtf8)};
         out.setf(ios_defs::hex, ios_defs::basefield);
         out << setfill(u8'f') << setw(8) << 0xabUL;
         EXPECT_FALSE(out.good());
         EXPECT_TRUE(out.rdstate() & ios_defs::strfailbit);
     }
     {
-        ostream out{mem_device<char8_t>{}, locale<char8_t>("C.UTF-8")};
+        ostream out{mem_device<char8_t>{}, locale<char8_t>(kUtf8)};
         out.setf(ios_defs::hex, ios_defs::basefield);
         out << setfill(u8'0') << setw(8) << 0xabUL;
         EXPECT_TRUE(out.good());
@@ -251,13 +260,14 @@ TEST(IosBaseFill, TheSameCriterionHoldsOnUtf8AndUtf32Streams)
     }
     {
         // Decimal: 'f' is not a digit, so the same fill that was refused above is fine.
-        ostream out{mem_device<char8_t>{}, locale<char8_t>("C.UTF-8")};
+        ostream out{mem_device<char8_t>{}, locale<char8_t>(kUtf8)};
         out << setfill(u8'f') << setw(8) << 42UL;
         EXPECT_TRUE(out.good());
         auto [dev, err] = out.detach();
         EXPECT_EQ(dev.str(), u8"ffffff42");
     }
 
+#if IOV2_TEST_LINUX_GLIBC
     {
         ostream out{mem_device<char32_t>{}, locale<char32_t>("C")};
         out.setf(ios_defs::hex, ios_defs::basefield);
@@ -280,4 +290,5 @@ TEST(IosBaseFill, TheSameCriterionHoldsOnUtf8AndUtf32Streams)
         auto [dev, err] = out.detach();
         EXPECT_EQ(dev.str(), U"ffffff42");
     }
+#endif
 }

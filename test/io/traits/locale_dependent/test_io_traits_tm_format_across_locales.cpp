@@ -18,13 +18,19 @@
  * every branch is still reachable and that no locale produces a format the
  * appending logic mangles -- in particular that a %c ending in an odd number
  * of '%' never fuses with the appended " %z" into an unknown specifier.
+ *
+ * The UCRT's std::tm has neither member, so on Windows nothing is appended
+ * anywhere and the sweep checks exactly that.
  */
 #include <IOv2/device/mem_device.h>
 #include <IOv2/io/io_base.h>
 #include <IOv2/io/ostream.h>
 #include <IOv2/io/traits/tm.h>
 
+#include <support/platform_macros.h>
+
 #include <clocale>
+#include <cstdio>
 #include <cstdlib>
 #include <ctime>
 #include <map>
@@ -32,15 +38,45 @@
 #include <string>
 #include <vector>
 
+#if IOV2_TEST_WINDOWS
+#define NOMINMAX
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>   // EnumSystemLocalesEx, for the locales the system has
+#endif
+
 #include <gtest/gtest.h>
 
 namespace
 {
+#if IOV2_TEST_WINDOWS
+// EnumSystemLocalesEx's callback: collects each locale's name.
+BOOL CALLBACK collect_locale(LPWSTR name, DWORD, LPARAM names)
+{
+    if (name != nullptr && *name != L'\0')
+        reinterpret_cast<std::vector<std::wstring>*>(names)->emplace_back(name);
+    return TRUE;
+}
+#endif
+
 // The locales the machine actually has. An image without locales-all still
-// runs the suite; it just sweeps a shorter list.
+// runs the suite; it just sweeps a shorter list. Windows has no `locale -a`:
+// there every system locale is taken by its UTF-8 name.
 std::vector<std::string> utf8_locales()
 {
     std::vector<std::string> names;
+#if IOV2_TEST_WINDOWS
+    std::vector<std::wstring> bcp47;
+    if (EnumSystemLocalesEx(collect_locale, LOCALE_WINDOWS, reinterpret_cast<LPARAM>(&bcp47), nullptr))
+    {
+        for (const std::wstring& w : bcp47)
+        {
+            std::string name;   // BCP-47 names are ASCII
+            for (const wchar_t c : w)
+                name += static_cast<char>(c);
+            names.push_back(name + ".UTF-8");
+        }
+    }
+#else
     if (std::FILE* pipe = ::popen("locale -a 2>/dev/null", "r"))
     {
         char line[256];
@@ -54,6 +90,7 @@ std::vector<std::string> utf8_locales()
         }
         ::pclose(pipe);
     }
+#endif
     return names;
 }
 
@@ -126,9 +163,18 @@ TEST(IoTraitsTmFormatAcrossLocales, EveryAppendingBranchIsStillReachable)
             << "growth " << grew << " on " << count << " locale(s) is not a sum of 3 and 5";
     }
 
-    // Whatever the split, the common case has to be the one that appends both.
-    EXPECT_GT(histogram[8] + histogram[5] + histogram[3], 0u)
-        << "no locale needed any appending at all, which would mean the branches are dead";
+    if constexpr (IOv2::detail::tm_has_gmtoff<std::tm> || IOv2::detail::tm_has_zone<std::tm>)
+    {
+        // Whatever the split, the common case has to be the one that appends both.
+        EXPECT_GT(histogram[8] + histogram[5] + histogram[3], 0u)
+            << "no locale needed any appending at all, which would mean the branches are dead";
+    }
+    else
+    {
+        // Neither member exists (the UCRT), so there is nothing to append anywhere.
+        EXPECT_EQ(histogram.size(), 1u);
+        EXPECT_EQ(histogram.count(0), 1u);
+    }
 }
 
 TEST(IoTraitsTmFormatAcrossLocales, EveryLocaleProducesAFormatThatWritesAndReadsBack)

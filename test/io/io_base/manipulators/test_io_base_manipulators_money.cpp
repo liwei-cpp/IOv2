@@ -26,6 +26,7 @@
 #include <IOv2/locale/locale.h>
 
 #include <support/io_traits_probe.h>
+#include <support/platform_macros.h>
 
 #include <gtest/gtest.h>
 
@@ -36,15 +37,24 @@ using namespace IOv2;
 namespace
 {
     // Every monetary expectation here depends on a real system locale. Skipping is
-    // honest where it is missing; asserting would only report the machine.
+    // honest where it is missing; asserting would only report the machine. A name the
+    // C library does not know throws io_error, of which cvt_error is only one kind.
     bool have_locale(const char* name)
     {
         try { (void)locale<char>(name); }
-        catch (const cvt_error&) { return false; }
+        catch (const io_error&) { return false; }
         return true;
     }
 
+    // A single-byte German locale: '.' groups and ',' is the decimal mark. Each C
+    // library spells it its own way; the UCRT takes no ISO 8859 name, so code page 1252.
+#if IOV2_TEST_WINDOWS
+    constexpr const char* kGrouped = "de-DE";
+#elif IOV2_TEST_MACOS
+    constexpr const char* kGrouped = "de_DE.ISO8859-1";
+#else
     constexpr const char* kGrouped = "de_DE.ISO-8859-1";
+#endif
 }
 
 // The amount is in the smallest unit, so the facet is what decides where the

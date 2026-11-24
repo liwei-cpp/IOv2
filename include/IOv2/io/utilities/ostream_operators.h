@@ -548,7 +548,9 @@ struct ostream_operators;
  * `ios_state<char_type>` 与 `ostream_operators<char_type>`。
  * @note `ios_state` 与 `ios_base` 两条是必需的，不只是描述性的：本概念约束下的代码会直接调用
  *       `handle_exception()` 与 `operator bool`；而带有两个 `ios_base` 子对象的类型在这里就被
- *       拒掉，不必拖到后面某个 `io_mutex()` 调用才报二义。
+ *       拒掉，不必拖到后面某个 `io_mutex()` 调用才报二义。例外是 MSVC 兼容模式下的 clang
+ *       （clang-cl）：它把到二义基类的转换当作合法，`std::derived_from` 因而为真，这样的类型能
+ *       通过本概念，要到使用处才报二义。
  * @note `out_iter_type` 必须是 `o_iter()` 的返回类型（`o_iter()` 的返回类型就写成它，因此两者
  *       不会漂移）。之所以要把这个**类型**公开出来，是因为 `o_iter()` 本身是私有的，而命名概念
  *       无法调用它；公开类型不等于公开对象——`ochannel_iterator` 只能由 `TChannel&` 构造。
@@ -565,7 +567,9 @@ struct ostream_operators;
  * @note The `ios_state` and `ios_base` clauses are requirements, not just descriptions: code
  *       constrained by this concept calls `handle_exception()` and `operator bool` directly, and
  *       a type carrying two `ios_base` subobjects is rejected here rather than at some later
- *       ambiguous `io_mutex()` call.
+ *       ambiguous `io_mutex()` call. The exception is clang in MSVC-compatible mode
+ *       (clang-cl): it takes a conversion to an ambiguous base as valid, so `std::derived_from`
+ *       holds and such a type satisfies the concept, failing only at that later call.
  * @note `out_iter_type` must be the return type of `o_iter()` -- which is spelled as exactly
  *       that type, so the two cannot drift apart. The type is public because `o_iter()` itself
  *       is private and a named concept cannot call it; exposing the type is not exposing the

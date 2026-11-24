@@ -25,11 +25,14 @@
 #include <IOv2/io/ostream.h>
 #include <IOv2/io/iochannel.h>
 
+#include <support/platform_macros.h>
 #include <support/stdio_guard.h>
 
 #include <gtest/gtest.h>
 
+#if IOV2_TEST_LINUX_GLIBC
 #include <stdio_ext.h>
+#endif
 
 #include <cstddef>
 #include <cstdio>
@@ -930,6 +933,7 @@ TEST(Channel, DetachAfterAFailureStillHandsBackTheDevice)
 // flushed what had been handed to stdio.
 TEST(ChannelChar, AMovedFromOchannelOverAStdDeviceWritesNothingWhenItDies)
 {
+#if IOV2_TEST_LINUX_GLIBC
     oguard<true>       g;
     stdout_full_buffer buffered;
 
@@ -949,4 +953,7 @@ TEST(ChannelChar, AMovedFromOchannelOverAStdDeviceWritesNothingWhenItDies)
     moved.flush();
     std::fflush(stdout);
     EXPECT_EQ(g.contents(), "hello world");         // the target owns all of it, once
+#else
+    GTEST_SKIP() << "needs __fpending() from glibc's <stdio_ext.h>";
+#endif
 }

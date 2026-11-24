@@ -55,10 +55,11 @@ namespace
         return tmp;
     }
 
+    // A name the C library does not know throws io_error, of which cvt_error is only one kind.
     bool have_locale(const char* name)
     {
         try { (void)locale<char>(name); }
-        catch (const cvt_error&) { return false; }
+        catch (const io_error&) { return false; }
         return true;
     }
 
