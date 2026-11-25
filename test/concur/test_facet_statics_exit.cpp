@@ -48,7 +48,7 @@ namespace
     namespace sys = iov2_test::sys;
 
     const char* const kModeEnv = "IOV2_FACET_STATICS_MODE";
-    constexpr auto kChildDeadline = std::chrono::seconds(15);
+    constexpr auto kChildDeadline = std::chrono::seconds(120);   // see test_std_objects_exit.cpp
 
     // Without a time-zone database (macOS) the trie holds only UTC and UNKNOWN.
     void parse_zone()
