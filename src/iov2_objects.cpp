@@ -190,8 +190,9 @@ IOV2_API wcin_t&    wcin = _wcin_init.get();
  */
 IOV2_API copyable_mutex<std::mutex>& tie_graph_mutex()
 {
-    static copyable_mutex<std::mutex> m;
-    return m;
+    // Never deleted on purpose: see stream_common_operators.h.
+    static auto* const m = new copyable_mutex<std::mutex>(); // NOLINT(cppcoreguidelines-owning-memory)
+    return *m;
 }
 
 /**

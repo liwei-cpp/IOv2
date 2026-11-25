@@ -53,6 +53,7 @@ namespace IOv2
  * 本锁、sentry 只取 `io_mutex()`——故不引入新的加锁顺序约束。
  * 「进程级」的前提与八个标准流对象相同：单一模块，或各模块都使用 `IOV2_SHARED`
  * （header-only 跨模块不受支持，那时本锁可能不止一把），见 `IOv2/io/objects/objects.h` 的 `@note`。
+ * 本锁永不析构：标准流对象退出时不析构，退出期间对它们 `tie()` 仍要用到它。
  * @return 保护整张 tie 图的进程级全局互斥量的引用。
  * @endif
  *
@@ -75,6 +76,8 @@ namespace IOv2
  * module, or every module built with `IOV2_SHARED` (header-only across modules is not
  * supported, and there may be more than one such lock then); see the `@note` in
  * `IOv2/io/objects/objects.h`.
+ * The lock is never destroyed: the standard stream objects are not destroyed at exit,
+ * and a `tie()` on one of them during exit still needs it.
  * @return A reference to the process-wide mutex that guards the entire tie graph.
  * @endif
  */
@@ -83,8 +86,9 @@ IOV2_API copyable_mutex<std::mutex>& tie_graph_mutex();     // defined in iov2_o
 #else
 inline copyable_mutex<std::mutex>& tie_graph_mutex()
 {
-    static copyable_mutex<std::mutex> m;
-    return m;
+    // Never deleted on purpose: see above.
+    static auto* const m = new copyable_mutex<std::mutex>(); // NOLINT(cppcoreguidelines-owning-memory)
+    return *m;
 }
 #endif
 

@@ -50,10 +50,15 @@ namespace
     const char* const kModeEnv = "IOV2_FACET_STATICS_MODE";
     constexpr auto kChildDeadline = std::chrono::seconds(15);
 
+    // Without a time-zone database (macOS) the trie holds only UTC and UNKNOWN.
     void parse_zone()
     {
         IOv2::timeio<char> obj(std::make_shared<IOv2::timeio_conf<char>>("C"));
+#if IOV2_HAS_CHRONO_TZDB
         const std::string input = "America/Los_Angeles";
+#else
+        const std::string input = "UTC";
+#endif
         IOv2::time_parse_context<char> ctx;
         (void)obj.get(input.begin(), input.end(), ctx, std::string("%Z"));
     }
