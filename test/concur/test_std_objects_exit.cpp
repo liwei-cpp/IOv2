@@ -61,9 +61,11 @@ namespace
     const char* const kChainFile = "exit_hook_chain.out";
 
     // The child does next to nothing, but it is exec'd, so it pays for a process
-    // start-up: long enough not to be flaky on a loaded machine, short enough
-    // that a regression fails the suite instead of hanging it.
-    constexpr auto kChildDeadline = std::chrono::seconds(15);
+    // start-up: seconds in a debug build on Windows, and some six times that under
+    // MSVC's AddressSanitizer, where whole suites run that much slower. Long enough
+    // for that on a loaded machine, short enough that a regression fails the suite
+    // instead of hanging it.
+    constexpr auto kChildDeadline = std::chrono::seconds(120);
 
     // Runs this same test in a fresh process with stdout on kOutFile. Returns the
     // child's exit status, or -1 if it had to be killed for overrunning.
