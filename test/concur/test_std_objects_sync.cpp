@@ -33,6 +33,7 @@
 #include <IOv2/io/traits/arithmetic.h>
 #include <IOv2/io/traits/char_and_str.h>
 
+#include <support/platform_macros.h>
 #include <support/stdio_guard.h>
 
 #include <gtest/gtest.h>
@@ -61,15 +62,22 @@ namespace
     }
 
     // Feeds the pipe until `done` is set, then closes it so the reader hits EOF.
-    void feed_until_done(pipe_iguard& in, const std::atomic<bool>& done)
+    // A reader that stopped early (its stream failed) ends the feeding as well:
+    // nothing would drain the pipe, and a full one would block here for good.
+    void feed_until_done(pipe_iguard& in, const std::atomic<bool>& done, const std::atomic<bool>& reader_done)
     {
         const std::string chunk = numbered_lines(kChunk);
-        while (!done.load()) in.feed(chunk);
+        while (!done.load() && !reader_done.load()) in.feed(chunk);
         in.close_write();
     }
 
+    // GBK is the UCRT's zh-CN (code page 936); it takes no "zh_CN.GBK".
     const char* const kCodeA = "en_US.UTF-8";
+#if IOV2_TEST_WINDOWS
+    const char* const kCodeB = "zh-CN";
+#else
     const char* const kCodeB = "zh_CN.GBK";
+#endif
 }
 
 TEST(StdObjectsSync, WcoutSwitchCodeAndResetAgainstInsertion)
@@ -105,10 +113,12 @@ TEST(StdObjectsSync, CinSyncWithStdioAndResetAgainstExtraction)
     pipe_iguard in(numbered_lines(kChunk));
     IOv2::cin.reset();
     std::atomic<bool> done{false};
+    std::atomic<bool> reader_done{false};
 
-    std::thread reader([] {
+    std::thread reader([&reader_done] {
         int x = 0;
         while (IOv2::cin >> x) {}
+        reader_done = true;
     });
     std::thread toggler([&done] {
         for (int i = 0; i < kSwitches; ++i)
@@ -118,7 +128,7 @@ TEST(StdObjectsSync, CinSyncWithStdioAndResetAgainstExtraction)
         }
         done = true;
     });
-    feed_until_done(in, done);
+    feed_until_done(in, done, reader_done);
     toggler.join();
     reader.join();
 
@@ -133,10 +143,12 @@ TEST(StdObjectsSync, WcinSwitchCodeAndSyncWithStdioAgainstExtraction)
     IOv2::wcin.reset();
     const std::string original = IOv2::wcin.switch_code(kCodeA);
     std::atomic<bool> done{false};
+    std::atomic<bool> reader_done{false};
 
-    std::thread reader([] {
+    std::thread reader([&reader_done] {
         int x = 0;
         while (IOv2::wcin >> x) {}
+        reader_done = true;
     });
     std::thread switcher([&done] {
         for (int i = 0; i < kSwitches; ++i)
@@ -147,7 +159,7 @@ TEST(StdObjectsSync, WcinSwitchCodeAndSyncWithStdioAgainstExtraction)
         }
         done = true;
     });
-    feed_until_done(in, done);
+    feed_until_done(in, done, reader_done);
     switcher.join();
     reader.join();
 
@@ -198,7 +210,7 @@ TEST(StdObjectsSync, ASecondSwitcherCannotReturnBeforeTheHandOver)
     IOv2::cout.sync_with_stdio(sync);
 }
 
-#if defined(__GLIBC__)
+#if IOV2_TEST_LINUX_GLIBC
 namespace
 {
     // An unbuffered fopencookie stream standing in for stdout: each fwrite of the
@@ -255,7 +267,7 @@ namespace
 // moment that matters: from inside the hand-over's own write.
 TEST(StdObjectsSync, SyncedWithStdioIsFalseUntilTheHandOverIsDone)
 {
-#if !defined(__GLIBC__)
+#if !IOV2_TEST_LINUX_GLIBC
     GTEST_SKIP() << "needs glibc's fopencookie";
 #else
     const auto probe = hand_over_through_probe(IOv2::cout, "P",
@@ -269,7 +281,7 @@ TEST(StdObjectsSync, SyncedWithStdioIsFalseUntilTheHandOverIsDone)
 // The same on wcout, whose hand-over goes through code_cvt_stdio before the device.
 TEST(StdObjectsSync, WcoutSyncedWithStdioIsFalseUntilTheHandOverIsDone)
 {
-#if !defined(__GLIBC__)
+#if !IOV2_TEST_LINUX_GLIBC
     GTEST_SKIP() << "needs glibc's fopencookie";
 #else
     const auto probe = hand_over_through_probe(IOv2::wcout, L"P",

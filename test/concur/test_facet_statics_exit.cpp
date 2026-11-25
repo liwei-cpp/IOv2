@@ -14,7 +14,7 @@
  * a heap-use-after-free in the worker, or in the destructor of any static
  * object that was constructed before the facet data and therefore outlives it.
  *
- * Each case forks a child that drives one of those paths from a detached
+ * Each case starts a child that drives one of those paths from a detached
  * thread while main() returns and expects it to exit cleanly; under the
  * sanitizer preset a regression is an ASan report and a non-zero exit status.
  *
@@ -23,12 +23,15 @@
  * third case. Which static of default priority goes first depends on the link
  * order of the suite's translation units, so the late object is given
  * init_priority(101): it is constructed before every default-priority
- * initializer whatever the link order, and destroyed after all of them.
+ * initializer whatever the link order, and destroyed after all of them. That
+ * ordering is ELF's -- cl.exe has no init_priority, and on Mach-O it holds within
+ * one object file only -- so the third case runs on glibc only.
  */
 #include <IOv2/facet/messages.h>
 #include <IOv2/facet/timeio.h>
 
-#include <support/exe_path.h>
+#include <support/platform.h>
+#include <support/platform_macros.h>
 
 #include <gtest/gtest.h>
 
@@ -40,12 +43,10 @@
 #include <string_view>
 #include <thread>
 
-#include <signal.h>
-#include <sys/wait.h>
-#include <unistd.h>
-
 namespace
 {
+    namespace sys = iov2_test::sys;
+
     const char* const kModeEnv = "IOV2_FACET_STATICS_MODE";
     constexpr auto kChildDeadline = std::chrono::seconds(15);
 
@@ -61,49 +62,21 @@ namespace
     // or -1 if it had to be killed for overrunning.
     int run_child(const char* mode)
     {
-        const std::string executable = exe_path();
-
-        const pid_t child = ::fork();
-        if (child == -1)
-            return -1;
-
-        if (child == 0)
-        {
-            ::setenv(kModeEnv, mode, 1);
-            ::execl(executable.c_str(), executable.c_str(),
-                    "--gtest_filter=FacetStaticsExit.ProcessWideFacetDataSurvivesExit",
-                    "--gtest_color=no", static_cast<char*>(nullptr));
-            ::_exit(127);
-        }
-
-        const auto deadline = std::chrono::steady_clock::now() + kChildDeadline;
-        for (;;)
-        {
-            int status = 0;
-            const pid_t done = ::waitpid(child, &status, WNOHANG);
-            if (done == child)
-                return WIFEXITED(status) ? WEXITSTATUS(status) : -1;
-            if (done == -1)
-                return -1;
-            if (std::chrono::steady_clock::now() >= deadline)
-            {
-                ::kill(child, SIGKILL);
-                ::waitpid(child, &status, 0);
-                return -1;
-            }
-            std::this_thread::sleep_for(std::chrono::milliseconds(20));
-        }
-    }
-
-    void use_domain_table()
-    {
-        IOv2::base_ft<IOv2::messages>::bind_text_domain("late", "/nonexistent");
-        (void)IOv2::base_ft<IOv2::messages>::get_dirname("late");
+        return sys::run_self({"--gtest_filter=FacetStaticsExit.ProcessWideFacetDataSurvivesExit",
+                              "--gtest_color=no"},
+                             kModeEnv, mode, kChildDeadline);
     }
 
     // Static, not a local: the worker is detached and outlives every scope in
     // the child, which never returns from the test body.
     std::atomic<long> g_rounds{0};
+
+#if IOV2_TEST_LINUX_GLIBC
+    void use_domain_table()
+    {
+        IOv2::base_ft<IOv2::messages>::bind_text_domain("late", "/nonexistent");
+        (void)IOv2::base_ft<IOv2::messages>::get_dirname("late");
+    }
 
     // Its constructor must not touch IOv2: it runs before any of the library's
     // statics exist. Only the destructor, in the "late_static" child, uses them.
@@ -124,19 +97,22 @@ namespace
     };
 
     __attribute__((init_priority(101))) late_user g_late_user;
+#endif
 }
 
 TEST(FacetStaticsExit, ProcessWideFacetDataSurvivesExit)
 {
-    const char* const mode = std::getenv(kModeEnv);
-    if (mode == nullptr)
+    const std::string mode = sys::get_env(kModeEnv);
+    if (mode.empty())
     {
         EXPECT_EQ(run_child("zone"), 0)
             << "a detached thread parsing %Z while main() returns did not exit cleanly";
         EXPECT_EQ(run_child("domain"), 0)
             << "a detached thread using the text-domain table while main() returns did not exit cleanly";
+#if IOV2_TEST_LINUX_GLIBC
         EXPECT_EQ(run_child("late_static"), 0)
             << "a static destroyed after the facet data could not parse %Z or use the text-domain table";
+#endif
         return;
     }
 

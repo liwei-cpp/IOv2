@@ -9,10 +9,12 @@
 // a test of it says where it runs with support/platform_macros.h and skips
 // elsewhere.
 
+#include <chrono>
 #include <cstddef>
 #include <cstdio>
 #include <cstdlib>
 #include <filesystem>
+#include <optional>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -24,7 +26,9 @@
 #include <share.h>
 #include <sys/stat.h>
 #else
+#include <signal.h>
 #include <sys/wait.h>
+#include <thread>
 #include <unistd.h>
 #if defined(__APPLE__)
 #include <cstdint>
@@ -37,6 +41,10 @@
 // the headers under test that a source includes after this one.
 extern "C" __declspec(dllimport) unsigned long __stdcall
 GetModuleFileNameW(void* hModule, wchar_t* lpFilename, unsigned long nSize);
+extern "C" __declspec(dllimport) unsigned long __stdcall
+WaitForSingleObject(void* hHandle, unsigned long dwMilliseconds);
+extern "C" __declspec(dllimport) int __stdcall
+TerminateProcess(void* hProcess, unsigned int uExitCode);
 #endif
 
 namespace iov2_test::sys
@@ -178,9 +186,11 @@ inline std::filesystem::path exe_path()
 #endif
 
 // Runs this executable again with `args` and `env_name`=`env_value` in its
-// environment, and waits for it. Returns its exit status, or -1 if it could
-// not be run or did not exit normally (a signal, a crash).
-inline int run_self(const std::vector<std::string>& args, const char* env_name, const std::string& env_value)
+// environment, and waits for it -- given a `deadline`, no longer than that: a
+// child still running then is killed. Returns its exit status, or -1 if it
+// could not be run, did not exit normally (a signal, a crash) or was killed.
+inline int run_self(const std::vector<std::string>& args, const char* env_name, const std::string& env_value,
+                    std::optional<std::chrono::milliseconds> deadline = std::nullopt)
 {
     const std::filesystem::path exe = exe_path();
 #if defined(_WIN32)
@@ -195,10 +205,22 @@ inline int run_self(const std::vector<std::string>& args, const char* env_name, 
     // _wspawnv copies the environment at the call; the variable is set only
     // around it, so this process does not take itself for the child.
     set_env(env_name, env_value);
-    const auto status = ::_wspawnv(_P_WAIT, exe.c_str(), argv.data());
+    const auto child = ::_wspawnv(_P_NOWAIT, exe.c_str(), argv.data());
     unset_env(env_name);
+    if (child == -1)
+        return -1;
+
+    // 0x102 is WAIT_TIMEOUT. The process handle is _wspawnv's return value;
+    // _cwait reaps the child, killed or not, and closes it.
+    bool killed = false;
+    if (deadline && WaitForSingleObject(reinterpret_cast<void*>(child),
+                                        static_cast<unsigned long>(deadline->count())) == 0x102UL)
+        killed = TerminateProcess(reinterpret_cast<void*>(child), 1) != 0;
+    int status = 0;
+    if (::_cwait(&status, child, _WAIT_CHILD) == -1 || killed)
+        return -1;
     // A crash comes back as its NTSTATUS (0xC...), negative as an int.
-    return status < 0 ? -1 : static_cast<int>(status);
+    return status < 0 ? -1 : status;
 #else
     std::vector<char*> argv{const_cast<char*>(exe.c_str())};
     for (const std::string& a : args)
@@ -216,9 +238,26 @@ inline int run_self(const std::vector<std::string>& args, const char* env_name, 
     }
 
     int status = 0;
-    if (::waitpid(child, &status, 0) != child || !WIFEXITED(status))
+    if (deadline)
+    {
+        const auto end = std::chrono::steady_clock::now() + *deadline;
+        pid_t done = 0;
+        while ((done = ::waitpid(child, &status, WNOHANG)) == 0)
+        {
+            if (std::chrono::steady_clock::now() >= end)
+            {
+                ::kill(child, SIGKILL);
+                ::waitpid(child, &status, 0);
+                return -1;
+            }
+            std::this_thread::sleep_for(std::chrono::milliseconds(20));
+        }
+        if (done != child)
+            return -1;
+    }
+    else if (::waitpid(child, &status, 0) != child)
         return -1;
-    return WEXITSTATUS(status);
+    return WIFEXITED(status) ? WEXITSTATUS(status) : -1;
 #endif
 }
 }

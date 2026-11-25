@@ -679,13 +679,11 @@ jobs:
           -- -std=c++23 -x c++ -I include -isystem "$deps" -isystem "$deps/botan-3" \
              --target=x86_64-pc-windows-msvc
 
-  # The platforms the cross-platform port has reached. Each builds and runs only
-  # the components ported so far -- IOV2_TEST_COMPONENTS in its preset, today
-  # common, device, cvt, facet, locale, io, and of concur only concur/streams (the
-  # rest drives the standard stream objects through POSIX) -- and grows as the port
-  # does; the Linux jobs above stay the full
-  # gate. No container: the GHCR image is Linux-only, and the point here is the
-  # platform's own compiler, standard library and C runtime.
+  # The platforms the cross-platform port has reached. Each builds and runs the
+  # whole test suite, as the Linux jobs do; a case the platform cannot express
+  # skips there and says why; the Linux jobs above stay the full gate. No
+  # container: the GHCR image is Linux-only, and the point here is the platform's
+  # own compiler, standard library and C runtime.
   portability:
     name: portability (${{ matrix.name }})
     runs-on: ${{ matrix.os }}
