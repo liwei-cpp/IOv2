@@ -14,7 +14,7 @@
  * to signal, is enough to keep exit() from ever returning. glibc's _IO_cleanup
  * uses _IO_flush_all_lockp(0), which takes no FILE lock, for the same reason.
  *
- * Neither half of that is observable in-process, so this forks a child which
+ * Neither half of that is observable in-process, so this starts a child which
  * holds cout's io_mutex() on a second thread and then calls exit(0); the parent
  * waits on it with a deadline and kills it if it overruns. The control leg --
  * same child, nobody holding the lock -- is what keeps the test honest: a
@@ -35,12 +35,13 @@
 #include <IOv2/io/ostream.h>
 #include <IOv2/io/traits/char_and_str.h>
 
-#include <support/exe_path.h>
+#include <support/platform.h>
 
 #include <gtest/gtest.h>
 
 #include <atomic>
 #include <chrono>
+#include <cstdio>
 #include <cstdlib>
 #include <filesystem>
 #include <fstream>
@@ -50,13 +51,10 @@
 #include <string_view>
 #include <thread>
 
-#include <fcntl.h>
-#include <signal.h>
-#include <sys/wait.h>
-#include <unistd.h>
-
 namespace
 {
+    namespace sys = iov2_test::sys;
+
     const char* const kModeEnv = "IOV2_EXIT_HOOK_MODE";
     const char* const kOutFile = "exit_hook_child.out";
     const char* const kPending = "PENDING-AT-EXIT";
@@ -69,46 +67,24 @@ namespace
 
     // Runs this same test in a fresh process with stdout on kOutFile. Returns the
     // child's exit status, or -1 if it had to be killed for overrunning.
+    // The child inherits our stdout, which points at kOutFile around the run.
     int run_exit_hook_child(const char* mode)
     {
-        const std::string executable = exe_path();
         std::filesystem::remove(kOutFile);
-
-        const pid_t child = ::fork();
-        if (child == -1)
+        std::fflush(stdout);
+        const int saved = sys::dup(sys::stdout_fd);
+        if (saved == -1)
             return -1;
 
-        if (child == 0)
-        {
-            const int fd = ::open(kOutFile, O_WRONLY | O_CREAT | O_TRUNC, 0644);
-            if (fd == -1)
-                ::_exit(126);
-            ::dup2(fd, STDOUT_FILENO);
-            ::close(fd);
-            ::setenv(kModeEnv, mode, 1);
-            ::execl(executable.c_str(), executable.c_str(),
-                    "--gtest_filter=StdObjectsExit.ExitIsNotBlockedByAStreamLock",
-                    "--gtest_color=no", static_cast<char*>(nullptr));
-            ::_exit(127);
-        }
-
-        const auto deadline = std::chrono::steady_clock::now() + kChildDeadline;
-        for (;;)
-        {
-            int status = 0;
-            const pid_t done = ::waitpid(child, &status, WNOHANG);
-            if (done == child)
-                return WIFEXITED(status) ? WEXITSTATUS(status) : -1;
-            if (done == -1)
-                return -1;
-            if (std::chrono::steady_clock::now() >= deadline)
-            {
-                ::kill(child, SIGKILL);
-                ::waitpid(child, &status, 0);
-                return -1;
-            }
-            std::this_thread::sleep_for(std::chrono::milliseconds(20));
-        }
+        int status = -1;
+        if (sys::reopen(kOutFile, "w", stdout))
+            status = sys::run_self({"--gtest_filter=StdObjectsExit.ExitIsNotBlockedByAStreamLock",
+                                    "--gtest_color=no"},
+                                   kModeEnv, mode, kChildDeadline);
+        std::fflush(stdout);
+        sys::dup2(saved, sys::stdout_fd);
+        sys::close(saved);
+        return status;
     }
 
     // gtest writes its own lines to the same fd, so the marker is searched for
@@ -129,8 +105,8 @@ namespace
 
 TEST(StdObjectsExit, ExitIsNotBlockedByAStreamLock)
 {
-    const char* const mode = std::getenv(kModeEnv);
-    if (mode == nullptr)
+    const std::string mode = sys::get_env(kModeEnv);
+    if (mode.empty())
     {
         EXPECT_EQ(run_exit_hook_child("hold"), 0)
             << "exit() did not return while another thread held cout's io_mutex()";
