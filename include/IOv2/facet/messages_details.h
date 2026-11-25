@@ -862,14 +862,16 @@ private:
 
     // Global mapping from text domain name to its directory path.
     // Protected by s_domain_mutex; read/write only while holding the lock.
-    // A reference to a map that is never deleted: the standard stream objects are
-    // not destroyed at exit, so the data their messages facet reaches must not be
-    // either (see common/sing_temp.h). The mutex is trivially destructible. Only
-    // bad_alloc can escape the new, at startup, where nothing could handle it anyway.
+    // References to a map and a mutex that are never deleted: the standard stream
+    // objects are not destroyed at exit, so the data their messages facet reaches must
+    // not be either (see common/sing_temp.h). The mutex too: on Apple platforms libc++'s
+    // destructor destroys the pthread mutex, which then refuses to lock. Only bad_alloc
+    // can escape the news, at startup, where nothing could handle it anyway.
     // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
     inline static std::unordered_map<std::string, std::filesystem::path>& s_domain_dirs =
         *new std::unordered_map<std::string, std::filesystem::path>;
-    inline static copyable_mutex<std::mutex> s_domain_mutex;
+    // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
+    inline static copyable_mutex<std::mutex>& s_domain_mutex = *new copyable_mutex<std::mutex>;
 
 private:
     // Declared first: initialised before m_filtered_lang and m_domain_info (both

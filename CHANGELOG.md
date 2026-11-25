@@ -354,6 +354,11 @@
   报错。合法代码不受影响。
 - `zlib_cvt` 可以叠在只读设备（如 `ifile_device`）上使用：此前两处写路径的调用未按设备
   能力分支，这样的组合编译不过。
+- 文本域表（`bind_text_domain`、`get_dirname`）的锁与 tie 图的锁（`tie_graph_mutex()`）退出时
+  不再析构，与标准流对象及文本域表本身一致。此前它们是普通静态对象：Apple 平台上 libc++ 的
+  析构会销毁底层的 pthread 互斥量，`main` 返回后仍在运行的线程再加锁时得到 EINVAL，抛出
+  `std::system_error`。libstdc++ 与 glibc 上的 libc++，`std::mutex` 的析构什么也不做，看不出
+  差别。
 - 注释更正：`locale` 拷贝赋值不是两阶段加锁；与 `cerr` 共用 stderr 的是
   `fprintf(stderr, ...)` 而非 `printf`；`tm_gmtoff` / `tm_zone` 的探测在缺少这两个成员的
   平台上是编译错误而非退化为字面量；`reset()` 不能用来丢掉本行剩余的输入，应改用
@@ -891,6 +896,13 @@ have no release line of their own.
 - `zlib_cvt` can sit on a read-only device (such as `ifile_device`): two
   write-path calls were not branched on the device's capability, so that
   combination did not compile.
+- The text-domain table's lock (`bind_text_domain`, `get_dirname`) and the tie-graph
+  lock (`tie_graph_mutex()`) are no longer destroyed at exit, like the standard stream
+  objects and the text-domain table itself. They were ordinary statics: on Apple
+  platforms libc++'s destructors destroyed the pthread mutexes, and a thread still
+  running after `main` returned got EINVAL when it locked one, thrown as
+  `std::system_error`. Under libstdc++, and libc++ on glibc, the `std::mutex`
+  destructor does nothing, so it made no difference there.
 - Comment corrections: `locale` copy assignment is not two-phase locking; the
   writer sharing stderr with `cerr` is `fprintf(stderr, ...)`, not `printf`;
   the `tm_gmtoff` / `tm_zone` probes are a compile error, not a degradation to
