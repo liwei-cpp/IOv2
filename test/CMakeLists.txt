@@ -255,6 +255,11 @@ if(UNIX AND NOT APPLE AND CMAKE_SIZEOF_VOID_P EQUAL 8)
   endif()
 endif()
 
+# support/plugin.h uses dlopen's RTLD_NOLOAD, a Darwin extension that the
+# _POSIX_C_SOURCE every test is built with hides. Only the plugin suites and their
+# plugins see it; the rest compile the headers as a user does.
+set(IOV2_TEST_PLUGIN_DEFS $<$<PLATFORM_ID:Darwin>:_DARWIN_C_SOURCE>)
+
 # The plugin is unloadable only if g++ does not make its inline variables
 # STB_GNU_UNIQUE; the test asserts it is still resident after dlclose.
 if(IOV2_TEST_CONSUMER STREQUAL "installed-shared" AND TARGET test_io_objects_plugin_unload)
@@ -263,6 +268,7 @@ if(IOV2_TEST_CONSUMER STREQUAL "installed-shared" AND TARGET test_io_objects_plu
   target_link_libraries(test_plugin_cout_number PRIVATE iov2_test_subject iov2_test_options)
   target_include_directories(test_plugin_cout_number PRIVATE
       ${IOV2_TEST_SUBJECT_INCLUDE_DIRS} "${CMAKE_CURRENT_SOURCE_DIR}")
+  target_compile_definitions(test_plugin_cout_number PRIVATE ${IOV2_TEST_PLUGIN_DEFS})
   target_compile_options(test_plugin_cout_number PRIVATE
       $<$<CXX_COMPILER_ID:GNU>:-fno-gnu-unique>)
   set_target_properties(test_plugin_cout_number PROPERTIES
@@ -270,7 +276,8 @@ if(IOV2_TEST_CONSUMER STREQUAL "installed-shared" AND TARGET test_io_objects_plu
   add_dependencies(test_io_objects_plugin_unload test_plugin_cout_number)
   target_link_libraries(test_io_objects_plugin_unload PRIVATE ${CMAKE_DL_LIBS})
   target_compile_definitions(test_io_objects_plugin_unload PRIVATE
-      IOV2_TEST_UNLOAD_PLUGIN="$<TARGET_FILE:test_plugin_cout_number>")
+      IOV2_TEST_UNLOAD_PLUGIN="$<TARGET_FILE:test_plugin_cout_number>"
+      ${IOV2_TEST_PLUGIN_DEFS})
 endif()
 
 # Hidden visibility keeps the plugin's inline variables its own, as every module's
@@ -281,6 +288,7 @@ if(IOV2_TEST_CONSUMER STREQUAL "installed-shared" AND TARGET test_io_objects_sha
   target_link_libraries(test_plugin_shared_state PRIVATE iov2_test_subject iov2_test_options)
   target_include_directories(test_plugin_shared_state PRIVATE
       ${IOV2_TEST_SUBJECT_INCLUDE_DIRS} "${CMAKE_CURRENT_SOURCE_DIR}")
+  target_compile_definitions(test_plugin_shared_state PRIVATE ${IOV2_TEST_PLUGIN_DEFS})
   set_target_properties(test_plugin_shared_state PROPERTIES
       CXX_VISIBILITY_PRESET hidden
       VISIBILITY_INLINES_HIDDEN ON
@@ -288,7 +296,8 @@ if(IOV2_TEST_CONSUMER STREQUAL "installed-shared" AND TARGET test_io_objects_sha
   add_dependencies(test_io_objects_shared_state test_plugin_shared_state)
   target_link_libraries(test_io_objects_shared_state PRIVATE ${CMAKE_DL_LIBS})
   target_compile_definitions(test_io_objects_shared_state PRIVATE
-      IOV2_TEST_SHARED_STATE_PLUGIN="$<TARGET_FILE:test_plugin_shared_state>")
+      IOV2_TEST_SHARED_STATE_PLUGIN="$<TARGET_FILE:test_plugin_shared_state>"
+      ${IOV2_TEST_PLUGIN_DEFS})
 endif()
 
 list(LENGTH IOV2_TEST_SELECTED_SOURCES IOV2_TEST_SOURCE_TOTAL)

@@ -71,6 +71,12 @@
 
 #define IOV2_SHARED
 #define IOV2_EXPORTS
+// dladdr, Dl_info, RTLD_NOLOAD and RTLD_NODELETE, which pin_module_of uses, are Darwin
+// extensions that the _POSIX_C_SOURCE this library is built with hides. No IOv2 header
+// depends on it. First, as <sys/cdefs.h> reads it once.
+#if defined(__APPLE__) && !defined(_DARWIN_C_SOURCE)
+#define _DARWIN_C_SOURCE   // NOLINT(bugprone-reserved-identifier)
+#endif
 
 #include <IOv2/facet/messages.h>
 #include <IOv2/facet/timeio.h>
