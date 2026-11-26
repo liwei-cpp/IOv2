@@ -23,6 +23,7 @@
 #include <IOv2/common/clocale_wrapper.h>
 #include <IOv2/common/copyable_mutex.h>
 #include <IOv2/common/defs.h>
+#include <IOv2/common/iov2_export.h>
 #include <IOv2/common/metafunctions.h>
 #include <IOv2/common/platform/env_backend.h>
 #include <IOv2/cvt/code_cvt.h>
@@ -860,6 +861,12 @@ private:
             return match_lang(p_lang);
     }
 
+#if defined(IOV2_SHARED)
+    // Defined in iov2_objects.cpp and exported, so every module -- any DLL on Windows, a
+    // module built with hidden visibility elsewhere -- binds and looks up in the one table.
+    static IOV2_API std::unordered_map<std::string, std::filesystem::path>& s_domain_dirs;
+    static IOV2_API copyable_mutex<std::mutex>& s_domain_mutex;
+#else
     // Global mapping from text domain name to its directory path.
     // Protected by s_domain_mutex; read/write only while holding the lock.
     // References to a map and a mutex that are never deleted: the standard stream
@@ -872,6 +879,7 @@ private:
         *new std::unordered_map<std::string, std::filesystem::path>;
     // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
     inline static copyable_mutex<std::mutex>& s_domain_mutex = *new copyable_mutex<std::mutex>;
+#endif
 
 private:
     // Declared first: initialised before m_filtered_lang and m_domain_info (both

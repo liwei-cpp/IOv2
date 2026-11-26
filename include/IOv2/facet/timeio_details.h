@@ -31,6 +31,7 @@
 #pragma once
 #include <IOv2/common/clocale_wrapper.h>
 #include <IOv2/common/defs.h>
+#include <IOv2/common/iov2_export.h>
 #include <IOv2/common/metafunctions.h>
 #include <IOv2/common/prefix_tree.h>
 #include <IOv2/cvt/cvt_facilities.h>
@@ -260,9 +261,11 @@ namespace IOv2
          * 若有朝一日往树里加了非 ASCII 条目，它在树中是 UTF-8 的各个字节，宽字符流永远
          * 匹配不上——真需要时应改为按 `CharT` 转换后再查，而不是直接加。
          *
-         * 它是非模板类的 `inline static` 成员，因此包含本头文件的每个程序都会在启动时
+         * header-only 下它是 inline 变量，因此包含本头文件的每个程序都会在启动时
          * 构建它，无论是否用到 `%Z`（本机实测约 16 ms、约 3.2 MB 常驻，770 个键、4095 个
          * 节点）。这是有意的取舍：换来的是全程序一棵树，而不是每个字符类型一棵。
+         * `IOV2_SHARED` 下它由库定义并导出（`iov2_objects.cpp`），在库载入时建一次，整个进程
+         * 一棵，不再每个包含本头文件的模块（DLL、插件）各建一棵。
          *
          * 成员本身是一个**引用**，绑定到 `new` 出来、永不 `delete` 的树：进程退出时没有任何
          * 析构函数会跑，`%Z` 在退出阶段仍可解析——标准流对象退出时不析构（见
@@ -332,10 +335,13 @@ namespace IOv2
          * UTF-8 form and could never match a wide stream -- should that day come, the fix is to
          * convert per `CharT` before looking up, not to add the entry as is.
          *
-         * Being an `inline static` member of a non-template class, it is built at startup by
-         * every program that includes this header, whether or not it ever uses `%Z` (measured
-         * here at roughly 16 ms and 3.2 MB resident, for 770 keys across 4095 nodes). That is
-         * the deliberate trade: one trie per program instead of one per character type.
+         * Header-only it is an inline variable, so it is built at startup by every program
+         * that includes this header, whether or not it ever uses `%Z` (measured here at
+         * roughly 16 ms and 3.2 MB resident, for 770 keys across 4095 nodes). That is the
+         * deliberate trade: one trie per program instead of one per character type. Under
+         * `IOV2_SHARED` the library defines and exports it (`iov2_objects.cpp`) and builds it
+         * once, when it loads: one trie per process, not one per module (DLL, plugin) that
+         * includes this header.
          *
          * The member itself is a **reference**, bound to a trie that is `new`ed and never
          * `delete`d: no destructor runs at process exit, so `%Z` still parses while the
@@ -362,11 +368,16 @@ namespace IOv2
          *       `links`".
          * @endif
          */
-        // The walk below catches its own exceptions: only bad_alloc can escape, at startup,
-        // where nothing could handle it anyway.
-        // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
-        inline static const prefix_tree<char, zone_ref>& s_timezone_tree =
-        *new prefix_tree<char, zone_ref>([]()
+#if defined(IOV2_SHARED)
+        static IOV2_API const prefix_tree<char, zone_ref>& s_timezone_tree;   // defined in iov2_objects.cpp
+#else
+        static const prefix_tree<char, zone_ref>& s_timezone_tree;
+#endif
+
+    private:
+        // Builds the trie s_timezone_tree is bound to, at startup: header-only right after
+        // this class, in shared mode in iov2_objects.cpp. The walk catches its own exceptions.
+        static prefix_tree<char, zone_ref> build_timezone_tree()
         {
             prefix_tree<char, zone_ref> res;
 
@@ -472,8 +483,15 @@ namespace IOv2
                 res.add(utc.begin(), utc.end(),
                         zone_ref{.text = std::string{utc}, .is_name = false, .is_abbrev = true});
             return res;
-        }());
+        }
     };
+
+#if !defined(IOV2_SHARED)
+    // Only bad_alloc can escape the build, at startup, where nothing could handle it anyway.
+    // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
+    inline const prefix_tree<char, zone_ref>& base_ft<timeio>::s_timezone_tree =
+        *new prefix_tree<char, zone_ref>(build_timezone_tree());
+#endif
 
     /**
      * @lang{ZH}

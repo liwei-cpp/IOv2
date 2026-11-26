@@ -359,6 +359,11 @@
   析构会销毁底层的 pthread 互斥量，`main` 返回后仍在运行的线程再加锁时得到 EINVAL，抛出
   `std::system_error`。libstdc++ 与 glibc 上的 libc++，`std::mutex` 的析构什么也不做，看不出
   差别。
+- 共享库模式下，文本域表（连同它的锁）与 `xalloc()` 的计数器全进程唯一，由 `libiov2` 定义并
+  导出。此前它们是头文件里的 inline 变量，靠动态链接器跨模块合并；以 `-fvisibility=hidden`
+  编译的模块不参与合并，各有一份：插件里 `bind_text_domain` 绑定的文本域主程序看不到，插件的
+  `xalloc()` 从 0 重新发放，与主程序已发出的索引重复。`%Z` 解析用的时区树也改由库在载入时建
+  一次，不再每个模块载入时各建一棵。
 - 注释更正：`locale` 拷贝赋值不是两阶段加锁；与 `cerr` 共用 stderr 的是
   `fprintf(stderr, ...)` 而非 `printf`；`tm_gmtoff` / `tm_zone` 的探测在缺少这两个成员的
   平台上是编译错误而非退化为字面量；`reset()` 不能用来丢掉本行剩余的输入，应改用
@@ -903,6 +908,14 @@ have no release line of their own.
   running after `main` returned got EINVAL when it locked one, thrown as
   `std::system_error`. Under libstdc++, and libc++ on glibc, the `std::mutex`
   destructor does nothing, so it made no difference there.
+- In shared-library mode the text-domain table (with its lock) and the `xalloc()`
+  counter are one per process, defined and exported by `libiov2`. They were inline
+  variables in the headers, left to the dynamic linker to merge across modules, and a
+  module built with `-fvisibility=hidden` takes no part in that merging and had its
+  own: a domain a plugin bound with `bind_text_domain` did not exist for the main
+  program, and the plugin's `xalloc()` started again from 0, handing out indices the
+  main program already had. The time-zone trie that parsing `%Z` uses is likewise built
+  once, by the library as it loads, instead of once per module.
 - Comment corrections: `locale` copy assignment is not two-phase locking; the
   writer sharing stderr with `cerr` is `fprintf(stderr, ...)`, not `printf`;
   the `tm_gmtoff` / `tm_zone` probes are a compile error, not a degradation to

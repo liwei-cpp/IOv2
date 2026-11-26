@@ -272,6 +272,23 @@ if(IOV2_TEST_CONSUMER STREQUAL "installed-shared" AND TARGET test_io_objects_plu
       IOV2_TEST_UNLOAD_PLUGIN="$<TARGET_FILE:test_plugin_cout_number>")
 endif()
 
+# Hidden visibility keeps the plugin's inline variables its own, as every module's
+# are on Windows: the process-wide state it reaches has to come from libiov2.
+if(IOV2_TEST_CONSUMER STREQUAL "installed-shared" AND TARGET test_io_objects_shared_state)
+  add_library(test_plugin_shared_state MODULE
+      "${CMAKE_CURRENT_SOURCE_DIR}/io/objects/shared_state/plugins/test_plugin_shared_state.cpp")
+  target_link_libraries(test_plugin_shared_state PRIVATE iov2_test_subject iov2_test_options)
+  target_include_directories(test_plugin_shared_state PRIVATE ${IOV2_TEST_SUBJECT_INCLUDE_DIRS})
+  set_target_properties(test_plugin_shared_state PROPERTIES
+      CXX_VISIBILITY_PRESET hidden
+      VISIBILITY_INLINES_HIDDEN ON
+      LIBRARY_OUTPUT_DIRECTORY "${IOV2_TEST_BIN_DIR}")
+  add_dependencies(test_io_objects_shared_state test_plugin_shared_state)
+  target_link_libraries(test_io_objects_shared_state PRIVATE ${CMAKE_DL_LIBS})
+  target_compile_definitions(test_io_objects_shared_state PRIVATE
+      IOV2_TEST_SHARED_STATE_PLUGIN="$<TARGET_FILE:test_plugin_shared_state>")
+endif()
+
 list(LENGTH IOV2_TEST_SELECTED_SOURCES IOV2_TEST_SOURCE_TOTAL)
 list(LENGTH IOV2_TEST_SUITE_DIRS IOV2_TEST_SUITE_COUNT)
 message(STATUS
