@@ -7,7 +7,9 @@
 #include <IOv2/io/objects/objects.h>
 #include <IOv2/io/traits/arithmetic.h>
 
-extern "C" __attribute__((visibility("default"))) void iov2_test_plugin_write()
+#include <support/plugin.h>
+
+extern "C" IOV2_TEST_PLUGIN_EXPORT void iov2_test_plugin_write()
 {
     IOv2::cout << 42;
 }

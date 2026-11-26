@@ -261,7 +261,8 @@ if(IOV2_TEST_CONSUMER STREQUAL "installed-shared" AND TARGET test_io_objects_plu
   add_library(test_plugin_cout_number MODULE
       "${CMAKE_CURRENT_SOURCE_DIR}/io/objects/plugin_unload/plugins/test_plugin_cout_number.cpp")
   target_link_libraries(test_plugin_cout_number PRIVATE iov2_test_subject iov2_test_options)
-  target_include_directories(test_plugin_cout_number PRIVATE ${IOV2_TEST_SUBJECT_INCLUDE_DIRS})
+  target_include_directories(test_plugin_cout_number PRIVATE
+      ${IOV2_TEST_SUBJECT_INCLUDE_DIRS} "${CMAKE_CURRENT_SOURCE_DIR}")
   target_compile_options(test_plugin_cout_number PRIVATE
       $<$<CXX_COMPILER_ID:GNU>:-fno-gnu-unique>)
   set_target_properties(test_plugin_cout_number PROPERTIES
@@ -278,7 +279,8 @@ if(IOV2_TEST_CONSUMER STREQUAL "installed-shared" AND TARGET test_io_objects_sha
   add_library(test_plugin_shared_state MODULE
       "${CMAKE_CURRENT_SOURCE_DIR}/io/objects/shared_state/plugins/test_plugin_shared_state.cpp")
   target_link_libraries(test_plugin_shared_state PRIVATE iov2_test_subject iov2_test_options)
-  target_include_directories(test_plugin_shared_state PRIVATE ${IOV2_TEST_SUBJECT_INCLUDE_DIRS})
+  target_include_directories(test_plugin_shared_state PRIVATE
+      ${IOV2_TEST_SUBJECT_INCLUDE_DIRS} "${CMAKE_CURRENT_SOURCE_DIR}")
   set_target_properties(test_plugin_shared_state PROPERTIES
       CXX_VISIBILITY_PRESET hidden
       VISIBILITY_INLINES_HIDDEN ON

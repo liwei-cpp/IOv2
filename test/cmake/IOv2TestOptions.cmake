@@ -34,7 +34,8 @@ set(CMAKE_BUILD_TYPE "" CACHE STRING "" FORCE)
 # --------------------------------------------------------- consumer of IOv2
 #
 # Which copy of the library the tests compile against. ci.yml exercises all
-# three: the repo headers, and both installed layouts reached through pkg-config.
+# three: the repo headers, and both installed layouts reached through pkg-config
+# (on Windows, the installed shared library through find_package).
 set(IOV2_TEST_CONSUMER "source" CACHE STRING
     "Where the library under test comes from")
 set_property(CACHE IOV2_TEST_CONSUMER PROPERTY STRINGS
@@ -156,6 +157,26 @@ if(IOV2_TEST_CONSUMER STREQUAL "source")
   if(APPLE)
     target_link_libraries(iov2_test_subject INTERFACE "-framework CoreFoundation")
   endif()
+elseif(WIN32)
+  # Windows has no pkg-config. Either install comes with the CMake package, which says
+  # which mode it is.
+  find_package(IOv2 CONFIG REQUIRED)
+  if(IOV2_TEST_CONSUMER STREQUAL "installed-shared" AND NOT IOv2_SHARED)
+    message(FATAL_ERROR "${IOv2_DIR} is a header-only install, not a shared one")
+  elseif(IOV2_TEST_CONSUMER STREQUAL "installed-header-only" AND IOv2_SHARED)
+    message(FATAL_ERROR "${IOv2_DIR} is a shared install, not a header-only one")
+  endif()
+  # The tests pick their standard themselves (see above): cxx_std_23 would add a second
+  # /std flag, which cl warns about (D9025) on every source.
+  set_target_properties(IOv2::iov2 PROPERTIES INTERFACE_COMPILE_FEATURES "")
+  # This build has no configuration, which the package maps to Release (/MD). The debug
+  # mode's CRT is /MDd, Debug's.
+  if(IOv2_SHARED AND IOV2_TEST_MODE STREQUAL "debug")
+    set_target_properties(IOv2::iov2 PROPERTIES MAP_IMPORTED_CONFIG_NOCONFIG Debug)
+  endif()
+  target_link_libraries(iov2_test_subject INTERFACE IOv2::iov2)
+  get_target_property(IOV2_TEST_SUBJECT_INCLUDE_DIRS IOv2::iov2 INTERFACE_INCLUDE_DIRECTORIES)
+  set(_iov2_found "The CMake package at ${IOv2_DIR}")
 else()
   find_package(PkgConfig REQUIRED)
   if(IOV2_TEST_CONSUMER STREQUAL "installed-shared")
@@ -166,16 +187,26 @@ else()
   pkg_check_modules(IOV2_INSTALLED REQUIRED IMPORTED_TARGET "${_iov2_pc}")
   target_link_libraries(iov2_test_subject INTERFACE PkgConfig::IOV2_INSTALLED)
   set(IOV2_TEST_SUBJECT_INCLUDE_DIRS ${IOV2_INSTALLED_INCLUDE_DIRS})
+  set(_iov2_found "pkg-config ${_iov2_pc}")
+  # libiov2.dylib's install name is CMake's default @rpath/libiov2.1.dylib, so the tests
+  # and the plugins they load carry the library's directory as an rpath.
+  if(APPLE AND IOV2_TEST_CONSUMER STREQUAL "installed-shared")
+    foreach(dir IN LISTS IOV2_INSTALLED_LIBRARY_DIRS)
+      target_link_options(iov2_test_subject INTERFACE "LINKER:-rpath,${dir}")
+    endforeach()
+  endif()
+endif()
 
-  # The whole point of these two modes is that the repo headers are NOT used, so
-  # a stray source-tree path here would make the job silently test nothing new.
-  # ci.yml checks the generated compile commands for the same thing. The whole
-  # repository, not this project's test/: the headers to keep out are in include/.
-  foreach(dir IN LISTS IOV2_INSTALLED_INCLUDE_DIRS)
+# The whole point of the installed modes is that the repo headers are NOT used, so
+# a stray source-tree path here would make the job silently test nothing new.
+# ci.yml checks the generated compile commands for the same thing. The whole
+# repository, not this project's test/: the headers to keep out are in include/.
+if(NOT IOV2_TEST_CONSUMER STREQUAL "source")
+  foreach(dir IN LISTS IOV2_TEST_SUBJECT_INCLUDE_DIRS)
     cmake_path(IS_PREFIX IOV2_REPO_ROOT "${dir}" NORMALIZE _inside_repo)
     if(_inside_repo)
       message(FATAL_ERROR
-          "pkg-config ${_iov2_pc} resolved to '${dir}', inside the source tree. "
+          "${_iov2_found} resolved to '${dir}', inside the source tree. "
           "Consumer '${IOV2_TEST_CONSUMER}' must use installed headers only.")
     endif()
   endforeach()

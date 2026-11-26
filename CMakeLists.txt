@@ -25,6 +25,13 @@
 
 cmake_minimum_required(VERSION 3.25)
 
+# Release unless told otherwise: an unoptimized libiov2 is never what is wanted. Before
+# project(), which with an MSVC-like compiler would otherwise make it Debug. Multi-config
+# generators ignore it.
+if(IOV2_BUILD_SHARED AND NOT CMAKE_BUILD_TYPE AND NOT DEFINED ENV{CMAKE_BUILD_TYPE})
+  set(CMAKE_BUILD_TYPE Release CACHE STRING "Build type" FORCE)
+endif()
+
 project(IOv2
     VERSION 1.0.0
     DESCRIPTION "C++23 I/O and localization library"
@@ -52,11 +59,6 @@ include(CMakePackageConfigHelpers)
 # iov2-shared.pc hand out: the include root, C++23, and on POSIX the feature-test
 # macro the headers need (locale_t, newlocale, uselocale, the *_l helpers).
 if(IOV2_BUILD_SHARED)
-  # Release unless told otherwise: an unoptimized libiov2 is never what is wanted.
-  if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
-    set(CMAKE_BUILD_TYPE Release CACHE STRING "Build type" FORCE)
-  endif()
-
   add_library(iov2 SHARED src/iov2_objects.cpp)
   # Hidden by default keeps the exported surface to the IOV2_API-tagged singleton
   # references; everything else stays internal to the library.
@@ -65,6 +67,12 @@ if(IOV2_BUILD_SHARED)
       CXX_VISIBILITY_PRESET hidden
       VERSION ${PROJECT_VERSION}
       SOVERSION ${PROJECT_VERSION_MAJOR})
+  # Windows: a Debug libiov2 is iov2d.dll / iov2d.lib, so both configurations can share a
+  # prefix and the CMake package picks the one matching the consumer's CRT (/MD or /MDd).
+  # Elsewhere the .pc file names -liov2, and a Debug build replaces the Release one.
+  if(WIN32)
+    set_target_properties(iov2 PROPERTIES DEBUG_POSTFIX d)
+  endif()
   target_link_libraries(iov2 PRIVATE ${CMAKE_DL_LIBS})
   set(IOV2_USAGE PUBLIC)
 else()

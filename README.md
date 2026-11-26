@@ -139,7 +139,7 @@ IOv2 提供两种发布模式，默认即开箱即用的 header-only：
 
 - **Header-Only（默认）**：像快速开始那样直接 `#include` 即可，无需任何宏或链接库（macOS 例外：messages facet 经 CoreFoundation 读用户的语言偏好，要链接 `-framework CoreFoundation`，用 CMake 包或 pkg-config 时已自动带上）。预定义的标准流对象（`cin/cout/cerr/clog` 及宽字符版本）与本地化缓存等进程级单例，以 C++17 `inline` 变量的形式直接定义在头文件中，效果类似 `std::cout`——包含头文件就能用。**只适用于单一模块**：用到 IOv2 的代码全部链接进同一个可执行文件（或同一个共享库），进程里没有别的模块也用 IOv2。
 
-- **共享库（多模块时必须使用）**：进程里不止一个模块用到 IOv2——主程序之外还有共享库或 `dlopen` 载入的插件——时，**所有模块都必须使用共享库模式**，链接同一个 `libiov2.so`。此模式把上述进程级单例的唯一定义集中到 `src/iov2_objects.cpp`（等价于 `std::cout` 定义在 libstdc++ 中的做法），保证全进程只有一份。
+- **共享库（多模块时必须使用）**：进程里不止一个模块用到 IOv2——主程序之外还有共享库或 `dlopen` 载入的插件——时，**所有模块都必须使用共享库模式**，链接同一个 libiov2（Linux 上为 `libiov2.so`，macOS 上为 `libiov2.dylib`，Windows 上为 `iov2.dll`）。此模式把上述进程级单例的唯一定义集中到 `src/iov2_objects.cpp`（等价于 `std::cout` 定义在 libstdc++ 中的做法），保证全进程只有一份。
 
 **安装（根目录 CMake 工程）**
 
@@ -196,6 +196,14 @@ make IOV2_PKG=iov2-shared   # 共享 .so（无需 -DIOV2_SHARED）
 - **zlib / Botan 3 为可选依赖**：仅当使用压缩（`zlib_cvt`）或哈希（`hash_cvt`）转换器时才需要。两份 `.pc` 与 CMake 包都**不**强制链接它们；需要时自行追加 `$(shell pkg-config --cflags --libs zlib botan-3)`。
 - **每种模式安装到各自的 PREFIX**：模式开关焙在单个头文件里，一棵头树只能对应一种模式。安装到非标准前缀时 `export PKG_CONFIG_PATH=<prefix>/<libdir>/pkgconfig`，可用 `pkg-config --modversion iov2` 验证。
 
+**共享库：Windows 与 macOS**
+
+- **Windows**：装出 `<prefix>/bin/iov2.dll` 与导入库 `<prefix>/lib/iov2.lib`，经 CMake 包消费（Windows 没有 pkg-config）。
+  - **所有模块都用动态 CRT，且配置与库一致**：库与消费者都用 `/MD`，Debug 配置用 `/MDd`。静态 CRT 下每个模块各有一份堆与 `stdout`，跨模块释放内存会崩；Debug 与 Release 的堆不同，STL 的布局也不同。两种错误都在构建时报出：以 `/MT` 在共享模式下包含 IOv2 头文件，编译报错；配置与导入库不一致，链接时找不到 `IOv2::detail::pin_module_of_md`（或 `_mdd`）。
+  - **Debug 版带后缀 `d`**（`iov2d.dll`、`iov2d.lib`），可与 Release 版装进同一前缀：分别以 Debug 与 Release 构建、安装（多配置生成器用 `--config`）。CMake 包按消费方的配置挑选：Debug 链接 `iov2d`，Release、RelWithDebInfo、MinSizeRel 链接 `iov2`。
+  - **运行时要找得到 DLL**：把 `<prefix>/bin` 加进 `PATH`，或把 `iov2.dll` 复制到可执行文件旁边。
+- **macOS**：`libiov2.dylib` 的安装名是 `@rpath/libiov2.1.dylib`，消费方要带上指向 `<prefix>/lib` 的 rpath。经 pkg-config 链接时加 `-Wl,-rpath,<prefix>/lib`；CMake 在构建树里会自动加上，安装出去的程序要自己设 `INSTALL_RPATH`。
+
 **编译宏一览**
 
 | 宏 | 何时定义 | 作用 |
@@ -208,7 +216,7 @@ make IOV2_PKG=iov2-shared   # 共享 .so（无需 -DIOV2_SHARED）
 >
 > **多模块不支持 header-only，也不支持混用**：header-only 模式下每个模块各自定义一份单例，它们会不会被合并取决于编译器与载入方式——例如 gcc 的 STB_GNU_UNIQUE 会被动态链接器跨模块合并，而 clang 编出的弱符号在 `dlopen(RTLD_LOCAL)` 下每个插件各一份（实测），`-fvisibility=hidden` 与 Windows 多 DLL 同样各一份。各一份时，标准流各有各的缓冲与 `sync_with_stdio()` 状态，保护 tie 图的全局锁也不止一把，库的诸多保证随之失效。「header-only 主程序 + 链接 `libiov2.so` 的插件」这类混用同样不支持。有多个模块时，请让每个模块都使用共享库模式。
 >
-> **共享库模式下，包含 IOv2 头文件的模块不可卸载**：每个这样的模块在载入时把自己钉住（ELF / Mach-O 上经 `dlopen(RTLD_NOLOAD | RTLD_NODELETE)`），之后对它 `dlclose` 只减引用计数。原因是插件在标准流的 locale 等进程级缓存里留下的 facet，其 vtable、`type_info` 与控制块都在插件自己的映像里，插件一卸载，宿主下一次 `cout << 1` 就会读到已 unmap 的内存。代价：插件不能热重载，内存不回收，插件里静态对象的析构推迟到进程退出。被钉住的模块一直持有对 `libiov2.so` 的依赖，`libiov2.so` 也随之常驻。
+> **共享库模式下，包含 IOv2 头文件的模块不可卸载**：每个这样的模块在载入时把自己钉住（ELF / Mach-O 上经 `dlopen(RTLD_NOLOAD | RTLD_NODELETE)`，Windows 上经 `GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_PIN)`），之后对它 `dlclose`（Windows 上 `FreeLibrary`）不会卸载它。原因是插件在标准流的 locale 等进程级缓存里留下的 facet，其 vtable、`type_info` 与控制块都在插件自己的映像里，插件一卸载，宿主下一次 `cout << 1` 就会读到已 unmap 的内存。代价：插件不能热重载，内存不回收，插件里静态对象的析构推迟到进程退出。被钉住的模块一直持有对 `libiov2.so` 的依赖，`libiov2.so` 也随之常驻。
 
 ### 线程安全
 
@@ -393,7 +401,7 @@ IOv2 ships in two modes; the default is header-only and works out of the box:
 
 - **Header-Only (default)**: just `#include` as shown in Quick Start — no macros, no library to link (except on macOS, where the messages facet reads the user's preferred languages through CoreFoundation: link `-framework CoreFoundation`, which the CMake package and pkg-config already add). The pre-defined standard streams (`cin/cout/cerr/clog` and their wide counterparts) and the localization cache — all process-wide singletons — are defined directly in the headers as C++17 `inline` variables, much like `std::cout`: include the header and use them. **Single module only**: all code that uses IOv2 is linked into one executable (or one shared library), and no other module in the process uses IOv2.
 
-- **Shared Library (required with more than one module)**: when more than one module in the process uses IOv2 — shared libraries or `dlopen`ed plugins besides the main program — **every module must use shared-library mode** and link the same `libiov2.so`. This mode concentrates the one definition of each of those process-wide singletons in `src/iov2_objects.cpp` (the same approach `std::cout` uses inside libstdc++), so the process has exactly one.
+- **Shared Library (required with more than one module)**: when more than one module in the process uses IOv2 — shared libraries or `dlopen`ed plugins besides the main program — **every module must use shared-library mode** and link the same libiov2 (`libiov2.so` on Linux, `libiov2.dylib` on macOS, `iov2.dll` on Windows). This mode concentrates the one definition of each of those process-wide singletons in `src/iov2_objects.cpp` (the same approach `std::cout` uses inside libstdc++), so the process has exactly one.
 
 **Install (root CMake project)**
 
@@ -451,6 +459,14 @@ make IOV2_PKG=iov2-shared   # shared .so (no -DIOV2_SHARED needed)
 - **zlib / Botan 3 are optional**: needed only if you use the compression (`zlib_cvt`) or hashing (`hash_cvt`) converters. Neither `.pc` nor the CMake package links them; add `$(shell pkg-config --cflags --libs zlib botan-3)` yourself when you do.
 - **Install each mode into its own PREFIX**: the mode switch is baked into a single header, so one header tree corresponds to exactly one mode. For a non-standard prefix, `export PKG_CONFIG_PATH=<prefix>/<libdir>/pkgconfig` and verify with `pkg-config --modversion iov2`.
 
+**Shared library: Windows and macOS**
+
+- **Windows**: the install has `<prefix>/bin/iov2.dll` and the import library `<prefix>/lib/iov2.lib`, consumed through the CMake package (Windows has no pkg-config).
+  - **Every module uses the dynamic CRT, in the library's configuration**: the library and its consumers use `/MD`, or `/MDd` in the Debug configuration. With the static CRT each module has a heap and a `stdout` of its own, and freeing memory across modules crashes; Debug and Release differ in their heaps and in the STL's layout. Both mistakes are caught at build time: including IOv2 headers in shared mode under `/MT` is a compile error, and a configuration that does not match the import library fails to link on `IOv2::detail::pin_module_of_md` (or `_mdd`).
+  - **The Debug library has a `d` suffix** (`iov2d.dll`, `iov2d.lib`) and can share a prefix with the Release one: build and install each configuration (with `--config` under a multi-config generator). The CMake package picks by the consumer's configuration: Debug links `iov2d`; Release, RelWithDebInfo and MinSizeRel link `iov2`.
+  - **The DLL must be found at run time**: put `<prefix>/bin` on `PATH`, or copy `iov2.dll` next to the executable.
+- **macOS**: `libiov2.dylib`'s install name is `@rpath/libiov2.1.dylib`, so a consumer needs an rpath pointing at `<prefix>/lib`. Through pkg-config, link with `-Wl,-rpath,<prefix>/lib`; CMake adds one in the build tree by itself, and an installed program sets `INSTALL_RPATH`.
+
 **Compile-time macros**
 
 | Macro | When defined | Effect |
@@ -463,7 +479,7 @@ make IOV2_PKG=iov2-shared   # shared .so (no -DIOV2_SHARED needed)
 >
 > **Header-only is not supported across modules, and neither is mixing modes**: in header-only mode each module defines its own singletons, and whether they get merged depends on the compiler and on how the module is loaded — gcc's STB_GNU_UNIQUE objects are merged across modules by the dynamic linker, while clang's weak objects stay one per plugin under `dlopen(RTLD_LOCAL)` (measured), as they do under `-fvisibility=hidden` and across Windows DLLs. With one per module, the standard streams each have their own buffer and `sync_with_stdio()` state, there is more than one lock guarding the tie graph, and many of the library's guarantees no longer hold. A header-only main program with plugins that link `libiov2.so` is not supported either. With more than one module, have every module use shared-library mode.
 >
-> **In shared-library mode, a module that includes IOv2 headers cannot be unloaded**: each such module pins itself when it is loaded (on ELF / Mach-O through `dlopen(RTLD_NOLOAD | RTLD_NODELETE)`), and a later `dlclose` of it only drops the reference count. The reason: a facet a plugin leaves in a process-wide cache, such as the standard streams' locales, has its vtable, `type_info` and control block in the plugin's own image, so once the plugin was unloaded the host's next `cout << 1` read unmapped memory. The cost: plugins cannot be hot-reloaded, their memory is not reclaimed, and their static destructors run only at process exit. A pinned module keeps its dependency on `libiov2.so`, so `libiov2.so` stays resident too.
+> **In shared-library mode, a module that includes IOv2 headers cannot be unloaded**: each such module pins itself when it is loaded (on ELF / Mach-O through `dlopen(RTLD_NOLOAD | RTLD_NODELETE)`, on Windows through `GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_PIN)`), and a later `dlclose` (on Windows, `FreeLibrary`) does not unload it. The reason: a facet a plugin leaves in a process-wide cache, such as the standard streams' locales, has its vtable, `type_info` and control block in the plugin's own image, so once the plugin was unloaded the host's next `cout << 1` read unmapped memory. The cost: plugins cannot be hot-reloaded, their memory is not reclaimed, and their static destructors run only at process exit. A pinned module keeps its dependency on `libiov2.so`, so `libiov2.so` stays resident too.
 
 ### Thread Safety
 
