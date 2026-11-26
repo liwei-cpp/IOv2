@@ -33,6 +33,7 @@
 #include <IOv2/common/copyable_atomic.h>
 #include <IOv2/common/copyable_mutex.h>
 #include <IOv2/common/defs.h>
+#include <IOv2/common/iov2_export.h>
 
 #include <atomic>
 #include <cstddef>
@@ -186,7 +187,13 @@ class ios_base<void>
     template <typename>
     friend class ios_base;
 
+#if defined(IOV2_SHARED)
+    // Defined in iov2_objects.cpp and exported, so no two modules -- any DLL on Windows, a
+    // module built with hidden visibility elsewhere -- hand out the same index.
+    static IOV2_API std::atomic<std::size_t> s_top;
+#else
     inline static std::atomic<std::size_t> s_top = 0;
+#endif
 };
 
 namespace detail

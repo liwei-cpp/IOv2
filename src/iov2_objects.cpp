@@ -13,10 +13,12 @@
  * 本翻译单元同时定义 `IOV2_SHARED` 与 `IOV2_EXPORTS`，于是各头文件只暴露对单例的
  * `extern` 声明，真正的定义集中在此处。因为是单一 TU，初始化顺序即定义顺序
  * （[basic.start.dynamic]/3.1，ordered）：
- *   - `s_ori_facet_buf` 必须最先——每个流的 `locale` 成员都经它解析；
+ *   - 文本域表最先——它不依赖任何东西，之后谁在初始化时经 `get_dirname` 读它都已就绪；
+ *   - `s_ori_facet_buf` 必须先于各流——每个流的 `locale` 成员都经它解析；
  *   - `cout` / `wcout` 必须先于绑定到它们的流（`cerr`/`cin` tie `cout`，
  *     `wcerr`/`wcin` tie `wcout`）；
- *   - `detail::stdin_shared_imp` 必须先于 `cin` / `wcin`——它们的根转换器都经它读。
+ *   - `detail::stdin_shared_imp` 必须先于 `cin` / `wcin`——它们的根转换器都经它读；
+ *   - 时区树最后——它只依赖标准库的 tzdb，前面的单例初始化时也不用它。
  *
  * 构建示例（Linux，按需替换第三方依赖与路径）：
  * @code
@@ -43,12 +45,16 @@
  * headers expose only `extern` declarations of the singletons and the real
  * definitions live here. Being a single TU, initialization order equals definition
  * order ([basic.start.dynamic]/3.1, ordered):
- *   - `s_ori_facet_buf` must come first -- every stream's `locale` member resolves
- *     through it;
+ *   - the text-domain table comes first -- it depends on nothing, and is then ready for
+ *     any initialization that reads it through `get_dirname`;
+ *   - `s_ori_facet_buf` must precede the streams -- every stream's `locale` member
+ *     resolves through it;
  *   - `cout` / `wcout` must precede the streams that tie to them (`cerr`/`cin` tie
  *     `cout`, `wcerr`/`wcin` tie `wcout`);
  *   - `detail::stdin_shared_imp` must precede `cin` / `wcin` -- their root converters
- *     all read through it.
+ *     all read through it;
+ *   - the time-zone trie comes last -- it depends only on the standard library's tzdb,
+ *     and none of the singletons before it uses it while being initialized.
  *
  * Build example (Linux; substitute third-party deps/paths as needed):
  * @code
@@ -66,9 +72,19 @@
 #define IOV2_SHARED
 #define IOV2_EXPORTS
 
+#include <IOv2/facet/messages.h>
+#include <IOv2/facet/timeio.h>
+#include <IOv2/io/io_base.h>
 #include <IOv2/io/objects/in_impl.h>
 #include <IOv2/io/objects/out_impl.h>
 #include <IOv2/locale/ori_facet_buf.h>
+
+#include <atomic>
+#include <cstddef>
+#include <filesystem>
+#include <mutex>
+#include <string>
+#include <unordered_map>
 
 #if defined(__unix__) || defined(__APPLE__)
 #include <dlfcn.h>
@@ -81,10 +97,46 @@ namespace IOv2
 {
 /**
  * @lang{ZH}
+ * 文本域表与它的锁：shared 模式下的唯一定义点。二者以引用导出，所有模块——Windows 上的每个
+ * DLL、ELF/Mach-O 上以 hidden 可见性编译的模块——内联的 `bind_text_domain` / `get_dirname`
+ * 都经它们访问这一张表。放在本 TU 最前：它们不依赖任何东西，之后的初始化若读表，表已就绪。
+ * 永不析构，理由见 messages_details.h。
+ * @endif
+ * @lang{EN}
+ * The text-domain table and its lock: their single definition point in shared mode. Both are
+ * exported as references, and the `bind_text_domain` / `get_dirname` inlined into every
+ * module -- any DLL on Windows, a module built with hidden visibility on ELF/Mach-O -- reach
+ * this one table through them. First in this TU: they depend on nothing, and are ready for
+ * any initialization after them that reads the table. Never destroyed, see
+ * messages_details.h.
+ * @endif
+ */
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
+IOV2_API std::unordered_map<std::string, std::filesystem::path>& base_ft<messages>::s_domain_dirs =
+    *new std::unordered_map<std::string, std::filesystem::path>;
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
+IOV2_API copyable_mutex<std::mutex>& base_ft<messages>::s_domain_mutex =
+    *new copyable_mutex<std::mutex>;
+
+/**
+ * @lang{ZH}
+ * `xalloc()` 的计数器：shared 模式下的唯一定义点，理由同上——各模块内联的 `xalloc()` 改的都是
+ * 这一个，发放的索引不会重复。常量初始化，与定义顺序无关。
+ * @endif
+ * @lang{EN}
+ * The counter behind `xalloc()`: its single definition point in shared mode, for the reason
+ * above -- the `xalloc()` inlined into every module bumps this one, so no index is handed out
+ * twice. Constant-initialized, so its place in the definition order does not matter.
+ * @endif
+ */
+IOV2_API constinit std::atomic<std::size_t> ios_base<void>::s_top{0};
+
+/**
+ * @lang{ZH}
  * 单例的生命周期与跨 DSO 顺序。
  *
  * 本 TU 内:定义顺序即初始化顺序(单 TU、ordered init,[basic.start.dynamic]/3.1)。
- * 因此 `s_ori_facet_buf` 必须最前——每个流的 `locale` 成员都经它解析;`cout`/`wcout`
+ * 因此 `s_ori_facet_buf` 必须先于各流——每个流的 `locale` 成员都经它解析;`cout`/`wcout`
  * 必须先于绑定到它们的流。各 `_*_init` guard 是 TU-local(内部链接),只有引用被导出。
  *
  * 为什么这套设计对共享库(DSO)是安全的:
@@ -111,8 +163,8 @@ namespace IOv2
  * Singleton lifetime and cross-DSO ordering.
  *
  * Within this TU, definition order is initialization order (single TU, ordered
- * init, [basic.start.dynamic]/3.1). Hence `s_ori_facet_buf` must come first --
- * every stream's `locale` member resolves through it -- and `cout`/`wcout` must
+ * init, [basic.start.dynamic]/3.1). Hence `s_ori_facet_buf` must precede the streams
+ * -- every stream's `locale` member resolves through it -- and `cout`/`wcout` must
  * precede the streams that tie to them. The `_*_init` guards are TU-local (internal
  * linkage); only the references are exported.
  *
@@ -173,6 +225,24 @@ IOV2_API cin_t&    cin = _cin_init.get();
 
 static wcin_t::init _wcin_init;
 IOV2_API wcin_t&    wcin = _wcin_init.get();
+
+/**
+ * @lang{ZH}
+ * 时区树：shared 模式下的唯一定义点。在库载入时建一次——ELF 的 init 阶段、Windows 的
+ * `DllMain`——而不是每个包含 timeio 的模块载入时各建一棵；消费者模块的静态构造都在它之后。
+ * 仍在启动时建、不改成首次使用才建，理由见 timeio_details.h 的 `s_timezone_tree`。
+ * @endif
+ * @lang{EN}
+ * The time-zone trie: its single definition point in shared mode. Built once, when the
+ * library loads -- ELF's init phase, `DllMain` on Windows -- instead of once per module that
+ * includes timeio; every consumer module's static constructors run after it. Still built at
+ * startup rather than on first use, see `s_timezone_tree` in timeio_details.h.
+ * @endif
+ */
+// Only bad_alloc can escape the build, at load time, where nothing could handle it anyway.
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
+IOV2_API const prefix_tree<char, zone_ref>& base_ft<timeio>::s_timezone_tree =
+    *new prefix_tree<char, zone_ref>(build_timezone_tree());
 
 /**
  * @lang{ZH}
