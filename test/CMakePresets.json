@@ -184,6 +184,14 @@
       "environment": { "CC": "clang-cl", "CXX": "clang-cl" }
     },
     {
+      "name": "windows-msvc-installed-shared",
+      "inherits": "windows",
+      "displayName": "MSVC cl, release, against an installed iov2.dll",
+      "description": "Found through find_package(IOv2): put the install prefix in the CMAKE_PREFIX_PATH environment variable, and its bin directory on PATH to run the tests.",
+      "environment": { "CC": "cl", "CXX": "cl" },
+      "cacheVariables": { "IOV2_TEST_CONSUMER": "installed-shared" }
+    },
+    {
       "name": "macos",
       "hidden": true,
       "inherits": "base",
@@ -204,6 +212,13 @@
       "inherits": "macos",
       "displayName": "Apple clang, ASan+UBSan (-O1 -g, no NDEBUG)",
       "cacheVariables": { "IOV2_TEST_MODE": "sanitizer" }
+    },
+    {
+      "name": "macos-clang-installed-shared",
+      "inherits": "macos",
+      "displayName": "Apple clang, release, against an installed libiov2.dylib",
+      "description": "Found through pkg-config: put the install prefix's lib/pkgconfig in PKG_CONFIG_PATH. The tests carry its lib directory as an rpath.",
+      "cacheVariables": { "IOV2_TEST_CONSUMER": "installed-shared" }
     }
   ],
 
@@ -228,6 +243,8 @@
     { "name": "windows-msvc-sanitizer", "configurePreset": "windows-msvc-sanitizer" },
     { "name": "windows-msvc-x86-release", "configurePreset": "windows-msvc-x86-release" },
     { "name": "macos-clang-sanitizer", "configurePreset": "macos-clang-sanitizer" },
+    { "name": "windows-msvc-installed-shared", "configurePreset": "windows-msvc-installed-shared" },
+    { "name": "macos-clang-installed-shared", "configurePreset": "macos-clang-installed-shared" },
     {
       "name": "gcc-tsan",
       "configurePreset": "gcc-tsan",
@@ -263,6 +280,8 @@
     { "name": "windows-msvc-sanitizer", "inherits": "base", "configurePreset": "windows-msvc-sanitizer" },
     { "name": "windows-msvc-x86-release", "inherits": "base", "configurePreset": "windows-msvc-x86-release" },
     { "name": "macos-clang-sanitizer", "inherits": "base", "configurePreset": "macos-clang-sanitizer" },
+    { "name": "windows-msvc-installed-shared", "inherits": "base", "configurePreset": "windows-msvc-installed-shared" },
+    { "name": "macos-clang-installed-shared", "inherits": "base", "configurePreset": "macos-clang-installed-shared" },
     {
       "name": "gcc-tsan",
       "configurePreset": "gcc-tsan",

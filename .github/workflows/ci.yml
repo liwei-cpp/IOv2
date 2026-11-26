@@ -734,6 +734,21 @@ jobs:
             preset: macos-clang-sanitizer
             jobs: 3
             keep_going: -k        # make
+          # The shared library, consumed as a user would: built and installed
+          # outside the checkout first, then found through find_package on
+          # Windows (no pkg-config there) and pkg-config on macOS.
+          - name: windows-msvc-installed-shared
+            os: windows-latest
+            preset: windows-msvc-installed-shared
+            installed_shared: true
+            jobs: 4
+            keep_going: -k 0      # Ninja
+          - name: macos-installed-shared
+            os: macos-latest
+            preset: macos-clang-installed-shared
+            installed_shared: true
+            jobs: 3
+            keep_going: -k        # make
 
     steps:
     - uses: actions/checkout@v6
@@ -795,6 +810,40 @@ jobs:
     - name: Install Botan
       if: runner.os == 'macOS'
       run: brew install botan
+
+    - name: Install pkg-config
+      if: runner.os == 'macOS' && matrix.installed_shared
+      run: brew install pkgconf
+
+    # Outside the checkout: the installed consumer refuses headers from inside the
+    # source tree. The next steps find it through CMAKE_PREFIX_PATH (Windows) or
+    # PKG_CONFIG_PATH (macOS), and on Windows run the tests with its bin on PATH;
+    # on macOS the tests carry its lib directory as an rpath.
+    - name: Build and install libiov2
+      if: matrix.installed_shared
+      shell: bash
+      run: |
+        if [ "$RUNNER_OS" = Windows ]; then
+          prefix="$(cygpath -m "$RUNNER_TEMP")/iov2"
+          gen=(-G Ninja)
+          export CXX=cl
+        else
+          prefix="$RUNNER_TEMP/iov2"
+          gen=()
+        fi
+        cmake -S . -B build/pkg-shared "${gen[@]}" -DIOV2_BUILD_SHARED=ON \
+              -DCMAKE_INSTALL_PREFIX="$prefix" -DCMAKE_INSTALL_LIBDIR=lib
+        cmake --build build/pkg-shared --parallel ${{ matrix.jobs }}
+        cmake --install build/pkg-shared
+        if [ "$RUNNER_OS" = Windows ]; then
+          test -e "$prefix/bin/iov2.dll"
+          test -e "$prefix/lib/iov2.lib"
+          echo "CMAKE_PREFIX_PATH=$prefix" >> "$GITHUB_ENV"
+          cygpath -w "$prefix/bin" >> "$GITHUB_PATH"
+        else
+          test -e "$prefix/lib/libiov2.dylib"
+          echo "PKG_CONFIG_PATH=$prefix/lib/pkgconfig" >> "$GITHUB_ENV"
+        fi
 
     - name: Configure and build
       working-directory: test

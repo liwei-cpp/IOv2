@@ -178,6 +178,16 @@
   - 同步模式下偷看、压回的字符无法交还给 C stdio（UCRT 的 stdin 不接受退回），留在流自己的缓冲
     里：C stdio 看不到，流接着读得到，不丢字节。
   - `switch_code("")` 取用户缺省 locale，不看环境变量。
+- **共享库模式可在 Windows 与 macOS 上使用**：Windows 上装出 `iov2.dll` 与导入库 `iov2.lib`，
+  经 CMake 包消费；macOS 上装出 `libiov2.dylib`（安装名 `@rpath/libiov2.1.dylib`，消费方要带
+  rpath），经 pkg-config 或 CMake 包消费。Windows 上：
+  - 所有模块都须用动态 CRT（`/MD`，Debug 用 `/MDd`），且与库的配置一致。以 `/MT` 在共享模式下
+    包含头文件编译报错；配置与导入库不一致时链接报错（钉住函数按 CRT 命名为
+    `pin_module_of_md` / `pin_module_of_mdd`）。
+  - Debug 版库名带后缀 `d`（`iov2d.dll`、`iov2d.lib`），可与 Release 版装进同一前缀，CMake 包按
+    消费方的配置挑选。
+  - 消费者模块经 `GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_PIN)` 钉住，`FreeLibrary` 不会
+    卸载它，与 ELF / Mach-O 上的 `dlclose` 一样。
 
 #### 变更
 
@@ -664,6 +674,18 @@ have no release line of their own.
     UCRT's stdin takes no pushback). It stays in the stream's own buffer: out of C stdio's
     sight, read next by the stream, no byte lost.
   - `switch_code("")` takes the user's default locale and reads no environment variable.
+- **Shared-library mode works on Windows and macOS**: on Windows the install has `iov2.dll`
+  and the import library `iov2.lib`, consumed through the CMake package; on macOS
+  `libiov2.dylib` (install name `@rpath/libiov2.1.dylib`, so consumers need an rpath),
+  consumed through pkg-config or the CMake package. On Windows:
+  - Every module must use the dynamic CRT (`/MD`, or `/MDd` for Debug), in the library's
+    configuration. Including the headers in shared mode under `/MT` is a compile error, and a
+    configuration that does not match the import library fails to link (the pin function is
+    named after the CRT: `pin_module_of_md` / `pin_module_of_mdd`).
+  - The Debug library has a `d` suffix (`iov2d.dll`, `iov2d.lib`), so it can share a prefix
+    with the Release one; the CMake package picks by the consumer's configuration.
+  - Consumer modules are pinned through `GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_PIN)`,
+    so `FreeLibrary` does not unload them, as `dlclose` does not on ELF / Mach-O.
 
 #### Changed
 

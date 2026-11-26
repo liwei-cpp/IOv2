@@ -22,28 +22,33 @@
 #include <filesystem>
 
 #if defined(IOV2_TEST_SHARED_STATE_PLUGIN)
-#include <dlfcn.h>
+#include <support/plugin.h>
+
+#include <string>
 
 namespace
 {
+    namespace plugin = iov2_test::plugin;
+
     // Loaded once and never closed: shared mode pins it anyway.
-    void* plugin()
+    plugin::handle shared_state_plugin()
     {
-        static void* const handle = [] {
-            void* h = ::dlopen(IOV2_TEST_SHARED_STATE_PLUGIN, RTLD_NOW);
-            if (h == nullptr) ADD_FAILURE() << ::dlerror();
-            return h;
+        static const plugin::handle h = [] {
+            std::string error;
+            const plugin::handle opened = plugin::open(IOV2_TEST_SHARED_STATE_PLUGIN, error);
+            if (opened == nullptr) ADD_FAILURE() << error;
+            return opened;
         }();
-        return handle;
+        return h;
     }
 
     template <typename Fn>
     Fn* plugin_function(const char* name)
     {
-        if (plugin() == nullptr) return nullptr;
-        void* sym = ::dlsym(plugin(), name);
-        if (sym == nullptr) ADD_FAILURE() << name << ": " << ::dlerror();
-        return reinterpret_cast<Fn*>(sym);
+        if (shared_state_plugin() == nullptr) return nullptr;
+        Fn* fn = plugin::function<Fn>(shared_state_plugin(), name);
+        if (fn == nullptr) ADD_FAILURE() << "the plugin exports no " << name;
+        return fn;
     }
 }
 #endif

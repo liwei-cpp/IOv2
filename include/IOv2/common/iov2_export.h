@@ -78,12 +78,22 @@
  *          `-rdynamic` / `--export-dynamic` 导出 IOv2 符号，`libiov2.so` 对单例的引用会被
  *          宿主那一份插桩，.so 的初始化写进宿主的槽位，实测在 .so 初始化期间即崩溃。
  *
- * @warning **共享库模式会钉住每个消费者模块**：在 ELF / Mach-O 上，共享模式下包含本头文件
- *          会给每个模块加一个 hidden 可见性的 inline 变量，其初始化调用 `detail::pin_module_of`，
- *          使该模块不可卸载：`dlclose` 只减引用计数。模块建出的 facet 会进入进程级缓存（标准流
- *          的 locale、`s_ori_facet_buf`），其 vtable、`type_info` 键与控制块都在该模块的映像里，
- *          模块一卸载，这些缓存就指向已 unmap 的内存。变量必须是 hidden：默认可见性的会跨模块
- *          合并，只钉住第一个模块。
+ * @warning **Windows 上每个模块都要用动态 CRT，且配置与库一致**：库与所有消费者都用 `/MD`，
+ *          Debug 配置用 `/MDd`；Debug 的消费者链接 Debug 版的 `iov2d.lib`（运行时载入 `iov2d.dll`），
+ *          其余配置链接 `iov2.lib`（`iov2.dll`）。静态 CRT 下每个模块各有一份堆与 `stdout`，跨模块
+ *          释放内存会崩，`sync_with_stdio` 也失去意义；Debug 与 Release 的堆不同，STL 的布局也不同。
+ *          两种错误都在构建时报出：以 `/MT` 或 `/MTd` 在共享模式下包含本头文件，编译报错；配置与
+ *          导入库不一致，链接时找不到 `detail::pin_module_of_md`（或 `_mdd`）——钉住函数按 CRT 命名，
+ *          每种配置的库只导出自己那个。
+ *
+ * @warning **共享库模式会钉住每个消费者模块**：共享模式下包含本头文件会给每个模块加一个 inline
+ *          变量，其初始化把该模块钉住，使它不可卸载：ELF / Mach-O 上经
+ *          `dlopen(RTLD_NOLOAD | RTLD_NODELETE)`，之后 `dlclose` 只减引用计数；Windows 上经
+ *          `GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_PIN)`，之后 `FreeLibrary` 不会卸载它。模块
+ *          建出的 facet 会进入进程级缓存（标准流的 locale、`s_ori_facet_buf`），其 vtable、`type_info`
+ *          键与控制块都在该模块的映像里，模块一卸载，这些缓存就指向已 unmap 的内存。ELF / Mach-O
+ *          上变量必须是 hidden：默认可见性的会跨模块合并，只钉住第一个模块；Windows 上 DLL 之间本来
+ *          就不合并。
  * @endif
  *
  * @lang{EN}
@@ -137,15 +147,29 @@
  *          by the host's copies, the .so's initialization writes into the host's slots,
  *          and it was measured to crash during that initialization.
  *
- * @warning **Shared-library mode pins every consumer module**: on ELF / Mach-O, including
- *          this header in shared mode adds one hidden-visibility inline variable per module,
- *          whose initializer calls `detail::pin_module_of`. That makes the module
- *          non-unloadable: `dlclose` only drops the reference count. Facets a module builds
- *          end up in process-wide caches (the standard streams' locales, `s_ori_facet_buf`)
- *          with their vtables, `type_info` keys and control blocks in that module's image;
- *          unloading it would leave those caches pointing into unmapped memory. The variable
- *          has to be hidden: a default-visibility one would be merged across modules and pin
- *          only the first.
+ * @warning **On Windows every module needs the dynamic CRT, in the library's configuration**:
+ *          the library and all its consumers use `/MD`, or `/MDd` in the Debug configuration; a
+ *          Debug consumer links the Debug `iov2d.lib` (and loads `iov2d.dll`), any other
+ *          configuration links `iov2.lib` (`iov2.dll`). With the static CRT each module has a heap
+ *          and a `stdout` of its own, freeing memory across modules crashes, and
+ *          `sync_with_stdio` means nothing; Debug and Release differ in their heaps and in the
+ *          STL's layout. Both mistakes are caught at build time: including this header in shared
+ *          mode under `/MT` or `/MTd` is a compile error, and a configuration that does not match
+ *          the import library fails to link on `detail::pin_module_of_md` (or `_mdd`) -- the pin
+ *          function is named after the CRT, and each configuration of the library exports only
+ *          its own.
+ *
+ * @warning **Shared-library mode pins every consumer module**: including this header in shared
+ *          mode adds one inline variable per module, whose initializer pins the module, making
+ *          it non-unloadable: on ELF / Mach-O through `dlopen(RTLD_NOLOAD | RTLD_NODELETE)`,
+ *          after which `dlclose` only drops the reference count; on Windows through
+ *          `GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_PIN)`, after which `FreeLibrary` does
+ *          not unload it. Facets a module builds end up in process-wide caches (the standard
+ *          streams' locales, `s_ori_facet_buf`) with their vtables, `type_info` keys and control
+ *          blocks in that module's image; unloading it would leave those caches pointing into
+ *          unmapped memory. On ELF / Mach-O the variable has to be hidden: a default-visibility
+ *          one would be merged across modules and pin only the first. Windows merges nothing
+ *          across DLLs anyway.
  * @endif
  */
 #if defined(IOV2_SHARED)
@@ -162,9 +186,34 @@
 #  define IOV2_API
 #endif
 
-#if defined(IOV2_SHARED) && !defined(IOV2_EXPORTS) && (defined(__unix__) || defined(__APPLE__))
+#if defined(IOV2_SHARED) && defined(_WIN32) && !defined(_DLL)
+#  error "IOv2's shared-library mode needs the dynamic CRT in every module: /MD, or /MDd for Debug"
+#endif
+
+#if defined(IOV2_SHARED) && !defined(IOV2_EXPORTS)
 namespace IOv2::detail
 {
+#if defined(_WIN32)
+// Named after the CRT: a Debug module linked against the Release iov2.lib, or the other way
+// round, fails to link on this name instead of crashing at run time.
+#  if defined(_DEBUG)
+IOV2_API void pin_module_of_mdd(const void* addr) noexcept;   // defined in iov2_objects.cpp, iov2d.dll only
+#  else
+IOV2_API void pin_module_of_md(const void* addr) noexcept;    // defined in iov2_objects.cpp, iov2.dll only
+#  endif
+
+// Not hidden as below: no inline variable is merged across DLLs, so each module has its own.
+struct module_pin
+{
+#  if defined(_DEBUG)
+    module_pin() noexcept { pin_module_of_mdd(this); }
+#  else
+    module_pin() noexcept { pin_module_of_md(this); }
+#  endif
+};
+
+inline module_pin s_module_pin;
+#elif defined(__unix__) || defined(__APPLE__)
 IOV2_API void pin_module_of(const void* addr) noexcept;   // defined in iov2_objects.cpp
 
 struct __attribute__((visibility("hidden"))) module_pin
@@ -173,5 +222,6 @@ struct __attribute__((visibility("hidden"))) module_pin
 };
 
 __attribute__((visibility("hidden"))) inline module_pin s_module_pin;
+#endif
 }
 #endif

@@ -93,6 +93,14 @@
 #include <link.h>
 #endif
 
+#if defined(_WIN32)
+// Declared rather than taken from <windows.h>. HMODULE is spelled as <windows.h> spells it
+// (STRICT), so the two declarations agree should they ever meet.
+struct HINSTANCE__;   // NOLINT(bugprone-reserved-identifier): <windef.h>'s own tag
+extern "C" __declspec(dllimport) int __stdcall
+GetModuleHandleExW(unsigned long dwFlags, const wchar_t* lpModuleName, HINSTANCE__** phModule);
+#endif
+
 namespace IOv2
 {
 /**
@@ -147,6 +155,10 @@ IOV2_API constinit std::atomic<std::size_t> ios_base<void>::s_top{0};
  *     静态构造 → 消费者静态对象的**构造函数**里可安全使用它们;
  *   - **终止**:finalize 是 init 的逆序,libiov2.so 最后 finalize → 消费者静态对象的
  *     **析构函数**里也可安全使用它们。
+ * Windows 上同理:DLL 的静态初始化在 `DllMain` 里进行,被依赖方先于依赖方;EXE 的静态初始化
+ * 晚于它链接的 DLL。退出时 `exit()` 先执行 EXE 的静态析构,再由 `ExitProcess` 终止其余线程、
+ * 按逆序给各 DLL 发 `DLL_PROCESS_DETACH`,iov2.dll 的退出钩子仍在消费者的静态析构之后。被终止
+ * 的线程可能死在持锁状态,所以钩子只尽力刷新(`try_flush`)。
  * 而且这些单例在 finalize 时**不析构**(与 libstdc++ 对 `std::cout` 的处理相同):各
  * `_*_init` 的析构只执行构造时登记的退出钩子——输出流 flush、其余空操作,见
  * `sing_temp::exit_hook`。对象存储是静态缓冲,连同其持有的堆内存保持可达、由 OS 回收,
@@ -154,7 +166,7 @@ IOV2_API constinit std::atomic<std::size_t> ios_base<void>::s_top{0};
  *
  * @warning 消费者模块被钉住,libiov2.so 随之驻留:共享模式下每个包含 IOv2 头文件的模块
  * 在载入时经 `pin_module_of` 把自己标记为不可卸载(见 `common/iov2_export.h`),对它
- * `dlclose` 只减引用计数;它对 libiov2.so 的依赖也就一直存在,libiov2.so 不会在仍有
+ * `dlclose` 只减引用计数(Windows 上 `FreeLibrary` 不会卸载它);它对 libiov2.so 的依赖也就一直存在,libiov2.so 不会在仍有
  * 引用存活时被 unmap。仍不支持的是消费者与本库仅在运行期耦合、无加载器可见依赖边的用法
  * (如 `dlopen(RTLD_GLOBAL)` 靠符号插桩):那时初始化顺序没有保证。
  * @endif
@@ -178,6 +190,12 @@ IOV2_API constinit std::atomic<std::size_t> ios_base<void>::s_top{0};
  *     consumer static may use them in its *constructor*;
  *   - Termination: finalization is the reverse of initialization, so libiov2.so is
  *     finalized last -- so a consumer static may also use them in its *destructor*.
+ * Windows behaves alike: a DLL's static initialization runs in `DllMain`, a dependency
+ * before its dependents, and an EXE's after the DLLs it links. At exit, `exit()` runs the
+ * EXE's static destructors first; `ExitProcess` then terminates the other threads and sends
+ * `DLL_PROCESS_DETACH` to the DLLs in reverse order, so iov2.dll's exit hooks still run
+ * after the consumers' static destructors. A terminated thread may have died holding a lock,
+ * which is why the hooks only try to flush (`try_flush`).
  * Moreover the singletons are **not destroyed** at finalization (as libstdc++ treats
  * `std::cout`): each `_*_init` destructor only runs the exit hook registered at
  * construction -- flush for the output streams, a no-op for the rest, see
@@ -188,7 +206,7 @@ IOV2_API constinit std::atomic<std::size_t> ios_base<void>::s_top{0};
  * @warning Consumer modules are pinned, so libiov2.so stays resident: in shared mode
  * every module that includes IOv2 headers marks itself non-unloadable at load time
  * through `pin_module_of` (see `common/iov2_export.h`), and a `dlclose` of it only drops
- * the reference count. Its dependency on libiov2.so therefore never goes away, and
+ * the reference count (on Windows, `FreeLibrary` does not unload it). Its dependency on libiov2.so therefore never goes away, and
  * libiov2.so is never unmapped while references to it are live. Still unsupported is a
  * consumer coupled to this library only at runtime with no loader-visible dependency
  * edge (e.g. `dlopen(RTLD_GLOBAL)` via symbol interposition): the initialization order is
@@ -333,6 +351,21 @@ IOV2_API void pin_module_of(const void* addr) noexcept
     // A failure leaves an error pending for the program's next dlerror(); drop it.
     if (::dlopen(name, RTLD_LAZY | RTLD_NOLOAD | RTLD_NODELETE) == nullptr)
         ::dlerror();
+}
+#elif defined(_WIN32)
+// Named after the CRT this library is built with, see common/iov2_export.h.
+#if defined(_DEBUG)
+IOV2_API void pin_module_of_mdd(const void* addr) noexcept
+#else
+IOV2_API void pin_module_of_md(const void* addr) noexcept
+#endif
+{
+    constexpr unsigned long pin = 0x1;            // GET_MODULE_HANDLE_EX_FLAG_PIN
+    constexpr unsigned long from_address = 0x4;   // GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS
+    // With FROM_ADDRESS the name is an address inside the module. A pinned module stays
+    // loaded until the process ends, whatever FreeLibrary is called on it.
+    ::HINSTANCE__* module = nullptr;
+    (void)::GetModuleHandleExW(pin | from_address, static_cast<const wchar_t*>(addr), &module);
 }
 #endif
 }

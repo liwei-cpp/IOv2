@@ -12,12 +12,14 @@
  *
  * The plugin is built with -fno-gnu-unique under g++: otherwise its inline
  * variables are STB_GNU_UNIQUE, glibc never unloads it, and the test proves nothing.
- * Only the installed-shared consumer builds the plugin; elsewhere the test skips.
+ * On Windows FreeLibrary stands for dlclose, and GetModuleHandleW for the RTLD_NOLOAD
+ * check. Only the installed-shared consumer builds the plugin; elsewhere the test skips.
  */
 #include <IOv2/io/objects/objects.h>
 #include <IOv2/io/traits/arithmetic.h>
 #include <IOv2/io/traits/char_and_str.h>
 
+#include <support/platform_macros.h>
 #include <support/test_child.h>
 
 #include <gtest/gtest.h>
@@ -27,10 +29,10 @@
 #include <iterator>
 #include <string>
 
-// Both cases exist only in the installed-shared consumer, which is Linux's; elsewhere they
-// skip and need none of this.
-#if defined(IOV2_TEST_UNLOAD_PLUGIN) || defined(IOV2_SHARED)
-#include <dlfcn.h>
+#if defined(IOV2_TEST_UNLOAD_PLUGIN)
+#include <support/plugin.h>
+#endif
+#if defined(IOV2_SHARED) && IOV2_TEST_LINUX_GLIBC
 #include <sys/wait.h>
 #include <unistd.h>
 #endif
@@ -42,16 +44,18 @@ TEST(PluginUnload, AFacetCachedByAnUnloadedPluginStaysUsable)
 #else
     if (in_test_child())
     {
-        if (std::freopen("plugin_unload.out", "w", stdout) == nullptr) std::_Exit(1);
+        if (!iov2_test::sys::reopen("plugin_unload.out", "w", stdout)) std::_Exit(1);
 
-        void* plugin = ::dlopen(IOV2_TEST_UNLOAD_PLUGIN, RTLD_NOW);
-        if (plugin == nullptr) { std::fprintf(stderr, "%s\n", ::dlerror()); std::_Exit(2); }
-        auto write = reinterpret_cast<void (*)()>(::dlsym(plugin, "iov2_test_plugin_write"));
+        namespace plugin = iov2_test::plugin;
+        std::string error;
+        const plugin::handle h = plugin::open(IOV2_TEST_UNLOAD_PLUGIN, error);
+        if (h == nullptr) { std::fprintf(stderr, "%s\n", error.c_str()); std::_Exit(2); }
+        auto* write = plugin::function<void()>(h, "iov2_test_plugin_write");
         if (write == nullptr) std::_Exit(3);
         write();
-        ::dlclose(plugin);
+        plugin::close(h);
 
-        if (::dlopen(IOV2_TEST_UNLOAD_PLUGIN, RTLD_NOW | RTLD_NOLOAD) == nullptr) std::_Exit(4);
+        if (!plugin::resident(IOV2_TEST_UNLOAD_PLUGIN)) std::_Exit(4);
 
         IOv2::cout << 1;
         IOv2::cout.flush();
@@ -76,6 +80,8 @@ TEST(PluginUnload, TheMainProgramsPinLeavesArgv0Alone)
 {
 #if !defined(IOV2_SHARED)
     GTEST_SKIP() << "the pin exists only in shared-library mode";
+#elif !IOV2_TEST_LINUX_GLIBC
+    GTEST_SKIP() << "the case is about glibc's dladdr, which names the main program by argv[0]";
 #else
     if (in_test_child())
     {

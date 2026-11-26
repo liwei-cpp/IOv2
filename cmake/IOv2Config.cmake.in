@@ -14,4 +14,16 @@
 set(IOv2_SHARED @IOV2_BUILD_SHARED@)
 
 include("${CMAKE_CURRENT_LIST_DIR}/IOv2Targets.cmake")
+
+# Windows, shared mode: the Release and Debug libraries (iov2, iov2d) may share a prefix, and
+# a consumer must link the one built with its CRT. RelWithDebInfo, MinSizeRel and a build with
+# no configuration use the release CRT (/MD), like Release; left alone, CMake could pick
+# whichever configuration it finds first.
+if(IOv2_SHARED AND WIN32)
+  set_target_properties(IOv2::iov2 PROPERTIES
+      MAP_IMPORTED_CONFIG_RELWITHDEBINFO Release
+      MAP_IMPORTED_CONFIG_MINSIZEREL Release
+      MAP_IMPORTED_CONFIG_NOCONFIG Release)
+endif()
+
 check_required_components(IOv2)
