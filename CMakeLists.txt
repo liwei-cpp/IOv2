@@ -60,13 +60,18 @@ include(CMakePackageConfigHelpers)
 # macro the headers need (locale_t, newlocale, uselocale, the *_l helpers).
 if(IOV2_BUILD_SHARED)
   add_library(iov2 SHARED src/iov2_objects.cpp)
-  # Hidden by default keeps the exported surface to the IOV2_API-tagged singleton
-  # references; everything else stays internal to the library.
   set_target_properties(iov2 PROPERTIES
       CXX_EXTENSIONS OFF
-      CXX_VISIBILITY_PRESET hidden
       VERSION ${PROJECT_VERSION}
       SOVERSION ${PROJECT_VERSION_MAJOR})
+  # Hidden functions and variables keep the exported surface to the IOV2_API-tagged
+  # singletons; everything else stays internal to the library. Types are not hidden:
+  # where a hidden type's type_info compares by address only (libc++, as on macOS arm64),
+  # the library's would never equal a consumer's (facet keys, dynamic_cast). MSVC exports
+  # only what is marked, and compares type_info by name.
+  if(NOT MSVC)
+    target_compile_options(iov2 PRIVATE -fvisibility-ms-compat)
+  endif()
   # Windows: a Debug libiov2 is iov2d.dll / iov2d.lib, so both configurations can share a
   # prefix and the CMake package picks the one matching the consumer's CRT (/MD or /MDd).
   # Elsewhere the .pc file names -liov2, and a Debug build replaces the Release one.

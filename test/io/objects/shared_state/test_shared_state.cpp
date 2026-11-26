@@ -2,17 +2,18 @@
 // SPDX-License-Identifier: MIT
 
 /**
- * State that has to be one per process, reached from a plugin built with hidden
- * visibility. Such a module merges none of its inline variables with the host's --
- * on Windows no module ever does -- so the text-domain table, the xalloc() counter
- * and the time-zone trie it reaches are its own unless libiov2 exports them. They
- * used to be: a domain the plugin bound did not exist for the host, the plugin's
- * first xalloc() handed out index 0 again, and the plugin built a trie of its own
- * at load time.
+ * State that has to be one per process, reached from a plugin that hides its
+ * variables (-fvisibility-ms-compat; its types stay visible, see iov2_export.h).
+ * Such a module merges none of its inline variables with the host's -- on Windows no
+ * module ever does -- so the text-domain table, the xalloc() counter and the
+ * time-zone trie it reaches are its own unless libiov2 exports them. They used to be:
+ * a domain the plugin bound did not exist for the host, the plugin's first xalloc()
+ * handed out index 0 again, and the plugin built a trie of its own at load time.
  *
  * Only the installed-shared consumer builds the plugin; elsewhere the tests skip.
  */
 #include <IOv2/facet/messages.h>
+#include <IOv2/facet/numeric.h>
 #include <IOv2/facet/timeio.h>
 #include <IOv2/io/io_base.h>
 
@@ -80,6 +81,21 @@ TEST(SharedState, XallocNeverRepeatsAnIndexAcrossModules)
     const std::size_t host_again = IOv2::ios_base<char>::xalloc();
     EXPECT_LT(host, in_plugin);
     EXPECT_LT(in_plugin, host_again);
+#endif
+}
+
+// Facets are keyed by type_info. libc++ compares a hidden type's type_info by address
+// alone, so on macOS a module that hid its types had keys no other module matched.
+TEST(SharedState, TheFacetKeysOfOneTypeAgreeAcrossModules)
+{
+#if !defined(IOV2_TEST_SHARED_STATE_PLUGIN)
+    GTEST_SKIP() << "needs the installed-shared consumer";
+#else
+    auto* same = plugin_function<bool(const void*, const void*)>("iov2_test_plugin_same_numeric_keys");
+    ASSERT_NE(same, nullptr);
+    const IOv2::facet_id_t facet_key = IOv2::type_id_v<IOv2::numeric<char>>();
+    const IOv2::facet_id_t conf_key = IOv2::numeric_conf<char>::id();
+    EXPECT_TRUE(same(&facet_key, &conf_key));
 #endif
 }
 

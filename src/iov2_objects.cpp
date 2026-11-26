@@ -20,9 +20,10 @@
  *   - `detail::stdin_shared_imp` 必须先于 `cin` / `wcin`——它们的根转换器都经它读；
  *   - 时区树最后——它只依赖标准库的 tzdb，前面的单例初始化时也不用它。
  *
- * 构建示例（Linux，按需替换第三方依赖与路径）：
+ * 构建示例（Linux，按需替换第三方依赖与路径；`-fvisibility-ms-compat` 隐藏函数与变量、
+ * 类型保持可见，原因见 `common/iov2_export.h`）：
  * @code
- *   g++ -std=c++23 -fPIC -fvisibility=hidden -shared \
+ *   g++ -std=c++23 -fPIC -fvisibility-ms-compat -shared \
  *       -Iinclude -I/usr/include/botan-3 -D_POSIX_C_SOURCE=200809L \
  *       -DIOV2_SHARED -DIOV2_EXPORTS src/iov2_objects.cpp \
  *       -o libiov2.so -lz -lbotan-3
@@ -56,9 +57,11 @@
  *   - the time-zone trie comes last -- it depends only on the standard library's tzdb,
  *     and none of the singletons before it uses it while being initialized.
  *
- * Build example (Linux; substitute third-party deps/paths as needed):
+ * Build example (Linux; substitute third-party deps/paths as needed;
+ * `-fvisibility-ms-compat` hides functions and variables but not types, see
+ * `common/iov2_export.h`):
  * @code
- *   g++ -std=c++23 -fPIC -fvisibility=hidden -shared \
+ *   g++ -std=c++23 -fPIC -fvisibility-ms-compat -shared \
  *       -Iinclude -I/usr/include/botan-3 -D_POSIX_C_SOURCE=200809L \
  *       -DIOV2_SHARED -DIOV2_EXPORTS src/iov2_objects.cpp \
  *       -o libiov2.so -lz -lbotan-3

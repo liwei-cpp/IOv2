@@ -203,6 +203,7 @@ make IOV2_PKG=iov2-shared   # 共享 .so（无需 -DIOV2_SHARED）
   - **Debug 版带后缀 `d`**（`iov2d.dll`、`iov2d.lib`），可与 Release 版装进同一前缀：分别以 Debug 与 Release 构建、安装（多配置生成器用 `--config`）。CMake 包按消费方的配置挑选：Debug 链接 `iov2d`，Release、RelWithDebInfo、MinSizeRel 链接 `iov2`。
   - **运行时要找得到 DLL**：把 `<prefix>/bin` 加进 `PATH`，或把 `iov2.dll` 复制到可执行文件旁边。
 - **macOS**：`libiov2.dylib` 的安装名是 `@rpath/libiov2.1.dylib`，消费方要带上指向 `<prefix>/lib` 的 rpath。经 pkg-config 链接时加 `-Wl,-rpath,<prefix>/lib`；CMake 在构建树里会自动加上，安装出去的程序要自己设 `INSTALL_RPATH`。
+- **想隐藏符号的消费者模块（Windows 以外）**：用 `-fvisibility-ms-compat` 代替 `-fvisibility=hidden`。它隐藏函数与变量、类型保持可见，库本身也是这样编译的。macOS 上这是必需的：libc++ 对隐藏的类型只按地址比较 `type_info`，库与该模块之间的 facet 查找与 `dynamic_cast` 会全部失败。
 
 **编译宏一览**
 
@@ -466,6 +467,7 @@ make IOV2_PKG=iov2-shared   # shared .so (no -DIOV2_SHARED needed)
   - **The Debug library has a `d` suffix** (`iov2d.dll`, `iov2d.lib`) and can share a prefix with the Release one: build and install each configuration (with `--config` under a multi-config generator). The CMake package picks by the consumer's configuration: Debug links `iov2d`; Release, RelWithDebInfo and MinSizeRel link `iov2`.
   - **The DLL must be found at run time**: put `<prefix>/bin` on `PATH`, or copy `iov2.dll` next to the executable.
 - **macOS**: `libiov2.dylib`'s install name is `@rpath/libiov2.1.dylib`, so a consumer needs an rpath pointing at `<prefix>/lib`. Through pkg-config, link with `-Wl,-rpath,<prefix>/lib`; CMake adds one in the build tree by itself, and an installed program sets `INSTALL_RPATH`.
+- **A consumer module that hides its symbols (outside Windows)**: use `-fvisibility-ms-compat` instead of `-fvisibility=hidden`. It hides functions and variables but leaves types visible, and the library itself is built that way. On macOS this is required: libc++ compares a hidden type's `type_info` by address alone, and every facet lookup and `dynamic_cast` between the library and that module fails.
 
 **Compile-time macros**
 

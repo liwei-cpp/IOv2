@@ -69,14 +69,14 @@ namespace IOv2
 //    across DSO / `dlopen(RTLD_LOCAL)` / DLL boundaries and collision-free
 //    (`hash_code` only buckets; `operator==` decides the match).
 //
-//    This relies on `type_info` comparison being correct across DSOs, which every
-//    honest platform provides: on ELF/dlopen targets comparison is name-string
-//    based (the default), and targets that instead compare type_info by address
-//    do so only where the ABI guarantees a single merged type_info per type. The
-//    only way to break it is to force pointer-only type_info comparison (e.g.
-//    `-D__GXX_MERGED_TYPEINFO_NAMES=1`) on a platform that does not actually merge
-//    names -- a deliberate misconfiguration that also breaks any other
-//    `type_index`/RTTI-based code, so IOv2 does not police it here.
+//    This relies on `type_info` comparison being correct across DSOs. libstdc++
+//    compares names and MSVC decorated names. libc++ compares by address the
+//    type_info of a type the compiler deems unique to one image: with clang on
+//    macOS arm64, any type that is not of default visibility. Each module then has
+//    a hidden copy of its own, and none equals another's. So no module may hide the
+//    types: libiov2 is built with `-fvisibility-ms-compat` (functions and variables
+//    hidden, types not), and a consumer that hides its symbols must do the same
+//    (see `common/iov2_export.h`).
 #if defined(IOV2_SHARED)
 using facet_id_t = std::type_index;
 #else
