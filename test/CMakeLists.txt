@@ -280,8 +280,10 @@ if(IOV2_TEST_CONSUMER STREQUAL "installed-shared" AND TARGET test_io_objects_plu
       ${IOV2_TEST_PLUGIN_DEFS})
 endif()
 
-# Hidden visibility keeps the plugin's inline variables its own, as every module's
-# are on Windows: the process-wide state it reaches has to come from libiov2.
+# Hidden variables keep the plugin's inline variables its own, as every module's are on
+# Windows: the process-wide state it reaches has to come from libiov2. Built as
+# iov2_export.h tells a module that hides its symbols to be: functions and variables
+# hidden, types not, so their type_info still compares equal to the host's.
 if(IOV2_TEST_CONSUMER STREQUAL "installed-shared" AND TARGET test_io_objects_shared_state)
   add_library(test_plugin_shared_state MODULE
       "${CMAKE_CURRENT_SOURCE_DIR}/io/objects/shared_state/plugins/test_plugin_shared_state.cpp")
@@ -289,9 +291,10 @@ if(IOV2_TEST_CONSUMER STREQUAL "installed-shared" AND TARGET test_io_objects_sha
   target_include_directories(test_plugin_shared_state PRIVATE
       ${IOV2_TEST_SUBJECT_INCLUDE_DIRS} "${CMAKE_CURRENT_SOURCE_DIR}")
   target_compile_definitions(test_plugin_shared_state PRIVATE ${IOV2_TEST_PLUGIN_DEFS})
+  if(NOT MSVC)
+    target_compile_options(test_plugin_shared_state PRIVATE -fvisibility-ms-compat)
+  endif()
   set_target_properties(test_plugin_shared_state PROPERTIES
-      CXX_VISIBILITY_PRESET hidden
-      VISIBILITY_INLINES_HIDDEN ON
       LIBRARY_OUTPUT_DIRECTORY "${IOV2_TEST_BIN_DIR}")
   add_dependencies(test_io_objects_shared_state test_plugin_shared_state)
   target_link_libraries(test_io_objects_shared_state PRIVATE ${CMAKE_DL_LIBS})

@@ -86,6 +86,13 @@
  *          导入库不一致，链接时找不到 `detail::pin_module_of_md`（或 `_mdd`）——钉住函数按 CRT 命名，
  *          每种配置的库只导出自己那个。
  *
+ * @warning **想隐藏符号的消费者模块，请用 `-fvisibility-ms-compat`，不要用 `-fvisibility=hidden`**
+ *          （Windows 以外）：前者隐藏函数与变量，类型保持可见，库本身也是这样编译的。facet 以
+ *          `type_info` 为键，转换器的调整参数经 `dynamic_cast` 识别；libc++ 对它认为只属于一个
+ *          模块的类型（clang 在 macOS arm64 上把非默认可见性的类型都算在内）只按地址比较
+ *          `type_info`，而每个模块各有一份，于是库与该模块之间的 facet 查找、`dynamic_cast`
+ *          全部失败。macOS 上这是必需的；libstdc++ 按名字比较，Linux 上不受影响。
+ *
  * @warning **共享库模式会钉住每个消费者模块**：共享模式下包含本头文件会给每个模块加一个 inline
  *          变量，其初始化把该模块钉住，使它不可卸载：ELF / Mach-O 上经
  *          `dlopen(RTLD_NOLOAD | RTLD_NODELETE)`，之后 `dlclose` 只减引用计数；Windows 上经
@@ -158,6 +165,16 @@
  *          the import library fails to link on `detail::pin_module_of_md` (or `_mdd`) -- the pin
  *          function is named after the CRT, and each configuration of the library exports only
  *          its own.
+ *
+ * @warning **A consumer module that hides its symbols should use `-fvisibility-ms-compat`, not
+ *          `-fvisibility=hidden`** (outside Windows): the former hides functions and variables but
+ *          leaves types visible, and the library itself is built that way. Facets are keyed by
+ *          `type_info`, and converters recognize their adjustments through `dynamic_cast`; libc++
+ *          compares by address alone the `type_info` of a type it deems unique to one module
+ *          (clang on macOS arm64 counts every type not of default visibility), each module has a
+ *          copy of its own, and every facet lookup and `dynamic_cast` between the library and that
+ *          module then fails. On macOS this is required; libstdc++ compares names, so Linux is
+ *          unaffected.
  *
  * @warning **Shared-library mode pins every consumer module**: including this header in shared
  *          mode adds one inline variable per module, whose initializer pins the module, making

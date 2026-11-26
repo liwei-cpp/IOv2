@@ -189,6 +189,10 @@
   - 消费者模块经 `GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_PIN)` 钉住，`FreeLibrary` 不会
     卸载它，与 ELF / Mach-O 上的 `dlclose` 一样。
 
+  Windows 以外，库改用 `-fvisibility-ms-compat` 编译（此前为 `-fvisibility=hidden`）：函数与变量
+  仍隐藏，类型不再隐藏。libc++ 对隐藏的类型只按地址比较 `type_info`，库与消费者之间的 facet 查找
+  与 `dynamic_cast` 在 macOS 上因此全部失败。想隐藏符号的消费者模块也应改用它，macOS 上必需。
+
 #### 变更
 
 - messages 的目录名改用 `std::filesystem::path`：`base_ft<messages>::bind_text_domain` 收
@@ -686,6 +690,12 @@ have no release line of their own.
     with the Release one; the CMake package picks by the consumer's configuration.
   - Consumer modules are pinned through `GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_PIN)`,
     so `FreeLibrary` does not unload them, as `dlclose` does not on ELF / Mach-O.
+
+  Outside Windows the library is built with `-fvisibility-ms-compat` (it was
+  `-fvisibility=hidden`): functions and variables stay hidden, types no longer are. libc++
+  compares a hidden type's `type_info` by address alone, so on macOS every facet lookup and
+  `dynamic_cast` between the library and a consumer failed. A consumer module that hides its
+  symbols should switch to it as well; on macOS it must.
 
 #### Changed
 
