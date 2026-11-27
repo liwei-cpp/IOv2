@@ -57,54 +57,6 @@ set(MEMORYCHECK_COMMAND_OPTIONS
 
 include(CTest)
 
-# Select tests at configure time, not merely at CTest run time. This lets a
-# platform bring up (say) device without first making every unrelated platform
-# backend and optional dependency buildable.
-#
-# An entry is a top-level component (cvt) or a directory below one
-# (cvt/root_cvt), and selects every suite at or below it. The second form lets
-# a port open a component one suite at a time.
-set(IOV2_TEST_KNOWN_COMPONENTS common concur cvt device facet io locale)
-set(IOV2_TEST_COMPONENTS "all" CACHE STRING
-    "Semicolon-separated test components, or directories below them such as cvt/root_cvt, to configure; or 'all'")
-set_property(CACHE IOV2_TEST_COMPONENTS PROPERTY STRINGS
-    all ${IOV2_TEST_KNOWN_COMPONENTS})
-
-if(IOV2_TEST_COMPONENTS STREQUAL "all")
-  set(IOV2_TEST_SELECTED_DIRS ${IOV2_TEST_KNOWN_COMPONENTS})
-else()
-  set(IOV2_TEST_SELECTED_DIRS "")
-  list(JOIN IOV2_TEST_KNOWN_COMPONENTS ", " known_components)
-  foreach(entry IN LISTS IOV2_TEST_COMPONENTS)
-    if(entry STREQUAL "all")
-      message(FATAL_ERROR
-          "IOV2_TEST_COMPONENTS may be 'all' or a list of components and directories, but not both")
-    endif()
-    # Plain names only: no "..", ".", leading or trailing "/", which would name a
-    # directory that the prefix match below never sees.
-    if(NOT entry MATCHES "^[A-Za-z0-9_]+(/[A-Za-z0-9_]+)*$")
-      message(FATAL_ERROR
-          "IOV2_TEST_COMPONENTS entry '${entry}' is not a component or a directory below one, "
-          "such as cvt or cvt/root_cvt")
-    endif()
-    string(REGEX REPLACE "/.*$" "" component "${entry}")
-    if(NOT component IN_LIST IOV2_TEST_KNOWN_COMPONENTS)
-      message(FATAL_ERROR
-          "Unknown component in IOV2_TEST_COMPONENTS entry '${entry}'. Known components: ${known_components}")
-    endif()
-    if(NOT IS_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/${entry}")
-      message(FATAL_ERROR
-          "IOV2_TEST_COMPONENTS entry '${entry}' names no directory under ${CMAKE_CURRENT_SOURCE_DIR}")
-    endif()
-    list(APPEND IOV2_TEST_SELECTED_DIRS "${entry}")
-  endforeach()
-  list(REMOVE_DUPLICATES IOV2_TEST_SELECTED_DIRS)
-endif()
-
-if(NOT IOV2_TEST_SELECTED_DIRS)
-  message(FATAL_ERROR "IOV2_TEST_COMPONENTS must select at least one component")
-endif()
-
 include(IOv2TestOptions)
 include(IOv2GoogleTest)
 
@@ -129,43 +81,8 @@ endif()
 # of tests and one that holds on two platforms of three is written once. Tests
 # used to sit in posix/, linux/, macos/ and windows/ subdirectories built on their
 # platform alone, which could say neither.
-set(IOV2_TEST_SELECTED_SOURCES "")
-set(_selected_rels "")
-foreach(source IN LISTS IOV2_TEST_ALL_SOURCES)
-  file(RELATIVE_PATH source_rel "${CMAKE_CURRENT_SOURCE_DIR}" "${source}")
-  set(_in_selection FALSE)
-  foreach(dir IN LISTS IOV2_TEST_SELECTED_DIRS)
-    string(FIND "${source_rel}" "${dir}/" _pos)
-    if(_pos EQUAL 0)
-      set(_in_selection TRUE)
-      break()
-    endif()
-  endforeach()
-  if(NOT _in_selection)
-    continue()
-  endif()
-  list(APPEND IOV2_TEST_SELECTED_SOURCES "${source}")
-  list(APPEND _selected_rels "${source_rel}")
-endforeach()
-
-if(NOT IOV2_TEST_SELECTED_SOURCES)
-  message(FATAL_ERROR
-      "IOV2_TEST_COMPONENTS='${IOV2_TEST_COMPONENTS}' selected no test sources")
-endif()
-
-# An entry that selects nothing is a mistake, such as a directory that holds only
-# plugins. The entries are plain names, safe in a regex.
-foreach(dir IN LISTS IOV2_TEST_SELECTED_DIRS)
-  set(_hits ${_selected_rels})
-  list(FILTER _hits INCLUDE REGEX "^${dir}/")
-  if(NOT _hits)
-    message(FATAL_ERROR
-        "IOV2_TEST_COMPONENTS entry '${dir}' selects no test source")
-  endif()
-endforeach()
-
 set(IOV2_TEST_SUITE_DIRS "")
-foreach(source IN LISTS IOV2_TEST_SELECTED_SOURCES)
+foreach(source IN LISTS IOV2_TEST_ALL_SOURCES)
   get_filename_component(source_dir "${source}" DIRECTORY)
   file(RELATIVE_PATH source_dir "${CMAKE_CURRENT_SOURCE_DIR}" "${source_dir}")
   list(APPEND IOV2_TEST_SUITE_DIRS "${source_dir}")
@@ -249,10 +166,8 @@ endforeach()
 # closed between read() and poll(). Elsewhere the macro stays undefined and the
 # tests skip themselves.
 if(UNIX AND NOT APPLE AND CMAKE_SIZEOF_VOID_P EQUAL 8)
-  if(TARGET test_device_std_device_poll_error)
-    target_link_options(test_device_std_device_poll_error PRIVATE "LINKER:--wrap=read")
-    target_compile_definitions(test_device_std_device_poll_error PRIVATE IOV2_TEST_WRAP_READ=1)
-  endif()
+  target_link_options(test_device_std_device_poll_error PRIVATE "LINKER:--wrap=read")
+  target_compile_definitions(test_device_std_device_poll_error PRIVATE IOV2_TEST_WRAP_READ=1)
 endif()
 
 # support/plugin.h uses dlopen's RTLD_NOLOAD, a Darwin extension that the
@@ -262,7 +177,7 @@ set(IOV2_TEST_PLUGIN_DEFS $<$<PLATFORM_ID:Darwin>:_DARWIN_C_SOURCE>)
 
 # The plugin is unloadable only if g++ does not make its inline variables
 # STB_GNU_UNIQUE; the test asserts it is still resident after dlclose.
-if(IOV2_TEST_CONSUMER STREQUAL "installed-shared" AND TARGET test_io_objects_plugin_unload)
+if(IOV2_TEST_CONSUMER STREQUAL "installed-shared")
   add_library(test_plugin_cout_number MODULE
       "${CMAKE_CURRENT_SOURCE_DIR}/io/objects/plugin_unload/plugins/test_plugin_cout_number.cpp")
   target_link_libraries(test_plugin_cout_number PRIVATE iov2_test_subject iov2_test_options)
@@ -284,7 +199,7 @@ endif()
 # Windows: the process-wide state it reaches has to come from libiov2. Built as
 # iov2_export.h tells a module that hides its symbols to be: functions and variables
 # hidden, types not, so their type_info still compares equal to the host's.
-if(IOV2_TEST_CONSUMER STREQUAL "installed-shared" AND TARGET test_io_objects_shared_state)
+if(IOV2_TEST_CONSUMER STREQUAL "installed-shared")
   add_library(test_plugin_shared_state MODULE
       "${CMAKE_CURRENT_SOURCE_DIR}/io/objects/shared_state/plugins/test_plugin_shared_state.cpp")
   target_link_libraries(test_plugin_shared_state PRIVATE iov2_test_subject iov2_test_options)
@@ -303,7 +218,7 @@ if(IOV2_TEST_CONSUMER STREQUAL "installed-shared" AND TARGET test_io_objects_sha
       ${IOV2_TEST_PLUGIN_DEFS})
 endif()
 
-list(LENGTH IOV2_TEST_SELECTED_SOURCES IOV2_TEST_SOURCE_TOTAL)
+list(LENGTH IOV2_TEST_ALL_SOURCES IOV2_TEST_SOURCE_TOTAL)
 list(LENGTH IOV2_TEST_SUITE_DIRS IOV2_TEST_SUITE_COUNT)
 message(STATUS
     "IOv2 tests: ${IOV2_TEST_SOURCE_TOTAL} sources in "
