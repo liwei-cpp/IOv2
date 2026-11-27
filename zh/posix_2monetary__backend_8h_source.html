@@ -1,0 +1,203 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=11"/>
+<meta name="generator" content="Doxygen 1.14.0"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>IOv2: include/IOv2/facet/platform/posix/monetary_backend.h 源文件</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<script type="text/javascript" src="clipboard.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<script type="text/javascript" src="cookie.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr id="projectrow">
+  <td id="projectalign">
+   <div id="projectname">IOv2
+   </div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 制作者 Doxygen 1.14.0 -->
+<script type="text/javascript">
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+</script>
+<script type="text/javascript">
+$(function() { codefold.init(); });
+</script>
+<script type="text/javascript" src="menudata.js"></script>
+<script type="text/javascript" src="menu.js"></script>
+<script type="text/javascript">
+$(function() {
+  initMenu('',true,false,'search.php','搜索',true);
+  $(function() { init_search(); });
+});
+</script>
+<div id="main-nav"></div>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+$(function(){initNavTree('posix_2monetary__backend_8h_source.html','',''); });
+</script>
+<div id="container">
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">载入中...</div>
+<div class="SRStatus" id="Searching">搜索中...</div>
+<div class="SRStatus" id="NoMatches">未找到</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="header">
+  <div class="headertitle"><div class="title">monetary_backend.h</div></div>
+</div><!--header-->
+<div class="contents">
+<a href="posix_2monetary__backend_8h.html">浏览该文件的文档.</a><div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span><span class="comment">// SPDX-FileCopyrightText: 2026 liwei &lt;liwei.cpp@gmail.com&gt;</span></div>
+<div class="line"><a id="l00002" name="l00002"></a><span class="lineno">    2</span><span class="comment">// SPDX-License-Identifier: MIT</span></div>
+<div class="line"><a id="l00003" name="l00003"></a><span class="lineno">    3</span></div>
+<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span> </div>
+<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span><span class="preprocessor">#pragma once</span></div>
+<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span> </div>
+<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span><span class="preprocessor">#include &lt;climits&gt;</span></div>
+<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span><span class="preprocessor">#include &lt;clocale&gt;</span></div>
+<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span><span class="preprocessor">#include &lt;optional&gt;</span></div>
+<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span><span class="preprocessor">#include &lt;string&gt;</span></div>
+<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span> </div>
+<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span><span class="keyword">namespace </span><a class="code hl_namespace" href="namespaceIOv2_1_1detail.html">IOv2::detail</a></div>
+<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span>{</div>
+<div class="foldopen" id="foldopen00038" data-start="{" data-end="};">
+<div class="line"><a id="l00038" name="l00038"></a><span class="lineno"><a class="line" href="structIOv2_1_1detail_1_1monetary__raw__flags.html">   38</a></span><span class="keyword">struct </span><a class="code hl_struct" href="structIOv2_1_1detail_1_1monetary__raw__flags.html">monetary_raw_flags</a></div>
+<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span>{</div>
+<div class="line"><a id="l00040" name="l00040"></a><span class="lineno"><a class="line" href="structIOv2_1_1detail_1_1monetary__raw__flags.html#a7cc0fdb5e3ca7c3f345235df265d631f">   40</a></span>    <span class="keywordtype">char</span> <a class="code hl_variable" href="structIOv2_1_1detail_1_1monetary__raw__flags.html#a7cc0fdb5e3ca7c3f345235df265d631f">cs_precedes</a>  = CHAR_MAX;</div>
+<div class="line"><a id="l00041" name="l00041"></a><span class="lineno"><a class="line" href="structIOv2_1_1detail_1_1monetary__raw__flags.html#a57eef69649185e543b9dd6b5f25b2fbe">   41</a></span>    <span class="keywordtype">char</span> <a class="code hl_variable" href="structIOv2_1_1detail_1_1monetary__raw__flags.html#a57eef69649185e543b9dd6b5f25b2fbe">sep_by_space</a> = CHAR_MAX;</div>
+<div class="line"><a id="l00042" name="l00042"></a><span class="lineno"><a class="line" href="structIOv2_1_1detail_1_1monetary__raw__flags.html#a2392c0069abc26f38b2d73cc58db7790">   42</a></span>    <span class="keywordtype">char</span> <a class="code hl_variable" href="structIOv2_1_1detail_1_1monetary__raw__flags.html#a2392c0069abc26f38b2d73cc58db7790">sign_posn</a>    = CHAR_MAX;</div>
+<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span>};</div>
+</div>
+<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span></div>
+<div class="foldopen" id="foldopen00054" data-start="{" data-end="};">
+<div class="line"><a id="l00054" name="l00054"></a><span class="lineno"><a class="line" href="structIOv2_1_1detail_1_1monetary__raw__punct.html">   54</a></span><span class="keyword">struct </span><a class="code hl_struct" href="structIOv2_1_1detail_1_1monetary__raw__punct.html">monetary_raw_punct</a></div>
+<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span>{</div>
+<div class="line"><a id="l00056" name="l00056"></a><span class="lineno"><a class="line" href="structIOv2_1_1detail_1_1monetary__raw__punct.html#af22875630df68131b8634daf9fd722f1">   56</a></span>    std::string <a class="code hl_variable" href="structIOv2_1_1detail_1_1monetary__raw__punct.html#af22875630df68131b8634daf9fd722f1">int_curr_symbol</a>;     <span class="comment">// in the locale&#39;s narrow encoding</span></div>
+<div class="line"><a id="l00057" name="l00057"></a><span class="lineno"><a class="line" href="structIOv2_1_1detail_1_1monetary__raw__punct.html#af212ed256802994c6e18de8762c07ce8">   57</a></span>    std::string <a class="code hl_variable" href="structIOv2_1_1detail_1_1monetary__raw__punct.html#af212ed256802994c6e18de8762c07ce8">currency_symbol</a>;</div>
+<div class="line"><a id="l00058" name="l00058"></a><span class="lineno"><a class="line" href="structIOv2_1_1detail_1_1monetary__raw__punct.html#a740c97b2a1b09bae0d347e4cee131956">   58</a></span>    std::string <a class="code hl_variable" href="structIOv2_1_1detail_1_1monetary__raw__punct.html#a740c97b2a1b09bae0d347e4cee131956">mon_decimal_point</a>;</div>
+<div class="line"><a id="l00059" name="l00059"></a><span class="lineno"><a class="line" href="structIOv2_1_1detail_1_1monetary__raw__punct.html#a285e76271bcd82909d7d35a69d8219b2">   59</a></span>    std::string <a class="code hl_variable" href="structIOv2_1_1detail_1_1monetary__raw__punct.html#a285e76271bcd82909d7d35a69d8219b2">mon_thousands_sep</a>;</div>
+<div class="line"><a id="l00060" name="l00060"></a><span class="lineno"><a class="line" href="structIOv2_1_1detail_1_1monetary__raw__punct.html#acfd14682ab9d4b8b8e889d1983a9ad2d">   60</a></span>    std::string <a class="code hl_variable" href="structIOv2_1_1detail_1_1monetary__raw__punct.html#acfd14682ab9d4b8b8e889d1983a9ad2d">mon_grouping</a>;        <span class="comment">// lconv&#39;s bytes, not yet normalised</span></div>
+<div class="line"><a id="l00061" name="l00061"></a><span class="lineno"><a class="line" href="structIOv2_1_1detail_1_1monetary__raw__punct.html#a8e416782cbe1f9d7d6d2301a968d1cc6">   61</a></span>    std::string <a class="code hl_variable" href="structIOv2_1_1detail_1_1monetary__raw__punct.html#a8e416782cbe1f9d7d6d2301a968d1cc6">positive_sign</a>;</div>
+<div class="line"><a id="l00062" name="l00062"></a><span class="lineno"><a class="line" href="structIOv2_1_1detail_1_1monetary__raw__punct.html#a4a08463ebf828dc8d2afb6b2eea1def3">   62</a></span>    std::string <a class="code hl_variable" href="structIOv2_1_1detail_1_1monetary__raw__punct.html#a4a08463ebf828dc8d2afb6b2eea1def3">negative_sign</a>;</div>
+<div class="line"><a id="l00063" name="l00063"></a><span class="lineno"><a class="line" href="structIOv2_1_1detail_1_1monetary__raw__punct.html#ab83932254978b83a10e13d6f70b8bdf1">   63</a></span>    <span class="keywordtype">char</span> <a class="code hl_variable" href="structIOv2_1_1detail_1_1monetary__raw__punct.html#ab83932254978b83a10e13d6f70b8bdf1">int_frac_digits</a> = CHAR_MAX;</div>
+<div class="line"><a id="l00064" name="l00064"></a><span class="lineno"><a class="line" href="structIOv2_1_1detail_1_1monetary__raw__punct.html#ac88753bf1609b0b1617cc2dcc63e2049">   64</a></span>    <span class="keywordtype">char</span> <a class="code hl_variable" href="structIOv2_1_1detail_1_1monetary__raw__punct.html#ac88753bf1609b0b1617cc2dcc63e2049">frac_digits</a>     = CHAR_MAX;</div>
+<div class="line"><a id="l00065" name="l00065"></a><span class="lineno"><a class="line" href="structIOv2_1_1detail_1_1monetary__raw__punct.html#a54e78c9c2023ad89ae2382b9d134029c">   65</a></span>    <a class="code hl_struct" href="structIOv2_1_1detail_1_1monetary__raw__flags.html">monetary_raw_flags</a> <a class="code hl_variable" href="structIOv2_1_1detail_1_1monetary__raw__punct.html#a54e78c9c2023ad89ae2382b9d134029c">nat_pos</a>;</div>
+<div class="line"><a id="l00066" name="l00066"></a><span class="lineno"><a class="line" href="structIOv2_1_1detail_1_1monetary__raw__punct.html#a65020940f57cd432655fa32511898cfb">   66</a></span>    <a class="code hl_struct" href="structIOv2_1_1detail_1_1monetary__raw__flags.html">monetary_raw_flags</a> <a class="code hl_variable" href="structIOv2_1_1detail_1_1monetary__raw__punct.html#a65020940f57cd432655fa32511898cfb">nat_neg</a>;</div>
+<div class="line"><a id="l00067" name="l00067"></a><span class="lineno"><a class="line" href="structIOv2_1_1detail_1_1monetary__raw__punct.html#a3a3a50202f93ef2af10ac06046d78281">   67</a></span>    <a class="code hl_struct" href="structIOv2_1_1detail_1_1monetary__raw__flags.html">monetary_raw_flags</a> <a class="code hl_variable" href="structIOv2_1_1detail_1_1monetary__raw__punct.html#a3a3a50202f93ef2af10ac06046d78281">int_pos</a>;</div>
+<div class="line"><a id="l00068" name="l00068"></a><span class="lineno"><a class="line" href="structIOv2_1_1detail_1_1monetary__raw__punct.html#a9bd5fc6214766d7db3b88656155589a5">   68</a></span>    <a class="code hl_struct" href="structIOv2_1_1detail_1_1monetary__raw__flags.html">monetary_raw_flags</a> <a class="code hl_variable" href="structIOv2_1_1detail_1_1monetary__raw__punct.html#a9bd5fc6214766d7db3b88656155589a5">int_neg</a>;</div>
+<div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span>    <span class="comment">// The C library&#39;s own wide forms of the strings; POSIX has none.</span></div>
+<div class="line"><a id="l00070" name="l00070"></a><span class="lineno"><a class="line" href="structIOv2_1_1detail_1_1monetary__raw__punct.html#ad47086194c05fbafb86c9ff29342fb7a">   70</a></span>    std::optional&lt;std::wstring&gt; <a class="code hl_variable" href="structIOv2_1_1detail_1_1monetary__raw__punct.html#a298b4a72acb632c60a330bdfa5fcd16c">wint_curr_symbol</a>, <a class="code hl_variable" href="structIOv2_1_1detail_1_1monetary__raw__punct.html#ad47086194c05fbafb86c9ff29342fb7a">wcurrency_symbol</a>, <a class="code hl_variable" href="structIOv2_1_1detail_1_1monetary__raw__punct.html#a08a57c24cba7700bf6c2154582204c96">wmon_decimal_point</a>,</div>
+<div class="line"><a id="l00071" name="l00071"></a><span class="lineno"><a class="line" href="structIOv2_1_1detail_1_1monetary__raw__punct.html#ac43403d7e1cf0e811069452bb7146821">   71</a></span>                                <a class="code hl_variable" href="structIOv2_1_1detail_1_1monetary__raw__punct.html#ac43403d7e1cf0e811069452bb7146821">wmon_thousands_sep</a>, <a class="code hl_variable" href="structIOv2_1_1detail_1_1monetary__raw__punct.html#a4597c7c5641ac11f4d3e1ac7a18a1059">wpositive_sign</a>, <a class="code hl_variable" href="structIOv2_1_1detail_1_1monetary__raw__punct.html#af65329f7fc7f206298ce37daee6d44f9">wnegative_sign</a>;</div>
+<div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span>};</div>
+</div>
+<div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span> </div>
+<div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span><span class="comment">// The monetary data of the calling thread&#39;s current locale. Call it under a clocale_user.</span></div>
+<div class="foldopen" id="foldopen00075" data-start="{" data-end="}">
+<div class="line"><a id="l00075" name="l00075"></a><span class="lineno"><a class="line" href="namespaceIOv2_1_1detail.html#a4a1ecb38cefdc7caa6ee7bd8a7b3b222">   75</a></span><span class="keyword">inline</span> <a class="code hl_struct" href="structIOv2_1_1detail_1_1monetary__raw__punct.html">monetary_raw_punct</a> <a class="code hl_function" href="namespaceIOv2_1_1detail.html#a4a1ecb38cefdc7caa6ee7bd8a7b3b222">monetary_read_punct</a>()</div>
+<div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span>{</div>
+<div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span>    <span class="keyword">const</span> <span class="keyword">auto</span> str = [](<span class="keyword">const</span> <span class="keywordtype">char</span>* s) { <span class="keywordflow">return</span> s ? std::string(s) : std::string(); };</div>
+<div class="line"><a id="l00078" name="l00078"></a><span class="lineno">   78</span>    <span class="keyword">const</span> lconv* lc = std::localeconv();</div>
+<div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span>    <a class="code hl_struct" href="structIOv2_1_1detail_1_1monetary__raw__punct.html">monetary_raw_punct</a> res;</div>
+<div class="line"><a id="l00080" name="l00080"></a><span class="lineno">   80</span>    res.<a class="code hl_variable" href="structIOv2_1_1detail_1_1monetary__raw__punct.html#af22875630df68131b8634daf9fd722f1">int_curr_symbol</a>   = str(lc-&gt;int_curr_symbol);</div>
+<div class="line"><a id="l00081" name="l00081"></a><span class="lineno">   81</span>    res.<a class="code hl_variable" href="structIOv2_1_1detail_1_1monetary__raw__punct.html#af212ed256802994c6e18de8762c07ce8">currency_symbol</a>   = str(lc-&gt;currency_symbol);</div>
+<div class="line"><a id="l00082" name="l00082"></a><span class="lineno">   82</span>    res.<a class="code hl_variable" href="structIOv2_1_1detail_1_1monetary__raw__punct.html#a740c97b2a1b09bae0d347e4cee131956">mon_decimal_point</a> = str(lc-&gt;mon_decimal_point);</div>
+<div class="line"><a id="l00083" name="l00083"></a><span class="lineno">   83</span>    res.<a class="code hl_variable" href="structIOv2_1_1detail_1_1monetary__raw__punct.html#a285e76271bcd82909d7d35a69d8219b2">mon_thousands_sep</a> = str(lc-&gt;mon_thousands_sep);</div>
+<div class="line"><a id="l00084" name="l00084"></a><span class="lineno">   84</span>    res.<a class="code hl_variable" href="structIOv2_1_1detail_1_1monetary__raw__punct.html#acfd14682ab9d4b8b8e889d1983a9ad2d">mon_grouping</a>      = str(lc-&gt;mon_grouping);</div>
+<div class="line"><a id="l00085" name="l00085"></a><span class="lineno">   85</span>    res.<a class="code hl_variable" href="structIOv2_1_1detail_1_1monetary__raw__punct.html#a8e416782cbe1f9d7d6d2301a968d1cc6">positive_sign</a>     = str(lc-&gt;positive_sign);</div>
+<div class="line"><a id="l00086" name="l00086"></a><span class="lineno">   86</span>    res.<a class="code hl_variable" href="structIOv2_1_1detail_1_1monetary__raw__punct.html#a4a08463ebf828dc8d2afb6b2eea1def3">negative_sign</a>     = str(lc-&gt;negative_sign);</div>
+<div class="line"><a id="l00087" name="l00087"></a><span class="lineno">   87</span>    res.<a class="code hl_variable" href="structIOv2_1_1detail_1_1monetary__raw__punct.html#ab83932254978b83a10e13d6f70b8bdf1">int_frac_digits</a>   = lc-&gt;int_frac_digits;</div>
+<div class="line"><a id="l00088" name="l00088"></a><span class="lineno">   88</span>    res.<a class="code hl_variable" href="structIOv2_1_1detail_1_1monetary__raw__punct.html#ac88753bf1609b0b1617cc2dcc63e2049">frac_digits</a>       = lc-&gt;frac_digits;</div>
+<div class="line"><a id="l00089" name="l00089"></a><span class="lineno">   89</span>    res.<a class="code hl_variable" href="structIOv2_1_1detail_1_1monetary__raw__punct.html#a54e78c9c2023ad89ae2382b9d134029c">nat_pos</a> = {.cs_precedes = lc-&gt;p_cs_precedes, .sep_by_space = lc-&gt;p_sep_by_space,</div>
+<div class="line"><a id="l00090" name="l00090"></a><span class="lineno">   90</span>                   .sign_posn = lc-&gt;p_sign_posn};</div>
+<div class="line"><a id="l00091" name="l00091"></a><span class="lineno">   91</span>    res.<a class="code hl_variable" href="structIOv2_1_1detail_1_1monetary__raw__punct.html#a65020940f57cd432655fa32511898cfb">nat_neg</a> = {.cs_precedes = lc-&gt;n_cs_precedes, .sep_by_space = lc-&gt;n_sep_by_space,</div>
+<div class="line"><a id="l00092" name="l00092"></a><span class="lineno">   92</span>                   .sign_posn = lc-&gt;n_sign_posn};</div>
+<div class="line"><a id="l00093" name="l00093"></a><span class="lineno">   93</span>    res.<a class="code hl_variable" href="structIOv2_1_1detail_1_1monetary__raw__punct.html#a3a3a50202f93ef2af10ac06046d78281">int_pos</a> = {.cs_precedes = lc-&gt;int_p_cs_precedes, .sep_by_space = lc-&gt;int_p_sep_by_space,</div>
+<div class="line"><a id="l00094" name="l00094"></a><span class="lineno">   94</span>                   .sign_posn = lc-&gt;int_p_sign_posn};</div>
+<div class="line"><a id="l00095" name="l00095"></a><span class="lineno">   95</span>    res.<a class="code hl_variable" href="structIOv2_1_1detail_1_1monetary__raw__punct.html#a9bd5fc6214766d7db3b88656155589a5">int_neg</a> = {.cs_precedes = lc-&gt;int_n_cs_precedes, .sep_by_space = lc-&gt;int_n_sep_by_space,</div>
+<div class="line"><a id="l00096" name="l00096"></a><span class="lineno">   96</span>                   .sign_posn = lc-&gt;int_n_sign_posn};</div>
+<div class="line"><a id="l00097" name="l00097"></a><span class="lineno">   97</span>    <span class="keywordflow">return</span> res;</div>
+<div class="line"><a id="l00098" name="l00098"></a><span class="lineno">   98</span>}</div>
+</div>
+<div class="line"><a id="l00099" name="l00099"></a><span class="lineno">   99</span>}</div>
+<div class="ttc" id="anamespaceIOv2_1_1detail_html"><div class="ttname"><a href="namespaceIOv2_1_1detail.html">IOv2::detail</a></div><div class="ttdef"><b>定义</b> copyable_mutex.h:28</div></div>
+<div class="ttc" id="anamespaceIOv2_1_1detail_html_a4a1ecb38cefdc7caa6ee7bd8a7b3b222"><div class="ttname"><a href="namespaceIOv2_1_1detail.html#a4a1ecb38cefdc7caa6ee7bd8a7b3b222">IOv2::detail::monetary_read_punct</a></div><div class="ttdeci">monetary_raw_punct monetary_read_punct()</div><div class="ttdef"><b>定义</b> monetary_backend.h:75</div></div>
+<div class="ttc" id="astructIOv2_1_1detail_1_1monetary__raw__flags_html"><div class="ttname"><a href="structIOv2_1_1detail_1_1monetary__raw__flags.html">IOv2::detail::monetary_raw_flags</a></div><div class="ttdef"><b>定义</b> monetary_backend.h:39</div></div>
+<div class="ttc" id="astructIOv2_1_1detail_1_1monetary__raw__flags_html_a2392c0069abc26f38b2d73cc58db7790"><div class="ttname"><a href="structIOv2_1_1detail_1_1monetary__raw__flags.html#a2392c0069abc26f38b2d73cc58db7790">IOv2::detail::monetary_raw_flags::sign_posn</a></div><div class="ttdeci">char sign_posn</div><div class="ttdef"><b>定义</b> monetary_backend.h:42</div></div>
+<div class="ttc" id="astructIOv2_1_1detail_1_1monetary__raw__flags_html_a57eef69649185e543b9dd6b5f25b2fbe"><div class="ttname"><a href="structIOv2_1_1detail_1_1monetary__raw__flags.html#a57eef69649185e543b9dd6b5f25b2fbe">IOv2::detail::monetary_raw_flags::sep_by_space</a></div><div class="ttdeci">char sep_by_space</div><div class="ttdef"><b>定义</b> monetary_backend.h:41</div></div>
+<div class="ttc" id="astructIOv2_1_1detail_1_1monetary__raw__flags_html_a7cc0fdb5e3ca7c3f345235df265d631f"><div class="ttname"><a href="structIOv2_1_1detail_1_1monetary__raw__flags.html#a7cc0fdb5e3ca7c3f345235df265d631f">IOv2::detail::monetary_raw_flags::cs_precedes</a></div><div class="ttdeci">char cs_precedes</div><div class="ttdef"><b>定义</b> monetary_backend.h:40</div></div>
+<div class="ttc" id="astructIOv2_1_1detail_1_1monetary__raw__punct_html"><div class="ttname"><a href="structIOv2_1_1detail_1_1monetary__raw__punct.html">IOv2::detail::monetary_raw_punct</a></div><div class="ttdef"><b>定义</b> monetary_backend.h:55</div></div>
+<div class="ttc" id="astructIOv2_1_1detail_1_1monetary__raw__punct_html_a08a57c24cba7700bf6c2154582204c96"><div class="ttname"><a href="structIOv2_1_1detail_1_1monetary__raw__punct.html#a08a57c24cba7700bf6c2154582204c96">IOv2::detail::monetary_raw_punct::wmon_decimal_point</a></div><div class="ttdeci">std::optional&lt; std::wstring &gt; wmon_decimal_point</div><div class="ttdef"><b>定义</b> monetary_backend.h:70</div></div>
+<div class="ttc" id="astructIOv2_1_1detail_1_1monetary__raw__punct_html_a285e76271bcd82909d7d35a69d8219b2"><div class="ttname"><a href="structIOv2_1_1detail_1_1monetary__raw__punct.html#a285e76271bcd82909d7d35a69d8219b2">IOv2::detail::monetary_raw_punct::mon_thousands_sep</a></div><div class="ttdeci">std::string mon_thousands_sep</div><div class="ttdef"><b>定义</b> monetary_backend.h:59</div></div>
+<div class="ttc" id="astructIOv2_1_1detail_1_1monetary__raw__punct_html_a298b4a72acb632c60a330bdfa5fcd16c"><div class="ttname"><a href="structIOv2_1_1detail_1_1monetary__raw__punct.html#a298b4a72acb632c60a330bdfa5fcd16c">IOv2::detail::monetary_raw_punct::wint_curr_symbol</a></div><div class="ttdeci">std::optional&lt; std::wstring &gt; wint_curr_symbol</div><div class="ttdef"><b>定义</b> monetary_backend.h:70</div></div>
+<div class="ttc" id="astructIOv2_1_1detail_1_1monetary__raw__punct_html_a3a3a50202f93ef2af10ac06046d78281"><div class="ttname"><a href="structIOv2_1_1detail_1_1monetary__raw__punct.html#a3a3a50202f93ef2af10ac06046d78281">IOv2::detail::monetary_raw_punct::int_pos</a></div><div class="ttdeci">monetary_raw_flags int_pos</div><div class="ttdef"><b>定义</b> monetary_backend.h:67</div></div>
+<div class="ttc" id="astructIOv2_1_1detail_1_1monetary__raw__punct_html_a4597c7c5641ac11f4d3e1ac7a18a1059"><div class="ttname"><a href="structIOv2_1_1detail_1_1monetary__raw__punct.html#a4597c7c5641ac11f4d3e1ac7a18a1059">IOv2::detail::monetary_raw_punct::wpositive_sign</a></div><div class="ttdeci">std::optional&lt; std::wstring &gt; wpositive_sign</div><div class="ttdef"><b>定义</b> monetary_backend.h:71</div></div>
+<div class="ttc" id="astructIOv2_1_1detail_1_1monetary__raw__punct_html_a4a08463ebf828dc8d2afb6b2eea1def3"><div class="ttname"><a href="structIOv2_1_1detail_1_1monetary__raw__punct.html#a4a08463ebf828dc8d2afb6b2eea1def3">IOv2::detail::monetary_raw_punct::negative_sign</a></div><div class="ttdeci">std::string negative_sign</div><div class="ttdef"><b>定义</b> monetary_backend.h:62</div></div>
+<div class="ttc" id="astructIOv2_1_1detail_1_1monetary__raw__punct_html_a54e78c9c2023ad89ae2382b9d134029c"><div class="ttname"><a href="structIOv2_1_1detail_1_1monetary__raw__punct.html#a54e78c9c2023ad89ae2382b9d134029c">IOv2::detail::monetary_raw_punct::nat_pos</a></div><div class="ttdeci">monetary_raw_flags nat_pos</div><div class="ttdef"><b>定义</b> monetary_backend.h:65</div></div>
+<div class="ttc" id="astructIOv2_1_1detail_1_1monetary__raw__punct_html_a65020940f57cd432655fa32511898cfb"><div class="ttname"><a href="structIOv2_1_1detail_1_1monetary__raw__punct.html#a65020940f57cd432655fa32511898cfb">IOv2::detail::monetary_raw_punct::nat_neg</a></div><div class="ttdeci">monetary_raw_flags nat_neg</div><div class="ttdef"><b>定义</b> monetary_backend.h:66</div></div>
+<div class="ttc" id="astructIOv2_1_1detail_1_1monetary__raw__punct_html_a740c97b2a1b09bae0d347e4cee131956"><div class="ttname"><a href="structIOv2_1_1detail_1_1monetary__raw__punct.html#a740c97b2a1b09bae0d347e4cee131956">IOv2::detail::monetary_raw_punct::mon_decimal_point</a></div><div class="ttdeci">std::string mon_decimal_point</div><div class="ttdef"><b>定义</b> monetary_backend.h:58</div></div>
+<div class="ttc" id="astructIOv2_1_1detail_1_1monetary__raw__punct_html_a8e416782cbe1f9d7d6d2301a968d1cc6"><div class="ttname"><a href="structIOv2_1_1detail_1_1monetary__raw__punct.html#a8e416782cbe1f9d7d6d2301a968d1cc6">IOv2::detail::monetary_raw_punct::positive_sign</a></div><div class="ttdeci">std::string positive_sign</div><div class="ttdef"><b>定义</b> monetary_backend.h:61</div></div>
+<div class="ttc" id="astructIOv2_1_1detail_1_1monetary__raw__punct_html_a9bd5fc6214766d7db3b88656155589a5"><div class="ttname"><a href="structIOv2_1_1detail_1_1monetary__raw__punct.html#a9bd5fc6214766d7db3b88656155589a5">IOv2::detail::monetary_raw_punct::int_neg</a></div><div class="ttdeci">monetary_raw_flags int_neg</div><div class="ttdef"><b>定义</b> monetary_backend.h:68</div></div>
+<div class="ttc" id="astructIOv2_1_1detail_1_1monetary__raw__punct_html_ab83932254978b83a10e13d6f70b8bdf1"><div class="ttname"><a href="structIOv2_1_1detail_1_1monetary__raw__punct.html#ab83932254978b83a10e13d6f70b8bdf1">IOv2::detail::monetary_raw_punct::int_frac_digits</a></div><div class="ttdeci">char int_frac_digits</div><div class="ttdef"><b>定义</b> monetary_backend.h:63</div></div>
+<div class="ttc" id="astructIOv2_1_1detail_1_1monetary__raw__punct_html_ac43403d7e1cf0e811069452bb7146821"><div class="ttname"><a href="structIOv2_1_1detail_1_1monetary__raw__punct.html#ac43403d7e1cf0e811069452bb7146821">IOv2::detail::monetary_raw_punct::wmon_thousands_sep</a></div><div class="ttdeci">std::optional&lt; std::wstring &gt; wmon_thousands_sep</div><div class="ttdef"><b>定义</b> monetary_backend.h:71</div></div>
+<div class="ttc" id="astructIOv2_1_1detail_1_1monetary__raw__punct_html_ac88753bf1609b0b1617cc2dcc63e2049"><div class="ttname"><a href="structIOv2_1_1detail_1_1monetary__raw__punct.html#ac88753bf1609b0b1617cc2dcc63e2049">IOv2::detail::monetary_raw_punct::frac_digits</a></div><div class="ttdeci">char frac_digits</div><div class="ttdef"><b>定义</b> monetary_backend.h:64</div></div>
+<div class="ttc" id="astructIOv2_1_1detail_1_1monetary__raw__punct_html_acfd14682ab9d4b8b8e889d1983a9ad2d"><div class="ttname"><a href="structIOv2_1_1detail_1_1monetary__raw__punct.html#acfd14682ab9d4b8b8e889d1983a9ad2d">IOv2::detail::monetary_raw_punct::mon_grouping</a></div><div class="ttdeci">std::string mon_grouping</div><div class="ttdef"><b>定义</b> monetary_backend.h:60</div></div>
+<div class="ttc" id="astructIOv2_1_1detail_1_1monetary__raw__punct_html_ad47086194c05fbafb86c9ff29342fb7a"><div class="ttname"><a href="structIOv2_1_1detail_1_1monetary__raw__punct.html#ad47086194c05fbafb86c9ff29342fb7a">IOv2::detail::monetary_raw_punct::wcurrency_symbol</a></div><div class="ttdeci">std::optional&lt; std::wstring &gt; wcurrency_symbol</div><div class="ttdef"><b>定义</b> monetary_backend.h:70</div></div>
+<div class="ttc" id="astructIOv2_1_1detail_1_1monetary__raw__punct_html_af212ed256802994c6e18de8762c07ce8"><div class="ttname"><a href="structIOv2_1_1detail_1_1monetary__raw__punct.html#af212ed256802994c6e18de8762c07ce8">IOv2::detail::monetary_raw_punct::currency_symbol</a></div><div class="ttdeci">std::string currency_symbol</div><div class="ttdef"><b>定义</b> monetary_backend.h:57</div></div>
+<div class="ttc" id="astructIOv2_1_1detail_1_1monetary__raw__punct_html_af22875630df68131b8634daf9fd722f1"><div class="ttname"><a href="structIOv2_1_1detail_1_1monetary__raw__punct.html#af22875630df68131b8634daf9fd722f1">IOv2::detail::monetary_raw_punct::int_curr_symbol</a></div><div class="ttdeci">std::string int_curr_symbol</div><div class="ttdef"><b>定义</b> monetary_backend.h:56</div></div>
+<div class="ttc" id="astructIOv2_1_1detail_1_1monetary__raw__punct_html_af65329f7fc7f206298ce37daee6d44f9"><div class="ttname"><a href="structIOv2_1_1detail_1_1monetary__raw__punct.html#af65329f7fc7f206298ce37daee6d44f9">IOv2::detail::monetary_raw_punct::wnegative_sign</a></div><div class="ttdeci">std::optional&lt; std::wstring &gt; wnegative_sign</div><div class="ttdef"><b>定义</b> monetary_backend.h:71</div></div>
+</div><!-- fragment --></div><!-- contents -->
+</div><!-- doc-content -->
+</div><!-- container -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><a href="dir_d44c64559bbebec7f509842c48db8b23.html">include</a></li><li class="navelem"><a href="dir_1157f564aec2b3a7d6bde4eba89ab805.html">IOv2</a></li><li class="navelem"><a href="dir_86635f995fd9ec725e3aec943495dac7.html">facet</a></li><li class="navelem"><a href="dir_749f025f4ad35d262b7a58dfc0482586.html">platform</a></li><li class="navelem"><a href="dir_f513006777039295e415c45e2a269569.html">posix</a></li><li class="navelem"><a href="posix_2monetary__backend_8h.html">monetary_backend.h</a></li>
+    <li class="footer">制作者 <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.14.0 </li>
+  </ul>
+</div>
+</body>
+</html>

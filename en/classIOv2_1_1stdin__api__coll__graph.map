@@ -1,0 +1,21 @@
+<map id="IOv2::stdin_api&lt; TDevice, TChar &gt;" name="IOv2::stdin_api&lt; TDevice, TChar &gt;">
+<area shape="rect" id="Node000001" title="The implementation template behind the standard input streams (cin / wcin)." alt="" coords="820,204,1010,249"/>
+<area shape="rect" id="Node000002" href="$structIOv2_1_1ios__state.html" title="Component that adds the stream state bits and their associated exceptions on top of the formatting st..." alt="" coords="564,152,750,180"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="738,181,771,189,823,203,817,203,770,194,738,187"/>
+<area shape="rect" id="Node000003" href="$classIOv2_1_1ios__base.html" title="Base class holding the formatting state of every stream." alt="" coords="311,152,494,180"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="509,164,567,166,561,167,510,169"/>
+<area shape="rect" id="Node000004" href="$classIOv2_1_1copyable__atomic.html" title=" " alt="" coords="5,5,176,50"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="190,49,240,65,288,85,343,118,386,152,381,152,340,122,285,90,238,70,191,54"/>
+<area shape="rect" id="Node000005" href="$classIOv2_1_1copyable__atomic.html" title=" " alt="" coords="5,75,176,119"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="191,113,287,133,353,151,347,152,286,138,191,118"/>
+<area shape="rect" id="Node000006" href="$classIOv2_1_1copyable__atomic.html" title=" " alt="" coords="5,144,176,189"/>
+<area shape="poly" id="edge5_Node000003_Node000006" title=" " alt="" coords="191,164,312,165,308,168,192,169"/>
+<area shape="rect" id="Node000007" href="$classIOv2_1_1copyable__atomic.html" title=" " alt="" coords="5,213,176,258"/>
+<area shape="poly" id="edge6_Node000003_Node000007" title=" " alt="" coords="190,215,286,194,352,180,347,182,287,199,192,220"/>
+<area shape="rect" id="Node000008" href="$classIOv2_1_1detail_1_1io__lock.html" title="A stream&#39;s object lock: its own by default, or, given at construction, an external one,..." alt="" coords="15,282,166,310"/>
+<area shape="poly" id="edge7_Node000003_Node000008" title=" " alt="" coords="180,277,233,262,286,242,340,210,382,182,387,179,343,215,288,247,235,267,181,282"/>
+<area shape="rect" id="Node000009" href="$structIOv2_1_1istream__operators.html" title="Mix&#45;in base that provides the various extraction operations for input streams." alt="" coords="568,204,746,249"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="762,224,822,226,817,226,762,229"/>
+<area shape="rect" id="Node000010" href="$structIOv2_1_1basic__stream__common__operators.html" title=" " alt="" coords="543,272,771,300"/>
+<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="738,266,770,258,817,250,823,249,771,264,738,271"/>
+</map>

@@ -1,0 +1,865 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=11"/>
+<meta name="generator" content="Doxygen 1.14.0"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>IOv2: include/IOv2/facet/messages_details.h 源文件</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<script type="text/javascript" src="clipboard.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<script type="text/javascript" src="cookie.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr id="projectrow">
+  <td id="projectalign">
+   <div id="projectname">IOv2
+   </div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 制作者 Doxygen 1.14.0 -->
+<script type="text/javascript">
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+</script>
+<script type="text/javascript">
+$(function() { codefold.init(); });
+</script>
+<script type="text/javascript" src="menudata.js"></script>
+<script type="text/javascript" src="menu.js"></script>
+<script type="text/javascript">
+$(function() {
+  initMenu('',true,false,'search.php','搜索',true);
+  $(function() { init_search(); });
+});
+</script>
+<div id="main-nav"></div>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+$(function(){initNavTree('messages__details_8h_source.html','',''); });
+</script>
+<div id="container">
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">载入中...</div>
+<div class="SRStatus" id="Searching">搜索中...</div>
+<div class="SRStatus" id="NoMatches">未找到</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="header">
+  <div class="headertitle"><div class="title">messages_details.h</div></div>
+</div><!--header-->
+<div class="contents">
+<a href="messages__details_8h.html">浏览该文件的文档.</a><div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span><span class="comment">// SPDX-FileCopyrightText: 2026 liwei &lt;liwei.cpp@gmail.com&gt;</span></div>
+<div class="line"><a id="l00002" name="l00002"></a><span class="lineno">    2</span><span class="comment">// SPDX-License-Identifier: MIT</span></div>
+<div class="line"><a id="l00003" name="l00003"></a><span class="lineno">    3</span></div>
+<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span><span class="preprocessor">#pragma once</span></div>
+<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span><span class="preprocessor">#include &lt;<a class="code" href="clocale__wrapper_8h.html">IOv2/common/clocale_wrapper.h</a>&gt;</span></div>
+<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span><span class="preprocessor">#include &lt;<a class="code" href="copyable__mutex_8h.html">IOv2/common/copyable_mutex.h</a>&gt;</span></div>
+<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span><span class="preprocessor">#include &lt;<a class="code" href="defs_8h.html">IOv2/common/defs.h</a>&gt;</span></div>
+<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span><span class="preprocessor">#include &lt;<a class="code" href="iov2__export_8h.html">IOv2/common/iov2_export.h</a>&gt;</span></div>
+<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span><span class="preprocessor">#include &lt;<a class="code" href="metafunctions_8h.html">IOv2/common/metafunctions.h</a>&gt;</span></div>
+<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span><span class="preprocessor">#include &lt;<a class="code" href="env__backend_8h.html">IOv2/common/platform/env_backend.h</a>&gt;</span></div>
+<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span><span class="preprocessor">#include &lt;<a class="code" href="code__cvt_8h.html">IOv2/cvt/code_cvt.h</a>&gt;</span></div>
+<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span><span class="preprocessor">#include &lt;<a class="code" href="cvt__facilities_8h.html">IOv2/cvt/cvt_facilities.h</a>&gt;</span></div>
+<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span><span class="preprocessor">#include &lt;<a class="code" href="root__cvt_8h.html">IOv2/cvt/root_cvt.h</a>&gt;</span></div>
+<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span><span class="preprocessor">#include &lt;<a class="code" href="mem__device_8h.html">IOv2/device/mem_device.h</a>&gt;</span></div>
+<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span><span class="preprocessor">#include &lt;<a class="code" href="file__device__backend_8h.html">IOv2/device/platform/file_device_backend.h</a>&gt;</span></div>
+<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span><span class="preprocessor">#include &lt;<a class="code" href="facet__common_8h.html">IOv2/facet/facet_common.h</a>&gt;</span></div>
+<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span><span class="preprocessor">#include &lt;<a class="code" href="messages__backend_8h.html">IOv2/facet/platform/messages_backend.h</a>&gt;</span></div>
+<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span> </div>
+<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span><span class="preprocessor">#include &lt;algorithm&gt;</span></div>
+<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span><span class="preprocessor">#include &lt;array&gt;</span></div>
+<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span><span class="preprocessor">#include &lt;bit&gt;</span></div>
+<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span><span class="preprocessor">#include &lt;concepts&gt;</span></div>
+<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span><span class="preprocessor">#include &lt;cstddef&gt;</span></div>
+<div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span><span class="preprocessor">#include &lt;cstdint&gt;</span></div>
+<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span><span class="preprocessor">#include &lt;cstdio&gt;</span></div>
+<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span><span class="preprocessor">#include &lt;cstring&gt;</span></div>
+<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span><span class="preprocessor">#include &lt;exception&gt;</span></div>
+<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span><span class="preprocessor">#include &lt;filesystem&gt;</span></div>
+<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span><span class="preprocessor">#include &lt;mutex&gt;</span></div>
+<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span><span class="preprocessor">#include &lt;string&gt;</span></div>
+<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span><span class="preprocessor">#include &lt;unordered_map&gt;</span></div>
+<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span><span class="preprocessor">#include &lt;utility&gt;</span></div>
+<div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span><span class="preprocessor">#include &lt;vector&gt;</span></div>
+<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span> </div>
+<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span><span class="keyword">namespace </span><a class="code hl_namespace" href="namespaceIOv2.html">IOv2</a></div>
+<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span>{</div>
+<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> CharT&gt; <span class="keyword">class </span><a class="code hl_class" href="classIOv2_1_1messages.html">messages</a>;</div>
+<div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span> </div>
+<div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span><span class="keyword">namespace </span><a class="code hl_namespace" href="namespaceIOv2_1_1detail.html">detail</a></div>
+<div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span>{</div>
+<div class="foldopen" id="foldopen00096" data-start="{" data-end="}">
+<div class="line"><a id="l00096" name="l00096"></a><span class="lineno"><a class="line" href="namespaceIOv2_1_1detail.html#a59ac6540e04ec1e3832f24cc3fe227a2">   96</a></span><span class="keyword">inline</span> std::vector&lt;std::string&gt; <a class="code hl_function" href="namespaceIOv2_1_1detail.html#a59ac6540e04ec1e3832f24cc3fe227a2">messages_language_candidates</a>(<span class="keyword">const</span> std::vector&lt;std::string&gt;&amp; names)</div>
+<div class="line"><a id="l00097" name="l00097"></a><span class="lineno">   97</span>{</div>
+<div class="line"><a id="l00098" name="l00098"></a><span class="lineno">   98</span>    <span class="keyword">const</span> <span class="keyword">auto</span> is_alpha = [](<span class="keywordtype">char</span> c) { <span class="keywordflow">return</span> (c &gt;= <span class="charliteral">&#39;a&#39;</span> &amp;&amp; c &lt;= <span class="charliteral">&#39;z&#39;</span>) || (c &gt;= <span class="charliteral">&#39;A&#39;</span> &amp;&amp; c &lt;= <span class="charliteral">&#39;Z&#39;</span>); };</div>
+<div class="line"><a id="l00099" name="l00099"></a><span class="lineno">   99</span>    <span class="keyword">const</span> <span class="keyword">auto</span> is_digit = [](<span class="keywordtype">char</span> c) { <span class="keywordflow">return</span> c &gt;= <span class="charliteral">&#39;0&#39;</span> &amp;&amp; c &lt;= <span class="charliteral">&#39;9&#39;</span>; };</div>
+<div class="line"><a id="l00100" name="l00100"></a><span class="lineno">  100</span>    <span class="keyword">const</span> <span class="keyword">auto</span> all_of = [](<span class="keyword">const</span> std::string&amp; s, <span class="keyword">auto</span> pred) { <span class="keywordflow">return</span> std::all_of(s.begin(), s.end(), pred); };</div>
+<div class="line"><a id="l00101" name="l00101"></a><span class="lineno">  101</span> </div>
+<div class="line"><a id="l00102" name="l00102"></a><span class="lineno">  102</span>    std::vector&lt;std::string&gt; res;</div>
+<div class="line"><a id="l00103" name="l00103"></a><span class="lineno">  103</span>    <span class="keyword">const</span> <span class="keyword">auto</span> add = [&amp;res](std::string c)</div>
+<div class="line"><a id="l00104" name="l00104"></a><span class="lineno">  104</span>    {</div>
+<div class="line"><a id="l00105" name="l00105"></a><span class="lineno">  105</span>        <span class="keywordflow">if</span> (std::ranges::find(res, c) == res.end())</div>
+<div class="line"><a id="l00106" name="l00106"></a><span class="lineno">  106</span>            res.push_back(std::move(c));</div>
+<div class="line"><a id="l00107" name="l00107"></a><span class="lineno">  107</span>    };</div>
+<div class="line"><a id="l00108" name="l00108"></a><span class="lineno">  108</span> </div>
+<div class="line"><a id="l00109" name="l00109"></a><span class="lineno">  109</span>    <span class="keywordflow">for</span> (<span class="keyword">const</span> std::string&amp; name : names)</div>
+<div class="line"><a id="l00110" name="l00110"></a><span class="lineno">  110</span>    {</div>
+<div class="line"><a id="l00111" name="l00111"></a><span class="lineno">  111</span>        std::vector&lt;std::string&gt; subtags(1);</div>
+<div class="line"><a id="l00112" name="l00112"></a><span class="lineno">  112</span>        <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keywordtype">char</span> c : name)</div>
+<div class="line"><a id="l00113" name="l00113"></a><span class="lineno">  113</span>        {</div>
+<div class="line"><a id="l00114" name="l00114"></a><span class="lineno">  114</span>            <span class="keywordflow">if</span> (c == <span class="charliteral">&#39;-&#39;</span> || c == <span class="charliteral">&#39;_&#39;</span>) subtags.emplace_back();</div>
+<div class="line"><a id="l00115" name="l00115"></a><span class="lineno">  115</span>            <span class="keywordflow">else</span> subtags.back().push_back(c);</div>
+<div class="line"><a id="l00116" name="l00116"></a><span class="lineno">  116</span>        }</div>
+<div class="line"><a id="l00117" name="l00117"></a><span class="lineno">  117</span> </div>
+<div class="line"><a id="l00118" name="l00118"></a><span class="lineno">  118</span>        std::string lang = subtags[0];</div>
+<div class="line"><a id="l00119" name="l00119"></a><span class="lineno">  119</span>        <span class="keywordflow">if</span> (lang.size() &lt; 2 || lang.size() &gt; 8 || !all_of(lang, is_alpha))</div>
+<div class="line"><a id="l00120" name="l00120"></a><span class="lineno">  120</span>            <span class="keywordflow">continue</span>;</div>
+<div class="line"><a id="l00121" name="l00121"></a><span class="lineno">  121</span>        <span class="keywordflow">for</span> (<span class="keywordtype">char</span>&amp; c : lang)</div>
+<div class="line"><a id="l00122" name="l00122"></a><span class="lineno">  122</span>            <span class="keywordflow">if</span> (c &gt;= <span class="charliteral">&#39;A&#39;</span> &amp;&amp; c &lt;= <span class="charliteral">&#39;Z&#39;</span>) c = <span class="keyword">static_cast&lt;</span><span class="keywordtype">char</span><span class="keyword">&gt;</span>(c - <span class="charliteral">&#39;A&#39;</span> + <span class="charliteral">&#39;a&#39;</span>);</div>
+<div class="line"><a id="l00123" name="l00123"></a><span class="lineno">  123</span> </div>
+<div class="line"><a id="l00124" name="l00124"></a><span class="lineno">  124</span>        <span class="comment">// The region comes before any extension, which a single-character subtag starts.</span></div>
+<div class="line"><a id="l00125" name="l00125"></a><span class="lineno">  125</span>        std::string region;</div>
+<div class="line"><a id="l00126" name="l00126"></a><span class="lineno">  126</span>        <span class="keywordflow">for</span> (std::size_t i = 1; i &lt; subtags.size() &amp;&amp; subtags[i].size() &gt; 1; ++i)</div>
+<div class="line"><a id="l00127" name="l00127"></a><span class="lineno">  127</span>        {</div>
+<div class="line"><a id="l00128" name="l00128"></a><span class="lineno">  128</span>            <span class="keyword">const</span> std::string&amp; t = subtags[i];</div>
+<div class="line"><a id="l00129" name="l00129"></a><span class="lineno">  129</span>            <span class="keywordflow">if</span> ((t.size() == 2 &amp;&amp; all_of(t, is_alpha)) || (t.size() == 3 &amp;&amp; all_of(t, is_digit)))</div>
+<div class="line"><a id="l00130" name="l00130"></a><span class="lineno">  130</span>            {</div>
+<div class="line"><a id="l00131" name="l00131"></a><span class="lineno">  131</span>                region = t;</div>
+<div class="line"><a id="l00132" name="l00132"></a><span class="lineno">  132</span>                <span class="keywordflow">for</span> (<span class="keywordtype">char</span>&amp; c : region)</div>
+<div class="line"><a id="l00133" name="l00133"></a><span class="lineno">  133</span>                    <span class="keywordflow">if</span> (c &gt;= <span class="charliteral">&#39;a&#39;</span> &amp;&amp; c &lt;= <span class="charliteral">&#39;z&#39;</span>) c = <span class="keyword">static_cast&lt;</span><span class="keywordtype">char</span><span class="keyword">&gt;</span>(c - <span class="charliteral">&#39;a&#39;</span> + <span class="charliteral">&#39;A&#39;</span>);</div>
+<div class="line"><a id="l00134" name="l00134"></a><span class="lineno">  134</span>                <span class="keywordflow">break</span>;</div>
+<div class="line"><a id="l00135" name="l00135"></a><span class="lineno">  135</span>            }</div>
+<div class="line"><a id="l00136" name="l00136"></a><span class="lineno">  136</span>        }</div>
+<div class="line"><a id="l00137" name="l00137"></a><span class="lineno">  137</span> </div>
+<div class="line"><a id="l00138" name="l00138"></a><span class="lineno">  138</span>        <span class="keywordflow">if</span> (!region.empty())</div>
+<div class="line"><a id="l00139" name="l00139"></a><span class="lineno">  139</span>            add((lang + <span class="charliteral">&#39;_&#39;</span>).append(region));</div>
+<div class="line"><a id="l00140" name="l00140"></a><span class="lineno">  140</span>        add(lang);</div>
+<div class="line"><a id="l00141" name="l00141"></a><span class="lineno">  141</span>    }</div>
+<div class="line"><a id="l00142" name="l00142"></a><span class="lineno">  142</span>    <span class="keywordflow">return</span> res;</div>
+<div class="line"><a id="l00143" name="l00143"></a><span class="lineno">  143</span>}</div>
+</div>
+<div class="line"><a id="l00144" name="l00144"></a><span class="lineno">  144</span>}</div>
+<div class="line"><a id="l00145" name="l00145"></a><span class="lineno">  145</span></div>
+<div class="line"><a id="l00173" name="l00173"></a><span class="lineno">  173</span><span class="keyword">template</span> &lt;&gt;</div>
+<div class="foldopen" id="foldopen00174" data-start="{" data-end="};">
+<div class="line"><a id="l00174" name="l00174"></a><span class="lineno"><a class="line" href="classIOv2_1_1base__ft_3_01messages_01_4.html">  174</a></span><span class="keyword">class </span><a class="code hl_function" href="classIOv2_1_1base__ft_3_01messages_01_4.html#a87834ea7526c3c96264a6607c5f10a5b">base_ft</a>&lt;<a class="code hl_class" href="classIOv2_1_1messages.html">messages</a>&gt; : <span class="keyword">public</span> <a class="code hl_function" href="classIOv2_1_1base__ft.html#a1d8dd78a9578c90a2cb68f95b2474926">abs_ft</a></div>
+<div class="line"><a id="l00175" name="l00175"></a><span class="lineno">  175</span>{</div>
+<div class="line"><a id="l00177" name="l00177"></a><span class="lineno">  177</span>    <span class="keyword">struct </span>file_closer</div>
+<div class="line"><a id="l00178" name="l00178"></a><span class="lineno">  178</span>    {</div>
+<div class="line"><a id="l00179" name="l00179"></a><span class="lineno">  179</span>        file_closer(std::FILE* fp)</div>
+<div class="line"><a id="l00180" name="l00180"></a><span class="lineno">  180</span>            : m_fp(fp) {}</div>
+<div class="line"><a id="l00181" name="l00181"></a><span class="lineno">  181</span>        file_closer(<span class="keyword">const</span> file_closer&amp;) = <span class="keyword">delete</span>;</div>
+<div class="line"><a id="l00182" name="l00182"></a><span class="lineno">  182</span>        file_closer&amp; <a class="code hl_function" href="structIOv2_1_1abs__ft.html#af27f774be8ed056c4bcb59446e382f64">operator=</a>(<span class="keyword">const</span> file_closer&amp;) = <span class="keyword">delete</span>;</div>
+<div class="line"><a id="l00183" name="l00183"></a><span class="lineno">  183</span>        file_closer(file_closer&amp;&amp;) = <span class="keyword">delete</span>;</div>
+<div class="line"><a id="l00184" name="l00184"></a><span class="lineno">  184</span>        file_closer&amp; <a class="code hl_function" href="structIOv2_1_1abs__ft.html#af27f774be8ed056c4bcb59446e382f64">operator=</a>(file_closer&amp;&amp;) = <span class="keyword">delete</span>;</div>
+<div class="line"><a id="l00185" name="l00185"></a><span class="lineno">  185</span>        ~file_closer() { fclose(m_fp); } <span class="comment">// NOLINT(cppcoreguidelines-owning-memory)</span></div>
+<div class="line"><a id="l00186" name="l00186"></a><span class="lineno">  186</span>    <span class="keyword">private</span>:</div>
+<div class="line"><a id="l00187" name="l00187"></a><span class="lineno">  187</span>        std::FILE* m_fp;</div>
+<div class="line"><a id="l00188" name="l00188"></a><span class="lineno">  188</span>    };</div>
+<div class="line"><a id="l00190" name="l00190"></a><span class="lineno">  190</span> </div>
+<div class="line"><a id="l00191" name="l00191"></a><span class="lineno">  191</span><span class="keyword">public</span>:</div>
+<div class="foldopen" id="foldopen00220" data-start="{" data-end="}">
+<div class="line"><a id="l00220" name="l00220"></a><span class="lineno"><a class="line" href="classIOv2_1_1base__ft_3_01messages_01_4.html#a97e254dc1fdebe5c8794376c54771e94">  220</a></span>    <span class="keyword">static</span> <span class="keywordtype">void</span> <a class="code hl_function" href="classIOv2_1_1base__ft_3_01messages_01_4.html#a97e254dc1fdebe5c8794376c54771e94">bind_text_domain</a>(<span class="keyword">const</span> std::string&amp; domain, <span class="keyword">const</span> std::filesystem::path&amp; <a class="code hl_function" href="classIOv2_1_1base__ft_3_01messages_01_4.html#a13f2479bfbbfe8f89369f15f0db386ac">dirname</a>)</div>
+<div class="line"><a id="l00221" name="l00221"></a><span class="lineno">  221</span>    {</div>
+<div class="line"><a id="l00222" name="l00222"></a><span class="lineno">  222</span>        std::scoped_lock guard(s_domain_mutex);</div>
+<div class="line"><a id="l00223" name="l00223"></a><span class="lineno">  223</span>        <span class="keyword">auto</span> it = s_domain_dirs.find(domain);</div>
+<div class="line"><a id="l00224" name="l00224"></a><span class="lineno">  224</span>        <span class="keywordflow">if</span> (it != s_domain_dirs.end())</div>
+<div class="line"><a id="l00225" name="l00225"></a><span class="lineno">  225</span>            it-&gt;second = <a class="code hl_function" href="classIOv2_1_1base__ft_3_01messages_01_4.html#a13f2479bfbbfe8f89369f15f0db386ac">dirname</a>;</div>
+<div class="line"><a id="l00226" name="l00226"></a><span class="lineno">  226</span>        <span class="keywordflow">else</span></div>
+<div class="line"><a id="l00227" name="l00227"></a><span class="lineno">  227</span>            s_domain_dirs.insert({domain, <a class="code hl_function" href="classIOv2_1_1base__ft_3_01messages_01_4.html#a13f2479bfbbfe8f89369f15f0db386ac">dirname</a>});</div>
+<div class="line"><a id="l00228" name="l00228"></a><span class="lineno">  228</span>    }</div>
+</div>
+<div class="line"><a id="l00229" name="l00229"></a><span class="lineno">  229</span></div>
+<div class="foldopen" id="foldopen00259" data-start="{" data-end="}">
+<div class="line"><a id="l00259" name="l00259"></a><span class="lineno"><a class="line" href="classIOv2_1_1base__ft_3_01messages_01_4.html#a462cbab4358e1d6b486515a5a8907907">  259</a></span>    <span class="keyword">static</span> std::filesystem::path <a class="code hl_function" href="classIOv2_1_1base__ft_3_01messages_01_4.html#a462cbab4358e1d6b486515a5a8907907">get_dirname</a>(<span class="keyword">const</span> std::string&amp; domain)</div>
+<div class="line"><a id="l00260" name="l00260"></a><span class="lineno">  260</span>    {</div>
+<div class="line"><a id="l00261" name="l00261"></a><span class="lineno">  261</span>        {</div>
+<div class="line"><a id="l00262" name="l00262"></a><span class="lineno">  262</span>            std::scoped_lock guard(s_domain_mutex);</div>
+<div class="line"><a id="l00263" name="l00263"></a><span class="lineno">  263</span>            <span class="keywordflow">if</span> (<span class="keyword">auto</span> it = s_domain_dirs.find(domain); it != s_domain_dirs.end())</div>
+<div class="line"><a id="l00264" name="l00264"></a><span class="lineno">  264</span>                <span class="keywordflow">return</span> it-&gt;second;</div>
+<div class="line"><a id="l00265" name="l00265"></a><span class="lineno">  265</span>        }</div>
+<div class="line"><a id="l00266" name="l00266"></a><span class="lineno">  266</span>        <span class="keywordflow">return</span> <a class="code hl_function" href="namespaceIOv2_1_1detail.html#ad016cff036d696a8931d04c439dbd357">detail::messages_default_dirname</a>();</div>
+<div class="line"><a id="l00267" name="l00267"></a><span class="lineno">  267</span>    }</div>
+</div>
+<div class="line"><a id="l00268" name="l00268"></a><span class="lineno">  268</span></div>
+<div class="foldopen" id="foldopen00296" data-start="{" data-end="}">
+<div class="line"><a id="l00296" name="l00296"></a><span class="lineno"><a class="line" href="classIOv2_1_1base__ft_3_01messages_01_4.html#a1b2eb8d903846a78deb11ee379c3f5ca">  296</a></span>    <span class="keyword">static</span> <span class="keywordtype">bool</span> <a class="code hl_function" href="classIOv2_1_1base__ft_3_01messages_01_4.html#a1b2eb8d903846a78deb11ee379c3f5ca">available</a>(<span class="keyword">const</span> std::string&amp; domain, <span class="keyword">const</span> std::string&amp; lang)</div>
+<div class="line"><a id="l00297" name="l00297"></a><span class="lineno">  297</span>    {</div>
+<div class="line"><a id="l00298" name="l00298"></a><span class="lineno">  298</span>        <span class="keywordflow">return</span> <a class="code hl_function" href="classIOv2_1_1base__ft_3_01messages_01_4.html#a1b2eb8d903846a78deb11ee379c3f5ca">available</a>({.dirname = <a class="code hl_function" href="classIOv2_1_1base__ft_3_01messages_01_4.html#a462cbab4358e1d6b486515a5a8907907">get_dirname</a>(domain), .domain = domain}, lang);</div>
+<div class="line"><a id="l00299" name="l00299"></a><span class="lineno">  299</span>    }</div>
+</div>
+<div class="line"><a id="l00300" name="l00300"></a><span class="lineno">  300</span></div>
+<div class="foldopen" id="foldopen00324" data-start="{" data-end="}">
+<div class="line"><a id="l00324" name="l00324"></a><span class="lineno"><a class="line" href="classIOv2_1_1base__ft_3_01messages_01_4.html#ae3cf90989f457dfeac7a104f1d0807b0">  324</a></span>    <span class="keyword">static</span> std::string <a class="code hl_function" href="classIOv2_1_1base__ft_3_01messages_01_4.html#ae3cf90989f457dfeac7a104f1d0807b0">filter_lang</a>(<span class="keyword">const</span> std::string&amp; domain, <span class="keyword">const</span> std::string&amp; p_lang)</div>
+<div class="line"><a id="l00325" name="l00325"></a><span class="lineno">  325</span>    {</div>
+<div class="line"><a id="l00326" name="l00326"></a><span class="lineno">  326</span>        <span class="keywordflow">return</span> <a class="code hl_function" href="classIOv2_1_1base__ft_3_01messages_01_4.html#ae3cf90989f457dfeac7a104f1d0807b0">filter_lang</a>({.dirname = <a class="code hl_function" href="classIOv2_1_1base__ft_3_01messages_01_4.html#a462cbab4358e1d6b486515a5a8907907">get_dirname</a>(domain), .domain = domain}, p_lang);</div>
+<div class="line"><a id="l00327" name="l00327"></a><span class="lineno">  327</span>    }</div>
+</div>
+<div class="line"><a id="l00328" name="l00328"></a><span class="lineno">  328</span></div>
+<div class="line"><a id="l00364" name="l00364"></a><span class="lineno">  364</span>    <span class="comment">// NOLINTNEXTLINE(bugprone-easily-swappable-parameters)</span></div>
+<div class="foldopen" id="foldopen00365" data-start="{" data-end="}">
+<div class="line"><a id="l00365" name="l00365"></a><span class="lineno"><a class="line" href="classIOv2_1_1base__ft_3_01messages_01_4.html#a87834ea7526c3c96264a6607c5f10a5b">  365</a></span>    <a class="code hl_function" href="classIOv2_1_1base__ft_3_01messages_01_4.html#a87834ea7526c3c96264a6607c5f10a5b">base_ft</a>(<a class="code hl_typedef" href="namespaceIOv2.html#a083528523fff6afa2f97c71282bb9662">facet_id_t</a> <span class="keywordtype">id</span>, <span class="keyword">const</span> std::string&amp; p_domain, <span class="keyword">const</span> std::string&amp; p_lang, <span class="keyword">const</span> std::filesystem::path&amp; p_dirname = {})</div>
+<div class="line"><a id="l00366" name="l00366"></a><span class="lineno">  366</span>        : <a class="code hl_struct" href="structIOv2_1_1abs__ft.html">abs_ft</a>(<a class="code hl_function" href="structIOv2_1_1abs__ft.html#a4ec8079b1aa8457e172036ec6b5f0587">id</a>)</div>
+<div class="line"><a id="l00367" name="l00367"></a><span class="lineno">  367</span>        <span class="comment">// Fix the dirname first (declared before the members below, so it is</span></div>
+<div class="line"><a id="l00368" name="l00368"></a><span class="lineno">  368</span>        <span class="comment">// initialised first) and feed that same value to filter_lang and into</span></div>
+<div class="line"><a id="l00369" name="l00369"></a><span class="lineno">  369</span>        <span class="comment">// m_domain_info. An empty p_dirname resolves it from p_domain via</span></div>
+<div class="line"><a id="l00370" name="l00370"></a><span class="lineno">  370</span>        <span class="comment">// get_dirname; a non-empty p_dirname is used as-is, letting the caller</span></div>
+<div class="line"><a id="l00371" name="l00371"></a><span class="lineno">  371</span>        <span class="comment">// supply a dirname it already resolved. Together with messages_conf::init</span></div>
+<div class="line"><a id="l00372" name="l00372"></a><span class="lineno">  372</span>        <span class="comment">// reading it back via dirname(), the whole construction resolves the .mo</span></div>
+<div class="line"><a id="l00373" name="l00373"></a><span class="lineno">  373</span>        <span class="comment">// location from one dirname, so the recorded domain_info can never</span></div>
+<div class="line"><a id="l00374" name="l00374"></a><span class="lineno">  374</span>        <span class="comment">// disagree with the dictionary actually loaded.</span></div>
+<div class="line"><a id="l00375" name="l00375"></a><span class="lineno">  375</span>        , m_dirname(p_dirname.empty() ? get_dirname(p_domain) : p_dirname)</div>
+<div class="line"><a id="l00376" name="l00376"></a><span class="lineno">  376</span>        , m_filtered_lang(filter_lang({.dirname = m_dirname, .domain = p_domain}, p_lang))</div>
+<div class="line"><a id="l00377" name="l00377"></a><span class="lineno">  377</span>        , m_domain_info(<span class="charliteral">&#39;[&#39;</span> + p_domain + <span class="stringliteral">&quot;] [&quot;</span> + p_lang + <span class="charliteral">&#39;(&#39;</span> + m_filtered_lang + <span class="charliteral">&#39;)&#39;</span> + <span class="stringliteral">&quot;] [&quot;</span> +</div>
+<div class="line"><a id="l00378" name="l00378"></a><span class="lineno">  378</span>                        <a class="code hl_function" href="namespaceIOv2_1_1detail.html#a0f9c265e19e49b6015399ecde46b2b9c">detail::path_for_message</a>(m_dirname) + <span class="stringliteral">&quot;]&quot;</span>)</div>
+<div class="line"><a id="l00379" name="l00379"></a><span class="lineno">  379</span>    {}</div>
+</div>
+<div class="line"><a id="l00380" name="l00380"></a><span class="lineno">  380</span></div>
+<div class="line"><a id="l00401" name="l00401"></a><span class="lineno"><a class="line" href="classIOv2_1_1base__ft_3_01messages_01_4.html#ad3569ef07948cb6f22403ec637e63f27">  401</a></span>    [[nodiscard]] <span class="keyword">const</span> std::string&amp; <a class="code hl_function" href="classIOv2_1_1base__ft_3_01messages_01_4.html#ad3569ef07948cb6f22403ec637e63f27">domain_info</a>()<span class="keyword"> const </span>{ <span class="keywordflow">return</span> m_domain_info; }</div>
+<div class="line"><a id="l00402" name="l00402"></a><span class="lineno">  402</span></div>
+<div class="line"><a id="l00414" name="l00414"></a><span class="lineno"><a class="line" href="classIOv2_1_1base__ft_3_01messages_01_4.html#ab6e035506871dcff9789e9ac912befd7">  414</a></span>    [[nodiscard]] <span class="keyword">const</span> std::string&amp; <a class="code hl_function" href="classIOv2_1_1base__ft_3_01messages_01_4.html#ab6e035506871dcff9789e9ac912befd7">filtered_lang</a>()<span class="keyword"> const </span>{ <span class="keywordflow">return</span> m_filtered_lang; }</div>
+<div class="line"><a id="l00415" name="l00415"></a><span class="lineno">  415</span> </div>
+<div class="line"><a id="l00416" name="l00416"></a><span class="lineno">  416</span><span class="keyword">protected</span>:</div>
+<div class="line"><a id="l00436" name="l00436"></a><span class="lineno"><a class="line" href="classIOv2_1_1base__ft_3_01messages_01_4.html#a13f2479bfbbfe8f89369f15f0db386ac">  436</a></span>    [[nodiscard]] <span class="keyword">const</span> std::filesystem::path&amp; <a class="code hl_function" href="classIOv2_1_1base__ft_3_01messages_01_4.html#a13f2479bfbbfe8f89369f15f0db386ac">dirname</a>()<span class="keyword"> const </span>{ <span class="keywordflow">return</span> m_dirname; }</div>
+<div class="line"><a id="l00437" name="l00437"></a><span class="lineno">  437</span></div>
+<div class="foldopen" id="foldopen00460" data-start="{" data-end="};">
+<div class="line"><a id="l00460" name="l00460"></a><span class="lineno"><a class="line" href="structIOv2_1_1base__ft_3_01messages_01_4_1_1text__domain.html">  460</a></span>    <span class="keyword">struct </span><a class="code hl_struct" href="structIOv2_1_1base__ft_3_01messages_01_4_1_1text__domain.html">text_domain</a></div>
+<div class="line"><a id="l00461" name="l00461"></a><span class="lineno">  461</span>    {</div>
+<div class="line"><a id="l00462" name="l00462"></a><span class="lineno"><a class="line" href="structIOv2_1_1base__ft_3_01messages_01_4_1_1text__domain.html#a9f5b91c991130296c55467f639c52655">  462</a></span>        std::filesystem::path <a class="code hl_variable" href="structIOv2_1_1base__ft_3_01messages_01_4_1_1text__domain.html#a9f5b91c991130296c55467f639c52655">dirname</a>;  </div>
+<div class="line"><a id="l00463" name="l00463"></a><span class="lineno"><a class="line" href="structIOv2_1_1base__ft_3_01messages_01_4_1_1text__domain.html#ae35b5652efa555a7914b224b964abc34">  463</a></span>        std::string <a class="code hl_variable" href="structIOv2_1_1base__ft_3_01messages_01_4_1_1text__domain.html#ae35b5652efa555a7914b224b964abc34">domain</a>;   </div>
+<div class="line"><a id="l00464" name="l00464"></a><span class="lineno">  464</span>    };</div>
+</div>
+<div class="line"><a id="l00465" name="l00465"></a><span class="lineno">  465</span></div>
+<div class="foldopen" id="foldopen00487" data-start="{" data-end="}">
+<div class="line"><a id="l00487" name="l00487"></a><span class="lineno"><a class="line" href="classIOv2_1_1base__ft_3_01messages_01_4.html#a6ec8193922bacceb313f07f5141cf404">  487</a></span>    <span class="keyword">static</span> std::filesystem::path <a class="code hl_function" href="classIOv2_1_1base__ft_3_01messages_01_4.html#a6ec8193922bacceb313f07f5141cf404">get_domain_file</a>(<span class="keyword">const</span> <a class="code hl_struct" href="structIOv2_1_1base__ft_3_01messages_01_4_1_1text__domain.html">text_domain</a>&amp; td, <span class="keyword">const</span> std::string&amp; lang)</div>
+<div class="line"><a id="l00488" name="l00488"></a><span class="lineno">  488</span>    {</div>
+<div class="line"><a id="l00489" name="l00489"></a><span class="lineno">  489</span>        <span class="keywordflow">return</span> td.<a class="code hl_variable" href="structIOv2_1_1base__ft_3_01messages_01_4_1_1text__domain.html#a9f5b91c991130296c55467f639c52655">dirname</a> / lang / <span class="stringliteral">&quot;LC_MESSAGES&quot;</span> / (td.<a class="code hl_variable" href="structIOv2_1_1base__ft_3_01messages_01_4_1_1text__domain.html#ae35b5652efa555a7914b224b964abc34">domain</a> + <span class="stringliteral">&quot;.mo&quot;</span>);</div>
+<div class="line"><a id="l00490" name="l00490"></a><span class="lineno">  490</span>    }</div>
+</div>
+<div class="line"><a id="l00491" name="l00491"></a><span class="lineno">  491</span></div>
+<div class="foldopen" id="foldopen00561" data-start="{" data-end="}">
+<div class="line"><a id="l00561" name="l00561"></a><span class="lineno"><a class="line" href="classIOv2_1_1base__ft_3_01messages_01_4.html#ac8702a38dcc21ccb6ef5accc83e433f0">  561</a></span>    <span class="keyword">static</span> std::unordered_map&lt;std::u8string, std::u8string&gt; <a class="code hl_function" href="classIOv2_1_1base__ft_3_01messages_01_4.html#ac8702a38dcc21ccb6ef5accc83e433f0">get_translate_dictionary</a>(<span class="keyword">const</span> std::filesystem::path&amp; filename)</div>
+<div class="line"><a id="l00562" name="l00562"></a><span class="lineno">  562</span>    {</div>
+<div class="line"><a id="l00563" name="l00563"></a><span class="lineno">  563</span>        std::FILE* fp = <a class="code hl_function" href="namespaceIOv2_1_1detail.html#a79c510f912f1e70b3ace3f93849845f8">detail::file_open</a>(filename, <span class="stringliteral">&quot;rb&quot;</span>); <span class="comment">// NOLINT(cppcoreguidelines-owning-memory)</span></div>
+<div class="line"><a id="l00564" name="l00564"></a><span class="lineno">  564</span>        <span class="keywordflow">if</span> (!fp)</div>
+<div class="line"><a id="l00565" name="l00565"></a><span class="lineno">  565</span>            <span class="keywordflow">throw</span> <a class="code hl_struct" href="structIOv2_1_1io__error.html">io_error</a>(<span class="stringliteral">&quot;get_translate_dictionary fail: cannot open file &quot;</span> + <a class="code hl_function" href="namespaceIOv2_1_1detail.html#a0f9c265e19e49b6015399ecde46b2b9c">detail::path_for_message</a>(filename));</div>
+<div class="line"><a id="l00566" name="l00566"></a><span class="lineno">  566</span> </div>
+<div class="line"><a id="l00567" name="l00567"></a><span class="lineno">  567</span>        file_closer guard(fp);</div>
+<div class="line"><a id="l00568" name="l00568"></a><span class="lineno">  568</span> </div>
+<div class="line"><a id="l00569" name="l00569"></a><span class="lineno">  569</span>        <span class="keywordflow">if</span> (<a class="code hl_function" href="namespaceIOv2_1_1detail.html#a2dc4c301468347701e5f7ef1dcd050ec">detail::file_seek</a>(fp, 0, SEEK_END) != 0)</div>
+<div class="line"><a id="l00570" name="l00570"></a><span class="lineno">  570</span>            <span class="keywordflow">throw</span> <a class="code hl_struct" href="structIOv2_1_1io__error.html">io_error</a>(<span class="stringliteral">&quot;get_translate_dictionary fail: invalid format&quot;</span>);</div>
+<div class="line"><a id="l00571" name="l00571"></a><span class="lineno">  571</span>        <span class="keyword">const</span> std::int64_t file_size = <a class="code hl_function" href="namespaceIOv2_1_1detail.html#a0a859f2b9585d24dafff0101d5f61db8">detail::file_tell</a>(fp);</div>
+<div class="line"><a id="l00572" name="l00572"></a><span class="lineno">  572</span>        <span class="keywordflow">if</span> (file_size &lt; 0)</div>
+<div class="line"><a id="l00573" name="l00573"></a><span class="lineno">  573</span>            <span class="keywordflow">throw</span> <a class="code hl_struct" href="structIOv2_1_1io__error.html">io_error</a>(<span class="stringliteral">&quot;get_translate_dictionary fail: file inconsistent&quot;</span>);</div>
+<div class="line"><a id="l00574" name="l00574"></a><span class="lineno">  574</span>        <span class="keywordflow">if</span> (<a class="code hl_function" href="namespaceIOv2_1_1detail.html#a2dc4c301468347701e5f7ef1dcd050ec">detail::file_seek</a>(fp, 0, SEEK_SET) != 0)</div>
+<div class="line"><a id="l00575" name="l00575"></a><span class="lineno">  575</span>            <span class="keywordflow">throw</span> <a class="code hl_struct" href="structIOv2_1_1io__error.html">io_error</a>(<span class="stringliteral">&quot;get_translate_dictionary fail: invalid format&quot;</span>);</div>
+<div class="line"><a id="l00576" name="l00576"></a><span class="lineno">  576</span> </div>
+<div class="line"><a id="l00577" name="l00577"></a><span class="lineno">  577</span>        <span class="keyword">auto</span> read_num = [fp](<span class="keywordtype">unsigned</span> <span class="keywordtype">char</span>* buf, <span class="keywordtype">bool</span> need_swap)</div>
+<div class="line"><a id="l00578" name="l00578"></a><span class="lineno">  578</span>        {</div>
+<div class="line"><a id="l00579" name="l00579"></a><span class="lineno">  579</span>            <span class="keywordflow">if</span> (std::fread(buf, 1, 4, fp) != 4)</div>
+<div class="line"><a id="l00580" name="l00580"></a><span class="lineno">  580</span>                <span class="keywordflow">throw</span> <a class="code hl_struct" href="structIOv2_1_1io__error.html">io_error</a>(<span class="stringliteral">&quot;get_translate_dictionary fail: invalid format&quot;</span>);</div>
+<div class="line"><a id="l00581" name="l00581"></a><span class="lineno">  581</span> </div>
+<div class="line"><a id="l00582" name="l00582"></a><span class="lineno">  582</span>            std::uint32_t res = 0;</div>
+<div class="line"><a id="l00583" name="l00583"></a><span class="lineno">  583</span>            std::memcpy(&amp;res, buf, 4);</div>
+<div class="line"><a id="l00584" name="l00584"></a><span class="lineno">  584</span>            <span class="keywordflow">if</span> (need_swap)</div>
+<div class="line"><a id="l00585" name="l00585"></a><span class="lineno">  585</span>                res = std::byteswap(res);</div>
+<div class="line"><a id="l00586" name="l00586"></a><span class="lineno">  586</span>            <span class="keywordflow">return</span> res;</div>
+<div class="line"><a id="l00587" name="l00587"></a><span class="lineno">  587</span>        };</div>
+<div class="line"><a id="l00588" name="l00588"></a><span class="lineno">  588</span> </div>
+<div class="line"><a id="l00589" name="l00589"></a><span class="lineno">  589</span>        std::array&lt;unsigned char, 8&gt; buff{};</div>
+<div class="line"><a id="l00590" name="l00590"></a><span class="lineno">  590</span>        <span class="keywordflow">if</span> (std::fread(buff.data(), 1, 8, fp) != 8)</div>
+<div class="line"><a id="l00591" name="l00591"></a><span class="lineno">  591</span>            <span class="keywordflow">throw</span> <a class="code hl_struct" href="structIOv2_1_1io__error.html">io_error</a>(<span class="stringliteral">&quot;get_translate_dictionary fail: invalid format&quot;</span>);</div>
+<div class="line"><a id="l00592" name="l00592"></a><span class="lineno">  592</span> </div>
+<div class="line"><a id="l00593" name="l00593"></a><span class="lineno">  593</span>        <span class="keywordtype">bool</span> need_swap = <span class="keyword">false</span>;</div>
+<div class="line"><a id="l00594" name="l00594"></a><span class="lineno">  594</span>        <span class="keywordflow">if</span> ((buff[0] == 0x95) &amp;&amp; (buff[1] == 0x04) &amp;&amp; (buff[2] == 0x12) &amp;&amp; (buff[3] == 0xde))</div>
+<div class="line"><a id="l00595" name="l00595"></a><span class="lineno">  595</span>            need_swap = (std::endian::native == std::endian::little);</div>
+<div class="line"><a id="l00596" name="l00596"></a><span class="lineno">  596</span>        <span class="keywordflow">else</span> <span class="keywordflow">if</span> ((buff[0] == 0xde) &amp;&amp; (buff[1] == 0x12) &amp;&amp; (buff[2] == 0x04) &amp;&amp; (buff[3] == 0x95))</div>
+<div class="line"><a id="l00597" name="l00597"></a><span class="lineno">  597</span>            need_swap = (std::endian::native == std::endian::big);</div>
+<div class="line"><a id="l00598" name="l00598"></a><span class="lineno">  598</span>        <span class="keywordflow">else</span> <span class="keywordflow">throw</span> <a class="code hl_struct" href="structIOv2_1_1io__error.html">io_error</a>(<span class="stringliteral">&quot;get_translate_dictionary fail: invalid format&quot;</span>);</div>
+<div class="line"><a id="l00599" name="l00599"></a><span class="lineno">  599</span> </div>
+<div class="line"><a id="l00600" name="l00600"></a><span class="lineno">  600</span>        <span class="comment">// Accept any .mo whose major revision (the high 16 bits) is 0, regardless of</span></div>
+<div class="line"><a id="l00601" name="l00601"></a><span class="lineno">  601</span>        <span class="comment">// minor revision. Only minor 0 (basic) and minor 1 (system-dependent strings)</span></div>
+<div class="line"><a id="l00602" name="l00602"></a><span class="lineno">  602</span>        <span class="comment">// are defined today, but minor revisions are backward-compatible additions:</span></div>
+<div class="line"><a id="l00603" name="l00603"></a><span class="lineno">  603</span>        <span class="comment">// they only add separate tables (sysdep strings, hash table) and never change</span></div>
+<div class="line"><a id="l00604" name="l00604"></a><span class="lineno">  604</span>        <span class="comment">// the regular orig/trans tables this parser reads. Sysdep strings live in their</span></div>
+<div class="line"><a id="l00605" name="l00605"></a><span class="lineno">  605</span>        <span class="comment">// own orig/trans_sysdep tables we never touch, so a sysdep string is simply</span></div>
+<div class="line"><a id="l00606" name="l00606"></a><span class="lineno">  606</span>        <span class="comment">// absent (lookup misses and the caller keeps the original) rather than returned</span></div>
+<div class="line"><a id="l00607" name="l00607"></a><span class="lineno">  607</span>        <span class="comment">// with its segment markers unexpanded. A non-zero major revision uses a layout</span></div>
+<div class="line"><a id="l00608" name="l00608"></a><span class="lineno">  608</span>        <span class="comment">// this basic parser does not commit to, so it is rejected.</span></div>
+<div class="line"><a id="l00609" name="l00609"></a><span class="lineno">  609</span>        std::uint32_t revision = 0;</div>
+<div class="line"><a id="l00610" name="l00610"></a><span class="lineno">  610</span>        std::memcpy(&amp;revision, buff.data() + 4, 4);</div>
+<div class="line"><a id="l00611" name="l00611"></a><span class="lineno">  611</span>        <span class="keywordflow">if</span> (need_swap)</div>
+<div class="line"><a id="l00612" name="l00612"></a><span class="lineno">  612</span>            revision = std::byteswap(revision);</div>
+<div class="line"><a id="l00613" name="l00613"></a><span class="lineno">  613</span>        <span class="keywordflow">if</span> ((revision &gt;&gt; 16) != 0)</div>
+<div class="line"><a id="l00614" name="l00614"></a><span class="lineno">  614</span>            <span class="keywordflow">throw</span> <a class="code hl_struct" href="structIOv2_1_1io__error.html">io_error</a>(<span class="stringliteral">&quot;get_translate_dictionary fail: unsupported .mo major revision&quot;</span>);</div>
+<div class="line"><a id="l00615" name="l00615"></a><span class="lineno">  615</span> </div>
+<div class="line"><a id="l00616" name="l00616"></a><span class="lineno">  616</span>        <span class="keyword">auto</span> str_num = read_num(buff.data(), need_swap);</div>
+<div class="line"><a id="l00617" name="l00617"></a><span class="lineno">  617</span>        <span class="keyword">auto</span> ori_offset = read_num(buff.data(), need_swap);</div>
+<div class="line"><a id="l00618" name="l00618"></a><span class="lineno">  618</span>        <span class="keyword">auto</span> aim_offset = read_num(buff.data(), need_swap);</div>
+<div class="line"><a id="l00619" name="l00619"></a><span class="lineno">  619</span> </div>
+<div class="line"><a id="l00620" name="l00620"></a><span class="lineno">  620</span>        <span class="comment">// Each entry needs an 8-byte (length, offset) descriptor in both the</span></div>
+<div class="line"><a id="l00621" name="l00621"></a><span class="lineno">  621</span>        <span class="comment">// original and translation tables, so a valid str_num cannot exceed</span></div>
+<div class="line"><a id="l00622" name="l00622"></a><span class="lineno">  622</span>        <span class="comment">// file_size / 16. Rejecting larger counts caps the O(str_num) growth of</span></div>
+<div class="line"><a id="l00623" name="l00623"></a><span class="lineno">  623</span>        <span class="comment">// oris and the result map, which the per-string length cap does not.</span></div>
+<div class="line"><a id="l00624" name="l00624"></a><span class="lineno">  624</span>        <span class="keywordflow">if</span> (str_num &gt; <span class="keyword">static_cast&lt;</span>std::uint64_t<span class="keyword">&gt;</span>(file_size) / 16u)</div>
+<div class="line"><a id="l00625" name="l00625"></a><span class="lineno">  625</span>            <span class="keywordflow">throw</span> <a class="code hl_struct" href="structIOv2_1_1io__error.html">io_error</a>(<span class="stringliteral">&quot;get_translate_dictionary fail: implausible string count&quot;</span>);</div>
+<div class="line"><a id="l00626" name="l00626"></a><span class="lineno">  626</span> </div>
+<div class="line"><a id="l00627" name="l00627"></a><span class="lineno">  627</span>        <span class="comment">// The .mo offsets are unsigned 32-bit. file_seek takes a 64-bit offset, so</span></div>
+<div class="line"><a id="l00628" name="l00628"></a><span class="lineno">  628</span>        <span class="comment">// every one is exact on every platform; std::fseek&#39;s long is 32-bit on Windows.</span></div>
+<div class="line"><a id="l00629" name="l00629"></a><span class="lineno">  629</span>        <span class="keywordflow">if</span> (<a class="code hl_function" href="namespaceIOv2_1_1detail.html#a2dc4c301468347701e5f7ef1dcd050ec">detail::file_seek</a>(fp, ori_offset, SEEK_SET) != 0)</div>
+<div class="line"><a id="l00630" name="l00630"></a><span class="lineno">  630</span>            <span class="keywordflow">throw</span> <a class="code hl_struct" href="structIOv2_1_1io__error.html">io_error</a>(<span class="stringliteral">&quot;get_translate_dictionary fail: invalid format&quot;</span>);</div>
+<div class="line"><a id="l00631" name="l00631"></a><span class="lineno">  631</span> </div>
+<div class="line"><a id="l00632" name="l00632"></a><span class="lineno">  632</span>        <span class="comment">// The .mo format stores each string length as an unbounded 32-bit</span></div>
+<div class="line"><a id="l00633" name="l00633"></a><span class="lineno">  633</span>        <span class="comment">// integer, so the buffer is grown to fit each entry rather than</span></div>
+<div class="line"><a id="l00634" name="l00634"></a><span class="lineno">  634</span>        <span class="comment">// assuming a fixed maximum. A sanity cap guards against a corrupt or</span></div>
+<div class="line"><a id="l00635" name="l00635"></a><span class="lineno">  635</span>        <span class="comment">// malicious file requesting a huge allocation.</span></div>
+<div class="line"><a id="l00636" name="l00636"></a><span class="lineno">  636</span>        <span class="keyword">constexpr</span> std::uint32_t k_max_str_len = 64u * 1024u * 1024u; <span class="comment">// 64 MiB</span></div>
+<div class="line"><a id="l00637" name="l00637"></a><span class="lineno">  637</span>        std::uint64_t total_str_bytes = 0;</div>
+<div class="line"><a id="l00638" name="l00638"></a><span class="lineno">  638</span>        std::vector&lt;char8_t&gt; str_buf;</div>
+<div class="line"><a id="l00639" name="l00639"></a><span class="lineno">  639</span>        std::vector&lt;std::u8string&gt; oris;</div>
+<div class="line"><a id="l00640" name="l00640"></a><span class="lineno">  640</span>        <span class="keywordflow">for</span> (std::size_t i = 0; i &lt; str_num; ++i)</div>
+<div class="line"><a id="l00641" name="l00641"></a><span class="lineno">  641</span>        {</div>
+<div class="line"><a id="l00642" name="l00642"></a><span class="lineno">  642</span>            <span class="keyword">auto</span> length = read_num(buff.data(), need_swap);</div>
+<div class="line"><a id="l00643" name="l00643"></a><span class="lineno">  643</span>            <span class="keyword">auto</span> <a class="code hl_enumvalue" href="namespaceIOv2.html#ae5c45ed29b875d3d35e686974d847b1ea7a86c157ee9713c34fbd7a1ee40f0c5a">offset</a> = read_num(buff.data(), need_swap);</div>
+<div class="line"><a id="l00644" name="l00644"></a><span class="lineno">  644</span>            <span class="keyword">const</span> std::int64_t cur_pos = <a class="code hl_function" href="namespaceIOv2_1_1detail.html#a0a859f2b9585d24dafff0101d5f61db8">detail::file_tell</a>(fp);</div>
+<div class="line"><a id="l00645" name="l00645"></a><span class="lineno">  645</span>            <span class="keywordflow">if</span> (cur_pos &lt; 0) <span class="keywordflow">throw</span> <a class="code hl_struct" href="structIOv2_1_1io__error.html">io_error</a>(<span class="stringliteral">&quot;get_translate_dictionary fail: file inconsistent&quot;</span>);</div>
+<div class="line"><a id="l00646" name="l00646"></a><span class="lineno">  646</span> </div>
+<div class="line"><a id="l00647" name="l00647"></a><span class="lineno">  647</span>            <span class="keywordflow">if</span> (length &gt; k_max_str_len)</div>
+<div class="line"><a id="l00648" name="l00648"></a><span class="lineno">  648</span>                <span class="keywordflow">throw</span> <a class="code hl_struct" href="structIOv2_1_1io__error.html">io_error</a>(<span class="stringliteral">&quot;get_translate_dictionary fail: string too long&quot;</span>);</div>
+<div class="line"><a id="l00649" name="l00649"></a><span class="lineno">  649</span>            total_str_bytes += length;</div>
+<div class="line"><a id="l00650" name="l00650"></a><span class="lineno">  650</span>            <span class="keywordflow">if</span> (std::cmp_greater(total_str_bytes, file_size))</div>
+<div class="line"><a id="l00651" name="l00651"></a><span class="lineno">  651</span>                <span class="keywordflow">throw</span> <a class="code hl_struct" href="structIOv2_1_1io__error.html">io_error</a>(<span class="stringliteral">&quot;get_translate_dictionary fail: total string bytes exceed file size&quot;</span>);</div>
+<div class="line"><a id="l00652" name="l00652"></a><span class="lineno">  652</span>            <span class="keywordflow">if</span> (str_buf.size() &lt; <span class="keyword">static_cast&lt;</span>std::size_t<span class="keyword">&gt;</span>(length) + 1)</div>
+<div class="line"><a id="l00653" name="l00653"></a><span class="lineno">  653</span>                str_buf.resize(<span class="keyword">static_cast&lt;</span>std::size_t<span class="keyword">&gt;</span>(length) + 1);</div>
+<div class="line"><a id="l00654" name="l00654"></a><span class="lineno">  654</span> </div>
+<div class="line"><a id="l00655" name="l00655"></a><span class="lineno">  655</span>            <span class="keywordflow">if</span> (<a class="code hl_function" href="namespaceIOv2_1_1detail.html#a2dc4c301468347701e5f7ef1dcd050ec">detail::file_seek</a>(fp, <a class="code hl_enumvalue" href="namespaceIOv2.html#ae5c45ed29b875d3d35e686974d847b1ea7a86c157ee9713c34fbd7a1ee40f0c5a">offset</a>, SEEK_SET) != 0)</div>
+<div class="line"><a id="l00656" name="l00656"></a><span class="lineno">  656</span>                <span class="keywordflow">throw</span> <a class="code hl_struct" href="structIOv2_1_1io__error.html">io_error</a>(<span class="stringliteral">&quot;get_translate_dictionary fail: invalid format&quot;</span>);</div>
+<div class="line"><a id="l00657" name="l00657"></a><span class="lineno">  657</span> </div>
+<div class="line"><a id="l00658" name="l00658"></a><span class="lineno">  658</span>            <span class="keywordflow">if</span> (std::fread(str_buf.data(), 1, length, fp) != length)</div>
+<div class="line"><a id="l00659" name="l00659"></a><span class="lineno">  659</span>                <span class="keywordflow">throw</span> <a class="code hl_struct" href="structIOv2_1_1io__error.html">io_error</a>(<span class="stringliteral">&quot;get_translate_dictionary fail: invalid format&quot;</span>);</div>
+<div class="line"><a id="l00660" name="l00660"></a><span class="lineno">  660</span> </div>
+<div class="line"><a id="l00661" name="l00661"></a><span class="lineno">  661</span>            str_buf[length] = u8<span class="charliteral">&#39;\0&#39;</span>;</div>
+<div class="line"><a id="l00662" name="l00662"></a><span class="lineno">  662</span>            oris.emplace_back(str_buf.data());</div>
+<div class="line"><a id="l00663" name="l00663"></a><span class="lineno">  663</span> </div>
+<div class="line"><a id="l00664" name="l00664"></a><span class="lineno">  664</span>            <span class="keywordflow">if</span> (<a class="code hl_function" href="namespaceIOv2_1_1detail.html#a2dc4c301468347701e5f7ef1dcd050ec">detail::file_seek</a>(fp, cur_pos, SEEK_SET) != 0)</div>
+<div class="line"><a id="l00665" name="l00665"></a><span class="lineno">  665</span>                <span class="keywordflow">throw</span> <a class="code hl_struct" href="structIOv2_1_1io__error.html">io_error</a>(<span class="stringliteral">&quot;get_translate_dictionary fail: invalid format&quot;</span>);</div>
+<div class="line"><a id="l00666" name="l00666"></a><span class="lineno">  666</span>        }</div>
+<div class="line"><a id="l00667" name="l00667"></a><span class="lineno">  667</span> </div>
+<div class="line"><a id="l00668" name="l00668"></a><span class="lineno">  668</span>        <span class="keywordflow">if</span> (<a class="code hl_function" href="namespaceIOv2_1_1detail.html#a2dc4c301468347701e5f7ef1dcd050ec">detail::file_seek</a>(fp, aim_offset, SEEK_SET) != 0)</div>
+<div class="line"><a id="l00669" name="l00669"></a><span class="lineno">  669</span>            <span class="keywordflow">throw</span> <a class="code hl_struct" href="structIOv2_1_1io__error.html">io_error</a>(<span class="stringliteral">&quot;get_translate_dictionary fail: invalid format&quot;</span>);</div>
+<div class="line"><a id="l00670" name="l00670"></a><span class="lineno">  670</span>        std::unordered_map&lt;std::u8string, std::u8string&gt; res;</div>
+<div class="line"><a id="l00671" name="l00671"></a><span class="lineno">  671</span> </div>
+<div class="line"><a id="l00672" name="l00672"></a><span class="lineno">  672</span>        <span class="keywordflow">for</span> (std::size_t i = 0; i &lt; str_num; ++i)</div>
+<div class="line"><a id="l00673" name="l00673"></a><span class="lineno">  673</span>        {</div>
+<div class="line"><a id="l00674" name="l00674"></a><span class="lineno">  674</span>            <span class="keyword">auto</span> length = read_num(buff.data(), need_swap);</div>
+<div class="line"><a id="l00675" name="l00675"></a><span class="lineno">  675</span>            <span class="keyword">auto</span> <a class="code hl_enumvalue" href="namespaceIOv2.html#ae5c45ed29b875d3d35e686974d847b1ea7a86c157ee9713c34fbd7a1ee40f0c5a">offset</a> = read_num(buff.data(), need_swap);</div>
+<div class="line"><a id="l00676" name="l00676"></a><span class="lineno">  676</span>            <span class="keyword">const</span> std::int64_t cur_pos = <a class="code hl_function" href="namespaceIOv2_1_1detail.html#a0a859f2b9585d24dafff0101d5f61db8">detail::file_tell</a>(fp);</div>
+<div class="line"><a id="l00677" name="l00677"></a><span class="lineno">  677</span>            <span class="keywordflow">if</span> (cur_pos &lt; 0) <span class="keywordflow">throw</span> <a class="code hl_struct" href="structIOv2_1_1io__error.html">io_error</a>(<span class="stringliteral">&quot;get_translate_dictionary fail: file inconsistent&quot;</span>);</div>
+<div class="line"><a id="l00678" name="l00678"></a><span class="lineno">  678</span> </div>
+<div class="line"><a id="l00679" name="l00679"></a><span class="lineno">  679</span>            <span class="keywordflow">if</span> (length &gt; k_max_str_len)</div>
+<div class="line"><a id="l00680" name="l00680"></a><span class="lineno">  680</span>                <span class="keywordflow">throw</span> <a class="code hl_struct" href="structIOv2_1_1io__error.html">io_error</a>(<span class="stringliteral">&quot;get_translate_dictionary fail: string too long&quot;</span>);</div>
+<div class="line"><a id="l00681" name="l00681"></a><span class="lineno">  681</span>            total_str_bytes += length;</div>
+<div class="line"><a id="l00682" name="l00682"></a><span class="lineno">  682</span>            <span class="keywordflow">if</span> (std::cmp_greater(total_str_bytes, file_size))</div>
+<div class="line"><a id="l00683" name="l00683"></a><span class="lineno">  683</span>                <span class="keywordflow">throw</span> <a class="code hl_struct" href="structIOv2_1_1io__error.html">io_error</a>(<span class="stringliteral">&quot;get_translate_dictionary fail: total string bytes exceed file size&quot;</span>);</div>
+<div class="line"><a id="l00684" name="l00684"></a><span class="lineno">  684</span>            <span class="keywordflow">if</span> (str_buf.size() &lt; <span class="keyword">static_cast&lt;</span>std::size_t<span class="keyword">&gt;</span>(length) + 1)</div>
+<div class="line"><a id="l00685" name="l00685"></a><span class="lineno">  685</span>                str_buf.resize(<span class="keyword">static_cast&lt;</span>std::size_t<span class="keyword">&gt;</span>(length) + 1);</div>
+<div class="line"><a id="l00686" name="l00686"></a><span class="lineno">  686</span> </div>
+<div class="line"><a id="l00687" name="l00687"></a><span class="lineno">  687</span>            <span class="keywordflow">if</span> (<a class="code hl_function" href="namespaceIOv2_1_1detail.html#a2dc4c301468347701e5f7ef1dcd050ec">detail::file_seek</a>(fp, <a class="code hl_enumvalue" href="namespaceIOv2.html#ae5c45ed29b875d3d35e686974d847b1ea7a86c157ee9713c34fbd7a1ee40f0c5a">offset</a>, SEEK_SET) != 0)</div>
+<div class="line"><a id="l00688" name="l00688"></a><span class="lineno">  688</span>                <span class="keywordflow">throw</span> <a class="code hl_struct" href="structIOv2_1_1io__error.html">io_error</a>(<span class="stringliteral">&quot;get_translate_dictionary fail: invalid format&quot;</span>);</div>
+<div class="line"><a id="l00689" name="l00689"></a><span class="lineno">  689</span> </div>
+<div class="line"><a id="l00690" name="l00690"></a><span class="lineno">  690</span>            <span class="keywordflow">if</span> (std::fread(str_buf.data(), 1, length, fp) != length)</div>
+<div class="line"><a id="l00691" name="l00691"></a><span class="lineno">  691</span>                <span class="keywordflow">throw</span> <a class="code hl_struct" href="structIOv2_1_1io__error.html">io_error</a>(<span class="stringliteral">&quot;get_translate_dictionary fail: invalid format&quot;</span>);</div>
+<div class="line"><a id="l00692" name="l00692"></a><span class="lineno">  692</span> </div>
+<div class="line"><a id="l00693" name="l00693"></a><span class="lineno">  693</span>            str_buf[length] = u8<span class="charliteral">&#39;\0&#39;</span>;</div>
+<div class="line"><a id="l00694" name="l00694"></a><span class="lineno">  694</span>            res.insert({oris[i], str_buf.data()});</div>
+<div class="line"><a id="l00695" name="l00695"></a><span class="lineno">  695</span> </div>
+<div class="line"><a id="l00696" name="l00696"></a><span class="lineno">  696</span>            <span class="keywordflow">if</span> (<a class="code hl_function" href="namespaceIOv2_1_1detail.html#a2dc4c301468347701e5f7ef1dcd050ec">detail::file_seek</a>(fp, cur_pos, SEEK_SET) != 0)</div>
+<div class="line"><a id="l00697" name="l00697"></a><span class="lineno">  697</span>                <span class="keywordflow">throw</span> <a class="code hl_struct" href="structIOv2_1_1io__error.html">io_error</a>(<span class="stringliteral">&quot;get_translate_dictionary fail: invalid format&quot;</span>);</div>
+<div class="line"><a id="l00698" name="l00698"></a><span class="lineno">  698</span>        }</div>
+<div class="line"><a id="l00699" name="l00699"></a><span class="lineno">  699</span> </div>
+<div class="line"><a id="l00700" name="l00700"></a><span class="lineno">  700</span>        <span class="keywordflow">return</span> res;</div>
+<div class="line"><a id="l00701" name="l00701"></a><span class="lineno">  701</span>    }</div>
+</div>
+<div class="line"><a id="l00702" name="l00702"></a><span class="lineno">  702</span> </div>
+<div class="line"><a id="l00703" name="l00703"></a><span class="lineno">  703</span><span class="keyword">private</span>:</div>
+<div class="line"><a id="l00731" name="l00731"></a><span class="lineno">  731</span>    <span class="keyword">static</span> <span class="keywordtype">bool</span> available(<span class="keyword">const</span> text_domain&amp; td, <span class="keyword">const</span> std::string&amp; lang)</div>
+<div class="line"><a id="l00732" name="l00732"></a><span class="lineno">  732</span>    {</div>
+<div class="line"><a id="l00733" name="l00733"></a><span class="lineno">  733</span>        <span class="keywordflow">if</span> (td.dirname.empty())</div>
+<div class="line"><a id="l00734" name="l00734"></a><span class="lineno">  734</span>            <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
+<div class="line"><a id="l00735" name="l00735"></a><span class="lineno">  735</span>        <span class="keywordflow">if</span> (lang.empty() || lang.find(<span class="charliteral">&#39;:&#39;</span>) != std::string::npos)</div>
+<div class="line"><a id="l00736" name="l00736"></a><span class="lineno">  736</span>        {</div>
+<div class="line"><a id="l00737" name="l00737"></a><span class="lineno">  737</span>            std::string resolved = filter_lang(td, lang);</div>
+<div class="line"><a id="l00738" name="l00738"></a><span class="lineno">  738</span>            <span class="keywordflow">if</span> (resolved.empty())</div>
+<div class="line"><a id="l00739" name="l00739"></a><span class="lineno">  739</span>                <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
+<div class="line"><a id="l00740" name="l00740"></a><span class="lineno">  740</span>            <span class="keywordflow">return</span> std::filesystem::exists(get_domain_file(td, resolved));</div>
+<div class="line"><a id="l00741" name="l00741"></a><span class="lineno">  741</span>        }</div>
+<div class="line"><a id="l00742" name="l00742"></a><span class="lineno">  742</span>        <span class="keywordflow">return</span> std::filesystem::exists(get_domain_file(td, lang));</div>
+<div class="line"><a id="l00743" name="l00743"></a><span class="lineno">  743</span>    }</div>
+<div class="line"><a id="l00744" name="l00744"></a><span class="lineno">  744</span></div>
+<div class="line"><a id="l00808" name="l00808"></a><span class="lineno">  808</span>    <span class="keyword">static</span> std::string filter_lang(<span class="keyword">const</span> text_domain&amp; td, <span class="keyword">const</span> std::string&amp; p_lang)</div>
+<div class="line"><a id="l00809" name="l00809"></a><span class="lineno">  809</span>    {</div>
+<div class="line"><a id="l00810" name="l00810"></a><span class="lineno">  810</span>        <span class="keyword">auto</span> match_lang = [&amp;td](<span class="keyword">const</span> std::string&amp; str_lang)</div>
+<div class="line"><a id="l00811" name="l00811"></a><span class="lineno">  811</span>        {</div>
+<div class="line"><a id="l00812" name="l00812"></a><span class="lineno">  812</span>            std::size_t start = 0;</div>
+<div class="line"><a id="l00813" name="l00813"></a><span class="lineno">  813</span>            std::size_t end = 0;</div>
+<div class="line"><a id="l00814" name="l00814"></a><span class="lineno">  814</span>            <span class="keywordflow">while</span> ((end = str_lang.find(<span class="charliteral">&#39;:&#39;</span>, start)) != std::string::npos)</div>
+<div class="line"><a id="l00815" name="l00815"></a><span class="lineno">  815</span>            {</div>
+<div class="line"><a id="l00816" name="l00816"></a><span class="lineno">  816</span>                <span class="keyword">auto</span> cur_lang = str_lang.substr(start, end - start);</div>
+<div class="line"><a id="l00817" name="l00817"></a><span class="lineno">  817</span>                <span class="keywordflow">if</span> ((!cur_lang.empty()) &amp;&amp; (<a class="code hl_function" href="classIOv2_1_1base__ft_3_01messages_01_4.html#a1b2eb8d903846a78deb11ee379c3f5ca">base_ft&lt;messages&gt;::available</a>(td, cur_lang)))</div>
+<div class="line"><a id="l00818" name="l00818"></a><span class="lineno">  818</span>                    <span class="keywordflow">return</span> cur_lang;</div>
+<div class="line"><a id="l00819" name="l00819"></a><span class="lineno">  819</span>                start = end + 1;</div>
+<div class="line"><a id="l00820" name="l00820"></a><span class="lineno">  820</span>            }</div>
+<div class="line"><a id="l00821" name="l00821"></a><span class="lineno">  821</span> </div>
+<div class="line"><a id="l00822" name="l00822"></a><span class="lineno">  822</span>            <span class="keyword">auto</span> last_str = str_lang.substr(start);</div>
+<div class="line"><a id="l00823" name="l00823"></a><span class="lineno">  823</span>            <span class="keywordflow">if</span> ((!last_str.empty()) &amp;&amp; (<a class="code hl_function" href="classIOv2_1_1base__ft_3_01messages_01_4.html#a1b2eb8d903846a78deb11ee379c3f5ca">base_ft&lt;messages&gt;::available</a>(td, last_str)))</div>
+<div class="line"><a id="l00824" name="l00824"></a><span class="lineno">  824</span>                <span class="keywordflow">return</span> last_str;</div>
+<div class="line"><a id="l00825" name="l00825"></a><span class="lineno">  825</span> </div>
+<div class="line"><a id="l00826" name="l00826"></a><span class="lineno">  826</span>            <span class="keywordflow">return</span> std::string{};</div>
+<div class="line"><a id="l00827" name="l00827"></a><span class="lineno">  827</span>        };</div>
+<div class="line"><a id="l00828" name="l00828"></a><span class="lineno">  828</span> </div>
+<div class="line"><a id="l00829" name="l00829"></a><span class="lineno">  829</span>        <span class="keywordflow">if</span> (p_lang.empty())</div>
+<div class="line"><a id="l00830" name="l00830"></a><span class="lineno">  830</span>        {</div>
+<div class="line"><a id="l00831" name="l00831"></a><span class="lineno">  831</span>            <span class="comment">// Environment fallback in gettext&#39;s order, names used verbatim; see the doc</span></div>
+<div class="line"><a id="l00832" name="l00832"></a><span class="lineno">  832</span>            <span class="comment">// comment above for how this differs from gettext and for concurrent setenv.</span></div>
+<div class="line"><a id="l00833" name="l00833"></a><span class="lineno">  833</span>            std::string res = match_lang(<a class="code hl_function" href="namespaceIOv2_1_1detail.html#ab257eef12c18053d8c9a07eed5d32405">detail::get_env</a>(<span class="stringliteral">&quot;LANGUAGE&quot;</span>));</div>
+<div class="line"><a id="l00834" name="l00834"></a><span class="lineno">  834</span>            <span class="keywordflow">if</span> (!res.empty()) <span class="keywordflow">return</span> res;</div>
+<div class="line"><a id="l00835" name="l00835"></a><span class="lineno">  835</span> </div>
+<div class="line"><a id="l00836" name="l00836"></a><span class="lineno">  836</span>            <span class="keywordtype">bool</span> locale_set = <span class="keyword">false</span>;</div>
+<div class="line"><a id="l00837" name="l00837"></a><span class="lineno">  837</span>            <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keywordtype">char</span>* var : {<span class="stringliteral">&quot;LC_ALL&quot;</span>, <span class="stringliteral">&quot;LC_MESSAGES&quot;</span>, <span class="stringliteral">&quot;LANG&quot;</span>})</div>
+<div class="line"><a id="l00838" name="l00838"></a><span class="lineno">  838</span>            {</div>
+<div class="line"><a id="l00839" name="l00839"></a><span class="lineno">  839</span>                res = <a class="code hl_function" href="namespaceIOv2_1_1detail.html#ab257eef12c18053d8c9a07eed5d32405">detail::get_env</a>(var);</div>
+<div class="line"><a id="l00840" name="l00840"></a><span class="lineno">  840</span>                <span class="keywordflow">if</span> (res.empty())</div>
+<div class="line"><a id="l00841" name="l00841"></a><span class="lineno">  841</span>                    <span class="keywordflow">continue</span>;</div>
+<div class="line"><a id="l00842" name="l00842"></a><span class="lineno">  842</span>                locale_set = <span class="keyword">true</span>;</div>
+<div class="line"><a id="l00843" name="l00843"></a><span class="lineno">  843</span>                <span class="comment">// Unlike LANGUAGE, these are a single locale name, not a &#39;:&#39;-separated</span></div>
+<div class="line"><a id="l00844" name="l00844"></a><span class="lineno">  844</span>                <span class="comment">// list (gettext never splits them), so a value with &#39;:&#39; is skipped.</span></div>
+<div class="line"><a id="l00845" name="l00845"></a><span class="lineno">  845</span>                <span class="keywordflow">if</span> (res.find(<span class="charliteral">&#39;:&#39;</span>) == std::string::npos &amp;&amp; <a class="code hl_function" href="classIOv2_1_1base__ft_3_01messages_01_4.html#a1b2eb8d903846a78deb11ee379c3f5ca">base_ft&lt;messages&gt;::available</a>(td, res))</div>
+<div class="line"><a id="l00846" name="l00846"></a><span class="lineno">  846</span>                    <span class="keywordflow">return</span> res;</div>
+<div class="line"><a id="l00847" name="l00847"></a><span class="lineno">  847</span>            }</div>
+<div class="line"><a id="l00848" name="l00848"></a><span class="lineno">  848</span> </div>
+<div class="line"><a id="l00849" name="l00849"></a><span class="lineno">  849</span>            <span class="comment">// gettext&#39;s rule: only a locale nobody set falls back on the system&#39;s list. One</span></div>
+<div class="line"><a id="l00850" name="l00850"></a><span class="lineno">  850</span>            <span class="comment">// set explicitly asked for its language, catalogue or not.</span></div>
+<div class="line"><a id="l00851" name="l00851"></a><span class="lineno">  851</span>            <span class="keywordflow">if</span> (!locale_set)</div>
+<div class="line"><a id="l00852" name="l00852"></a><span class="lineno">  852</span>            {</div>
+<div class="line"><a id="l00853" name="l00853"></a><span class="lineno">  853</span>                <span class="keywordflow">for</span> (<span class="keyword">const</span> std::string&amp; c : <a class="code hl_function" href="namespaceIOv2_1_1detail.html#a59ac6540e04ec1e3832f24cc3fe227a2">detail::messages_language_candidates</a>(<a class="code hl_function" href="namespaceIOv2_1_1detail.html#adac81520539738d090b3f8d82e12518a">detail::messages_system_languages</a>()))</div>
+<div class="line"><a id="l00854" name="l00854"></a><span class="lineno">  854</span>                    <span class="keywordflow">if</span> (<a class="code hl_function" href="classIOv2_1_1base__ft_3_01messages_01_4.html#a1b2eb8d903846a78deb11ee379c3f5ca">base_ft&lt;messages&gt;::available</a>(td, c))</div>
+<div class="line"><a id="l00855" name="l00855"></a><span class="lineno">  855</span>                        <span class="keywordflow">return</span> c;</div>
+<div class="line"><a id="l00856" name="l00856"></a><span class="lineno">  856</span>            }</div>
+<div class="line"><a id="l00857" name="l00857"></a><span class="lineno">  857</span> </div>
+<div class="line"><a id="l00858" name="l00858"></a><span class="lineno">  858</span>            <span class="keywordflow">return</span> <span class="stringliteral">&quot;&quot;</span>;</div>
+<div class="line"><a id="l00859" name="l00859"></a><span class="lineno">  859</span>        }</div>
+<div class="line"><a id="l00860" name="l00860"></a><span class="lineno">  860</span>        <span class="keywordflow">else</span></div>
+<div class="line"><a id="l00861" name="l00861"></a><span class="lineno">  861</span>            <span class="keywordflow">return</span> match_lang(p_lang);</div>
+<div class="line"><a id="l00862" name="l00862"></a><span class="lineno">  862</span>    }</div>
+<div class="line"><a id="l00863" name="l00863"></a><span class="lineno">  863</span> </div>
+<div class="line"><a id="l00864" name="l00864"></a><span class="lineno">  864</span><span class="preprocessor">#if defined(IOV2_SHARED)</span></div>
+<div class="line"><a id="l00865" name="l00865"></a><span class="lineno">  865</span>    <span class="comment">// Defined in iov2_objects.cpp and exported, so every module -- any DLL on Windows, a</span></div>
+<div class="line"><a id="l00866" name="l00866"></a><span class="lineno">  866</span>    <span class="comment">// module built with hidden visibility elsewhere -- binds and looks up in the one table.</span></div>
+<div class="line"><a id="l00867" name="l00867"></a><span class="lineno">  867</span>    <span class="keyword">static</span> <a class="code hl_define" href="iov2__export_8h.html#a7b01fd78d4b2344ee4df2aa21b1f7cef">IOV2_API</a> std::unordered_map&lt;std::string, std::filesystem::path&gt;&amp; s_domain_dirs;</div>
+<div class="line"><a id="l00868" name="l00868"></a><span class="lineno">  868</span>    <span class="keyword">static</span> <a class="code hl_define" href="iov2__export_8h.html#a7b01fd78d4b2344ee4df2aa21b1f7cef">IOV2_API</a> copyable_mutex&lt;std::mutex&gt;&amp; s_domain_mutex;</div>
+<div class="line"><a id="l00869" name="l00869"></a><span class="lineno">  869</span><span class="preprocessor">#else</span></div>
+<div class="line"><a id="l00870" name="l00870"></a><span class="lineno">  870</span>    <span class="comment">// Global mapping from text domain name to its directory path.</span></div>
+<div class="line"><a id="l00871" name="l00871"></a><span class="lineno">  871</span>    <span class="comment">// Protected by s_domain_mutex; read/write only while holding the lock.</span></div>
+<div class="line"><a id="l00872" name="l00872"></a><span class="lineno">  872</span>    <span class="comment">// References to a map and a mutex that are never deleted: the standard stream</span></div>
+<div class="line"><a id="l00873" name="l00873"></a><span class="lineno">  873</span>    <span class="comment">// objects are not destroyed at exit, so the data their messages facet reaches must</span></div>
+<div class="line"><a id="l00874" name="l00874"></a><span class="lineno">  874</span>    <span class="comment">// not be either (see common/sing_temp.h). The mutex too: on Apple platforms libc++&#39;s</span></div>
+<div class="line"><a id="l00875" name="l00875"></a><span class="lineno">  875</span>    <span class="comment">// destructor destroys the pthread mutex, which then refuses to lock. Only bad_alloc</span></div>
+<div class="line"><a id="l00876" name="l00876"></a><span class="lineno">  876</span>    <span class="comment">// can escape the news, at startup, where nothing could handle it anyway.</span></div>
+<div class="line"><a id="l00877" name="l00877"></a><span class="lineno">  877</span>    <span class="comment">// NOLINTNEXTLINE(bugprone-throwing-static-initialization)</span></div>
+<div class="line"><a id="l00878" name="l00878"></a><span class="lineno">  878</span>    <span class="keyword">inline</span> <span class="keyword">static</span> std::unordered_map&lt;std::string, std::filesystem::path&gt;&amp; s_domain_dirs =</div>
+<div class="line"><a id="l00879" name="l00879"></a><span class="lineno">  879</span>        *<span class="keyword">new</span> std::unordered_map&lt;std::string, std::filesystem::path&gt;;</div>
+<div class="line"><a id="l00880" name="l00880"></a><span class="lineno">  880</span>    <span class="comment">// NOLINTNEXTLINE(bugprone-throwing-static-initialization)</span></div>
+<div class="line"><a id="l00881" name="l00881"></a><span class="lineno">  881</span>    <span class="keyword">inline</span> <span class="keyword">static</span> copyable_mutex&lt;std::mutex&gt;&amp; s_domain_mutex = *<span class="keyword">new</span> copyable_mutex&lt;std::mutex&gt;;</div>
+<div class="line"><a id="l00882" name="l00882"></a><span class="lineno">  882</span><span class="preprocessor">#endif</span></div>
+<div class="line"><a id="l00883" name="l00883"></a><span class="lineno">  883</span> </div>
+<div class="line"><a id="l00884" name="l00884"></a><span class="lineno">  884</span><span class="keyword">private</span>:</div>
+<div class="line"><a id="l00885" name="l00885"></a><span class="lineno">  885</span>    <span class="comment">// Declared first: initialised before m_filtered_lang and m_domain_info (both</span></div>
+<div class="line"><a id="l00886" name="l00886"></a><span class="lineno">  886</span>    <span class="comment">// of which depend on this snapshot) because members are initialised in</span></div>
+<div class="line"><a id="l00887" name="l00887"></a><span class="lineno">  887</span>    <span class="comment">// declaration order. See the constructor for the full rationale.</span></div>
+<div class="line"><a id="l00888" name="l00888"></a><span class="lineno">  888</span>    <span class="keyword">const</span> std::filesystem::path m_dirname;</div>
+<div class="line"><a id="l00889" name="l00889"></a><span class="lineno">  889</span>    <span class="keyword">const</span> std::string m_filtered_lang;</div>
+<div class="line"><a id="l00890" name="l00890"></a><span class="lineno">  890</span>    <span class="keyword">const</span> std::string m_domain_info;</div>
+<div class="line"><a id="l00891" name="l00891"></a><span class="lineno">  891</span>};</div>
+</div>
+<div class="line"><a id="l00892" name="l00892"></a><span class="lineno">  892</span> </div>
+<div class="line"><a id="l00893" name="l00893"></a><span class="lineno">  893</span><span class="keyword">namespace </span><a class="code hl_namespace" href="namespaceIOv2_1_1detail.html">detail</a></div>
+<div class="line"><a id="l00894" name="l00894"></a><span class="lineno">  894</span>{</div>
+<div class="line"><a id="l00916" name="l00916"></a><span class="lineno">  916</span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> CharT&gt;</div>
+<div class="line"><a id="l00917" name="l00917"></a><span class="lineno"><a class="line" href="conceptIOv2_1_1detail_1_1messages__locale__encoded.html">  917</a></span><span class="keyword">concept </span><a class="code hl_concept" href="conceptIOv2_1_1detail_1_1messages__locale__encoded.html">messages_locale_encoded</a> =</div>
+<div class="line"><a id="l00918" name="l00918"></a><span class="lineno">  918</span>    std::is_same_v&lt;CharT, char&gt; ||</div>
+<div class="line"><a id="l00919" name="l00919"></a><span class="lineno">  919</span>    (std::is_same_v&lt;CharT, wchar_t&gt; &amp;&amp; !<a class="code hl_variable" href="namespaceIOv2.html#aa906165b0856579dd626eb3c84a2a523">wchar_t_is_utf32</a> &amp;&amp; !<a class="code hl_variable" href="namespaceIOv2.html#aeb584ff30521cf139b523be88b7bc67c">wchar_t_is_utf16</a>);</div>
+<div class="line"><a id="l00920" name="l00920"></a><span class="lineno">  920</span>}</div>
+<div class="line"><a id="l00921" name="l00921"></a><span class="lineno">  921</span> </div>
+<div class="line"><a id="l00922" name="l00922"></a><span class="lineno"><a class="line" href="classIOv2_1_1messages__conf.html">  922</a></span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> CharT&gt; <span class="keyword">class </span><a class="code hl_class" href="classIOv2_1_1messages__conf.html">messages_conf</a>;</div>
+<div class="line"><a id="l00923" name="l00923"></a><span class="lineno">  923</span></div>
+<div class="line"><a id="l00940" name="l00940"></a><span class="lineno">  940</span><span class="keyword">template</span> &lt;&gt;</div>
+<div class="foldopen" id="foldopen00941" data-start="{" data-end="};">
+<div class="line"><a id="l00941" name="l00941"></a><span class="lineno"><a class="line" href="classIOv2_1_1messages__conf_3_01char8__t_01_4.html">  941</a></span><span class="keyword">class </span><a class="code hl_function" href="classIOv2_1_1messages__conf_3_01char8__t_01_4.html#a9ea6ff0ce49f3fc838c0dc30d48ef207">messages_conf</a>&lt;char8_t&gt; : <span class="keyword">public</span> <a class="code hl_class" href="classIOv2_1_1ft__basic.html">ft_basic</a>&lt;messages&lt;char8_t&gt;&gt;</div>
+<div class="line"><a id="l00942" name="l00942"></a><span class="lineno">  942</span>{</div>
+<div class="line"><a id="l00943" name="l00943"></a><span class="lineno">  943</span><span class="keyword">public</span>:</div>
+<div class="line"><a id="l00968" name="l00968"></a><span class="lineno">  968</span>    <span class="keyword">template</span> &lt;std::same_as&lt;<span class="keywordtype">bool</span>&gt; B = <span class="keywordtype">bool</span>&gt;</div>
+<div class="line"><a id="l00969" name="l00969"></a><span class="lineno">  969</span>    <span class="comment">// NOLINTNEXTLINE(bugprone-easily-swappable-parameters)</span></div>
+<div class="foldopen" id="foldopen00970" data-start="{" data-end="}">
+<div class="line"><a id="l00970" name="l00970"></a><span class="lineno"><a class="line" href="classIOv2_1_1messages__conf_3_01char8__t_01_4.html#a9ea6ff0ce49f3fc838c0dc30d48ef207">  970</a></span>    <a class="code hl_function" href="classIOv2_1_1messages__conf_3_01char8__t_01_4.html#a9ea6ff0ce49f3fc838c0dc30d48ef207">messages_conf</a>(<span class="keyword">const</span> std::string&amp; domain, <span class="keyword">const</span> std::string&amp; lang, B throw_if_fail = <span class="keyword">true</span>)</div>
+<div class="line"><a id="l00971" name="l00971"></a><span class="lineno">  971</span>        : <a class="code hl_function" href="classIOv2_1_1messages__conf_3_01char8__t_01_4.html#a9ea6ff0ce49f3fc838c0dc30d48ef207">messages_conf</a>(domain, lang, <a class="code hl_namespace" href="namespacestd.html">std</a>::filesystem::path{}, throw_if_fail)</div>
+<div class="line"><a id="l00972" name="l00972"></a><span class="lineno">  972</span>    {}</div>
+</div>
+<div class="line"><a id="l00973" name="l00973"></a><span class="lineno">  973</span></div>
+<div class="line"><a id="l00991" name="l00991"></a><span class="lineno">  991</span>    <span class="keyword">template</span> &lt;std::same_as&lt;<span class="keywordtype">bool</span>&gt; B = <span class="keywordtype">bool</span>&gt;</div>
+<div class="line"><a id="l00992" name="l00992"></a><span class="lineno">  992</span>    <span class="comment">// NOLINTNEXTLINE(bugprone-easily-swappable-parameters)</span></div>
+<div class="foldopen" id="foldopen00993" data-start="{" data-end="}">
+<div class="line"><a id="l00993" name="l00993"></a><span class="lineno"><a class="line" href="classIOv2_1_1messages__conf_3_01char8__t_01_4.html#ae8bf8bcf70914e3390ba61ae2fd7b300">  993</a></span>    <a class="code hl_function" href="classIOv2_1_1messages__conf_3_01char8__t_01_4.html#ae8bf8bcf70914e3390ba61ae2fd7b300">messages_conf</a>(<span class="keyword">const</span> std::string&amp; domain, <span class="keyword">const</span> std::string&amp; lang, <span class="keyword">const</span> std::filesystem::path&amp; dirname, B throw_if_fail = <span class="keyword">true</span>)</div>
+<div class="line"><a id="l00994" name="l00994"></a><span class="lineno">  994</span>        : <a class="code hl_class" href="classIOv2_1_1ft__basic.html">ft_basic</a>&lt;<a class="code hl_class" href="classIOv2_1_1messages.html">messages</a>&lt;char8_t&gt;&gt;(domain, lang, dirname)</div>
+<div class="line"><a id="l00995" name="l00995"></a><span class="lineno">  995</span>        , m_dict(init(this-&gt;dirname(), domain, this-&gt;filtered_lang(), throw_if_fail))</div>
+<div class="line"><a id="l00996" name="l00996"></a><span class="lineno">  996</span>    {}</div>
+</div>
+<div class="line"><a id="l00997" name="l00997"></a><span class="lineno">  997</span></div>
+<div class="foldopen" id="foldopen01025" data-start="{" data-end="}">
+<div class="line"><a id="l01025" name="l01025"></a><span class="lineno"><a class="line" href="classIOv2_1_1messages__conf_3_01char8__t_01_4.html#a686856cd966691288d2a756147546783"> 1025</a></span>    [[nodiscard]] <span class="keyword">virtual</span> <span class="keyword">const</span> std::u8string* <a class="code hl_function" href="classIOv2_1_1messages__conf_3_01char8__t_01_4.html#a686856cd966691288d2a756147546783">translate</a>(<span class="keyword">const</span> std::u8string&amp; ori)<span class="keyword"> const</span></div>
+<div class="line"><a id="l01026" name="l01026"></a><span class="lineno"> 1026</span><span class="keyword">    </span>{</div>
+<div class="line"><a id="l01027" name="l01027"></a><span class="lineno"> 1027</span>        <span class="keyword">auto</span> it = m_dict.find(ori);</div>
+<div class="line"><a id="l01028" name="l01028"></a><span class="lineno"> 1028</span>        <span class="keywordflow">return</span> it != m_dict.end() ? &amp;it-&gt;second : <span class="keyword">nullptr</span>;</div>
+<div class="line"><a id="l01029" name="l01029"></a><span class="lineno"> 1029</span>    }</div>
+</div>
+<div class="line"><a id="l01030" name="l01030"></a><span class="lineno"> 1030</span> </div>
+<div class="line"><a id="l01031" name="l01031"></a><span class="lineno"> 1031</span><span class="keyword">private</span>:</div>
+<div class="line"><a id="l01054" name="l01054"></a><span class="lineno"> 1054</span>    <span class="keyword">static</span> std::unordered_map&lt;std::u8string, std::u8string&gt; init(<span class="keyword">const</span> std::filesystem::path&amp; dirname, <span class="keyword">const</span> std::string&amp; domain, <span class="keyword">const</span> std::string&amp; lang, <span class="keywordtype">bool</span> throw_if_fail)</div>
+<div class="line"><a id="l01055" name="l01055"></a><span class="lineno"> 1055</span>    {</div>
+<div class="line"><a id="l01056" name="l01056"></a><span class="lineno"> 1056</span>        <span class="keywordflow">try</span></div>
+<div class="line"><a id="l01057" name="l01057"></a><span class="lineno"> 1057</span>        {</div>
+<div class="line"><a id="l01058" name="l01058"></a><span class="lineno"> 1058</span>            <span class="keywordflow">if</span> (lang.empty())</div>
+<div class="line"><a id="l01059" name="l01059"></a><span class="lineno"> 1059</span>                <span class="keywordflow">throw</span> <a class="code hl_struct" href="structIOv2_1_1io__error.html">io_error</a>(<span class="stringliteral">&quot;messages_conf init fail: no language available&quot;</span>);</div>
+<div class="line"><a id="l01060" name="l01060"></a><span class="lineno"> 1060</span>            <span class="keywordflow">else</span></div>
+<div class="line"><a id="l01061" name="l01061"></a><span class="lineno"> 1061</span>                <span class="keywordflow">return</span> get_translate_dictionary(get_domain_file({.dirname = dirname, .domain = domain}, lang));</div>
+<div class="line"><a id="l01062" name="l01062"></a><span class="lineno"> 1062</span>        }</div>
+<div class="line"><a id="l01063" name="l01063"></a><span class="lineno"> 1063</span>        <span class="keywordflow">catch</span>(...)</div>
+<div class="line"><a id="l01064" name="l01064"></a><span class="lineno"> 1064</span>        {</div>
+<div class="line"><a id="l01065" name="l01065"></a><span class="lineno"> 1065</span>            <span class="keywordflow">if</span> (throw_if_fail)</div>
+<div class="line"><a id="l01066" name="l01066"></a><span class="lineno"> 1066</span>                <span class="keywordflow">throw</span>;</div>
+<div class="line"><a id="l01067" name="l01067"></a><span class="lineno"> 1067</span>        }</div>
+<div class="line"><a id="l01068" name="l01068"></a><span class="lineno"> 1068</span>        <span class="keywordflow">return</span> std::unordered_map&lt;std::u8string, std::u8string&gt;{};</div>
+<div class="line"><a id="l01069" name="l01069"></a><span class="lineno"> 1069</span>    }</div>
+<div class="line"><a id="l01070" name="l01070"></a><span class="lineno"> 1070</span> </div>
+<div class="line"><a id="l01071" name="l01071"></a><span class="lineno"> 1071</span><span class="keyword">private</span>:</div>
+<div class="line"><a id="l01072" name="l01072"></a><span class="lineno"> 1072</span>    <span class="keyword">const</span> std::unordered_map&lt;std::u8string, std::u8string&gt; m_dict;</div>
+<div class="line"><a id="l01073" name="l01073"></a><span class="lineno"> 1073</span>};</div>
+</div>
+<div class="line"><a id="l01074" name="l01074"></a><span class="lineno"> 1074</span></div>
+<div class="line"><a id="l01100" name="l01100"></a><span class="lineno"> 1100</span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> CharT&gt;</div>
+<div class="line"><a id="l01101" name="l01101"></a><span class="lineno"> 1101</span>    <span class="keyword">requires</span> std::is_same_v&lt;CharT, char32_t&gt; ||</div>
+<div class="line"><a id="l01102" name="l01102"></a><span class="lineno"> 1102</span>                (std::is_same_v&lt;CharT, wchar_t&gt; &amp;&amp;</div>
+<div class="line"><a id="l01103" name="l01103"></a><span class="lineno"> 1103</span>                 (<a class="code hl_variable" href="namespaceIOv2.html#aa906165b0856579dd626eb3c84a2a523">wchar_t_is_utf32</a> || <a class="code hl_variable" href="namespaceIOv2.html#aeb584ff30521cf139b523be88b7bc67c">wchar_t_is_utf16</a>))</div>
+<div class="foldopen" id="foldopen01104" data-start="{" data-end="};">
+<div class="line"><a id="l01104" name="l01104"></a><span class="lineno"><a class="line" href="classIOv2_1_1messages__conf_3_01CharT_01_4.html"> 1104</a></span><span class="keyword">class</span> <a class="code hl_function" href="classIOv2_1_1messages__conf_3_01CharT_01_4.html#ad0f6ce82354026bf5ba6e0b7bc8614ce">messages_conf&lt;CharT&gt;</a> : public <a class="code hl_class" href="classIOv2_1_1ft__basic.html">ft_basic</a>&lt;<a class="code hl_class" href="classIOv2_1_1messages.html">messages</a>&lt;CharT&gt;&gt;</div>
+<div class="line"><a id="l01105" name="l01105"></a><span class="lineno"> 1105</span>{</div>
+<div class="line"><a id="l01106" name="l01106"></a><span class="lineno"> 1106</span>    <span class="keyword">using </span>TString = std::basic_string&lt;CharT&gt;;</div>
+<div class="line"><a id="l01107" name="l01107"></a><span class="lineno"> 1107</span><span class="keyword">public</span>:</div>
+<div class="line"><a id="l01132" name="l01132"></a><span class="lineno"> 1132</span>    <span class="keyword">template</span> &lt;std::same_as&lt;<span class="keywordtype">bool</span>&gt; B = <span class="keywordtype">bool</span>&gt;</div>
+<div class="line"><a id="l01133" name="l01133"></a><span class="lineno"> 1133</span>    <span class="comment">// NOLINTNEXTLINE(bugprone-easily-swappable-parameters)</span></div>
+<div class="foldopen" id="foldopen01134" data-start="{" data-end="}">
+<div class="line"><a id="l01134" name="l01134"></a><span class="lineno"><a class="line" href="classIOv2_1_1messages__conf_3_01CharT_01_4.html#ad0f6ce82354026bf5ba6e0b7bc8614ce"> 1134</a></span>    <a class="code hl_function" href="classIOv2_1_1messages__conf_3_01CharT_01_4.html#ad0f6ce82354026bf5ba6e0b7bc8614ce">messages_conf</a>(<span class="keyword">const</span> std::string&amp; domain, <span class="keyword">const</span> std::string&amp; lang, B throw_if_fail = <span class="keyword">true</span>)</div>
+<div class="line"><a id="l01135" name="l01135"></a><span class="lineno"> 1135</span>        : <a class="code hl_function" href="classIOv2_1_1messages__conf_3_01CharT_01_4.html#ad0f6ce82354026bf5ba6e0b7bc8614ce">messages_conf</a>(domain, lang, <a class="code hl_namespace" href="namespacestd.html">std</a>::filesystem::path{}, throw_if_fail)</div>
+<div class="line"><a id="l01136" name="l01136"></a><span class="lineno"> 1136</span>    {}</div>
+</div>
+<div class="line"><a id="l01137" name="l01137"></a><span class="lineno"> 1137</span></div>
+<div class="line"><a id="l01155" name="l01155"></a><span class="lineno"> 1155</span>    <span class="keyword">template</span> &lt;std::same_as&lt;<span class="keywordtype">bool</span>&gt; B = <span class="keywordtype">bool</span>&gt;</div>
+<div class="line"><a id="l01156" name="l01156"></a><span class="lineno"> 1156</span>    <span class="comment">// NOLINTNEXTLINE(bugprone-easily-swappable-parameters)</span></div>
+<div class="foldopen" id="foldopen01157" data-start="{" data-end="}">
+<div class="line"><a id="l01157" name="l01157"></a><span class="lineno"><a class="line" href="classIOv2_1_1messages__conf_3_01CharT_01_4.html#aab57d96dff82f9ff0be32ba1abe0a99e"> 1157</a></span>    <a class="code hl_function" href="classIOv2_1_1messages__conf_3_01CharT_01_4.html#aab57d96dff82f9ff0be32ba1abe0a99e">messages_conf</a>(<span class="keyword">const</span> std::string&amp; domain, <span class="keyword">const</span> std::string&amp; lang, <span class="keyword">const</span> std::filesystem::path&amp; dirname, B throw_if_fail = <span class="keyword">true</span>)</div>
+<div class="line"><a id="l01158" name="l01158"></a><span class="lineno"> 1158</span>        : <a class="code hl_class" href="classIOv2_1_1ft__basic.html">ft_basic</a>&lt;<a class="code hl_class" href="classIOv2_1_1messages.html">messages</a>&lt;CharT&gt;&gt;(domain, lang, dirname)</div>
+<div class="line"><a id="l01159" name="l01159"></a><span class="lineno"> 1159</span>        , m_dict(init(this-&gt;dirname(), domain, this-&gt;filtered_lang(), throw_if_fail))</div>
+<div class="line"><a id="l01160" name="l01160"></a><span class="lineno"> 1160</span>    {}</div>
+</div>
+<div class="line"><a id="l01161" name="l01161"></a><span class="lineno"> 1161</span> </div>
+<div class="line"><a id="l01162" name="l01162"></a><span class="lineno"> 1162</span><span class="keyword">private</span>:</div>
+<div class="line"><a id="l01186" name="l01186"></a><span class="lineno"> 1186</span>    <span class="keyword">static</span> std::unordered_map&lt;TString, TString&gt; init(<span class="keyword">const</span> std::filesystem::path&amp; dirname, <span class="keyword">const</span> std::string&amp; domain, <span class="keyword">const</span> std::string&amp; lang, <span class="keywordtype">bool</span> throw_if_fail)</div>
+<div class="line"><a id="l01187" name="l01187"></a><span class="lineno"> 1187</span>    {</div>
+<div class="line"><a id="l01188" name="l01188"></a><span class="lineno"> 1188</span>        <span class="keywordflow">try</span></div>
+<div class="line"><a id="l01189" name="l01189"></a><span class="lineno"> 1189</span>        {</div>
+<div class="line"><a id="l01190" name="l01190"></a><span class="lineno"> 1190</span>            <span class="keywordflow">if</span> (lang.empty())</div>
+<div class="line"><a id="l01191" name="l01191"></a><span class="lineno"> 1191</span>                <span class="keywordflow">throw</span> <a class="code hl_struct" href="structIOv2_1_1io__error.html">io_error</a>(<span class="stringliteral">&quot;messages_conf init fail: no language available&quot;</span>);</div>
+<div class="line"><a id="l01192" name="l01192"></a><span class="lineno"> 1192</span> </div>
+<div class="line"><a id="l01193" name="l01193"></a><span class="lineno"> 1193</span>            <span class="keyword">const</span> <span class="keyword">auto</span> decode = [](<span class="keyword">const</span> std::u8string&amp; s) -&gt; TString</div>
+<div class="line"><a id="l01194" name="l01194"></a><span class="lineno"> 1194</span>            {</div>
+<div class="line"><a id="l01195" name="l01195"></a><span class="lineno"> 1195</span>                <span class="keywordflow">if</span> <span class="keyword">constexpr</span> (std::is_same_v&lt;CharT, char32_t&gt;)</div>
+<div class="line"><a id="l01196" name="l01196"></a><span class="lineno"> 1196</span>                    <span class="keywordflow">return</span> <a class="code hl_function" href="namespaceIOv2_1_1detail.html#a4c40c6bb45c720691f8cf6b9662977fa">detail::to_u32string</a>(s);</div>
+<div class="line"><a id="l01197" name="l01197"></a><span class="lineno"> 1197</span>                <span class="keywordflow">else</span></div>
+<div class="line"><a id="l01198" name="l01198"></a><span class="lineno"> 1198</span>                    <span class="keywordflow">return</span> <a class="code hl_function" href="namespaceIOv2_1_1detail.html#aa1babea415d6ad8be83c25bf553ba2c1">detail::to_wstring&lt;CharT&gt;</a>(s);</div>
+<div class="line"><a id="l01199" name="l01199"></a><span class="lineno"> 1199</span>            };</div>
+<div class="line"><a id="l01200" name="l01200"></a><span class="lineno"> 1200</span> </div>
+<div class="line"><a id="l01201" name="l01201"></a><span class="lineno"> 1201</span>            std::unordered_map&lt;TString, TString&gt; res;</div>
+<div class="line"><a id="l01202" name="l01202"></a><span class="lineno"> 1202</span>            <span class="keyword">auto</span> tmp_dict = <a class="code hl_function" href="classIOv2_1_1base__ft_3_01messages_01_4.html#ac8702a38dcc21ccb6ef5accc83e433f0">base_ft&lt;messages&gt;::get_translate_dictionary</a>(<a class="code hl_function" href="classIOv2_1_1base__ft_3_01messages_01_4.html#a6ec8193922bacceb313f07f5141cf404">base_ft&lt;messages&gt;::get_domain_file</a>({.dirname = dirname, .domain = domain}, lang));</div>
+<div class="line"><a id="l01203" name="l01203"></a><span class="lineno"> 1203</span>            <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span>&amp; [k, v] : tmp_dict)</div>
+<div class="line"><a id="l01204" name="l01204"></a><span class="lineno"> 1204</span>                res.insert({decode(k), decode(v)});</div>
+<div class="line"><a id="l01205" name="l01205"></a><span class="lineno"> 1205</span>            <span class="keywordflow">return</span> res;</div>
+<div class="line"><a id="l01206" name="l01206"></a><span class="lineno"> 1206</span>        }</div>
+<div class="line"><a id="l01207" name="l01207"></a><span class="lineno"> 1207</span>        <span class="keywordflow">catch</span>(...)</div>
+<div class="line"><a id="l01208" name="l01208"></a><span class="lineno"> 1208</span>        {</div>
+<div class="line"><a id="l01209" name="l01209"></a><span class="lineno"> 1209</span>            <span class="keywordflow">if</span> (throw_if_fail)</div>
+<div class="line"><a id="l01210" name="l01210"></a><span class="lineno"> 1210</span>                <span class="keywordflow">throw</span>;</div>
+<div class="line"><a id="l01211" name="l01211"></a><span class="lineno"> 1211</span>        }</div>
+<div class="line"><a id="l01212" name="l01212"></a><span class="lineno"> 1212</span>        <span class="keywordflow">return</span> std::unordered_map&lt;TString, TString&gt;{};</div>
+<div class="line"><a id="l01213" name="l01213"></a><span class="lineno"> 1213</span>    }</div>
+<div class="line"><a id="l01214" name="l01214"></a><span class="lineno"> 1214</span> </div>
+<div class="line"><a id="l01215" name="l01215"></a><span class="lineno"> 1215</span><span class="keyword">public</span>:</div>
+<div class="foldopen" id="foldopen01232" data-start="{" data-end="}">
+<div class="line"><a id="l01232" name="l01232"></a><span class="lineno"><a class="line" href="classIOv2_1_1messages__conf_3_01CharT_01_4.html#ac3e9caba445e9dcb8a95ce81c1c33b78"> 1232</a></span>    <span class="keyword">virtual</span> <span class="keyword">const</span> TString* <a class="code hl_function" href="classIOv2_1_1messages__conf_3_01CharT_01_4.html#ac3e9caba445e9dcb8a95ce81c1c33b78">translate</a>(<span class="keyword">const</span> TString&amp; ori)<span class="keyword"> const</span></div>
+<div class="line"><a id="l01233" name="l01233"></a><span class="lineno"> 1233</span><span class="keyword">    </span>{</div>
+<div class="line"><a id="l01234" name="l01234"></a><span class="lineno"> 1234</span>        <span class="keyword">auto</span> it = m_dict.find(ori);</div>
+<div class="line"><a id="l01235" name="l01235"></a><span class="lineno"> 1235</span>        <span class="keywordflow">return</span> it != m_dict.end() ? &amp;it-&gt;second : <span class="keyword">nullptr</span>;</div>
+<div class="line"><a id="l01236" name="l01236"></a><span class="lineno"> 1236</span>    }</div>
+</div>
+<div class="line"><a id="l01237" name="l01237"></a><span class="lineno"> 1237</span> </div>
+<div class="line"><a id="l01238" name="l01238"></a><span class="lineno"> 1238</span><span class="keyword">private</span>:</div>
+<div class="line"><a id="l01239" name="l01239"></a><span class="lineno"> 1239</span>    <span class="keyword">const</span> std::unordered_map&lt;TString, TString&gt; m_dict; <span class="comment">// NOLINT(cppcoreguidelines-avoid-const-or-ref-data-members)</span></div>
+<div class="line"><a id="l01240" name="l01240"></a><span class="lineno"> 1240</span>};</div>
+</div>
+<div class="line"><a id="l01241" name="l01241"></a><span class="lineno"> 1241</span></div>
+<div class="line"><a id="l01279" name="l01279"></a><span class="lineno"> 1279</span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> CharT&gt;</div>
+<div class="line"><a id="l01280" name="l01280"></a><span class="lineno"> 1280</span>    <span class="keyword">requires</span> detail::messages_locale_encoded&lt;CharT&gt;</div>
+<div class="line"><a id="l01281" name="l01281"></a><span class="lineno"> 1281</span><span class="keyword">class </span>messages_conf&lt;CharT&gt; : <span class="keyword">public</span> ft_basic&lt;messages&lt;CharT&gt;&gt;</div>
+<div class="line"><a id="l01282" name="l01282"></a><span class="lineno"> 1282</span>{</div>
+<div class="line"><a id="l01283" name="l01283"></a><span class="lineno"> 1283</span>    <span class="keyword">using </span>TString = std::basic_string&lt;CharT&gt;;</div>
+<div class="line"><a id="l01284" name="l01284"></a><span class="lineno"> 1284</span><span class="keyword">public</span>:</div>
+<div class="line"><a id="l01321" name="l01321"></a><span class="lineno"> 1321</span>    <span class="keyword">template</span> &lt;std::same_as&lt;<span class="keywordtype">bool</span>&gt; B = <span class="keywordtype">bool</span>&gt;</div>
+<div class="line"><a id="l01322" name="l01322"></a><span class="lineno"> 1322</span>    <span class="comment">// NOLINTNEXTLINE(bugprone-easily-swappable-parameters)</span></div>
+<div class="foldopen" id="foldopen01323" data-start="{" data-end="}">
+<div class="line"><a id="l01323" name="l01323"></a><span class="lineno"><a class="line" href="classIOv2_1_1messages__conf_3_01CharT_01_4.html#ad946b1cd197fd22ca9f12030ed5e28bc"> 1323</a></span>    <a class="code hl_function" href="classIOv2_1_1messages__conf_3_01CharT_01_4.html#ad946b1cd197fd22ca9f12030ed5e28bc">messages_conf</a>(<span class="keyword">const</span> std::string&amp; domain, <span class="keyword">const</span> std::string&amp; lang, <span class="keyword">const</span> std::string&amp; cvt_ft, B throw_if_fail = <span class="keyword">true</span>)</div>
+<div class="line"><a id="l01324" name="l01324"></a><span class="lineno"> 1324</span>        : <a class="code hl_function" href="classIOv2_1_1messages__conf_3_01CharT_01_4.html#ad0f6ce82354026bf5ba6e0b7bc8614ce">messages_conf</a>(domain, lang, cvt_ft, <a class="code hl_namespace" href="namespacestd.html">std</a>::filesystem::path{}, throw_if_fail)</div>
+<div class="line"><a id="l01325" name="l01325"></a><span class="lineno"> 1325</span>    {}</div>
+</div>
+<div class="line"><a id="l01326" name="l01326"></a><span class="lineno"> 1326</span></div>
+<div class="line"><a id="l01346" name="l01346"></a><span class="lineno"> 1346</span>    <span class="keyword">template</span> &lt;std::same_as&lt;<span class="keywordtype">bool</span>&gt; B = <span class="keywordtype">bool</span>&gt;</div>
+<div class="line"><a id="l01347" name="l01347"></a><span class="lineno"> 1347</span>    <span class="comment">// NOLINTNEXTLINE(bugprone-easily-swappable-parameters)</span></div>
+<div class="foldopen" id="foldopen01348" data-start="{" data-end="}">
+<div class="line"><a id="l01348" name="l01348"></a><span class="lineno"><a class="line" href="classIOv2_1_1messages__conf_3_01CharT_01_4.html#af74c4b9503fbc175bc57176d5bdc6883"> 1348</a></span>    <a class="code hl_function" href="classIOv2_1_1messages__conf_3_01CharT_01_4.html#af74c4b9503fbc175bc57176d5bdc6883">messages_conf</a>(<span class="keyword">const</span> std::string&amp; domain, <span class="keyword">const</span> std::string&amp; lang, <span class="keyword">const</span> std::string&amp; cvt_ft, <span class="keyword">const</span> std::filesystem::path&amp; dirname, B throw_if_fail = <span class="keyword">true</span>)</div>
+<div class="line"><a id="l01349" name="l01349"></a><span class="lineno"> 1349</span>        : <a class="code hl_class" href="classIOv2_1_1ft__basic.html">ft_basic</a>&lt;<a class="code hl_class" href="classIOv2_1_1messages.html">messages</a>&lt;CharT&gt;&gt;(domain, lang, dirname)</div>
+<div class="line"><a id="l01350" name="l01350"></a><span class="lineno"> 1350</span>        , m_dict(init(this-&gt;dirname(), domain, this-&gt;filtered_lang(), cvt_ft, throw_if_fail))</div>
+<div class="line"><a id="l01351" name="l01351"></a><span class="lineno"> 1351</span>    {}</div>
+</div>
+<div class="line"><a id="l01352" name="l01352"></a><span class="lineno"> 1352</span></div>
+<div class="foldopen" id="foldopen01369" data-start="{" data-end="}">
+<div class="line"><a id="l01369" name="l01369"></a><span class="lineno"><a class="line" href="classIOv2_1_1messages__conf_3_01CharT_01_4.html#ac3e9caba445e9dcb8a95ce81c1c33b78"> 1369</a></span>    <span class="keyword">virtual</span> <span class="keyword">const</span> TString* <a class="code hl_function" href="classIOv2_1_1messages__conf_3_01CharT_01_4.html#ac3e9caba445e9dcb8a95ce81c1c33b78">translate</a>(<span class="keyword">const</span> TString&amp; ori)<span class="keyword"> const</span></div>
+<div class="line"><a id="l01370" name="l01370"></a><span class="lineno"> 1370</span><span class="keyword">    </span>{</div>
+<div class="line"><a id="l01371" name="l01371"></a><span class="lineno"> 1371</span>        <span class="keyword">auto</span> it = m_dict.find(ori);</div>
+<div class="line"><a id="l01372" name="l01372"></a><span class="lineno"> 1372</span>        <span class="keywordflow">return</span> it != m_dict.end() ? &amp;it-&gt;second : <span class="keyword">nullptr</span>;</div>
+<div class="line"><a id="l01373" name="l01373"></a><span class="lineno"> 1373</span>    }</div>
+</div>
+<div class="line"><a id="l01374" name="l01374"></a><span class="lineno"> 1374</span> </div>
+<div class="line"><a id="l01375" name="l01375"></a><span class="lineno"> 1375</span><span class="keyword">private</span>:</div>
+<div class="line"><a id="l01409" name="l01409"></a><span class="lineno"> 1409</span>    <span class="comment">// NOLINTNEXTLINE(bugprone-easily-swappable-parameters)</span></div>
+<div class="line"><a id="l01410" name="l01410"></a><span class="lineno"> 1410</span>    <span class="keyword">static</span> std::unordered_map&lt;TString, TString&gt; init(<span class="keyword">const</span> std::filesystem::path&amp; dirname, <span class="keyword">const</span> std::string&amp; domain, <span class="keyword">const</span> std::string&amp; lang, <span class="keyword">const</span> std::string&amp; cvt_ft, <span class="keywordtype">bool</span> throw_if_fail)</div>
+<div class="line"><a id="l01411" name="l01411"></a><span class="lineno"> 1411</span>    {</div>
+<div class="line"><a id="l01412" name="l01412"></a><span class="lineno"> 1412</span>        <span class="keywordflow">try</span></div>
+<div class="line"><a id="l01413" name="l01413"></a><span class="lineno"> 1413</span>        {</div>
+<div class="line"><a id="l01414" name="l01414"></a><span class="lineno"> 1414</span>            <span class="keywordflow">if</span> (lang.empty())</div>
+<div class="line"><a id="l01415" name="l01415"></a><span class="lineno"> 1415</span>                <span class="keywordflow">throw</span> <a class="code hl_struct" href="structIOv2_1_1io__error.html">io_error</a>(<span class="stringliteral">&quot;messages_conf init fail: no language available&quot;</span>);</div>
+<div class="line"><a id="l01416" name="l01416"></a><span class="lineno"> 1416</span> </div>
+<div class="line"><a id="l01417" name="l01417"></a><span class="lineno"> 1417</span>            <span class="keyword">const</span> <span class="keywordtype">bool</span> utf8 = <a class="code hl_struct" href="structIOv2_1_1clocale__wrapper.html">clocale_wrapper</a>(cvt_ft).<a class="code hl_function" href="structIOv2_1_1clocale__wrapper.html#a0d42e0fdf58c9768dca5f7975aacded7">is_utf8</a>();</div>
+<div class="line"><a id="l01418" name="l01418"></a><span class="lineno"> 1418</span>            <span class="keywordflow">if</span> <span class="keyword">constexpr</span> (!std::is_same_v&lt;CharT, char&gt;)</div>
+<div class="line"><a id="l01419" name="l01419"></a><span class="lineno"> 1419</span>            {</div>
+<div class="line"><a id="l01420" name="l01420"></a><span class="lineno"> 1420</span>                <span class="keywordflow">if</span> (!utf8)</div>
+<div class="line"><a id="l01421" name="l01421"></a><span class="lineno"> 1421</span>                    <span class="keywordflow">throw</span> <a class="code hl_struct" href="structIOv2_1_1io__error.html">io_error</a>(<span class="stringliteral">&quot;messages_conf&lt;wchar_t&gt; init fail: &quot;</span> + cvt_ft +</div>
+<div class="line"><a id="l01422" name="l01422"></a><span class="lineno"> 1422</span>                                   <span class="stringliteral">&quot; is not a UTF-8 locale, and wchar_t is not Unicode on this platform&quot;</span>);</div>
+<div class="line"><a id="l01423" name="l01423"></a><span class="lineno"> 1423</span>            }</div>
+<div class="line"><a id="l01424" name="l01424"></a><span class="lineno"> 1424</span> </div>
+<div class="line"><a id="l01425" name="l01425"></a><span class="lineno"> 1425</span>            <span class="keyword">const</span> <span class="keyword">auto</span> dict = <a class="code hl_function" href="classIOv2_1_1base__ft_3_01messages_01_4.html#ac8702a38dcc21ccb6ef5accc83e433f0">base_ft&lt;messages&gt;::get_translate_dictionary</a>(</div>
+<div class="line"><a id="l01426" name="l01426"></a><span class="lineno"> 1426</span>                <a class="code hl_function" href="classIOv2_1_1base__ft_3_01messages_01_4.html#a6ec8193922bacceb313f07f5141cf404">base_ft&lt;messages&gt;::get_domain_file</a>({.dirname = dirname, .domain = domain}, lang));</div>
+<div class="line"><a id="l01427" name="l01427"></a><span class="lineno"> 1427</span>            <span class="keywordflow">if</span> <span class="keyword">constexpr</span> (std::is_same_v&lt;CharT, char&gt;)</div>
+<div class="line"><a id="l01428" name="l01428"></a><span class="lineno"> 1428</span>            {</div>
+<div class="line"><a id="l01429" name="l01429"></a><span class="lineno"> 1429</span>                <span class="keywordflow">if</span> (!utf8)</div>
+<div class="line"><a id="l01430" name="l01430"></a><span class="lineno"> 1430</span>                    <span class="keywordflow">return</span> s_through_wide(dict, cvt_ft);</div>
+<div class="line"><a id="l01431" name="l01431"></a><span class="lineno"> 1431</span> </div>
+<div class="line"><a id="l01432" name="l01432"></a><span class="lineno"> 1432</span>                std::unordered_map&lt;TString, TString&gt; res;</div>
+<div class="line"><a id="l01433" name="l01433"></a><span class="lineno"> 1433</span>                <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span>&amp; [k, v] : dict)</div>
+<div class="line"><a id="l01434" name="l01434"></a><span class="lineno"> 1434</span>                    res.insert({TString(k.begin(), k.end()), TString(v.begin(), v.end())});</div>
+<div class="line"><a id="l01435" name="l01435"></a><span class="lineno"> 1435</span>                <span class="keywordflow">return</span> res;</div>
+<div class="line"><a id="l01436" name="l01436"></a><span class="lineno"> 1436</span>            }</div>
+<div class="line"><a id="l01437" name="l01437"></a><span class="lineno"> 1437</span>            <span class="keywordflow">else</span></div>
+<div class="line"><a id="l01438" name="l01438"></a><span class="lineno"> 1438</span>            {</div>
+<div class="line"><a id="l01439" name="l01439"></a><span class="lineno"> 1439</span>                <span class="comment">// macOS&#39;s wchar_t: the locale&#39;s C library decodes, through one converter</span></div>
+<div class="line"><a id="l01440" name="l01440"></a><span class="lineno"> 1440</span>                <span class="comment">// that attach() resets for each string.</span></div>
+<div class="line"><a id="l01441" name="l01441"></a><span class="lineno"> 1441</span>                <span class="keyword">auto</span> cvt = IOv2::code_cvt_creator&lt;char, CharT&gt;(cvt_ft).create(<a class="code hl_function" href="namespaceIOv2.html#a4d43e84ad8909b24c7ff9808c3447be3">rb_root_cvt</a>{mem_device{<span class="stringliteral">&quot;&quot;</span>}});</div>
+<div class="line"><a id="l01442" name="l01442"></a><span class="lineno"> 1442</span>                <span class="keyword">const</span> <span class="keyword">auto</span> decode = [&amp;cvt](<span class="keyword">const</span> std::u8string&amp; s)</div>
+<div class="line"><a id="l01443" name="l01443"></a><span class="lineno"> 1443</span>                {</div>
+<div class="line"><a id="l01444" name="l01444"></a><span class="lineno"> 1444</span>                    cvt.attach(mem_device{std::string(s.begin(), s.end())});</div>
+<div class="line"><a id="l01445" name="l01445"></a><span class="lineno"> 1445</span>                    cvt.bos(); cvt.main_cont_beg();</div>
+<div class="line"><a id="l01446" name="l01446"></a><span class="lineno"> 1446</span>                    TString res;</div>
+<div class="line"><a id="l01447" name="l01447"></a><span class="lineno"> 1447</span>                    std::array&lt;CharT, 8&gt; buf{};</div>
+<div class="line"><a id="l01448" name="l01448"></a><span class="lineno"> 1448</span>                    <span class="keywordflow">while</span> (<span class="keyword">true</span>)</div>
+<div class="line"><a id="l01449" name="l01449"></a><span class="lineno"> 1449</span>                    {</div>
+<div class="line"><a id="l01450" name="l01450"></a><span class="lineno"> 1450</span>                        <span class="keyword">const</span> <span class="keyword">auto</span> c = cvt.get(buf.data(), buf.size());</div>
+<div class="line"><a id="l01451" name="l01451"></a><span class="lineno"> 1451</span>                        <span class="keywordflow">if</span> (c == 0) <span class="keywordflow">break</span>;</div>
+<div class="line"><a id="l01452" name="l01452"></a><span class="lineno"> 1452</span>                        res.append(buf.data(), c);</div>
+<div class="line"><a id="l01453" name="l01453"></a><span class="lineno"> 1453</span>                    }</div>
+<div class="line"><a id="l01454" name="l01454"></a><span class="lineno"> 1454</span>                    <span class="keywordflow">return</span> res;</div>
+<div class="line"><a id="l01455" name="l01455"></a><span class="lineno"> 1455</span>                };</div>
+<div class="line"><a id="l01456" name="l01456"></a><span class="lineno"> 1456</span> </div>
+<div class="line"><a id="l01457" name="l01457"></a><span class="lineno"> 1457</span>                std::unordered_map&lt;TString, TString&gt; res;</div>
+<div class="line"><a id="l01458" name="l01458"></a><span class="lineno"> 1458</span>                <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span>&amp; [k, v] : dict)</div>
+<div class="line"><a id="l01459" name="l01459"></a><span class="lineno"> 1459</span>                    res.insert({decode(k), decode(v)});</div>
+<div class="line"><a id="l01460" name="l01460"></a><span class="lineno"> 1460</span>                <span class="keywordflow">return</span> res;</div>
+<div class="line"><a id="l01461" name="l01461"></a><span class="lineno"> 1461</span>            }</div>
+<div class="line"><a id="l01462" name="l01462"></a><span class="lineno"> 1462</span>        }</div>
+<div class="line"><a id="l01463" name="l01463"></a><span class="lineno"> 1463</span>        <span class="keywordflow">catch</span>(...)</div>
+<div class="line"><a id="l01464" name="l01464"></a><span class="lineno"> 1464</span>        {</div>
+<div class="line"><a id="l01465" name="l01465"></a><span class="lineno"> 1465</span>            <span class="keywordflow">if</span> (throw_if_fail)</div>
+<div class="line"><a id="l01466" name="l01466"></a><span class="lineno"> 1466</span>                <span class="keywordflow">throw</span>;</div>
+<div class="line"><a id="l01467" name="l01467"></a><span class="lineno"> 1467</span>        }</div>
+<div class="line"><a id="l01468" name="l01468"></a><span class="lineno"> 1468</span>        <span class="keywordflow">return</span> std::unordered_map&lt;TString, TString&gt;{};</div>
+<div class="line"><a id="l01469" name="l01469"></a><span class="lineno"> 1469</span>    }</div>
+<div class="line"><a id="l01470" name="l01470"></a><span class="lineno"> 1470</span> </div>
+<div class="line"><a id="l01471" name="l01471"></a><span class="lineno"> 1471</span>    <span class="comment">// char in a locale that is not UTF-8: UTF-8 to a Unicode wchar_t, then to cvt_ft&#39;s</span></div>
+<div class="line"><a id="l01472" name="l01472"></a><span class="lineno"> 1472</span>    <span class="comment">// encoding. W only makes the body dependent, so where wchar_t is not Unicode (macOS)</span></div>
+<div class="line"><a id="l01473" name="l01473"></a><span class="lineno"> 1473</span>    <span class="comment">// the discarded branch, and the to_wstring it names, is never instantiated.</span></div>
+<div class="line"><a id="l01474" name="l01474"></a><span class="lineno"> 1474</span>    <span class="keyword">template</span> &lt;<span class="keyword">typename</span> W = <span class="keywordtype">wchar_t</span>&gt;</div>
+<div class="line"><a id="l01475" name="l01475"></a><span class="lineno"> 1475</span>    <span class="keyword">static</span> std::unordered_map&lt;TString, TString&gt; s_through_wide(<span class="keyword">const</span> std::unordered_map&lt;std::u8string, std::u8string&gt;&amp; dict,</div>
+<div class="line"><a id="l01476" name="l01476"></a><span class="lineno"> 1476</span>                                                              <span class="keyword">const</span> std::string&amp; cvt_ft)</div>
+<div class="line"><a id="l01477" name="l01477"></a><span class="lineno"> 1477</span>    {</div>
+<div class="line"><a id="l01478" name="l01478"></a><span class="lineno"> 1478</span>        <span class="keywordflow">if</span> <span class="keyword">constexpr</span> (<a class="code hl_variable" href="namespaceIOv2.html#aa906165b0856579dd626eb3c84a2a523">wchar_t_is_utf32</a> || <a class="code hl_variable" href="namespaceIOv2.html#aeb584ff30521cf139b523be88b7bc67c">wchar_t_is_utf16</a>)</div>
+<div class="line"><a id="l01479" name="l01479"></a><span class="lineno"> 1479</span>        {</div>
+<div class="line"><a id="l01480" name="l01480"></a><span class="lineno"> 1480</span>            <span class="keyword">auto</span> cvt = IOv2::code_cvt_creator&lt;char, W&gt;(cvt_ft).create(<a class="code hl_function" href="namespaceIOv2.html#a4d43e84ad8909b24c7ff9808c3447be3">rb_root_cvt</a>{mem_device{<span class="stringliteral">&quot;&quot;</span>}});</div>
+<div class="line"><a id="l01481" name="l01481"></a><span class="lineno"> 1481</span>            <span class="keyword">const</span> <span class="keyword">auto</span> encode = [&amp;cvt](<span class="keyword">const</span> std::u8string&amp; s)</div>
+<div class="line"><a id="l01482" name="l01482"></a><span class="lineno"> 1482</span>            {</div>
+<div class="line"><a id="l01483" name="l01483"></a><span class="lineno"> 1483</span>                <span class="keyword">const</span> std::basic_string&lt;W&gt; wide = <a class="code hl_function" href="namespaceIOv2_1_1detail.html#aa1babea415d6ad8be83c25bf553ba2c1">detail::to_wstring&lt;W&gt;</a>(s);</div>
+<div class="line"><a id="l01484" name="l01484"></a><span class="lineno"> 1484</span>                cvt.bos(); cvt.main_cont_beg();</div>
+<div class="line"><a id="l01485" name="l01485"></a><span class="lineno"> 1485</span>                cvt.put(wide.data(), wide.size());</div>
+<div class="line"><a id="l01486" name="l01486"></a><span class="lineno"> 1486</span>                <span class="keyword">auto</span> [dev, err] = cvt.detach();</div>
+<div class="line"><a id="l01487" name="l01487"></a><span class="lineno"> 1487</span>                cvt.attach(mem_device{<span class="stringliteral">&quot;&quot;</span>});</div>
+<div class="line"><a id="l01488" name="l01488"></a><span class="lineno"> 1488</span>                <span class="keywordflow">if</span> (err) std::rethrow_exception(err);</div>
+<div class="line"><a id="l01489" name="l01489"></a><span class="lineno"> 1489</span>                <span class="keywordflow">return</span> dev.str();</div>
+<div class="line"><a id="l01490" name="l01490"></a><span class="lineno"> 1490</span>            };</div>
+<div class="line"><a id="l01491" name="l01491"></a><span class="lineno"> 1491</span> </div>
+<div class="line"><a id="l01492" name="l01492"></a><span class="lineno"> 1492</span>            std::unordered_map&lt;TString, TString&gt; res;</div>
+<div class="line"><a id="l01493" name="l01493"></a><span class="lineno"> 1493</span>            <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span>&amp; [k, v] : dict)</div>
+<div class="line"><a id="l01494" name="l01494"></a><span class="lineno"> 1494</span>                res.insert({encode(k), encode(v)});</div>
+<div class="line"><a id="l01495" name="l01495"></a><span class="lineno"> 1495</span>            <span class="keywordflow">return</span> res;</div>
+<div class="line"><a id="l01496" name="l01496"></a><span class="lineno"> 1496</span>        }</div>
+<div class="line"><a id="l01497" name="l01497"></a><span class="lineno"> 1497</span>        <span class="keywordflow">else</span></div>
+<div class="line"><a id="l01498" name="l01498"></a><span class="lineno"> 1498</span>            <span class="keywordflow">throw</span> io_error(<span class="stringliteral">&quot;messages_conf&lt;char&gt; init fail: &quot;</span> + cvt_ft +</div>
+<div class="line"><a id="l01499" name="l01499"></a><span class="lineno"> 1499</span>                           <span class="stringliteral">&quot; is not a UTF-8 locale, and wchar_t is not Unicode on this platform&quot;</span>);</div>
+<div class="line"><a id="l01500" name="l01500"></a><span class="lineno"> 1500</span>    }</div>
+<div class="line"><a id="l01501" name="l01501"></a><span class="lineno"> 1501</span> </div>
+<div class="line"><a id="l01502" name="l01502"></a><span class="lineno"> 1502</span><span class="keyword">private</span>:</div>
+<div class="line"><a id="l01503" name="l01503"></a><span class="lineno"> 1503</span>    <span class="keyword">const</span> std::unordered_map&lt;TString, TString&gt; m_dict; <span class="comment">// NOLINT(cppcoreguidelines-avoid-const-or-ref-data-members)</span></div>
+<div class="line"><a id="l01504" name="l01504"></a><span class="lineno"> 1504</span>};</div>
+<div class="line"><a id="l01505" name="l01505"></a><span class="lineno"> 1505</span>}</div>
+<div class="ttc" id="aclassIOv2_1_1base__ft_3_01messages_01_4_html_a13f2479bfbbfe8f89369f15f0db386ac"><div class="ttname"><a href="classIOv2_1_1base__ft_3_01messages_01_4.html#a13f2479bfbbfe8f89369f15f0db386ac">IOv2::base_ft&lt; messages &gt;::dirname</a></div><div class="ttdeci">const std::filesystem::path &amp; dirname() const</div><div class="ttdoc">返回构造时快照的域目录名。</div><div class="ttdef"><b>定义</b> messages_details.h:436</div></div>
+<div class="ttc" id="aclassIOv2_1_1base__ft_3_01messages_01_4_html_a1b2eb8d903846a78deb11ee379c3f5ca"><div class="ttname"><a href="classIOv2_1_1base__ft_3_01messages_01_4.html#a1b2eb8d903846a78deb11ee379c3f5ca">IOv2::base_ft&lt; messages &gt;::available</a></div><div class="ttdeci">static bool available(const std::string &amp;domain, const std::string &amp;lang)</div><div class="ttdoc">检查指定域和语言对应的 .mo 文件是否可用。</div><div class="ttdef"><b>定义</b> messages_details.h:296</div></div>
+<div class="ttc" id="aclassIOv2_1_1base__ft_3_01messages_01_4_html_a462cbab4358e1d6b486515a5a8907907"><div class="ttname"><a href="classIOv2_1_1base__ft_3_01messages_01_4.html#a462cbab4358e1d6b486515a5a8907907">IOv2::base_ft&lt; messages &gt;::get_dirname</a></div><div class="ttdeci">static std::filesystem::path get_dirname(const std::string &amp;domain)</div><div class="ttdoc">线程安全地查询指定域绑定的目录名。</div><div class="ttdef"><b>定义</b> messages_details.h:259</div></div>
+<div class="ttc" id="aclassIOv2_1_1base__ft_3_01messages_01_4_html_a6ec8193922bacceb313f07f5141cf404"><div class="ttname"><a href="classIOv2_1_1base__ft_3_01messages_01_4.html#a6ec8193922bacceb313f07f5141cf404">IOv2::base_ft&lt; messages &gt;::get_domain_file</a></div><div class="ttdeci">static std::filesystem::path get_domain_file(const text_domain &amp;td, const std::string &amp;lang)</div><div class="ttdoc">构建 .mo 文件的完整路径。</div><div class="ttdef"><b>定义</b> messages_details.h:487</div></div>
+<div class="ttc" id="aclassIOv2_1_1base__ft_3_01messages_01_4_html_a87834ea7526c3c96264a6607c5f10a5b"><div class="ttname"><a href="classIOv2_1_1base__ft_3_01messages_01_4.html#a87834ea7526c3c96264a6607c5f10a5b">IOv2::base_ft&lt; messages &gt;::base_ft</a></div><div class="ttdeci">base_ft(facet_id_t id, const std::string &amp;p_domain, const std::string &amp;p_lang, const std::filesystem::path &amp;p_dirname={})</div><div class="ttdoc">构造函数，快照域目录名并初始化域信息。</div><div class="ttdef"><b>定义</b> messages_details.h:365</div></div>
+<div class="ttc" id="aclassIOv2_1_1base__ft_3_01messages_01_4_html_a97e254dc1fdebe5c8794376c54771e94"><div class="ttname"><a href="classIOv2_1_1base__ft_3_01messages_01_4.html#a97e254dc1fdebe5c8794376c54771e94">IOv2::base_ft&lt; messages &gt;::bind_text_domain</a></div><div class="ttdeci">static void bind_text_domain(const std::string &amp;domain, const std::filesystem::path &amp;dirname)</div><div class="ttdoc">将文本域绑定到指定目录。</div><div class="ttdef"><b>定义</b> messages_details.h:220</div></div>
+<div class="ttc" id="aclassIOv2_1_1base__ft_3_01messages_01_4_html_ab6e035506871dcff9789e9ac912befd7"><div class="ttname"><a href="classIOv2_1_1base__ft_3_01messages_01_4.html#ab6e035506871dcff9789e9ac912befd7">IOv2::base_ft&lt; messages &gt;::filtered_lang</a></div><div class="ttdeci">const std::string &amp; filtered_lang() const</div><div class="ttdoc">返回构造时确定的有效语言标识符。</div><div class="ttdef"><b>定义</b> messages_details.h:414</div></div>
+<div class="ttc" id="aclassIOv2_1_1base__ft_3_01messages_01_4_html_ac8702a38dcc21ccb6ef5accc83e433f0"><div class="ttname"><a href="classIOv2_1_1base__ft_3_01messages_01_4.html#ac8702a38dcc21ccb6ef5accc83e433f0">IOv2::base_ft&lt; messages &gt;::get_translate_dictionary</a></div><div class="ttdeci">static std::unordered_map&lt; std::u8string, std::u8string &gt; get_translate_dictionary(const std::filesystem::path &amp;filename)</div><div class="ttdoc">解析 GNU gettext .mo 文件并返回翻译字典。</div><div class="ttdef"><b>定义</b> messages_details.h:561</div></div>
+<div class="ttc" id="aclassIOv2_1_1base__ft_3_01messages_01_4_html_ad3569ef07948cb6f22403ec637e63f27"><div class="ttname"><a href="classIOv2_1_1base__ft_3_01messages_01_4.html#ad3569ef07948cb6f22403ec637e63f27">IOv2::base_ft&lt; messages &gt;::domain_info</a></div><div class="ttdeci">const std::string &amp; domain_info() const</div><div class="ttdoc">返回描述该 facet 实例的域信息字符串。</div><div class="ttdef"><b>定义</b> messages_details.h:401</div></div>
+<div class="ttc" id="aclassIOv2_1_1base__ft_3_01messages_01_4_html_ae3cf90989f457dfeac7a104f1d0807b0"><div class="ttname"><a href="classIOv2_1_1base__ft_3_01messages_01_4.html#ae3cf90989f457dfeac7a104f1d0807b0">IOv2::base_ft&lt; messages &gt;::filter_lang</a></div><div class="ttdeci">static std::string filter_lang(const std::string &amp;domain, const std::string &amp;p_lang)</div><div class="ttdoc">从候选语言列表中找出第一个可用的语言。</div><div class="ttdef"><b>定义</b> messages_details.h:324</div></div>
+<div class="ttc" id="aclassIOv2_1_1base__ft_html_a1d8dd78a9578c90a2cb68f95b2474926"><div class="ttname"><a href="classIOv2_1_1base__ft.html#a1d8dd78a9578c90a2cb68f95b2474926">IOv2::base_ft&lt; messages &gt;::abs_ft</a></div><div class="ttdeci">abs_ft(facet_id_t id)</div></div>
+<div class="ttc" id="aclassIOv2_1_1ft__basic_html"><div class="ttname"><a href="classIOv2_1_1ft__basic.html">IOv2::ft_basic</a></div><div class="ttdef"><b>定义</b> facet_common.h:235</div></div>
+<div class="ttc" id="aclassIOv2_1_1messages__conf_3_01CharT_01_4_html_aab57d96dff82f9ff0be32ba1abe0a99e"><div class="ttname"><a href="classIOv2_1_1messages__conf_3_01CharT_01_4.html#aab57d96dff82f9ff0be32ba1abe0a99e">IOv2::messages_conf&lt; CharT &gt;::messages_conf</a></div><div class="ttdeci">messages_conf(const std::string &amp;domain, const std::string &amp;lang, const std::filesystem::path &amp;dirname, B throw_if_fail=true)</div><div class="ttdef"><b>定义</b> messages_details.h:1157</div></div>
+<div class="ttc" id="aclassIOv2_1_1messages__conf_3_01CharT_01_4_html_ac3e9caba445e9dcb8a95ce81c1c33b78"><div class="ttname"><a href="classIOv2_1_1messages__conf_3_01CharT_01_4.html#ac3e9caba445e9dcb8a95ce81c1c33b78">IOv2::messages_conf&lt; CharT &gt;::translate</a></div><div class="ttdeci">virtual const TString * translate(const TString &amp;ori) const</div><div class="ttdoc">查找 ori 的翻译。参见 char8_t 特化：nullptr 表示&quot;未找到&quot;。</div><div class="ttdef"><b>定义</b> messages_details.h:1232</div></div>
+<div class="ttc" id="aclassIOv2_1_1messages__conf_3_01CharT_01_4_html_ad0f6ce82354026bf5ba6e0b7bc8614ce"><div class="ttname"><a href="classIOv2_1_1messages__conf_3_01CharT_01_4.html#ad0f6ce82354026bf5ba6e0b7bc8614ce">IOv2::messages_conf&lt; CharT &gt;::messages_conf</a></div><div class="ttdeci">messages_conf(const std::string &amp;domain, const std::string &amp;lang, B throw_if_fail=true)</div><div class="ttdoc">构造函数，加载指定域和语言的翻译字典。</div><div class="ttdef"><b>定义</b> messages_details.h:1134</div></div>
+<div class="ttc" id="aclassIOv2_1_1messages__conf_3_01CharT_01_4_html_ad946b1cd197fd22ca9f12030ed5e28bc"><div class="ttname"><a href="classIOv2_1_1messages__conf_3_01CharT_01_4.html#ad946b1cd197fd22ca9f12030ed5e28bc">IOv2::messages_conf&lt; CharT &gt;::messages_conf</a></div><div class="ttdeci">messages_conf(const std::string &amp;domain, const std::string &amp;lang, const std::string &amp;cvt_ft, B throw_if_fail=true)</div><div class="ttdoc">构造函数，加载翻译字典并进行编码转换。</div><div class="ttdef"><b>定义</b> messages_details.h:1323</div></div>
+<div class="ttc" id="aclassIOv2_1_1messages__conf_3_01CharT_01_4_html_af74c4b9503fbc175bc57176d5bdc6883"><div class="ttname"><a href="classIOv2_1_1messages__conf_3_01CharT_01_4.html#af74c4b9503fbc175bc57176d5bdc6883">IOv2::messages_conf&lt; CharT &gt;::messages_conf</a></div><div class="ttdeci">messages_conf(const std::string &amp;domain, const std::string &amp;lang, const std::string &amp;cvt_ft, const std::filesystem::path &amp;dirname, B throw_if_fail=true)</div><div class="ttdef"><b>定义</b> messages_details.h:1348</div></div>
+<div class="ttc" id="aclassIOv2_1_1messages__conf_3_01char8__t_01_4_html_a686856cd966691288d2a756147546783"><div class="ttname"><a href="classIOv2_1_1messages__conf_3_01char8__t_01_4.html#a686856cd966691288d2a756147546783">IOv2::messages_conf&lt; char8_t &gt;::translate</a></div><div class="ttdeci">virtual const std::u8string * translate(const std::u8string &amp;ori) const</div><div class="ttdoc">查找 ori 的翻译。</div><div class="ttdef"><b>定义</b> messages_details.h:1025</div></div>
+<div class="ttc" id="aclassIOv2_1_1messages__conf_3_01char8__t_01_4_html_a9ea6ff0ce49f3fc838c0dc30d48ef207"><div class="ttname"><a href="classIOv2_1_1messages__conf_3_01char8__t_01_4.html#a9ea6ff0ce49f3fc838c0dc30d48ef207">IOv2::messages_conf&lt; char8_t &gt;::messages_conf</a></div><div class="ttdeci">messages_conf(const std::string &amp;domain, const std::string &amp;lang, B throw_if_fail=true)</div><div class="ttdoc">构造函数，加载指定域和语言的翻译字典。</div><div class="ttdef"><b>定义</b> messages_details.h:970</div></div>
+<div class="ttc" id="aclassIOv2_1_1messages__conf_3_01char8__t_01_4_html_ae8bf8bcf70914e3390ba61ae2fd7b300"><div class="ttname"><a href="classIOv2_1_1messages__conf_3_01char8__t_01_4.html#ae8bf8bcf70914e3390ba61ae2fd7b300">IOv2::messages_conf&lt; char8_t &gt;::messages_conf</a></div><div class="ttdeci">messages_conf(const std::string &amp;domain, const std::string &amp;lang, const std::filesystem::path &amp;dirname, B throw_if_fail=true)</div><div class="ttdef"><b>定义</b> messages_details.h:993</div></div>
+<div class="ttc" id="aclassIOv2_1_1messages__conf_html"><div class="ttname"><a href="classIOv2_1_1messages__conf.html">IOv2::messages_conf</a></div><div class="ttdef"><b>定义</b> messages_details.h:922</div></div>
+<div class="ttc" id="aclassIOv2_1_1messages_html"><div class="ttname"><a href="classIOv2_1_1messages.html">IOv2::messages</a></div><div class="ttdoc">gettext 风格消息翻译的用户端 facet。</div><div class="ttdef"><b>定义</b> messages.h:65</div></div>
+<div class="ttc" id="aclocale__wrapper_8h_html"><div class="ttname"><a href="clocale__wrapper_8h.html">clocale_wrapper.h</a></div></div>
+<div class="ttc" id="acode__cvt_8h_html"><div class="ttname"><a href="code__cvt_8h.html">code_cvt.h</a></div></div>
+<div class="ttc" id="aconceptIOv2_1_1detail_1_1messages__locale__encoded_html"><div class="ttname"><a href="conceptIOv2_1_1detail_1_1messages__locale__encoded.html">IOv2::detail::messages_locale_encoded</a></div><div class="ttdoc">CharT 的 messages 字符串编码是否取决于 locale。</div><div class="ttdef"><b>定义</b> messages_details.h:917</div></div>
+<div class="ttc" id="acopyable__mutex_8h_html"><div class="ttname"><a href="copyable__mutex_8h.html">copyable_mutex.h</a></div></div>
+<div class="ttc" id="acvt__facilities_8h_html"><div class="ttname"><a href="cvt__facilities_8h.html">cvt_facilities.h</a></div></div>
+<div class="ttc" id="adefs_8h_html"><div class="ttname"><a href="defs_8h.html">defs.h</a></div></div>
+<div class="ttc" id="aenv__backend_8h_html"><div class="ttname"><a href="env__backend_8h.html">env_backend.h</a></div></div>
+<div class="ttc" id="afacet__common_8h_html"><div class="ttname"><a href="facet__common_8h.html">facet_common.h</a></div></div>
+<div class="ttc" id="afile__device__backend_8h_html"><div class="ttname"><a href="file__device__backend_8h.html">file_device_backend.h</a></div></div>
+<div class="ttc" id="aiov2__export_8h_html"><div class="ttname"><a href="iov2__export_8h.html">iov2_export.h</a></div></div>
+<div class="ttc" id="aiov2__export_8h_html_a7b01fd78d4b2344ee4df2aa21b1f7cef"><div class="ttname"><a href="iov2__export_8h.html#a7b01fd78d4b2344ee4df2aa21b1f7cef">IOV2_API</a></div><div class="ttdeci">#define IOV2_API</div><div class="ttdef"><b>定义</b> iov2_export.h:203</div></div>
+<div class="ttc" id="amem__device_8h_html"><div class="ttname"><a href="mem__device_8h.html">mem_device.h</a></div></div>
+<div class="ttc" id="amessages__backend_8h_html"><div class="ttname"><a href="messages__backend_8h.html">messages_backend.h</a></div></div>
+<div class="ttc" id="ametafunctions_8h_html"><div class="ttname"><a href="metafunctions_8h.html">metafunctions.h</a></div></div>
+<div class="ttc" id="anamespaceIOv2_1_1detail_html"><div class="ttname"><a href="namespaceIOv2_1_1detail.html">IOv2::detail</a></div><div class="ttdef"><b>定义</b> copyable_mutex.h:28</div></div>
+<div class="ttc" id="anamespaceIOv2_1_1detail_html_a0a859f2b9585d24dafff0101d5f61db8"><div class="ttname"><a href="namespaceIOv2_1_1detail.html#a0a859f2b9585d24dafff0101d5f61db8">IOv2::detail::file_tell</a></div><div class="ttdeci">std::int64_t file_tell(FILE *stream)</div><div class="ttdef"><b>定义</b> file_device_backend.h:34</div></div>
+<div class="ttc" id="anamespaceIOv2_1_1detail_html_a0f9c265e19e49b6015399ecde46b2b9c"><div class="ttname"><a href="namespaceIOv2_1_1detail.html#a0f9c265e19e49b6015399ecde46b2b9c">IOv2::detail::path_for_message</a></div><div class="ttdeci">std::string path_for_message(const std::filesystem::path &amp;p)</div><div class="ttdef"><b>定义</b> file_device_backend.h:40</div></div>
+<div class="ttc" id="anamespaceIOv2_1_1detail_html_a2dc4c301468347701e5f7ef1dcd050ec"><div class="ttname"><a href="namespaceIOv2_1_1detail.html#a2dc4c301468347701e5f7ef1dcd050ec">IOv2::detail::file_seek</a></div><div class="ttdeci">int file_seek(FILE *stream, std::int64_t offset, int origin)</div><div class="ttdef"><b>定义</b> file_device_backend.h:29</div></div>
+<div class="ttc" id="anamespaceIOv2_1_1detail_html_a4c40c6bb45c720691f8cf6b9662977fa"><div class="ttname"><a href="namespaceIOv2_1_1detail.html#a4c40c6bb45c720691f8cf6b9662977fa">IOv2::detail::to_u32string</a></div><div class="ttdeci">std::basic_string&lt; TInt &gt; to_u32string(std::string_view val, const std::string &amp;locale_name)</div><div class="ttdef"><b>定义</b> cvt_facilities.h:114</div></div>
+<div class="ttc" id="anamespaceIOv2_1_1detail_html_a59ac6540e04ec1e3832f24cc3fe227a2"><div class="ttname"><a href="namespaceIOv2_1_1detail.html#a59ac6540e04ec1e3832f24cc3fe227a2">IOv2::detail::messages_language_candidates</a></div><div class="ttdeci">std::vector&lt; std::string &gt; messages_language_candidates(const std::vector&lt; std::string &gt; &amp;names)</div><div class="ttdoc">把系统给出的语言名（BCP-47）换成 .mo 目录名的候选，按偏好顺序排列。</div><div class="ttdef"><b>定义</b> messages_details.h:96</div></div>
+<div class="ttc" id="anamespaceIOv2_1_1detail_html_a79c510f912f1e70b3ace3f93849845f8"><div class="ttname"><a href="namespaceIOv2_1_1detail.html#a79c510f912f1e70b3ace3f93849845f8">IOv2::detail::file_open</a></div><div class="ttdeci">FILE * file_open(const std::filesystem::path &amp;p, const char *mode)</div><div class="ttdef"><b>定义</b> file_device_backend.h:24</div></div>
+<div class="ttc" id="anamespaceIOv2_1_1detail_html_aa1babea415d6ad8be83c25bf553ba2c1"><div class="ttname"><a href="namespaceIOv2_1_1detail.html#aa1babea415d6ad8be83c25bf553ba2c1">IOv2::detail::to_wstring</a></div><div class="ttdeci">std::wstring to_wstring(std::string_view val, const std::string &amp;locale_name)</div><div class="ttdef"><b>定义</b> cvt_facilities.h:59</div></div>
+<div class="ttc" id="anamespaceIOv2_1_1detail_html_ab257eef12c18053d8c9a07eed5d32405"><div class="ttname"><a href="namespaceIOv2_1_1detail.html#ab257eef12c18053d8c9a07eed5d32405">IOv2::detail::get_env</a></div><div class="ttdeci">std::string get_env(const char *name)</div><div class="ttdef"><b>定义</b> env_backend.h:23</div></div>
+<div class="ttc" id="anamespaceIOv2_1_1detail_html_ad016cff036d696a8931d04c439dbd357"><div class="ttname"><a href="namespaceIOv2_1_1detail.html#ad016cff036d696a8931d04c439dbd357">IOv2::detail::messages_default_dirname</a></div><div class="ttdeci">std::filesystem::path messages_default_dirname()</div><div class="ttdef"><b>定义</b> messages_backend.h:58</div></div>
+<div class="ttc" id="anamespaceIOv2_1_1detail_html_adac81520539738d090b3f8d82e12518a"><div class="ttname"><a href="namespaceIOv2_1_1detail.html#adac81520539738d090b3f8d82e12518a">IOv2::detail::messages_system_languages</a></div><div class="ttdeci">std::vector&lt; std::string &gt; messages_system_languages()</div><div class="ttdef"><b>定义</b> messages_backend.h:69</div></div>
+<div class="ttc" id="anamespaceIOv2_html"><div class="ttname"><a href="namespaceIOv2.html">IOv2</a></div><div class="ttdef"><b>定义</b> clocale_wrapper.h:22</div></div>
+<div class="ttc" id="anamespaceIOv2_html_a083528523fff6afa2f97c71282bb9662"><div class="ttname"><a href="namespaceIOv2.html#a083528523fff6afa2f97c71282bb9662">IOv2::facet_id_t</a></div><div class="ttdeci">std::size_t facet_id_t</div><div class="ttdef"><b>定义</b> facet_common.h:83</div></div>
+<div class="ttc" id="anamespaceIOv2_html_a4d43e84ad8909b24c7ff9808c3447be3"><div class="ttname"><a href="namespaceIOv2.html#a4d43e84ad8909b24c7ff9808c3447be3">IOv2::rb_root_cvt</a></div><div class="ttdeci">rb_root_cvt(DeviceType) -&gt; rb_root_cvt&lt; DeviceType &gt;</div></div>
+<div class="ttc" id="anamespaceIOv2_html_aa906165b0856579dd626eb3c84a2a523"><div class="ttname"><a href="namespaceIOv2.html#aa906165b0856579dd626eb3c84a2a523">IOv2::wchar_t_is_utf32</a></div><div class="ttdeci">constexpr bool wchar_t_is_utf32</div><div class="ttdef"><b>定义</b> metafunctions.h:119</div></div>
+<div class="ttc" id="anamespaceIOv2_html_ae5c45ed29b875d3d35e686974d847b1ea7a86c157ee9713c34fbd7a1ee40f0c5a"><div class="ttname"><a href="namespaceIOv2.html#ae5c45ed29b875d3d35e686974d847b1ea7a86c157ee9713c34fbd7a1ee40f0c5a">IOv2::tz_level::offset</a></div><div class="ttdeci">@ offset</div><div class="ttdoc">解析 z 的 UTC 偏移；Z 仍按字面量处理。</div><div class="ttdef"><b>定义</b> timeio.h:743</div></div>
+<div class="ttc" id="anamespaceIOv2_html_aeb584ff30521cf139b523be88b7bc67c"><div class="ttname"><a href="namespaceIOv2.html#aeb584ff30521cf139b523be88b7bc67c">IOv2::wchar_t_is_utf16</a></div><div class="ttdeci">constexpr bool wchar_t_is_utf16</div><div class="ttdef"><b>定义</b> metafunctions.h:154</div></div>
+<div class="ttc" id="anamespacestd_html"><div class="ttname"><a href="namespacestd.html">std</a></div><div class="ttdef"><b>定义</b> ori_facet_buf.h:84</div></div>
+<div class="ttc" id="aroot__cvt_8h_html"><div class="ttname"><a href="root__cvt_8h.html">root_cvt.h</a></div></div>
+<div class="ttc" id="astructIOv2_1_1abs__ft_html"><div class="ttname"><a href="structIOv2_1_1abs__ft.html">IOv2::abs_ft</a></div><div class="ttdef"><b>定义</b> facet_common.h:143</div></div>
+<div class="ttc" id="astructIOv2_1_1abs__ft_html_a4ec8079b1aa8457e172036ec6b5f0587"><div class="ttname"><a href="structIOv2_1_1abs__ft.html#a4ec8079b1aa8457e172036ec6b5f0587">IOv2::abs_ft::id</a></div><div class="ttdeci">facet_id_t id() const noexcept</div><div class="ttdef"><b>定义</b> facet_common.h:199</div></div>
+<div class="ttc" id="astructIOv2_1_1abs__ft_html_af27f774be8ed056c4bcb59446e382f64"><div class="ttname"><a href="structIOv2_1_1abs__ft.html#af27f774be8ed056c4bcb59446e382f64">IOv2::abs_ft::operator=</a></div><div class="ttdeci">abs_ft &amp; operator=(const abs_ft &amp;)=delete</div></div>
+<div class="ttc" id="astructIOv2_1_1base__ft_3_01messages_01_4_1_1text__domain_html"><div class="ttname"><a href="structIOv2_1_1base__ft_3_01messages_01_4_1_1text__domain.html">IOv2::base_ft&lt; messages &gt;::text_domain</a></div><div class="ttdoc">捆绑文本域名称与其目录的辅助结构体。</div><div class="ttdef"><b>定义</b> messages_details.h:461</div></div>
+<div class="ttc" id="astructIOv2_1_1base__ft_3_01messages_01_4_1_1text__domain_html_a9f5b91c991130296c55467f639c52655"><div class="ttname"><a href="structIOv2_1_1base__ft_3_01messages_01_4_1_1text__domain.html#a9f5b91c991130296c55467f639c52655">IOv2::base_ft&lt; messages &gt;::text_domain::dirname</a></div><div class="ttdeci">std::filesystem::path dirname</div><div class="ttdoc">gettext 目录名：存放本地化文件树的目录；为空表示没有目录。</div><div class="ttdef"><b>定义</b> messages_details.h:462</div></div>
+<div class="ttc" id="astructIOv2_1_1base__ft_3_01messages_01_4_1_1text__domain_html_ae35b5652efa555a7914b224b964abc34"><div class="ttname"><a href="structIOv2_1_1base__ft_3_01messages_01_4_1_1text__domain.html#ae35b5652efa555a7914b224b964abc34">IOv2::base_ft&lt; messages &gt;::text_domain::domain</a></div><div class="ttdeci">std::string domain</div><div class="ttdoc">文本域名，即 .mo 文件的基名。</div><div class="ttdef"><b>定义</b> messages_details.h:463</div></div>
+<div class="ttc" id="astructIOv2_1_1clocale__wrapper_html"><div class="ttname"><a href="structIOv2_1_1clocale__wrapper.html">IOv2::clocale_wrapper</a></div><div class="ttdef"><b>定义</b> clocale_wrapper.h:42</div></div>
+<div class="ttc" id="astructIOv2_1_1clocale__wrapper_html_a0d42e0fdf58c9768dca5f7975aacded7"><div class="ttname"><a href="structIOv2_1_1clocale__wrapper.html#a0d42e0fdf58c9768dca5f7975aacded7">IOv2::clocale_wrapper::is_utf8</a></div><div class="ttdeci">bool is_utf8() const</div><div class="ttdef"><b>定义</b> clocale_wrapper.h:222</div></div>
+<div class="ttc" id="astructIOv2_1_1io__error_html"><div class="ttname"><a href="structIOv2_1_1io__error.html">IOv2::io_error</a></div><div class="ttdef"><b>定义</b> defs.h:134</div></div>
+</div><!-- fragment --></div><!-- contents -->
+</div><!-- doc-content -->
+</div><!-- container -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><a href="dir_d44c64559bbebec7f509842c48db8b23.html">include</a></li><li class="navelem"><a href="dir_1157f564aec2b3a7d6bde4eba89ab805.html">IOv2</a></li><li class="navelem"><a href="dir_86635f995fd9ec725e3aec943495dac7.html">facet</a></li><li class="navelem"><a href="messages__details_8h.html">messages_details.h</a></li>
+    <li class="footer">制作者 <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.14.0 </li>
+  </ul>
+</div>
+</body>
+</html>
