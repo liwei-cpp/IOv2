@@ -39,23 +39,20 @@ namespace IOv2
  * @brief `fopen` 的文件打开模式标志。
  *
  * 这个枚举类提供了一组标志，用于以类型安全的方式指定文件打开模式，
- * 例如二进制模式、截断模式等。
+ * 例如截断已有文件、已有文件时打开失败。文件在所有平台上都以二进制打开，没有对应的标志。
  * @endif
  *
  * @lang{EN}
  * @brief File opening mode flags for `fopen`.
  *
  * This enum class provides a set of flags to specify file opening modes
- * in a type-safe manner, such as binary mode, truncation, etc.
+ * in a type-safe manner, such as truncating an existing file or failing if one exists.
+ * Files open in binary on every platform, so there is no flag for it.
  * @endif
  */
 enum class file_open_flag : std::uint8_t
 {
     none        = 0,                            ///< @lang{ZH} 无特殊标志。 @endif @lang{EN} No special flags. @endif
-    /// @lang{ZH} 已废弃，不起作用：文件在所有平台上都以二进制打开，不做换行转换。保留只为兼容旧代码，将在 2.0 中删除。 @endif
-    /// @lang{EN} Deprecated, no effect: files open in binary on every platform, with no newline translation. Kept only so that existing code compiles; to be removed in 2.0. @endif
-    binary [[deprecated("file_device always opens in binary; the flag has no effect")]]
-                = 1U << 0,
     trunc       = 1U << 1,       ///< @lang{ZH} 如果文件已存在，则截断它。 @endif @lang{EN} Truncate the file if it already exists. @endif
     noreplace   = 1U << 2       ///< @lang{ZH} 如果文件已存在，则打开失败。 @endif @lang{EN} Fail to open if the file already exists. @endif
 };
@@ -640,8 +637,7 @@ private:
         using enum file_open_flag;
 
         // Always binary: a text-mode FILE translates newlines below the converters, which
-        // breaks their position arithmetic. The deprecated `binary` bit is masked off here
-        // (not named, which would warn in every user's build).
+        // breaks their position arithmetic.
         file_open_flag checkres = flags & (trunc | noreplace);
 
         if constexpr (IsIn && IsOut)

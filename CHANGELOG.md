@@ -335,12 +335,9 @@
   的 UCRT）上 `%z`、`%Z` 按"值供不出"退化为字面量，只带 `tm_gmtoff` 的只有 `%Z` 退化。此前
   在这样的平台上编译报错。
 
-#### 废弃
-
-- `file_open_flag::binary`：已不起作用，计划在 2.0 中删除。
-
 #### 移除
 
+- `file_open_flag::binary`：文件总以二进制打开（见上文“变更”），这个标志已无意义，删去即可。
 - `is_iochannel`、`is_ichannel`、`is_ochannel`、`is_ichannel_iterator`、
   `is_ochannel_iterator`、`is_stamp_input_iterator_v`、`is_mem_device` 与
   `cpt_cvt_pipe_creator`：改用 `is_specialization_of` / `specialization_of`，例如
@@ -898,13 +895,10 @@ have no release line of their own.
   cannot supply, and where it has `tm_gmtoff` alone only `%Z` does. Such platforms used to
   fail to compile.
 
-#### Deprecated
-
-- `file_open_flag::binary`: it no longer has any effect, and is to be removed in
-  2.0.
-
 #### Removed
 
+- `file_open_flag::binary`: files always open in binary (see "Changed" above), so
+  the flag means nothing any more; drop it.
 - `is_iochannel`, `is_ichannel`, `is_ochannel`, `is_ichannel_iterator`,
   `is_ochannel_iterator`, `is_stamp_input_iterator_v`, `is_mem_device` and
   `cpt_cvt_pipe_creator`: use `is_specialization_of` / `specialization_of` instead,
