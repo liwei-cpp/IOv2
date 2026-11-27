@@ -1,0 +1,23 @@
+name: Save the vcpkg binary cache
+description: >-
+  Saves the cache vcpkg-cache-restore restored, under this run's key, if vcpkg
+  added packages to it. Call it with `if: always()`: packages built before a
+  failure were built either way.
+
+inputs:
+  arch:
+    description: The architecture the packages are built for, x64 or x86.
+    default: x64
+  restored-hash:
+    description: The hash output of vcpkg-cache-restore.
+    required: true
+
+runs:
+  using: composite
+  steps:
+  - name: Save the vcpkg binary cache
+    if: always() && hashFiles('vcpkg-cache/**') != '' && hashFiles('vcpkg-cache/**') != inputs.restored-hash
+    uses: actions/cache/save@v6
+    with:
+      path: vcpkg-cache
+      key: vcpkg-${{ inputs.arch }}-${{ hashFiles('test/vcpkg.json') }}-${{ github.run_id }}-${{ github.run_attempt }}
