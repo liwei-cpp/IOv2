@@ -627,27 +627,13 @@ jobs:
         }
 
     # zlib's and Botan's headers, for the converters that include them: the same
-    # test/vcpkg.json, binary cache and cache steps as the portability jobs (see
-    # there), installed by hand since no CMake runs here. clang-tidy reads them as
-    # system headers (-isystem): since LLVM 22 it reports in every other header,
-    # and upstream's code is not ours to fix.
-    - name: Point vcpkg at the runner's checkout and a binary cache
-      shell: pwsh
-      run: |
-        "VCPKG_ROOT=$env:VCPKG_INSTALLATION_ROOT" >> $env:GITHUB_ENV
-        "VCPKG_BINARY_SOURCES=clear;files,${{ github.workspace }}\vcpkg-cache,readwrite" >> $env:GITHUB_ENV
-
+    # test/vcpkg.json and binary cache as the portability jobs, installed by hand
+    # since no CMake runs here. clang-tidy reads them as system headers
+    # (-isystem): since LLVM 22 it reports in every other header, and upstream's
+    # code is not ours to fix.
     - name: Restore the vcpkg binary cache
-      uses: actions/cache/restore@v6
-      with:
-        path: vcpkg-cache
-        key: vcpkg-x64-${{ hashFiles('test/vcpkg.json') }}-${{ github.run_id }}-${{ github.run_attempt }}
-        restore-keys: vcpkg-x64-${{ hashFiles('test/vcpkg.json') }}
-
-    - name: Note what the vcpkg cache holds
-      id: vcpkg-before
-      shell: bash
-      run: echo "hash=${{ hashFiles('vcpkg-cache/**') }}" >> "$GITHUB_OUTPUT"
+      id: vcpkg
+      uses: ./.github/actions/vcpkg-cache-restore
 
     - name: Install zlib and Botan
       shell: pwsh
@@ -656,11 +642,10 @@ jobs:
           --x-manifest-root=test --x-install-root=vcpkg_installed
 
     - name: Save the vcpkg binary cache
-      if: always() && hashFiles('vcpkg-cache/**') != '' && hashFiles('vcpkg-cache/**') != steps.vcpkg-before.outputs.hash
-      uses: actions/cache/save@v6
+      if: always()
+      uses: ./.github/actions/vcpkg-cache-save
       with:
-        path: vcpkg-cache
-        key: vcpkg-x64-${{ hashFiles('test/vcpkg.json') }}-${{ github.run_id }}-${{ github.run_attempt }}
+        restored-hash: ${{ steps.vcpkg.outputs.hash }}
 
     - name: Run clang-tidy
       shell: bash
@@ -679,11 +664,13 @@ jobs:
           -- -std=c++23 -x c++ -I include -isystem "$deps" -isystem "$deps/botan-3" \
              --target=x86_64-pc-windows-msvc
 
-  # The platforms the cross-platform port has reached. Each builds and runs the
-  # whole test suite, as the Linux jobs do; a case the platform cannot express
-  # skips there and says why; the Linux jobs above stay the full gate. No
-  # container: the GHCR image is Linux-only, and the point here is the platform's
-  # own compiler, standard library and C runtime.
+  # Windows and macOS. Each entry builds and runs the whole test suite against
+  # the source tree, as the Linux jobs do; a case the platform cannot express
+  # skips there and says why. The entries with a shared_preset then check both
+  # installed forms, as install-paths does on Linux: the headers-only package
+  # through a find_package consumer, and the shared library under the whole suite.
+  # No container: the GHCR image is Linux-only, and the point here is the
+  # platform's own compiler, standard library and C runtime.
   portability:
     name: portability (${{ matrix.name }})
     runs-on: ${{ matrix.os }}
@@ -697,6 +684,8 @@ jobs:
           - name: windows-msvc
             os: windows-latest
             preset: windows-msvc-release
+            # Found through find_package (Windows has no pkg-config).
+            shared_preset: windows-msvc-installed-shared
             jobs: 4
             keep_going: -k 0      # Ninja
           # clang-cl on the MSVC STL and UCRT -- the pairing the local
@@ -727,26 +716,13 @@ jobs:
           - name: macos-clang
             os: macos-latest
             preset: macos-clang-release
+            # Found through pkg-config.
+            shared_preset: macos-clang-installed-shared
             jobs: 3
             keep_going: -k        # make
           - name: macos-clang-asan
             os: macos-latest
             preset: macos-clang-sanitizer
-            jobs: 3
-            keep_going: -k        # make
-          # The shared library, consumed as a user would: built and installed
-          # outside the checkout first, then found through find_package on
-          # Windows (no pkg-config there) and pkg-config on macOS.
-          - name: windows-msvc-installed-shared
-            os: windows-latest
-            preset: windows-msvc-installed-shared
-            installed_shared: true
-            jobs: 4
-            keep_going: -k 0      # Ninja
-          - name: macos-installed-shared
-            os: macos-latest
-            preset: macos-clang-installed-shared
-            installed_shared: true
             jobs: 3
             keep_going: -k        # make
 
@@ -778,49 +754,100 @@ jobs:
         }
 
     # zlib and Botan. On Windows the presets install test/vcpkg.json through the
-    # runner's vcpkg during configure; building Botan takes minutes, so the built
-    # packages are cached, one cache per architecture. macOS has zlib in the SDK.
-    #
-    # vcpkg reuses a cached package only if its ABI hash still matches, which
-    # covers the compiler too: an image with a newer MSVC rebuilds. So the cache
-    # is keyed per run and restored from the latest one, and a run saves only
-    # when vcpkg added packages; a fixed key would be restored as a hit and never
-    # replaced, leaving every later run to rebuild.
-    - name: Point vcpkg at the runner's checkout and a binary cache
-      if: runner.os == 'Windows'
-      shell: pwsh
-      run: |
-        "VCPKG_ROOT=$env:VCPKG_INSTALLATION_ROOT" >> $env:GITHUB_ENV
-        "VCPKG_BINARY_SOURCES=clear;files,${{ github.workspace }}\vcpkg-cache,readwrite" >> $env:GITHUB_ENV
-
+    # runner's vcpkg during configure, from a binary cache (see the action).
+    # macOS has zlib in the SDK.
     - name: Restore the vcpkg binary cache
       if: runner.os == 'Windows'
-      uses: actions/cache/restore@v6
+      id: vcpkg
+      uses: ./.github/actions/vcpkg-cache-restore
       with:
-        path: vcpkg-cache
-        key: vcpkg-${{ matrix.arch || 'x64' }}-${{ hashFiles('test/vcpkg.json') }}-${{ github.run_id }}-${{ github.run_attempt }}
-        restore-keys: vcpkg-${{ matrix.arch || 'x64' }}-${{ hashFiles('test/vcpkg.json') }}
-
-    - name: Note what the vcpkg cache holds
-      if: runner.os == 'Windows'
-      id: vcpkg-before
-      shell: bash
-      run: echo "hash=${{ hashFiles('vcpkg-cache/**') }}" >> "$GITHUB_OUTPUT"
+        arch: ${{ matrix.arch || 'x64' }}
 
     - name: Install Botan
       if: runner.os == 'macOS'
       run: brew install botan
 
     - name: Install pkg-config
-      if: runner.os == 'macOS' && matrix.installed_shared
+      if: runner.os == 'macOS' && matrix.shared_preset
       run: brew install pkgconf
 
-    # Outside the checkout: the installed consumer refuses headers from inside the
-    # source tree. The next steps find it through CMAKE_PREFIX_PATH (Windows) or
+    - name: Configure and build
+      working-directory: test
+      run: |
+        # Keep going past a failed target: a compiler these jobs are the only
+        # ones to run (cl.exe, Apple clang) should report every error in one
+        # run, not the first one per run.
+        cmake --preset ${{ matrix.preset }}
+        cmake --build --preset ${{ matrix.preset }} --parallel ${{ matrix.jobs }} -- ${{ matrix.keep_going }}
+
+    - name: Save the vcpkg binary cache
+      if: always() && runner.os == 'Windows'
+      uses: ./.github/actions/vcpkg-cache-save
+      with:
+        arch: ${{ matrix.arch || 'x64' }}
+        restored-hash: ${{ steps.vcpkg.outputs.hash }}
+
+    - name: Run tests
+      working-directory: test
+      run: ctest --preset ${{ matrix.preset }} --parallel ${{ matrix.jobs }}
+      env:
+        ASAN_OPTIONS: halt_on_error=1
+        UBSAN_OPTIONS: halt_on_error=1:print_stacktrace=1
+
+    # The installed forms, consumed as a user would. They run even when the steps
+    # above failed, so one round reports both forms: they use nothing those steps
+    # built. Both install outside the checkout, since the installed consumers
+    # refuse headers from inside the source tree.
+    - name: Install the headers-only package and build a consumer with it
+      if: ${{ !cancelled() && matrix.shared_preset }}
+      shell: bash
+      run: |
+        if [ "$RUNNER_OS" = Windows ]; then
+          tmp="$(cygpath -m "$RUNNER_TEMP")"
+          gen=(-G Ninja)
+          export CXX=cl
+        else
+          tmp="$RUNNER_TEMP"
+          gen=()
+        fi
+        prefix="$tmp/iov2-ho"
+        cmake -S . -B build/pkg-header-only "${gen[@]}" \
+              -DCMAKE_INSTALL_PREFIX="$prefix" -DCMAKE_INSTALL_LIBDIR=lib
+        cmake --install build/pkg-header-only
+        if grep -q '^#define IOV2_SHARED 1' "$prefix/include/IOv2/common/iov2_export.h"; then
+          echo "[!] the headers-only install must not turn on IOV2_SHARED"; exit 1
+        fi
+        d="$tmp/consumer-ho"
+        mkdir -p "$d"
+        printf '%s\n' '#include <IOv2/io/objects/objects.h>' \
+          '#include <IOv2/io/traits/char_and_str.h>' \
+          'int main() { IOv2::cout << "iov2 header-only ok\n"; return 0; }' > "$d/c.cpp"
+        printf '%s\n' 'cmake_minimum_required(VERSION 3.25)' 'project(consumer LANGUAGES CXX)' \
+          'find_package(IOv2 REQUIRED)' \
+          'if(IOv2_SHARED)' '  message(FATAL_ERROR "expected the headers-only install")' 'endif()' \
+          'add_executable(consumer c.cpp)' 'target_link_libraries(consumer PRIVATE IOv2::iov2)' \
+          > "$d/CMakeLists.txt"
+        cmake -S "$d" -B "$d/build" "${gen[@]}" -DCMAKE_PREFIX_PATH="$prefix"
+        cmake --build "$d/build"
+        "$d/build/consumer" | grep -q 'iov2 header-only ok'
+        # '-' rather than '/' before dumpbin's options: Git Bash would take
+        # /dependents for a path and rewrite it.
+        if [ "$RUNNER_OS" = Windows ]; then
+          deps=$(dumpbin -nologo -dependents "$d/build/consumer.exe")
+        else
+          deps=$(otool -L "$d/build/consumer")
+        fi
+        echo "$deps"
+        if echo "$deps" | grep -Eqi 'iov2d?\.dll|libiov2'; then
+          echo "[!] the headers-only consumer depends on libiov2"; exit 1
+        fi
+
+    # The next steps find it through CMAKE_PREFIX_PATH (Windows) or
     # PKG_CONFIG_PATH (macOS), and on Windows run the tests with its bin on PATH;
     # on macOS the tests carry its lib directory as an rpath.
     - name: Build and install libiov2
-      if: matrix.installed_shared
+      id: install-shared
+      if: ${{ !cancelled() && matrix.shared_preset }}
       shell: bash
       run: |
         if [ "$RUNNER_OS" = Windows ]; then
@@ -845,27 +872,15 @@ jobs:
           echo "PKG_CONFIG_PATH=$prefix/lib/pkgconfig" >> "$GITHUB_ENV"
         fi
 
-    - name: Configure and build
+    - name: Configure and build against the installed libiov2
+      id: build-shared
+      if: ${{ !cancelled() && steps.install-shared.outcome == 'success' }}
       working-directory: test
       run: |
-        # Keep going past a failed target: a compiler these jobs are the only
-        # ones to run (cl.exe, Apple clang) should report every error in one
-        # run, not the first one per run.
-        cmake --preset ${{ matrix.preset }}
-        cmake --build --preset ${{ matrix.preset }} --parallel ${{ matrix.jobs }} -- ${{ matrix.keep_going }}
+        cmake --preset ${{ matrix.shared_preset }}
+        cmake --build --preset ${{ matrix.shared_preset }} --parallel ${{ matrix.jobs }} -- ${{ matrix.keep_going }}
 
-    # Saved even when the build fails, as long as vcpkg added packages: they were
-    # built either way.
-    - name: Save the vcpkg binary cache
-      if: always() && runner.os == 'Windows' && hashFiles('vcpkg-cache/**') != '' && hashFiles('vcpkg-cache/**') != steps.vcpkg-before.outputs.hash
-      uses: actions/cache/save@v6
-      with:
-        path: vcpkg-cache
-        key: vcpkg-${{ matrix.arch || 'x64' }}-${{ hashFiles('test/vcpkg.json') }}-${{ github.run_id }}-${{ github.run_attempt }}
-
-    - name: Run tests
+    - name: Run tests against the installed libiov2
+      if: ${{ !cancelled() && steps.build-shared.outcome == 'success' }}
       working-directory: test
-      run: ctest --preset ${{ matrix.preset }} --parallel ${{ matrix.jobs }}
-      env:
-        ASAN_OPTIONS: halt_on_error=1
-        UBSAN_OPTIONS: halt_on_error=1:print_stacktrace=1
+      run: ctest --preset ${{ matrix.shared_preset }} --parallel ${{ matrix.jobs }}

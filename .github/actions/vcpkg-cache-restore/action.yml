@@ -1,0 +1,44 @@
+name: Restore the vcpkg binary cache
+description: >-
+  Points vcpkg at the runner's checkout and at a binary cache in the workspace,
+  and restores that cache. Pair it with vcpkg-cache-save after vcpkg has run.
+
+# zlib and Botan come from test/vcpkg.json on Windows; building Botan takes
+# minutes, so the built packages are cached, one cache per architecture.
+#
+# vcpkg reuses a cached package only if its ABI hash still matches, which covers
+# the compiler too: an image with a newer MSVC rebuilds. So the cache is keyed per
+# run and restored from the latest one, and a run saves only when vcpkg added
+# packages; a fixed key would be restored as a hit and never replaced, leaving
+# every later run to rebuild.
+
+inputs:
+  arch:
+    description: The architecture the packages are built for, x64 or x86.
+    default: x64
+
+outputs:
+  hash:
+    description: What the cache held once restored; vcpkg-cache-save compares against it.
+    value: ${{ steps.note.outputs.hash }}
+
+runs:
+  using: composite
+  steps:
+  - name: Point vcpkg at the runner's checkout and a binary cache
+    shell: pwsh
+    run: |
+      "VCPKG_ROOT=$env:VCPKG_INSTALLATION_ROOT" >> $env:GITHUB_ENV
+      "VCPKG_BINARY_SOURCES=clear;files,${{ github.workspace }}\vcpkg-cache,readwrite" >> $env:GITHUB_ENV
+
+  - name: Restore the vcpkg binary cache
+    uses: actions/cache/restore@v6
+    with:
+      path: vcpkg-cache
+      key: vcpkg-${{ inputs.arch }}-${{ hashFiles('test/vcpkg.json') }}-${{ github.run_id }}-${{ github.run_attempt }}
+      restore-keys: vcpkg-${{ inputs.arch }}-${{ hashFiles('test/vcpkg.json') }}
+
+  - name: Note what the vcpkg cache holds
+    id: note
+    shell: bash
+    run: echo "hash=${{ hashFiles('vcpkg-cache/**') }}" >> "$GITHUB_OUTPUT"
