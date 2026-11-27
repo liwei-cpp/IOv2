@@ -20,7 +20,8 @@
 通过将 I/O 操作解耦为**物理访问 (Device)**、**表示变换 (Converter)** 以及**语义解释 (Facet/Locale)** 三个独立维度，IOv2 允许开发者通过简单的链式组合（Pipeline）来实现复杂的流处理逻辑。
 
 ### 核心特性
-- **Header-Only 库**：直接引入 `include` 目录即可使用，无需复杂的编译链接过程。
+- **Header-Only 库**：直接引入 `include` 目录即可使用，无需复杂的编译链接过程；进程里有多个模块用到 IOv2 时改用共享库，见下文“使用方式”。
+- **跨平台**：支持 Linux、macOS 与 Windows，见下文“开发环境与测试”。
 - **高度可组合**：使用 `operator|` 像搭积木一样自由串联转换器。
 - **基于 C++20 Concepts 的类型安全**：采用 Concepts 形式化描述原子能力（如读、写、定位），提供清晰的编译期约束与错误提示。
 - **零开销抽象**：大量使用模板元编程与静态多态，确保架构灵活性不以牺牲性能为代价。
@@ -110,28 +111,13 @@ struct io_traits<TChar, my_point>
 - 上面是**迭代器形式**，格式化 I/O 用这一档。操纵符用的是**流形式**——`static void swrite(T& s, const my_point& v)` / `sread`，直接拿到流本身，**不加锁、不建哨兵**，需要就自己来。两种形式靠参数个数区分，一个特化**只能提供其中一种**：两种都提供是编译错误。库内置的操纵符没有 `operator()`，逻辑全在扩展点里，`os << m` / `is >> m` 是仅有的入口；标准的 `std::ws(is)` / `std::endl(os)` 直接调用形式在本库不存在。
 - **扩展只能走特化 `io_traits` 这一条路，不要在自己的命名空间里写 `operator<<` / `operator>>`。** 加锁、建哨兵、消费 `width` / `fill`、把异常转交 `handle_exception`——这些都是运算符的职责，手写一条就全部绕开了，而且在多线程下不再与其它插入互斥。特化扩展点则完全没有这个问题：它不参与重载决议，运算符照常负责上述全部工作。真要给某个类型两条路都留（既特化了 `io_traits`，又自己写了一条运算符），两条候选同样好，调用点就是二义性错误。
 
+用错类型时没有可行重载，编译器报的是通用的 `no match for 'operator<<'`；忘了 include 对应的 `IOv2/io/traits/*.h` 也是这一条报错，遇到它先检查 include。
+
 细节（含提取端可选的 `parse_context_type` 中转）见 `IOv2/io/traits/traits_base.h` 的文件头注释。
 
-### 从 `writer` / `reader` 迁移
+### 从 1.x 升级
 
-上一版有三套并行的"把 I/O 逻辑挂到类型上"的机制：类模板 `writer` / `reader`、方向标签基类 `in_manip` / `out_manip`（配一对 `= delete` 重载）、以及每侧六条运算符重载。现在只剩一个扩展点 `io_traits`，每侧两条运算符（泛型的那条，加一条收 `ios_base` 函数指针操纵符的）。破坏面如下：
-
-| 旧写法 | 新写法 |
-| --- | --- |
-| `#include <io/fp_defs/xxx.h>` | `#include <IOv2/io/traits/xxx.h>`；`base_fp.h` → `traits_base.h` |
-| `struct writer<TChar, T> { swrite(...); };` | `struct io_traits<TChar, T> { swrite(...); };`，`swrite` 签名不变 |
-| `struct reader<TChar, T> { sread(...); };` | 同一个 `io_traits<TChar, T>` 里的 `sread`，签名不变 |
-| 分别特化 `writer` 和 `reader` | 在**同一个** `io_traits` 特化里同时给出 `swrite` 与 `sread` |
-| `is_writer_def<TChar, T>` / `is_reader_def<TChar, T>` | 已删除。问"能不能流"直接写 `requires { os << v; }` / `requires { is >> v; }` |
-| 操纵符派生 `in_manip` / `out_manip` 并写 `operator()` | 特化 `io_traits`，写**流形式**的 `swrite(T& s, const M& m)` / `sread(T& s, const M& m)`；方向由哪个成员存在决定，两个标签基类和那对 `= delete` 重载一并消失 |
-| `setw(5)(os)`、`ws(is)`、`endl(os)` 直接调用 | 没有了。只能写 `os << setw(5)`、`is >> ws`、`os << endl` |
-| `os << std::function<void(ios_base<TChar>&)>{f}` | 没有了。操纵符只认**函数指针**一种形状；无捕获 lambda 写 `+lambda` 退化，带状态的操纵符请走流形式 |
-| `parse_context_type` | 保留，从旧路径 `io/fp_defs/base_fp.h` 挪到 `IOv2/io/traits/traits_base.h`，用法不变 |
-
-另有两处行为变化：
-
-- **异常只在运算符里接一次。** 操纵符不再有 `operator()`，也就不再各自 try/catch；`os << m` / `is >> m` 里抛出的一切统一由运算符转交 `handle_exception`。
-- **用错类型时的报错措辞变了。** 旧的泛型运算符无约束，用错会撞上函数体里的 `static_assert`，能区分"根本没有 `io_traits`"和"有 `io_traits` 但这个方向没成员"。现在运算符带约束，用错类型就是**没有可行重载**，编译器给的是通用的 `no match for 'operator<<'`。这是换取可探测性必须付的代价：定制诊断需要无约束的运算符，而无约束的运算符没法被 `requires` 探测，二者不可兼得。**忘了 include 对应的 `IOv2/io/traits/*.h` 现在也是这一条报错，遇到它先检查 include。**
+2.0 有不兼容的改动，逐条列在 [`CHANGELOG.md`](CHANGELOG.md) 的“变更”与“移除”中。
 
 ### 使用方式：Header-Only 与共享库（DSO/DLL）
 
@@ -240,9 +226,16 @@ make IOV2_PKG=iov2-shared   # 共享 .so（无需 -DIOV2_SHARED）
 
 ### 开发环境与测试
 - **标准**：C++23 及以上。
-- **平台**：目前只支持 **Linux + glibc + libstdc++**，CI 也只覆盖这套环境。`std_device` 直接使用 POSIX 接口，`timeio`、`numeric` 用到 glibc 的 `nl_langinfo` 扩展项（`_NL_TIME_ERA_*`、`YESSTR`/`NOSTR` 等），macOS 与 Windows 尚未适配。
-- **编译器**：GCC 15+ 或 Clang 19+ (建议配合 libstdc++)。
-- **依赖**：核心头文件库本身无需构建，但部分特性依赖 `zlib` 和 `Botan`。
+- **平台与编译器**：下表是 CI 实际构建并跑全部测试的组合，更早的编译器版本未经测试。
+
+  | 平台 | 编译器 | 标准库 |
+  | --- | --- | --- |
+  | Linux（glibc） | GCC 15、Clang 19 | libstdc++ |
+  | macOS 26（Apple silicon） | Apple clang 21（Xcode 26） | libc++ |
+  | Windows（x64、x86） | MSVC 19.52（Visual Studio 2026）；clang-cl 22，仅 x64 | MSVC STL |
+
+  个别功能与行为随平台而异，例如 Windows 上 `wchar_t` 是 UTF-16；`collate<char32_t>` 只在 glibc 上提供；没有时区数据库的平台（macOS）上 `%Z` 只认 `UTC` 与 `UNKNOWN`。详见各接口的文档与 [`CHANGELOG.md`](CHANGELOG.md)。
+- **依赖**：核心头文件库本身无需构建，只依赖 C++ 标准库（macOS 上另需系统的 CoreFoundation）；压缩与哈希转换器分别依赖 zlib 与 Botan 3。
 
 **运行测试**
 `test` 目录包含了所有的单元测试与验证程序，由 CMake/CTest 构建，按目录划分成套件。测试套件是独立于根目录打包工程的 CMake 工程，根就是 `test` 目录，以下命令都在该目录下执行。运行测试前，请确保系统中已安装必要的依赖（如 `botan-3` 和 `zlib` 开发包）。
@@ -254,6 +247,8 @@ cmake --build --preset gcc-release --parallel "$(nproc)"     # 编译全部
 ctest --preset gcc-release --parallel             # 运行全部套件
 ctest --preset gcc-release -L io                  # 只跑 IO 模块
 ```
+其它平台换用相应的 preset：macOS 上为 `macos-clang-release`（Botan 用 Homebrew 安装）；Windows 上为 `windows-msvc-release` 或 `windows-clangcl-release`，要在 MSVC 开发者命令行中运行，并把 `VCPKG_ROOT` 指向一份 vcpkg，zlib 与 Botan 在配置时按 `test/vcpkg.json` 安装。
+
 构建产物位于仓库根目录的 `build/<preset>/`，不再污染源码树。更多用法（sanitizer、Valgrind、覆盖率、如何新增测试文件）参见 `test/README.md`，可用配置见 `cmake --list-presets`。
 
 ### 许可证
@@ -285,7 +280,8 @@ IOv2 依据 **MIT 许可证**分发，全文见 [`LICENSE`](LICENSE)。
 By decoupling I/O into three orthogonal dimensions—**Physical Access (Device)**, **Representation Transformation (Converter)**, and **Semantic Interpretation (Facet/Locale)**—IOv2 enables developers to build complex processing pipelines through simple composition.
 
 ### Key Features
-- **Header-Only Library**: Simply include the files from the `include` directory. No complex build or linking phase for the core library.
+- **Header-Only Library**: Simply include the files from the `include` directory. No complex build or linking phase for the core library; when more than one module in a process uses IOv2, switch to the shared library — see "Usage Modes" below.
+- **Cross-Platform**: Linux, macOS and Windows — see "Development Environment & Tests" below.
 - **Highly Composable**: Use `operator|` to chain converters like building blocks.
 - **Type-Safe with C++20 Concepts**: Formalizes atomic capabilities (e.g., Read, Write, Seek) using Concepts for robust compile-time validation.
 - **Zero-Overhead Abstraction**: Powered by template metaprogramming and static polymorphism to ensure maximum flexibility without runtime penalties.
@@ -373,28 +369,13 @@ Four things to know:
 - The above is the **iterator form**, used by formatted I/O. Manipulators use the **stream form** instead -- `static void swrite(T& s, const my_point& v)` / `sread`, which get the stream itself with **no lock and no sentry**; do it yourself if you need one. The two forms are told apart by arity, and a specialization may provide **only one of them**: providing both is a compile error. The library's own manipulators have no `operator()`: all their logic lives in the extension point and `os << m` / `is >> m` is the only entry, so the standard's direct-call forms `std::ws(is)` and `std::endl(os)` do not exist here.
 - **Specializing `io_traits` is the only supported way to extend; do not write your own `operator<<` / `operator>>` in your namespace.** Taking the lock, building the sentry, consuming `width` / `fill`, and routing exceptions to `handle_exception` are the operator's job, and a hand-written one bypasses all of it -- including mutual exclusion with other insertions under threads. The extension point has none of that risk: it does not take part in overload resolution, and the operator still does all of the above. And if you do both for one type -- specialize `io_traits` *and* write your own operator -- the two candidates are equally good and the call site is an ambiguity error.
 
+A wrong type leaves no viable overload, and the compiler reports its generic `no match for 'operator<<'`; a forgotten `IOv2/io/traits/*.h` include produces the same error, so check your includes first when you see it.
+
 For the details -- including the optional `parse_context_type` relay on the extraction side -- see the file-level comment in `IOv2/io/traits/traits_base.h`.
 
-### Migrating from `writer` / `reader`
+### Upgrading from 1.x
 
-The previous version had three parallel mechanisms for attaching I/O logic to a type: the `writer` / `reader` class templates, the `in_manip` / `out_manip` direction tag bases (with a matching pair of `= delete` overloads), and six operator overloads per side. All of it is now one extension point, `io_traits`, and two operators per side (the generic one, plus one that takes an `ios_base` function-pointer manipulator). The break surface:
-
-| Old | New |
-| --- | --- |
-| `#include <io/fp_defs/xxx.h>` | `#include <IOv2/io/traits/xxx.h>`; `base_fp.h` → `traits_base.h` |
-| `struct writer<TChar, T> { swrite(...); };` | `struct io_traits<TChar, T> { swrite(...); };` -- `swrite`'s signature is unchanged |
-| `struct reader<TChar, T> { sread(...); };` | `sread` in that same `io_traits<TChar, T>`, signature unchanged |
-| Specializing `writer` and `reader` separately | Give `swrite` and `sread` in **one** `io_traits` specialization |
-| `is_writer_def<TChar, T>` / `is_reader_def<TChar, T>` | Removed. To ask whether a type is streamable, write `requires { os << v; }` / `requires { is >> v; }` |
-| A manipulator deriving from `in_manip` / `out_manip` with an `operator()` | Specialize `io_traits` with the **stream form** `swrite(T& s, const M& m)` / `sread(T& s, const M& m)`; the direction comes from which member exists, and both tag bases and the `= delete` pair are gone with them |
-| Direct calls `setw(5)(os)`, `ws(is)`, `endl(os)` | Gone. Write `os << setw(5)`, `is >> ws`, `os << endl` |
-| `os << std::function<void(ios_base<TChar>&)>{f}` | Gone. A function pointer is the only manipulator shape accepted; a capture-less lambda can be written `+lambda` to decay, and a stateful manipulator belongs in the stream form |
-| `parse_context_type` | Kept, moved from the old path `io/fp_defs/base_fp.h` to `IOv2/io/traits/traits_base.h`; usage unchanged |
-
-Two behavioural changes come with it:
-
-- **Exceptions are caught once, in the operator.** Manipulators no longer have an `operator()` and so no longer try/catch individually; everything thrown out of `os << m` / `is >> m` is handed to `handle_exception` by the operator.
-- **The wording you get for a wrong type changed.** The old generic operators were unconstrained, so a wrong type hit a `static_assert` in the body that distinguished "no `io_traits` at all" from "an `io_traits` exists but has no member for this direction". The operators are constrained now, so a wrong type simply leaves **no viable overload** and the compiler emits its generic `no match for 'operator<<'`. That is the price of detectability: a tailored diagnostic needs an unconstrained operator, and an unconstrained operator cannot be probed with `requires` -- you cannot have both. **A forgotten `IOv2/io/traits/*.h` include now produces this same error, so check your includes first when you see it.**
+2.0 has incompatible changes, each listed under "Changed" and "Removed" in [`CHANGELOG.md`](CHANGELOG.md).
 
 ### Usage Modes: Header-Only vs Shared Library (DSO/DLL)
 
@@ -504,9 +485,16 @@ Thread safety is provided **at the stream-object layer**: every stream owns a re
 
 ### Development Environment & Tests
 - **Standard**: C++23 or later.
-- **Platform**: **Linux with glibc and libstdc++** only, which is also all CI covers. `std_device` uses POSIX calls directly, and `timeio` and `numeric` rely on glibc's `nl_langinfo` extensions (`_NL_TIME_ERA_*`, `YESSTR`/`NOSTR`); macOS and Windows are not yet supported.
-- **Compiler**: GCC 15+ or Clang 19+ (with libstdc++ recommended).
-- **Dependencies**: The core library requires no build, but specific converters depend on `zlib` and `Botan`.
+- **Platforms and compilers**: the combinations below are the ones CI builds and runs the whole test suite on; older compilers are untested.
+
+  | Platform | Compiler | Standard library |
+  | --- | --- | --- |
+  | Linux (glibc) | GCC 15, Clang 19 | libstdc++ |
+  | macOS 26 (Apple silicon) | Apple clang 21 (Xcode 26) | libc++ |
+  | Windows (x64, x86) | MSVC 19.52 (Visual Studio 2026); clang-cl 22, x64 only | MSVC STL |
+
+  A few features and behaviours differ by platform: for example, `wchar_t` is UTF-16 on Windows, `collate<char32_t>` is provided on glibc only, and where there is no time-zone database (macOS) `%Z` knows only `UTC` and `UNKNOWN`. See each interface's documentation and [`CHANGELOG.md`](CHANGELOG.md).
+- **Dependencies**: The core library requires no build and depends only on the C++ standard library (plus the system's CoreFoundation on macOS); the compression and hashing converters depend on zlib and Botan 3 respectively.
 
 **Running Tests**
 The `test` directory contains all unit tests, built by CMake/CTest as one suite per directory. The test suite is a CMake project of its own, separate from the root packaging project and rooted at `test`, and the commands below run there. Ensure you have the necessary dependencies installed (e.g., `botan-3` and `zlib` development packages).
@@ -518,6 +506,8 @@ cmake --build --preset gcc-release --parallel "$(nproc)"     # build everything
 ctest --preset gcc-release --parallel             # run every suite
 ctest --preset gcc-release -L io                  # run the IO module only
 ```
+Other platforms use their own presets: `macos-clang-release` on macOS (with Botan from Homebrew); `windows-msvc-release` or `windows-clangcl-release` on Windows, run from an MSVC developer command prompt with `VCPKG_ROOT` naming a vcpkg checkout, where zlib and Botan are installed from `test/vcpkg.json` at configure time.
+
 Build output goes to `build/<preset>/` at the repository root rather than into the source tree. For sanitizers, Valgrind, coverage and how to add a test file, see `test/README.md`; `cmake --list-presets` lists the available configurations.
 
 ### License
