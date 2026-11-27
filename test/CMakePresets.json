@@ -214,6 +214,12 @@
       "cacheVariables": { "IOV2_TEST_MODE": "sanitizer" }
     },
     {
+      "name": "macos-clang-tsan",
+      "inherits": "macos",
+      "displayName": "Apple clang, ThreadSanitizer (concur only)",
+      "cacheVariables": { "IOV2_TEST_MODE": "tsan" }
+    },
+    {
       "name": "macos-clang-installed-shared",
       "inherits": "macos",
       "displayName": "Apple clang, release, against an installed libiov2.dylib",
@@ -249,6 +255,12 @@
       "name": "gcc-tsan",
       "configurePreset": "gcc-tsan",
       "description": "Only the concur module (the concur and concur.streams suites) runs threads; TSan has nothing to observe elsewhere, and building the rest would cost minutes to inspect executions that cannot race.",
+      "targets": [ "test_concur", "test_concur_streams" ]
+    },
+    {
+      "name": "macos-clang-tsan",
+      "configurePreset": "macos-clang-tsan",
+      "description": "As gcc-tsan: only the concur module runs threads.",
       "targets": [ "test_concur", "test_concur_streams" ]
     }
   ],
@@ -286,6 +298,14 @@
       "name": "gcc-tsan",
       "configurePreset": "gcc-tsan",
       "description": "Repeated because a race is only reported when the schedule actually exercises it; one clean run is weaker evidence than several.",
+      "output": { "outputOnFailure": true },
+      "filter": { "include": { "label": "concur" } },
+      "execution": { "repeat": { "mode": "until-fail", "count": 10 } }
+    },
+    {
+      "name": "macos-clang-tsan",
+      "configurePreset": "macos-clang-tsan",
+      "description": "As gcc-tsan: repeated, because a race is only reported when the schedule exercises it.",
       "output": { "outputOnFailure": true },
       "filter": { "include": { "label": "concur" } },
       "execution": { "repeat": { "mode": "until-fail", "count": 10 } }

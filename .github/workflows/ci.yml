@@ -669,6 +669,8 @@ jobs:
   # skips there and says why. The entries with a shared_preset then check both
   # installed forms, as install-paths does on Linux: the headers-only package
   # through a find_package consumer, and the shared library under the whole suite.
+  # A few entries carry one more check, each explained at its matrix field:
+  # shared_configs, headers_alone, locales and tsan_preset.
   # No container: the GHCR image is Linux-only, and the point here is the
   # platform's own compiler, standard library and C runtime.
   portability:
@@ -698,6 +700,11 @@ jobs:
           - name: windows-msvc-debug
             os: windows-latest
             preset: windows-msvc-debug
+            # The Release and Debug libraries (iov2, iov2d) installed into one
+            # prefix: each consumer configuration links its own, and the two
+            # mistakes the README says fail the build -- /MT in shared mode, and a
+            # configuration that does not match the import library -- do.
+            shared_configs: true
             jobs: 4
             keep_going: -k 0      # Ninja
           - name: windows-msvc-asan
@@ -718,11 +725,28 @@ jobs:
             preset: macos-clang-release
             # Found through pkg-config.
             shared_preset: macos-clang-installed-shared
+            # Every public header compiled on its own. The clang-tidy jobs do this
+            # on libstdc++ and the MSVC STL, which include different headers
+            # transitively than libc++ does; in the tests another header usually
+            # supplies what one forgot.
+            headers_alone: true
+            # The suite again under each, as the build jobs do on Linux: the
+            # shapes of their IOV2_LOCALES that macOS ships, in its own names
+            # (cs_CZ.ISO8859-2; zh_CN.eucCN stands in for zh_CN.GBK). macOS's
+            # facets have a backend and locale data of their own.
+            locales: >-
+              en_US.UTF-8 zh_CN.UTF-8 de_DE.UTF-8 de_CH.UTF-8 fr_CA.UTF-8
+              tr_TR.UTF-8 zh_CN.eucCN cs_CZ.ISO8859-2 ru_RU.KOI8-R
             jobs: 3
             keep_going: -k        # make
           - name: macos-clang-asan
             os: macos-latest
             preset: macos-clang-sanitizer
+            # The concur module under ThreadSanitizer, as thread-safety does with
+            # g++ on Linux: libc++ and Darwin's threads are other code for TSan
+            # to watch (libc++'s std::mutex has a destructor that does something
+            # only on Apple platforms, which #585 ran into).
+            tsan_preset: macos-clang-tsan
             jobs: 3
             keep_going: -k        # make
 
@@ -772,6 +796,7 @@ jobs:
       run: brew install pkgconf
 
     - name: Configure and build
+      id: build
       working-directory: test
       run: |
         # Keep going past a failed target: a compiler these jobs are the only
@@ -794,10 +819,113 @@ jobs:
         ASAN_OPTIONS: halt_on_error=1
         UBSAN_OPTIONS: halt_on_error=1:print_stacktrace=1
 
-    # The installed forms, consumed as a user would. They run even when the steps
-    # above failed, so one round reports both forms: they use nothing those steps
-    # built. Both install outside the checkout, since the installed consumers
-    # refuse headers from inside the source tree.
+    # The checks below run even when the suite failed, so one round reports them
+    # all; each needs only what it names in its condition.
+    - name: Run tests across locales
+      if: ${{ !cancelled() && matrix.locales && steps.build.outcome == 'success' }}
+      working-directory: test
+      run: |
+        # No rebuild, as on Linux. An unknown name would only make setlocale fall
+        # back to C, and the run would pass testing nothing, so each is looked up.
+        for loc in ${{ matrix.locales }}; do
+          if ! locale -a | grep -x "$loc" > /dev/null; then
+            echo "[!] locale $loc is not available on this runner"; exit 1
+          fi
+          echo "=== LC_ALL=$loc (charmap $(LC_ALL="$loc" locale charmap))"
+          LC_ALL="$loc" ctest --preset ${{ matrix.preset }} --parallel ${{ matrix.jobs }} \
+            || { echo "[!] ctest failed under LC_ALL=$loc"; exit 1; }
+        done
+
+    - name: Compile every public header on its own
+      if: ${{ !cancelled() && matrix.headers_alone }}
+      run: |
+        # As IOv2::iov2 compiles a consumer: C++23 and the POSIX feature-test
+        # macro. Botan is Homebrew's; zlib comes with the SDK.
+        # shellcheck disable=SC2016 # the inner sh expands them
+        find include/IOv2 -name '*.h' -not -path '*/platform/windows/*' | sort |
+          xargs -P ${{ matrix.jobs }} -I{} sh -c '
+            out=$(clang++ -std=c++23 -D_POSIX_C_SOURCE=200809L -fsyntax-only -x c++ \
+                  -Wno-pragma-once-outside-header -Iinclude -isystem "$1" "$2" 2>&1) ||
+              { printf "[!] %s does not compile on its own:\n%s\n" "$2" "$out"; exit 1; }' \
+            _ "$(brew --prefix)/include/botan-3" {}
+
+    - name: Run the concurrency tests under ThreadSanitizer
+      if: ${{ !cancelled() && matrix.tsan_preset }}
+      working-directory: test
+      run: |
+        cmake --preset ${{ matrix.tsan_preset }}
+        cmake --build --preset ${{ matrix.tsan_preset }} --parallel ${{ matrix.jobs }}
+        ctest --preset ${{ matrix.tsan_preset }}
+      env:
+        TSAN_OPTIONS: halt_on_error=1:exitcode=66:history_size=7
+
+    - name: Install the Release and Debug libiov2 into one prefix, and link each
+      id: configs
+      if: ${{ !cancelled() && matrix.shared_configs }}
+      shell: bash
+      run: |
+        tmp="$(cygpath -m "$RUNNER_TEMP")"
+        prefix="$tmp/iov2-configs"
+        export CXX=cl
+        for cfg in Release Debug; do
+          cmake -S . -B "build/pkg-shared-$cfg" -G Ninja -DIOV2_BUILD_SHARED=ON \
+                -DCMAKE_BUILD_TYPE=$cfg -DCMAKE_INSTALL_PREFIX="$prefix" -DCMAKE_INSTALL_LIBDIR=lib
+          cmake --build "build/pkg-shared-$cfg" --parallel ${{ matrix.jobs }}
+          cmake --install "build/pkg-shared-$cfg"
+        done
+        for f in bin/iov2.dll bin/iov2d.dll lib/iov2.lib lib/iov2d.lib; do
+          test -e "$prefix/$f" || { echo "[!] $f is missing from the prefix"; exit 1; }
+        done
+        d="$tmp/consumer-configs"
+        mkdir -p "$d"
+        printf '%s\n' '#include <IOv2/io/objects/objects.h>' \
+          '#include <IOv2/io/traits/char_and_str.h>' \
+          'int main() { IOv2::cout << "iov2 configs ok\n"; return 0; }' > "$d/c.cpp"
+        printf '%s\n' 'cmake_minimum_required(VERSION 3.25)' 'project(consumer LANGUAGES CXX)' \
+          'find_package(IOv2 REQUIRED)' \
+          'add_executable(consumer c.cpp)' 'target_link_libraries(consumer PRIVATE IOv2::iov2)' \
+          > "$d/CMakeLists.txt"
+        # RelWithDebInfo uses the release CRT, so the package maps it to Release.
+        bin="$(cygpath -u "$prefix/bin")"
+        export PATH="$bin:$PATH"
+        for cfg in Debug Release RelWithDebInfo; do
+          [ "$cfg" = Debug ] && want=iov2d.dll || want=iov2.dll
+          cmake -S "$d" -B "$d/build-$cfg" -G Ninja -DCMAKE_BUILD_TYPE=$cfg -DCMAKE_PREFIX_PATH="$prefix"
+          cmake --build "$d/build-$cfg"
+          got=$(dumpbin -nologo -dependents "$d/build-$cfg/consumer.exe" \
+                | grep -Eio 'iov2d?\.dll' | tr '[:upper:]' '[:lower:]' | sort -u | tr '\n' ' ')
+          echo "$cfg consumer links: $got"
+          [ "$got" = "$want " ] || { echo "[!] a $cfg consumer must link $want alone"; exit 1; }
+          "$d/build-$cfg/consumer" | grep -q 'iov2 configs ok'
+        done
+
+    - name: The CRT and configuration mistakes fail the build
+      if: ${{ !cancelled() && steps.configs.outcome == 'success' }}
+      shell: bash
+      run: |
+        tmp="$(cygpath -m "$RUNNER_TEMP")"
+        prefix="$tmp/iov2-configs"
+        d="$tmp/consumer-configs"
+        # Each must fail, and on the diagnostic the library gives for it; '-' for
+        # cl's options, which Git Bash would rewrite as paths after a '/'.
+        expect_fail() {
+          what=$1 pattern=$2; shift 2
+          if out=$("$@" 2>&1); then echo "[!] $what built"; exit 1; fi
+          echo "$out" | grep -qF -- "$pattern" \
+            || { echo "$out"; echo "[!] $what failed, but not on $pattern"; exit 1; }
+          echo "OK: $what fails on $pattern"
+        }
+        cxx=(cl -nologo -std:c++latest -EHsc -I"$prefix/include")
+        expect_fail "/MT in shared mode" "needs the dynamic CRT" \
+          "${cxx[@]}" -MT -c "$d/c.cpp" -Fo"$d/mt.obj"
+        expect_fail "/MDd against iov2.lib" "pin_module_of_mdd(" \
+          "${cxx[@]}" -MDd "$d/c.cpp" -Fo"$d/mdd.obj" -Fe"$d/mdd.exe" -link "$prefix/lib/iov2.lib"
+        expect_fail "/MD against iov2d.lib" "pin_module_of_md(" \
+          "${cxx[@]}" -MD "$d/c.cpp" -Fo"$d/md.obj" -Fe"$d/md.exe" -link "$prefix/lib/iov2d.lib"
+
+    # The installed forms, consumed as a user would. Both install outside the
+    # checkout, since the installed consumers refuse headers from inside the
+    # source tree.
     - name: Install the headers-only package and build a consumer with it
       if: ${{ !cancelled() && matrix.shared_preset }}
       shell: bash
