@@ -174,32 +174,32 @@ struct basic_stream_common_operators
      * All four special members set the destination's tie target to `nullptr`; a move
      * additionally clears the source. **Self-assignment is the exception**; see below.
      *
- * @note **Why it is not carried over.** A tie edge is not a "value" but this node's outgoing
- *       edge in the tie graph, bound to object identity -- the same choice `copyable_mutex`
- *       makes, whose copy/move are likewise no-ops.
- * @note **Not carrying it over is also required for correctness.** If assignment moved the
- *       source's tie edge into the destination, that would write `m_tie_stream` while
- *       bypassing `tie()`, whose cycle check (`check_tie`) is the only place the
- *       "graph is acyclic" invariant is enforced. For instance
- *       `b.tie(&c); c.tie(&a); a = b;` closes the cycle `a→c→a` without a single `tie()`
- *       call, after which every `tie()` whose walk reaches that cycle is refused (`check_tie`
- *       finds it with Floyd's cycle detection, and `tie()` reports that the chain already
- *       contains one).
- * @note **Why a move also clears the source.** The tie edge is functional state that drives
- *       flushing, like `m_channel` and `m_locale`, which a move also empties. Without
- *       clearing, a moved-from stream would keep silently flushing a target the caller believed
- *       it had long since given up.
- * @note **`device()` and `detach()` must not be called inside the moved-from window.** A
- *       moved-from stream can be revived **only by assignment**; `attach()` cannot revive it
- *       (its converter has been emptied -- see `attach()`). Until it is revived it holds no
- *       device -- which is precisely what those two functions require -- so calling them
- *       meanwhile is undefined behavior. The other operations are unaffected and keep turning
- *       errors into state bits as usual.
- * @note **Self-assignment never gets here, so the tie edge is left as it was.** Copy and move
- *       assignment on `istream` / `ostream` / `iostream` all short-circuit further out with
- *       `if (this == &other) return *this;`, so `a = a` and `a = std::move(a)` never reach this
- *       class's `operator=`. That is deliberate: self-assignment ought to be the identity. A new
- *       stream type should follow suit.
+     * @note **Why it is not carried over.** A tie edge is not a "value" but this node's outgoing
+     *       edge in the tie graph, bound to object identity -- the same choice `copyable_mutex`
+     *       makes, whose copy/move are likewise no-ops.
+     * @note **Not carrying it over is also required for correctness.** If assignment moved the
+     *       source's tie edge into the destination, that would write `m_tie_stream` while
+     *       bypassing `tie()`, whose cycle check (`check_tie`) is the only place the
+     *       "graph is acyclic" invariant is enforced. For instance
+     *       `b.tie(&c); c.tie(&a); a = b;` closes the cycle `a→c→a` without a single `tie()`
+     *       call, after which every `tie()` whose walk reaches that cycle is refused (`check_tie`
+     *       finds it with Floyd's cycle detection, and `tie()` reports that the chain already
+     *       contains one).
+     * @note **Why a move also clears the source.** The tie edge is functional state that drives
+     *       flushing, like `m_channel` and `m_locale`, which a move also empties. Without
+     *       clearing, a moved-from stream would keep silently flushing a target the caller believed
+     *       it had long since given up.
+     * @note **`device()` and `detach()` must not be called inside the moved-from window.** A
+     *       moved-from stream can be revived **only by assignment**; `attach()` cannot revive it
+     *       (its converter has been emptied -- see `attach()`). Until it is revived it holds no
+     *       device -- which is precisely what those two functions require -- so calling them
+     *       meanwhile is undefined behavior. The other operations are unaffected and keep turning
+     *       errors into state bits as usual.
+     * @note **Self-assignment never gets here, so the tie edge is left as it was.** Copy and move
+     *       assignment on `istream` / `ostream` / `iostream` all short-circuit further out with
+     *       `if (this == &other) return *this;`, so `a = a` and `a = std::move(a)` never reach this
+     *       class's `operator=`. That is deliberate: self-assignment ought to be the identity. A new
+     *       stream type should follow suit.
      * @warning This means a stream's tie relationship is **not** preserved across a copy or a
      *          move; call `tie()` again. Note also that moving a stream which is **someone
      *          else's** tie target does not update the streams pointing at it -- they still
@@ -499,24 +499,24 @@ struct basic_stream_common_operators
      * failure until the caller remembered to `clear()`, which breaks the "install another device
      * and retry" recovery path.
      *
- * @note Clearing has to come **before** the replacement, or the failure path is left holding a
- *       mixture of old and new: the underlying `iochannel::attach()` installs the new device
- *       first and initializes the converter second, with no rollback. Clearing first leaves a
- *       state that describes only this `attach()`.
- * @warning It is the **first** step that throws: `root_cvt::attach()` starts by detaching the old
- *          device, which in the output direction `flush()`es it, and it holds that write failure
- *          back to rethrow at the very end (`root_cvt.h:476-486`). The exception thus comes from
- *          winding up the **old** device, and the new one is installed by then -- but precisely
- *          because it is thrown in the first step, the second step (`bos()` / `main_cont_beg()`)
- *          does not run: the converter is left in `io_status::neutral`, every later read or write
- *          throws `cvt_error`, and `clear()` cannot recover it -- only another `attach()` can.
+     * @note Clearing has to come **before** the replacement, or the failure path is left holding a
+     *       mixture of old and new: the underlying `iochannel::attach()` installs the new device
+     *       first and initializes the converter second, with no rollback. Clearing first leaves a
+     *       state that describes only this `attach()`.
+     * @warning It is the **first** step that throws: `root_cvt::attach()` starts by detaching the old
+     *          device, which in the output direction `flush()`es it, and it holds that write failure
+     *          back to rethrow at the very end (`root_cvt.h:476-486`). The exception thus comes from
+     *          winding up the **old** device, and the new one is installed by then -- but precisely
+     *          because it is thrown in the first step, the second step (`bos()` / `main_cont_beg()`)
+     *          does not run: the converter is left in `io_status::neutral`, every later read or write
+     *          throws `cvt_error`, and `clear()` cannot recover it -- only another `attach()` can.
      *
- * @note An exception thrown while installing the device goes to `handle_exception`: the matching
- *       failure bit is set, and whether it is rethrown follows the stream's exception mask. This
- *       is unlike a **constructor**, where C++ requires an exception from the member initializer
- *       list to propagate. So along the "default-construct, then `attach()`" lifecycle the
- *       construction step may throw and the `attach()` step will not. `detach()` likewise does
- *       not throw; it returns the error as an `exception_ptr`.
+     * @note An exception thrown while installing the device goes to `handle_exception`: the matching
+     *       failure bit is set, and whether it is rethrown follows the stream's exception mask. This
+     *       is unlike a **constructor**, where C++ requires an exception from the member initializer
+     *       list to propagate. So along the "default-construct, then `attach()`" lifecycle the
+     *       construction step may throw and the `attach()` step will not. `detach()` likewise does
+     *       not throw; it returns the error as an `exception_ptr`.
      * @warning Like `detach()`, this operation holds `io_mutex()` throughout, so clearing the
      *          state and replacing the device are atomic together as far as other threads are
      *          concerned. It is still a construction-like lifecycle operation: a concurrent

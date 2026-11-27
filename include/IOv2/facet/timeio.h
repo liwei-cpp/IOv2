@@ -757,7 +757,7 @@ template <tz_level> struct time_zone_parse_helper
  * @brief 解析时区字段的辅助结构（`tz_level::offset` 特化）。
  *
  * 作为 `time_parse_context` 的基类，累积从 `%z` 解析到的 UTC 偏移，以及 `%Z` 读到的原文
- * ——按 tzdb 的身份分存 @ref m_zone_name 与 @ref m_zone_abbrev 两处，但本档只记不解析，
+ * ——按 tzdb 的身份分存 `m_zone_name` 与 `m_zone_abbrev` 两处，但本档只记不解析，
  * 定位是 `tz_level::zone` 档的事。
  *
  * @note 此结构为内部实现细节；请通过 `time_parse_context` 访问其功能。
@@ -767,7 +767,7 @@ template <tz_level> struct time_zone_parse_helper
  * @brief Time-zone-field accumulator helper struct (`tz_level::offset` specialization).
  *
  * Serves as a base class of `time_parse_context`, accumulating the UTC offset parsed from `%z`
- * together with the raw text read by `%Z`, filed into @ref m_zone_name and @ref m_zone_abbrev
+ * together with the raw text read by `%Z`, filed into `m_zone_name` and `m_zone_abbrev`
  * according to what the tzdb says it is. This tier only records that text; resolving it is
  * `tz_level::zone`'s business.
  *
@@ -842,8 +842,8 @@ struct time_zone_parse_helper<tz_level::offset>
  * @lang{ZH}
  * @brief 解析时区字段的辅助结构（`tz_level::zone` 特化）。
  *
- * 在 `tz_level::offset` 的存储之上，把那一档记下来的 @ref
- * time_zone_parse_helper<tz_level::offset>::m_zone_name 真正拿去用：在转换时以
+ * 在 `tz_level::offset` 的存储之上，把那一档记下来的
+ * `time_zone_parse_helper<tz_level::offset>::m_zone_name` 真正拿去用：在转换时以
  * `std::chrono::locate_zone()` 还原为 `const std::chrono::time_zone*`，并提供解析不出时区
  * 时的回退时区。标准库没有时区数据库（`IOV2_HAS_CHRONO_TZDB` 为 0）时，这两样都不存在，
  * 本档只记下 `%Z` 的原文。
@@ -855,7 +855,7 @@ struct time_zone_parse_helper<tz_level::offset>
  * @brief Time-zone-field accumulator helper struct (`tz_level::zone` specialization).
  *
  * On top of the `tz_level::offset` storage, this is the tier that actually puts that tier's
- * @ref time_zone_parse_helper<tz_level::offset>::m_zone_name to use: it resolves it to a
+ * `time_zone_parse_helper<tz_level::offset>::m_zone_name` to use: it resolves it to a
  * `const std::chrono::time_zone*` on conversion via `std::chrono::locate_zone()`, and offers a
  * fallback zone for when the parse yields none. With no time-zone database in the standard
  * library (`IOV2_HAS_CHRONO_TZDB` is 0) neither exists, and this tier only records the text
@@ -1013,7 +1013,7 @@ struct time_zone_parse_helper<tz_level::zone>
      *
      * 三个状态，别把后两个混为一谈：
      * - `nullptr`：`%Z` 压根没解析到（格式串里没有，或者有但没匹配上）；
-     * - 指向空串：解析到了 @ref base_ft<timeio>::s_unknown_zone，即文本明说「没有时区」；
+     * - 指向空串：解析到了 @ref base_ft<timeio>::s_unknown_zone "base_ft<timeio>::s_unknown_zone"，即文本明说「没有时区」；
      * - 指向非空串：解析到了真实的缩写或区名，原文逐字节保留，不做规范化。
      *
      * 于是有两个不同的判据，别互相顶替：问「有没有时区」用 `p && *p`（与 put 侧
@@ -1812,7 +1812,7 @@ struct time_value_fields<std::tm>
  *
  * 能否供出 `%Z` 只看值类型，不看运行期取值：带 `tm_zone` 成员的平台上，`std::tm` 的 `%Z`
  * 对**任何**取值都写得出内容——有名字写名字，`tm_zone` 为空指针或空串则写
- * @ref base_ft<timeio>::s_unknown_zone（`UNKNOWN`）。该记号也在时区前缀树里注册，
+ * @ref base_ft<timeio>::s_unknown_zone "base_ft<timeio>::s_unknown_zone"（`UNKNOWN`）。该记号也在时区前缀树里注册，
  * 因此写得出就读得回。真正没有时区概念的类型（`local_time`、`year_month_day`、
  * `hh_mm_ss`）的 `%Z` 才退化为字面量。
  *
@@ -2209,7 +2209,7 @@ public:
      * get 两侧对称（见类说明）。退化不置失败位，所以给 `year_month_day` 写 `%c` 会得到一串
      * `%H:%M:%S`，给 `local_time` 写 `%c` 会在 en_US 得到一个字面 `%Z`，而这些都要等看见输出
      * 才发现。本函数只看 `TVal` 这个**类型**：它决定了能供出哪几类字段——日期、星期、时分秒、
-     * UTC 偏移、区域身份，见 @ref time_value_fields——正如它决定了 `put` / `get` 走哪一条路。
+     * UTC 偏移、区域身份，见 @ref time_value_fields "time_value_fields"——正如它决定了 `put` / `get` 走哪一条路。
      * 逐个说明符按 put 的同一张表判断，供不出的摘掉；不在本库支持集内的说明符（如 `%Q`）
      * 以及非法的修饰符组合（如 `%Oc`）落在同一条规则里。既然只用得上类型，本函数就不收值参数，
      * 手上没有现成对象时也能调。
@@ -2230,7 +2230,7 @@ public:
      *
      * @note 判据是类型，不是值，而 put 侧与之严丝合缝：`std::tm` 只要平台上带 `tm_zone` 字段
      *       就算供得出 `%Z`，而 put 对这样的 `tm` 也确实总写得出内容——`tm_zone` 为空时写
-     *       @ref base_ft<timeio>::s_unknown_zone。因此保留下来的说明符 put 一定供得出，
+     *       @ref base_ft<timeio>::s_unknown_zone "base_ft<timeio>::s_unknown_zone"。因此保留下来的说明符 put 一定供得出，
      *       没有"表说供得出、运行期却退化"的缝隙。
      * @note `%EY` **不展开**：纪元格式取决于年份落在哪个纪元，是值相关的，静态展不开。它照样
      *       参与过滤，供不出就摘掉。
@@ -2322,14 +2322,14 @@ public:
      *
      * 把 `format`（以及可选的 `modifier`）组合为 `%[modifier]format` 后委托给
      * `expand_format<TVal>(fmt)`，与单字符形式的 `put` 一一对应。供不出时返回空串。
-     * @tparam TVal 时间值类型，见 @ref time_value_fields。
+     * @tparam TVal 时间值类型，见 @ref time_value_fields "time_value_fields"。
      * @param format   说明符字符。
      * @param modifier `E` / `O` 修饰符，`0` 表示没有。
      * @return 展开并过滤后的格式串。
      * @endif
      *
      * @lang{EN}
-     * @brief The single-character form of @ref expand_format: what one specifier expands and
+     * @brief The single-character form of @ref expand_format "expand_format": what one specifier expands and
      *        filters down to.
      *
      * Composes `format` (and the optional `modifier`) into `%[modifier]format` and delegates to
@@ -2425,8 +2425,8 @@ public:
      * @tparam TVal  时间值类型（`year_month_day`、`hh_mm_ss`、`zoned_time` 或 `std::tm`）。
      * @param out      输出迭代器。
      * @param t        要格式化的时间值。
-     * @param format   格式字符（如 `'Y'`、`'m'`、`'d'`）。
-     * @param modifier 可选修饰符（`'E'`、`'O'` 或 `0` 表示无修饰符）。
+     * @param format   格式字符（如 `Y`、`m`、`d`）。
+     * @param modifier 可选修饰符（`E`、`O`，`0` 表示无修饰符）。
      * @return 写入后的输出迭代器。
      * @note 值无法提供的说明符不构成错误，会原样写出 `%` + 修饰符 + 说明符字符；
      *       详见 `timeio` 的类说明。
@@ -2441,8 +2441,8 @@ public:
      * @tparam TVal  Time value type (`year_month_day`, `hh_mm_ss`, `zoned_time`, or `std::tm`).
      * @param out      The output iterator.
      * @param t        The time value to format.
-     * @param format   The format character (e.g. `'Y'`, `'m'`, `'d'`).
-     * @param modifier Optional modifier (`'E'`, `'O'`, or `0` for none).
+     * @param format   The format character (e.g. `Y`, `m`, `d`).
+     * @param modifier Optional modifier (`E`, `O`, or `0` for none).
      * @return The output iterator after writing.
      * @note A specifier this value cannot supply is not an error: the `%`, the modifier
      *       and the specifier character are written out unchanged. See the `timeio`
@@ -2584,7 +2584,7 @@ public:
      * 这是 tz_level::offset 那一档在 put 侧的对应物：墙上时间加偏移，没有区域身份。
      * `%z` 写 @p offset；`%Z` 无内容可写，按未知说明符原样透传。`%c` / `%X` / `%r` 用
      * locale 自己那一份格式串，本机 890 个 locale 里有 185 个的 `%c` 自带 `%Z`，此时那个
-     * `%Z` 同样退化为字面量。要一份不含时区字段的格式串，把它交给 @ref expand_format。
+     * `%Z` 同样退化为字面量。要一份不含时区字段的格式串，把它交给 @ref expand_format "expand_format"。
      *
      * 因为多了 @p offset 这个参数，单字符形式的 `put(out, t, 'z')` 到不了这个重载。
      * @tparam OutIt    输出迭代器类型。
@@ -2742,7 +2742,7 @@ public:
      * @note **时区取自扩展成员。** 当前平台的 `std::tm` 带 `tm_gmtoff` 时（POSIX.1-2024 起
      *       是标准成员，glibc / BSD / macOS 一直都有），`%z` 写它的值；带 `tm_zone` 时
      *       `%Z` 写它，`tm_zone` 为空指针或空串则写
-     *       @ref base_ft<timeio>::s_unknown_zone。成员的有无按成员探测，不看平台宏：
+     *       @ref base_ft<timeio>::s_unknown_zone "base_ft<timeio>::s_unknown_zone"。成员的有无按成员探测，不看平台宏：
      *       不带 `tm_gmtoff` 的平台（Windows 的 UCRT）上 `%z` 与 `%Z` 都按"值供不出"退化为
      *       字面量；只带 `tm_gmtoff` 的平台上只有 `%Z` 退化。标准库没有时区数据库
      *       （`IOV2_HAS_CHRONO_TZDB` 为 0，如 macOS）时 `%Z` 也退化：`tm_zone` 里的缩写
@@ -2848,8 +2848,8 @@ public:
      * @param beg      输入范围起始迭代器。
      * @param end      输入范围结束哨兵。
      * @param ctx      累积解析结果的上下文（in/out）。
-     * @param format   格式字符（如 `'Y'`、`'m'`、`'d'`）。
-     * @param modifier 可选修饰符（`'E'`、`'O'` 或 `0` 表示无修饰符）。
+     * @param format   格式字符（如 `Y`、`m`、`d`）。
+     * @param modifier 可选修饰符（`E`、`O`，`0` 表示无修饰符）。
      * @return 指向未被消费的第一个字符的迭代器。
      * @throw stream_error 若解析失败。
      * @note 上下文无法接收的说明符不构成错误，会转而要求输入中出现 `%` + 修饰符 +
@@ -2870,8 +2870,8 @@ public:
      * @param beg      Beginning of the input range.
      * @param end      End sentinel of the input range.
      * @param ctx      Parse context accumulating results (in/out).
-     * @param format   The format character (e.g. `'Y'`, `'m'`, `'d'`).
-     * @param modifier Optional modifier (`'E'`, `'O'`, or `0` for none).
+     * @param format   The format character (e.g. `Y`, `m`, `d`).
+     * @param modifier Optional modifier (`E`, `O`, or `0` for none).
      * @return Iterator pointing to the first unconsumed character.
      * @throw stream_error If parsing fails.
      * @note A specifier the context cannot receive is not an error: the input is instead

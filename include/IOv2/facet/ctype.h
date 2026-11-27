@@ -359,7 +359,7 @@ public:
      * 当 `self.narrow(c)` 不返回值时，`def` 原样返回；本函数**不**验证 `def` 在目标
      * locale 中是否可表示。按照惯例（与 `std::ctype::narrow` 一致），调用方应传入基本源
      * 字符集中的成员——通常是可打印的 ASCII 字节，如 `'?'`——以确保回退字符在任何编码
-     * 下均有意义。传入任意字节（如 `'\xFF'`）会被静默接受，但可能产生在 locale 编码中
+     * 下均有意义。传入任意字节（如 `'\\xFF'`）会被静默接受，但可能产生在 locale 编码中
      * 不是合法独立字符的输出。
      * @endif
      *
@@ -373,7 +373,7 @@ public:
      * convention (matching `std::ctype::narrow`) callers should pass a member of the
      * basic source character set — typically a printable ASCII byte such as `'?'` —
      * so the fallback is meaningful in any encoding. Passing an arbitrary byte (e.g.
-     * `'\xFF'`) is accepted silently and may yield output that is not a valid standalone
+     * `'\\xFF'`) is accepted silently and may yield output that is not a valid standalone
      * character in the locale's encoding.
      * @endif
      *
@@ -452,6 +452,7 @@ public:
  * 上会即时生效，但在本特化上**不会**生效：本特化在构造时捕获了一次性快照，之后永远
  * 不再查询 conf。需要动态变化单字节行为的调用方应在每次修改后重建一个新的 `ctype<CharT>`，
  * 或提供一个不做快照的自定义 `ctype<CharT>`。
+ * @endif
  *
  * @tparam CharT
  * @lang{ZH} 单字节字符类型，须满足 `sizeof(CharT) == 1`。 @endif
@@ -683,6 +684,7 @@ private:
  * 每次调用时的实时结果。重写须在 `is`/`toupper`/`tolower`（以及在语义上要求的
  * `is`/`widen`/`narrow`）之间保持自洽，以确保无论经由哪条分支服务，同一字符都产生
  * 相同的结果。
+ * @endif
  *
  * @tparam CharT
  * @lang{ZH} 多字节字符类型，须满足 `sizeof(CharT) > 1`。 @endif

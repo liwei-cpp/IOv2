@@ -40,7 +40,7 @@ namespace IOv2::detail
 {
 /**
  * @lang{ZH}
- * messages 缓存的键：`(domain, lang, dirname, cvt)`。
+ * messages 缓存的键是四元组 `(domain, lang, dirname, cvt)`。
  *
  * 采用程序定义的结构体而非 `std::tuple`，以便为其特化 `std::hash`——`lru_cache`
  * 以 `std::hash<TK>` 为键，而标准库不为 `std::tuple` 提供 `std::hash`。各分量保持

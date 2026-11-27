@@ -528,11 +528,11 @@ public:
      * root layer has no configurable conversion behavior.
      * @endif
      *
-     * @param
+     * @param behavior
      * @lang{ZH} 忽略的行为配置对象。 @endif
      * @lang{EN} Ignored behavior configuration object. @endif
      */
-    void adjust(const cvt_behavior&) {}
+    void adjust([[maybe_unused]] const cvt_behavior& behavior) {}
 
     /**
      * @lang{ZH}
@@ -544,11 +544,11 @@ public:
      * produces no status that needs to be propagated upward.
      * @endif
      *
-     * @param
+     * @param status
      * @lang{ZH} 忽略的状态输出对象。 @endif
      * @lang{EN} Ignored status output object. @endif
      */
-    void retrieve(cvt_status&) const {}
+    void retrieve([[maybe_unused]] cvt_status& status) const {}
 
     /**
      * @lang{ZH}
@@ -1452,21 +1452,21 @@ public:
      * @lang{ZH} 调整转换器行为参数，对此特化为空操作。 @endif
      * @lang{EN} Adjusts converter behavior parameters; no-op for this specialization. @endif
      *
-     * @param
+     * @param behavior
      * @lang{ZH} 忽略的行为配置对象。 @endif
      * @lang{EN} Ignored behavior configuration object. @endif
      */
-    void adjust(const cvt_behavior&) {}
+    void adjust([[maybe_unused]] const cvt_behavior& behavior) {}
 
     /**
      * @lang{ZH} 检索转换器状态，对此特化为空操作。 @endif
      * @lang{EN} Retrieves converter status; no-op for this specialization. @endif
      *
-     * @param
+     * @param status
      * @lang{ZH} 忽略的状态输出对象。 @endif
      * @lang{EN} Ignored status output object. @endif
      */
-    void retrieve(cvt_status&) const {}
+    void retrieve([[maybe_unused]] cvt_status& status) const {}
 
     /**
      * @lang{ZH}
@@ -1830,11 +1830,11 @@ public:
      * @lang{ZH} 重置读取状态，对此特化为空操作（缓冲区由内核管理）。 @endif
      * @lang{EN} Resets read state; no-op for this specialization as the buffer is managed by the kernel. @endif
      *
-     * @param
+     * @param size
      * @lang{ZH} 忽略的缓冲区大小参数。 @endif
      * @lang{EN} Ignored buffer size parameter. @endif
      */
-    void reset(std::size_t) {}
+    void reset([[maybe_unused]] std::size_t size) {}
 
     /**
      * @lang{ZH}
@@ -2197,11 +2197,11 @@ public:
      * @lang{ZH} 重置读取状态，对此特化为空操作（mem_device 自管理缓冲区）。 @endif
      * @lang{EN} Resets read state; no-op for this specialization as mem_device manages its own buffer. @endif
      *
-     * @param
+     * @param size
      * @lang{ZH} 忽略的缓冲区大小参数。 @endif
      * @lang{EN} Ignored buffer size parameter. @endif
      */
-    void reset(std::size_t) {}
+    void reset([[maybe_unused]] std::size_t size) {}
 
     /**
      * @lang{ZH}
@@ -2316,11 +2316,11 @@ public:
      * @lang{ZH} 重置写入状态，对此特化为空操作（mem_device 自管理缓冲区大小）。 @endif
      * @lang{EN} Resets write state; no-op for this specialization as mem_device manages its own buffer size. @endif
      *
-     * @param
+     * @param size
      * @lang{ZH} 忽略的缓冲区大小参数。 @endif
      * @lang{EN} Ignored buffer size parameter. @endif
      */
-    void reset(std::size_t) {}
+    void reset([[maybe_unused]] std::size_t size) {}
 
     /**
      * @lang{ZH}

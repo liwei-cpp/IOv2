@@ -335,6 +335,10 @@ namespace IOv2::FacetHelper
      * `100€`（€ 为 `E2 82 AC`）读出 100，`€` 留在输入里。迭代器无法退回时结果为
      * `punct_kind::torn`，已读的字符丢失。
      *
+     * @param beg 输入的当前位置，随识别结果前进或退回。
+     * @param end 输入的末尾。
+     * @param sep 千位分隔符；不参与识别时为空串。
+     * @param point 小数点；不参与识别时为空串。
      * @param consume_point 为 `false` 时，识别出的小数点不读过（多字符的小数点已读的部分
      *        尽量退回）——整数解析在小数点前停下，把它留在输入里。
      * @endif
@@ -351,6 +355,10 @@ namespace IOv2::FacetHelper
      * `E2 82 AC`) reads as 100 and leaves the `€` in the input. Where the iterator cannot
      * put them back the result is `punct_kind::torn`, and the characters read are lost.
      *
+     * @param beg The current input position, moved on or put back as the result requires.
+     * @param end The end of the input.
+     * @param sep The thousands separator; empty when it does not take part.
+     * @param point The decimal point; empty when it does not take part.
      * @param consume_point With `false`, a decimal point found is not read past (the part
      *        of a multi-character one already read is put back if possible): integer
      *        parsing stops in front of the point and leaves it in the input.

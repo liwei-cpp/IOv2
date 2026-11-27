@@ -450,38 +450,38 @@ struct out_tie_target : public tie_target
      *       （两者一个在插入侧、一个在提取侧，方向正好相反）。
      * @endif
      *
- * @lang{EN}
- * @brief Flushes along the tie chain on a best-effort basis: first `try_flush()`es this
- *        stream's tie target recursively, then this stream -- `flush()`ing it if the lock can be
- *        taken, giving up otherwise.
- *
- * **A tie is chained**: after `A.tie(&B); B.tie(&C);`, an I/O on `A` flushes `C` and then `B`,
- * the same order as a standard stream's "flush the tie target before flushing". The downstream
- * step is unconditional -- it runs whether or not this stream's lock can be taken and whatever
- * state this stream is in; each link is best-effort on its own. The recursion happens before
- * this stream's lock is taken, so at any moment at most one stream lock besides the initiator's
- * is held. It always terminates: `tie()` refuses to form a cycle at set time (see `check_tie`).
- *
- * The lock is always taken with `std::try_to_lock`, for at most three attempts with a yield in
- * between. Giving up leaves nothing pending; that tie flush is simply skipped. Raising the
- * attempt count does not buy safety: in a genuine AB-BA the other thread is blocked on a lock
- * this thread holds, so every attempt is doomed.
- *
- * When the flush fails, the exception lands on *this* stream (the tie target) through
- * `handle_exception<true>()`: the matching failure bit is set, the original exception is stored
- * in the matching `m_exp_*_fail` slot, and the function returns. The initiator is left untouched
- * -- see the second `@warning` on `tie_target::try_flush()` for why. The mask-ignoring form is
- * required here: the mask-honoring one would reach `clear()`'s rethrow branch, which empties the
- * slot it just filled, leaving no exception object at all for exactly those users who put the bit
- * in `exceptions()`.
- *
- * @note Consequently **the tie target's exception mask does not apply on this path**, by
- *       design: the only stack available belongs to an unrelated stream, so an exception has
- *       nowhere to be delivered. The failure is reported through this stream's state bits and
- *       `m_exp_*_fail`. This differs from the standard library, where the tie target's mask
- *       aborts the *initiator's* operation -- libstdc++ and libc++ both do this, on opposite
- *       sides (insertion and extraction respectively).
- * @endif
+     * @lang{EN}
+     * @brief Flushes along the tie chain on a best-effort basis: first `try_flush()`es this
+     *        stream's tie target recursively, then this stream -- `flush()`ing it if the lock can be
+     *        taken, giving up otherwise.
+     *
+     * **A tie is chained**: after `A.tie(&B); B.tie(&C);`, an I/O on `A` flushes `C` and then `B`,
+     * the same order as a standard stream's "flush the tie target before flushing". The downstream
+     * step is unconditional -- it runs whether or not this stream's lock can be taken and whatever
+     * state this stream is in; each link is best-effort on its own. The recursion happens before
+     * this stream's lock is taken, so at any moment at most one stream lock besides the initiator's
+     * is held. It always terminates: `tie()` refuses to form a cycle at set time (see `check_tie`).
+     *
+     * The lock is always taken with `std::try_to_lock`, for at most three attempts with a yield in
+     * between. Giving up leaves nothing pending; that tie flush is simply skipped. Raising the
+     * attempt count does not buy safety: in a genuine AB-BA the other thread is blocked on a lock
+     * this thread holds, so every attempt is doomed.
+     *
+     * When the flush fails, the exception lands on *this* stream (the tie target) through
+     * `handle_exception<true>()`: the matching failure bit is set, the original exception is stored
+     * in the matching `m_exp_*_fail` slot, and the function returns. The initiator is left untouched
+     * -- see the second `@warning` on `tie_target::try_flush()` for why. The mask-ignoring form is
+     * required here: the mask-honoring one would reach `clear()`'s rethrow branch, which empties the
+     * slot it just filled, leaving no exception object at all for exactly those users who put the bit
+     * in `exceptions()`.
+     *
+     * @note Consequently **the tie target's exception mask does not apply on this path**, by
+     *       design: the only stack available belongs to an unrelated stream, so an exception has
+     *       nowhere to be delivered. The failure is reported through this stream's state bits and
+     *       `m_exp_*_fail`. This differs from the standard library, where the tie target's mask
+     *       aborts the *initiator's* operation -- libstdc++ and libc++ both do this, on opposite
+     *       sides (insertion and extraction respectively).
+     * @endif
      */
     void try_flush() noexcept final
     {
@@ -839,11 +839,11 @@ struct ostream_operators
      *          `flush()` therefore **does not** mean the bytes will never reach the device. To
      *          really discard them, `detach()` and drop the device handed back, or `clear()`
      *          first and then `flush()`.
- * @note The above mirrors the standard library rather than being peculiar to this library:
- *       `std::ofstream::flush()` on a failed stream writes nothing either, while
- *       `~basic_ofstream()` still flushes the put area, for the same layering reason. This
- *       library has no `close()`; the nearest thing, `detach()`, hands the first exception
- *       raised during cleanup back to the caller as an `exception_ptr`.
+     * @note The above mirrors the standard library rather than being peculiar to this library:
+     *       `std::ofstream::flush()` on a failed stream writes nothing either, while
+     *       `~basic_ofstream()` still flushes the put area, for the same layering reason. This
+     *       library has no `close()`; the nearest thing, `detach()`, hands the first exception
+     *       raised during cleanup back to the caller as an `exception_ptr`.
      * @tparam TSelf The concrete derived stream type (deduced via deducing-this).
      * @endif
      */
