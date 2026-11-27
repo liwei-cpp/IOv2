@@ -398,6 +398,7 @@ private:
  *
  * 对超出 `wchar_t` 表示范围的 `char32_t` 值（由 `out_of_wchar_range` 检测），`is`
  * 返回 0，`toupper`/`tolower` 原样返回输入，`narrow` 返回 `std::nullopt`。
+ * @endif
  *
  * @tparam CharT
  * @lang{ZH}

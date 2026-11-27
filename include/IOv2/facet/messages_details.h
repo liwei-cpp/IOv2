@@ -198,7 +198,7 @@ public:
      * 绑定空路径表示该域没有翻译：不会退回缺省目录，也不会在当前工作目录下查找。相对路径
      * 在每次查找时按当时的工作目录解析。
      *
-     * @param domain 文本域名称（`.mo` 文件的基名）。
+     * @param domain 文本域名称，即 `.mo` 文件的基名。
      * @param dirname 存放该域本地化文件的目录路径（gettext 的 `dirname`）。
      * @endif
      *
@@ -460,7 +460,7 @@ protected:
     struct text_domain
     {
         std::filesystem::path dirname;  ///< @lang{ZH} gettext 目录名：存放本地化文件树的目录；为空表示没有目录。 @endif @lang{EN} gettext dirname: the directory holding the locale tree; empty for none. @endif
-        std::string domain;   ///< @lang{ZH} 文本域名：`.mo` 文件的基名。 @endif @lang{EN} text domain: the `.mo` file's basename. @endif
+        std::string domain;   ///< @lang{ZH} 文本域名，即 `.mo` 文件的基名。 @endif @lang{EN} text domain: the `.mo` file's basename. @endif
     };
 
     /**
@@ -974,12 +974,18 @@ public:
     /**
      * @lang{ZH}
      * @overload
+     * @param domain 文本域名称。
+     * @param lang 候选语言字符串，或空字符串，同上一个重载。
      * @param dirname 域目录名；为空时由 `domain` 解析得到，否则直接使用它。
+     * @param throw_if_fail 加载失败时是否抛出异常，同上一个重载。
      * @endif
      *
      * @lang{EN}
      * @overload
+     * @param domain The text domain name.
+     * @param lang The candidate language string, or empty, as in the overload above.
      * @param dirname The domain dirname; empty derives it from `domain`, otherwise it is used directly.
+     * @param throw_if_fail Whether a loading failure throws, as in the overload above.
      * @endif
      */
     template <std::same_as<bool> B = bool>
@@ -1132,12 +1138,18 @@ public:
     /**
      * @lang{ZH}
      * @overload
+     * @param domain 文本域名称。
+     * @param lang 候选语言字符串，或空字符串，同上一个重载。
      * @param dirname 域目录名；为空时由 `domain` 解析得到，否则直接使用它。
+     * @param throw_if_fail 加载失败时是否抛出异常，同上一个重载。
      * @endif
      *
      * @lang{EN}
      * @overload
+     * @param domain The text domain name.
+     * @param lang The candidate language string, or empty, as in the overload above.
      * @param dirname The domain dirname; empty derives it from `domain`, otherwise it is used directly.
+     * @param throw_if_fail Whether a loading failure throws, as in the overload above.
      * @endif
      */
     template <std::same_as<bool> B = bool>
@@ -1315,12 +1327,20 @@ public:
     /**
      * @lang{ZH}
      * @overload
+     * @param domain 文本域名称。
+     * @param lang 候选语言字符串，或空字符串，同上一个重载。
+     * @param cvt_ft 决定字符串编码的 locale 名，同上一个重载。
      * @param dirname 域目录名；为空时由 `domain` 解析得到，否则直接使用它。
+     * @param throw_if_fail 加载失败时是否抛出异常，同上一个重载。
      * @endif
      *
      * @lang{EN}
      * @overload
+     * @param domain The text domain name.
+     * @param lang The candidate language string, or empty, as in the overload above.
+     * @param cvt_ft The name of the locale whose encoding the strings are in, as in the overload above.
      * @param dirname The domain dirname; empty derives it from `domain`, otherwise it is used directly.
+     * @param throw_if_fail Whether a loading failure throws, as in the overload above.
      * @endif
      */
     template <std::same_as<bool> B = bool>

@@ -67,7 +67,7 @@ namespace IOv2
      *
      * 两者同时成立的条目确实存在——本机 8 条（`CET`、`EET`、`EST`、`GMT`、`HST`、`MST`、
      * `UTC`、`WET`），它们既是 link 名又是缩写——所以这里必须是两个标志位，一个三值枚举
-     * 表达不了。两者都不成立的那一格留给 @ref base_ft<timeio>::s_unknown_zone：那个记号
+     * 表达不了。两者都不成立的那一格留给 @ref base_ft<timeio>::s_unknown_zone "base_ft<timeio>::s_unknown_zone"：那个记号
      * 解析得出来，但它什么区也不指。
      *
      * @ref text 是键的原文，**逐字节等于输入**，且随树活到程序结束，因此 `text.c_str()`
@@ -88,7 +88,7 @@ namespace IOv2
      * Entries where both hold do exist -- eight of them here (`CET`, `EET`, `EST`, `GMT`,
      * `HST`, `MST`, `UTC`, `WET`), each both a link name and an abbreviation -- so two flags
      * are required and a three-valued enumeration cannot express this. The combination where
-     * neither holds is reserved for @ref base_ft<timeio>::s_unknown_zone: that token parses,
+     * neither holds is reserved for @ref base_ft<timeio>::s_unknown_zone "base_ft<timeio>::s_unknown_zone": that token parses,
      * but it names no zone at all.
      *
      * @ref text is the key verbatim, **byte for byte what was parsed**, and it lives as long
@@ -126,8 +126,8 @@ namespace IOv2
      * `base_ft<TFacet>` 是 `abs_ft` 与各 `ft_basic<TFacet<CharT>>` 之间的桥接层（见
      * facet_common.h），同一 facet 模板的所有字符特化共享同一个它。放在这里的东西因此
      * 全程序只有一份：
-     * - @ref s_unknown_zone：`%Z` 在区名未知时写出的记号；
-     * - @ref s_timezone_tree：时区名与缩写的前缀树。
+     * - @ref s_unknown_zone "s_unknown_zone"：`%Z` 在区名未知时写出的记号；
+     * - @ref s_timezone_tree "s_timezone_tree"：时区名与缩写的前缀树。
      *
      * 这两项都以字节（`char`）表述，与 `CharT` 无关：tzdb 里的区名、缩写与 link 全在
      * ASCII 范围内，各字符类型看到的是同一串码点，没有按字符类型各存一份的理由。早先
@@ -144,8 +144,8 @@ namespace IOv2
      * `base_ft<TFacet>` is the bridge between `abs_ft` and each `ft_basic<TFacet<CharT>>`
      * (see facet_common.h), and every character specialization of one facet template shares
      * a single one of it. What lives here therefore exists once per program:
-     * - @ref s_unknown_zone: the token `%Z` writes when the zone name is unknown;
-     * - @ref s_timezone_tree: the prefix trie of zone names and abbreviations.
+     * - @ref s_unknown_zone "s_unknown_zone": the token `%Z` writes when the zone name is unknown;
+     * - @ref s_timezone_tree "s_timezone_tree": the prefix trie of zone names and abbreviations.
      *
      * Both are spelled in bytes (`char`) and owe nothing to `CharT`: every zone name,
      * abbreviation and link in the tzdb is within ASCII, so each character type sees the very
@@ -225,7 +225,7 @@ namespace IOv2
 
         /**
          * @lang{ZH}
-         * @brief 时区标识符与缩写的静态前缀树，值为 @ref zone_ref。
+         * @brief 时区标识符与缩写的静态前缀树，值为 @ref zone_ref "zone_ref"。
          *
          * 在程序启动时通过 `std::chrono::get_tzdb()` 构建，收三类键（三者可以重合，
          * 身份由 @ref zone_ref 的两个标志位表达，不是三选一）：
@@ -502,7 +502,7 @@ namespace IOv2
      * - 静态 `id()` 方法：返回 `timeio` facet 在 facet_store 中的唯一类型标识。
      *
      * 与字符类型无关的时区数据（@ref base_ft<timeio>::s_timezone_tree 与
-     * @ref base_ft<timeio>::s_unknown_zone）不在这里，而在中间基类 `base_ft<timeio>`
+     * @ref base_ft<timeio>::s_unknown_zone "base_ft<timeio>::s_unknown_zone"）不在这里，而在中间基类 `base_ft<timeio>`
      * 中，因而所有字符类型共用一份；经继承仍可由本类的名字访问。
      *
      * @tparam CharT 字符类型。
@@ -841,7 +841,7 @@ std::basic_string<CharT> timeio_ascii(std::string_view text)
  * @brief 把 locale 提供的时间格式串归一化为本库 `timeio` 能识别的形式。
  *
  * C 库给出的格式串（POSIX 上来自 `nl_langinfo()`）是 locale 数据，不是用户写的；其中可能出现 glibc 的
- * 扩展语法，而本库的 `timeio` 只实现 `'%' [E|O]? <说明符>` 这一标准文法。若原样保留，
+ * 扩展语法，而本库的 `timeio` 只实现标准文法（`%`、可选的修饰符 `E` 或 `O`、说明符）。若原样保留，
  * `timeio` 的 put 侧会把不认识的序列连同 `%` 一起字面回显（与 `strftime` 对真正未知
  * 说明符的行为一致），使用户仅写了 `%c` / `%x` 却得到含 `%` 的输出，并可能被 get 侧
  * 静默读回错值。本函数在 locale 数据进入本库时做一次转换：
@@ -870,7 +870,8 @@ std::basic_string<CharT> timeio_ascii(std::string_view text)
  *
  * A format string from the C library (`nl_langinfo()` on POSIX) is locale data, not something the user wrote,
  * and it may use glibc's extended syntax, whereas `timeio` implements only the
- * standard grammar `'%' [E|O]? <specifier>`. Left as-is, `timeio`'s put side echoes
+ * standard grammar (`%`, an optional `E` or `O` modifier, a specifier). Left as-is,
+ * `timeio`'s put side echoes
  * an unrecognized sequence literally together with its `%` (matching `strftime` for
  * genuinely unknown specifiers), so a user who wrote just `%c` or `%x` gets output
  * containing a `%`, which the get side may then read back as silently wrong values.
@@ -1062,7 +1063,7 @@ timeio_text<CharT> timeio_text_from(const TRaw& raw, TConv conv)
  * 后向纪元。以本机 glibc 数据实测，24 个带纪元数据的 locale 共 108 条记录，
  * 其中 18 条为后向纪元。
  * @tparam TEntry 目标配置类的 `era_entry`。
- * @param raw 后端读出的纪元，方向为原样的 `'+'` / `'-'`。
+ * @param raw 后端读出的纪元，方向为原样的 `+` 或 `-`。
  * @param conv 把窄字符串转成 `TEntry` 的字符串类型。
  * @return 规范化后的纪元条目。
  * @endif
@@ -1093,7 +1094,7 @@ timeio_text<CharT> timeio_text_from(const TRaw& raw, TConv conv)
  * 18 of the 108 records across the 24 locales that carry era data are
  * backward.
  * @tparam TEntry The target configuration's `era_entry`.
- * @param raw An era as the backend read it, its direction the `'+'` / `'-'` as written.
+ * @param raw An era as the backend read it, its direction the `+` or `-` as written.
  * @param conv Turns a narrow string into `TEntry`'s string type.
  * @return The era entry, normalized.
  * @endif

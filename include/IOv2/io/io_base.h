@@ -1241,6 +1241,8 @@ struct ios_state : public ios_base<TChar>
      * 调用方不必再为它包一层防御性的 `catch`。
      *
      * @param ex 要处理的异常指针；若为空指针则不做任何事。
+     * @param at_eof 为 `true` 时连同 `eofbit` 一起置位（失败时输入已到末尾）；`eof_error`
+     *        无论如何都只置 `eofbit`。
      * @tparam ignore_exception_mask `false`（默认）遵循异常掩码、可能（重）抛出；`true` 只登记
      *         失败位、不因掩码抛出，并绕过下述栈展开判定（供已确知不得抛出的上下文使用，如析构器）。
      * @note **栈展开期间本函数一律只置位、绝不抛出。** `ignore_exception_mask == false` 时先查
@@ -1293,6 +1295,8 @@ struct ios_state : public ios_base<TChar>
      * `catch` around it.
      *
      * @param ex The exception pointer to handle; does nothing if it is null.
+     * @param at_eof With `true`, `eofbit` is set along with the failure bit (the input had
+     *        reached its end when it failed); an `eof_error` sets `eofbit` alone either way.
      * @tparam ignore_exception_mask `false` (default) honors the exception mask and may
      *         (re)throw; `true` only records the failure bit, does not throw on account of the
      *         mask, and bypasses the unwinding check below (for a context already known to be

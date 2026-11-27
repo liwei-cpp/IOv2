@@ -381,7 +381,7 @@ public:
      * @lang{ZH}
      * @brief 将浮点值格式化并写入输出迭代器，委托给 `insert_float`。
      *
-     * 先加宽到 @ref float_carrier_t 选出的标准浮点类型，再据其选择 `snprintf` 修饰符：
+     * 先加宽到 `float_carrier_t` 选出的标准浮点类型，再据其选择 `snprintf` 修饰符：
      * `long double` 用 `'L'`，其他用空修饰符。
      *
      * @tparam TIter 输出迭代器类型。
@@ -395,7 +395,7 @@ public:
      * @lang{EN}
      * @brief Formats a floating-point value and writes it to the output iterator; delegates to `insert_float`.
      *
-     * The value is first widened to the standard floating-point type @ref float_carrier_t
+     * The value is first widened to the standard floating-point type `float_carrier_t`
      * selects, which also picks the `snprintf` modifier: `'L'` for `long double`, an empty
      * modifier for the others.
      *

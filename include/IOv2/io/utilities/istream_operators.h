@@ -504,7 +504,7 @@ concept extractable_with_iter = istream_type<T> &&
  *       各项一概不求，所以 `in_ctx_t` 不完整只可能发生在用户特化上。届时对它求
  *       `std::default_initializable` 是 IFNDR——libstdc++ 静默答假，libc++ 硬报错——且答案在本
  *       TU 内粘住，补全类型也不重求。本库探测不到这一格，只能靠 `traits_base.h`「解析上下文」
- *       一节的要求：`::type` 在特化可见之处就得完整。
+ *       一节的要求：成员 `::type` 在特化可见之处就得完整。
  * @endif
  *
  * @lang{EN}

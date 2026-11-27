@@ -622,7 +622,7 @@ public:
      * `detail::messages_locale_encoded`）。对不支持的字符类型（无 `messages_conf<TChar>`
      * 特化，如 `char16_t`），本函数是**编译期**错误（见内部 `static_assert`）。
      *
-     * @param domain 文本域名称（`.mo` 文件基名）。
+     * @param domain 文本域名称，即 `.mo` 文件的基名。
      * @param lang 候选语言字符串；为空（默认）表示按环境变量与系统语言偏好决定（见 `filter_lang`）。
      * @param throw_if_fail 翻译字典**加载失败**（`filter_lang` 选中的 `.mo` 文件存在但损坏 /
      *        截断，或无可用语言）时是否抛出。为 `false`（默认）静默降级为空（穿透）facet；为
@@ -738,7 +738,7 @@ public:
      * facet，返回的新 locale 会以本次绑定的 facet **替换**之（同 domain 亦然），与 `involve`
      * 的同 id 替换语义一致；`*this` 本身不被修改（写时拷贝）。
      *
-     * @param domain 文本域名称（`.mo` 文件基名）。
+     * @param domain 文本域名称，即 `.mo` 文件的基名。
      * @param lang 候选语言字符串；为空（默认）表示按环境变量与系统语言偏好决定（见 `filter_lang`）。
      * @param cvt 决定字符串编码的 locale 名；为空（默认）时取程序启动时解析得到的 `LC_CTYPE`，
      *        并以该有效值同时作为缓存键与构造参数。
