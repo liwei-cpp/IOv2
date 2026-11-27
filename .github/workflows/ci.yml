@@ -906,8 +906,10 @@ jobs:
         tmp="$(cygpath -m "$RUNNER_TEMP")"
         prefix="$tmp/iov2-configs"
         d="$tmp/consumer-configs"
-        # Each must fail, and on the diagnostic the library gives for it; '-' for
-        # cl's options, which Git Bash would rewrite as paths after a '/'.
+        # Each must fail, and on the diagnostic the library gives for it. Git Bash
+        # rewrites arguments that look like paths ('-FoD:/a/...' became 'A:\...'),
+        # so it is told to pass them to cl as written.
+        export MSYS2_ARG_CONV_EXCL='*'
         expect_fail() {
           what=$1 pattern=$2; shift 2
           if out=$("$@" 2>&1); then echo "[!] $what built"; exit 1; fi
