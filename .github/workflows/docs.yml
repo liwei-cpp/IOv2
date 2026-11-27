@@ -14,6 +14,12 @@ concurrency:
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  # Doxygen's own release rather than the runner's apt package (1.9.8 on
+  # ubuntu-24.04), which misreads this repository's @lang sections and leaves the
+  # two languages mixed in the published pages. The headers are kept free of
+  # warnings under this version. Raise the version and the hash together.
+  DOXYGEN_VERSION: 1.14.0
+  DOXYGEN_SHA256: e5d6ae24d0bf3f0cdc4d8f146726b89ca323922f19441af99b1872d503665ad6
 
 jobs:
   build:
@@ -26,15 +32,25 @@ jobs:
       - name: Install Doxygen
         run: |
           sudo apt-get update
-          sudo apt-get install -y doxygen graphviz
+          sudo apt-get install -y graphviz
+          tarball="doxygen-${DOXYGEN_VERSION}.linux.bin.tar.gz"
+          curl -fsSL -o "$RUNNER_TEMP/$tarball" \
+            "https://github.com/doxygen/doxygen/releases/download/Release_${DOXYGEN_VERSION//./_}/$tarball"
+          echo "$DOXYGEN_SHA256  $RUNNER_TEMP/$tarball" | sha256sum -c -
+          tar xzf "$RUNNER_TEMP/$tarball" -C "$RUNNER_TEMP"
+          echo "$RUNNER_TEMP/doxygen-${DOXYGEN_VERSION}/bin" >> "$GITHUB_PATH"
 
       - name: Generate Docs
         run: |
+          doxygen --version
           mkdir -p docs
           touch docs/.nojekyll
-          # Doxygen will generate en/ and zh/ subdirectories
-          doxygen doxygen/Doxyfile.zh
-          doxygen doxygen/Doxyfile.en
+          # Doxygen will generate en/ and zh/ subdirectories. A warning fails the
+          # job, and on main the deploy with it: here rather than in the Doxyfiles,
+          # so that a local run with another Doxygen still produces the pages.
+          for lang in zh en; do
+            ( cat "doxygen/Doxyfile.$lang"; echo "WARN_AS_ERROR = FAIL_ON_WARNINGS" ) | doxygen -
+          done
           # The generated site republishes the source as HTML, so ship the
           # complete permission notice alongside its SPDX-marked listings.
           install -m 0644 LICENSE NOTICE PROVENANCE.md docs/
